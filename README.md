@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570)
 ![alt text](autode/common/llogo.png)
 ***
 ## Introduction
