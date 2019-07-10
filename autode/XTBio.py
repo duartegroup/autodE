@@ -35,7 +35,7 @@ def run_xtb(xyz_filename, opt=True, charge=0, scan_ids=None, solvent=None, curr_
         out_filename = xyz_filename.replace('.xyz', '_xtb.out')
 
     out_lines = get_out_lines_if_finished(out_filename)
-    if out_lines is not None and opt:
+    if out_lines is not None and scan_ids is None and opt:
         return out_lines
 
     with open(out_filename, 'w') as xtb_out:
