@@ -10,7 +10,7 @@ profiles from just SMILES strings of reactant(s) and product(s).
 
 ## Installation
 
-If the requirements are already satisfied to install *autodE* as a module
+If the requirements are already satisfied to install **autodE** as a module
 ```
 python setup.py install
 ```
