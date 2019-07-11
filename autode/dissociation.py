@@ -5,6 +5,9 @@ from .pes_1d import get_orca_ts_guess_1dpes_scan
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
 from .pes_2d import get_orca_ts_guess_2d
 from .geom import get_valid_mappings_frags_to_whole_graph
+from .templates import get_ts_templates
+from .templates import get_matching_ts_template
+from .transition_state import get_aaenv_dists
 from .optts import get_ts
 from .reactions import Dissociation
 
@@ -56,6 +59,30 @@ def find_breaking_bond_ids(reaction):
     logger.info('Found *{}* breaking bonds'.format(len(bbond_atom_ids_list)))
 
     return bbond_atom_ids_list
+
+
+def get_ts_guess_template(reactant, bbond_atom_ids_and_dists):
+
+    ts_guess_templates = get_ts_templates(reaction_class=Dissociation)
+    reactant_aaenv_dists = get_aaenv_dists(active_bonds=list(bbond_atom_ids_and_dists.keys()),
+                                           xyzs=reactant.xyzs, distance_matrix=reactant.distance_matrix)
+
+    matching_template = get_matching_ts_template(mol=reactant, mol_aaenvs=reactant_aaenv_dists.keys(),
+                                                 ts_guess_templates=ts_guess_templates)
+
+    if matching_template is not None:
+
+        exit()
+
+
+
+
+
+
+
+        pass
+
+    return exit()
 
 
 def get_orca_ts_guess_coarse(reactant, bbond_atom_ids_and_dists):
@@ -130,9 +157,11 @@ def get_ts_guess_functions(bbond_ids):
     """
 
     if len(bbond_ids) == 1:
-        return [get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]  # get_xtb_ts_guess_breaking_bond
+        return [get_ts_guess_template, get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]
+        # also have the nor very good: get_xtb_ts_guess_breaking_bond
     elif len(bbond_ids) == 2:
-        return [get_orca_ts_guess_2d_breaking_bonds]                     # get_xtb_ts_guess_2d
+        return [get_ts_guess_template, get_orca_ts_guess_2d_breaking_bonds]
+        # also have the nor very good: get_xtb_ts_guess_2d
     else:
         logger.critical('Can\'t yet handle >2 or 0 bonds changing')
         exit()

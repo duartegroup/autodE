@@ -2,8 +2,11 @@ from setuptools import setup
 
 setup(
     name='autode',
-    version='1.0.0',
+    version='v1.0.0-alpha',
     packages=['autode'],
+    include_package_data=True,
+    package_data={'': ['lib/Addition/*.obj', 'lib/Dissociation/*.obj', 'lib/Elimination/*.obj',
+                       'lib/Rearrangement/*.obj', 'lib/Substitution/*.obj']},
     url='',
     license='MIT',
     author='Tom Young',

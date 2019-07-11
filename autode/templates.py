@@ -12,6 +12,38 @@ with TS templates which can be searched through..
 """
 import pickle
 import os
+from .log import logger
+
+
+def get_ts_templates(reaction_class):
+    logger.info('Getting TS templates from {}/{}'.format('lib', reaction_class.__name__))
+
+    folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
+    if os.path.exists(folder_name):
+        return [pickle.load(open(file_name, 'rb')) for file_name in os.listdir(folder_name)]
+    return []
+
+
+def get_matching_ts_template(mol, mol_aaenvs, ts_guess_templates):
+
+    print(ts_guess_templates)
+    print(ts_guess_templates[0].solvent)
+
+    for ts_guess_template in ts_guess_templates:
+        print('here1')
+
+        if ts_guess_template.solvent == mol.solvent:
+            print('here2')
+
+            if ts_guess_template.charge == mol.charge:
+                print('here3')
+
+                if ts_guess_template.mult == mol.mult:
+                    print('here4')
+                    if ts_guess_template.aaenv_dists.keys() == mol_aaenvs:
+                        logger.info('Found TS template')
+                        return ts_guess_template
+    return None
 
 
 class ActiveAtomEnvironment(object):
@@ -32,7 +64,10 @@ class TStemplate(object):
     def save_object(self, basename='template'):
 
         name, i = basename + '0', 0
-        folder_name = self.reaction_class.__name__
+        folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
+        if not os.path.exists(folder_name):
+            os.mkdir(folder_name)
+
         while True:
             if not os.path.exists(os.path.join(folder_name, name + '.obj')):
                 break
@@ -58,19 +93,3 @@ class TStemplate(object):
         self.solvent = solvent
         self.charge = charge
         self.mult = mult
-
-
-if __name__ == '__main__':
-
-    from autode import reactions
-
-    tmp_ts_template = TStemplate(aaenv_dists=[{(ActiveAtomEnvironment('C', ['C', 'C', 'O']),
-                                                ActiveAtomEnvironment('C', ['N'])): 2.061}],
-                                 reaction_class=reactions.Addition,
-                                 solvent='water',
-                                 charge=-1)
-
-    # tmp_ts_template.save_object()
-
-    test_obj = pickle.load(open('Addition/template0.obj', 'rb'))
-    print(test_obj.solvent)
