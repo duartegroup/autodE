@@ -36,14 +36,15 @@ def get_ts(ts_guess, imag_freq_threshold=-50):
         if ts_has_correct_imaginary_vector(ts_guess.optts_out_lines, n_atoms=len(ts_guess.xyzs),
                                            active_atom_pairs=ts_guess.bonds_to_add):
 
-            print(ts_guess.solvent)
-
             if ts_guess.optts_converged:
-                return TS(imag_freqs, ts_xyzs, ts_energy, solvent=ts_guess.solvent, active_bonds=ts_guess.bonds_to_add,
+                return TS(imag_freqs, ts_xyzs, ts_energy, solvent=ts_guess.solvent, charge=ts_guess.charge,
+                          mult=ts_guess.mult, active_bonds=ts_guess.bonds_to_add,
                           reaction_class=ts_guess.reaction_class)
+
             if ts_guess.optts_nearly_converged:
                 return TS(imag_freqs, ts_xyzs, ts_energy, solvent=ts_guess.solvent, converged=False,
-                          active_bonds=ts_guess.bonds_to_add, reaction_class=ts_guess.reaction_class)
+                          charge=ts_guess.charge, mult=ts_guess.mult, active_bonds=ts_guess.bonds_to_add,
+                          reaction_class=ts_guess.reaction_class)
 
     return None
 

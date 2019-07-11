@@ -64,10 +64,11 @@ def find_breaking_bond_ids(reaction):
 def get_ts_guess_template(reactant, bbond_atom_ids_and_dists):
 
     ts_guess_templates = get_ts_templates(reaction_class=Dissociation)
+
     reactant_aaenv_dists = get_aaenv_dists(active_bonds=list(bbond_atom_ids_and_dists.keys()),
                                            xyzs=reactant.xyzs, distance_matrix=reactant.distance_matrix)
 
-    matching_template = get_matching_ts_template(mol=reactant, mol_aaenvs=reactant_aaenv_dists.keys(),
+    matching_template = get_matching_ts_template(mol=reactant, mol_aaenvs_dists=reactant_aaenv_dists,
                                                  ts_guess_templates=ts_guess_templates)
 
     if matching_template is not None:
@@ -158,6 +159,7 @@ def get_ts_guess_functions(bbond_ids):
 
     if len(bbond_ids) == 1:
         return [get_ts_guess_template, get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]
+        # return [get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]
         # also have the nor very good: get_xtb_ts_guess_breaking_bond
     elif len(bbond_ids) == 2:
         return [get_ts_guess_template, get_orca_ts_guess_2d_breaking_bonds]

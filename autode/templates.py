@@ -20,14 +20,11 @@ def get_ts_templates(reaction_class):
 
     folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
     if os.path.exists(folder_name):
-        return [pickle.load(open(file_name, 'rb')) for file_name in os.listdir(folder_name)]
+        return [pickle.load(open(os.path.join(folder_name, filename), 'rb')) for filename in os.listdir(folder_name)]
     return []
 
 
-def get_matching_ts_template(mol, mol_aaenvs, ts_guess_templates):
-
-    print(ts_guess_templates)
-    print(ts_guess_templates[0].solvent)
+def get_matching_ts_template(mol, mol_aaenvs_dists, ts_guess_templates):
 
     for ts_guess_template in ts_guess_templates:
         print('here1')
@@ -40,10 +37,29 @@ def get_matching_ts_template(mol, mol_aaenvs, ts_guess_templates):
 
                 if ts_guess_template.mult == mol.mult:
                     print('here4')
-                    if ts_guess_template.aaenv_dists.keys() == mol_aaenvs:
-                        logger.info('Found TS template')
-                        return ts_guess_template
+
+                    mol_aaenvs = list(mol_aaenvs_dists.keys())
+                    ts_template_aaenvs = list(ts_guess_template.aaenv_dists.keys())
+
+                    if len(mol_aaenvs) == len(ts_template_aaenvs):
+                        equal = True
+
+                        for i in range(len(mol_aaenvs)):
+                            if not is_aaenv_equal(mol_aaenvs[i][0], ts)
+
+                            
+                        if all():
+                            logger.info('Found TS template')
+                            return ts_guess_template
     return None
+
+
+def is_aaenv_equal(aaenv1, aaenv2):
+
+    if aaenv1.atom_label == aaenv2.atom_label:
+        if set(aaenv1.bonded_atom_labels) == set(aaenv2.bonded_atom_labels):
+            return True
+    return False
 
 
 class ActiveAtomEnvironment(object):
@@ -80,7 +96,7 @@ class TStemplate(object):
     def __init__(self, aaenv_dists, reaction_class, solvent=None, charge=0, mult=1):
         """
         Construct a TS template object
-        :param aaenv_dists: list(dict) List of dictionaries keyed with ActiveAtomEnvironment object pairs with the value
+        :param aaenv_dists: (dict) List of dictionaries keyed with ActiveAtomEnvironment object pairs with the value
         of the distance found previously at the TS
         :param reaction_class; (object) Addition/Dissociation/Elimination/Rearrangement/Substitution reaction
         :param solvent: (str)
