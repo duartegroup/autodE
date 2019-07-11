@@ -11,6 +11,7 @@ from .geom import calc_rotation_matrix
 from .dissociation import find_ts_breaking_bond
 from .pes_2d import get_orca_ts_guess_2d
 from .bond_lengths import get_avg_bond_length
+from .reactions import Substitution
 from .optts import get_ts
 
 
@@ -149,11 +150,9 @@ def get_attack_vector_nuc_atom(reac_xyzs, nuc_atom_id):
 
 
 def find_ts_2d_scan(reac_complex, fbond, bbond):
-    ts_guess_xyzs = get_ts_guess_2d_scan(reac_complex, fbond, bbond)
+    ts_guess = get_ts_guess_2d_scan(reac_complex, fbond, bbond)
 
-    transition_state = get_ts(ts_guess_xyzs, reac_complex.charge, reac_complex.mult, reac_complex.solvent,
-                              bond_ids_to_add=[fbond, bbond])
-    return transition_state
+    return get_ts(ts_guess)
 
 
 def get_ts_guess_2d_scan(reac_complex, fbond, bbond, max_bond_dist_add=1.5):
@@ -165,5 +164,6 @@ def get_ts_guess_2d_scan(reac_complex, fbond, bbond, max_bond_dist_add=1.5):
 
     bbond_curr_dist = reac_complex.distance_matrix[bbond[0], bbond[1]]
     bbond_final_dist = bbond_curr_dist + max_bond_dist_add
-    return get_orca_ts_guess_2d(reactant=reac_complex, bond_ids=[fbond, bbond], curr_dist1=fbond_curr_dist,
-                                final_dist1=fbond_final_dist, curr_dist2=bbond_curr_dist, final_dist2=bbond_final_dist)
+    return get_orca_ts_guess_2d(mol=reac_complex, bond_ids=[fbond, bbond], curr_dist1=fbond_curr_dist,
+                                final_dist1=fbond_final_dist, curr_dist2=bbond_curr_dist, final_dist2=bbond_final_dist,
+                                reaction_class=Substitution)

@@ -1,11 +1,10 @@
 from .log import logger
-from .transition_state import TS
 from .atoms import valid_valances
 from .bond_lengths import get_avg_bond_length
 from .mol_graphs import is_isomorphic
-from .optts import get_orca_optts_out
-from .ORCAio import get_imag_frequencies_xyzs_energy_optts
+from .optts import get_ts
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
+from .reactions import Rearrangement
 
 
 def find_tss(reaction):
@@ -20,23 +19,15 @@ def find_tss(reaction):
     fbond_and_bbond_ids = get_forming_and_breaking_bonds(reactant, product)
 
     for fbond_ids, bbond_ids in fbond_and_bbond_ids.items():
-        for ts_guess_func in [get_xtb_ts_guess_forming_bond]:
+        for ts_guess_func in [get_xtb_ts_guess_forming_bond]:           # TODO more generality
             logger.info('Guessing at a TS geometry')
-            ts_guess_xyzs = ts_guess_func(reactant, fbond_ids)
+            ts_guess = ts_guess_func(reactant, fbond_ids)
+            ts_guess.name = ts_guess_func.__name__ + '_' + str(fbond_ids[0]) + str(fbond_ids[1]) + '_TS'
 
-            if ts_guess_xyzs is not None:
+            if ts_guess.xyzs is not None:
                 logger.info('Found a TS guess geometry with ' + ts_guess_func.__name__)
-                optts_name = ts_guess_func.__name__ + '_' + str(fbond_ids[0]) + str(fbond_ids[1]) + '_TS'
-                orca_out_lines = get_orca_optts_out(ts_guess_xyzs, reactant.charge, reactant.mult,
-                                                    reactant.solvent, name=optts_name,
-                                                    bond_ids_to_add=[fbond_ids])
-                imag_freqs, ts_xyzs, ts_energy = get_imag_frequencies_xyzs_energy_optts(orca_out_lines)
-
-                if len(imag_freqs) == 1:
-                    logger.info('Found TS with 1 imaginary frequency')
-                    tss.append(TS(imag_freqs, ts_xyzs, ts_energy))
-                else:
-                    logger.warning('OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
+                ts = get_ts(ts_guess)
+                tss.append(ts)
 
     return tss
 
@@ -44,10 +35,13 @@ def find_tss(reaction):
 def get_xtb_ts_guess_forming_bond(reactant, fbond_ids, n_steps=20):
     atom_i, atom_j = fbond_ids
     logger.info('Performing XTB relaxed PES scan along atoms {}, {}'.format(atom_i, atom_j))
+
     atom_labels = [xyz[0] for xyz in reactant.xyzs]
     curr_fbond_dist = reactant.distance_matrix[atom_i][atom_j]
     final_fbond_dist = get_avg_bond_length(atom_labels[atom_i], atom_labels[atom_j])
-    return get_xtb_ts_guess_1dpes_scan(reactant, fbond_ids, curr_fbond_dist, final_fbond_dist, n_steps)
+
+    return get_xtb_ts_guess_1dpes_scan(reactant, fbond_ids, curr_fbond_dist, final_fbond_dist, n_steps,
+                                       reaction_class=Rearrangement)
 
 
 def get_forming_and_breaking_bonds(reactant, product):

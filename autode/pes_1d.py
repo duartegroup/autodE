@@ -7,9 +7,10 @@ from .ORCAio import gen_orca_inp
 from .ORCAio import run_orca
 from .ORCAio import get_orca_scan_values_xyzs_energies
 from .input_output import xyzs2xyzfile
+from .ts_guess import TSguess
 
 
-def get_orca_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, orca_keywords, name):
+def get_orca_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, orca_keywords, name, reaction_class):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
@@ -19,7 +20,8 @@ def get_orca_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, 
     :param n_steps: (int) Number of scan steps to use in the XTB scan
     :param orca_keywords: (list) ORCA keywords to use
     :param name: (str)
-    :return: List of xyzs
+    :param reaction_class: (object) class of the reaction (reactions.py)
+    :return: TSguess object
     """
     logger.info('Getting TS guess from ORCA relaxed potential energy scan')
 
@@ -29,11 +31,13 @@ def get_orca_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, 
 
     orca_out_lines = run_orca(scan_inp_filename, out_filename=scan_inp_filename.replace('.inp', '.out'))
     dist_xyzs_energies = get_orca_scan_values_xyzs_energies(orca_out_lines)
+    ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
-    return find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
+    return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
+                   charge=mol.charge, mult=mol.mult, bonds_to_add=[atom_ids])
 
 
-def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps):
+def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, reaction_class):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
@@ -41,6 +45,7 @@ def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps):
     :param curr_dist: (float) Current distance (Å)
     :param final_dist: (float) Final distance (Å)
     :param n_steps: (int) Number of scan steps to use in the XTB scan
+    :param reaction_class: (object) class of the reaction (reactions.py)
     :return: List of xyzs
     """
     logger.info('Getting TS guess from XTB relaxed potential energy scan')
@@ -50,8 +55,10 @@ def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps):
             solvent=mol.solvent, curr_dist=curr_dist, final_dist=final_dist,
             n_steps=n_steps)
     dist_xyzs_energies = get_xtb_scan_xyzs_energies(values=np.linspace(curr_dist, final_dist, n_steps))
+    ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
-    return find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
+    return TSguess(reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent, charge=mol.charge,
+                   mult=mol.mult, bonds_to_add=[atom_ids])
 
 
 def find_1dpes_maximum_energy_xyzs(dist_xyzs_energies_dict):

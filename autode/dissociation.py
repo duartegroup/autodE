@@ -3,9 +3,10 @@ from .log import logger
 from .geom import get_breaking_bond_atom_id_dist_dict
 from .pes_1d import get_orca_ts_guess_1dpes_scan
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
-from .pes_2d import get_orca_ts_guess_2d_breaking_bonds
+from .pes_2d import get_orca_ts_guess_2d
 from .geom import get_valid_mappings_frags_to_whole_graph
 from .optts import get_ts
+from .reactions import Dissociation
 
 
 def find_ts(reaction):
@@ -32,15 +33,15 @@ def find_ts_breaking_bond(reactant, bbonds):
 
     for ts_guess_func in get_ts_guess_functions(bbonds):
         logger.info('Guessing at a TS geometry')
-        ts_guess_xyzs = ts_guess_func(reactant, bbond_atom_ids_and_dists)
+        ts_guess = ts_guess_func(reactant, bbond_atom_ids_and_dists)
 
-        if ts_guess_xyzs is not None:
+        if ts_guess.xyzs is not None:
             logger.info('Found a TS guess geometry with ' + ts_guess_func.__name__)
-            for ts_opt_func in [get_ts]:
-                transition_state = ts_opt_func(ts_guess_xyzs, reactant.charge, reactant.mult, reactant.solvent,
-                                               ts_guess_func.__name__ + '_TS', bbonds)
-                if transition_state:
-                    return transition_state
+            ts_guess.name = ts_guess_func.__name__ + '_TS'
+
+            transition_state = get_ts(ts_guess)
+            if transition_state is not None:
+                return transition_state
     return None
 
 
@@ -61,7 +62,7 @@ def get_orca_ts_guess_coarse(reactant, bbond_atom_ids_and_dists):
     logger.info('Running a coarse PES scan with keywords set in Config')
     atom_ids, dist = list(bbond_atom_ids_and_dists.items())[0]
     return get_orca_ts_guess_1dpes_scan(reactant, atom_ids, dist, final_dist=dist+1.5,  n_steps=10,
-                                        orca_keywords=Config.scan_keywords, name='default')
+                                        orca_keywords=Config.scan_keywords, name='default', reaction_class=Dissociation)
 
 
 def get_orca_ts_guess_coarse_alt(reactant, bbond_atom_ids_and_dists):
@@ -69,12 +70,35 @@ def get_orca_ts_guess_coarse_alt(reactant, bbond_atom_ids_and_dists):
     kws = ['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
     atom_ids, dist = list(bbond_atom_ids_and_dists.items())[0]
     return get_orca_ts_guess_1dpes_scan(reactant, atom_ids, dist, final_dist=dist+1.5, n_steps=10,
-                                        orca_keywords=kws, name='alt')
+                                        orca_keywords=kws, name='alt', reaction_class=Dissociation)
 
 
 def get_xtb_ts_guess_breaking_bond(reactant, bbond_atom_ids_and_dists):
     atom_ids, dist = list(bbond_atom_ids_and_dists.items())[0]
-    return get_xtb_ts_guess_1dpes_scan(reactant, atom_ids, dist, final_dist=dist+1.5, n_steps=20)
+    return get_xtb_ts_guess_1dpes_scan(reactant, atom_ids, dist, final_dist=dist+1.5, n_steps=20,
+                                       reaction_class=Dissociation)
+
+
+def get_orca_ts_guess_2d_breaking_bonds(mol, bbond_atom_ids_and_dists, reaction_class=Dissociation, name='2d',
+                                        max_bond_dist_add=1.5, n_steps=7, orca_keywords=Config.scan_keywords):
+    """
+    Get a TS guess from a 2d orca scan when two bonds are broken
+    :param mol: molecule object
+    :param bbond_atom_ids_and_dists: (dict) tuples of breaking bond atom ids and floats of current distance
+    :param reaction_class: class of the reaction (reactions.py)
+    :param max_bond_dist_add: (float) maximum distance to add in the breaking (Å)
+    :param n_steps: (int) number of scan steps to perform in each dimenesion for n_steps^2 total number
+    :param name: (str) name of the TS
+    :param orca_keywords: (list) list of ORCA keywords to use in the calculation
+    :return:
+    """
+
+    bond_ids, curr_bond_dists = list(bbond_atom_ids_and_dists.keys()), list(bbond_atom_ids_and_dists.values())
+    curr_dist1, curr_dist2 = curr_bond_dists[0], curr_bond_dists[1]
+    final_dist1, final_dist2 = curr_bond_dists[0] + max_bond_dist_add, curr_bond_dists[1] + max_bond_dist_add
+
+    return get_orca_ts_guess_2d(mol, bond_ids, curr_dist1, final_dist1, curr_dist2, final_dist2, reaction_class,
+                                n_steps, name, orca_keywords)
 
 
 def get_breaking_bond_ids(reactant_graph, valid_mappings):

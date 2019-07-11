@@ -9,6 +9,7 @@ from .ORCAio import gen_orca_inp
 from .ORCAio import run_orca
 from .ORCAio import get_orca_scan_values_xyzs_energies
 from .plotting import plot_2dpes
+from .ts_guess import TSguess
 
 
 def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict):
@@ -74,46 +75,28 @@ def polyfit2d(x, y, z):  # order=2
     return m
 
 
-def get_orca_ts_guess_2d_breaking_bonds(reactant, bbond_atom_ids_and_dists, max_bond_dist_add=1.5, n_steps=7, name='2d',
-                                        orca_keywords=Config.scan_keywords):
-    """
-    Get a TS guess from a 2d orca scan when two bonds are broken
-    :param reactant: molecule object
-    :param bbond_atom_ids_and_dists: (dict) tuples of breaking bond atom ids and floats of current distance
-    :param max_bond_dist_add: (float) maximum distance to add in the breaking (Å)
-    :param n_steps: (int) number of scan steps to perform in each dimenesion for n_steps^2 total number
-    :param name: (str) name of the TS
-    :param orca_keywords: (list) list of ORCA keywords to use in the calculation
-    :return:
-    """
-
-    bond_ids, curr_bond_dists = list(bbond_atom_ids_and_dists.keys()), list(bbond_atom_ids_and_dists.values())
-    curr_dist1, curr_dist2 = curr_bond_dists[0], curr_bond_dists[1]
-    final_dist1, final_dist2 = curr_bond_dists[0] + max_bond_dist_add, curr_bond_dists[1] + max_bond_dist_add
-
-    return get_orca_ts_guess_2d(reactant, bond_ids, curr_dist1, final_dist1, curr_dist2, final_dist2,
-                                n_steps, name, orca_keywords)
-
-
-def get_orca_ts_guess_2d(reactant, bond_ids, curr_dist1, final_dist1, curr_dist2, final_dist2, n_steps=7, name='2d',
-                         orca_keywords=Config.scan_keywords):
+def get_orca_ts_guess_2d(mol, bond_ids, curr_dist1, final_dist1, curr_dist2, final_dist2, reaction_class,
+                         n_steps=7, name='2d', orca_keywords=Config.scan_keywords):
     logger.info('Getting TS guess from 2D ORCA relaxed potential energy scan')
 
     reac_scan_inp_filename = name + '_orca_scan.inp'
-    gen_orca_inp(reac_scan_inp_filename, orca_keywords, reactant.xyzs, reactant.charge, reactant.mult,
-                 reactant.solvent, Config.n_cores, scan_ids=bond_ids[0], curr_dist1=curr_dist1, final_dist1=final_dist1,
+    gen_orca_inp(reac_scan_inp_filename, orca_keywords, mol.xyzs, mol.charge, mol.mult,
+                 mol.solvent, Config.n_cores, scan_ids=bond_ids[0], curr_dist1=curr_dist1, final_dist1=final_dist1,
                  curr_dist2=curr_dist2, final_dist2=final_dist2, n_steps=n_steps, scan_ids2=bond_ids[1])
 
     orca_out_lines = run_orca(reac_scan_inp_filename, out_filename=reac_scan_inp_filename.replace('.inp', '.out'))
 
     dists_xyzs_energies = get_orca_scan_values_xyzs_energies(orca_out_lines, scan_2d=True)
-    return find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
+    ts_guess_xyzs = find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
+
+    return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
+                   charge=mol.charge, mult=mol.mult, bonds_to_add=bond_ids)
 
 
-def get_xtb_ts_guess_2d(reactant, bbond_atom_ids_and_dists, max_bond_dist_add=1.5, n_steps=15):
+def get_xtb_ts_guess_2d(mol, bbond_atom_ids_and_dists, reaction_class, max_bond_dist_add=1.5, n_steps=15):
     logger.info('Getting TS guess from 2D XTB relaxed potential energy scan')
 
-    reac_xyz_filename = xyzs2xyzfile(reactant.xyzs, basename=reactant.name)
+    reac_xyz_filename = xyzs2xyzfile(mol.xyzs, basename=mol.name)
     dists_xyzs_energies, xyzs, energies = {}, [], []
 
     curr_bond_dist1, curr_bond_dist2 = list(bbond_atom_ids_and_dists.values())
@@ -121,7 +104,7 @@ def get_xtb_ts_guess_2d(reactant, bbond_atom_ids_and_dists, max_bond_dist_add=1.
 
     bond_ids1, bond_ids2 = list(bbond_atom_ids_and_dists.keys())
     for dist_constraint in np.linspace(curr_bond_dist1, final_dist, n_steps):
-        run_xtb(reac_xyz_filename, charge=reactant.charge, scan_ids=bond_ids2, solvent=reactant.solvent,
+        run_xtb(reac_xyz_filename, charge=mol.charge, scan_ids=bond_ids2, solvent=mol.solvent,
                 n_steps=n_steps, bond_constraints={bond_ids1: dist_constraint},
                 out_filename=str(dist_constraint) + '_scan_xtb.out')
         dist2s_xyzs_energies = get_xtb_scan_xyzs_energies(values=np.linspace(curr_bond_dist1, final_dist, n_steps))
@@ -129,4 +112,7 @@ def get_xtb_ts_guess_2d(reactant, bbond_atom_ids_and_dists, max_bond_dist_add=1.
         for dist2 in dist2s_xyzs_energies.keys():
             dists_xyzs_energies[(dist_constraint, dist2)] = dist2s_xyzs_energies[dist2]
 
-    return find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
+    ts_guess_xyzs = find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
+
+    return TSguess(reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
+                   charge=mol.charge, mult=mol.mult, bonds_to_add=[bond_ids1, bond_ids2])
