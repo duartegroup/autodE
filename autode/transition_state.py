@@ -1,67 +1,49 @@
 from .log import logger
 from .config import Config
+from .ORCAio import get_imag_frequencies_xyzs_energy_optts
 from .single_point import get_single_point_energy
-from .bond_lengths import get_xyz_bond_list
 from .geom import calc_distance_matrix
-from autode.templates import ActiveAtomEnvironment
+from . import mol_graphs
 from autode.templates import TStemplate
-
-
-def get_bonded_atom_labels_atom_i(xyzs, bond_list, atom_i):
-
-    bonded_atom_labels = []
-
-    for bond in bond_list:
-        if atom_i in bond:
-            if atom_i == bond[0]:
-                bonded_atom_labels.append(xyzs[bond[1]][0])                     # Pick the non active bonded atom label
-            if atom_i == bond[1]:
-                bonded_atom_labels.append(xyzs[bond[0]][0])
-
-    return bonded_atom_labels
-
-
-def get_bond_list_non_active_atoms(active_bonds, xyzs):
-    logger.info('Getting list of bonds not containing the active atoms')
-    bond_list = get_xyz_bond_list(xyzs)
-    active_atoms = [atom_id for bond in active_bonds for atom_id in bond]
-
-    for bond in bond_list:
-        if any([atom_id in active_atoms for atom_id in bond_list]):
-            bond_list.remove(bond)
-
-    return bond_list
-
-
-def get_aaenv_dists(active_bonds, xyzs, distance_matrix):
-    logger.info('Getting aaenv_dists')
-    bond_list_non_active_atoms = get_bond_list_non_active_atoms(active_bonds, xyzs)
-
-    aaenv_dists = {}
-
-    for bond_ids in active_bonds:
-        bond_aaenvs = []
-        for atom_id in bond_ids:
-            bonded_atom_labels = get_bonded_atom_labels_atom_i(xyzs, bond_list_non_active_atoms, atom_id)
-
-            bond_aaenvs.append(ActiveAtomEnvironment(atom_label=xyzs[atom_id][0],
-                                                     bonded_atom_labels=bonded_atom_labels))
-
-        aaenv_dists[tuple(bond_aaenvs)] = distance_matrix[bond_ids[0], bond_ids[1]]
-
-    return aaenv_dists
 
 
 class TS(object):
 
+    def make_graph(self):
+        logger.info('Making TS graph with \'active\' edges')
+
+        full_graph = mol_graphs.make_graph(self.xyzs, n_atoms=len(self.xyzs))
+        distance_matrix = calc_distance_matrix(self.xyzs)
+
+        for bond in self.active_bonds:
+            atom_i, atom_j = bond
+            full_graph.add_edge(atom_i, atom_j, active=True, weight=distance_matrix[atom_i, atom_j])
+
+        nodes_to_keep = self.active_atoms.copy()
+        for edge in full_graph.edges():
+            node_i, node_j = edge
+            if node_i in self.active_atoms:
+                nodes_to_keep.append(node_j)
+            if node_j in self.active_atoms:
+                nodes_to_keep.append(node_i)
+
+        self.graph = full_graph
+
+        nodes_list = list(full_graph.nodes()).copy()
+        truncated_graph = full_graph.copy()
+        [truncated_graph.remove_node(node) for node in nodes_list if node not in nodes_to_keep]
+        self.truncated_graph = truncated_graph
+
     def save_ts_template(self):
         logger.info('Saving TS template')
-        aaenv_dists = get_aaenv_dists(self.active_bonds, self.xyzs, self.distance_matrix)
+        try:
+            ts_template = TStemplate(self.truncated_graph, reaction_class=self.reaction_class, solvent=self.solvent,
+                                     charge=self.charge, mult=self.mult)
+            ts_template.save_object()
+            logger.info('Saved TS template')
 
-        ts_template = TStemplate(aaenv_dists, reaction_class=self.reaction_class, solvent=self.solvent,
-                                 charge=self.charge, mult=self.mult)
-        ts_template.save_object()
-        logger.info('Saved TS template')
+        except ValueError or AttributeError:
+            logger.error('Could not save TS template')
 
     def single_point(self):
         self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)
@@ -72,26 +54,23 @@ class TS(object):
         else:
             return False
 
-    def __init__(self, imag_freqs=None, xyzs=None, energy=None, name='TS', solvent=None, charge=0, mult=1,
-                 converged=True, active_bonds=None, reaction_class=None):
-        """
-        Generate a TS object
-        :param imag_freqs: (list) List of imaginary frequencies given as negative value
-        """
+    def __init__(self, ts_guess, name='TS',converged=True):
         logger.info('Generating a TS object for {}'.format(name))
 
         self.name = name
-        self.xyzs = xyzs
-        self.energy = energy
-        self.solvent = solvent
-        self.charge = charge
-        self.mult = mult
+        self.solvent = ts_guess.solvent
+        self.charge = ts_guess.charge
+        self.mult = ts_guess.mult
         self.converged = converged
-        self.imag_freqs = imag_freqs
 
-        self.active_bonds = active_bonds
-        self.reaction_class = reaction_class
+        self.imag_freqs, self.xyzs, self.energy = get_imag_frequencies_xyzs_energy_optts(ts_guess.optts_out_lines)
 
-        if xyzs is not None and active_bonds is not None and reaction_class is not None:
-            self.distance_matrix = calc_distance_matrix(self.xyzs)
-            self.save_ts_template()
+        self.active_bonds = ts_guess.active_bonds
+        self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
+        self.reaction_class = ts_guess.reaction_class
+
+        self.graph = None
+        self.truncated_graph = None
+        self.make_graph()
+
+        self.save_ts_template()

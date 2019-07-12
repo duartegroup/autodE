@@ -27,7 +27,7 @@ def find_ts(reaction):
     fbond, bbond = get_forming_and_breaking_bonds(reac_complex, prod_complex)
     reac_complex.xyzs = get_complex_xyzs_translated_rotated(reac_complex, reaction.reacs[0], fbond, bbond)
 
-    ts_breaking_bond_scan = find_ts_breaking_bond(reactant=reac_complex, bbonds=[bbond])
+    ts_breaking_bond_scan = find_ts_breaking_bond(reactant=reac_complex, bbonds=[bbond], fbonds=[fbond])
     if ts_breaking_bond_scan is not None:
         return ts_breaking_bond_scan
 

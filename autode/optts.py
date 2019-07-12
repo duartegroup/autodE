@@ -26,25 +26,22 @@ def get_ts(ts_guess, imag_freq_threshold=-50):
 
     if ts_guess.optts_converged or ts_guess.optts_nearly_converged:
         imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
+        if len(imag_freqs) > 0:
 
-        if imag_freqs[0] > imag_freq_threshold:
-            logger.warning('Probably haven\'t found the correct TS {} > {} cm-1'.format(imag_freqs[0],
-                                                                                        imag_freq_threshold))
-        if len(imag_freqs) == 1:
-            logger.info('Found TS with 1 imaginary frequency')
+            if imag_freqs[0] > imag_freq_threshold:
+                logger.warning('Probably haven\'t found the correct TS {} > {} cm-1'.format(imag_freqs[0],
+                                                                                            imag_freq_threshold))
+            if len(imag_freqs) == 1:
+                logger.info('Found TS with 1 imaginary frequency')
 
-        if ts_has_correct_imaginary_vector(ts_guess.optts_out_lines, n_atoms=len(ts_guess.xyzs),
-                                           active_atom_pairs=ts_guess.bonds_to_add):
+            if ts_has_correct_imaginary_vector(ts_guess.optts_out_lines, n_atoms=len(ts_guess.xyzs),
+                                               active_bonds=ts_guess.active_bonds):
 
-            if ts_guess.optts_converged:
-                return TS(imag_freqs, ts_xyzs, ts_energy, solvent=ts_guess.solvent, charge=ts_guess.charge,
-                          mult=ts_guess.mult, active_bonds=ts_guess.bonds_to_add,
-                          reaction_class=ts_guess.reaction_class)
+                if ts_guess.optts_converged:
+                    return TS(ts_guess)
 
-            if ts_guess.optts_nearly_converged:
-                return TS(imag_freqs, ts_xyzs, ts_energy, solvent=ts_guess.solvent, converged=False,
-                          charge=ts_guess.charge, mult=ts_guess.mult, active_bonds=ts_guess.bonds_to_add,
-                          reaction_class=ts_guess.reaction_class)
+                if ts_guess.optts_nearly_converged:
+                    return TS(ts_guess, converged=False)
 
     return None
 
@@ -103,7 +100,7 @@ def is_optts_nearly_converged(out_lines):
     return False
 
 
-def ts_has_correct_imaginary_vector(out_lines, n_atoms, active_atom_pairs, threshold_contribution=0.25):
+def ts_has_correct_imaginary_vector(out_lines, n_atoms, active_bonds, threshold_contribution=0.25):
     """
     For an orca output file check that the first imaginary mode (number 6) in the final frequency calculation
     contains the correct motion, i.e. contributes more than threshold_contribution in relative terms to the
@@ -111,14 +108,14 @@ def ts_has_correct_imaginary_vector(out_lines, n_atoms, active_atom_pairs, thres
 
     :param out_lines: (list)
     :param n_atoms: (int) number of atoms
-    :param active_atom_pairs: (list(tuples))
+    :param active_bonds: (list(tuples))
     :param threshold_contribution: (float) threshold contribution to the imaginary mode from the atoms in
     bond_ids_to_add
     :return:
     """
     logger.info('Checking the active atoms contribute more than {} to the imag mode'.format(threshold_contribution))
 
-    if active_atom_pairs is None:
+    if active_bonds is None:
         logger.info('Cannot determine whether the correct atoms contribute')
         return True
 
@@ -127,7 +124,7 @@ def ts_has_correct_imaginary_vector(out_lines, n_atoms, active_atom_pairs, thres
 
     should_be_active_atom_magnitudes = []
     for atom_id in range(n_atoms):
-        if any([atom_id in bond_ids for bond_ids in active_atom_pairs]):
+        if any([atom_id in bond_ids for bond_ids in active_bonds]):
             should_be_active_atom_magnitudes.append(imag_mode_magnitudes[atom_id])
 
     relative_contribution = np.sum(np.array(should_be_active_atom_magnitudes)) / np.sum(np.array(imag_mode_magnitudes))

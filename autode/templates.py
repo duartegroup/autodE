@@ -13,6 +13,7 @@ with TS templates which can be searched through..
 import pickle
 import os
 from .log import logger
+from .mol_graphs import is_subgraph_isomorphic
 
 
 def get_ts_templates(reaction_class):
@@ -24,55 +25,15 @@ def get_ts_templates(reaction_class):
     return []
 
 
-def get_matching_ts_template(mol, mol_aaenvs_dists, ts_guess_templates):
+def template_matches(mol, ts_template):
 
-    for ts_guess_template in ts_guess_templates:
-        print('here1')
+    if mol.charge == ts_template.charge and mol.mult == ts_template.mult:
+        if mol.solvent == ts_template.solvent:
+            if is_subgraph_isomorphic(larger_graph=mol.graph, smaller_graph=ts_template.graph):
+                logger.info('Found matching TS template')
+                return True
 
-        if ts_guess_template.solvent == mol.solvent:
-            print('here2')
-
-            if ts_guess_template.charge == mol.charge:
-                print('here3')
-
-                if ts_guess_template.mult == mol.mult:
-                    print('here4')
-
-                    mol_aaenvs = list(mol_aaenvs_dists.keys())
-                    ts_template_aaenvs = list(ts_guess_template.aaenv_dists.keys())
-
-                    if len(mol_aaenvs) == len(ts_template_aaenvs):
-                        equal = True
-
-                        for i in range(len(mol_aaenvs)):
-                            if not is_aaenv_equal(mol_aaenvs[i][0], ts)
-
-                            
-                        if all():
-                            logger.info('Found TS template')
-                            return ts_guess_template
-    return None
-
-
-def is_aaenv_equal(aaenv1, aaenv2):
-
-    if aaenv1.atom_label == aaenv2.atom_label:
-        if set(aaenv1.bonded_atom_labels) == set(aaenv2.bonded_atom_labels):
-            return True
     return False
-
-
-class ActiveAtomEnvironment(object):
-
-    def __init__(self, atom_label, bonded_atom_labels):
-        """
-        Generate an atom surrounded by it's environment (bonded)
-        :param atom_label: (str)
-        :param bonded_atom_labels: (list(str))
-        """
-
-        self.atom_label = atom_label
-        self.bonded_atom_labels = bonded_atom_labels
 
 
 class TStemplate(object):
@@ -93,18 +54,18 @@ class TStemplate(object):
         with open(os.path.join(folder_name, name + '.obj'), 'wb') as pickled_file:
             pickle.dump(self, file=pickled_file)
 
-    def __init__(self, aaenv_dists, reaction_class, solvent=None, charge=0, mult=1):
+    def __init__(self, graph, reaction_class, solvent=None, charge=0, mult=1):
         """
         Construct a TS template object
-        :param aaenv_dists: (dict) List of dictionaries keyed with ActiveAtomEnvironment object pairs with the value
-        of the distance found previously at the TS
+        :param graph: (object) networkx graph object. Active bonds in the TS are represented by the edges with
+        attribute active=True, going out to nearest bonded neighbours
         :param reaction_class; (object) Addition/Dissociation/Elimination/Rearrangement/Substitution reaction
         :param solvent: (str)
         :param charge: (int)
         :param mult: (int)
         """
 
-        self.aaenv_dists = aaenv_dists
+        self.graph = graph
         self.reaction_class = reaction_class
         self.solvent = solvent
         self.charge = charge

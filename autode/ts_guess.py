@@ -52,7 +52,7 @@ class TSguess(object):
 
         orca_inp_filename = self.name + '_orca_opt.inp'
         gen_orca_inp(orca_inp_filename, Config.opt_ts_keywords, self.xyzs, self.charge, self.mult, self.solvent,
-                     Config.n_cores, add_bond_ids=self.bonds_to_add, optts=True)
+                     Config.n_cores, add_bond_ids=self.active_bonds, optts=True)
 
         self.optts_out_lines = run_orca(orca_inp_filename, out_filename=orca_inp_filename.replace('.inp', '.out'))
 
@@ -60,7 +60,7 @@ class TSguess(object):
         return get_imag_frequencies_xyzs_energy_optts(self.optts_out_lines)
 
     def __init__(self, name='ts_guess', reaction_class=None, xyzs=None, solvent=None, charge=0, mult=1,
-                 bonds_to_add=None, optts_out_lines=None):
+                 active_bonds=None, optts_out_lines=None):
         """
 
         :param name:
@@ -69,7 +69,7 @@ class TSguess(object):
         :param solvent:
         :param charge:
         :param mult:
-        :param bonds_to_add:
+        :param active_bonds:
         """
         self.name = name
         self.xyzs = xyzs
@@ -78,7 +78,7 @@ class TSguess(object):
         self.solvent = solvent
         self.charge = charge
         self.mult = mult
-        self.bonds_to_add = bonds_to_add
+        self.active_bonds = active_bonds
         self.optts_out_lines = optts_out_lines
 
         self.optts_converged = False

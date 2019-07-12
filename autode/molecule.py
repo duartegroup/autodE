@@ -30,6 +30,13 @@ def calc_multiplicity(n_radical_electrons):
 
 class Molecule(object):
 
+    def set_active_edges(self, active_bonds):
+        logger.info('Modifying reactant graph with active atoms')
+        for bbond in active_bonds:
+            for edge in self.graph.edges():
+                if edge == bbond or edge == tuple(reversed(bbond)):
+                    self.graph.edges[edge[0], edge[1]]['active'] = True
+
     def check_rdkit_graph_agreement(self):
         try:
             assert self.n_bonds == self.graph.number_of_edges()
