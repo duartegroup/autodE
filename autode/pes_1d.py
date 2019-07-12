@@ -34,7 +34,7 @@ def get_orca_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, 
     ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
     return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-                   charge=mol.charge, mult=mol.mult, bonds_to_add=[atom_ids])
+                   charge=mol.charge, mult=mol.mult, active_bonds=[atom_ids])
 
 
 def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, reaction_class):
@@ -58,7 +58,7 @@ def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, r
     ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
     return TSguess(reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent, charge=mol.charge,
-                   mult=mol.mult, bonds_to_add=[atom_ids])
+                   mult=mol.mult, active_bonds=[atom_ids])
 
 
 def find_1dpes_maximum_energy_xyzs(dist_xyzs_energies_dict):

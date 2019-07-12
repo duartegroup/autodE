@@ -9,9 +9,10 @@ from .log import logger
 
 def gen_orca_inp(inp_filename, keywords, xyzs, charge, mult, solvent=None, n_cores=1, add_bond_ids=None, optts=False,
                  scan_ids=None, curr_dist1=1.5, final_dist1=3.5, curr_dist2=1.5, final_dist2=3.5, n_steps=10,
-                 scan_ids2=None):
+                 scan_ids2=None, distance_constraints=None):
 
     logger.info('Generating {}'.format(inp_filename))
+
     keywrds = deepcopy(keywords)
 
     if 1 < n_cores <= 8:
@@ -37,11 +38,11 @@ def gen_orca_inp(inp_filename, keywords, xyzs, charge, mult, solvent=None, n_cor
                 break
 
     return write_inp_file(inp_filename, keywrds, xyzs, charge, mult, solvent, add_bond_ids, optts, scan_ids,
-                          curr_dist1, final_dist1, curr_dist2, final_dist2, n_steps, scan_ids2)
+                          curr_dist1, final_dist1, curr_dist2, final_dist2, n_steps, scan_ids2, distance_constraints)
 
 
 def write_inp_file(inp_filename, keywords, xyzs, charge, mult, solvent, add_bond_ids, optts, scan_ids, curr_dist1,
-                   final_dist1, curr_dist2, final_dist2, n_steps, scan_ids2):
+                   final_dist1, curr_dist2, final_dist2, n_steps, scan_ids2, distance_constraints):
 
     with open(inp_filename, 'w') as inp_file:
         print('!', *keywords, file=inp_file)
@@ -69,6 +70,12 @@ def write_inp_file(inp_filename, keywords, xyzs, charge, mult, solvent, add_bond
 
             except IndexError:
                 logger.error('Could not add scan block')
+
+        if distance_constraints:
+            print('%geom Constraints', file=inp_file)
+            for bond_ids in distance_constraints.keys():
+                print('{ B', bond_ids[0], bond_ids[1], distance_constraints[bond_ids], 'C }', file=inp_file)
+            print('    end\nend', file=inp_file)
 
         if len(xyzs) < 33:
             print('%geom MaxIter 100 end', file=inp_file)

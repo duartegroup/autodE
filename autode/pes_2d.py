@@ -90,7 +90,7 @@ def get_orca_ts_guess_2d(mol, bond_ids, curr_dist1, final_dist1, curr_dist2, fin
     ts_guess_xyzs = find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
 
     return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-                   charge=mol.charge, mult=mol.mult, bonds_to_add=bond_ids)
+                   charge=mol.charge, mult=mol.mult, active_bonds=bond_ids)
 
 
 def get_xtb_ts_guess_2d(mol, bbond_atom_ids_and_dists, reaction_class, max_bond_dist_add=1.5, n_steps=15):
@@ -115,4 +115,4 @@ def get_xtb_ts_guess_2d(mol, bbond_atom_ids_and_dists, reaction_class, max_bond_
     ts_guess_xyzs = find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
 
     return TSguess(reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-                   charge=mol.charge, mult=mol.mult, bonds_to_add=[bond_ids1, bond_ids2])
+                   charge=mol.charge, mult=mol.mult, active_bonds=[bond_ids1, bond_ids2])

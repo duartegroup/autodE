@@ -12,19 +12,28 @@ with TS templates which can be searched through..
 """
 import pickle
 import os
+from .log import logger
+from .mol_graphs import is_subgraph_isomorphic
 
 
-class ActiveAtomEnvironment(object):
+def get_ts_templates(reaction_class):
+    logger.info('Getting TS templates from {}/{}'.format('lib', reaction_class.__name__))
 
-    def __init__(self, atom_label, bonded_atom_labels):
-        """
-        Generate an atom surrounded by it's environment (bonded)
-        :param atom_label: (str)
-        :param bonded_atom_labels: (list(str))
-        """
+    folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
+    if os.path.exists(folder_name):
+        return [pickle.load(open(os.path.join(folder_name, filename), 'rb')) for filename in os.listdir(folder_name)]
+    return []
 
-        self.atom_label = atom_label
-        self.bonded_atom_labels = bonded_atom_labels
+
+def template_matches(mol, ts_template):
+
+    if mol.charge == ts_template.charge and mol.mult == ts_template.mult:
+        if mol.solvent == ts_template.solvent:
+            if is_subgraph_isomorphic(larger_graph=mol.graph, smaller_graph=ts_template.graph):
+                logger.info('Found matching TS template')
+                return True
+
+    return False
 
 
 class TStemplate(object):
@@ -32,7 +41,10 @@ class TStemplate(object):
     def save_object(self, basename='template'):
 
         name, i = basename + '0', 0
-        folder_name = self.reaction_class.__name__
+        folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
+        if not os.path.exists(folder_name):
+            os.mkdir(folder_name)
+
         while True:
             if not os.path.exists(os.path.join(folder_name, name + '.obj')):
                 break
@@ -42,35 +54,19 @@ class TStemplate(object):
         with open(os.path.join(folder_name, name + '.obj'), 'wb') as pickled_file:
             pickle.dump(self, file=pickled_file)
 
-    def __init__(self, aaenv_dists, reaction_class, solvent=None, charge=0, mult=1):
+    def __init__(self, graph, reaction_class, solvent=None, charge=0, mult=1):
         """
         Construct a TS template object
-        :param aaenv_dists: list(dict) List of dictionaries keyed with ActiveAtomEnvironment object pairs with the value
-        of the distance found previously at the TS
+        :param graph: (object) networkx graph object. Active bonds in the TS are represented by the edges with
+        attribute active=True, going out to nearest bonded neighbours
         :param reaction_class; (object) Addition/Dissociation/Elimination/Rearrangement/Substitution reaction
         :param solvent: (str)
         :param charge: (int)
         :param mult: (int)
         """
 
-        self.aaenv_dists = aaenv_dists
+        self.graph = graph
         self.reaction_class = reaction_class
         self.solvent = solvent
         self.charge = charge
         self.mult = mult
-
-
-if __name__ == '__main__':
-
-    from autode import reactions
-
-    tmp_ts_template = TStemplate(aaenv_dists=[{(ActiveAtomEnvironment('C', ['C', 'C', 'O']),
-                                                ActiveAtomEnvironment('C', ['N'])): 2.061}],
-                                 reaction_class=reactions.Addition,
-                                 solvent='water',
-                                 charge=-1)
-
-    # tmp_ts_template.save_object()
-
-    test_obj = pickle.load(open('Addition/template0.obj', 'rb'))
-    print(test_obj.solvent)
