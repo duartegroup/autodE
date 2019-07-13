@@ -10,55 +10,63 @@ from .input_output import xyzs2xyzfile
 from .ts_guess import TSguess
 
 
-def get_orca_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, orca_keywords, name, reaction_class):
+def get_orca_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_steps, orca_keywords, name, reaction_class,
+                                 active_bond_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
-    :param atom_ids: (tuple) of atom ids
+    :param active_bond: (tuple) of atom ids
     :param curr_dist: (float) Current distance (Å)
     :param final_dist: (float) Final distance (Å)
     :param n_steps: (int) Number of scan steps to use in the XTB scan
     :param orca_keywords: (list) ORCA keywords to use
     :param name: (str)
     :param reaction_class: (object) class of the reaction (reactions.py)
+    :param active_bond_not_scanned: (tuple) pair of atoms that are active, but will not be scanned in the 1D PES
     :return: TSguess object
     """
     logger.info('Getting TS guess from ORCA relaxed potential energy scan')
 
     scan_inp_filename = name + '_orca_scan.inp'
     gen_orca_inp(scan_inp_filename, orca_keywords, mol.xyzs, mol.charge, mol.mult, mol.solvent, Config.n_cores,
-                 scan_ids=atom_ids, curr_dist1=curr_dist, final_dist1=final_dist, n_steps=n_steps)
+                 scan_ids=active_bond, curr_dist1=curr_dist, final_dist1=final_dist, n_steps=n_steps)
 
     orca_out_lines = run_orca(scan_inp_filename, out_filename=scan_inp_filename.replace('.inp', '.out'))
     dist_xyzs_energies = get_orca_scan_values_xyzs_energies(orca_out_lines)
     ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
+    active_bonds = [active_bond] if active_bond_not_scanned is None else [active_bond, active_bond_not_scanned]
+
     return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-                   charge=mol.charge, mult=mol.mult, active_bonds=[atom_ids])
+                   charge=mol.charge, mult=mol.mult, active_bonds=active_bonds)
 
 
-def get_xtb_ts_guess_1dpes_scan(mol, atom_ids, curr_dist, final_dist, n_steps, reaction_class):
+def get_xtb_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_steps, reaction_class,
+                                active_bond_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
-    :param atom_ids: (tuple) of atom ids
+    :param active_bond: (tuple) of atom ids
     :param curr_dist: (float) Current distance (Å)
     :param final_dist: (float) Final distance (Å)
     :param n_steps: (int) Number of scan steps to use in the XTB scan
     :param reaction_class: (object) class of the reaction (reactions.py)
+    :param active_bond_not_scanned: (tuple) pair of atoms that are active, but will not be scanned in the 1D PES
     :return: List of xyzs
     """
     logger.info('Getting TS guess from XTB relaxed potential energy scan')
 
     reac_xyz_filename = xyzs2xyzfile(mol.xyzs, basename=mol.name)
-    run_xtb(reac_xyz_filename, charge=mol.charge, scan_ids=atom_ids,
+    run_xtb(reac_xyz_filename, charge=mol.charge, scan_ids=active_bond,
             solvent=mol.solvent, curr_dist=curr_dist, final_dist=final_dist,
             n_steps=n_steps)
     dist_xyzs_energies = get_xtb_scan_xyzs_energies(values=np.linspace(curr_dist, final_dist, n_steps))
     ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
+    active_bonds = [active_bond] if active_bond_not_scanned is None else [active_bond, active_bond_not_scanned]
+
     return TSguess(reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent, charge=mol.charge,
-                   mult=mol.mult, active_bonds=[atom_ids])
+                   mult=mol.mult, active_bonds=active_bonds)
 
 
 def find_1dpes_maximum_energy_xyzs(dist_xyzs_energies_dict):

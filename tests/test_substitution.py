@@ -14,4 +14,4 @@ def test_substitution():
     reaction = Reaction(reac1, reac2, prod1, prod2)
     reaction.locate_transition_state()
 
-    assert reaction.ts.imag_freqs == [-512.14]
+    assert reaction.ts.imag_freqs == [-511.07]

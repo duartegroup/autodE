@@ -4,7 +4,7 @@ from .ORCAio import get_imag_frequencies_xyzs_energy_optts
 from .single_point import get_single_point_energy
 from .geom import calc_distance_matrix
 from . import mol_graphs
-from autode.templates import TStemplate
+from .templates import TStemplate
 
 
 class TS(object):

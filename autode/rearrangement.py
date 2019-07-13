@@ -4,6 +4,7 @@ from .bond_lengths import get_avg_bond_length
 from .mol_graphs import is_isomorphic
 from .optts import get_ts
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
+from .template_ts_guess import get_template_ts_guess
 from .reactions import Rearrangement
 
 
@@ -18,30 +19,35 @@ def find_tss(reaction):
     reactant, product = reaction.reacs[0], reaction.prods[0]
     fbond_and_bbond_ids = get_forming_and_breaking_bonds(reactant, product)
 
-    for fbond_ids, bbond_ids in fbond_and_bbond_ids.items():
-        for ts_guess_func in [get_xtb_ts_guess_forming_bond]:           # TODO more generality
+    for fbond, bbond in fbond_and_bbond_ids.items():
+        for ts_guess_func in [get_xtb_ts_guess_forming_bond, get_template_ts_guess_rearrangment]:
             logger.info('Guessing at a TS geometry')
-            ts_guess = ts_guess_func(reactant, fbond_ids)
-            ts_guess.name = ts_guess_func.__name__ + '_' + str(fbond_ids[0]) + str(fbond_ids[1]) + '_TS'
+            ts_guess = ts_guess_func(reactant, fbond, bbond)
+            ts_guess.name = ts_guess_func.__name__ + '_' + str(fbond[0]) + str(fbond[1]) + '_TS'
 
             if ts_guess.xyzs is not None:
                 logger.info('Found a TS guess geometry with ' + ts_guess_func.__name__)
                 ts = get_ts(ts_guess)
                 tss.append(ts)
+                break
 
     return tss
 
 
-def get_xtb_ts_guess_forming_bond(reactant, fbond_ids, n_steps=20):
-    atom_i, atom_j = fbond_ids
+def get_template_ts_guess_rearrangment(reactant, fbond, bbond):
+    return get_template_ts_guess(mol=reactant, active_bonds=[fbond, bbond], reaction_class=Rearrangement)
+
+
+def get_xtb_ts_guess_forming_bond(reactant, fbond, bbond, n_steps=20):
+    atom_i, atom_j = fbond
     logger.info('Performing XTB relaxed PES scan along atoms {}, {}'.format(atom_i, atom_j))
 
     atom_labels = [xyz[0] for xyz in reactant.xyzs]
     curr_fbond_dist = reactant.distance_matrix[atom_i][atom_j]
     final_fbond_dist = get_avg_bond_length(atom_labels[atom_i], atom_labels[atom_j])
 
-    return get_xtb_ts_guess_1dpes_scan(reactant, fbond_ids, curr_fbond_dist, final_fbond_dist, n_steps,
-                                       reaction_class=Rearrangement)
+    return get_xtb_ts_guess_1dpes_scan(reactant, fbond, curr_fbond_dist, final_fbond_dist, n_steps,
+                                       reaction_class=Rearrangement, active_bond_not_scanned=bbond)
 
 
 def get_forming_and_breaking_bonds(reactant, product):

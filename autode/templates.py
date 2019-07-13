@@ -25,11 +25,11 @@ def get_ts_templates(reaction_class):
     return []
 
 
-def template_matches(mol, ts_template):
+def template_matches(mol, ts_template, mol_graph):
 
     if mol.charge == ts_template.charge and mol.mult == ts_template.mult:
         if mol.solvent == ts_template.solvent:
-            if is_subgraph_isomorphic(larger_graph=mol.graph, smaller_graph=ts_template.graph):
+            if is_subgraph_isomorphic(larger_graph=mol_graph, smaller_graph=ts_template.graph):
                 logger.info('Found matching TS template')
                 return True
 

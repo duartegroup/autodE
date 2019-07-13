@@ -13,6 +13,7 @@ from .pes_2d import get_orca_ts_guess_2d
 from .bond_lengths import get_avg_bond_length
 from .reactions import Substitution
 from .optts import get_ts
+from .template_ts_guess import get_template_ts_guess
 
 
 def find_ts(reaction):
@@ -27,13 +28,12 @@ def find_ts(reaction):
     fbond, bbond = get_forming_and_breaking_bonds(reac_complex, prod_complex)
     reac_complex.xyzs = get_complex_xyzs_translated_rotated(reac_complex, reaction.reacs[0], fbond, bbond)
 
-    ts_breaking_bond_scan = find_ts_breaking_bond(reactant=reac_complex, bbonds=[bbond], fbonds=[fbond])
-    if ts_breaking_bond_scan is not None:
-        return ts_breaking_bond_scan
+    #                   in order of increasing computational expense
+    for ts_find_func in [find_ts_from_template_subst, find_ts_breaking_bond, find_ts_2d_scan]:
+        ts = ts_find_func(reac_complex, [bbond], [fbond])
 
-    ts_2d_scan = find_ts_2d_scan(reac_complex, fbond, bbond)
-    if ts_2d_scan is not None:
-        return ts_2d_scan
+        if ts is not None:
+            return ts
 
     return None
 
@@ -149,13 +149,23 @@ def get_attack_vector_nuc_atom(reac_xyzs, nuc_atom_id):
     return attack_vector
 
 
-def find_ts_2d_scan(reac_complex, fbond, bbond):
-    ts_guess = get_ts_guess_2d_scan(reac_complex, fbond, bbond)
+def find_ts_from_template_subst(reac_complex, fbonds, bbonds):
+    ts_guess = get_template_ts_guess(mol=reac_complex, active_bonds=fbonds + bbonds, reaction_class=Substitution)
+    if ts_guess.xyzs is not None:
+        return get_ts(ts_guess)
 
-    return get_ts(ts_guess)
+    return None
 
 
-def get_ts_guess_2d_scan(reac_complex, fbond, bbond, max_bond_dist_add=1.5):
+def find_ts_2d_scan(reac_complex, fbonds, bbonds):
+    ts_guess = get_ts_guess_2d_scan_subst(reac_complex, fbond=fbonds[0], bbond=bbonds[0])
+    if ts_guess.xyzs is not None:
+        return get_ts(ts_guess)
+
+    return None
+
+
+def get_ts_guess_2d_scan_subst(reac_complex, fbond, bbond, max_bond_dist_add=1.5):
 
     distance_matrix = calc_distance_matrix(reac_complex.xyzs)
     fbond_curr_dist = distance_matrix[fbond[0], fbond[1]]

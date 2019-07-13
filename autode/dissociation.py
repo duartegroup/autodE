@@ -5,12 +5,8 @@ from .pes_1d import get_orca_ts_guess_1dpes_scan
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
 from .pes_2d import get_orca_ts_guess_2d
 from .geom import get_valid_mappings_frags_to_whole_graph
-from .templates import get_ts_templates
-from .templates import template_matches
-from .ts_guess import TSguess
-from .mol_graphs import get_mapping_ts_template
+from .template_ts_guess import get_template_ts_guess
 from .optts import get_ts
-from .opt import get_orca_ts_guess_constrained_opt
 from .reactions import Dissociation
 
 
@@ -47,7 +43,7 @@ def find_ts_breaking_bond(reactant, bbonds, fbonds=None):
 
     for ts_guess_func in get_ts_guess_functions(bbonds):
         logger.info('Guessing at a TS geometry')
-        ts_guess = ts_guess_func(reactant, bbond_atom_ids_and_dists)
+        ts_guess = ts_guess_func(reactant, bbond_atom_ids_and_dists, fbonds)
 
         if ts_guess.xyzs is not None:
             logger.info('Found a TS guess geometry with ' + ts_guess_func.__name__)
@@ -81,37 +77,19 @@ def find_breaking_bond_ids(reaction):
     return bbond_atom_ids_list
 
 
-def get_ts_guess_template(reactant, bbonds_and_dists):
-    logger.info('Getting TS guess from stored TS template')
-    bbonds_and_dists_ts = {}
-
-    reactant.set_active_edges(active_bonds=bbonds_and_dists.keys())
-
-    ts_guess_templates = get_ts_templates(reaction_class=Dissociation)
-
-    for ts_template in ts_guess_templates:
-        if template_matches(mol=reactant, ts_template=ts_template):
-            mapping = get_mapping_ts_template(larger_graph=reactant.graph, smaller_graph=ts_template.graph)
-
-            for active_bond in bbonds_and_dists.keys():
-                atom_i, atom_j = active_bond
-                bbonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[atom_i], mapping[atom_j]]['weight']
-
-            return get_orca_ts_guess_constrained_opt(reactant, orca_keywords=Config.opt_keywords, name='ts_guess',
-                                                     distance_constraints=bbonds_and_dists_ts,
-                                                     reaction_class=Dissociation)
-
-    return TSguess(xyzs=None)
+def get_template_ts_guess_breaking_bonds(reactant, bbonds_and_dists, fbonds=None):
+    active_bonds = list(bbonds_and_dists.keys()) if fbonds is None else list(bbonds_and_dists.keys()) + fbonds
+    return get_template_ts_guess(mol=reactant, active_bonds=active_bonds, reaction_class=Dissociation)
 
 
-def get_orca_ts_guess_coarse(reactant, bbonds_and_dists):
+def get_orca_ts_guess_coarse(reactant, bbonds_and_dists, fbonds=None):
     logger.info('Running a coarse PES scan with keywords set in Config')
     atom_ids, dist = list(bbonds_and_dists.items())[0]
     return get_orca_ts_guess_1dpes_scan(reactant, atom_ids, dist, final_dist=dist+1.5,  n_steps=10,
                                         orca_keywords=Config.scan_keywords, name='default', reaction_class=Dissociation)
 
 
-def get_orca_ts_guess_coarse_alt(reactant, bbonds_and_dists):
+def get_orca_ts_guess_coarse_alt(reactant, bbonds_and_dists, fbonds=None):
     logger.info('Running a coarse PES scan at PBE0-D3BJ/de2-SVP')
     kws = ['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
     atom_ids, dist = list(bbonds_and_dists.items())[0]
@@ -119,13 +97,13 @@ def get_orca_ts_guess_coarse_alt(reactant, bbonds_and_dists):
                                         orca_keywords=kws, name='alt', reaction_class=Dissociation)
 
 
-def get_xtb_ts_guess_breaking_bond(reactant, bbonds_and_dists):
+def get_xtb_ts_guess_breaking_bond(reactant, bbonds_and_dists, fbonds=None):
     atom_ids, dist = list(bbonds_and_dists.items())[0]
     return get_xtb_ts_guess_1dpes_scan(reactant, atom_ids, dist, final_dist=dist+1.5, n_steps=20,
                                        reaction_class=Dissociation)
 
 
-def get_orca_ts_guess_2d_breaking_bonds(mol, bbonds_and_dists, reaction_class=Dissociation, name='2d',
+def get_orca_ts_guess_2d_breaking_bonds(mol, bbonds_and_dists, fbonds=None, reaction_class=Dissociation, name='2d',
                                         max_bond_dist_add=1.5, n_steps=7, orca_keywords=Config.scan_keywords):
     """
     Get a TS guess from a 2d orca scan when two bonds are broken
@@ -176,11 +154,11 @@ def get_ts_guess_functions(bbond_ids):
     """
 
     if len(bbond_ids) == 1:
-        return [get_ts_guess_template, get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]
+        return [get_template_ts_guess_breaking_bonds, get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]
         # return [get_orca_ts_guess_coarse, get_orca_ts_guess_coarse_alt]
         # also have the nor very good: get_xtb_ts_guess_breaking_bond
     elif len(bbond_ids) == 2:
-        return [get_ts_guess_template, get_orca_ts_guess_2d_breaking_bonds]
+        return [get_template_ts_guess_breaking_bonds, get_orca_ts_guess_2d_breaking_bonds]
         # also have the nor very good: get_xtb_ts_guess_2d
     else:
         logger.critical('Can\'t yet handle >2 or 0 bonds changing')
