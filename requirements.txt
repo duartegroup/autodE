@@ -2,3 +2,4 @@ rdkit
 numpy
 networkx
 matplotlib
+Cython

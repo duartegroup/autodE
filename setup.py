@@ -1,4 +1,6 @@
 from setuptools import setup
+from Cython.Build import cythonize
+
 
 setup(
     name='autode',
@@ -7,6 +9,7 @@ setup(
     include_package_data=True,
     package_data={'': ['lib/Addition/*.obj', 'lib/Dissociation/*.obj', 'lib/Elimination/*.obj',
                        'lib/Rearrangement/*.obj', 'lib/Substitution/*.obj']},
+    ext_modules=cythonize('autode/conf_gen.pyx'),
     url='',
     license='MIT',
     author='Tom Young',
