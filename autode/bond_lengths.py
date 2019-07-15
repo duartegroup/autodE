@@ -90,5 +90,6 @@ avg_bond_lengths = {
     'PH': 1.44,
     'PF': 1.54,
     'FO': 1.41,
-    'RhC':1.8
+    'RhC': 1.8,
+    'RhH': 1.27
 }

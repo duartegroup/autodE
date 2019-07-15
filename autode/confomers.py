@@ -61,6 +61,9 @@ def generate_unique_confs(mol_obj, n_rdkit_confs):
         if is_unique:
             unique_conf_ids.append(i)
 
+    if len(unique_conf_ids) == 1:
+        logger.warning('Only have a single conformer')
+
     return unique_conf_ids
 
 
