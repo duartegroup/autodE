@@ -9,7 +9,7 @@ setup(
     include_package_data=True,
     package_data={'': ['lib/Addition/*.obj', 'lib/Dissociation/*.obj', 'lib/Elimination/*.obj',
                        'lib/Rearrangement/*.obj', 'lib/Substitution/*.obj']},
-    ext_modules=cythonize('autode/conf_gen.pyx'),
+    ext_modules=cythonize('autode/conf_gen.pyx', language_level="3"),
     url='',
     license='MIT',
     author='Tom Young',

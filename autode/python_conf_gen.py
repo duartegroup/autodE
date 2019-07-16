@@ -41,6 +41,7 @@ class System:
 
     def calc_f(self):
 
+        self.f = np.zeros((self.n_atoms, 3))
         distance_mat = distance_matrix(self.coords, self.coords)
 
         for atom_i in range(self.n_atoms):
@@ -70,10 +71,10 @@ class System:
 
         return final_coords
 
-    def print_coods(self, coords, filename):
+    def print_coords(self, coords, filename):
         coords = [coords[i] - coords[0] for i in range(len(coords))]
 
-        xyzs = [[self.xyxs[i][0]] + coords[i].tolist() for i in range(self.n_atoms)]
+        xyzs = [[self.xyz[i][0]] + coords[i].tolist() for i in range(self.n_atoms)]
         with open(filename, 'a') as xyz_file:
             print(len(xyzs), '\n', '', sep='', file=xyz_file)
             [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
@@ -91,11 +92,12 @@ class System:
             # print(n, self.calc_v())
 
             if n % 100 == 0:
-                self.print_coods(coords=self.get_coords_minimised_v(), filename='minimised.xyz')
+                self.print_coords(coords=self.get_coords_minimised_v(), filename='minimised.xyz')
 
     def __init__(self, xyzs, bonds, dt=0.0005, k=10000, d0=1.5, c=100):            # V(r) = k (d - d0)**2 + c / d**12
 
-        self.xyxs = xyzs
+        self.xyz = xyzs
+
         self.coords = geom.xyz2coord(xyzs)
         self.n_atoms = len(xyzs)
         self.bonds = bonds
@@ -119,8 +121,8 @@ if __name__ == '__main__':
     open('traj.xyz', 'w').close()
     open('minimised.xyz', 'w').close()
 
-    rh_xyzs = input_output.xyzfile2xyzs('int1_flat.xyz')
-    rh_bonds = bond_lengths.get_xyz_bond_list(xyzs=input_output.xyzfile2xyzs('int1.xyz'), relative_tolerance=0.3)
+    rh_xyzs = input_output.xyzfile2xyzs('../methane.xyz')
+    rh_bonds = bond_lengths.get_xyz_bond_list(xyzs=input_output.xyzfile2xyzs('methane.xyz'), relative_tolerance=0.1)
     rh_md = System(rh_xyzs, bonds=rh_bonds)
     rh_md.do_md(max_steps=10000)
 
