@@ -114,7 +114,7 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp):
     # Paramters for the MD simulation
     cdef int n_steps = py_n_steps
     cdef double temp0 = py_temp
-    cdef double dt = 0.0005
+    cdef double dt = 0.001
     cdef double k = 10000
     cdef double d0 = 1.5                 # TODO make this a function of atom type
     cdef double c = 100

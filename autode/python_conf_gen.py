@@ -94,7 +94,7 @@ class System:
             if n % 100 == 0:
                 self.print_coords(coords=self.get_coords_minimised_v(), filename='minimised.xyz')
 
-    def __init__(self, xyzs, bonds, dt=0.0005, k=10000, d0=1.5, c=100):            # V(r) = k (d - d0)**2 + c / d**12
+    def __init__(self, xyzs, bonds, dt=0.001, k=10000, d0=1.5, c=100):            # V(r) = k (d - d0)**2 + c / d**12
 
         self.xyz = xyzs
 
@@ -125,8 +125,3 @@ if __name__ == '__main__':
     rh_bonds = bond_lengths.get_xyz_bond_list(xyzs=input_output.xyzfile2xyzs('methane.xyz'), relative_tolerance=0.1)
     rh_md = System(rh_xyzs, bonds=rh_bonds)
     rh_md.do_md(max_steps=10000)
-
-
-
-
-
