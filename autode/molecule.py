@@ -155,6 +155,7 @@ class Molecule(object):
             self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
                                              charge=self.charge, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+            self.n_bonds = self.graph.number_of_edges()
 
         else:
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)

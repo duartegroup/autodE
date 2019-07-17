@@ -19,6 +19,7 @@ python setup.py install
 * Python v. 3
 * [rdkit](https://anaconda.org/rdkit/rdkit)
 * [numpy](https://anaconda.org/anaconda/numpy)
+* [scipy](https://anaconda.org/anaconda/scipy)
 * [networkx](https://anaconda.org/anaconda/networkx)
 * [matplotlib](https://anaconda.org/conda-forge/matplotlib)
 * [ORCA](https://sites.google.com/site/orcainputlibrary/home) v. 4.1

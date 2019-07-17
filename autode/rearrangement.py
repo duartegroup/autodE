@@ -100,7 +100,7 @@ def get_non_maximal_valance_atoms(mol_graph):
             if valance < max_valance:
                 non_maximal_valance_atom_ids.append(atom)
         except KeyError:
-            logger.warning('Couldn\'t find valance for {}'.format(atom['atom_label']))
+            logger.warning('Couldn\'t find valance for {}'.format(mol_graph.nodes[atom]['atom_label']))
 
     return non_maximal_valance_atom_ids
 

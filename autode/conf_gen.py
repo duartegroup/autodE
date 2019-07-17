@@ -11,23 +11,6 @@ from .XTBio import run_xtb
 from .XTBio import get_xtb_xyzs_energy
 
 
-# def v(r, bonds, k, d0, c):
-#
-#     pot_e = 0
-#
-#     for i in range(int(len(r)/3)):
-#         for j in range(int(len(r)/3)):
-#             if i > j:
-#
-#                 d = np.sqrt((r[3*i] - r[3*j])**2 + (r[3*i+1] - r[3*j+1])**2 + (r[3*i+2] - r[3*j+2])**2)
-#                 pot_e += c / d**4
-#
-#                 if (i, j) in bonds or (j, i) in bonds:
-#                     pot_e += k * (d - d0[i, j]) ** 2
-#
-#     return pot_e
-
-
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol):
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
@@ -64,11 +47,11 @@ def simnal(name, xyzs, bonds, n, charge):
     xyzs = [[xyzs[i][0]] + coords[i].tolist() for i in range(len(xyzs))]
 
     # Optimise the rough structure with XTB
-    xyz_filename = name + '_simanl_' + str(n) + '.xyz'
-    xyzs2xyzfile(xyzs, filename=xyz_filename)
+    # xyz_filename = name + '_simanl_' + str(n) + '.xyz'
+    # xyzs2xyzfile(xyzs, filename=xyz_filename)
 
-    xtb_out_lines = run_xtb(xyz_filename, opt=True, charge=charge, n_cores=1)
-    xyzs, _ = get_xtb_xyzs_energy(xtb_out_lines)
+    # xtb_out_lines = run_xtb(xyz_filename, opt=True, charge=charge, n_cores=1)
+    # xyzs, _ = get_xtb_xyzs_energy(xtb_out_lines)
 
     return xyzs
 
@@ -85,6 +68,10 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, n_simanls=20):
     :return:
     """
     logger.info('Doing simulated annealing with a harmonic+repulsion FF')
+
+    if n_simanls == 1:
+        conf_xyzs = simnal(name=name, xyzs=init_xyzs, bonds=bond_list, n=0, charge=charge)
+        return [conf_xyzs]
 
     logger.info('Splitting calculation into {} threads'.format(Config.n_cores))
     with Pool(processes=Config.n_cores) as pool:
