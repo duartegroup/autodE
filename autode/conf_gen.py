@@ -38,9 +38,10 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol):
     return final_coords
 
 
-def simnal(xyzs, bonds, n, charge):
+def simnal(name, xyzs, bonds, n, charge):
     """
         V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
+    :param name: (str)
     :param xyzs:
     :param bonds:
     :param n: (int) number of the simulated annealing calculation
@@ -63,7 +64,7 @@ def simnal(xyzs, bonds, n, charge):
     xyzs = [[xyzs[i][0]] + coords[i].tolist() for i in range(len(xyzs))]
 
     # Optimise the rough structure with XTB
-    xyz_filename = 'simanl_' + str(n) + '.xyz'
+    xyz_filename = name + '_simanl_' + str(n) + '.xyz'
     xyzs2xyzfile(xyzs, filename=xyz_filename)
 
     xtb_out_lines = run_xtb(xyz_filename, opt=True, charge=charge, n_cores=1)
@@ -72,10 +73,11 @@ def simnal(xyzs, bonds, n, charge):
     return xyzs
 
 
-def gen_simanl_conf_xyzs(init_xyzs, bond_list, charge, n_simanls=20):
+def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, n_simanls=20):
     """
     Generate conformer xyzs using the cconf_gen Cython code, which is compiled when setup.py install is run.
 
+    :param name: (str) name of the molecule to run. needed for XTB filenames
     :param init_xyzs: (list(list)) xyz list to work from
     :param bond_list: (list(tuple)) list of bond indices
     :param charge: (int) charge on the molecule for an XTB optimisation
@@ -86,10 +88,7 @@ def gen_simanl_conf_xyzs(init_xyzs, bond_list, charge, n_simanls=20):
 
     logger.info('Splitting calculation into {} threads'.format(Config.n_cores))
     with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(simnal, (init_xyzs, bond_list, i, charge)) for i in range(n_simanls)]
+        results = [pool.apply_async(simnal, (name, init_xyzs, bond_list, i, charge)) for i in range(n_simanls)]
         conf_xyzs = [res.get(timeout=None) for res in results]
-
-    from .input_output import xyzs2xyzfile
-    [xyzs2xyzfile(conf_xyzs[i], basename=str(i)) for i in range(len(conf_xyzs))]
 
     return conf_xyzs

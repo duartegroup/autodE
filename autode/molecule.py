@@ -68,7 +68,8 @@ class Molecule(object):
 
         else:
             bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
-            conf_xyzs = gen_simanl_conf_xyzs(init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge)
+            conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
+                                             charge=self.charge)
 
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(name=self.name + '_conf' + str(i), xyzs=conf_xyzs[i],
@@ -151,7 +152,7 @@ class Molecule(object):
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
             bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
-            self.xyzs = gen_simanl_conf_xyzs(init_xyzs=self.xyzs, bond_list=bond_list,
+            self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
                                              charge=self.charge, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
 

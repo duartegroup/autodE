@@ -112,7 +112,7 @@ cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, dou
                 energy += c / pow(d, 4)
 
                 if bond_matrix[i][j] == 1:
-                    energy += k * pow((1.0 - d0[i][j]/d), 2)
+                    energy += k * pow((d - d0[i][j]), 2)
 
     return energy
 
