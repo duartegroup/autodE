@@ -18,7 +18,7 @@ def get_bond_matrix(n_atoms, bonds):
 
 
 cdef calc_forces(int n_atoms, array forces, array coords, int[:, :] bond_matrix,
-                float k, float d0, float c):
+                double k, double[:, :] d0, double c):
 
     cdef int i, j
     cdef double delta_x = 0.0
@@ -47,7 +47,7 @@ cdef calc_forces(int n_atoms, array forces, array coords, int[:, :] bond_matrix,
                 forces.data.as_doubles[3*i+2] +=  repulsion * delta_z
 
                 if bond_matrix[i][j] == 1:
-                    bonded = 2.0 * k * (1.0 - d0/d)
+                    bonded = 2.0 * k * (1.0 - d0[i][j]/d)
                     forces.data.as_doubles[3*i] += bonded * delta_x
                     forces.data.as_doubles[3*i+1] += bonded * delta_y
                     forces.data.as_doubles[3*i+2] += bonded * delta_z
@@ -87,7 +87,55 @@ def print_traj_point(py_xyzs, coords):
     return 0
 
 
-def do_md(py_xyzs, py_bonds, py_n_steps, py_temp):
+cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, double[:, :] d0, double c):
+
+    cdef int i, j
+    cdef double delta_x = 0.0
+    cdef double delta_y = 0.0
+    cdef double delta_z = 0.0
+
+    cdef double d = 0.0
+    cdef double repulsion = 0.0
+    cdef double bonded = 0.0
+
+    cdef double energy = 0.0
+
+
+    for i in range(n_atoms):
+        for j in range(n_atoms):
+            if i > j:
+                delta_x = coords.data.as_doubles[3*j] - coords.data.as_doubles[3*i]
+                delta_y = coords.data.as_doubles[3*j+1] - coords.data.as_doubles[3*i+1]
+                delta_z = coords.data.as_doubles[3*j+2] - coords.data.as_doubles[3*i+2]
+                d = sqrt(delta_x*delta_x + delta_y*delta_y + delta_z*delta_z)
+
+                energy += c / pow(d, 4)
+
+                if bond_matrix[i][j] == 1:
+                    energy += k * pow((1.0 - d0[i][j]/d), 2)
+
+    return energy
+
+def v(py_flat_coords, py_bonds, py_k, py_d0, py_c):
+
+    py_n_atoms = int(len(py_flat_coords) / 3)
+    cdef int n_atoms = py_n_atoms
+    cdef int[:, :] bond_matrix = get_bond_matrix(n_atoms=py_n_atoms, bonds=py_bonds)
+    cdef double k = py_k
+    cdef double[:, :] d0 = py_d0
+    cdef double c = py_c
+
+    cdef array coords, template = array('d')
+    coords = clone(template, 3*n_atoms, False)
+
+    cdef int i
+    for i in range(3*n_atoms):
+        coords[i] = py_flat_coords[i]
+
+    return calc_energy(n_atoms, coords, bond_matrix, k, d0, c)
+
+
+def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c):
     """
     Run an MD simulation under a potential:
 
@@ -95,13 +143,18 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp):
 
     where k and c are constants to be determined. Masses are all 1
 
-    :param xyzs: (list(list)) e.g. [['C', 0.0, 0.0, 0.0], ...]
-    :param bonds: (list(tuples)) defining which atoms are bonded together
-    :param n_steps: (int) number of MD steps to do
-    :param temp: (float) reduced temperature to run the dynamics (1 is fine)
+    :param py_xyzs: (list(list)) e.g. [['C', 0.0, 0.0, 0.0], ...]
+    :param py_bonds: (list(tuples)) defining which atoms are bonded together
+    :param py_n_steps: (int) number of MD steps to do
+    :param py_temp: (float) reduced temperature to run the dynamics (1 is fine)
+    :param py_dt: (float) ∆t to use in the velocity verlet
+    :param py_k: (float) harmonic force constant
+    :param d0: (np.array) matrix of ideal bond lengths
+    :param c: (float) strength of the repulsive term
+    :return: np array of coordinates
     """
 
-    open('traj.xyz', 'w').close()
+    # open('traj.xyz', 'w').close()
 
     cdef int n_atoms = len(py_xyzs)
 
@@ -114,10 +167,10 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp):
     # Paramters for the MD simulation
     cdef int n_steps = py_n_steps
     cdef double temp0 = py_temp
-    cdef double dt = 0.001
-    cdef double k = 10000
-    cdef double d0 = 1.5                 # TODO make this a function of atom type
-    cdef double c = 100
+    cdef double dt = py_dt
+    cdef double k = py_k
+    cdef double[:, :] d0 = py_d0
+    cdef double c = py_c
 
     # System intial time, velocities and accelteration
     cdef double t = 0.0
@@ -133,7 +186,7 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp):
 
     # Initialise arrays
     for i in range(3*n_atoms):
-        vel[i] = 1.0 # np.random.normal()
+        vel[i] = 5.0 * np.random.normal()
         a[i] = 0.0
         forces[i] = 0.0
         coords[i] = py_flat_coords[i]

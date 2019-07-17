@@ -37,6 +37,34 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.1):
     return xyz_bond_list
 
 
+def get_bond_list_from_rdkit_bonds(rdkit_bonds_obj):
+
+    bond_list = []
+
+    for bond in rdkit_bonds_obj:
+        atom_i = bond.GetBeginAtomIdx()
+        atom_j = bond.GetEndAtomIdx()
+        if atom_i > atom_j:
+            bond_list.append((atom_i, atom_j))
+        else:
+            bond_list.append((atom_j, atom_i))
+
+    return bond_list
+
+
+def get_ideal_bond_length_matrix(xyzs, bonds):
+    logger.info('Getting ideal bond length matrix')
+
+    n_atoms = len(xyzs)
+    ideal_bondl_matrix = np.zeros((n_atoms, n_atoms))
+    for i in range(n_atoms):
+        for j in range(n_atoms):
+            if (i, j) in bonds or (j, i) in bonds:
+                ideal_bondl_matrix[i, j] = get_avg_bond_length(atom_i_label=xyzs[i][0], atom_j_label=xyzs[j][0])
+
+    return ideal_bondl_matrix
+
+
 def get_avg_bond_length(atom_i_label, atom_j_label):
 
     key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
@@ -91,5 +119,6 @@ avg_bond_lengths = {
     'PF': 1.54,
     'FO': 1.41,
     'RhC': 1.8,
-    'RhH': 1.27
+    'RhH': 1.27,
+    'RhP': 2.20
 }
