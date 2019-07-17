@@ -5,11 +5,14 @@ from rdkit import Chem
 import rdkit.Chem.Descriptors
 from . import mol_graphs
 from .constants import Constants
-from .confomers import generate_unique_confs
+from .conformers import generate_unique_rdkit_confs
 from .bond_lengths import get_xyz_bond_list
+from .bond_lengths import get_bond_list_from_rdkit_bonds
 from .geom import calc_distance_matrix
-from .confomers import gen_conformer_xyzs
-from .confomers import Conformer
+from .conformers import gen_rdkit_conf_xyzs
+from .conformers import Conformer
+from .conformers import rdkit_conformer_geometries_are_resonable
+from .conf_gen import gen_simanl_conf_xyzs
 from .opt import get_opt_xyzs_energy
 from .single_point import get_single_point_energy
 
@@ -53,11 +56,20 @@ class Molecule(object):
             logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
-    def generate_rdkit_conformers(self, n_rdkit_confs=300):
-        logger.info('Generating Molecule conformer xyz lists from rdkit mol object')
-        unique_conf_ids = generate_unique_confs(self.mol_obj, n_rdkit_confs)
-        logger.info('Generated {} unique conformers with RDKit ETKDG'.format(len(unique_conf_ids)))
-        conf_xyzs, self.conformers = gen_conformer_xyzs(self, conf_ids=unique_conf_ids), []
+    def generate_conformers(self, n_rdkit_confs=300):
+
+        self.conformers = []
+
+        if self.rdkit_conf_gen_is_fine:
+            logger.info('Generating Molecule conformer xyz lists from rdkit mol object')
+            unique_conf_ids = generate_unique_rdkit_confs(self.mol_obj, n_rdkit_confs)
+            logger.info('Generated {} unique conformers with RDKit ETKDG'.format(len(unique_conf_ids)))
+            conf_xyzs = gen_rdkit_conf_xyzs(self, conf_ids=unique_conf_ids)
+
+        else:
+            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+            conf_xyzs = gen_simanl_conf_xyzs(init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge)
+
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(name=self.name + '_conf' + str(i), xyzs=conf_xyzs[i],
                                              solvent=self.solvent, charge=self.charge, mult=self.mult))
@@ -106,6 +118,8 @@ class Molecule(object):
             if conformer.energy == lowest_energy:
                 self.energy = conformer.energy
                 self.xyzs = conformer.xyzs
+                self.distance_matrix = calc_distance_matrix(self.xyzs)
+                self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
                 break
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
@@ -131,10 +145,19 @@ class Molecule(object):
         self.mult = calc_multiplicity(n_radical_electrons)
 
         AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
-        self.xyzs = gen_conformer_xyzs(self, conf_ids=[0])[0]
+        self.xyzs = gen_rdkit_conf_xyzs(self, conf_ids=[0])[0]
 
-        self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
-        self.check_rdkit_graph_agreement()
+        if not rdkit_conformer_geometries_are_resonable(conf_xyzs=[self.xyzs]):
+            logger.info('RDKit conformer was not reasonable')
+            self.rdkit_conf_gen_is_fine = False
+            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+            self.xyzs = gen_simanl_conf_xyzs(init_xyzs=self.xyzs, bond_list=bond_list,
+                                             charge=self.charge, n_simanls=1)[0]
+            self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+
+        else:
+            self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+            self.check_rdkit_graph_agreement()
 
         self.distance_matrix = calc_distance_matrix(self.xyzs)
 
@@ -169,6 +192,7 @@ class Molecule(object):
         self.n_bonds = None
         self.conformers = None
         self.n_conformers = None
+        self.rdkit_conf_gen_is_fine = True
         self.graph = None
         self.distance_matrix = None
 

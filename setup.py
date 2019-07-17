@@ -1,4 +1,10 @@
 from setuptools import setup
+from Cython.Build import cythonize
+from setuptools.extension import Extension
+
+extensions = [Extension('cconf_gen',
+                        ['autode/cconf_gen.pyx'])]
+
 
 setup(
     name='autode',
@@ -7,6 +13,7 @@ setup(
     include_package_data=True,
     package_data={'': ['lib/Addition/*.obj', 'lib/Dissociation/*.obj', 'lib/Elimination/*.obj',
                        'lib/Rearrangement/*.obj', 'lib/Substitution/*.obj']},
+    ext_modules=cythonize(extensions, language_level="3"),
     url='',
     license='MIT',
     author='Tom Young',

@@ -5,3 +5,5 @@
 \.idea/
 
 autode/__pycache__/
+
+autode\.egg-info/

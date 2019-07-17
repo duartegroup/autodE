@@ -60,7 +60,7 @@ class Reaction(object):
         """
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
-                mol.generate_rdkit_conformers()
+                mol.generate_conformers()
                 mol.optimise_conformers_xtb()
                 mol.strip_non_unique_confs()
                 mol.optimise_conformers_orca()

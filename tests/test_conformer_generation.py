@@ -2,7 +2,7 @@ import os
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from autode import Reactant
-from autode import confomers
+from autode import conformers
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -11,7 +11,7 @@ def test_confs():
     propane = Reactant(name='propane')
     propane.mol_obj = Chem.MolFromSmiles('CCC')
     propane.conf_ids = list(AllChem.EmbedMultipleConfs(propane.mol_obj, numConfs=3, params=AllChem.ETKDG()))
-    conf_xyzs = confomers.gen_conformer_xyzs(propane, conf_ids=propane.conf_ids)
+    conf_xyzs = conformers.gen_rdkit_conf_xyzs(propane, conf_ids=propane.conf_ids)
 
     assert len(conf_xyzs) == 3              # 3 conformers
     assert len(conf_xyzs[0]) == 3           # 3 atoms
@@ -24,7 +24,7 @@ def test_conformer_class():
 
     os.chdir(os.path.join(here, 'conformers'))
 
-    conf = confomers.Conformer()
+    conf = conformers.Conformer()
 
     assert conf.name == 'conf'
     assert conf.xyzs is None

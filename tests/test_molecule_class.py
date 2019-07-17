@@ -1,5 +1,5 @@
 from autode import molecule
-from autode import confomers
+from autode import conformers
 from rdkit.Chem import Mol
 import numpy as np
 import os
@@ -38,8 +38,8 @@ def test_rdkit_conf_generation():
     h2 = molecule.Molecule(name='h2', smiles='[H][H]')
     h2.check_rdkit_graph_agreement()
 
-    h2.generate_rdkit_conformers(n_rdkit_confs=1)
-    assert isinstance(h2.conformers[0], confomers.Conformer)
+    h2.generate_conformers(n_rdkit_confs=1)
+    assert isinstance(h2.conformers[0], conformers.Conformer)
     assert len(h2.conformers) == 1
     assert h2.n_conformers == 1
 
@@ -49,7 +49,7 @@ def test_xtb_conf_optimisation_and_strip():
     os.chdir(os.path.join(here, 'conformers'))
 
     methane = molecule.Molecule(name='methane', smiles='C')
-    methane.generate_rdkit_conformers(n_rdkit_confs=50)
+    methane.generate_conformers(n_rdkit_confs=50)
     methane.optimise_conformers_xtb()
     methane.strip_non_unique_confs()
     assert methane.n_conformers == 1
