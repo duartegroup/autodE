@@ -1,8 +1,6 @@
 from .log import logger
 from . import reactions
-from . import dissociation
-from . import rearrangement
-from . import substitution
+from locate_tss import find_tss
 from .molecule import Reactant
 from .molecule import Product
 from .units import KcalMol
@@ -83,26 +81,8 @@ class Reaction(object):
 
     def locate_transition_state(self):
 
-        if self.type == reactions.Dissociation:
-            self.ts = dissociation.find_ts(self)
-
-        elif self.type == reactions.Rearrangement:
-            self.tss = rearrangement.find_tss(self)
-            self.ts = self.find_lowest_energy_ts()
-
-        elif self.type == reactions.Substitution:
-            self.ts = substitution.find_ts(self)
-
-        # TODO elimination reactions
-
-        else:
-            logger.critical('Reaction type not currently supported')
-            exit()
-
-        if self.ts is not None:
-            self.ts.charge = sum([reactant.charge for reactant in self.reacs])
-            self.ts.mult = sum([reactant.mult for reactant in self.reacs]) - (len(self.reacs) - 1)
-            self.ts.solvent = self.reacs[0].solvent
+        self.tss = find_tss(self)
+        self.ts = self.find_lowest_energy_ts()
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
