@@ -1,6 +1,6 @@
 from .log import logger
 from . import reactions
-from locate_tss import find_tss
+from .locate_tss import find_tss
 from .molecule import Reactant
 from .molecule import Product
 from .units import KcalMol
@@ -72,10 +72,14 @@ class Reaction(object):
         [mol.single_point() for mol in self.reacs + self.prods + [self.ts]]
 
     def find_lowest_energy_ts(self):
-        if len(self.tss) > 1:
+        if self.tss is None:
+            return None
+
+        elif len(self.tss) > 1:
             logger.info('Found more than 1 TS. Choosing the lowest energy')
             min_ts_energy = min([ts.energy for ts in self.tss])
             return [ts for ts in self.tss if ts.energy == min_ts_energy][0]
+
         else:
             return self.tss[0]
 
@@ -90,6 +94,9 @@ class Reaction(object):
         self.optimise_reacs_prods()
         self.locate_transition_state()
         self.calculate_single_points()
+
+        if self.ts is None:
+            return logger.error('TS is None – cannot plot a reaction profile')
 
         conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
         plot_reaction_profile(e_reac=0.0,

@@ -64,3 +64,35 @@ def get_isomorphic_mapping(graph1, graph2):
     else:
         logger.warning('Graphs were not isomorphic')
         return None
+
+
+def get_adjacency_graph(atom_i, graph):
+
+    added_atoms = []
+    adj_graph = nx.Graph()
+
+    def add_adj_nodes(atom_k):
+        adj_graph.add_node(atom_k, atom_label=graph.nodes[atom_k]['atom_label'])
+
+        print(adj_graph.nodes.data())
+
+        if adj_graph.number_of_nodes() == graph.number_of_nodes():
+            print('returning')
+            return adj_graph
+
+        adj_atoms = list(graph.adj[atom_k])
+        print(atom_k, adj_atoms)
+        for atom_j in adj_atoms:
+            print(atom_k, atom_j)
+            if atom_j not in added_atoms:
+                adj_graph.add_node(atom_j, atom_label=graph.nodes[atom_j]['atom_label'])
+                adj_graph.add_edge(atom_k, atom_j)
+                added_atoms.append(atom_j)
+
+                return add_adj_nodes(atom_j)
+            else:
+                pass
+
+    adj_graph = add_adj_nodes(atom_i)
+    exit()
+    return adj_graph
