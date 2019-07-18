@@ -1,9 +1,11 @@
 from .log import logger
+from .config import Config
 from .atoms import valid_valances
 from .bond_lengths import get_avg_bond_length
 from .mol_graphs import is_isomorphic
 from .optts import get_ts
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
+from .pes_1d import get_orca_ts_guess_1dpes_scan
 from .template_ts_guess import get_template_ts_guess
 from .reactions import Rearrangement
 
@@ -17,12 +19,14 @@ def find_tss(reaction):
     tss = []
 
     reactant, product = reaction.reacs[0], reaction.prods[0]
-    fbond_and_bbond_ids = get_forming_and_breaking_bonds(reactant, product)
+    fbond_and_bbonds_ids = get_forming_and_breaking_bonds(reactant, product)
 
-    for fbond, bbond in fbond_and_bbond_ids.items():
-        for ts_guess_func in [get_xtb_ts_guess_forming_bond, get_template_ts_guess_rearrangment]:
+    for fbond, bbonds in fbond_and_bbonds_ids.items():
+        for ts_guess_func in [get_xtb_ts_guess_forming_bond, get_orca_ts_guess_forming_bond,
+                              get_template_ts_guess_rearrangment]:
+
             logger.info('Guessing at a TS geometry')
-            ts_guess = ts_guess_func(reactant, fbond, bbond)
+            ts_guess = ts_guess_func(reactant, fbond, bbonds)
             ts_guess.name = ts_guess_func.__name__ + '_' + str(fbond[0]) + str(fbond[1]) + '_TS'
 
             if ts_guess.xyzs is not None:
@@ -34,11 +38,11 @@ def find_tss(reaction):
     return tss
 
 
-def get_template_ts_guess_rearrangment(reactant, fbond, bbond):
-    return get_template_ts_guess(mol=reactant, active_bonds=[fbond, bbond], reaction_class=Rearrangement)
+def get_template_ts_guess_rearrangment(reactant, fbond, bbonds):
+    return get_template_ts_guess(mol=reactant, active_bonds=[fbond] + bbonds, reaction_class=Rearrangement)
 
 
-def get_xtb_ts_guess_forming_bond(reactant, fbond, bbond, n_steps=20):
+def get_xtb_ts_guess_forming_bond(reactant, fbond, bbonds, n_steps=20):
     atom_i, atom_j = fbond
     logger.info('Performing XTB relaxed PES scan along atoms {}, {}'.format(atom_i, atom_j))
 
@@ -47,7 +51,20 @@ def get_xtb_ts_guess_forming_bond(reactant, fbond, bbond, n_steps=20):
     final_fbond_dist = get_avg_bond_length(atom_labels[atom_i], atom_labels[atom_j])
 
     return get_xtb_ts_guess_1dpes_scan(reactant, fbond, curr_fbond_dist, final_fbond_dist, n_steps,
-                                       reaction_class=Rearrangement, active_bond_not_scanned=bbond)
+                                       reaction_class=Rearrangement, active_bonds_not_scanned=bbonds)
+
+
+def get_orca_ts_guess_forming_bond(reactant, fbond, bbonds, n_steps=10):
+    atom_i, atom_j = fbond
+    logger.info('Performing ORCA relaxed PES scan along atoms {}, {}'.format(atom_i, atom_j))
+
+    atom_labels = [xyz[0] for xyz in reactant.xyzs]
+    curr_fbond_dist = reactant.distance_matrix[atom_i][atom_j]
+    final_fbond_dist = get_avg_bond_length(atom_labels[atom_i], atom_labels[atom_j])
+
+    return get_orca_ts_guess_1dpes_scan(reactant, fbond, curr_fbond_dist, final_fbond_dist, n_steps,
+                                        Config.scan_keywords, name='default', reaction_class=Rearrangement,
+                                        active_bonds_not_scanned=bbonds)
 
 
 def get_forming_and_breaking_bonds(reactant, product):
@@ -55,15 +72,43 @@ def get_forming_and_breaking_bonds(reactant, product):
 
     forming_and_breaking_bonds = {}
 
-    possible_forming_bonds = get_possible_forming_bonds(reactant)
-    possible_breaking_bonds = get_possible_breaking_bonds(possible_forming_bonds, reactant.graph)
+    possible_breaking_bonds = [pair for pair in reactant.graph.edges()]
+    possible_forming_bonds = [tuple(sorted((i, j))) for i in range(reactant.n_atoms) for j in range(reactant.n_atoms) if
+                              i != j and tuple(sorted((i, j))) not in possible_breaking_bonds and i > j]
 
     for forming_bond in possible_forming_bonds:
         for breaking_bond in possible_breaking_bonds:
 
             reac_graph_rearrangement = generate_rearranged_graph(reactant.graph, forming_bond, breaking_bond)
             if is_isomorphic(reac_graph_rearrangement, product.graph):
-                forming_and_breaking_bonds[forming_bond] = breaking_bond
+                forming_and_breaking_bonds[forming_bond] = [breaking_bond]
+
+    if len(forming_and_breaking_bonds) == 0:
+        logger.warning('Could not find rearrangement with 1 breaking and 1 forming bond')
+        forming_and_breaking_bonds = get_forming_and_2breaking_bonds(reactant, product, possible_breaking_bonds,
+                                                                     possible_forming_bonds)
+
+    return forming_and_breaking_bonds
+
+
+def get_forming_and_2breaking_bonds(reactant, product, possible_breaking_bonds, possible_forming_bonds):
+    logger.info('Attempting to find rearrangement by breaking 2 bonds – this may be slow')
+
+    forming_and_breaking_bonds = {}
+    n_possible_bbonds = len(possible_breaking_bonds)
+
+    for forming_bond in possible_forming_bonds:
+        for i in range(n_possible_bbonds):
+            for j in range(n_possible_bbonds):
+                if i > j:
+
+                    bbond_i, bbond_j = possible_breaking_bonds[i], possible_breaking_bonds[j]
+
+                    reac_graph_rearrangement = generate_rearranged_graph(reactant.graph, forming_bond,
+                                                                         bbond_i, bbond_j)
+
+                    if is_isomorphic(reac_graph_rearrangement, product.graph):
+                        forming_and_breaking_bonds[forming_bond] = [bbond_i, bbond_j]
 
     return forming_and_breaking_bonds
 
@@ -118,16 +163,19 @@ def strip_non_unique_pairs(bond_pair_list):
     return list(set([tuple(sorted(item)) for item in bond_pair_list]))
 
 
-def generate_rearranged_graph(graph, forming_bond, breaking_bond):
+def generate_rearranged_graph(graph, forming_bond, breaking_bond, breaking_bond2=None):
     """
     Generate a rearranged graph by breaking one bond (edge) and forming another (edge)
     :param graph: (nx graph object)
     :param forming_bond: (tuple) Forming bond ids
     :param breaking_bond: (tuple) Breaking bond ids
+    :param breaking_bond2: (tuple) Breaking bond ids
     :return:
     """
     rearranged_graph = graph.copy()
     rearranged_graph.add_edge(*forming_bond)
     rearranged_graph.remove_edge(*breaking_bond)
+    if breaking_bond2 is not None:
+        rearranged_graph.remove_edge(*breaking_bond2)
 
     return rearranged_graph

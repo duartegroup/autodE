@@ -11,7 +11,7 @@ from .ts_guess import TSguess
 
 
 def get_orca_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_steps, orca_keywords, name, reaction_class,
-                                 active_bond_not_scanned=None):
+                                 active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
@@ -22,7 +22,7 @@ def get_orca_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_step
     :param orca_keywords: (list) ORCA keywords to use
     :param name: (str)
     :param reaction_class: (object) class of the reaction (reactions.py)
-    :param active_bond_not_scanned: (tuple) pair of atoms that are active, but will not be scanned in the 1D PES
+    :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
     :return: TSguess object
     """
     logger.info('Getting TS guess from ORCA relaxed potential energy scan')
@@ -35,14 +35,14 @@ def get_orca_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_step
     dist_xyzs_energies = get_orca_scan_values_xyzs_energies(orca_out_lines)
     ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
-    active_bonds = [active_bond] if active_bond_not_scanned is None else [active_bond, active_bond_not_scanned]
+    active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
     return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
                    charge=mol.charge, mult=mol.mult, active_bonds=active_bonds)
 
 
 def get_xtb_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_steps, reaction_class,
-                                active_bond_not_scanned=None):
+                                active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
@@ -51,7 +51,7 @@ def get_xtb_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_steps
     :param final_dist: (float) Final distance (Å)
     :param n_steps: (int) Number of scan steps to use in the XTB scan
     :param reaction_class: (object) class of the reaction (reactions.py)
-    :param active_bond_not_scanned: (tuple) pair of atoms that are active, but will not be scanned in the 1D PES
+    :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
     :return: List of xyzs
     """
     logger.info('Getting TS guess from XTB relaxed potential energy scan')
@@ -63,7 +63,7 @@ def get_xtb_ts_guess_1dpes_scan(mol, active_bond, curr_dist, final_dist, n_steps
     dist_xyzs_energies = get_xtb_scan_xyzs_energies(values=np.linspace(curr_dist, final_dist, n_steps))
     ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
 
-    active_bonds = [active_bond] if active_bond_not_scanned is None else [active_bond, active_bond_not_scanned]
+    active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
     return TSguess(reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent, charge=mol.charge,
                    mult=mol.mult, active_bonds=active_bonds)
