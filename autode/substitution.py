@@ -100,7 +100,6 @@ def generate_complex_xyzs(mol1, mol2, mol2_shift_ang=100):
 
 def get_forming_and_breaking_bonds(reac_complex, prod_complex):
     logger.info('Getting forming and breaking bonds for substitution reaction')
-    forming_bonds, breaking_bonds = [], []
 
     possible_forming_bonds = [tuple(sorted((i, j))) for i in range(reac_complex.n_atoms) for j in
                               range(reac_complex.n_atoms) if i > j]
@@ -113,14 +112,7 @@ def get_forming_and_breaking_bonds(reac_complex, prod_complex):
             rearranged_graph = generate_rearranged_graph(reac_complex.graph, fbond, bbond)
 
             if is_isomorphic(rearranged_graph, prod_complex.graph):
-                forming_bonds.append(fbond)
-                breaking_bonds.append(bbond)
-
-    if len(forming_bonds) == 1 and len(breaking_bonds) == 1:
-        return tuple(forming_bonds[0]), tuple(breaking_bonds[0])
-    else:
-        logger.critical('Substitution made/broke >1 bond. Not implemented yet')
-        return exit()
+                return fbond, bbond
 
 
 def get_possible_forming_bonds_over_fragments(reac_complex, possible_forming_bonds, inter_frag_cuttoff=50):
