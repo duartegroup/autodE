@@ -17,21 +17,20 @@ from .opt import get_opt_xyzs_energy
 from .single_point import get_single_point_energy
 
 
-def calc_multiplicity(n_radical_electrons):
-    """
-    Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
-    :return:
-    """
-
-    try:
-        assert n_radical_electrons <= 1
-    except AssertionError:
-        logger.critical('Diradicals are not yet supported')
-        exit()
-    return 2 if n_radical_electrons == 1 else 1
-
-
 class Molecule(object):
+
+    def calc_multiplicity(self, n_radical_electrons):
+        """
+        Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
+        :return:
+        """
+        if n_radical_electrons == 1:
+            return 2
+
+        if n_radical_electrons > 1:
+            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
+
+        return self.mult
 
     def get_active_mol_graph(self, active_bonds):
         logger.info('Getting molecular graph with active edges')
@@ -143,7 +142,7 @@ class Molecule(object):
         self.n_bonds = len(self.mol_obj.GetBonds())
         self.charge = Chem.GetFormalCharge(self.mol_obj)
         n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
-        self.mult = calc_multiplicity(n_radical_electrons)
+        self.mult = self.calc_multiplicity(n_radical_electrons)
 
         AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
         self.xyzs = gen_rdkit_conf_xyzs(self, conf_ids=[0])[0]

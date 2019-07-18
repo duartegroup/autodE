@@ -102,7 +102,9 @@ def get_forming_and_breaking_bonds(reac_complex, prod_complex):
     logger.info('Getting forming and breaking bonds for substitution reaction')
     forming_bonds, breaking_bonds = [], []
 
-    possible_forming_bonds = get_possible_forming_bonds(reac_complex)
+    possible_forming_bonds = [tuple(sorted((i, j))) for i in range(reac_complex.n_atoms) for j in
+                              range(reac_complex.n_atoms) if i > j]
+
     possible_forming_bonds = get_possible_forming_bonds_over_fragments(reac_complex, possible_forming_bonds)
     possible_breaking_bonds = get_xyz_bond_list(xyzs=reac_complex.xyzs)
 
