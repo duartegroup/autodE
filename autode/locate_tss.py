@@ -2,7 +2,7 @@ from .log import logger
 from .molecule import Molecule
 from .reactions import Dissociation, Rearrangement, Substitution
 from .mol_graphs import is_isomorphic
-from .mol_graphs import get_adjacency_graph
+from .mol_graphs import get_adjacency_digraph
 
 
 def find_tss(reaction):
@@ -15,6 +15,9 @@ def find_tss(reaction):
     if len(fbonds_and_bbonds) > 1:
         logger.info('Multiple possible bond breaking/makings are possible')
         fbonds_and_bbonds = strip_identical_fbond_bbond_sets(reactant, fbonds_and_bbonds)
+
+        from .input_output import xyzs2xyzfile
+        xyzs2xyzfile(reactant.xyzs, basename='tmp')
 
 
     return None
@@ -150,15 +153,23 @@ def strip_identical_fbond_bbond_sets(reactant, fbonds_and_bbonds):
     logger.info('Stripping the forming and breaking bond list by discarding symmetry equivs')
 
     unique_fbond_bbonds = [fbonds_and_bbonds[0]]                                # First must be unique
-    unique_atoms_and_adj_graph = {0: get_adjacency_graph(atom_i=0, graph=reactant.graph)}
+    nonunique_atoms_and_matches = {}
+    adjacency_graphs = [get_adjacency_digraph(atom_i=i, graph=reactant.graph) for i in range(reactant.n_atoms)]
 
-    print(unique_atoms_and_adj_graph[0].nodes.data())
+    print(adjacency_graphs)
+    exit()
 
-    for i in range(reactant.n_atoms):
+    for atom_i in range(reactant.n_atoms):
+        atom_i_matches = []
+        for atom_j in range(reactant.n_atoms):
+            if atom_i > atom_j:
+                if is_isomorphic(adjacency_graphs[atom_i], adjacency_graphs[atom_j]):
+                    atom_i_matches.append(atom_j)
 
-        # TODO this function
+        nonunique_atoms_and_matches[atom_i] = atom_i_matches
 
-        pass
+    print(nonunique_atoms_and_matches)
+    exit()
 
 
     return unique_fbond_bbonds

@@ -66,33 +66,56 @@ def get_isomorphic_mapping(graph1, graph2):
         return None
 
 
-def get_adjacency_graph(atom_i, graph):
+def get_adjacency_digraph(atom_i, graph):
+    """
+    Make a directed (di) graph centred on atom_i with it's neighbours and neighbours neighbours etc. then break when
+    we've added all the nodes, but don't add any loops etc. Used to determine if
+    :param atom_i:
+    :param graph:
+    :return:
+    """
 
-    added_atoms = []
-    adj_graph = nx.Graph()
+    adj_graph = nx.DiGraph()
+
+    def add_adj_nodes(atom_k):
+        adj_graph.add_node(atom_k, atom_label=graph.nodes[atom_k]['atom_label'])
+        added_atoms = [atom_k]
+
+        # while adj_graph.number_of_nodes() != graph.number_of_nodes():
+        curr_atom = added_atoms.pop()
+        print(curr_atom)
+        for atom in list(graph.adj[curr_atom]):
+            if atom not in added_atoms:
+                adj_graph.add_node(atom, atom_label=graph.nodes[atom]['atom_label'])
+                adj_graph.add_edge(curr_atom, atom)
+                added_atoms.append(atom)
+
+        return adj_graph
+
+    adj_graph = add_adj_nodes(atom_i)
+    print(adj_graph.nodes())
+    print(adj_graph.edges())
+    exit()
+
+    return adj_graph
+
+
+"""
 
     def add_adj_nodes(atom_k):
         adj_graph.add_node(atom_k, atom_label=graph.nodes[atom_k]['atom_label'])
 
-        print(adj_graph.nodes.data())
-
         if adj_graph.number_of_nodes() == graph.number_of_nodes():
-            print('returning')
             return adj_graph
 
         adj_atoms = list(graph.adj[atom_k])
-        print(atom_k, adj_atoms)
+        unique_adj_atoms = []
         for atom_j in adj_atoms:
-            print(atom_k, atom_j)
             if atom_j not in added_atoms:
                 adj_graph.add_node(atom_j, atom_label=graph.nodes[atom_j]['atom_label'])
                 adj_graph.add_edge(atom_k, atom_j)
                 added_atoms.append(atom_j)
+                unique_adj_atoms.append(atom_j)
+        return [add_adj_nodes(atom) for atom in unique_adj_atoms]
 
-                return add_adj_nodes(atom_j)
-            else:
-                pass
-
-    adj_graph = add_adj_nodes(atom_i)
-    exit()
-    return adj_graph
+"""
