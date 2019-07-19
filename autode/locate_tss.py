@@ -156,9 +156,6 @@ def strip_identical_fbond_bbond_sets(reactant, fbonds_and_bbonds):
     nonunique_atoms_and_matches = {}
     adjacency_graphs = [get_adjacency_digraph(atom_i=i, graph=reactant.graph) for i in range(reactant.n_atoms)]
 
-    print(adjacency_graphs)
-    exit()
-
     for atom_i in range(reactant.n_atoms):
         atom_i_matches = []
         for atom_j in range(reactant.n_atoms):

@@ -76,37 +76,15 @@ def get_adjacency_digraph(atom_i, graph):
     """
 
     adj_graph = nx.DiGraph()
+    added_atoms = []
 
     def add_adj_nodes(atom_k):
-        adj_graph.add_node(atom_k, atom_label=graph.nodes[atom_k]['atom_label'])
-        added_atoms = [atom_k]
-
-        # while adj_graph.number_of_nodes() != graph.number_of_nodes():
-        curr_atom = added_atoms.pop()
-        print(curr_atom)
-        for atom in list(graph.adj[curr_atom]):
-            if atom not in added_atoms:
-                adj_graph.add_node(atom, atom_label=graph.nodes[atom]['atom_label'])
-                adj_graph.add_edge(curr_atom, atom)
-                added_atoms.append(atom)
-
-        return adj_graph
-
-    adj_graph = add_adj_nodes(atom_i)
-    print(adj_graph.nodes())
-    print(adj_graph.edges())
-    exit()
-
-    return adj_graph
-
-
-"""
-
-    def add_adj_nodes(atom_k):
+        if atom_k not in added_atoms:
+            added_atoms.append(atom_k)
         adj_graph.add_node(atom_k, atom_label=graph.nodes[atom_k]['atom_label'])
 
         if adj_graph.number_of_nodes() == graph.number_of_nodes():
-            return adj_graph
+            return None
 
         adj_atoms = list(graph.adj[atom_k])
         unique_adj_atoms = []
@@ -116,6 +94,8 @@ def get_adjacency_digraph(atom_i, graph):
                 adj_graph.add_edge(atom_k, atom_j)
                 added_atoms.append(atom_j)
                 unique_adj_atoms.append(atom_j)
-        return [add_adj_nodes(atom) for atom in unique_adj_atoms]
+                [add_adj_nodes(atom) for atom in unique_adj_atoms]
 
-"""
+    add_adj_nodes(atom_i)
+
+    return adj_graph
