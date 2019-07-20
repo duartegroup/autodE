@@ -27,6 +27,12 @@ class Molecule(object):
     def get_possible_breaking_bonds(self):
         return [pair for pair in self.graph.edges()]
 
+    def get_atom_label(self, atom_i):
+        return self.xyzs[atom_i][0]
+
+    def calc_bond_distance(self, bond):
+        return self.distance_matrix[bond[0], bond[1]]
+
     def calc_multiplicity(self, n_radical_electrons):
         """
         Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons

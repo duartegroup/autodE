@@ -27,7 +27,7 @@ def gen_orca_inp(inp_filename, keywords, xyzs, charge, mult, solvent=None, n_cor
 
     if xyzs is None or len(xyzs) == 0:
         logger.critical('Have no xyzs. Can\'t generate a valid .inp file')
-        return None
+        exit()
 
     if len(xyzs) == 1:
         for keyword in keywrds:

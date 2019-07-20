@@ -7,12 +7,15 @@ from .bond_rearrangement import gen_equiv_bond_rearrangs
 from .substitution import get_complex_xyzs_translated_rotated
 from .molecule import Molecule
 from .reactions import Dissociation, Rearrangement, Substitution
+from .bond_lengths import get_avg_bond_length
 from .mol_graphs import is_isomorphic
 from .mol_graphs import get_adjacency_digraph
 from .optts import get_ts
 from .template_ts_guess import get_template_ts_guess
 from .pes_1d import get_xtb_ts_guess_1dpes_scan
 from .pes_1d import get_orca_ts_guess_1dpes_scan
+from .pes_2d import get_xtb_ts_guess_2d
+from .pes_2d import get_orca_ts_guess_2d
 
 
 def find_tss(reaction):
@@ -29,13 +32,18 @@ def find_tss(reaction):
         if reaction.type == Substitution:
             reactant.xyzs = get_complex_xyzs_translated_rotated(reactant, reaction.reacs[0], bond_rearrangement)
 
-        ts_guess = get_ts_guess(reaction, reactant, bond_rearrangement)
-        ts = get_ts(ts_guess)
-        if ts is not None:
-            tss.append(ts)
+        for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement).items():
+            ts_guess = func(*params)
+            ts = get_ts(ts_guess)
+
+            if ts is not None:
+                if ts.is_true_ts():
+                    logger.info('Found a transition state with {}'.format(func.__name__))
+                    tss.append(ts)
+                    break
 
     if len(tss) > 0:
-        logger.info('Found *{}* transition state that lead to products'.format(len(tss)))
+        logger.info('Found *{}* transition state(s) that lead to products'.format(len(tss)))
         return tss
 
     else:
@@ -43,33 +51,47 @@ def find_tss(reaction):
         return None
 
 
-def get_ts_guess(reaction, reactant, bond_rearrang):
+def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
-    ts_guess_funcs_params = {get_template_ts_guess: (reactant, bond_rearrang.all, reaction.type)}
+    bds_str = '_'.join([str(bond[0]) + str(bond[1]) for bond in bond_rearrang.all])
+
+    funcs_params = {get_template_ts_guess: (reactant, bond_rearrang.all, reaction.type)}
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
-        ts_guess_funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 20, reaction.type)
-        ts_guess_funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10,
-                                                               Config.scan_keywords, 'default', reaction.type)
+        funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
+                                                     reaction.type)
+        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
+                                                      'orca1d_' + bds_str, reaction.type)
+        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
+                                                      'orca1d_opt_level_' + bds_str, reaction.type)
+
+    if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type == Substitution:
+        funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
+                                                     reaction.type, 1.5, [bond_rearrang.fbonds[0]])
+        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
+                                                      'orca1d_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])
+
+    if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1 and reaction.type == Rearrangement:
+        fbond = bond_rearrang.fbonds[0]
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, fbond, 20, 'xtb1d_' + bds_str, reaction.type,
+                                                     delta_fbond_dist,[fbond])
+        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, fbond, 10, Config.scan_keywords, 'orca1d_' + bds_str,
+                                                      reaction.type,delta_fbond_dist, [fbond])
+
+    if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
+        fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        funcs_params[get_xtb_ts_guess_2d] = (reactant, fbond, bbond, 20, reaction.type, 'xtb2d+' + bds_str,
+                                             delta_fbond_dist, 1.5)
+
+        funcs_params[get_orca_ts_guess_2d] = (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
+                                              'orca2d_' + bds_str, delta_fbond_dist, 1.5)
 
 
+        # TODO more here
 
-
-
-    # TODO add more functions depending on the number of breaking and forming bonds
-
-
-
-
-
-
-
-    for func, params in ts_guess_funcs_params.items():
-        ts_guess = func(*params)
-        if ts_guess is not None:
-            return ts_guess
-
-    return None
+    return funcs_params
 
 
 def get_reactant_and_product_complexes(reaction):
