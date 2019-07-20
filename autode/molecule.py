@@ -19,6 +19,14 @@ from .single_point import get_single_point_energy
 
 class Molecule(object):
 
+    def get_possible_forming_bonds(self):
+        curr_bonds = [pair for pair in self.graph.edges()]
+        return [(i, j) for i in range(self.n_atoms) for j in range(self.n_atoms)
+                if i < j and (i, j) not in curr_bonds and (j, i) not in curr_bonds]
+
+    def get_possible_breaking_bonds(self):
+        return [pair for pair in self.graph.edges()]
+
     def calc_multiplicity(self, n_radical_electrons):
         """
         Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
@@ -125,6 +133,8 @@ class Molecule(object):
 
     def optimise(self):
         self.xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.opt_keywords, n_cores=Config.n_cores)
+        self.distance_matrix = calc_distance_matrix(self.xyzs)
+        self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
 
     def single_point(self):
         self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)

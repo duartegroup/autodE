@@ -15,6 +15,10 @@ def get_ts(ts_guess, imag_freq_threshold=-50):
     :return:
     """
 
+    if ts_guess is None:
+        logger.warning('Cannot find a transtion state; had no TS guess')
+        return None
+
     ts_guess.run_orca_optts()
     imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
 
