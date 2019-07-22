@@ -47,6 +47,12 @@ class TSguess(object):
 
         return self
 
+    def calc_orca_hess(self):
+        inpfilename = self.name + '_orca_hess.inp'
+        gen_orca_inp(inpfilename, Config.hess_keywords, self.xyzs, self.charge, self.mult, self.solvent, Config.n_cores)
+        self.hess_out_lines = run_orca(inpfilename, out_filename=inpfilename.replace('.inp', '.out'))
+        self.hess_name = inpfilename.replace('.inp', '.hess')
+
     def run_orca_optts(self):
         logger.info('Getting ORCA out lines from OptTS calculation')
 
@@ -80,6 +86,8 @@ class TSguess(object):
         self.mult = mult
         self.active_bonds = active_bonds
         self.optts_out_lines = optts_out_lines
+        self.hess_out_lines = None
+        self.hess_name = None
 
         self.optts_converged = False
         self.optts_nearly_converged = False

@@ -12,7 +12,7 @@ def test_dissociation():
     prod = Product(name='product', smiles='CC([O-])(C#N)C', solvent='water')
     reaction = Reaction(formaldehyde, cn, prod)
     reaction.locate_transition_state()
-    assert -240 < reaction.ts.imag_freqs[0] < -230
+    assert -245 < reaction.ts.imag_freqs[0] < -230
 
 
 if __name__ == '__main__':

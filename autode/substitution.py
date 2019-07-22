@@ -5,7 +5,7 @@ from .geom import xyz2coord
 from .geom import calc_rotation_matrix
 
 
-def get_complex_xyzs_translated_rotated(reac_complex, reac1, bond_rearrangement, shift_factor=2.0):
+def set_complex_xyzs_translated_rotated(reac_complex, reac1, bond_rearrangement, shift_factor=2.0):
     logger.info('Translating reactant atoms into reactive complex')
     fbond, bbond = bond_rearrangement.fbonds[0], bond_rearrangement.bbonds[0]
     logger.info('Have assumed a dominant breaking bond of {}'.format(bond_rearrangement.bbonds[0]))
@@ -34,7 +34,9 @@ def get_complex_xyzs_translated_rotated(reac_complex, reac1, bond_rearrangement,
             if i < reac1.n_atoms:
                 complex_coords[i] = np.matmul(rot_matrix, complex_coords[i])
 
-    return [[reac_complex.xyzs[i][0]] + complex_coords[i].tolist() for i in range(reac_complex.n_atoms)]
+    reac_complex_xyzs = [[reac_complex.xyzs[i][0]] + complex_coords[i].tolist() for i in range(reac_complex.n_atoms)]
+
+    return reac_complex.set_xyzs(reac_complex_xyzs)
 
 
 def get_attacked_atom_leaving_group_vector(reac_complex, bbond, fbond):

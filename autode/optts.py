@@ -16,7 +16,7 @@ def get_ts(ts_guess, imag_freq_threshold=-50):
     """
 
     if ts_guess is None:
-        logger.warning('Cannot find a transtion state; had no TS guess')
+        logger.warning('Cannot find a transition state; had no TS guess')
         return None
 
     ts_guess.run_orca_optts()
@@ -50,6 +50,8 @@ def get_ts(ts_guess, imag_freq_threshold=-50):
 
                 if ts_guess.optts_nearly_converged:
                     return TS(ts_guess, converged=False)
+        else:
+            logger.warning('TS has *0* imaginary frequencies')
 
     return None
 

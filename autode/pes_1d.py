@@ -8,6 +8,8 @@ from .ORCAio import run_orca
 from .ORCAio import get_orca_scan_values_xyzs_energies
 from .input_output import xyzs2xyzfile
 from .ts_guess import TSguess
+from .plotting import plot_1dpes
+from .constants import Constants
 
 
 def get_orca_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name, reaction_class, delta_dist=1.5,
@@ -95,8 +97,9 @@ def find_1dpes_maximum_energy_xyzs(dist_xyzs_energies_dict):
             peak_e = energy_list[i]
             xyzs_peak_energy = list(dist_xyzs_energies_dict.values())[i][0]
 
+    plot_1dpes(dist_xyzs_energies_dict.keys(), [Constants.ha2kcalmol * (e - min_e) for e in energy_list])
+
     if peak_e != min_e:
-        from .constants import Constants
         logger.info('Energy at peak in PES at ∆E = {} kcal/mol'.format(Constants.ha2kcalmol * (peak_e - min_e)))
     else:
         logger.warning('Couldn\'t find a peak in the PES')

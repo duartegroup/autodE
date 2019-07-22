@@ -13,6 +13,6 @@ def test_da_subst():
     reaction = Reaction(benzoquinone, cyclopentadiene, product)
     reaction.locate_transition_state()
 
-    assert reaction.ts.energy == -574.486245371594
+    assert reaction.ts.energy == -574.486151149915
     assert len(reaction.ts.imag_freqs) == 1
-    assert reaction.ts.imag_freqs[0] == -382.77
+    assert reaction.ts.imag_freqs[0] == -389.0

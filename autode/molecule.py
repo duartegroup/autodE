@@ -30,6 +30,12 @@ class Molecule(object):
     def get_atom_label(self, atom_i):
         return self.xyzs[atom_i][0]
 
+    def set_xyzs(self, xyzs):
+        logger.info('Setting molecule xyzs')
+        self.xyzs = xyzs
+        self.distance_matrix = calc_distance_matrix(xyzs)
+        self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
+
     def calc_bond_distance(self, bond):
         return self.distance_matrix[bond[0], bond[1]]
 
@@ -138,9 +144,8 @@ class Molecule(object):
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def optimise(self):
-        self.xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.opt_keywords, n_cores=Config.n_cores)
-        self.distance_matrix = calc_distance_matrix(self.xyzs)
-        self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+        opt_xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.opt_keywords, n_cores=Config.n_cores)
+        self.set_xyzs(opt_xyzs)
 
     def single_point(self):
         self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)

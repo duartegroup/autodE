@@ -38,7 +38,8 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
                 logger.info('TS template has => 1 active bond distance larger than {}. Passing'.format(dist_thresh))
                 pass
             else:
-                return get_orca_ts_guess_constrained_opt(mol, orca_keywords=Config.opt_keywords, name='ts_guess',
+                return get_orca_ts_guess_constrained_opt(mol, orca_keywords=Config.opt_keywords,
+                                                         name='template_ts_guess',
                                                          distance_constraints=active_bonds_and_dists_ts,
                                                          reaction_class=reaction_class)
 

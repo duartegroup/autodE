@@ -4,7 +4,7 @@ from .geom import get_neighbour_list
 from .geom import get_identical_pairs
 from .bond_rearrangement import BondRearrangement
 from .bond_rearrangement import gen_equiv_bond_rearrangs
-from .substitution import get_complex_xyzs_translated_rotated
+from .substitution import set_complex_xyzs_translated_rotated
 from .molecule import Molecule
 from .reactions import Dissociation, Rearrangement, Substitution
 from .bond_lengths import get_avg_bond_length
@@ -30,9 +30,10 @@ def find_tss(reaction):
     for bond_rearrangement in bond_rearrangs:
 
         if reaction.type == Substitution:
-            reactant.xyzs = get_complex_xyzs_translated_rotated(reactant, reaction.reacs[0], bond_rearrangement)
+            set_complex_xyzs_translated_rotated(reactant, reaction.reacs[0], bond_rearrangement)
 
-        for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement).items():
+        for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement):
+            logger.info('Trying to find a TS guess with {}'.format(func.__name__))
             ts_guess = func(*params)
             ts = get_ts(ts_guess)
 
@@ -55,38 +56,41 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
     bds_str = '_'.join([str(bond[0]) + str(bond[1]) for bond in bond_rearrang.all])
 
-    funcs_params = {get_template_ts_guess: (reactant, bond_rearrang.all, reaction.type)}
+    funcs_params = [(get_template_ts_guess, (reactant, bond_rearrang.all, reaction.type))]
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
-        funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
-                                                     reaction.type)
-        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
-                                                      'orca1d_' + bds_str, reaction.type)
-        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
-                                                      'orca1d_opt_level_' + bds_str, reaction.type)
+        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
+                             reaction.type)))
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
+                             'orca1d_' + bds_str, reaction.type)))
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
+                             'orca1d_opt_level_' + bds_str, reaction.type)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type == Substitution:
-        funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
-                                                     reaction.type, 1.5, [bond_rearrang.fbonds[0]])
-        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
-                                                      'orca1d_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])
+        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
+                             reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
+                             'orca1d_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
+                             'orca1d_opt_level_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
 
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1 and reaction.type == Rearrangement:
         fbond = bond_rearrang.fbonds[0]
         delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-        funcs_params[get_xtb_ts_guess_1dpes_scan] = (reactant, fbond, 20, 'xtb1d_' + bds_str, reaction.type,
-                                                     delta_fbond_dist,[fbond])
-        funcs_params[get_orca_ts_guess_1dpes_scan] = (reactant, fbond, 10, Config.scan_keywords, 'orca1d_' + bds_str,
-                                                      reaction.type,delta_fbond_dist, [fbond])
+
+        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, fbond, 20, 'xtb1d_' + bds_str, reaction.type,
+                             delta_fbond_dist,[fbond])))
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, fbond, 10, Config.scan_keywords, 'orca1d_' +
+                             bds_str, reaction.type,delta_fbond_dist, [fbond])))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
         delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-        funcs_params[get_xtb_ts_guess_2d] = (reactant, fbond, bbond, 20, reaction.type, 'xtb2d+' + bds_str,
-                                             delta_fbond_dist, 1.5)
 
-        funcs_params[get_orca_ts_guess_2d] = (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
-                                              'orca2d_' + bds_str, delta_fbond_dist, 1.5)
+        funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, 'xtb2d+' + bds_str,
+                             delta_fbond_dist, 1.5)))
+        funcs_params.append((get_orca_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
+                             'orca2d_' + bds_str, delta_fbond_dist, 1.5)))
 
 
         # TODO more here
@@ -251,13 +255,14 @@ def get_nonunique_atoms_and_matches_by_connectivity(mol):
     return nonunique_atoms_and_matches
 
 
-def get_nonunique_atoms_and_matches(mol):
+def get_nonunique_atoms_and_matches(mol, depth=6):
     """
     For a molecule and an already generated dictionary of possible non-unique atoms (value = matching atom)
     strip those that could be unique as defined by their neighbor list i.e. a CH3 might have a neighbour list
     for one of the Hs = [c, H, H]  (from closest -> furthest)
 
     :param mol: (object) Molecule object
+    :param depth (depth) Depth of the neighbour list to check is identical
     :return: (dict) stripped of what could be non-equivalent atoms
     """
 
@@ -268,7 +273,7 @@ def get_nonunique_atoms_and_matches(mol):
     for atom_i, equiv_atoms in nonunique_atoms_and_matches.items():
         unique_atoms = []
         for atom_k in equiv_atoms:
-            if neighbor_lists[atom_i] != neighbor_lists[atom_k]:
+            if neighbor_lists[atom_i][:depth] != neighbor_lists[atom_k][:depth]:
                 unique_atoms.append(atom_k)
 
         [equiv_atoms.remove(atom_m) for atom_m in unique_atoms]

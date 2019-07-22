@@ -52,6 +52,16 @@ def plot_2dpes(r1, r2, flat_rel_energy_array):
     return 0
 
 
+def plot_1dpes(rs, rel_energies):
+
+    plt.plot(rs, rel_energies, marker='o', color='k')
+    plt.xlabel('$r$ / Å')
+    plt.ylabel('$\Delta E$ / kcal mol$^{-1}$')
+    plt.savefig('1d_scan.png')
+
+    return 0
+
+
 def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_converged):
     """
     For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
