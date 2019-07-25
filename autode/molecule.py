@@ -9,6 +9,7 @@ from .conformers import generate_unique_rdkit_confs
 from .bond_lengths import get_xyz_bond_list
 from .bond_lengths import get_bond_list_from_rdkit_bonds
 from .geom import calc_distance_matrix
+from .geom import xyz2coord
 from .conformers import gen_rdkit_conf_xyzs
 from .conformers import Conformer
 from .conformers import rdkit_conformer_geometries_are_resonable
@@ -29,6 +30,18 @@ class Molecule(object):
 
     def get_atom_label(self, atom_i):
         return self.xyzs[atom_i][0]
+
+    def get_bonded_atoms_to_i(self, atom_i):
+        bonded_atoms = []
+        for edge in self.graph.edges():
+            if edge[0] == atom_i:
+                bonded_atoms.append(edge[1])
+            if edge[1] == atom_i:
+                bonded_atoms.append(edge[0])
+        return bonded_atoms
+
+    def get_coords(self):
+        return xyz2coord(self.xyzs)
 
     def set_xyzs(self, xyzs):
         logger.info('Setting molecule xyzs')

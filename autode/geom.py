@@ -16,6 +16,17 @@ def xyz2coord(xyzs):
         return np.array(xyzs[1:4])
 
 
+def coords2xyzs(coords, old_xyzs):
+    """
+    Insert a set of coordinates into a set of xyzs to a new list of xyzs
+    :param coords: list(nd.array)
+    :param old_xyzs: (list(list))
+    :return: (list(list))
+    """
+    assert len(old_xyzs) == len(coords)
+    return [[old_xyzs[n][0]] + coords[n].tolist() for n in range(len(old_xyzs))]
+
+
 def calc_distance_matrix(xyzs):
     """
     Calculate a distance matrix

@@ -30,7 +30,7 @@ def find_tss(reaction):
     for bond_rearrangement in bond_rearrangs:
 
         if reaction.type == Substitution:
-            set_complex_xyzs_translated_rotated(reactant, reaction.reacs[0], bond_rearrangement)
+            set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement)
 
         for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement):
             logger.info('Trying to find a TS guess with {}'.format(func.__name__))
@@ -292,10 +292,11 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs):
     """
     logger.info('Stripping the forming and breaking bond list by discarding symmetry equivs')
 
+    unique_bond_rearrangs = possible_bond_rearrangs[:1]
+    return unique_bond_rearrangs
+
     atoms_and_matches = get_nonunique_atoms_and_matches(mol=mol)
     identical_pairs = get_identical_pairs(atoms_and_matches, n_atoms=mol.n_atoms)
-
-    unique_bond_rearrangs = possible_bond_rearrangs[:1]
 
     for bond_rearrang in possible_bond_rearrangs:
         bond_rearrang_unique = True
