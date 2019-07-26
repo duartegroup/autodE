@@ -7,12 +7,15 @@ from .config import Config
 from .ts_guess import TSguess
 
 
-def get_template_ts_guess(mol, active_bonds, reaction_class):
+def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
     """
     Get a transition state guess object by searching though the stored TS templates
+
     :param mol: (object) Molecule object
     :param active_bonds: (list(tuple)) List of active bonds in the TS, defined by atom IDs of the atom pair as a tuple
     :param reaction_class: (object) Reaction class (reactions.py)
+    :param dist_thresh: (float) distance above which a constrained optimisation probably won't work
+    due to the inital geometry being too far away from the ideal
     :return: TSguess object
     """
     logger.info('Getting TS guess from stored TS template')
@@ -31,9 +34,14 @@ def get_template_ts_guess(mol, active_bonds, reaction_class):
                 active_bonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[i], mapping[j]]['weight']
 
             logger.info('Found a TS guess from a template')
-            return get_orca_ts_guess_constrained_opt(mol, orca_keywords=Config.opt_keywords, name='ts_guess',
-                                                     distance_constraints=active_bonds_and_dists_ts,
-                                                     reaction_class=reaction_class)
+            if any([mol.distance_matrix[bond[0], bond[1]] > dist_thresh for bond in active_bonds_and_dists_ts.keys()]):
+                logger.info('TS template has => 1 active bond distance larger than {}. Passing'.format(dist_thresh))
+                pass
+            else:
+                return get_orca_ts_guess_constrained_opt(mol, orca_keywords=Config.opt_keywords,
+                                                         name='template_ts_guess',
+                                                         distance_constraints=active_bonds_and_dists_ts,
+                                                         reaction_class=reaction_class)
 
     logger.info('Couldn\'t find a TS guess from a template')
-    return TSguess(xyzs=None)
+    return None

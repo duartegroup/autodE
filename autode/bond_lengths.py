@@ -65,7 +65,11 @@ def get_ideal_bond_length_matrix(xyzs, bonds):
     return ideal_bondl_matrix
 
 
-def get_avg_bond_length(atom_i_label, atom_j_label):
+def get_avg_bond_length(atom_i_label=None, atom_j_label=None, mol=None, bond=None):
+
+    if mol is not None and bond is not None:
+        atom_i_label = mol.get_atom_label(bond[0])
+        atom_j_label = mol.get_atom_label(bond[1])
 
     key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
     if key1 in avg_bond_lengths.keys():
@@ -73,7 +77,7 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
     elif key2 in avg_bond_lengths.keys():
         return avg_bond_lengths[key2]
     else:
-        logger.warning('Couldn\'t find a default bond length for {}–{}'.format(atom_i_label, atom_j_label))
+        logger.warning('Couldn\'t find a default bond length for ({},{})'.format(atom_i_label, atom_j_label))
         return 1.5
 
 
@@ -118,7 +122,7 @@ avg_bond_lengths = {
     'PH': 1.44,
     'PF': 1.54,
     'FO': 1.41,
-    'RhC': 1.8,
+    'RhC': 2.0,
     'RhH': 1.27,
     'RhP': 2.20
 }

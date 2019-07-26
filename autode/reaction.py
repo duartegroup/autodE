@@ -1,8 +1,6 @@
 from .log import logger
 from . import reactions
-from . import dissociation
-from . import rearrangement
-from . import substitution
+from .locate_tss import find_tss
 from .molecule import Reactant
 from .molecule import Product
 from .units import KcalMol
@@ -60,10 +58,6 @@ class Reaction(object):
         """
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
-                mol.generate_conformers()
-                mol.optimise_conformers_xtb()
-                mol.strip_non_unique_confs()
-                mol.optimise_conformers_orca()
                 mol.find_lowest_energy_conformer()
 
     def optimise_reacs_prods(self):
@@ -74,35 +68,22 @@ class Reaction(object):
         [mol.single_point() for mol in self.reacs + self.prods + [self.ts]]
 
     def find_lowest_energy_ts(self):
-        if len(self.tss) > 1:
+        if self.tss is None:
+            logger.error('Could not find a transition state')
+            return None
+
+        elif len(self.tss) > 1:
             logger.info('Found more than 1 TS. Choosing the lowest energy')
             min_ts_energy = min([ts.energy for ts in self.tss])
             return [ts for ts in self.tss if ts.energy == min_ts_energy][0]
+
         else:
             return self.tss[0]
 
     def locate_transition_state(self):
 
-        if self.type == reactions.Dissociation:
-            self.ts = dissociation.find_ts(self)
-
-        elif self.type == reactions.Rearrangement:
-            self.tss = rearrangement.find_tss(self)
-            self.ts = self.find_lowest_energy_ts()
-
-        elif self.type == reactions.Substitution:
-            self.ts = substitution.find_ts(self)
-
-        # TODO elimination reactions
-
-        else:
-            logger.critical('Reaction type not currently supported')
-            exit()
-
-        if self.ts is not None:
-            self.ts.charge = sum([reactant.charge for reactant in self.reacs])
-            self.ts.mult = sum([reactant.mult for reactant in self.reacs]) - (len(self.reacs) - 1)
-            self.ts.solvent = self.reacs[0].solvent
+        self.tss = find_tss(self)
+        self.ts = self.find_lowest_energy_ts()
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
@@ -110,6 +91,9 @@ class Reaction(object):
         self.optimise_reacs_prods()
         self.locate_transition_state()
         self.calculate_single_points()
+
+        if self.ts is None:
+            return logger.error('TS is None – cannot plot a reaction profile')
 
         conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
         plot_reaction_profile(e_reac=0.0,

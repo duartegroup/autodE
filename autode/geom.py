@@ -16,6 +16,17 @@ def xyz2coord(xyzs):
         return np.array(xyzs[1:4])
 
 
+def coords2xyzs(coords, old_xyzs):
+    """
+    Insert a set of coordinates into a set of xyzs to a new list of xyzs
+    :param coords: list(nd.array)
+    :param old_xyzs: (list(list))
+    :return: (list(list))
+    """
+    assert len(old_xyzs) == len(coords)
+    return [[old_xyzs[n][0]] + coords[n].tolist() for n in range(len(old_xyzs))]
+
+
 def calc_distance_matrix(xyzs):
     """
     Calculate a distance matrix
@@ -33,6 +44,53 @@ def calc_distance_matrix(xyzs):
             distance_matrix[atom_i, atom_j] = dist
 
     return distance_matrix
+
+
+def get_neighbour_list(atom_i, mol):
+    """
+    Calculate a neighbour list from atom i as a list of atom labels
+    :param atom_i: (int) index of the atom
+    :param mol: (object) Molecule object
+    :return:
+    """
+
+    distance_vector = mol.distance_matrix[atom_i]
+    dists_and_atom_labels = {}
+    for atom_j, dist in enumerate(distance_vector):
+        dists_and_atom_labels[dist] = mol.xyzs[atom_j][0]
+
+    atom_label_neighbour_list = []
+    for dist, atom_label in sorted(dists_and_atom_labels.items()):
+        atom_label_neighbour_list.append(atom_label)
+
+    return atom_label_neighbour_list
+
+
+def get_identical_pairs(atoms_and_matches, n_atoms):
+    """
+    For a set of atoms and equivalent atoms get all the pairs of atom_i, atom_j which are equivalent
+
+    :param atoms_and_matches: (dict) keyed with atom id and value a list (could be empty)
+    :param n_atoms: (int) number of atoms
+    :return: dict
+    """
+    identical_pairs = {}
+
+    for atom_i in range(n_atoms):
+        for atom_j in range(n_atoms):
+            if atom_i != atom_j:
+                pair = (atom_i, atom_j)
+                identical_pairs[pair] = []
+
+                for match_i in atoms_and_matches[atom_i] + [atom_i]:
+                    for match_j in atoms_and_matches[atom_j] + [atom_j]:
+                        if match_i != match_j:
+                            equiv_pair = (match_i, match_j)
+
+                            if equiv_pair != pair:
+                                identical_pairs[pair].append(equiv_pair)
+
+    return identical_pairs
 
 
 def get_breaking_bond_atom_id_dist_dict(xyzs, bbond_atom_ids_list):

@@ -9,6 +9,7 @@ from .conformers import generate_unique_rdkit_confs
 from .bond_lengths import get_xyz_bond_list
 from .bond_lengths import get_bond_list_from_rdkit_bonds
 from .geom import calc_distance_matrix
+from .geom import xyz2coord
 from .conformers import gen_rdkit_conf_xyzs
 from .conformers import Conformer
 from .conformers import rdkit_conformer_geometries_are_resonable
@@ -18,6 +19,38 @@ from .single_point import get_single_point_energy
 
 
 class Molecule(object):
+
+    def get_possible_forming_bonds(self):
+        curr_bonds = [pair for pair in self.graph.edges()]
+        return [(i, j) for i in range(self.n_atoms) for j in range(self.n_atoms)
+                if i < j and (i, j) not in curr_bonds and (j, i) not in curr_bonds]
+
+    def get_possible_breaking_bonds(self):
+        return [pair for pair in self.graph.edges()]
+
+    def get_atom_label(self, atom_i):
+        return self.xyzs[atom_i][0]
+
+    def get_bonded_atoms_to_i(self, atom_i):
+        bonded_atoms = []
+        for edge in self.graph.edges():
+            if edge[0] == atom_i:
+                bonded_atoms.append(edge[1])
+            if edge[1] == atom_i:
+                bonded_atoms.append(edge[0])
+        return bonded_atoms
+
+    def get_coords(self):
+        return xyz2coord(self.xyzs)
+
+    def set_xyzs(self, xyzs):
+        logger.info('Setting molecule xyzs')
+        self.xyzs = xyzs
+        self.distance_matrix = calc_distance_matrix(xyzs)
+        self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
+
+    def calc_bond_distance(self, bond):
+        return self.distance_matrix[bond[0], bond[1]]
 
     def calc_multiplicity(self, n_radical_electrons):
         """
@@ -110,21 +143,22 @@ class Molecule(object):
         For a molecule object find the lowest in energy and set it as the mol.xyzs and mol.energy
         :return:
         """
-        if self.conformers is None:
-            logger.critical('Have no conformers')
-            exit()
+        self.generate_conformers()
+        self.optimise_conformers_xtb()
+        self.strip_non_unique_confs()
+        self.optimise_conformers_orca()
+
         lowest_energy = min([conf.energy for conf in self.conformers])
         for conformer in self.conformers:
             if conformer.energy == lowest_energy:
                 self.energy = conformer.energy
-                self.xyzs = conformer.xyzs
-                self.distance_matrix = calc_distance_matrix(self.xyzs)
-                self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+                self.set_xyzs(conformer.xyzs)
                 break
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def optimise(self):
-        self.xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.opt_keywords, n_cores=Config.n_cores)
+        opt_xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.opt_keywords, n_cores=Config.n_cores)
+        self.set_xyzs(opt_xyzs)
 
     def single_point(self):
         self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)
