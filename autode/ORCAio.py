@@ -235,8 +235,8 @@ def get_orca_scan_values_xyzs_energies(out_lines, scan_2d=False):
         if 'The optimization did not converge' in line:
             logger.warning('Optimisation did not converge')
             if scan_2d:
-                logger.critical('Can\'t yet handle non-converged 2D scan')
-                exit()
+                logger.error('Can\'t yet handle non-converged 2D scan')
+                return None
 
             return get_orca_scan1d_values_xyzs_energies_no_conv(out_lines)
 
@@ -271,6 +271,7 @@ def get_orca_scan_values_xyzs_energies(out_lines, scan_2d=False):
 
     if len(values_xyzs_energies) == 0:
         logger.error('Could not get any energies or xyzs from ORCA PES scan')
+        return None
 
     return values_xyzs_energies
 

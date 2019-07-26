@@ -143,16 +143,16 @@ class Molecule(object):
         For a molecule object find the lowest in energy and set it as the mol.xyzs and mol.energy
         :return:
         """
-        if self.conformers is None:
-            logger.critical('Have no conformers')
-            exit()
+        self.generate_conformers()
+        self.optimise_conformers_xtb()
+        self.strip_non_unique_confs()
+        self.optimise_conformers_orca()
+
         lowest_energy = min([conf.energy for conf in self.conformers])
         for conformer in self.conformers:
             if conformer.energy == lowest_energy:
                 self.energy = conformer.energy
-                self.xyzs = conformer.xyzs
-                self.distance_matrix = calc_distance_matrix(self.xyzs)
-                self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+                self.set_xyzs(conformer.xyzs)
                 break
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 

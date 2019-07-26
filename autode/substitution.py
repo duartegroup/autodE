@@ -27,7 +27,7 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
         reac_complex_coords[i] -= fr_coords
 
     # Get the vector of attack of the fragment with the forming bond
-    if len(atoms_to_shift) > 1:
+    if all([reac.n_atoms > 1 for reac in reactants]):
         logger.info('Rotating into best 180 degree attack')
         normed_attack_vector = get_normalised_attack_vetor(reac_complex, reac_complex_coords, fr_atom)
         rot_matrix = get_rot_matrix(normed_attack_vector, normed_lg_vector)
@@ -37,7 +37,8 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
             reac_complex_coords[i] += shift_factor * normed_lg_vector
     else:
         logger.info('Only had a single atom to shift, will skip rotation')
-        reac_complex_coords = reac_complex_coords + shift_factor * normed_lg_vector
+        for i in atoms_to_shift:
+            reac_complex_coords[i] += shift_factor * normed_lg_vector
 
     reac_complex_xyzs = coords2xyzs(coords=reac_complex_coords, old_xyzs=reac_complex.xyzs)
     return reac_complex.set_xyzs(reac_complex_xyzs)

@@ -25,6 +25,10 @@ def find_tss(reaction):
 
     reactant, product = get_reactant_and_product_complexes(reaction)
     bond_rearrangs = get_bond_rearrangs(reactant, product)
+    if bond_rearrangs is None:
+        logger.error('Could not find a set of forming/breaking bonds')
+        return None
+
     logger.info('Found *{}* bond rearrangement(s) that lead to products'.format(len(bond_rearrangs)))
 
     for bond_rearrangement in bond_rearrangs:
@@ -89,9 +93,8 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
         funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, 'xtb2d+' + bds_str,
                              delta_fbond_dist, 1.5)))
-        funcs_params.append((get_orca_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
-                             'orca2d_' + bds_str, delta_fbond_dist, 1.5)))
-
+        # funcs_params.append((get_orca_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
+        #                     'orca2d_' + bds_str, delta_fbond_dist, 1.5)))
 
         # TODO more here
 
@@ -142,7 +145,9 @@ def get_bond_rearrangs(mol, product):
     possible_fbonds = mol.get_possible_forming_bonds()
     possible_bbonds = mol.get_possible_breaking_bonds()
 
-    for func in [get_fbonds_bbonds_1b, get_fbonds_bbonds_2b, get_fbonds_bbonds_1b1f, get_fbonds_bbonds_2b1f]:
+    for func in [get_fbonds_bbonds_1b, get_fbonds_bbonds_2b, get_fbonds_bbonds_1b1f,
+                 get_fbonds_bbonds_2b1f, get_fbonds_bbonds_2b2f]:
+
         possible_bond_rearrangs = func(possible_fbonds, possible_bbonds, mol, product, possible_bond_rearrangs)
         if len(possible_bond_rearrangs) > 0:
             logger.info('Found a molecular graph rearrangement to products with {}'.format(func.__name__))
@@ -153,7 +158,6 @@ def get_bond_rearrangs(mol, product):
 
             return possible_bond_rearrangs
 
-    logger.error('Could not find a set of forming/breaking bonds')
     return None
 
 
@@ -211,6 +215,27 @@ def get_fbonds_bbonds_2b1f(possible_fbonds, possible_bbonds, reactant, product, 
     return possible_bond_rearrangs
 
 
+def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
+    logger.info('Getting possible 2 breaking and 2 forming bonds')
+
+    for m in range(len(possible_fbonds)):
+        for n in range(len(possible_fbonds)):
+            if m > n:
+                for i in range(len(possible_bbonds)):
+                    for j in range(len(possible_bbonds)):
+                        if i > j:
+                            bbond1, bbond2 = possible_bbonds[i], possible_bbonds[j]
+                            fbond1, fbond2 = possible_fbonds[m], possible_fbonds[n]
+                            rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[fbond1, fbond2],
+                                                                         bbonds=[bbond1, bbond2])
+
+                            if is_isomorphic(rearranged_graph, product.graph):
+                                possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond1, fbond2],
+                                                                                 breaking_bonds=[bbond1, bbond2]))
+
+    return possible_bond_rearrangs
+
+
 def gen_two_mol_complex(name, mol1, mol2, mol2_shift_ang=100):
     return Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs],
                     solvent=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
@@ -240,18 +265,22 @@ def get_nonunique_atoms_and_matches_by_connectivity(mol):
     :param mol:
     :return:
     """
+    logger.info('Getting non-unique atoms and matches by their connectivity')
     nonunique_atoms_and_matches = {}
     adjacency_graphs = [get_adjacency_digraph(atom_i=i, graph=mol.graph) for i in range(mol.n_atoms)]
+    logger.info('Have adjacency graphs')
 
     for atom_i in range(mol.n_atoms):
         atom_i_matches = []
         for atom_j in range(mol.n_atoms):
             if atom_i != atom_j:                                                        # could be optimised i > j
-                if is_isomorphic(adjacency_graphs[atom_i], adjacency_graphs[atom_j]):
-                    atom_i_matches.append(atom_j)
+                if mol.get_atom_label(atom_i) == mol.get_atom_label(atom_j):            # Atom labels need to match
+                    if is_isomorphic(adjacency_graphs[atom_i], adjacency_graphs[atom_j]):
+                        atom_i_matches.append(atom_j)
 
         nonunique_atoms_and_matches[atom_i] = atom_i_matches
 
+    logger.info('Finished finding non-unique atoms by their connectivity')
     return nonunique_atoms_and_matches
 
 
@@ -265,10 +294,12 @@ def get_nonunique_atoms_and_matches(mol, depth=6):
     :param depth (depth) Depth of the neighbour list to check is identical
     :return: (dict) stripped of what could be non-equivalent atoms
     """
+    logger.info('Getting non-unique atoms and matches')
 
     nonunique_atoms_and_matches = get_nonunique_atoms_and_matches_by_connectivity(mol)
 
     neighbor_lists = [get_neighbour_list(atom_i=i, mol=mol) for i in range(mol.n_atoms)]
+    logger.info('Have neighbour lists')
 
     for atom_i, equiv_atoms in nonunique_atoms_and_matches.items():
         unique_atoms = []
@@ -278,6 +309,7 @@ def get_nonunique_atoms_and_matches(mol, depth=6):
 
         [equiv_atoms.remove(atom_m) for atom_m in unique_atoms]
 
+    logger.info('Finished stripping non-unique atoms and matches by their nearest neighbours')
     return nonunique_atoms_and_matches
 
 
@@ -293,7 +325,7 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs):
     logger.info('Stripping the forming and breaking bond list by discarding symmetry equivs')
 
     unique_bond_rearrangs = possible_bond_rearrangs[:1]
-    return unique_bond_rearrangs
+    # return unique_bond_rearrangs
 
     atoms_and_matches = get_nonunique_atoms_and_matches(mol=mol)
     identical_pairs = get_identical_pairs(atoms_and_matches, n_atoms=mol.n_atoms)

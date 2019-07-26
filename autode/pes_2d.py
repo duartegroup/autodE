@@ -93,6 +93,11 @@ def get_orca_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_clas
     orca_out_lines = run_orca(reac_scan_inp_filename, out_filename=reac_scan_inp_filename.replace('.inp', '.out'))
 
     dists_xyzs_energies = get_orca_scan_values_xyzs_energies(orca_out_lines, scan_2d=True)
+
+    if dists_xyzs_energies is None:
+        logger.error('Could not get distances, xyzs and energies from ORCA 2d scan')
+        return None
+
     ts_guess_xyzs = find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
 
     return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,

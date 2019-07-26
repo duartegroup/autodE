@@ -58,10 +58,6 @@ class Reaction(object):
         """
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
-                mol.generate_conformers()
-                mol.optimise_conformers_xtb()
-                mol.strip_non_unique_confs()
-                mol.optimise_conformers_orca()
                 mol.find_lowest_energy_conformer()
 
     def optimise_reacs_prods(self):
@@ -73,6 +69,7 @@ class Reaction(object):
 
     def find_lowest_energy_ts(self):
         if self.tss is None:
+            logger.error('Could not find a transition state')
             return None
 
         elif len(self.tss) > 1:

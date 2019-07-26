@@ -6,7 +6,7 @@ from .ORCAio import get_orca_normal_mode_displacements
 from .ORCAio import get_orca_opt_final_xyzs
 
 
-def get_ts(ts_guess, imag_freq_threshold=-50):
+def get_ts(ts_guess, imag_freq_threshold=-100):
     """
     Get a transition object from a set of xyzs by running an ORCA OptTS calculation
     :param ts_guess: (object) TSguess object
@@ -39,6 +39,8 @@ def get_ts(ts_guess, imag_freq_threshold=-50):
             if imag_freqs[0] > imag_freq_threshold:
                 logger.warning('Probably haven\'t found the correct TS {} > {} cm-1'.format(imag_freqs[0],
                                                                                             imag_freq_threshold))
+                return None
+
             if len(imag_freqs) == 1:
                 logger.info('Found TS with 1 imaginary frequency')
 

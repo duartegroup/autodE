@@ -89,6 +89,10 @@ def find_1dpes_maximum_energy_xyzs(dist_xyzs_energies_dict):
 
     logger.info('Finding peak in 1D PES')
     xyzs_peak_energy = None
+    if dist_xyzs_energies_dict is None:
+        logger.error('Had no distances, xyzs and energies')
+        return None
+
     energy_list = [dist_xyzs_energies_dict[dist][1] for dist in dist_xyzs_energies_dict.keys()]
     peak_e, min_e = min(energy_list), min(energy_list)
 
