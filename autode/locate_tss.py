@@ -91,12 +91,17 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
         delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
-        funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, 'xtb2d+' + bds_str,
+        funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, 'xtb2d_' + bds_str,
                              delta_fbond_dist, 1.5)))
         # funcs_params.append((get_orca_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
         #                     'orca2d_' + bds_str, delta_fbond_dist, 1.5)))
 
-        # TODO more here
+    if bond_rearrang.n_bbonds == 2 and bond_rearrang.n_fbonds == 0:
+        bbond1, bbond2 = bond_rearrang.bbonds
+        funcs_params.append((get_xtb_ts_guess_2d, (reactant, bbond1, bbond2, 20, reaction.type, 'xtb2d_' + bds_str,
+                             1.5, 1.5)))
+        funcs_params.append((get_orca_ts_guess_2d, (reactant, bbond1, bbond2, 7, reaction.type, Config.scan_keywords,
+                             'orca2d_' + bds_str, 1.5, 1.5)))
 
     return funcs_params
 
