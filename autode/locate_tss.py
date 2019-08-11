@@ -150,9 +150,20 @@ def get_bond_rearrangs(mol, product):
     possible_fbonds = mol.get_possible_forming_bonds()
     possible_bbonds = mol.get_possible_breaking_bonds()
 
-    for func in [get_fbonds_bbonds_1b, get_fbonds_bbonds_2b, get_fbonds_bbonds_1b1f,
-                 get_fbonds_bbonds_2b1f, get_fbonds_bbonds_2b2f]:
+    delta_n_bonds = mol.n_bonds - product.n_bonds
+    if delta_n_bonds == 0:
+        funcs = [get_fbonds_bbonds_1b1f, get_fbonds_bbonds_2b2f]
+    elif delta_n_bonds == 1:
+        funcs = [get_fbonds_bbonds_1b, get_fbonds_bbonds_2b1f]
+    elif delta_n_bonds == 2:
+        funcs = [get_fbonds_bbonds_2b]
+    elif delta_n_bonds == -1:
+        funcs = [get_fbonds_bbonds_1b2f]
+    else:
+        logger.error('Cannot treat a change in bonds reactant <- product of {}'.format(delta_n_bonds))
+        return None
 
+    for func in funcs:
         possible_bond_rearrangs = func(possible_fbonds, possible_bbonds, mol, product, possible_bond_rearrangs)
         if len(possible_bond_rearrangs) > 0:
             logger.info('Found a molecular graph rearrangement to products with {}'.format(func.__name__))
@@ -199,6 +210,23 @@ def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, 
             if is_isomorphic(rearranged_graph, product.graph):
                 possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond],
                                                                  breaking_bonds=[bbond]))
+
+    return possible_bond_rearrangs
+
+
+def get_fbonds_bbonds_1b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
+
+    for bbond in possible_bbonds:
+        for i in range(len(possible_fbonds)):
+            for j in range(len(possible_fbonds)):
+                if i > j:
+                    fbond1, fbond2 = possible_fbonds[i], possible_fbonds[j]
+                    rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[fbond1, fbond2],
+                                                                 bbonds=[bbond])
+
+                    if is_isomorphic(rearranged_graph, product.graph):
+                        possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond1, fbond2],
+                                                                         breaking_bonds=[bbond]))
 
     return possible_bond_rearrangs
 

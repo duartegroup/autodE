@@ -48,6 +48,7 @@ class Molecule(object):
         self.xyzs = xyzs
         self.distance_matrix = calc_distance_matrix(xyzs)
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
+        self.n_bonds = self.graph.number_of_edges()
 
     def calc_bond_distance(self, bond):
         return self.distance_matrix[bond[0], bond[1]]

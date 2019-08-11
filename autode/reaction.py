@@ -65,7 +65,8 @@ class Reaction(object):
         [mol.optimise() for mol in self.reacs + self.prods]
 
     def calculate_single_points(self):
-        [mol.single_point() for mol in self.reacs + self.prods + [self.ts]]
+        molecules = self.reacs + self.prods + [self.ts]
+        [mol.single_point() for mol in molecules if mol is not None]
 
     def find_lowest_energy_ts(self):
         if self.tss is None:
