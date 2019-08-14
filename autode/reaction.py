@@ -15,11 +15,11 @@ class Reaction(object):
 
         n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [prod.n_atoms for prod in self.prods]
         reac_charges, prod_charges = [r.charge for r in self.reacs], [p.charge for p in self.prods]
-        try:
-            assert sum(n_reac_atoms) == sum(n_prod_atoms)
-            assert sum(reac_charges) == sum(prod_charges)
-        except AssertionError:
-            logger.critical('Charge and/or number of atoms doesn\'t balance')
+        if sum(n_reac_atoms) != sum(n_prod_atoms):
+            logger.critical('Number of atoms doesn\'t balance')
+            exit()
+        if sum(reac_charges) != sum(prod_charges):
+            logger.critical('Charge doesn\'t balance')
             exit()
 
     def check_solvent(self):
