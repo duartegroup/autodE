@@ -1,5 +1,6 @@
 from .log import logger
 import networkx as nx
+import multiprocessing as mp
 from networkx.algorithms import isomorphism
 from .bond_lengths import get_xyz_bond_list
 
@@ -47,12 +48,37 @@ def get_mapping(larger_graph, smaller_graph, graph_matcher=None):
 
 
 def is_isomorphic(graph1, graph2):
+    """
+    Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method is found
+    to ocassionaly get stuck
+
+    :param graph1: (object) nx graph
+    :param graph2: (object) nx graph
+    :return:
+    """
+
     if isomorphism.faster_could_be_isomorphic(graph1, graph2):
         graph_matcher = isomorphism.GraphMatcher(graph1, graph2,
                                                  node_match=isomorphism.categorical_node_match('atom_label', 'C'))
-        return graph_matcher.is_isomorphic()
+
+        manager = mp.Manager()
+        res = manager.dict()
+        p = mp.Process(target=gm_is_isomorphic, args=(graph_matcher, res))
+        p.start()
+        p.join(5)
+
+        if p.is_alive():
+            p.terminate()
+            logger.error('NX graph matching hanging')
+            return False
+
+        return res.values()[0]
     else:
         return False
+
+
+def gm_is_isomorphic(gm, result):
+    result[0] = gm.is_isomorphic()
 
 
 def get_isomorphic_mapping(graph1, graph2):

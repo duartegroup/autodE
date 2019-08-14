@@ -115,10 +115,10 @@ class Reaction(object):
         self.prods = [mol for mol in molecules if isinstance(mol, Product) and mol is not None]
         self.ts, self.tss = None, []
 
+        self.type = reactions.classify(reacs=self.reacs, prods=self.prods)
+
         self.check_solvent()
         self.check_balance()
-
-        self.type = reactions.classify(reacs=self.reacs, prods=self.prods)
 
         if self.type == reactions.Addition:
             self.switch_addition()

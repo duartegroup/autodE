@@ -2,6 +2,7 @@ from .log import logger
 from .config import Config
 from .geom import get_neighbour_list
 from .geom import get_identical_pairs
+from .atoms import get_maximal_valance
 from .bond_rearrangement import BondRearrangement
 from .bond_rearrangement import gen_equiv_bond_rearrangs
 from .substitution import set_complex_xyzs_translated_rotated
@@ -177,79 +178,90 @@ def get_bond_rearrangs(mol, product):
     return None
 
 
+def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
+
+    # Check that the bond rearrangement doesn't exceed standard atom valances
+    bbond_atoms = [atom for bbond in bbonds for atom in bbond]
+    for fbond in fbonds:
+        for atom in fbond:
+            atom_label = reactant.get_atom_label(atom)
+            if reactant.graph.degree(atom) == get_maximal_valance(atom_label) and atom not in bbond_atoms:
+                # If we are here then there is at least one atom that will exceed it's maximal valance, therefore
+                # we don't need to run isomorphism
+                return bond_rearrangs
+
+    rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=fbonds, bbonds=bbonds)
+    if is_isomorphic(rearranged_graph, product.graph):
+        bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds))
+
+    return bond_rearrangs
+
+
 def get_fbonds_bbonds_1b(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
 
     for bbond in possible_bbonds:
-        rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[], bbonds=[bbond])
-        if is_isomorphic(rearranged_graph, product.graph):
-            possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[],
-                                                             breaking_bonds=[bbond]))
-
+        possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                        fbonds=[], bbonds=[bbond])
     return possible_bond_rearrangs
 
 
 def get_fbonds_bbonds_2b(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
+    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)**2))
 
     for i in range(len(possible_bbonds)):
         for j in range(len(possible_bbonds)):
             if i > j:
-                bbond1, bbond2 = possible_bbonds[i], possible_bbonds[j]
-                rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[], bbonds=[bbond1, bbond2])
-                if is_isomorphic(rearranged_graph, product.graph):
-                    possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[],
-                                                                     breaking_bonds=[bbond1, bbond2]))
-
+                possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                                fbonds=[],
+                                                                bbonds=[possible_bbonds[i], possible_bbonds[j]])
     return possible_bond_rearrangs
 
 
 def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
 
+    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)*len(possible_fbonds)))
+    print(possible_fbonds, possible_bbonds)
+    from .input_output import xyzs2xyzfile
+    xyzs2xyzfile(reactant.xyzs, basename='tmp')
+
     for fbond in possible_fbonds:
         for bbond in possible_bbonds:
-            rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[fbond], bbonds=[bbond])
-            if is_isomorphic(rearranged_graph, product.graph):
-                possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond],
-                                                                 breaking_bonds=[bbond]))
+            possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                            fbonds=[fbond], bbonds=[bbond])
 
+    print('here')
     return possible_bond_rearrangs
 
 
 def get_fbonds_bbonds_1b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
+    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)*len(possible_fbonds)**2))
 
     for bbond in possible_bbonds:
         for i in range(len(possible_fbonds)):
             for j in range(len(possible_fbonds)):
                 if i > j:
                     fbond1, fbond2 = possible_fbonds[i], possible_fbonds[j]
-                    rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[fbond1, fbond2],
-                                                                 bbonds=[bbond])
-
-                    if is_isomorphic(rearranged_graph, product.graph):
-                        possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond1, fbond2],
-                                                                         breaking_bonds=[bbond]))
-
+                    possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                                    fbonds=[fbond1, fbond2], bbonds=[bbond])
     return possible_bond_rearrangs
 
 
 def get_fbonds_bbonds_2b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
+    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)**2*len(possible_fbonds)))
 
     for fbond in possible_fbonds:
         for i in range(len(possible_bbonds)):
             for j in range(len(possible_bbonds)):
                 if i > j:
                     bbond1, bbond2 = possible_bbonds[i], possible_bbonds[j]
-                    rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[fbond],
-                                                                 bbonds=[bbond1, bbond2])
-
-                    if is_isomorphic(rearranged_graph, product.graph):
-                        possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond],
-                                                                         breaking_bonds=[bbond1, bbond2]))
-
+                    possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                                    fbonds=[fbond], bbonds=[bbond1, bbond2])
     return possible_bond_rearrangs
 
 
 def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
     logger.info('Getting possible 2 breaking and 2 forming bonds')
+    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)**2*len(possible_fbonds)**2))
 
     for m in range(len(possible_fbonds)):
         for n in range(len(possible_fbonds)):
@@ -259,13 +271,9 @@ def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, 
                         if i > j:
                             bbond1, bbond2 = possible_bbonds[i], possible_bbonds[j]
                             fbond1, fbond2 = possible_fbonds[m], possible_fbonds[n]
-                            rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=[fbond1, fbond2],
-                                                                         bbonds=[bbond1, bbond2])
-
-                            if is_isomorphic(rearranged_graph, product.graph):
-                                possible_bond_rearrangs.append(BondRearrangement(forming_bonds=[fbond1, fbond2],
-                                                                                 breaking_bonds=[bbond1, bbond2]))
-
+                            possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                                            fbonds=[fbond1, fbond2],
+                                                                            bbonds=[bbond1, bbond2])
     return possible_bond_rearrangs
 
 
