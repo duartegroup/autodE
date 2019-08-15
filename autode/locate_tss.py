@@ -79,7 +79,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
         funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
                              'orca1d_opt_level_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
 
-    if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1 and reaction.type == Rearrangement:
+    if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
         fbond = bond_rearrang.fbonds[0]
         delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
@@ -220,7 +220,6 @@ def get_fbonds_bbonds_2b(possible_fbonds, possible_bbonds, reactant, product, po
 def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
 
     logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)*len(possible_fbonds)))
-    print(possible_fbonds, possible_bbonds)
     from .input_output import xyzs2xyzfile
     xyzs2xyzfile(reactant.xyzs, basename='tmp')
 
@@ -229,7 +228,6 @@ def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, 
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
                                                             fbonds=[fbond], bbonds=[bbond])
 
-    print('here')
     return possible_bond_rearrangs
 
 
