@@ -93,47 +93,6 @@ def get_identical_pairs(atoms_and_matches, n_atoms):
     return identical_pairs
 
 
-def get_breaking_bond_atom_id_dist_dict(xyzs, bbond_atom_ids_list):
-    """
-    Get a dictionary of of breaking bond atom ids as the keys and the current distance as the value
-    :param xyzs:
-    :param bbond_atom_ids_list:
-    :return:
-    """
-    bbond_atom_ids_and_dists = {}
-
-    reac_distance_matrix = calc_distance_matrix(xyzs)
-    for bbond in bbond_atom_ids_list:
-        bbond_atom_ids_and_dists[bbond] = reac_distance_matrix[bbond[0], bbond[1]]
-
-    return bbond_atom_ids_and_dists
-
-
-def get_valid_mappings_frags_to_whole_graph(whole_graph, frag1_graph, frag2_graph):
-    """
-    Given a reactant with a molecular graph find the valid mappings of the products onto the reaction.
-    Will return a list of tuples each of which are dictionaries with the key being the atom id in the reactant
-    then the value as the atom id of the product atom in the reactant. Valid mappings don't have any overlap
-
-    :param whole_graph:
-    :param frag1_graph:
-    :param frag2_graph:
-    :return:
-    """
-    logger.info('Getting mapping of two fragments onto the whole structure')
-
-    p1_mappings = get_mapping(larger_graph=whole_graph, smaller_graph=frag1_graph)
-    p2_mappings = get_mapping(larger_graph=whole_graph, smaller_graph=frag2_graph)
-
-    valid_mappings = []
-    for p1_mapping in p1_mappings:
-        for p2_mapping in p2_mappings:
-            if all([reac_id not in p2_mapping.keys() for reac_id in p1_mapping.keys()]):
-                valid_mappings.append((p1_mapping, p2_mapping))
-
-    return valid_mappings
-
-
 def calc_rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about

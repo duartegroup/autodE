@@ -98,7 +98,7 @@ def is_optts_nearly_converged(out_lines):
     :param out_lines: (list) orca out lines
     :return: (bool)
     """
-    geom_conv_block, n_yess = False, 0
+    geom_conv_block = False
 
     for line in out_lines[::-1]:
         if geom_conv_block and 'Geometry convergence' in line:
