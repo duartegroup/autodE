@@ -234,11 +234,7 @@ def get_orca_scan_values_xyzs_energies(out_lines, scan_2d=False):
     for n_line, line in enumerate(out_lines):
         if 'The optimization did not converge' in line:
             logger.warning('Optimisation did not converge')
-            if scan_2d:
-                logger.error('Can\'t yet handle non-converged 2D scan')
-                return None
-
-            return get_orca_scan1d_values_xyzs_energies_no_conv(out_lines)
+            return get_orca_scan1d_values_xyzs_energies_no_conv(out_lines, scan_2d=scan_2d)
 
         if 'RELAXED SURFACE SCAN STEP' in line:
             scan_point_xyzs, opt_done, xyz_block = [], False, False
@@ -337,11 +333,11 @@ def get_orca_normal_mode_displacements(out_lines, mode_number, n_atoms):
     return displacements_xyz
 
 
-def get_orca_scan1d_values_xyzs_energies_no_conv(out_lines, delta_e_threshold_kcal_mol=1.0):
+def get_orca_scan1d_values_xyzs_energies_no_conv(out_lines, scan_2d=False, delta_e_threshold_kcal_mol=1.0):
 
     logger.info('Getting the xyzs and energies from a non-converged ORCA relaxed PES scan')
 
-    values_xyzs_energies, curr_dist, n_atoms = {}, None, 0
+    values_xyzs_energies, curr_dist, curr_dist1, curr_dist2, n_atoms = {}, None, None, None, 0
     curr_energy, curr_delta_energy, scan_point_xyzs = 0.0, 0.0, []
 
     for n_line, line in enumerate(out_lines):
@@ -349,7 +345,11 @@ def get_orca_scan1d_values_xyzs_energies_no_conv(out_lines, delta_e_threshold_kc
             n_atoms = int(line.split()[-1])
 
         if 'RELAXED SURFACE SCAN STEP' in line:
-            curr_dist = float(out_lines[n_line+2].split()[-2])
+            if scan_2d:
+                curr_dist1 = float(out_lines[n_line+2].split()[-2])
+                curr_dist2 = float(out_lines[n_line+3].split()[-2])
+            else:
+                curr_dist = float(out_lines[n_line+2].split()[-2])
 
         if 'CARTESIAN COORDINATES (ANGSTROEM)' in line:
             scan_point_xyzs = []
@@ -362,10 +362,16 @@ def get_orca_scan1d_values_xyzs_energies_no_conv(out_lines, delta_e_threshold_kc
             curr_energy = float(line.split()[4])
 
         if 'RELAXED SURFACE SCAN STEP' in line or 'ORCA TERMINATED NORMALLY' in line:
-            if curr_dist is not None and curr_energy != 0.0:
-                if Constants.ha2kcalmol * curr_delta_energy < delta_e_threshold_kcal_mol:
-                    values_xyzs_energies[curr_dist] = scan_point_xyzs, curr_energy
-                else:
-                    logger.warning('Optimisation wasn\'t close to converging on this step')
+            if scan_2d:
+                # Consider everything converged – perhaps not a great idea
+                if curr_dist1 is not None and curr_dist2 is not None and curr_energy != 0.0:
+                    values_xyzs_energies[(curr_dist1, curr_dist2)] = scan_point_xyzs, curr_energy
+
+            else:
+                if curr_dist is not None and curr_energy != 0.0:
+                    if Constants.ha2kcalmol * curr_delta_energy < delta_e_threshold_kcal_mol:
+                        values_xyzs_energies[curr_dist] = scan_point_xyzs, curr_energy
+                    else:
+                        logger.warning('Optimisation wasn\'t close to converging on this step')
 
     return values_xyzs_energies
