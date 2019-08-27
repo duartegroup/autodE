@@ -12,3 +12,5 @@ autode\.egg-info/
 .coverage
 
 coverage.xml
+
+autode/cconf_gen.c
