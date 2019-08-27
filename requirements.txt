@@ -4,3 +4,5 @@ networkx
 matplotlib
 Cython
 scipy
+pytest-cov
+codecov

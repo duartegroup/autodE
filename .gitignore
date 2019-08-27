@@ -8,3 +8,7 @@ tests/high_level/
 autode/__pycache__/
 
 autode\.egg-info/
+
+.coverage
+
+coverage.xml
