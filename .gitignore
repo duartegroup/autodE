@@ -3,6 +3,7 @@
 \build/
 \dist/
 \.idea/
+tests/high_level/
 
 autode/__pycache__/
 

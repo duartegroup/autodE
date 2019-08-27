@@ -81,7 +81,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
         fbond = bond_rearrang.fbonds[0]
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant._calc_bond_distance(fbond)
 
         funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, fbond, 20, 'xtb1d_' + bds_str, reaction.type,
                              delta_fbond_dist,[fbond])))
@@ -90,7 +90,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant._calc_bond_distance(fbond)
 
         funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, 'xtb2d_' + bds_str,
                              delta_fbond_dist, 1.5)))

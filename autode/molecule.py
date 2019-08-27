@@ -50,10 +50,10 @@ class Molecule(object):
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
         self.n_bonds = self.graph.number_of_edges()
 
-    def calc_bond_distance(self, bond):
+    def _calc_bond_distance(self, bond):
         return self.distance_matrix[bond[0], bond[1]]
 
-    def calc_multiplicity(self, n_radical_electrons):
+    def _calc_multiplicity(self, n_radical_electrons):
         """
         Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
         :return:
@@ -82,7 +82,7 @@ class Molecule(object):
 
         return active_graph
 
-    def check_rdkit_graph_agreement(self):
+    def _check_rdkit_graph_agreement(self):
         try:
             assert self.n_bonds == self.graph.number_of_edges()
         except AssertionError:
@@ -164,7 +164,7 @@ class Molecule(object):
     def single_point(self):
         self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)
 
-    def init_smiles(self, name, smiles):
+    def _init_smiles(self, name, smiles):
 
         try:
             self.mol_obj = Chem.MolFromSmiles(smiles)
@@ -177,7 +177,7 @@ class Molecule(object):
         self.n_bonds = len(self.mol_obj.GetBonds())
         self.charge = Chem.GetFormalCharge(self.mol_obj)
         n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
-        self.mult = self.calc_multiplicity(n_radical_electrons)
+        self.mult = self._calc_multiplicity(n_radical_electrons)
 
         AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
         self.xyzs = gen_rdkit_conf_xyzs(self, conf_ids=[0])[0]
@@ -193,11 +193,11 @@ class Molecule(object):
 
         else:
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
-            self.check_rdkit_graph_agreement()
+            self._check_rdkit_graph_agreement()
 
         self.distance_matrix = calc_distance_matrix(self.xyzs)
 
-    def init_xyzs(self, xyzs):
+    def _init_xyzs(self, xyzs):
         self.n_atoms = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))
         self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
@@ -233,10 +233,10 @@ class Molecule(object):
         self.distance_matrix = None
 
         if smiles:
-            self.init_smiles(name, smiles)
+            self._init_smiles(name, smiles)
 
         if xyzs:
-            self.init_xyzs(xyzs)
+            self._init_xyzs(xyzs)
 
 
 class Reactant(Molecule):

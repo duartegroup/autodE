@@ -108,10 +108,10 @@ def get_xtb_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class
                         delta_dist2=1.5):
     logger.info('Getting TS guess from 2D XTB relaxed potential energy scan')
 
-    curr_dist1 = mol.calc_bond_distance(active_bond1)
+    curr_dist1 = mol._calc_bond_distance(active_bond1)
     final_dist1 = curr_dist1 + delta_dist1
 
-    curr_dist2 = mol.calc_bond_distance(active_bond2)
+    curr_dist2 = mol._calc_bond_distance(active_bond2)
     final_dist2 = curr_dist2 + delta_dist2
 
     reac_xyz_filename = xyzs2xyzfile(mol.xyzs, basename=mol.name + '_' + name)

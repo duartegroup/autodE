@@ -28,7 +28,7 @@ def get_orca_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name,
     """
     logger.info('Getting TS guess from ORCA relaxed potential energy scan')
 
-    curr_dist = mol.calc_bond_distance(active_bond)
+    curr_dist = mol._calc_bond_distance(active_bond)
     final_dist = curr_dist + delta_dist
 
     scan_inp_filename = name + '_orca_scan.inp'
@@ -62,7 +62,7 @@ def get_xtb_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class,
     """
     logger.info('Getting TS guess from XTB relaxed potential energy scan')
 
-    curr_dist = mol.calc_bond_distance(active_bond)
+    curr_dist = mol._calc_bond_distance(active_bond)
     final_dist = curr_dist + delta_dist
 
     reac_xyz_filename = xyzs2xyzfile(mol.xyzs, basename=mol.name + '_' + name)
