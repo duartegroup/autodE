@@ -1,3 +1,6 @@
+branches:
+  only:
+    - master
 dist: xenial
 language: python
 python:
