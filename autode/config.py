@@ -24,3 +24,5 @@ class Config(object):
     #
     path_to_orca = '/usr/local/orca_4_1_1/orca'
     path_to_xtb = '/usr/local/xtb/bin/xtb'
+    path_to_mopac = None
+    path_to_mopac_licence = None

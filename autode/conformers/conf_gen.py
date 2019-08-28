@@ -1,14 +1,14 @@
-from .log import logger
-from .config import Config
+from log import logger
+from config import Config
 from multiprocessing import Pool
 from cconf_gen import do_md
 from cconf_gen import v
 import os
 from scipy.optimize import minimize
-from .bond_lengths import get_ideal_bond_length_matrix
-from .input_output import xyzs2xyzfile
-from .XTBio import run_xtb
-from .XTBio import get_xtb_xyzs_energy
+from bond_lengths import get_ideal_bond_length_matrix
+from input_output import xyzs2xyzfile
+from XTBio import run_xtb
+from XTBio import get_xtb_xyzs_energy
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol):

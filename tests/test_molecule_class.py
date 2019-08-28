@@ -1,5 +1,5 @@
 from autode import molecule
-from autode import conformers
+from conformers import conformers
 from rdkit.Chem import Mol
 import numpy as np
 

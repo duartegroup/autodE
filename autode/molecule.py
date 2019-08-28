@@ -5,15 +5,15 @@ from rdkit import Chem
 import rdkit.Chem.Descriptors
 from . import mol_graphs
 from .constants import Constants
-from .conformers import generate_unique_rdkit_confs
+from conformers.conformers import generate_unique_rdkit_confs
 from .bond_lengths import get_xyz_bond_list
 from .bond_lengths import get_bond_list_from_rdkit_bonds
 from .geom import calc_distance_matrix
 from .geom import xyz2coord
-from .conformers import gen_rdkit_conf_xyzs
-from .conformers import Conformer
-from .conformers import rdkit_conformer_geometries_are_resonable
-from .conf_gen import gen_simanl_conf_xyzs
+from conformers.conformers import gen_rdkit_conf_xyzs
+from conformers.conformers import Conformer
+from conformers.conformers import rdkit_conformer_geometries_are_resonable
+from conformers.conf_gen import gen_simanl_conf_xyzs
 from .opt import get_opt_xyzs_energy
 from .single_point import get_single_point_energy
 

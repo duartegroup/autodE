@@ -1,13 +1,13 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem import rdMolAlign
-from .config import Config
-from .log import logger
-from .input_output import xyzs2xyzfile
-from .XTBio import run_xtb
-from .XTBio import get_xtb_xyzs_energy
-from .opt import get_opt_xyzs_energy
-from .geom import calc_distance_matrix
+from config import Config
+from log import logger
+from input_output import xyzs2xyzfile
+from XTBio import run_xtb
+from XTBio import get_xtb_xyzs_energy
+from opt import get_opt_xyzs_energy
+from geom import calc_distance_matrix
 
 
 def rdkit_conformer_geometries_are_resonable(conf_xyzs):
