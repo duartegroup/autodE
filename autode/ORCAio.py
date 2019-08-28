@@ -10,6 +10,28 @@ from .log import logger
 def gen_orca_inp(inp_filename, keywords, xyzs, charge, mult, solvent=None, n_cores=1, add_bond_ids=None, optts=False,
                  scan_ids=None, curr_dist1=1.5, final_dist1=3.5, curr_dist2=1.5, final_dist2=3.5, n_steps=10,
                  scan_ids2=None, distance_constraints=None):
+    """
+    Generate a ORCA input file
+
+    :param inp_filename: (str)
+    :param keywords: (list)
+    :param xyzs: (list(list))
+    :param charge: (int)
+    :param mult: (int)
+    :param solvent: (str)
+    :param n_cores: (int)
+    :param add_bond_ids: (list(tuples))
+    :param optts: (bool)
+    :param scan_ids: (tuple)
+    :param curr_dist1: (float)
+    :param final_dist1: (float)
+    :param curr_dist2: (float)
+    :param final_dist2: (float)
+    :param n_steps: (int)
+    :param scan_ids2: (tuple)
+    :param distance_constraints: (dict) keys: tuple of atom ids (indexed from 0), values: float of the distance
+    :return:
+    """
 
     logger.info('Generating {}'.format(inp_filename))
 
@@ -26,8 +48,8 @@ def gen_orca_inp(inp_filename, keywords, xyzs, charge, mult, solvent=None, n_cor
         inp_filename += '.inp'
 
     if xyzs is None or len(xyzs) == 0:
-        logger.critical('Have no xyzs. Can\'t generate a valid .inp file')
-        exit()
+        logger.error('Have no xyzs. Can\'t generate a valid .inp file')
+        return None
 
     if len(xyzs) == 1:
         for keyword in keywrds:
