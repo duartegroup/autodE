@@ -68,7 +68,7 @@ class TS(object):
         self.mult = ts_guess.mult
         self.converged = converged
 
-        self.imag_freqs, self.xyzs, self.energy = ts_guess.imag_freqs, ts_guess.xyzs, ts_guess.energy
+        self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
 
         self.active_bonds = ts_guess.active_bonds
         self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))

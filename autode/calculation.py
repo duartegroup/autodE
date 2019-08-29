@@ -117,7 +117,7 @@ class Calculation:
                     if mode_number in mode_numbers:
                         col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                         displacements = [float(disp_line.split()[col]) for disp_line in
-                                         self.output_file_lines[j + 1:j + 3 * self.output_file_lines + 1]]
+                                         self.output_file_lines[j + 1:j + 3 * self.n_atoms + 1]]
 
             displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
             if len(displacements_xyz) != self.n_atoms:
@@ -463,7 +463,7 @@ class Calculation:
 
         self.charge = molecule.charge
         self.mult = molecule.mult
-        self.n_atoms = molecule.n_atoms
+        self.n_atoms = len(self.xyzs)
         self.method = method
         self.keywords = keywords
         self.flags = None
