@@ -1,14 +1,11 @@
-from log import logger
-from config import Config
+import os
+from scipy.optimize import minimize
+from autode.bond_lengths import get_ideal_bond_length_matrix
+from autode.log import logger
+from autode.config import Config
 from multiprocessing import Pool
 from cconf_gen import do_md
 from cconf_gen import v
-import os
-from scipy.optimize import minimize
-from bond_lengths import get_ideal_bond_length_matrix
-from input_output import xyzs2xyzfile
-from XTBio import run_xtb
-from XTBio import get_xtb_xyzs_energy
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol):
@@ -21,7 +18,7 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol):
     return final_coords
 
 
-def simnal(name, xyzs, bonds, n, charge):
+def simnal(xyzs, bonds):
     """
         V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
     :param name: (str)
@@ -46,13 +43,6 @@ def simnal(name, xyzs, bonds, n, charge):
     coords = get_coords_minimised_v(coords, bonds, k, c, d0, tol=len(xyzs)/5)
     xyzs = [[xyzs[i][0]] + coords[i].tolist() for i in range(len(xyzs))]
 
-    # Optimise the rough structure with XTB
-    # xyz_filename = name + '_simanl_' + str(n) + '.xyz'
-    # xyzs2xyzfile(xyzs, filename=xyz_filename)
-
-    # xtb_out_lines = run_xtb(xyz_filename, opt=True, charge=charge, n_cores=1)
-    # xyzs, _ = get_xtb_xyzs_energy(xtb_out_lines)
-
     return xyzs
 
 
@@ -70,12 +60,12 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, n_simanls=20):
     logger.info('Doing simulated annealing with a harmonic+repulsion FF')
 
     if n_simanls == 1:
-        conf_xyzs = simnal(name=name, xyzs=init_xyzs, bonds=bond_list, n=0, charge=charge)
+        conf_xyzs = simnal(xyzs=init_xyzs, bonds=bond_list)
         return [conf_xyzs]
 
     logger.info('Splitting calculation into {} threads'.format(Config.n_cores))
     with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(simnal, (name, init_xyzs, bond_list, i, charge)) for i in range(n_simanls)]
+        results = [pool.apply_async(simnal, (init_xyzs, bond_list)) for i in range(n_simanls)]
         conf_xyzs = [res.get(timeout=None) for res in results]
 
     return conf_xyzs

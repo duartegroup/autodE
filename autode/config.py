@@ -4,7 +4,7 @@ class Config(object):
     #
     n_cores = 8
     #
-    orca_max_core = 4000
+    max_core = 4000
     #
     # Parameters for ORCA
     scan_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']

@@ -1,15 +1,13 @@
 import numpy as np
-from .config import Config
-from .log import logger
-from .XTBio import run_xtb
-from .XTBio import get_xtb_scan_xyzs_energies
-from .ORCAio import gen_orca_inp
-from .ORCAio import run_orca
-from .ORCAio import get_orca_scan_values_xyzs_energies
-from .input_output import xyzs2xyzfile
-from .ts_guess import TSguess
-from .plotting import plot_1dpes
-from .constants import Constants
+from copy import deepcopy
+from autode.config import Config
+from autode.log import logger
+from autode.ts_guess import TSguess
+from autode.plotting import plot_1dpes
+from autode.constants import Constants
+from autode.calculation import Calculation
+from autode.wrappers.wrappers import ORCA
+from autode.wrappers.wrappers import XTB
 
 
 def get_orca_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name, reaction_class, delta_dist=1.5,
@@ -27,24 +25,23 @@ def get_orca_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name,
     :return: TSguess object
     """
     logger.info('Getting TS guess from ORCA relaxed potential energy scan')
+    curr_dist = mol.calc_bond_distance(active_bond)
 
-    curr_dist = mol._calc_bond_distance(active_bond)
-    final_dist = curr_dist + delta_dist
+    scan = Calculation(name=name + '_scan', molecule=mol, method=ORCA, keywords=orca_keywords,
+                       n_cores=Config.n_cores, max_core_mb=Config.max_core, scan_ids=active_bond,
+                       curr_dist1=curr_dist, final_dist1=curr_dist + delta_dist,  opt=True, n_steps=n_steps)
 
-    scan_inp_filename = name + '_orca_scan.inp'
-    gen_orca_inp(scan_inp_filename, orca_keywords, mol.xyzs, mol.charge, mol.mult, mol.solvent, Config.n_cores,
-                 scan_ids=active_bond, curr_dist1=curr_dist, final_dist1=final_dist, n_steps=n_steps)
+    scan.run()
+    dist_xyzs_energies = scan.get_scan_values_xyzs_energies()
+    tsguess_mol = deepcopy(mol)
+    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dist_xyzs_energies))
 
-    orca_out_lines = run_orca(scan_inp_filename, out_filename=scan_inp_filename.replace('.inp', '.out'))
-    dist_xyzs_energies = get_orca_scan_values_xyzs_energies(orca_out_lines)
-    ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
-    if ts_guess_xyzs is None:
+    if tsguess_mol.xyzs is None:
         return None
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-                   charge=mol.charge, mult=mol.mult, active_bonds=active_bonds)
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
 
 
 def get_xtb_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, delta_dist=1.5,
@@ -62,22 +59,29 @@ def get_xtb_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class,
     """
     logger.info('Getting TS guess from XTB relaxed potential energy scan')
 
-    curr_dist = mol._calc_bond_distance(active_bond)
-    final_dist = curr_dist + delta_dist
+    curr_dist = mol.calc_bond_distance(active_bond)
+    dists = np.linspace(curr_dist, curr_dist + delta_dist, n_steps)
+    mol_with_const = deepcopy(mol)
+    dist_xyzs_energies = {}
 
-    reac_xyz_filename = xyzs2xyzfile(mol.xyzs, basename=mol.name + '_' + name)
-    run_xtb(reac_xyz_filename, charge=mol.charge, scan_ids=active_bond, solvent=mol.solvent, curr_dist=curr_dist,
-            final_dist=final_dist, n_steps=n_steps)
-    dist_xyzs_energies = get_xtb_scan_xyzs_energies(values=np.linspace(curr_dist, final_dist, n_steps))
-    ts_guess_xyzs = find_1dpes_maximum_energy_xyzs(dist_xyzs_energies)
+    # Run a relaxed potential energy surface scan using XTB by running sequential constrained optimisations
+    for n, dist in enumerate(dists):
+        const_opt = Calculation(name=name + '_scan' + str(n), molecule=mol_with_const, method=XTB, opt=True,
+                                n_cores=Config.n_cores, distance_constraints={active_bond: dist})
+        const_opt.run()
+        xyzs = const_opt.get_final_xyzs()
+        dist_xyzs_energies[dist] = (xyzs, const_opt.get_energy())
+        mol_with_const.xyzs = xyzs
 
-    if ts_guess_xyzs is None:
+    tsguess_mol = deepcopy(mol)
+    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dist_xyzs_energies))
+
+    if tsguess_mol.xyzs is None:
         return None
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-                   charge=mol.charge, mult=mol.mult, active_bonds=active_bonds)
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
 
 
 def find_1dpes_maximum_energy_xyzs(dist_xyzs_energies_dict):

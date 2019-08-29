@@ -12,8 +12,8 @@ with TS templates which can be searched through..
 """
 import pickle
 import os
-from .log import logger
-from .mol_graphs import is_subgraph_isomorphic
+from autode.log import logger
+from autode.mol_graphs import is_subgraph_isomorphic
 
 
 def get_ts_templates(reaction_class):

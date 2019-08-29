@@ -1,5 +1,4 @@
-from .log import logger
-
+from autode.log import logger
 
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],

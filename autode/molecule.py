@@ -1,24 +1,48 @@
-from .config import Config
-from .log import logger
+from autode.config import Config
+from autode.log import logger
 from rdkit.Chem import AllChem
 from rdkit import Chem
 import rdkit.Chem.Descriptors
-from . import mol_graphs
-from .constants import Constants
-from conformers.conformers import generate_unique_rdkit_confs
-from .bond_lengths import get_xyz_bond_list
-from .bond_lengths import get_bond_list_from_rdkit_bonds
-from .geom import calc_distance_matrix
-from .geom import xyz2coord
-from conformers.conformers import gen_rdkit_conf_xyzs
-from conformers.conformers import Conformer
-from conformers.conformers import rdkit_conformer_geometries_are_resonable
-from conformers.conf_gen import gen_simanl_conf_xyzs
-from .opt import get_opt_xyzs_energy
-from .single_point import get_single_point_energy
+from autode import mol_graphs
+from autode.constants import Constants
+from autode.conformers.conformers import generate_unique_rdkit_confs
+from autode.bond_lengths import get_xyz_bond_list
+from autode.bond_lengths import get_bond_list_from_rdkit_bonds
+from autode.geom import calc_distance_matrix
+from autode.geom import xyz2coord
+from autode.conformers.conformers import gen_rdkit_conf_xyzs
+from autode.conformers.conformers import Conformer
+from autode.conformers.conformers import rdkit_conformer_geometries_are_resonable
+from autode.conformers.conf_gen import gen_simanl_conf_xyzs
+from autode.calculation import Calculation
+from autode.wrappers.wrappers import ORCA
+from autode.wrappers.wrappers import XTB
 
 
-class Molecule(object):
+class Molecule:
+
+    def _calc_multiplicity(self, n_radical_electrons):
+        """
+        Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
+        :return:
+        """
+        if n_radical_electrons == 1:
+            return 2
+
+        if n_radical_electrons > 1:
+            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
+
+        return self.mult
+
+    def _check_rdkit_graph_agreement(self):
+        try:
+            assert self.n_bonds == self.graph.number_of_edges()
+        except AssertionError:
+            logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
+            exit()
+
+    def calc_bond_distance(self, bond):
+        return self.distance_matrix[bond[0], bond[1]]
 
     def get_possible_forming_bonds(self):
         curr_bonds = [pair for pair in self.graph.edges()]
@@ -43,29 +67,6 @@ class Molecule(object):
     def get_coords(self):
         return xyz2coord(self.xyzs)
 
-    def set_xyzs(self, xyzs):
-        logger.info('Setting molecule xyzs')
-        self.xyzs = xyzs
-        self.distance_matrix = calc_distance_matrix(xyzs)
-        self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
-        self.n_bonds = self.graph.number_of_edges()
-
-    def _calc_bond_distance(self, bond):
-        return self.distance_matrix[bond[0], bond[1]]
-
-    def _calc_multiplicity(self, n_radical_electrons):
-        """
-        Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
-        :return:
-        """
-        if n_radical_electrons == 1:
-            return 2
-
-        if n_radical_electrons > 1:
-            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
-
-        return self.mult
-
     def get_active_mol_graph(self, active_bonds):
         logger.info('Getting molecular graph with active edges')
         active_graph = self.graph.copy()
@@ -81,13 +82,6 @@ class Molecule(object):
                 active_graph.add_edge(*bond, active=True)
 
         return active_graph
-
-    def _check_rdkit_graph_agreement(self):
-        try:
-            assert self.n_bonds == self.graph.number_of_edges()
-        except AssertionError:
-            logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
-            exit()
 
     def generate_conformers(self, n_rdkit_confs=300):
 
@@ -129,25 +123,15 @@ class Molecule(object):
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
-    def optimise_conformers_xtb(self):
-        logger.info('Optimising all conformers with xtb')
-        [self.conformers[i].xtb_optimise() for i in range(len(self.conformers))]
-        logger.info('XTB conformer optimisation done')
-
-    def optimise_conformers_orca(self):
-        logger.info('Optimising all conformers with ORCA')
-        [self.conformers[i].orca_optimise() for i in range(len(self.conformers))]
-        logger.info('ORCA conformer optimisation done')
-
     def find_lowest_energy_conformer(self):
         """
         For a molecule object find the lowest in energy and set it as the mol.xyzs and mol.energy
         :return:
         """
         self.generate_conformers()
-        self.optimise_conformers_xtb()
+        [self.conformers[i].optimise(method=XTB) for i in range(len(self.conformers))]
         self.strip_non_unique_confs()
-        self.optimise_conformers_orca()
+        [self.conformers[i].optimise(method=ORCA) for i in range(len(self.conformers))]
 
         lowest_energy = min([conf.energy for conf in self.conformers])
         for conformer in self.conformers:
@@ -155,14 +139,32 @@ class Molecule(object):
                 self.energy = conformer.energy
                 self.set_xyzs(conformer.xyzs)
                 break
+        print('\t', self.xyzs)
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
-    def optimise(self):
-        opt_xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.opt_keywords, n_cores=Config.n_cores)
-        self.set_xyzs(opt_xyzs)
+    def set_xyzs(self, xyzs):
+        logger.info('Setting molecule xyzs')
+        self.xyzs = xyzs
+        self.distance_matrix = calc_distance_matrix(xyzs)
+        self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
+        self.n_bonds = self.graph.number_of_edges()
 
-    def single_point(self):
-        self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)
+    def optimise(self, method=ORCA):
+        logger.info('Running optimisation of {}'.format(self.name))
+
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.opt_keywords,
+                          n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
+        opt.run()
+        self.energy = opt.get_energy()
+        self.set_xyzs(xyzs=opt.get_final_xyzs())
+
+    def single_point(self, method=ORCA):
+        logger.info('Running single point energy evaluation of {}'.format(self.name))
+
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.sp_keywords,
+                         n_cores=Config.n_cores, max_core_mb=Config.max_core)
+        sp.run()
+        self.energy = sp.get_energy()
 
     def _init_smiles(self, name, smiles):
 

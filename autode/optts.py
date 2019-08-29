@@ -1,9 +1,7 @@
 from copy import deepcopy
 import numpy as np
-from .log import logger
-from .transition_state import TS
-from .ORCAio import get_orca_normal_mode_displacements
-from .ORCAio import get_orca_opt_final_xyzs
+from autode.log import logger
+from autode.transition_state import TS
 
 
 def get_ts(ts_guess, imag_freq_threshold=-100):
@@ -58,21 +56,21 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
     return None
 
 
-def get_displaced_xyzs_along_imaginary_mode(out_lines, mode_number=7, displacement_magnitude=1.0):
+def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_magnitude=1.0):
     """
     Displace the geometry along the imaginary mode with mode number iterating from 0, where 0-2 are translational
     normal modes, 3-5 are rotational modes and 6 is the largest imaginary mode. To displace along the second imaginary
     mode we have mode_number=7
-    :param out_lines: (list) ORCA out lines
+    :param calc: (object)
     :param mode_number: (int)
     :param displacement_magnitude: (float)
     :return: (list)
     """
     logger.info('Displacing along imaginary mode')
 
-    current_xyzs = get_orca_opt_final_xyzs(out_lines)
+    current_xyzs = calc.get_final_xyzs()
     n_atoms = len(current_xyzs)
-    mode_distplacement_coords = get_orca_normal_mode_displacements(out_lines, mode_number, n_atoms)
+    mode_distplacement_coords = calc.get_normal_mode_displacements(mode_number=mode_number)
 
     displaced_xyzs = deepcopy(current_xyzs)
     for i in range(n_atoms):
@@ -82,43 +80,13 @@ def get_displaced_xyzs_along_imaginary_mode(out_lines, mode_number=7, displaceme
     return displaced_xyzs
 
 
-def optts_converged(out_lines):
-    for line in out_lines[::-1]:
-        if 'THE OPTIMIZATION HAS CONVERGED' in line:
-            logger.info('OptTS geometry converged')
-            return True
-    logger.warning('OptTS geometry *not* converged')
-    return False
-
-
-def is_optts_nearly_converged(out_lines):
-    """
-    Check whether an ORCA calculation has nearly converged and may just need more geometry optimisation steps to
-    complete successfully
-    :param out_lines: (list) orca out lines
-    :return: (bool)
-    """
-    geom_conv_block = False
-
-    for line in out_lines[::-1]:
-        if geom_conv_block and 'Geometry convergence' in line:
-            geom_conv_block = False
-        if 'The optimization has not yet converged' in line:
-            geom_conv_block = True
-        if geom_conv_block and len(line.split()) == 5:
-            if line.split()[-1] == 'YES':
-                return True
-
-    return False
-
-
-def ts_has_correct_imaginary_vector(out_lines, n_atoms, active_bonds, threshold_contribution=0.25):
+def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, threshold_contribution=0.25):
     """
     For an orca output file check that the first imaginary mode (number 6) in the final frequency calculation
     contains the correct motion, i.e. contributes more than threshold_contribution in relative terms to the
     magnitude of the sum of the forces
 
-    :param out_lines: (list)
+    :param calc: (object)
     :param n_atoms: (int) number of atoms
     :param active_bonds: (list(tuples))
     :param threshold_contribution: (float) threshold contribution to the imaginary mode from the atoms in
@@ -131,7 +99,7 @@ def ts_has_correct_imaginary_vector(out_lines, n_atoms, active_bonds, threshold_
         logger.info('Cannot determine whether the correct atoms contribute')
         return True
 
-    imag_normal_mode_displacements_xyz = get_orca_normal_mode_displacements(out_lines, mode_number=6, n_atoms=n_atoms)
+    imag_normal_mode_displacements_xyz = calc.get_normal_mode_displacements(mode_number=6)
     imag_mode_magnitudes = [np.linalg.norm(np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
 
     should_be_active_atom_magnitudes = []

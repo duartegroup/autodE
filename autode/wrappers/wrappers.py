@@ -56,7 +56,7 @@ smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE'
                 'M-CRESOL',
                 'O-CRESOL', 'CYCLOHEXANE', 'CYCLOHEXANONE']
 
-xtb_solvents = ['Acetone', 'Acetonitrile', 'Benzene', 'CH2Cl2', 'CHCl3', 'CS2', 'DMF', 'DMSO', 'Ether', 'Water ',
+xtb_solvents = ['Acetone', 'Acetonitrile', 'Benzene', 'CH2Cl2', 'CHCl3', 'CS2', 'DMF', 'DMSO', 'Ether', 'Water',
                 'H2O', 'Methanol', 'n-Hexane', 'THF', 'Toluene']
 
 ORCA = ElectronicStructureMethod(path=Config.path_to_orca, aval_solvents=[solv.lower() for solv in smd_solvents])

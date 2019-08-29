@@ -1,10 +1,9 @@
-from .mol_graphs import get_mapping_ts_template
-from .opt import get_orca_ts_guess_constrained_opt
-from .templates import get_ts_templates
-from .templates import template_matches
-from .log import logger
-from .config import Config
-from .ts_guess import TSguess
+from autode.mol_graphs import get_mapping_ts_template
+from autode.opt import get_orca_ts_guess_constrained_opt
+from autode.templates import get_ts_templates
+from autode.templates import template_matches
+from autode.log import logger
+from autode.config import Config
 
 
 def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
@@ -40,7 +39,7 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
             else:
                 return get_orca_ts_guess_constrained_opt(mol, orca_keywords=Config.opt_keywords,
                                                          name='template_ts_guess',
-                                                         distance_constraints=active_bonds_and_dists_ts,
+                                                         distance_consts=active_bonds_and_dists_ts,
                                                          reaction_class=reaction_class)
 
     logger.info('Couldn\'t find a TS guess from a template')
