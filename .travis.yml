@@ -1,6 +1,7 @@
 branches:
   only:
     - master
+    - est_methods
 dist: xenial
 language: python
 python:
