@@ -53,6 +53,7 @@ class TSguess(object):
                                       optts_block=Config.opt_ts_block)
 
         self.optts_calc.run()
+        self.xyzs = self.optts_calc.get_final_xyzs()
         return None
 
     def get_imag_frequencies_xyzs_energy(self):

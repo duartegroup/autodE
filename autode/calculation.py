@@ -16,7 +16,6 @@ class Calculation:
         logger.info('Getting energy from {}'.format(self.output_filename))
         if self.terminated_normally:
             for line in self.rev_output_file_lines:
-
                 if self.method == ORCA:
                     if 'FINAL SINGLE POINT ENERGY' in line:
                         return float(line.split()[4])
@@ -30,6 +29,7 @@ class Calculation:
                 if self.method == MOPAC:
                     raise NotImplementedError
 
+        logger.error('Calculation did not terminate normally – not returning the energy')
         return None
 
     def optimisation_converged(self):

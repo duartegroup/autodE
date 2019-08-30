@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from multiprocessing.pool import Pool
 from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
@@ -96,33 +97,75 @@ def get_orca_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_clas
 
 def get_xtb_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class, name, delta_dist1=1.5,
                         delta_dist2=1.5):
+    """
+
+    :param mol:
+    :param active_bond1:
+    :param active_bond2:
+    :param n_steps:
+    :param reaction_class:
+    :param name:
+    :param delta_dist1:
+    :param delta_dist2:
+    :return:
+    """
     logger.info('Getting TS guess from 2D XTB relaxed potential energy scan')
 
-    raise NotImplementedError
+    curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
+    curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
 
-    # curr_dist1 = mol.calc_bond_distance(active_bond1)
-    # final_dist1 = curr_dist1 + delta_dist1
-#
-    # curr_dist2 = mol.calc_bond_distance(active_bond2)
-    # final_dist2 = curr_dist2 + delta_dist2
-#
-    # reac_xyz_filename = xyzs2xyzfile(mol.xyzs, basename=mol.name + '_' + name)
-    # dists_xyzs_energies, xyzs, energies = {}, [], []
-#
-    # logger.info('Running a 2D scan with {} grid points'.format(int(n_steps**2)))
-#
-    # for dist_constraint in np.linspace(curr_dist1, final_dist1, n_steps):
-    #     logger.info('Running a 1D scan with {} constrained at {} Å'.format(active_bond1, dist_constraint))
-#
-    #     run_xtb(reac_xyz_filename, charge=mol.charge, scan_ids=active_bond2, solvent=mol.solvent,
-    #             n_steps=n_steps, bond_constraints={active_bond1: dist_constraint},
-    #             out_filename=str(dist_constraint) + '_scan_xtb.out')
-    #     dist2s_xyzs_energies = get_xtb_scan_xyzs_energies(values=np.linspace(curr_dist2, final_dist2, n_steps))
-#
-    #     for dist2 in dist2s_xyzs_energies.keys():
-    #         dists_xyzs_energies[(dist_constraint, dist2)] = dist2s_xyzs_energies[dist2]
-#
-    # ts_guess_xyzs = find_2dpes_maximum_energy_xyzs(dists_xyzs_energies)
-#
-    # return TSguess(name='xtb2d_ts_guess', reaction_class=reaction_class, xyzs=ts_guess_xyzs, solvent=mol.solvent,
-    #               charge=mol.charge, mult=mol.mult, active_bonds=[active_bond1, active_bond2])
+    dist_grid1, dist_grid2 = np.meshgrid(np.linspace(curr_dist1, curr_dist1 + delta_dist1, n_steps),
+                                         np.linspace(curr_dist2, curr_dist2 + delta_dist2, n_steps))
+
+    # Create a grid of molecules and associated constrained optimisation calculations
+    mol_grid = [[deepcopy(mol) for _ in range(n_steps)] for _ in range(n_steps)]
+
+    # Perform a 1d scan in serial
+    for n in range(n_steps):
+        if n == 0:
+            molecule = mol
+        else:
+            molecule = mol_grid[0][n-1]
+
+        const_opt = Calculation(name=name + '_scan0_' + str(n), molecule=molecule, method=XTB, opt=True,
+                                n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
+                                                                              active_bond2: dist_grid2[0][n]})
+        const_opt.run()
+        # const_opt.run()
+        mol_grid[0][n].xyzs = const_opt.get_final_xyzs()    # Set the new xyzs of the molecule
+        mol_grid[0][n].energy = const_opt.get_energy()      # Set the energy of the molecule
+
+    # Execute the remaining set of optimisations in parallel
+    for i in range(1, n_steps):
+
+        calcs = [Calculation(name+'_scan'+str(i)+'_'+str(n), mol_grid[i-1][n], XTB, n_cores=1, opt=True,
+                             distance_constraints={active_bond1: dist_grid1[i][n], active_bond2: dist_grid2[i][n]})
+                 for n in range(n_steps)]
+
+        [calc.generate_input() for calc in calcs]
+        with Pool(processes=Config.n_cores) as pool:
+            results = [pool.apply_async(execute_calc, (calc,)) for calc in calcs]
+            [res.get(timeout=None) for res in results]
+        [calc.set_output_file_lines() for calc in calcs]
+
+        # Add attributes for molecules in the mol_grid
+        for n in range(n_steps):
+            calcs[n].terminated_normally = calcs[n].calculation_terminated_normally()
+            mol_grid[i][n].xyzs = calcs[n].get_final_xyzs()
+            mol_grid[i][n].energy = calcs[n].get_energy()
+
+    # Populate the dictionary of distances, xyzs and energies – legacy
+    dist_xyzs_energies = {}
+    for n in range(n_steps):
+        for m in range(n_steps):
+            dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (mol_grid[n][m].xyzs, mol_grid[n][m].energy)
+
+    tsguess_mol = deepcopy(mol)
+    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies))
+
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
+                   active_bonds=[active_bond1, active_bond2])
+
+
+def execute_calc(calc):
+    return calc.execute_calculation()

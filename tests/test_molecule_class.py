@@ -1,5 +1,5 @@
 from autode import molecule
-from conformers import conformers
+from autode.conformers import conformers
 from rdkit.Chem import Mol
 import numpy as np
 
@@ -40,4 +40,3 @@ def test_rdkit_conf_generation():
     assert isinstance(h2.conformers[0], conformers.Conformer)
     assert len(h2.conformers) == 1
     assert h2.n_conformers == 1
-
