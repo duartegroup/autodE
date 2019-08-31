@@ -1,6 +1,7 @@
 from autode.wrappers.wrappers import ORCA
 from autode.calculation import Calculation
 from autode.molecule import Molecule
+
 import os
 cwd = os.getcwd()
 here = os.path.dirname(os.path.abspath(__file__))
@@ -33,4 +34,25 @@ def test_orca_opt_calculation():
     assert calc.optimisation_nearly_converged() is False
 
     os.remove('opt_orca.inp')
+    os.chdir(cwd)
+
+
+def test_orca_optts_calculation():
+    # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
+
+    os.chdir(here)
+
+    test_mol = Molecule(name='X', smiles='C')
+    calc = Calculation(name='optts', molecule=test_mol, method=ORCA, opt=True,
+                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                       optts_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
+    calc.run()
+
+    assert calc.get_normal_mode_displacements(mode_number=6) is not None
+    assert calc.terminated_normally is True
+    assert calc.optimisation_converged() is True
+    assert calc.optimisation_nearly_converged() is False
+    assert len(calc.get_imag_freqs()) == 1
+
+    os.remove('optts_orca.inp')
     os.chdir(cwd)
