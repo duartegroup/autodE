@@ -2,9 +2,13 @@ from autode.wrappers.wrappers import ORCA
 from autode.calculation import Calculation
 from autode.molecule import Molecule
 import os
+cwd = os.getcwd()
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_orca_opt_calculation():
+
+    os.chdir(here)
 
     test_mol = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
     calc = Calculation(name='opt', molecule=test_mol, method=ORCA, opt=True,
@@ -29,3 +33,4 @@ def test_orca_opt_calculation():
     assert calc.optimisation_nearly_converged() is False
 
     os.remove('opt_orca.inp')
+    os.chdir(cwd)
