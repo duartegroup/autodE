@@ -1,8 +1,8 @@
-from .log import logger
+from autode.log import logger
 import networkx as nx
 import multiprocessing as mp
 from networkx.algorithms import isomorphism
-from .bond_lengths import get_xyz_bond_list
+from autode.bond_lengths import get_xyz_bond_list
 
 
 def make_graph(xyzs, n_atoms):

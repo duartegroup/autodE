@@ -1,5 +1,4 @@
 from autode import geom
-from autode import mol_graphs
 import numpy as np
 
 xyz_list = [['H', 0.0, 0.0, 0.0], ['H', 1.0, 0.0, 0.0]]

@@ -1,6 +1,4 @@
 import numpy as np
-from .mol_graphs import get_mapping
-from .log import logger
 
 
 def xyz2coord(xyzs):

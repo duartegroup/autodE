@@ -56,7 +56,7 @@ def plot_1dpes(rs, rel_energies):
 
     plt.plot(rs, rel_energies, marker='o', color='k')
     plt.xlabel('$r$ / Å')
-    plt.ylabel('$\Delta E$ / kcal mol$^{-1}$')
+    plt.ylabel('∆$E$ / kcal mol$^{-1}$')
     plt.savefig('1d_scan.png')
 
     return 0

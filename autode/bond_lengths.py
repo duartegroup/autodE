@@ -2,7 +2,7 @@
 # http://www.science.uwaterloo.ca/~cchieh/cact/c120/bondel.html and
 # https://www.chem.tamu.edu/rgroup/connell/linkfiles/bonds.pdf
 import numpy as np
-from .log import logger
+from autode.log import logger
 
 
 def get_xyz_bond_list(xyzs, relative_tolerance=0.1):

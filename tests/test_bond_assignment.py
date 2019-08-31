@@ -1,4 +1,5 @@
 from autode import bond_lengths
+from autode.molecule import Molecule
 
 
 def test_bond_assignment():
@@ -20,3 +21,30 @@ def test_bond_assignment():
 
     xyz_bond_list = bond_lengths.get_xyz_bond_list(xyz_list)
     assert len(xyz_bond_list) == 13
+
+
+def test_rdkit_bond_list():
+
+    methane = Molecule(name='methane', smiles='C')
+    bond_list = bond_lengths.get_bond_list_from_rdkit_bonds(methane.mol_obj.GetBonds())
+    # Methane has 4 bonds
+    assert len(bond_list) == 4
+
+
+def test_get_ideal_bond_length_matrix():
+
+    xyz_list = [['H', 0.0, 0.0, 0.0], ['H', 1.0, 0.0, 0.0]]
+    bond_list = [(0, 1)]
+
+    ideal_bond_length_matrix = bond_lengths.get_ideal_bond_length_matrix(xyzs=xyz_list, bonds=bond_list)
+    assert ideal_bond_length_matrix.shape == (2, 2)
+    assert 0.5 < ideal_bond_length_matrix[0, 1] < 1.0   # Å
+
+
+def test_avg_bond_lengths():
+
+    methane = Molecule(name='methane', smiles='C')
+
+    # Methane has 4 bonds
+    assert 1.0 < bond_lengths.get_avg_bond_length(mol=methane, bond=(0, 1)) < 1.5
+    assert 1.0 < bond_lengths.get_avg_bond_length(atom_i_label='C', atom_j_label='H') < 1.5

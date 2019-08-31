@@ -1,10 +1,10 @@
-from .log import logger
-from .config import Config
-from .ORCAio import get_imag_frequencies_xyzs_energy_optts
-from .single_point import get_single_point_energy
-from .geom import calc_distance_matrix
-from . import mol_graphs
-from .templates import TStemplate
+from autode.log import logger
+from autode.config import Config
+from autode.geom import calc_distance_matrix
+from autode import mol_graphs
+from autode.templates import TStemplate
+from autode.calculation import Calculation
+from autode.wrappers.wrappers import ORCA
 
 
 class TS(object):
@@ -45,16 +45,21 @@ class TS(object):
         except ValueError or AttributeError:
             logger.error('Could not save TS template')
 
-    def single_point(self):
-        self.energy = get_single_point_energy(self, keywords=Config.sp_keywords, n_cores=Config.n_cores)
-
     def is_true_ts(self):
         if len(self.imag_freqs) == 1:
             return True
         else:
             return False
 
-    def __init__(self, ts_guess, name='TS',converged=True):
+    def single_point(self, method=ORCA):
+        logger.info('Running single point energy evaluation of {}'.format(self.name))
+
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.sp_keywords,
+                         n_cores=Config.n_cores, max_core_mb=Config.max_core)
+        sp.run()
+        self.energy = sp.get_energy()
+
+    def __init__(self, ts_guess, name='TS', converged=True):
         logger.info('Generating a TS object for {}'.format(name))
 
         self.name = name
@@ -63,7 +68,7 @@ class TS(object):
         self.mult = ts_guess.mult
         self.converged = converged
 
-        self.imag_freqs, self.xyzs, self.energy = get_imag_frequencies_xyzs_energy_optts(ts_guess.optts_out_lines)
+        self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
 
         self.active_bonds = ts_guess.active_bonds
         self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))

@@ -1,13 +1,11 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem import rdMolAlign
-from .config import Config
-from .log import logger
-from .input_output import xyzs2xyzfile
-from .XTBio import run_xtb
-from .XTBio import get_xtb_xyzs_energy
-from .opt import get_opt_xyzs_energy
-from .geom import calc_distance_matrix
+from autode.config import Config
+from autode.log import logger
+from autode.geom import calc_distance_matrix
+from autode.calculation import Calculation
+from autode.wrappers.wrappers import ORCA
 
 
 def rdkit_conformer_geometries_are_resonable(conf_xyzs):
@@ -92,17 +90,17 @@ def generate_unique_rdkit_confs(mol_obj, n_rdkit_confs):
 
 class Conformer(object):
 
-    def xtb_optimise(self):
-        xyz_filename = self.name + '.xyz'
-        if self.xyzs is not None:
-            xyzs2xyzfile(self.xyzs, filename=xyz_filename)
-            xtb_out_lines = run_xtb(xyz_filename, opt=True, charge=self.charge, solvent=self.solvent)
-            self.xyzs, self.energy = get_xtb_xyzs_energy(xtb_out_lines)
-        else:
-            logger.error('Could not optimise conformer, have no xyzs')
+    def optimise(self, method=ORCA):
+        logger.info('Running optimisation of {}'.format(self.name))
 
-    def orca_optimise(self):
-        self.xyzs, self.energy = get_opt_xyzs_energy(self, keywords=Config.conf_opt_keywords, n_cores=Config.n_cores)
+        logger.warning('Conformer optimisation is performed in the gas phase')
+        self.solvent = None
+
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.opt_keywords,
+                          n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
+        opt.run()
+        self.energy = opt.get_energy()
+        self.xyzs = opt.get_final_xyzs()
 
     def __init__(self, name='conf', xyzs=None, energy=None, solvent=None, charge=0, mult=1):
         self.name = name

@@ -3,13 +3,13 @@ from Cython.Build import cythonize
 from setuptools.extension import Extension
 
 extensions = [Extension('cconf_gen',
-                        ['autode/cconf_gen.pyx'])]
+                        ['autode/conformers/cconf_gen.pyx'])]
 
 
 setup(
     name='autode',
     version='v1.0.0-alpha',
-    packages=['autode'],
+    packages=['autode', 'autode.conformers', 'autode.wrappers'],
     include_package_data=True,
     package_data={'': ['lib/Addition/*.obj', 'lib/Dissociation/*.obj', 'lib/Elimination/*.obj',
                        'lib/Rearrangement/*.obj', 'lib/Substitution/*.obj']},

@@ -1,22 +1,22 @@
-from .log import logger
-from .config import Config
-from .geom import get_neighbour_list
-from .geom import get_identical_pairs
-from .atoms import get_maximal_valance
-from .bond_rearrangement import BondRearrangement
-from .bond_rearrangement import gen_equiv_bond_rearrangs
-from .substitution import set_complex_xyzs_translated_rotated
-from .molecule import Molecule
-from .reactions import Dissociation, Rearrangement, Substitution
-from .bond_lengths import get_avg_bond_length
-from .mol_graphs import is_isomorphic
-from .mol_graphs import get_adjacency_digraph
-from .optts import get_ts
-from .template_ts_guess import get_template_ts_guess
-from .pes_1d import get_xtb_ts_guess_1dpes_scan
-from .pes_1d import get_orca_ts_guess_1dpes_scan
-from .pes_2d import get_xtb_ts_guess_2d
-from .pes_2d import get_orca_ts_guess_2d
+from autode.log import logger
+from autode.config import Config
+from autode.geom import get_neighbour_list
+from autode.geom import get_identical_pairs
+from autode.atoms import get_maximal_valance
+from autode.bond_rearrangement import BondRearrangement
+from autode.bond_rearrangement import gen_equiv_bond_rearrangs
+from autode.substitution import set_complex_xyzs_translated_rotated
+from autode.molecule import Molecule
+from autode.reactions import Dissociation, Rearrangement, Substitution
+from autode.bond_lengths import get_avg_bond_length
+from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import get_adjacency_digraph
+from autode.optts import get_ts
+from autode.template_ts_guess import get_template_ts_guess
+from autode.pes_1d import get_xtb_ts_guess_1dpes_scan
+from autode.pes_1d import get_orca_ts_guess_1dpes_scan
+from autode.pes_2d import get_xtb_ts_guess_2d
+from autode.pes_2d import get_orca_ts_guess_2d
 
 
 def find_tss(reaction):
@@ -59,50 +59,51 @@ def find_tss(reaction):
 
 def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
-    bds_str = '_'.join([str(bond[0]) + str(bond[1]) for bond in bond_rearrang.all])
+    name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
+    name += '_' + '_'.join([str(bond[0]) + '-' + str(bond[1]) for bond in bond_rearrang.all]) + '_'
 
     funcs_params = [(get_template_ts_guess, (reactant, bond_rearrang.all, reaction.type))]
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
-        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
+        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, name + 'xtb1d',
                              reaction.type)))
         funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
-                             'orca1d_' + bds_str, reaction.type)))
+                             name + 'orca1d', reaction.type)))
         funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
-                             'orca1d_opt_level_' + bds_str, reaction.type)))
+                             name + 'orca1d_opt_level', reaction.type)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type == Substitution:
-        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, 'xtb1d_' + bds_str,
+        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, name + 'xtb1d',
                              reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
         funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
-                             'orca1d_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
+                             name + 'orca1d', reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
         funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
-                             'orca1d_opt_level_' + bds_str, reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
+                             name + 'orca1d_opt_level', reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
 
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
         fbond = bond_rearrang.fbonds[0]
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant._calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
-        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, fbond, 20, 'xtb1d_' + bds_str, reaction.type,
+        funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, fbond, 20, name + 'xtb1d', reaction.type,
                              delta_fbond_dist,[fbond])))
-        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, fbond, 10, Config.scan_keywords, 'orca1d_' +
-                             bds_str, reaction.type,delta_fbond_dist, [fbond])))
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, fbond, 10, Config.scan_keywords, name + 'orca1d',
+                                                            reaction.type,delta_fbond_dist, [fbond])))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant._calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
-        funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, 'xtb2d_' + bds_str,
+        funcs_params.append((get_xtb_ts_guess_2d, (reactant, fbond, bbond, 20, reaction.type, name + 'xtb2d',
                              delta_fbond_dist, 1.5)))
         # funcs_params.append((get_orca_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
         #                     'orca2d_' + bds_str, delta_fbond_dist, 1.5)))
 
     if bond_rearrang.n_bbonds == 2 and bond_rearrang.n_fbonds == 0:
         bbond1, bbond2 = bond_rearrang.bbonds
-        funcs_params.append((get_xtb_ts_guess_2d, (reactant, bbond1, bbond2, 20, reaction.type, 'xtb2d_' + bds_str,
+        funcs_params.append((get_xtb_ts_guess_2d, (reactant, bbond1, bbond2, 15, reaction.type, name + 'xtb2d',
                              1.5, 1.5)))
         funcs_params.append((get_orca_ts_guess_2d, (reactant, bbond1, bbond2, 7, reaction.type, Config.scan_keywords,
-                             'orca2d_' + bds_str, 1.5, 1.5)))
+                             name + 'orca2d', 1.5, 1.5)))
 
     return funcs_params
 

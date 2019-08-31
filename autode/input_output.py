@@ -1,4 +1,4 @@
-from .log import logger
+from autode.log import logger
 
 
 def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
