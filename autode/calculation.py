@@ -74,17 +74,18 @@ class Calculation:
 
     def get_imag_freqs(self):
         logger.info('Finding imaginary frequencies in cm-1')
+        imag_freqs = None
 
         if self.method == ORCA:
-            freqs = []
 
             for i, line in enumerate(self.output_file_lines):
                 if 'VIBRATIONAL FREQUENCIES' in line:
                     freq_lines = self.output_file_lines[i + 5:i + 3 * self.n_atoms + 5]
                     freqs = [float(l.split()[1]) for l in freq_lines]
-                    break
+                    imag_freqs = [freq for freq in freqs if freq < 0]
 
-            return [freq for freq in freqs if freq < 0]
+            logger.info('Found imaginary freqs {}'.format(imag_freqs))
+            return imag_freqs
 
         else:
             raise NotImplementedError
@@ -122,6 +123,7 @@ class Calculation:
             displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
             if len(displacements_xyz) != self.n_atoms:
                 logger.error('Something went wrong getting the displacements n != n_atoms')
+                return None
 
             return displacements_xyz
 
