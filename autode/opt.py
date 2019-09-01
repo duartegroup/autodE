@@ -3,7 +3,7 @@ from autode.log import logger
 from autode.config import Config
 from autode.ts_guess import TSguess
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
+from autode.wrappers.ORCA import ORCA
 
 
 def get_orca_ts_guess_constrained_opt(mol, orca_keywords, name, distance_consts, reaction_class):

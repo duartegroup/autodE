@@ -1,4 +1,4 @@
-from autode.wrappers.wrappers import XTB
+from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.molecule import Molecule
 import os

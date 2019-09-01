@@ -5,8 +5,8 @@ from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
-from autode.wrappers.wrappers import XTB
+from autode.wrappers.ORCA import ORCA
+from autode.wrappers.XTB import XTB
 from autode.plotting import plot_2dpes
 from autode.ts_guess import TSguess
 

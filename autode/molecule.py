@@ -15,8 +15,8 @@ from autode.conformers.conformers import Conformer
 from autode.conformers.conformers import rdkit_conformer_geometries_are_resonable
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
-from autode.wrappers.wrappers import XTB
+from autode.wrappers.ORCA import ORCA
+from autode.wrappers.XTB import XTB
 
 
 class Molecule:
@@ -139,7 +139,6 @@ class Molecule:
                 self.energy = conformer.energy
                 self.set_xyzs(conformer.xyzs)
                 break
-        print('\t', self.xyzs)
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def set_xyzs(self, xyzs):
@@ -152,7 +151,7 @@ class Molecule:
     def optimise(self, method=ORCA):
         logger.info('Running optimisation of {}'.format(self.name))
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.opt_keywords,
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.ORCA.opt_keywords,
                           n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
@@ -161,7 +160,7 @@ class Molecule:
     def single_point(self, method=ORCA):
         logger.info('Running single point energy evaluation of {}'.format(self.name))
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.sp_keywords,
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.ORCA.sp_keywords,
                          n_cores=Config.n_cores, max_core_mb=Config.max_core)
         sp.run()
         self.energy = sp.get_energy()

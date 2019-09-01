@@ -5,7 +5,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.geom import calc_distance_matrix
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
+from autode.wrappers.ORCA import ORCA
 
 
 def rdkit_conformer_geometries_are_resonable(conf_xyzs):
@@ -96,7 +96,7 @@ class Conformer(object):
         logger.warning('Conformer optimisation is performed in the gas phase')
         self.solvent = None
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.opt_keywords,
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.ORCA.opt_keywords,
                           n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()

@@ -6,8 +6,8 @@ from autode.ts_guess import TSguess
 from autode.plotting import plot_1dpes
 from autode.constants import Constants
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
-from autode.wrappers.wrappers import XTB
+from autode.wrappers.ORCA import ORCA
+from autode.wrappers.XTB import XTB
 
 
 def get_orca_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name, reaction_class, delta_dist=1.5,

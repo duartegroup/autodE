@@ -2,7 +2,7 @@ from autode.log import logger
 from autode.config import Config
 from autode.optts import get_displaced_xyzs_along_imaginary_mode
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
+from autode.wrappers.ORCA import ORCA
 
 
 class TSguess(object):
@@ -48,9 +48,9 @@ class TSguess(object):
         logger.info('Getting ORCA out lines from OptTS calculation')
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=ORCA,
-                                      keywords=Config.opt_ts_keywords, n_cores=Config.n_cores,
+                                      keywords=Config.ORCA.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      optts_block=Config.opt_ts_block)
+                                      optts_block=Config.ORCA.opt_ts_block)
 
         self.optts_calc.run()
         self.xyzs = self.optts_calc.get_final_xyzs()

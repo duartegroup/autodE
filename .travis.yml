@@ -1,7 +1,7 @@
 branches:
   only:
     - master
-    - est_methods
+    - psi4_int
 dist: xenial
 language: python
 python:

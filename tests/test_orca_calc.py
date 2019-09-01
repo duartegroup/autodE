@@ -1,4 +1,4 @@
-from autode.wrappers.wrappers import ORCA
+from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.molecule import Molecule
 

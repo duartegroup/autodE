@@ -67,17 +67,17 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
         funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, name + 'xtb1d',
                              reaction.type)))
-        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.ORCA.scan_keywords,
                              name + 'orca1d', reaction.type)))
-        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.ORCA.opt_keywords,
                              name + 'orca1d_opt_level', reaction.type)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type == Substitution:
         funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, name + 'xtb1d',
                              reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
-        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.scan_keywords,
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.ORCA.scan_keywords,
                              name + 'orca1d', reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
-        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.opt_keywords,
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, Config.ORCA.opt_keywords,
                              name + 'orca1d_opt_level', reaction.type, 1.5, [bond_rearrang.fbonds[0]])))
 
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
@@ -86,7 +86,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
         funcs_params.append((get_xtb_ts_guess_1dpes_scan, (reactant, fbond, 20, name + 'xtb1d', reaction.type,
                              delta_fbond_dist,[fbond])))
-        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, fbond, 10, Config.scan_keywords, name + 'orca1d',
+        funcs_params.append((get_orca_ts_guess_1dpes_scan, (reactant, fbond, 10, Config.ORCA.scan_keywords, name + 'orca1d',
                                                             reaction.type,delta_fbond_dist, [fbond])))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
@@ -102,7 +102,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
         bbond1, bbond2 = bond_rearrang.bbonds
         funcs_params.append((get_xtb_ts_guess_2d, (reactant, bbond1, bbond2, 15, reaction.type, name + 'xtb2d',
                              1.5, 1.5)))
-        funcs_params.append((get_orca_ts_guess_2d, (reactant, bbond1, bbond2, 7, reaction.type, Config.scan_keywords,
+        funcs_params.append((get_orca_ts_guess_2d, (reactant, bbond1, bbond2, 7, reaction.type, Config.ORCA.scan_keywords,
                              name + 'orca2d', 1.5, 1.5)))
 
     return funcs_params

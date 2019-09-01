@@ -1,11 +1,24 @@
-from ..config import Config
+from autode.config import Config
+from shutil import which
+from functools import wraps
+
+
+def add_method(cls):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            return func(*args, **kwargs)
+        setattr(cls, func.__name__, wrapper)
+        # Note we are not binding func, but wrapper which accepts self but does exactly the same as func
+        return func # returning func means func can still be used normally
+    return decorator
 
 
 class ElectronicStructureMethod:
 
-    def __init__(self, path, req_licence=False, path_to_licence=None, aval_solvents=None):
+    def __init__(self, name, path, req_licence=False, path_to_licence=None, aval_solvents=None):
 
-        self.path = path
+        self.path = path if path is not None else which(name)      # If the path is not set in config.py search in $PATH
         self.aval_solvents = aval_solvents
 
         if req_licence:
@@ -59,10 +72,19 @@ smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE'
 xtb_solvents = ['Acetone', 'Acetonitrile', 'Benzene', 'CH2Cl2', 'CHCl3', 'CS2', 'DMF', 'DMSO', 'Ether', 'Water',
                 'H2O', 'Methanol', 'n-Hexane', 'THF', 'Toluene']
 
-ORCA = ElectronicStructureMethod(path=Config.path_to_orca, aval_solvents=[solv.lower() for solv in smd_solvents])
+ORCA = ElectronicStructureMethod(name='orca',
+                                 path=Config.ORCA.path,
+                                 aval_solvents=[solv.lower() for solv in smd_solvents])
 
-XTB = ElectronicStructureMethod(path=Config.path_to_xtb, aval_solvents=[solv.lower() for solv in xtb_solvents])
+XTB = ElectronicStructureMethod(name='xtb',
+                                path=Config.XTB.path,
+                                aval_solvents=[solv.lower() for solv in xtb_solvents])
 
-MOPAC = ElectronicStructureMethod(path=Config.path_to_mopac,
+MOPAC = ElectronicStructureMethod(name='mopac',
+                                  path=Config.MOPAC.path,
                                   req_licence=True,
-                                  path_to_licence=Config.path_to_mopac_licence)
+                                  path_to_licence=Config.MOPAC.licence_path)
+
+PSI4 = ElectronicStructureMethod(name='psi4',
+                                 path=Config.PSI4.path,
+                                 aval_solvents=None)
