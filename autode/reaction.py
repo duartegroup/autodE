@@ -53,7 +53,7 @@ class Reaction(object):
     def find_lowest_energy_conformers(self):
         """
         Try and locate the lowest energy conformation using RDKit, then optimise them with XTB, then
-        optimise the unique (defined by an energy cut-off) conformers with ORCA
+        optimise the unique (defined by an energy cut-off) conformers with an electronic structure method
         :return:
         """
         for mol in self.reacs + self.prods:

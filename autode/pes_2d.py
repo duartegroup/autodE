@@ -74,42 +74,22 @@ def polyfit2d(x, y, z):  # order=2
     return m
 
 
-def get_est_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class, orca_keywords, name='2d',
-                        delta_dist1=1.5, delta_dist2=1.5):
-    logger.info('Getting TS guess from 2D ORCA relaxed potential energy scan')
-
-    curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
-    curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
-
-    scan = Calculation(name=name + '_2dscan', molecule=mol, method=ORCA, keywords=orca_keywords,
-                       n_cores=Config.n_cores, max_core_mb=Config.max_core, scan_ids=active_bond1,
-                       curr_dist1=curr_dist1, final_dist1=curr_dist1 + delta_dist1, opt=True, scan_ids2=active_bond2,
-                       curr_dist2=curr_dist2, final_dist2=curr_dist2 + delta_dist2, n_steps=n_steps)
-    scan.run()
-
-    dists_xyzs_energies = scan.get_scan_values_xyzs_energies()
-    tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dists_xyzs_energies))
-
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
-                   active_bonds=[active_bond1, active_bond2])
-
-
-def get_xtb_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class, name, delta_dist1=1.5,
-                        delta_dist2=1.5):
+def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, delta_dist1=1.5,
+                    delta_dist2=1.5):
     """
-
     :param mol:
     :param active_bond1:
     :param active_bond2:
     :param n_steps:
+        :param keywords (list) list of keywords required by an electronic structure method
+    :param method: (object) electronic structure method
     :param reaction_class:
     :param name:
     :param delta_dist1:
     :param delta_dist2:
     :return:
     """
-    logger.info('Getting TS guess from 2D XTB relaxed potential energy scan')
+    logger.info('Getting TS guess from 2D relaxed potential energy scan')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
     curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
@@ -127,9 +107,10 @@ def get_xtb_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class
         else:
             molecule = mol_grid[0][n-1]
 
-        const_opt = Calculation(name=name + '_scan0_' + str(n), molecule=molecule, method=XTB, opt=True,
+        const_opt = Calculation(name=name + '_scan0_' + str(n), molecule=molecule, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
-                                                                              active_bond2: dist_grid2[0][n]})
+                                                                              active_bond2: dist_grid2[0][n]},
+                                keywords=keywords)
         const_opt.run()
         # const_opt.run()
         mol_grid[0][n].xyzs = const_opt.get_final_xyzs()    # Set the new xyzs of the molecule
@@ -138,8 +119,9 @@ def get_xtb_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class
     # Execute the remaining set of optimisations in parallel
     for i in range(1, n_steps):
 
-        calcs = [Calculation(name+'_scan'+str(i)+'_'+str(n), mol_grid[i-1][n], XTB, n_cores=1, opt=True,
-                             distance_constraints={active_bond1: dist_grid1[i][n], active_bond2: dist_grid2[i][n]})
+        calcs = [Calculation(name+'_scan'+str(i)+'_'+str(n), mol_grid[i-1][n], method, n_cores=1, opt=True,
+                             keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
+                                                                      active_bond2: dist_grid2[i][n]})
                  for n in range(n_steps)]
 
         [calc.generate_input() for calc in calcs]
@@ -160,6 +142,7 @@ def get_xtb_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class
         for m in range(n_steps):
             dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (mol_grid[n][m].xyzs, mol_grid[n][m].energy)
 
+    # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies))
 

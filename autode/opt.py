@@ -6,7 +6,7 @@ from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
 
 
-def get_est_ts_guess_constrained_opt(mol, keywords, name, distance_consts, reaction_class):
+def get_ts_guess_constrained_opt(mol, keywords, name, distance_consts, reaction_class):
     """
     Get a TS guess from a constrained optimisation with the active atoms fixed at values defined in distance_consts
 
@@ -28,4 +28,5 @@ def get_est_ts_guess_constrained_opt(mol, keywords, name, distance_consts, react
                             distance_constraints=distance_consts)
     const_opt.run()
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=opt_mol_with_const, active_bonds=list(distance_consts.keys()))
+    return TSguess(name=name, reaction_class=reaction_class, molecule=opt_mol_with_const,
+                   active_bonds=list(distance_consts.keys()))

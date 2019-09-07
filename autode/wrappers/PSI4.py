@@ -1,3 +1,4 @@
+import numpy as np
 from autode.config import Config
 from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
@@ -26,7 +27,16 @@ def generate_input(calc):
 
     with open(calc.input_filename, 'w') as in_file:
         print('memory', Config.max_core, ' mb', file=in_file)
-        print('molecule', calc.name, '{', file=in_file)
+
+        # Python cannot handel things with pluses or minuses in so remove them
+        name = calc.name
+        if '-' in name:
+            name = name.replace('-', '')
+        if '+' in name:
+            name = name.replace('+', '')
+
+        print('molecule', name, '{', file=in_file)
+        print(calc.charge, calc.mult, file=in_file)
         [print('{:<3}{:^12.8f}{:^12.8f}{:^12.8f}'.format(*line), file=in_file) for line in calc.xyzs]
         print('}', file=in_file)
 
@@ -43,28 +53,39 @@ def generate_input(calc):
 
         # Add the block appropriate for an implicit solvent model using UFF radii
         if calc.solvent is not None:
-            eval_keywords.append('set   pcm true\n set pcm_scf_type total')
-            print('pcm = {\nUnits = Angstrom\n'
-                  'Medium {\n'
-                  'SolverType = IEFPCM\n'
-                  'Solvent =', calc.solvent,
-                  '}\nCavity '
-                  '{\nRadiiSet = UFF\n'
-                  'Type = GePol\n'
-                  'Scaling = False\n'
-                  'Area = 0.3\n'
-                  'Mode = Implicit\n}\n}', file=in_file)
+            eval_keywords.append('set   pcm true\n'
+                                 'set pcm_scf_type total')
+            print('pcm = {\n'
+                  '    Units = Angstrom\n'
+                  '    Medium {\n'
+                  '    SolverType = IEFPCM\n'
+                  '    Solvent =', calc.solvent,
+                  '    }\nCavity '
+                  '    {\nRadiiSet = UFF\n'
+                  '    Type = GePol\n'
+                  '    Scaling = False\n'
+                  '    Area = 0.3\n'
+                  '    Mode = Implicit\n'
+                  '    }\n'
+                  '}', file=in_file)
 
         if calc.optts_block:
             print(calc.optts_block, file=in_file)
 
         if calc.bond_ids_to_add:
             # PSI4 seeming doesn't allow for specific internal coordinates to be added..
-            print('set add_auxiliary_bonds true')
+            print('set add_auxiliary_bonds true', file=in_file)
 
-        # if calc.scan_ids:
-        # TODO
+        if calc.distance_constraints:
+            print('set optking {'
+                  '\n    fixed_distance = ("', file=in_file)
+            for bond_ids in calc.distance_constraints.keys():
+                print('      ', bond_ids[0], ' ', bond_ids[1], np.round(calc.distance_constraints[bond_ids], 3),
+                      file=in_file)
+            print('     ")\n}', file=in_file)
 
+        if calc.mult != 1:
+            print('set reference uks', file=in_file)
         print(*eval_keywords, sep='\n', file=in_file)
 
     return None
@@ -75,7 +96,9 @@ def calculation_terminated_normally(calc):
     for n_line, line in enumerate(calc.rev_output_file_lines):
         if '*** Psi4 exiting successfully. Buy a developer a beer!' in line:
             return True
-        if n_line > 10:
+        if 'Optimization has failed!' in line:
+            return True
+        if n_line > 150:
             return False
 
     return False
@@ -124,6 +147,9 @@ def get_normal_mode_displacements(calc, mode_number):
 
 
 def get_final_xyzs(calc):
+    if calc.n_atoms == 1:
+        return calc.xyzs
+
     opt_done, xyzs = False, []
     xyz_lines = None
     for n_line, line in enumerate(calc.output_file_lines):
@@ -138,13 +164,9 @@ def get_final_xyzs(calc):
 
     for line in xyz_lines:
         atom_label, x, y, z = line.split()
-        xyzs.append([atom_label, float(x), float(y), float(z)])
+        xyzs.append([atom_label.title(), float(x), float(y), float(z)])
 
     return xyzs
-
-
-def get_scan_values_xyzs_energies(calc):
-    raise NotImplementedError
 
 
 # Bind all the required functions to the class definition

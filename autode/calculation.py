@@ -71,6 +71,10 @@ class Calculation:
             logger.error('Could not run the calculation. Input filename not defined')
             return
 
+        if self.method.available is False:
+            logger.critical('Electronic structure method is not available')
+            exit()
+
         if not os.path.exists(self.input_filename):
             logger.error('Could not run the calculation. Input file does not exist')
             return
@@ -109,21 +113,13 @@ class Calculation:
         return None
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, scan_ids=None, curr_dist1=1.5, final_dist1=3.5, opt=False, curr_dist2=1.5,
-                 final_dist2=3.5, n_steps=10, scan_ids2=None, distance_constraints=None):
+                 optts_block=None, opt=False, distance_constraints=None):
         """
         :param name: (str)
         :param molecule: (object) a Molecule object
         :param n_cores: (int)
         :param bond_ids_to_add: (list(tuples))
         :param optts_block: (bool)
-        :param scan_ids: (tuple)
-        :param curr_dist1: (float)
-        :param final_dist1: (float)
-        :param curr_dist2: (float)
-        :param final_dist2: (float)
-        :param n_steps: (int)
-        :param scan_ids2: (tuple)
         :param distance_constraints: (dict) keys: tuple of atom ids (indexed from 0), values: float of the distance
         """
 
@@ -154,13 +150,6 @@ class Calculation:
 
         self.bond_ids_to_add = bond_ids_to_add
         self.optts_block = optts_block
-        self.scan_ids = scan_ids
-        self.curr_d1 = curr_dist1
-        self.final_d1 = final_dist1
-        self.curr_d2 = curr_dist2
-        self.final_d2 = final_dist2
-        self.n_steps = n_steps
-        self.scan_ids2 = scan_ids2
         self.distance_constraints = distance_constraints
 
         self.input_filename = None

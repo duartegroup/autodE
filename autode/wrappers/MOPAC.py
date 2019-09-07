@@ -41,9 +41,5 @@ def get_final_xyzs(calc):
     raise NotImplementedError
 
 
-def get_scan_values_xyzs_energies(calc):
-    raise NotImplementedError
-
-
 # Bind all the required functions to the class definition
 [setattr(MOPAC, method, globals()[method]) for method in req_methods]

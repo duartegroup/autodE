@@ -84,22 +84,6 @@ def generate_input(calc):
             except IndexError or TypeError:
                 logger.error('Could not add scanned bond')
 
-        if calc.scan_ids:
-            try:
-                print('%geom Scan\n    B', calc.scan_ids[0], calc.scan_ids[1],
-                      '= ' + str(np.round(calc.curr_d1, 3)) + ', ' +
-                      str(np.round(calc.final_d1, 3)) + ', ' + str(calc.n_steps) + '\n    end\nend',
-                      file=inp_file)
-
-                if calc.scan_ids2 is not None:
-                    print('%geom Scan\n    B', calc.scan_ids2[0], calc.scan_ids2[1],
-                          '= ' + str(np.round(calc.curr_d2, 3)) + ', ' +
-                          str(np.round(calc.final_d2, 3)) + ', ' + str(calc.n_steps) + '\n    end\nend',
-                          file=inp_file)
-
-            except IndexError:
-                logger.error('Could not add scan block')
-
         if calc.distance_constraints:
             print('%geom Constraints', file=inp_file)
             for bond_ids in calc.distance_constraints.keys():
@@ -220,96 +204,6 @@ def get_final_xyzs(calc):
             xyzs.append([atom_label, float(x), float(y), float(z)])
 
     return xyzs
-
-
-def get_scan_values_xyzs_energies(calc):
-    logger.info('Getting the xyzs and energies from an ORCA relaxed PES scan')
-    scan_2d = True if calc.scan_ids2 is not None else False
-
-    def get_orca_scan_values_xyzs_energies_no_conv(out_lines, scan_2d=False, delta_e_threshold_kcal_mol=1.0):
-
-        logger.info('Getting the xyzs and energies from a non-converged ORCA relaxed PES scan')
-
-        values_xyzs_energies, curr_dist, curr_dist1, curr_dist2, n_atoms = {}, None, None, None, 0
-        curr_energy, curr_delta_energy, scan_point_xyzs = 0.0, 0.0, []
-
-        for n_line, line in enumerate(out_lines):
-            if 'Number of atoms' in line:
-                n_atoms = int(line.split()[-1])
-
-            if 'RELAXED SURFACE SCAN STEP' in line:
-                if scan_2d:
-                    curr_dist1 = float(out_lines[n_line + 2].split()[-2])
-                    curr_dist2 = float(out_lines[n_line + 3].split()[-2])
-                else:
-                    curr_dist = float(out_lines[n_line + 2].split()[-2])
-
-            if 'CARTESIAN COORDINATES (ANGSTROEM)' in line:
-                scan_point_xyzs = []
-                for xyz_line in out_lines[n_line + 2:n_line + 1 + n_atoms + 1]:
-                    atom_label, x, y, z = xyz_line.split()
-                    scan_point_xyzs.append([atom_label, float(x), float(y), float(z)])
-
-            if 'FINAL SINGLE POINT ENERGY' in line:
-                curr_delta_energy = np.abs(float(line.split()[4]) - curr_energy)
-                curr_energy = float(line.split()[4])
-
-            if 'RELAXED SURFACE SCAN STEP' in line or 'ORCA TERMINATED NORMALLY' in line:
-                if scan_2d:
-                    # Consider everything converged – perhaps not a great idea
-                    if curr_dist1 is not None and curr_dist2 is not None and curr_energy != 0.0:
-                        values_xyzs_energies[(curr_dist1, curr_dist2)] = scan_point_xyzs, curr_energy
-
-                else:
-                    if curr_dist is not None and curr_energy != 0.0:
-                        if Constants.ha2kcalmol * curr_delta_energy < delta_e_threshold_kcal_mol:
-                            values_xyzs_energies[curr_dist] = scan_point_xyzs, curr_energy
-                        else:
-                            logger.warning('Optimisation wasn\'t close to converging on this step')
-
-        return values_xyzs_energies
-
-    values_xyzs_energies = {}
-    curr_dist1, curr_dist2, curr_dist = 0, 0, 0
-    scan_point_xyzs, scan_point_energy, opt_done, xyz_block = [], 0, False, False
-
-    for n_line, line in enumerate(calc.output_file_lines):
-        if 'The optimization did not converge' in line:
-            logger.warning('Optimisation did not converge')
-            return get_orca_scan_values_xyzs_energies_no_conv(calc.output_file_lines, scan_2d=scan_2d)
-
-        if 'RELAXED SURFACE SCAN STEP' in line:
-            scan_point_xyzs, opt_done, xyz_block = [], False, False
-            if scan_2d:
-                curr_dist1 = float(calc.output_file_lines[n_line + 2].split()[-2])
-                curr_dist2 = float(calc.output_file_lines[n_line + 3].split()[-2])
-            else:
-                curr_dist = float(calc.output_file_lines[n_line + 2].split()[-2])
-
-        if 'THE OPTIMIZATION HAS CONVERGED' in line:
-            opt_done = True
-        if 'CARTESIAN COORDINATES' in line and opt_done:
-            xyz_block = True
-
-        if xyz_block and len(line.split()) == 4:
-            atom_label, x, y, z = line.split()
-            scan_point_xyzs.append([atom_label, float(x), float(y), float(z)])
-
-        if xyz_block and len(line.split()) == 0:
-            xyz_block = False
-
-        if opt_done and len(scan_point_xyzs) > 0:
-            if 'FINAL SINGLE POINT ENERGY' in line:
-                scan_point_energy = float(line.split()[4])
-
-            if scan_2d:
-                values_xyzs_energies[(curr_dist1, curr_dist2)] = scan_point_xyzs, scan_point_energy
-            else:
-                values_xyzs_energies[curr_dist] = scan_point_xyzs, scan_point_energy
-
-    if len(values_xyzs_energies) == 0:
-        logger.error('Could not get any energies or xyzs from ORCA PES scan')
-        return None
 
 
 # Bind all the required functions to the class definition

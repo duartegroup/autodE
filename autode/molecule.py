@@ -129,8 +129,7 @@ class Molecule:
         :return:
         """
         self.generate_conformers()
-        lmethod = get_lmethod()
-        [self.conformers[i].optimise(method=lmethod) for i in range(len(self.conformers))]
+        [self.conformers[i].optimise() for i in range(len(self.conformers))]
         self.strip_non_unique_confs()
         [self.conformers[i].optimise(method=self.method) for i in range(len(self.conformers))]
 

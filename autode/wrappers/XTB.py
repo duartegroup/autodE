@@ -40,9 +40,7 @@ def generate_input(calc):
 
         calc.flags += ['--input', xcontrol_filename]
 
-    if calc.scan_ids or calc.scan_ids2:
-        logger.critical('Cannot run an XTB 1D or 2D scan. Use constrained optimisations instead')
-        exit()
+    return None
 
 
 def calculation_terminated_normally(calc):
@@ -101,10 +99,6 @@ def get_final_xyzs(calc):
                          float(y) * Constants.a02ang, float(z) * Constants.a02ang])
 
     return xyzs
-
-
-def get_scan_values_xyzs_energies(calc):
-    raise NotImplementedError
 
 
 # Bind all the required functions to the class definition
