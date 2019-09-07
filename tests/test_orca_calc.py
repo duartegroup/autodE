@@ -10,6 +10,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_orca_opt_calculation():
 
     os.chdir(here)
+    ORCA.available = True
 
     test_mol = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
     calc = Calculation(name='opt', molecule=test_mol, method=ORCA, opt=True,
@@ -40,6 +41,7 @@ def test_orca_optts_calculation():
     # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
 
     os.chdir(here)
+    ORCA.available = True
 
     test_mol = Molecule(name='X', smiles='C')
     calc = Calculation(name='optts', molecule=test_mol, method=ORCA, opt=True,
