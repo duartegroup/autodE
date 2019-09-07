@@ -1,18 +1,33 @@
 class Config:
-    # -----------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Total number of cores available
     #
     n_cores = 8
     #
-    # -----------------------------------------------
+    # ----------------------------------------------------------------------------------------------
     # Per core memory available in MB
     #
     max_core = 4000
     #
-    # -----------------------------------------------
+    # ----------------------------------------------------------------------------------------------
+    # DFT code to use. If set to None then the highest priority available code will be used:
+    #                                                                      1. 'ORCA', 2. 'PSI4'
+    #
+    hcode = None
+    #
+    # Semi-empirical/tight binding method to use. If set to None then the highest priority available
+    # will be used:   1. 'XTB', 2. 'MOPAC'
+    #
+    lcode = None
+    #
+    # ----------------------------------------------------------------------------------------------
 
     class ORCA:
-        # Parameters for ORCA
+        # ------------------------------------------------------------------------------------------
+        # Parameters for ORCA                        https://sites.google.com/site/orcainputlibrary/
+        # ------------------------------------------------------------------------------------------
+        #
+        # Note: path can be unset and will be assigned if it can be found in $PATH
         path = None
 
         scan_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
@@ -28,18 +43,40 @@ class Config:
         sp_keywords = ['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP']
 
     class XTB:
+        # ------------------------------------------------------------------------------------------
+        # Parameters for XTB    https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb
+        # ------------------------------------------------------------------------------------------
+        #
+        # Note: path can be unset and will be assigned if it can be found in $PATH
         path = None
 
     class MOPAC:
+        # ------------------------------------------------------------------------------------------
+        # Parameters for MOPAC                                                  http://openmopac.net
+        # ------------------------------------------------------------------------------------------
+        #
+        # Note: path can be unset and will be assigned if it can be found in $PATH
         path = None
         licence_path = None
 
     class PSI4:
+        # ------------------------------------------------------------------------------------------
+        # Parameters for PSI4                                                 http://www.psicode.org
+        # ------------------------------------------------------------------------------------------
+        #
+        # Note: path can be unset and will be assigned if it can be found in $PATH
         path = None
-        scan_keywords = None
-        conf_opt_keywords = None
-        opt_keywords = None
-        opt_ts_keywords = None
+        scan_keywords = ['set {basis def2-svp\n'
+                         'g_convergence gau_loose'
+                         '}',
+                         "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
+        conf_opt_keywords = ['set {basis def2-svp\ng_convergence gau_loose}',
+                             "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
+        opt_keywords = ['set basis def2-svp',
+                        "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
+        opt_ts_keywords = ['set full_hess_every 40',
+                           'set opt_type ts']
         hess_keywords = None
-        opt_ts_block = None
-        sp_keywords = None
+        opt_ts_block = 'set intrafrag_step_limit 0.1'
+        sp_keywords = ['set basis def2-tzvp',
+                       "energy('scf', dft_functional = 'PBE0-D3BJ')"]

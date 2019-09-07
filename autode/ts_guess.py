@@ -47,10 +47,10 @@ class TSguess(object):
     def run_orca_optts(self):
         logger.info('Getting ORCA out lines from OptTS calculation')
 
-        self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=ORCA,
-                                      keywords=Config.ORCA.opt_ts_keywords, n_cores=Config.n_cores,
+        self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
+                                      keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      optts_block=Config.ORCA.opt_ts_block)
+                                      optts_block=self.method.opt_ts_block)
 
         self.optts_calc.run()
         self.xyzs = self.optts_calc.get_final_xyzs()
@@ -75,6 +75,7 @@ class TSguess(object):
         self.charge = molecule.charge
         self.mult = molecule.mult
         self.active_bonds = active_bonds
+        self.method = molecule.method
 
         self.optts_converged = False
         self.optts_nearly_converged = False

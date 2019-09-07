@@ -74,8 +74,8 @@ def polyfit2d(x, y, z):  # order=2
     return m
 
 
-def get_orca_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class, orca_keywords, name='2d',
-                         delta_dist1=1.5, delta_dist2=1.5):
+def get_est_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, reaction_class, orca_keywords, name='2d',
+                        delta_dist1=1.5, delta_dist2=1.5):
     logger.info('Getting TS guess from 2D ORCA relaxed potential energy scan')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]

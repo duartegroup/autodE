@@ -1,12 +1,12 @@
-from .log import logger
-from . import reactions
-from .locate_tss import find_tss
-from .molecule import Reactant
-from .molecule import Product
-from .units import KcalMol
-from .units import KjMol
-from .constants import Constants
-from .plotting import plot_reaction_profile
+from autode.log import logger
+from autode import reactions
+from autode.locate_tss import find_tss
+from autode.molecule import Reactant
+from autode.molecule import Product
+from autode.units import KcalMol
+from autode.units import KjMol
+from autode.constants import Constants
+from autode.plotting import plot_reaction_profile
 
 
 class Reaction(object):

@@ -15,8 +15,8 @@ from autode.conformers.conformers import Conformer
 from autode.conformers.conformers import rdkit_conformer_geometries_are_resonable
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.XTB import XTB
+from autode.methods import get_lmethod
+from autode.methods import get_hmethod
 
 
 class Molecule:
@@ -129,9 +129,10 @@ class Molecule:
         :return:
         """
         self.generate_conformers()
-        [self.conformers[i].optimise(method=XTB) for i in range(len(self.conformers))]
+        lmethod = get_lmethod()
+        [self.conformers[i].optimise(method=lmethod) for i in range(len(self.conformers))]
         self.strip_non_unique_confs()
-        [self.conformers[i].optimise(method=ORCA) for i in range(len(self.conformers))]
+        [self.conformers[i].optimise(method=self.method) for i in range(len(self.conformers))]
 
         lowest_energy = min([conf.energy for conf in self.conformers])
         for conformer in self.conformers:
@@ -148,19 +149,23 @@ class Molecule:
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
         self.n_bonds = self.graph.number_of_edges()
 
-    def optimise(self, method=ORCA):
+    def optimise(self, method=None):
         logger.info('Running optimisation of {}'.format(self.name))
+        if method is None:
+            method = self.method
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.ORCA.opt_keywords,
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
                           n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
         self.set_xyzs(xyzs=opt.get_final_xyzs())
 
-    def single_point(self, method=ORCA):
+    def single_point(self, method=None):
         logger.info('Running single point energy evaluation of {}'.format(self.name))
+        if method is None:
+            method = self.method
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.ORCA.sp_keywords,
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
                          n_cores=Config.n_cores, max_core_mb=Config.max_core)
         sp.run()
         self.energy = sp.get_energy()
@@ -223,6 +228,7 @@ class Molecule:
         self.charge = charge
         self.mult = mult
         self.xyzs = xyzs
+        self.method = get_hmethod()
         self.mol_obj = None
         self.energy = None
         self.n_atoms = None

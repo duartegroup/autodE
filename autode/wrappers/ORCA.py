@@ -47,9 +47,15 @@ smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE'
                 'M-CRESOL',
                 'O-CRESOL', 'CYCLOHEXANE', 'CYCLOHEXANONE']
 
-ORCA = ElectronicStructureMethod(name='orca',
-                                 path=Config.ORCA.path,
-                                 aval_solvents=[solv.lower() for solv in smd_solvents])
+ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
+                                 aval_solvents=[solv.lower() for solv in smd_solvents],
+                                 scan_keywords=Config.ORCA.scan_keywords,
+                                 conf_opt_keywords=Config.ORCA.conf_opt_keywords,
+                                 opt_keywords=Config.ORCA.opt_keywords,
+                                 opt_ts_keywords=Config.ORCA.opt_ts_keywords,
+                                 hess_keywords=Config.ORCA.hess_keywords,
+                                 opt_ts_block=Config.ORCA.opt_ts_block,
+                                 sp_keywords=Config.ORCA.sp_keywords)
 
 
 def generate_input(calc):

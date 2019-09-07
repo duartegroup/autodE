@@ -10,8 +10,8 @@ from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 
 
-def get_orca_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name, reaction_class, delta_dist=1.5,
-                                 active_bonds_not_scanned=None):
+def get_est_ts_guess_1dpes_scan(mol, active_bond, n_steps, orca_keywords, name, reaction_class, delta_dist=1.5,
+                                active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object

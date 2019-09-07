@@ -1,11 +1,6 @@
 import os
-import numpy as np
-from autode.constants import Constants
 from subprocess import Popen
 from autode.log import logger
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.XTB import XTB
-from autode.wrappers.MOPAC import MOPAC
 
 
 class Calculation:
@@ -150,6 +145,7 @@ class Calculation:
         if molecule.solvent is not None:
             if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
                 logger.critical('Solvent is not available. Cannot run the calculation')
+                print('Available solvents are {}'.format(method.aval_solvents))
                 exit()
         self.solvent = molecule.solvent
 
