@@ -1,4 +1,6 @@
 import numpy as np
+from copy import deepcopy
+from autode.log import logger
 from autode.config import Config
 from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
@@ -49,19 +51,21 @@ def generate_input(calc):
                 else:
                     eval_keywords.append(keyword_line)
         else:
-            eval_keywords = calc.keywords
+            eval_keywords = deepcopy(calc.keywords)
 
         # Add the block appropriate for an implicit solvent model using UFF radii
         if calc.solvent is not None:
-            eval_keywords.append('set   pcm true\n'
-                                 'set pcm_scf_type total')
+            if calc.optts_block is not None:
+                logger.warning('PSI4 doesn\'t have analytical second derivatives for PCM. This will be slow')
+
+            eval_keywords.insert(0, 'set pcm true\nset pcm_scf_type total')
             print('pcm = {\n'
                   '    Units = Angstrom\n'
                   '    Medium {\n'
                   '    SolverType = IEFPCM\n'
                   '    Solvent =', calc.solvent,
-                  '    }\nCavity '
-                  '    {\nRadiiSet = UFF\n'
+                  '    }\n    Cavity{\n'
+                  '    RadiiSet = UFF\n'
                   '    Type = GePol\n'
                   '    Scaling = False\n'
                   '    Area = 0.3\n'
@@ -157,7 +161,7 @@ def get_final_xyzs(calc):
             opt_done = True
         if opt_done and 'Geometry (in Angstrom)' in line:
             xyz_lines = calc.output_file_lines[n_line+2:n_line+calc.n_atoms+2]
-            break
+            opt_done = False
 
     if xyz_lines is None:
         return []

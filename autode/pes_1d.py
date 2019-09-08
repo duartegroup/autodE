@@ -62,7 +62,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
 def find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list):
     """
     Given a 1D list of energies find the maximum that between the end points
-    :param dist_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
+    :param dists: (dict) [value] = (xyzs, energy)
     :return:
     """
 

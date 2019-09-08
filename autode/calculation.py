@@ -127,7 +127,7 @@ class Calculation:
         self.xyzs = molecule.xyzs
 
         if self.xyzs is None or len(self.xyzs) == 0:
-            logger.error('Have no xyzs. Can\'run a calculation')
+            logger.error('Have no xyzs. Can\'t make a calculation')
             return
 
         self.charge = molecule.charge

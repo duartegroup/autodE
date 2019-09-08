@@ -74,8 +74,11 @@ class Config:
                              "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
         opt_keywords = ['set basis def2-svp',
                         "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
-        opt_ts_keywords = ['set full_hess_every 40',
-                           'set opt_type ts']
+        opt_ts_keywords = ['set {full_hess_every 30\n'
+                           'opt_type ts\n'
+                           'basis def2-svp\n}',
+                           "optimize('scf', dft_functional = 'PBE0-D3BJ', dertype=1)",
+                           "frequencies('scf', dft_functional = 'PBE0-D3BJ', dertype=1)"]
         hess_keywords = None
         opt_ts_block = 'set intrafrag_step_limit 0.1'
         sp_keywords = ['set basis def2-tzvp',
