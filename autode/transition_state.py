@@ -4,7 +4,6 @@ from autode.geom import calc_distance_matrix
 from autode import mol_graphs
 from autode.templates import TStemplate
 from autode.calculation import Calculation
-from autode.wrappers.ORCA import ORCA
 
 
 class TS(object):
@@ -55,8 +54,7 @@ class TS(object):
         logger.info('Running single point energy evaluation of {}'.format(self.name))
 
         sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
-                         keywords=self.method.sp_keywords,
-                         n_cores=Config.n_cores, max_core_mb=Config.max_core)
+                         keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
         sp.run()
         self.energy = sp.get_energy()
 

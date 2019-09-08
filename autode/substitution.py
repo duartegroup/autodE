@@ -1,7 +1,7 @@
 import numpy as np
-from .log import logger
-from .geom import coords2xyzs
-from .geom import calc_rotation_matrix
+from autode.log import logger
+from autode.geom import coords2xyzs
+from autode.geom import calc_rotation_matrix
 
 
 def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangement, shift_factor=2.0):

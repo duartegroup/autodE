@@ -15,7 +15,6 @@ from autode.conformers.conformers import Conformer
 from autode.conformers.conformers import rdkit_conformer_geometries_are_resonable
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
-from autode.methods import get_lmethod
 from autode.methods import get_hmethod
 
 

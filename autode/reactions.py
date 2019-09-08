@@ -1,4 +1,4 @@
-from .log import logger
+from autode.log import logger
 
 
 class Addition(object):

@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from .log import logger
-from .units import KjMol
-from .units import KcalMol
+from autode.log import logger
+from autode.units import KjMol
+from autode.units import KcalMol
 
 
 def plot_2dpes(r1, r2, flat_rel_energy_array):

@@ -6,8 +6,6 @@ from autode.ts_guess import TSguess
 from autode.plotting import plot_1dpes
 from autode.constants import Constants
 from autode.calculation import Calculation
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.XTB import XTB
 
 
 def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
@@ -62,7 +60,9 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
 def find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list):
     """
     Given a 1D list of energies find the maximum that between the end points
-    :param dists: (dict) [value] = (xyzs, energy)
+    :param dists: (ndarray)
+    :param xyzs_list: (list)
+    :param energy_list: (list)
     :return:
     """
 
@@ -88,4 +88,3 @@ def find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list):
         logger.warning('Couldn\'t find a peak in the PES')
 
     return xyzs_peak_energy
-
