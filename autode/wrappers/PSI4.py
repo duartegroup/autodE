@@ -39,6 +39,9 @@ def generate_input(calc):
 
         print('molecule', name, '{', file=in_file)
         print(calc.charge, calc.mult, file=in_file)
+        if calc.n_atoms == 1:
+            # PSI4 can't seem to handle single atosm with symmetry enabled
+            print('symmetry c1', file=in_file)
         [print('{:<3}{:^12.8f}{:^12.8f}{:^12.8f}'.format(*line), file=in_file) for line in calc.xyzs]
         print('}', file=in_file)
 
