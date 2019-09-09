@@ -146,11 +146,44 @@ def optimisation_nearly_converged(calc):
 
 
 def get_imag_freqs(calc):
-    raise NotImplementedError
+    imag_freqs = None
+    vib_block = False
+    freqs = []
+
+    for n_line, line in enumerate(calc.output_file_lines):
+        if 'Harmonic Vibrational Analysis' in line:
+            vib_block = True
+            freqs = []
+
+        if vib_block and line.startswith('  Vibration') and len(line.split()) == 4:
+            # Line looks like:
+            # Vibration                       1                   2                   3
+            freq_line = calc.output_file_lines[n_line+1].split()[2:]
+            for freq in freq_line:
+                if 'i' in freq:
+                    freqs.append(-float(freq[:-1]))         # Add imaginary freqs as negative, as is common in EST codes
+                else:
+                    freqs.append(float(freq))
+
+        if vib_block and 'Thermochemistry Components' in line:
+            vib_block = False
+            imag_freqs = [freq for freq in freqs if freq < 0]
+
+    return imag_freqs
 
 
 def get_normal_mode_displacements(calc, mode_number):
-    raise NotImplementedError
+    vib_block = False
+
+    for n_line, line in enumerate(calc.output_file_lines):
+        if 'Harmonic Vibrational Analysis' in line:
+            vib_block = True
+
+        if vib_block and line.startswith('  Vibration') and len(line.split()) == 4:
+            # TODO fix this. PSI4 might include non-projected rotations....
+
+            raise NotImplementedError
+
 
 
 def get_final_xyzs(calc):
@@ -164,6 +197,10 @@ def get_final_xyzs(calc):
             opt_done = True
         if opt_done and 'Geometry (in Angstrom)' in line:
             xyz_lines = calc.output_file_lines[n_line+2:n_line+calc.n_atoms+2]
+            if not all([len(line.split()) == 4 for line in xyz_lines]):
+                # Some blocks in the PSI4 output file are not the same...
+                xyz_lines = None
+
             opt_done = False
 
     if xyz_lines is None:
