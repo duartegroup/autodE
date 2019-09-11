@@ -203,7 +203,7 @@ def get_final_xyzs(calc):
             atom_label, x, y, z = line.split()
             xyzs.append([atom_label, float(x), float(y), float(z)])
 
-    return xyzs
+    return list(reversed(xyzs))
 
 
 # Bind all the required functions to the class definition

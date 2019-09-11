@@ -7,69 +7,7 @@ from autode.log import logger
 from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
 from autode.ts_guess import TSguess
-
-
-def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict):
-    """
-    Find the first order saddle point on a 2D PES given a list of lists defined by their energy
-    :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
-    :return:
-    """
-
-    def poly2d_sationary_points(c_vec):
-
-        a = np.array([[c_vec[3], 2.0 * c_vec[4]], [2.0 * c_vec[5], c_vec[3]]])
-        b = np.array([-c_vec[2], -c_vec[1]])
-        y_stat_point, x_stat_point = np.linalg.solve(a, b)
-
-        return x_stat_point, y_stat_point
-
-    logger.info('Finding saddle point in 2D PES')
-
-    energies = [dists_xyzs_energies_dict[dists][1] for dists in dists_xyzs_energies_dict.keys()]
-
-    r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
-    r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
-
-    flat_rel_energy_array = Constants.ha2kcalmol * (np.array(energies) - min(energies))
-
-    m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
-    r1_saddle, r2_saddle = poly2d_sationary_points(m)
-    logger.info('Found a saddle point at {}, {}'.format(r1_saddle, r2_saddle))
-    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array)
-
-    closest_scan_point_dists = get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
-    xyzs_ts_guess = dists_xyzs_energies_dict[closest_scan_point_dists][0]
-
-    return xyzs_ts_guess
-
-
-def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
-    logger.info('Getting the closest scan point to the analytic saddle point')
-
-    closest_dist_to_saddle = 99999.9
-    scan_dists_tuple = None
-
-    for dist in dists:
-        dist_to_saddle = np.linalg.norm(np.array(dist) - np.array([r1_saddle, r2_saddle]))
-        if dist_to_saddle < closest_dist_to_saddle:
-            closest_dist_to_saddle = dist_to_saddle
-            scan_dists_tuple = dist
-
-    return scan_dists_tuple
-
-
-def polyfit2d(x, y, z):  # order=2
-    logger.info('Fitting 2D surface to 2nd order polynomial in x and y')
-    # ncols = (order + 1) ** 2
-    ij = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (0, 2)]
-    g = np.zeros((x.size, len(ij)))
-    # ij = itertools.product(range(order + 1), range(order + 1)))
-    for k, (i, j) in enumerate(ij):
-        # print(k, 'x order', i, 'y order', j)
-        g[:, k] = x ** i * y ** j
-    m, _, _, _ = np.linalg.lstsq(g, z, rcond=None)
-    return m
+from autode.exeptions import XYZsNotFound
 
 
 def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, delta_dist1=1.5,
@@ -110,9 +48,13 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
                                                                               active_bond2: dist_grid2[0][n]},
                                 keywords=keywords)
         const_opt.run()
-        # const_opt.run()
-        mol_grid[0][n].xyzs = const_opt.get_final_xyzs()    # Set the new xyzs of the molecule
-        mol_grid[0][n].energy = const_opt.get_energy()      # Set the energy of the molecule
+        # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
+        try:
+            mol_grid[0][n].xyzs = const_opt.get_final_xyzs()    # Set the new xyzs of the molecule
+        except XYZsNotFound:
+            mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else mol.xyzs
+
+        mol_grid[0][n].energy = const_opt.get_energy()      # Set the energy of the molecule. Can be None
 
     # Execute the remaining set of optimisations in parallel
     for i in range(1, n_steps):
@@ -131,7 +73,13 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
         # Add attributes for molecules in the mol_grid
         for n in range(n_steps):
             calcs[n].terminated_normally = calcs[n].calculation_terminated_normally()
-            mol_grid[i][n].xyzs = calcs[n].get_final_xyzs()
+            # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
+            try:
+                mol_grid[i][n].xyzs = calcs[n].get_final_xyzs()
+            except XYZsNotFound:
+                mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
+
+            # Set the energy, this may be None
             mol_grid[i][n].energy = calcs[n].get_energy()
 
     # Populate the dictionary of distances, xyzs and energies – legacy
@@ -142,11 +90,94 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies))
+    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, name=mol.name + '_2dscan'))
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
                    active_bonds=[active_bond1, active_bond2])
 
 
+def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
+    """
+    Find the first order saddle point on a 2D PES given a list of lists defined by their energy
+    :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
+    :param name (str) name to use in the plot
+    :return:
+    """
+
+    def poly2d_sationary_points(c_vec):
+
+        a = np.array([[c_vec[3], 2.0 * c_vec[4]], [2.0 * c_vec[5], c_vec[3]]])
+        b = np.array([-c_vec[2], -c_vec[1]])
+        y_stat_point, x_stat_point = np.linalg.solve(a, b)
+
+        return x_stat_point, y_stat_point
+
+    logger.info('Finding saddle point in 2D PES')
+
+    energies = [dists_xyzs_energies_dict[dists][1] for dists in dists_xyzs_energies_dict.keys()]
+    # The energy lis may have None values in, so to perform the fitting replace with the closest float value
+    energies_not_none = list(replace_none(energies))
+    flat_rel_energy_array = [Constants.ha2kcalmol * (e - min(energies_not_none)) for e in energies_not_none]
+    logger.info('Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
+
+    r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
+    r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
+
+    m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
+    r1_saddle, r2_saddle = poly2d_sationary_points(m)
+    logger.info('Found a saddle point at {}, {}'.format(r1_saddle, r2_saddle))
+
+    logger.info('Plotting 2D scan and saving to {}.png'.format(name))
+    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)
+
+    closest_scan_point_dists = get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
+    xyzs_ts_guess = dists_xyzs_energies_dict[closest_scan_point_dists][0]
+
+    return xyzs_ts_guess
+
+
+def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
+    logger.info('Getting the closest scan point to the analytic saddle point')
+
+    closest_dist_to_saddle = 99999.9
+    scan_dists_tuple = None
+
+    for dist in dists:
+        dist_to_saddle = np.linalg.norm(np.array(dist) - np.array([r1_saddle, r2_saddle]))
+        if dist_to_saddle < closest_dist_to_saddle:
+            closest_dist_to_saddle = dist_to_saddle
+            scan_dists_tuple = dist
+
+    return scan_dists_tuple
+
+
+def polyfit2d(x, y, z):  # order=2
+    logger.info('Fitting 2D surface to 2nd order polynomial in x and y')
+    # ncols = (order + 1) ** 2
+    ij = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (0, 2)]
+    g = np.zeros((x.size, len(ij)))
+    # ij = itertools.product(range(order + 1), range(order + 1)))
+    for k, (i, j) in enumerate(ij):
+        # print(k, 'x order', i, 'y order', j)
+        g[:, k] = x ** i * y ** j
+    m, _, _, _ = np.linalg.lstsq(g, z, rcond=None)
+    return m
+
+
 def execute_calc(calc):
     return calc.execute_calculation()
+
+
+def replace_none(lst):
+    """
+    Replace Nones in a flat list with the closest preceding value
+    :param lst: (list)
+    :return:
+    """
+    last = None
+    for item in lst:
+        if item is None:
+            yield last
+        else:
+            last = item
+            yield item

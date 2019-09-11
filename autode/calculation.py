@@ -1,6 +1,7 @@
 import os
 from subprocess import Popen
 from autode.log import logger
+from autode.exeptions import XYZsNotFound
 
 
 class Calculation:
@@ -44,7 +45,8 @@ class Calculation:
         xyzs = self.method.get_final_xyzs(self)
 
         if len(xyzs) == 0:
-            logger.error('Could not get xyzs from calculation file')
+            logger.error('Could not get xyzs from calculation file {}'.format(self.name))
+            raise XYZsNotFound
 
         return xyzs
 
@@ -125,24 +127,13 @@ class Calculation:
 
         self.name = name
         self.xyzs = molecule.xyzs
-
-        if self.xyzs is None or len(self.xyzs) == 0:
-            logger.error('Have no xyzs. Can\'t make a calculation')
-            return
-
         self.charge = molecule.charge
         self.mult = molecule.mult
-        self.n_atoms = len(self.xyzs)
         self.method = method
         self.keywords = keywords
         self.flags = None
         self.opt = opt
 
-        if molecule.solvent is not None:
-            if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
-                logger.critical('Solvent is not available. Cannot run the calculation')
-                print('Available solvents are {}'.format(method.aval_solvents))
-                exit()
         self.solvent = molecule.solvent
 
         self.n_cores = n_cores
@@ -159,3 +150,15 @@ class Calculation:
         self.terminated_normally = False
         self.output_file_lines = None
         self.rev_output_file_lines = None
+
+        if molecule.solvent is not None:
+            if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
+                logger.critical('Solvent is not available. Cannot run the calculation')
+                print('Available solvents are {}'.format(method.aval_solvents))
+                exit()
+
+        if self.xyzs is None:
+            logger.error('Have no xyzs. Can\'t make a calculation')
+            return
+
+        self.n_atoms = len(self.xyzs)

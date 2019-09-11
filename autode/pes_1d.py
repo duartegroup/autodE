@@ -6,6 +6,7 @@ from autode.ts_guess import TSguess
 from autode.plotting import plot_1dpes
 from autode.constants import Constants
 from autode.calculation import Calculation
+from autode.exeptions import XYZsNotFound
 
 
 def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
@@ -37,7 +38,13 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
         const_opt = Calculation(name=name + '_scan' + str(n), molecule=mol_with_const, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords=keywords)
         const_opt.run()
-        xyzs = const_opt.get_final_xyzs()
+
+        # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
+        try:
+            xyzs = const_opt.get_final_xyzs()
+        except XYZsNotFound:
+            xyzs = deepcopy(const_opt.xyzs)
+
         xyzs_list.append(xyzs)
         energy_list.append(const_opt.get_energy())
 
@@ -46,7 +53,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list))
+    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, name=mol.name + '_1dscan'))
 
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
@@ -57,12 +64,13 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
 
 
-def find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list):
+def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name):
     """
     Given a 1D list of energies find the maximum that between the end points
-    :param dists: (ndarray)
+    :param dist_list: (ndarray)
     :param xyzs_list: (list)
     :param energy_list: (list)
+    :param name: (str)
     :return:
     """
 
@@ -75,12 +83,13 @@ def find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list):
 
     peak_e, min_e = min(energy_list), min(energy_list)
 
-    for i in range(1, len(dists) - 1):
+    for i in range(1, len(dist_list) - 1):
         if energy_list[i] > peak_e and energy_list[i-1] < energy_list[i] > energy_list[i+1]:
             peak_e = energy_list[i]
             xyzs_peak_energy = xyzs_list[i]
 
-    plot_1dpes(dists, [Constants.ha2kcalmol * (e - min_e) for e in energy_list])
+    logger.info('Plotting 1D scan and saving to {}.png'.format(name))
+    plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e) for e in energy_list], name=name)
 
     if peak_e != min_e:
         logger.info('Energy at peak in PES at ∆E = {} kcal/mol'.format(Constants.ha2kcalmol * (peak_e - min_e)))

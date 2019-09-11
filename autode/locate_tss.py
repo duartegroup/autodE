@@ -89,9 +89,8 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
 
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, fbond, 20, name + 'll1d', reaction.type, lmethod,
                                                        lmethod.scan_keywords, delta_fbond_dist, [fbond])))
-        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, fbond, 10, hmethod.scan_keywords, name + 'll1d',
-                                                       reaction.type, hmethod, hmethod.scan_keywords, delta_fbond_dist,
-                                                       [fbond])))
+        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, fbond, 10, name + 'hl1d', reaction.type, hmethod,
+                                                       hmethod.scan_keywords, delta_fbond_dist, [fbond])))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]

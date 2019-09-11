@@ -29,17 +29,21 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
 
             for active_bond in active_bonds:
                 i, j = active_bond
-                active_bonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[i], mapping[j]]['weight']
+                try:
+                    active_bonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[i], mapping[j]]['weight']
+                except KeyError:
+                    logger.warning('Couldn\'t find a mapping for bond {}-{}'.format(i, j))
 
-            logger.info('Found a TS guess from a template')
-            if any([mol.distance_matrix[bond[0], bond[1]] > dist_thresh for bond in active_bonds_and_dists_ts.keys()]):
-                logger.info('TS template has => 1 active bond distance larger than {}. Passing'.format(dist_thresh))
-                pass
-            else:
-                return get_ts_guess_constrained_opt(mol, keywords=mol.method.opt_keywords,
-                                                    name='template_ts_guess',
-                                                    distance_consts=active_bonds_and_dists_ts,
-                                                    reaction_class=reaction_class)
+            if len(active_bonds_and_dists_ts) == len(active_bonds):
+                logger.info('Found a TS guess from a template')
+                if any([mol.distance_matrix[bond[0], bond[1]] > dist_thresh for bond in active_bonds]):
+                    logger.info('TS template has => 1 active bond distance larger than {}. Passing'.format(dist_thresh))
+                    pass
+                else:
+                    return get_ts_guess_constrained_opt(mol, keywords=mol.method.opt_keywords,
+                                                        name='template_ts_guess',
+                                                        distance_consts=active_bonds_and_dists_ts,
+                                                        reaction_class=reaction_class)
 
     logger.info('Couldn\'t find a TS guess from a template')
     return None
