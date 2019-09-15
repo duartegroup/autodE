@@ -6,7 +6,7 @@ from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
 
 
-class TS(object):
+class TS:
 
     def make_graph(self):
         logger.info('Making TS graph with \'active\' edges')

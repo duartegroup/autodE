@@ -224,8 +224,6 @@ def get_fbonds_bbonds_2b(possible_fbonds, possible_bbonds, reactant, product, po
 def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
 
     logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)*len(possible_fbonds)))
-    from .input_output import xyzs2xyzfile
-    xyzs2xyzfile(reactant.xyzs, basename='tmp')
 
     for fbond in possible_fbonds:
         for bbond in possible_bbonds:

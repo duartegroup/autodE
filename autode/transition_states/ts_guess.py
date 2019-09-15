@@ -4,7 +4,7 @@ from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mo
 from autode.calculation import Calculation
 
 
-class TSguess(object):
+class TSguess:
 
     def check_optts_convergence(self):
 

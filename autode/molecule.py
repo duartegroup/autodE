@@ -145,7 +145,7 @@ class Molecule:
         self.xyzs = xyzs
         if xyzs is None:
             logger.error('Setting xyzs as None')
-            return 
+            return
 
         self.distance_matrix = calc_distance_matrix(xyzs)
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
