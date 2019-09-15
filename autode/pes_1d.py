@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 from autode.config import Config
 from autode.log import logger
-from autode.ts_guess import TSguess
+from autode.transition_states.ts_guess import TSguess
 from autode.plotting import plot_1dpes
 from autode.constants import Constants
 from autode.calculation import Calculation

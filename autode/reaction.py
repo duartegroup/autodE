@@ -1,6 +1,6 @@
 from autode.log import logger
 from autode import reactions
-from autode.locate_tss import find_tss
+from autode.transition_states.locate_tss import find_tss
 from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.units import KcalMol

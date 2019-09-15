@@ -1,6 +1,6 @@
 from autode.log import logger
 from autode.config import Config
-from autode.optts import get_displaced_xyzs_along_imaginary_mode
+from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mode
 from autode.calculation import Calculation
 
 

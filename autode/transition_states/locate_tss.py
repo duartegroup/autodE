@@ -10,8 +10,8 @@ from autode.reactions import Dissociation, Rearrangement, Substitution
 from autode.bond_lengths import get_avg_bond_length
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import get_adjacency_digraph
-from autode.optts import get_ts
-from autode.template_ts_guess import get_template_ts_guess
+from autode.transition_states.optts import get_ts
+from autode.transition_states.template_ts_guess import get_template_ts_guess
 from autode.pes_1d import get_ts_guess_1dpes_scan
 from autode.pes_2d import get_ts_guess_2d
 from autode.methods import get_hmethod

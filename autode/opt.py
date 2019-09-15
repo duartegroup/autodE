@@ -1,7 +1,7 @@
 from copy import deepcopy
 from autode.log import logger
 from autode.config import Config
-from autode.ts_guess import TSguess
+from autode.transition_states.ts_guess import TSguess
 from autode.calculation import Calculation
 
 

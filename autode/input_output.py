@@ -17,17 +17,24 @@ def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
 
     if filename is None:
         logger.error('xyz filename cannot be None')
-        return 1
+        return None
 
     logger.info('Generating xyz file for {}'.format(filename))
 
-    if filename.endswith('.xyz'):
-        with open(filename, 'w') as xyz_file:
-            if xyzs:
-                print(len(xyzs), '\n', title_line, sep='', file=xyz_file)
-            else:
-                logger.error(' No xyzs to print')
-                return 1
-            [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
+    if not filename.endswith('.xyz'):
+        logger.error('xyz filename does not end with .xyz')
+        return None
+
+    if xyzs is None:
+        logger.error(' No xyzs to print')
+        return None
+
+    if len(xyzs) == 0:
+        logger.error(' No xyzs to print')
+        return None
+
+    with open(filename, 'w') as xyz_file:
+        print(len(xyzs), '\n', title_line, sep='', file=xyz_file)
+        [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
 
     return filename

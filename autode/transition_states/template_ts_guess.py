@@ -1,7 +1,7 @@
 from autode.mol_graphs import get_mapping_ts_template
 from autode.opt import get_ts_guess_constrained_opt
-from autode.templates import get_ts_templates
-from autode.templates import template_matches
+from autode.transition_states.templates import get_ts_templates
+from autode.transition_states.templates import template_matches
 from autode.log import logger
 
 

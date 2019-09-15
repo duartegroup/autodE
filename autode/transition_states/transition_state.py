@@ -2,7 +2,7 @@ from autode.log import logger
 from autode.config import Config
 from autode.geom import calc_distance_matrix
 from autode import mol_graphs
-from autode.templates import TStemplate
+from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
 
 

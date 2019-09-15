@@ -1,7 +1,7 @@
 """
 Functions to get the high and low level electronic structure methods to use for example high-level methods would be
 ORCA and PSI4 which can perform DFT/WF theory calculations, low level methods are for example XTB and MOPAC which
-are non ab-initio methods
+are non ab-initio methods and are therefore considerably faster
 """
 from autode.config import Config
 from autode.log import logger
@@ -14,7 +14,7 @@ from autode.wrappers.XTB import XTB
 def get_hmethod():
     """
     Get the high-level electronic structure theory method to use
-    :return:
+    :return: (object) ElectronicStructureMethod
     """
     method = PSI4
     if Config.hcode is not None:
@@ -35,7 +35,7 @@ def get_hmethod():
 def get_lmethod():
     """
     Get the low-level electronic structure theory method to use
-    :return:
+    :return: (object) ElectronicStructureMethod
     """
     method = PSI4
     if Config.lcode is not None:

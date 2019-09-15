@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 from autode.log import logger
-from autode.transition_state import TS
+from autode.transition_states.transition_state import TS
 
 
 def get_ts(ts_guess, imag_freq_threshold=-100):

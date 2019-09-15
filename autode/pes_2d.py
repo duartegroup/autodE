@@ -6,7 +6,7 @@ from autode.constants import Constants
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
-from autode.ts_guess import TSguess
+from autode.transition_states.ts_guess import TSguess
 from autode.exeptions import XYZsNotFound
 
 

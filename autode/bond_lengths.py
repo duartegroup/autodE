@@ -1,26 +1,31 @@
-# Dictionary of average bond lengths (Å) for common organic molecules from
-# http://www.science.uwaterloo.ca/~cchieh/cact/c120/bondel.html and
-# https://www.chem.tamu.edu/rgroup/connell/linkfiles/bonds.pdf
 import numpy as np
 from autode.log import logger
+from autode.geom import xyz2coord
 
 
 def get_xyz_bond_list(xyzs, relative_tolerance=0.1):
     """
-    Determine the 'bonds' between
-    :param xyzs:
-    :param relative_tolerance:
-    :return:
+    Determine the 'bonds' between atoms defined in a xyzs list.
+
+    :param xyzs: (list(list))
+    :param relative_tolerance: (float) relative tolerance to consider a bond e.g. max bond length = 1.1 x avg. bond
+    length
+    :return: (list(tuple)) list of bonds given as tuples of atom ids
     """
-    xyz_bond_list = []
+    logger.info('Getting bond list from xyzs. Maximum bond is x1.{} average'.format(relative_tolerance))
+
+    bond_list = []
 
     for i in range(len(xyzs)):
-        i_coords = np.array(xyzs[i][1:])
+        i_coords = xyz2coord(xyzs[i])
+
         for j in range(len(xyzs)):
             if i > j:
-                j_coords = np.array(xyzs[j][1:])
+                j_coords = xyz2coord(xyzs[j])
+                # Calculate the distance between the two points in Å
                 dist = np.linalg.norm(j_coords - i_coords)
 
+                # Get the possible keys e.g. CH and HC that might be in the avg_bond_lengths dictionary
                 atom_i_label, atom_j_label = xyzs[i][0], xyzs[j][0]
                 key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
 
@@ -33,11 +38,22 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.1):
                     i_j_bond_length = 1.5  # Default bonded distance
 
                 if dist < i_j_bond_length * (1.0 + relative_tolerance):
-                    xyz_bond_list.append((i, j))
-    return xyz_bond_list
+                    bond_list.append((i, j))
+
+    if len(bond_list) == 0:
+        logger.warning('Bond list is empty')
+
+    return bond_list
 
 
 def get_bond_list_from_rdkit_bonds(rdkit_bonds_obj):
+    """
+    For an RDKit bonds object get the standard xyz_bond_list
+
+    :param rdkit_bonds_obj:
+    :return: (list(tuple)) list of bonds given as tuples of atom ids
+    """
+    logger.info('Converting RDKit bonds to bond list')
 
     bond_list = []
 
@@ -49,14 +65,26 @@ def get_bond_list_from_rdkit_bonds(rdkit_bonds_obj):
         else:
             bond_list.append((atom_j, atom_i))
 
+    if len(bond_list) == 0:
+        logger.warning('Bond list is empty')
+
     return bond_list
 
 
 def get_ideal_bond_length_matrix(xyzs, bonds):
+    """
+    Populate a n_atoms x n_atoms matrix of ideal bond lengths. All non-bonded atoms will have zero ideal bond lengths
+
+    :param xyzs: (list(list)) standard xyzs list
+    :param bonds: (list(tuple)) list of bonds defined by tuples of atom ids
+    :return: (np.ndarray)
+    """
+
     logger.info('Getting ideal bond length matrix')
 
     n_atoms = len(xyzs)
     ideal_bondl_matrix = np.zeros((n_atoms, n_atoms))
+
     for i in range(n_atoms):
         for j in range(n_atoms):
             if (i, j) in bonds or (j, i) in bonds:
@@ -66,12 +94,23 @@ def get_ideal_bond_length_matrix(xyzs, bonds):
 
 
 def get_avg_bond_length(atom_i_label=None, atom_j_label=None, mol=None, bond=None):
+    """
+    Get the average bond length from either a molecule and a bond or two atom labels (e.g. atom_i_label = 'C'
+    atom_j_label = 'H')
+
+    :param atom_i_label: (str)
+    :param atom_j_label: (str)
+    :param mol: (object) Molecule object
+    :param bond: (tuple)
+    :return:
+    """
 
     if mol is not None and bond is not None:
         atom_i_label = mol.get_atom_label(bond[0])
         atom_j_label = mol.get_atom_label(bond[1])
 
     key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
+
     if key1 in avg_bond_lengths.keys():
         return avg_bond_lengths[key1]
     elif key2 in avg_bond_lengths.keys():
@@ -81,6 +120,11 @@ def get_avg_bond_length(atom_i_label=None, atom_j_label=None, mol=None, bond=Non
         return 1.5
 
 
+""" 
+Dictionary of average bond lengths (Å) for common organic molecules from
+(1)  http://www.science.uwaterloo.ca/~cchieh/cact/c120/bondel.html and
+(2)  https://www.chem.tamu.edu/rgroup/connell/linkfiles/bonds.pdf 
+"""
 avg_bond_lengths = {
     'HH': 0.74,
     'CC': 1.54,
