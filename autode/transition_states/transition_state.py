@@ -2,12 +2,11 @@ from autode.log import logger
 from autode.config import Config
 from autode.geom import calc_distance_matrix
 from autode import mol_graphs
-from autode.templates import TStemplate
+from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
 
 
-class TS(object):
+class TS:
 
     def make_graph(self):
         logger.info('Making TS graph with \'active\' edges')
@@ -51,11 +50,11 @@ class TS(object):
         else:
             return False
 
-    def single_point(self, method=ORCA):
+    def single_point(self, method=None):
         logger.info('Running single point energy evaluation of {}'.format(self.name))
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.sp_keywords,
-                         n_cores=Config.n_cores, max_core_mb=Config.max_core)
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
+                         keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
         sp.run()
         self.energy = sp.get_energy()
 
@@ -67,6 +66,7 @@ class TS(object):
         self.charge = ts_guess.charge
         self.mult = ts_guess.mult
         self.converged = converged
+        self.method = ts_guess.method
 
         self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
 

@@ -36,7 +36,7 @@ def template_matches(mol, ts_template, mol_graph):
     return False
 
 
-class TStemplate(object):
+class TStemplate:
 
     def save_object(self, basename='template'):
 

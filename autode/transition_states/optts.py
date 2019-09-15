@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 from autode.log import logger
-from autode.transition_state import TS
+from autode.transition_states.transition_state import TS
 
 
 def get_ts(ts_guess, imag_freq_threshold=-100):
@@ -100,6 +100,10 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, threshold_contr
         return True
 
     imag_normal_mode_displacements_xyz = calc.get_normal_mode_displacements(mode_number=6)
+    if imag_normal_mode_displacements_xyz is None:
+        logger.error('Have no imaginary normal mode displacements to analyse')
+        return False
+
     imag_mode_magnitudes = [np.linalg.norm(np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
 
     should_be_active_atom_magnitudes = []

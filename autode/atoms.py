@@ -27,5 +27,5 @@ def get_maximal_valance(atom_label):
     if atom_label in valid_valances.keys():
         return valid_valances[atom_label][-1]
     else:
-        logger.warning('Could not find a valid valance for {}'.format(atom_label))
+        logger.warning('Could not find a valid valance for {}. Guessing at 6'.format(atom_label))
         return 6

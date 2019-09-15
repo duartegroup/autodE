@@ -1,0 +1,2 @@
+class XYZsNotFound(Exception):
+    pass

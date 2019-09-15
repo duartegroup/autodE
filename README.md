@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/cgbind.svg?branch=master)](https://travis-ci.org/duartegroup/autodE.svg?branch=master) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE)
+[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/cgbind.svg?branch=master)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![alt text](autode/common/llogo.png)
 ***
 ## Introduction
@@ -16,18 +16,17 @@ python setup.py install
 ```
 
 ### Dependencies
-* Python v. 3
+* Python > v. 3.5
 * [rdkit](https://anaconda.org/rdkit/rdkit)
 * [numpy](https://anaconda.org/anaconda/numpy)
 * [scipy](https://anaconda.org/anaconda/scipy)
 * [networkx](https://anaconda.org/anaconda/networkx)
 * [matplotlib](https://anaconda.org/conda-forge/matplotlib)
-* [ORCA](https://sites.google.com/site/orcainputlibrary/home) v. 4.1
-* [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb) v. 6.1
+* [PSI4](http://www.psicode.org)
+* [ORCA](https://sites.google.com/site/orcainputlibrary/home) v. 4.1 (optional)
+* [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb) v. 6.1 (optional)
 
-The python dependencies are best satisfied using a conda install (Miniconda or Anaconda) with ORCA and XTB requiring 
-the path to the binaries to be set in `Config`.
-
+The Python dependencies are best satisfied using a conda install (Miniconda or Anaconda)
 
 ***
 

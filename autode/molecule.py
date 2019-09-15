@@ -15,8 +15,7 @@ from autode.conformers.conformers import Conformer
 from autode.conformers.conformers import rdkit_conformer_geometries_are_resonable
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
-from autode.wrappers.wrappers import ORCA
-from autode.wrappers.wrappers import XTB
+from autode.methods import get_hmethod
 
 
 class Molecule:
@@ -129,9 +128,9 @@ class Molecule:
         :return:
         """
         self.generate_conformers()
-        [self.conformers[i].optimise(method=XTB) for i in range(len(self.conformers))]
+        [self.conformers[i].optimise() for i in range(len(self.conformers))]
         self.strip_non_unique_confs()
-        [self.conformers[i].optimise(method=ORCA) for i in range(len(self.conformers))]
+        [self.conformers[i].optimise(method=self.method) for i in range(len(self.conformers))]
 
         lowest_energy = min([conf.energy for conf in self.conformers])
         for conformer in self.conformers:
@@ -139,29 +138,36 @@ class Molecule:
                 self.energy = conformer.energy
                 self.set_xyzs(conformer.xyzs)
                 break
-        print('\t', self.xyzs)
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def set_xyzs(self, xyzs):
         logger.info('Setting molecule xyzs')
         self.xyzs = xyzs
+        if xyzs is None:
+            logger.error('Setting xyzs as None')
+            return
+
         self.distance_matrix = calc_distance_matrix(xyzs)
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
         self.n_bonds = self.graph.number_of_edges()
 
-    def optimise(self, method=ORCA):
+    def optimise(self, method=None):
         logger.info('Running optimisation of {}'.format(self.name))
+        if method is None:
+            method = self.method
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=Config.opt_keywords,
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
                           n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
         self.set_xyzs(xyzs=opt.get_final_xyzs())
 
-    def single_point(self, method=ORCA):
+    def single_point(self, method=None):
         logger.info('Running single point energy evaluation of {}'.format(self.name))
+        if method is None:
+            method = self.method
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=Config.sp_keywords,
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
                          n_cores=Config.n_cores, max_core_mb=Config.max_core)
         sp.run()
         self.energy = sp.get_energy()
@@ -224,6 +230,7 @@ class Molecule:
         self.charge = charge
         self.mult = mult
         self.xyzs = xyzs
+        self.method = get_hmethod()
         self.mol_obj = None
         self.energy = None
         self.n_atoms = None

@@ -15,24 +15,16 @@ methyl_flouride : \[H]C(\[H])(F)\[H]
 
 #### 1.0 Import Config, Reactant, Product and Reaction from autodE
 ```python
-from autode import *
+from autode import Reactant, Product, Config, Reaction
 ```
 
 
 #### 1.1 Setting paths and number of cores
-The paths to ORCA and XTB executables are set with
-
-```python
-Config.path_to_orca = '/usr/local/orca_4_1_1/orca'
-Config.path_to_xtb = '/usr/local/xtb/bin/xtb'
-```
-
-and the number of cores for ORCA to use with
+The number of cores for ORCA to use with
 
 ```python
 Config.n_cores = 4
 ```
-
 
 #### 1.2 Initialising Reactants and Products
 Reactant and product objects are initialised from by giving names and
@@ -66,4 +58,4 @@ This function call will return a plot something like:
 
 Where conformers of the reactant and products have been searched and the
 profile calculated at PBE0-D3BJ/def2-TZVP//PBE0-D3BJ/def2-SVP. It should
-take around 10 minutes to complete on a modern processor.
+take around 5 minutes to complete on a modern processor.

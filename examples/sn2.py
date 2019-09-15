@@ -1,8 +1,6 @@
 from autode import *
 
 Config.n_cores = 4
-Config.path_to_orca = '/usr/local/orca_4_1_1/orca'
-Config.path_to_xtb = '/usr/local/xtb/bin/xtb'
 
 flouride = Reactant(name='F-', smiles='[F-]', solvent='water')
 methyl_chloride = Reactant(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')

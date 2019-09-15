@@ -1,17 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from .log import logger
-from .units import KjMol
-from .units import KcalMol
+from autode.log import logger
+from autode.units import KjMol
+from autode.units import KcalMol
 
 
-def plot_2dpes(r1, r2, flat_rel_energy_array):
+def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     """
     For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
     a 2d polynomial function
-    :param r1:
-    :param r2:
-    :param flat_rel_energy_array:
+    :param r1: (np.ndarray)
+    :param r2: (np.ndarray)
+    :param flat_rel_energy_array: (np.ndarray)
+    :param name (str)
     :return:
     """
 
@@ -47,17 +48,17 @@ def plot_2dpes(r1, r2, flat_rel_energy_array):
     plt.imshow(zz, extent=(r1.min(), r2.max(), r1.min(), r2.max()), origin='lower')
     # plt.scatter(r1_flat, r2_flat, c=flat_rel_energy_array)
     plt.colorbar()
-    plt.savefig('2d_scan.png')
+    plt.savefig(name + '.png')
 
     return 0
 
 
-def plot_1dpes(rs, rel_energies):
+def plot_1dpes(rs, rel_energies, name='1d_scan'):
 
     plt.plot(rs, rel_energies, marker='o', color='k')
     plt.xlabel('$r$ / Å')
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')
-    plt.savefig('1d_scan.png')
+    plt.savefig(name + '.png')
 
     return 0
 

@@ -1,23 +1,23 @@
-from .log import logger
+from autode.log import logger
 
 
-class Addition(object):
+class Addition:
     name = 'addition'
 
 
-class Dissociation(object):
+class Dissociation:
     name = 'dissociation'
 
 
-class Substitution(object):
+class Substitution:
     name = 'substitution'
 
 
-class Elimination(object):
+class Elimination:
     name = 'elimination'
 
 
-class Rearrangement(object):
+class Rearrangement:
     name = 'rearrangement'
 
 
