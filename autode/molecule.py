@@ -143,6 +143,10 @@ class Molecule:
     def set_xyzs(self, xyzs):
         logger.info('Setting molecule xyzs')
         self.xyzs = xyzs
+        if xyzs is None:
+            logger.error('Setting xyzs as None')
+            return 
+
         self.distance_matrix = calc_distance_matrix(xyzs)
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
         self.n_bonds = self.graph.number_of_edges()
