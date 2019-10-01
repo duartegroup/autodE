@@ -21,8 +21,13 @@ def coords2xyzs(coords, old_xyzs):
     :param old_xyzs: (list(list))
     :return: (list(list))
     """
-    assert len(old_xyzs) == len(coords)
-    return [[old_xyzs[n][0]] + coords[n].tolist() for n in range(len(old_xyzs))]
+    if isinstance(old_xyzs[0], list):
+        assert len(old_xyzs) == len(coords)
+        return [[old_xyzs[n][0]] + coords[n].tolist() for n in range(len(old_xyzs))]
+    else:
+        assert len(old_xyzs) == 4
+        assert len(coords) == 3
+        return [old_xyzs[0]] + coords.tolist()
 
 
 def calc_distance_matrix(xyzs):
