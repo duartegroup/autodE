@@ -44,3 +44,14 @@ def test_rot_matix():
     assert -1.001 < rot_point[0] < -0.999
     assert -1.001 < rot_point[1] < -0.999
     assert 0.999 < rot_point[2] < 1.001
+
+
+def test_coords2xyzs():
+
+    new_coords = [np.array([0.0, 0.0, 0.0]), np.array([0.9, 0.0, 0.0])]
+
+    new_xyzs = geom.coords2xyzs(new_coords, xyz_list)
+
+    assert type(new_xyzs) == list
+    assert type(new_xyzs[0]) == list
+    assert 0.099 < (xyz_list[1][1] - new_xyzs[1][1]) < 0.101
