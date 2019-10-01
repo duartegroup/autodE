@@ -14,6 +14,8 @@ If the requirements are already satisfied to install **autodE** as a module
 ```
 python setup.py install
 ```
+**Note**: Using **autode** with PSI4 is not advised due to (1) Instability with radicals and (2) No analytic gradients in 
+PCM calculations.
 
 ### Dependencies
 * Python > v. 3.5
