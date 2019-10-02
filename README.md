@@ -14,21 +14,21 @@ If the requirements are already satisfied to install **autodE** as a module
 ```
 python setup.py install
 ```
-**Note**: Using **autode** with PSI4 is not advised due to (1) Instability with radicals and (2) No analytic gradients in 
-PCM calculations.
+**Note**: Using **autode** with PSI4 is not advised due to (1) Instability with radicals, (2) No analytic gradients in 
+PCM calculations (3) No semi-empirical/tight-binding calculations.
 
 ### Dependencies
 * Python > v. 3.5
-* [rdkit](https://anaconda.org/rdkit/rdkit)
-* [numpy](https://anaconda.org/anaconda/numpy)
-* [scipy](https://anaconda.org/anaconda/scipy)
-* [networkx](https://anaconda.org/anaconda/networkx)
 * [matplotlib](https://anaconda.org/conda-forge/matplotlib)
 * [PSI4](http://www.psicode.org)
 * [ORCA](https://sites.google.com/site/orcainputlibrary/home) v. 4.1 (optional)
 * [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb) v. 6.1 (optional)
 
-The Python dependencies are best satisfied using a conda install (Miniconda or Anaconda)
+The Python dependencies are listed in requirements.txt best satisfied using a conda install (Miniconda or Anaconda) i.e.
+```
+conda create -n autode_env --file requirements.txt
+conda activate autode_env
+```
 
 ***
 
