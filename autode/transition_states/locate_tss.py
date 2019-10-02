@@ -65,7 +65,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
     funcs_params = [(get_template_ts_guess, (reactant, bond_rearrang.all, reaction.type))]
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
-        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, name + 'll1d',
+        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, name + 'll1d',
                                                        reaction.type, lmethod, lmethod.scan_keywords)))
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, name + 'hl1d',
                                                        reaction.type, hmethod, hmethod.scan_keywords)))
@@ -73,7 +73,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
                                                        reaction.type, hmethod, hmethod.opt_keywords)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type == Substitution:
-        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, name + 'll1d',
+        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 20, name + 'll1d',
                                                        reaction.type, lmethod, lmethod.scan_keywords, 1.5,
                                                        [bond_rearrang.fbonds[0]])))
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, bond_rearrang.bbonds[0], 10, name + 'hl1d',
