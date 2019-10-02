@@ -6,6 +6,5 @@ Cython
 scipy
 pytest-cov
 codecov
-psi4
 pcmsolver
 dftd3
