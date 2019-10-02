@@ -1,7 +1,7 @@
 import os
 from subprocess import Popen
 from autode.log import logger
-from autode.exeptions import XYZsNotFound
+from autode.exceptions import XYZsNotFound
 
 
 class Calculation:
@@ -11,7 +11,8 @@ class Calculation:
         if self.terminated_normally:
             return self.method.get_energy(self)
 
-        logger.error('Calculation did not terminate normally – not returning the energy')
+        logger.error(
+            'Calculation did not terminate normally – not returning the energy')
         return None
 
     def optimisation_converged(self):
@@ -45,7 +46,8 @@ class Calculation:
         xyzs = self.method.get_final_xyzs(self)
 
         if len(xyzs) == 0:
-            logger.error('Could not get xyzs from calculation file {}'.format(self.name))
+            logger.error(
+                'Could not get xyzs from calculation file {}'.format(self.name))
             raise XYZsNotFound
 
         return xyzs
@@ -54,11 +56,13 @@ class Calculation:
         return self.method.get_scan_values_xyzs_energies(self)
 
     def calculation_terminated_normally(self):
-        logger.info('Checking to see if {} terminated normally'.format(self.output_filename))
+        logger.info('Checking to see if {} terminated normally'.format(
+            self.output_filename))
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
-        self.output_file_lines = [line for line in open(self.output_filename, 'r', encoding="utf-8")]
+        self.output_file_lines = [line for line in open(
+            self.output_filename, 'r', encoding="utf-8")]
         self.rev_output_file_lines = list(reversed(self.output_file_lines))
         return None
 
@@ -70,7 +74,8 @@ class Calculation:
         logger.info('Running calculation {}'.format(self.input_filename))
 
         if self.input_filename is None:
-            logger.error('Could not run the calculation. Input filename not defined')
+            logger.error(
+                'Could not run the calculation. Input filename not defined')
             return
 
         if self.method.available is False:
@@ -78,7 +83,8 @@ class Calculation:
             exit()
 
         if not os.path.exists(self.input_filename):
-            logger.error('Could not run the calculation. Input file does not exist')
+            logger.error(
+                'Could not run the calculation. Input file does not exist')
             return
 
         if os.path.exists(self.output_filename):
@@ -87,10 +93,12 @@ class Calculation:
 
         if self.output_file_exists:
             if self.calculation_terminated_normally():
-                logger.info('Calculated already terminated successfully. Skipping')
+                logger.info(
+                    'Calculated already terminated successfully. Skipping')
                 return self.set_output_file_lines()
 
-        logger.info('Setting the number of OMP threads to {}'.format(self.n_cores))
+        logger.info(
+            'Setting the number of OMP threads to {}'.format(self.n_cores))
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
         with open(self.output_filename, 'w') as output_file:
@@ -99,7 +107,8 @@ class Calculation:
             if self.flags is not None:
                 params += self.flags
 
-            subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
+            subprocess = Popen(params, stdout=output_file,
+                               stderr=open(os.devnull, 'w'))
         subprocess.wait()
         logger.info('Calculation {} done'.format(self.output_filename))
 
@@ -137,7 +146,8 @@ class Calculation:
         self.solvent = molecule.solvent
 
         self.n_cores = n_cores
-        self.max_core_mb = max_core_mb                                                  # Maximum memory per core to use
+        # Maximum memory per core to use
+        self.max_core_mb = max_core_mb
 
         self.bond_ids_to_add = bond_ids_to_add
         self.optts_block = optts_block
@@ -153,7 +163,8 @@ class Calculation:
 
         if molecule.solvent is not None:
             if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
-                logger.critical('Solvent is not available. Cannot run the calculation')
+                logger.critical(
+                    'Solvent is not available. Cannot run the calculation')
                 print('Available solvents are {}'.format(method.aval_solvents))
                 exit()
 
