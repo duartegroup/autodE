@@ -30,7 +30,7 @@ def rdkit_conformer_geometries_are_resonable(conf_xyzs):
     return True
 
 
-def gen_rdkit_conf_xyzs(mol, conf_ids):
+def extract_xyzs_from_rdkit_mol_object(mol, conf_ids):
     """
     Generate xyz lists for all the conformers in mol.conf_ids
     :param mol: Molecule object

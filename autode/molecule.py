@@ -10,7 +10,7 @@ from autode.bond_lengths import get_xyz_bond_list
 from autode.bond_lengths import get_bond_list_from_rdkit_bonds
 from autode.geom import calc_distance_matrix
 from autode.geom import xyz2coord
-from autode.conformers.conformers import gen_rdkit_conf_xyzs
+from autode.conformers.conformers import extract_xyzs_from_rdkit_mol_object
 from autode.conformers.conformers import Conformer
 from autode.conformers.conformers import rdkit_conformer_geometries_are_resonable
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
@@ -90,7 +90,7 @@ class Molecule:
             logger.info('Generating Molecule conformer xyz lists from rdkit mol object')
             unique_conf_ids = generate_unique_rdkit_confs(self.mol_obj, n_rdkit_confs)
             logger.info('Generated {} unique conformers with RDKit ETKDG'.format(len(unique_conf_ids)))
-            conf_xyzs = gen_rdkit_conf_xyzs(self, conf_ids=unique_conf_ids)
+            conf_xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=unique_conf_ids)
 
         else:
             bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
@@ -188,7 +188,7 @@ class Molecule:
         self.mult = self._calc_multiplicity(n_radical_electrons)
 
         AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
-        self.xyzs = gen_rdkit_conf_xyzs(self, conf_ids=[0])[0]
+        self.xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=[0])[0]
 
         if not rdkit_conformer_geometries_are_resonable(conf_xyzs=[self.xyzs]):
             logger.info('RDKit conformer was not reasonable')
