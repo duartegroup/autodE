@@ -119,7 +119,7 @@ def get_energy(calc):
 
 def optimisation_converged(calc):
     for line in calc.rev_output_file_lines:
-        if 'Optimization is completeOptimization is complete' in line:
+        if 'Optimization is complete' in line:
             return True
     return False
 
@@ -183,7 +183,6 @@ def get_normal_mode_displacements(calc, mode_number):
             # TODO fix this. PSI4 might include non-projected rotations....
 
             raise NotImplementedError
-
 
 
 def get_final_xyzs(calc):

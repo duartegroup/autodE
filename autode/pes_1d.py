@@ -43,6 +43,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
         try:
             xyzs = const_opt.get_final_xyzs()
         except XYZsNotFound:
+            logger.error('Could not find XYZs, setting as previous')
             xyzs = deepcopy(const_opt.xyzs)
 
         xyzs_list.append(xyzs)

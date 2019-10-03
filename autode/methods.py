@@ -20,15 +20,17 @@ def get_hmethod():
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
             method = ORCA
-        elif Config.hcode.lower() == 'psi4':
-            method = PSI4
+        # elif Config.hcode.lower() == 'psi4':
+        #     method = PSI4
         else:
             logger.critical('Electronic structure code doesn\'t exist')
             exit()
     else:
-        method = ORCA if ORCA.available else PSI4
+        method = ORCA  # if ORCA.available else PSI4
 
-    assert method.available is True
+    if not method.available:
+        logger.error('High-level method not available')
+
     return method
 
 
@@ -43,13 +45,15 @@ def get_lmethod():
             method = XTB
         elif Config.lcode.lower() == 'mopac':
             method = MOPAC
-        elif Config.lcode.lower() == 'psi4':
-            method = PSI4
+        # elif Config.lcode.lower() == 'psi4':
+        #    method = PSI4
         else:
             logger.critical('Electronic structure code doesn\'t exist')
             exit()
     else:
-        method = XTB if XTB.available else PSI4
+        method = XTB  # if XTB.available else PSI4
 
-    assert method.available is True
+    if not method.available:
+        logger.error('Low-level method not available')
+
     return method
