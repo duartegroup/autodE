@@ -119,7 +119,6 @@ class Reaction:
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
         self.find_lowest_energy_conformers()
-        self.optimise_reacs_prods()
         self.locate_transition_state()
         self.calculate_single_points()
 
