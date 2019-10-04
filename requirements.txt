@@ -6,5 +6,3 @@ Cython
 scipy
 pytest-cov
 codecov
-pcmsolver
-dftd3
