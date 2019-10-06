@@ -1,36 +1,14 @@
-import itertools
-
-
-def gen_equiv_bond_rearrangs(identical_pairs, init_bond_rearrang):
-    """
-    Generate all possible combinations of equivelent BondRearrangement objects given an inital one and a list of
-    identical pairs/bonds in a molecule. This function may return possibilities which are not chemically sensible,
-    however it should find all the possibles, which realistic forming and breaking bond sets can be compared to
-
-    :param identical_pairs: (dict) keyed with atom indexes and value as a list of tuples
-    :param init_bond_rearrang: (object) BondRearrangement object
-    :return:
-    """
-
-    fbonds_equivs = []
-    for fbond in init_bond_rearrang.fbonds:
-        fbonds_equivs.append(identical_pairs[fbond] + [fbond])
-    fbonds_combinations = list(itertools.product(*fbonds_equivs))
-
-    bbonds_equivs = []
-    for bbond in init_bond_rearrang.bbonds:
-        bbonds_equivs.append(identical_pairs[bbond] + [bbond])
-    bbonds_combinations = list(itertools.product(*bbonds_equivs))
-
-    bond_rearrangs = []
-    for fbonds_bbonds in itertools.product(*(fbonds_combinations, bbonds_combinations)):
-        fbonds, bbonds = fbonds_bbonds
-        bond_rearrangs.append(BondRearrangement(forming_bonds=list(fbonds), breaking_bonds=list(bbonds)))
-
-    return bond_rearrangs
+from autode.geom import get_neighbour_list
 
 
 class BondRearrangement(object):
+
+    def get_active_atom_neighbour_lists(self, mol, depth):
+
+        if self.active_atom_nl is None:
+            self.active_atom_nl = [get_neighbour_list(atom_i=atom, mol=mol)[:depth] for atom in self.active_atoms]
+
+        return self.active_atom_nl
 
     def __eq__(self, other):
         return self.fbonds == other.fbonds and self.bbonds == other.bbonds
@@ -44,3 +22,5 @@ class BondRearrangement(object):
         self.n_bbonds = len(self.bbonds)
 
         self.all = self.fbonds + self.bbonds
+        self.active_atoms = [atom_id for bond in self.all for atom_id in bond]
+        self.active_atom_nl = None
