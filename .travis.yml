@@ -2,6 +2,7 @@ branches:
   only:
     - master
     - psi4_int
+    - joseph
 dist: xenial
 language: python
 python:
