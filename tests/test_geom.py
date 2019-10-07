@@ -83,4 +83,5 @@ def test_identical_pairs():
     identical_pairs = geom.get_identical_pairs(atoms_and_matches, 5)
 
     assert type(identical_pairs) == dict
+    assert type(identical_pairs[(0,1)]) == list
     assert len(identical_pairs) == 20

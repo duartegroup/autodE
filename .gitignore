@@ -24,3 +24,7 @@ autode/transition_states/__pycache__/
 *.pyc
 
 .vscode/.ropeproject/
+
+autode/conformers/cconf_gen.c
+
+autode/._config.py
