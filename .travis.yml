@@ -1,7 +1,7 @@
 branches:
   only:
     - master
-    - psi4_int
+    - equiv_atoms
     - joseph
 dist: xenial
 language: python

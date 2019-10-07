@@ -1,5 +1,4 @@
 from autode.log import logger
-from autode.geom import get_neighbour_list
 from autode.atoms import get_maximal_valance
 from autode.bond_rearrangement import BondRearrangement
 from autode.substitution import set_complex_xyzs_translated_rotated
@@ -7,7 +6,6 @@ from autode.molecule import Molecule
 from autode.reactions import Dissociation, Rearrangement, Substitution
 from autode.bond_lengths import get_avg_bond_length
 from autode.mol_graphs import is_isomorphic
-from autode.mol_graphs import get_adjacency_digraph
 from autode.transition_states.optts import get_ts
 from autode.transition_states.template_ts_guess import get_template_ts_guess
 from autode.pes_1d import get_ts_guess_1dpes_scan

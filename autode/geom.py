@@ -69,33 +69,6 @@ def get_neighbour_list(atom_i, mol):
     return atom_label_neighbour_list
 
 
-def get_identical_pairs(atoms_and_matches, n_atoms):
-    """
-    For a set of atoms and equivalent atoms get all the pairs of atom_i, atom_j which are equivalent
-
-    :param atoms_and_matches: (dict) keyed with atom id and value a list (could be empty)
-    :param n_atoms: (int) number of atoms
-    :return: dict
-    """
-    identical_pairs = {}
-
-    for atom_i in range(n_atoms):
-        for atom_j in range(n_atoms):
-            if atom_i != atom_j:
-                pair = (atom_i, atom_j)
-                identical_pairs[pair] = []
-
-                for match_i in atoms_and_matches[atom_i] + [atom_i]:
-                    for match_j in atoms_and_matches[atom_j] + [atom_j]:
-                        if match_i != match_j:
-                            equiv_pair = (match_i, match_j)
-
-                            if equiv_pair != pair:
-                                identical_pairs[pair].append(equiv_pair)
-
-    return identical_pairs
-
-
 def calc_rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about

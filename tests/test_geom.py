@@ -73,15 +73,3 @@ def test_neighbour_list():
     assert len(neighbour_list) == 5
     assert type(neighbour_list) == list
     assert type(neighbour_list[0]) == str
-
-
-def test_identical_pairs():
-
-    # methane
-    atoms_and_matches = {0: [], 1: [2, 3, 4],
-                         2: [1, 3, 4], 3: [1, 2, 4], 4: [1, 2, 3]}
-    identical_pairs = geom.get_identical_pairs(atoms_and_matches, 5)
-
-    assert type(identical_pairs) == dict
-    assert type(identical_pairs[(0,1)]) == list
-    assert len(identical_pairs) == 20

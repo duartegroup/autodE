@@ -1,5 +1,6 @@
 from autode import bond_lengths
 from autode.molecule import Molecule
+from rdkit import Chem
 
 
 def test_bond_assignment():
@@ -21,6 +22,17 @@ def test_bond_assignment():
 
     xyz_bond_list = bond_lengths.get_xyz_bond_list(xyz_list)
     assert len(xyz_bond_list) == 13
+
+
+def test_rdkit_bond_list_atom():
+
+    h2 = Molecule(name='hydrogen', smiles='[H][H]')
+    # RDkit is slow to make single atom molecules so make H2 and delete an atom..
+    editable_h2_obj = Chem.EditableMol(h2.mol_obj)
+    editable_h2_obj.RemoveAtom(0)
+
+    bond_list = bond_lengths.get_bond_list_from_rdkit_bonds(editable_h2_obj.GetMol().GetBonds())
+    assert len(bond_list) == 0
 
 
 def test_rdkit_bond_list():
