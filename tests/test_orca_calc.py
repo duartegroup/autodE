@@ -1,10 +1,14 @@
 from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.molecule import Molecule
+from autode.exceptions import XYZsNotFound
+from autode.exceptions import NoInputError
+import pytest
 
 import os
 cwd = os.getcwd()
 here = os.path.dirname(os.path.abspath(__file__))
+test_mol = Molecule(name='methane', smiles='C')
 
 
 def test_orca_opt_calculation():
@@ -12,8 +16,8 @@ def test_orca_opt_calculation():
     os.chdir(here)
     ORCA.available = True
 
-    test_mol = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
-    calc = Calculation(name='opt', molecule=test_mol, method=ORCA, opt=True,
+    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
+    calc = Calculation(name='opt', molecule=methylchloride, method=ORCA, opt=True,
                        keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
     calc.run()
 
@@ -43,7 +47,6 @@ def test_orca_optts_calculation():
     os.chdir(here)
     ORCA.available = True
 
-    test_mol = Molecule(name='X', smiles='C')
     calc = Calculation(name='optts', molecule=test_mol, method=ORCA, opt=True,
                        keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                        optts_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
@@ -57,3 +60,45 @@ def test_orca_optts_calculation():
 
     os.remove('optts_orca.inp')
     os.chdir(cwd)
+
+
+def test_bad_orca_output():
+
+    calc = Calculation(name='no_output', molecule=test_mol, method=ORCA)
+    calc.output_file_lines = []
+    calc.rev_output_file_lines = []
+
+    assert calc.get_energy() is None
+    with pytest.raises(XYZsNotFound):
+        calc.get_final_xyzs()
+
+    with pytest.raises(NoInputError):
+        calc.execute_calculation()
+
+
+def test_subprocess_to_output():
+
+    calc = Calculation(name='test', molecule=test_mol, method=ORCA)
+
+    # Can't execute ORCA in the CI environment so check at least the subprocess works
+    calc.input_filename = 'test_subprocess.py'
+    with open(calc.input_filename, 'w') as test_file:
+        print("print('hello world')", file=test_file)
+    calc.output_filename = 'test_subprocess.out'
+
+    # Overwrite the ORCA path
+    calc.method.path = 'python'
+    calc.execute_calculation()
+
+    assert calc.output_file_lines == ['hello world\n']
+    assert len(calc.output_file_lines) == 1
+    assert len(calc.rev_output_file_lines) == 1
+
+
+def test_no_solvent():
+
+    test_mol.solvent = 'not_a_real_solvent'
+
+    # The calculation object will fail to build and call sys.exit() as the solvent doesn't exist in the library
+    with pytest.raises(SystemExit):
+        _ = Calculation(name='tmp', molecule=test_mol, method=ORCA)

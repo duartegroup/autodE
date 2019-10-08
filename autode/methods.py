@@ -5,7 +5,6 @@ are non ab-initio methods and are therefore considerably faster
 """
 from autode.config import Config
 from autode.log import logger
-from autode.wrappers.PSI4 import PSI4
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
@@ -16,7 +15,7 @@ def get_hmethod():
     Get the high-level electronic structure theory method to use
     :return: (object) ElectronicStructureMethod
     """
-    method = PSI4
+    method = ORCA
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
             method = ORCA
@@ -39,7 +38,7 @@ def get_lmethod():
     Get the low-level electronic structure theory method to use
     :return: (object) ElectronicStructureMethod
     """
-    method = PSI4
+    method = XTB
     if Config.lcode is not None:
         if Config.lcode.lower() == 'xtb':
             method = XTB
