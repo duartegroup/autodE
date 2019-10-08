@@ -18,4 +18,13 @@ def test_get_lg_or_fr_atom():
 
 def test_get_normalised_lg_vector():
     lg_vector = substitution.get_normalised_lg_vector(rearrang, 1, coords)
-    np.testing.assert_array_equal(lg_vector, np.array([0., -1., 0, ]))
+    np.testing.assert_allclose(
+        lg_vector, np.array([0., -1., 0., ]), atol=0.001)
+
+
+def test_get_rot_matrix():
+    lg_vector = np.array([0., -1., 0.])
+    attack_vector = np.array([0., 0., 1., ])
+    rot_matrix = substitution.get_rot_matrix(attack_vector, lg_vector)
+    ideal_rot_matrix = np.array(([1., 0., 0.], [0., 0., 1., ], [0., -1., 0.]))
+    np.testing.assert_allclose(rot_matrix, ideal_rot_matrix, atol=0.001)
