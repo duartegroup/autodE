@@ -78,6 +78,8 @@ def test_bad_orca_output():
 
 def test_subprocess_to_output():
 
+    os.chdir(here)
+
     calc = Calculation(name='test', molecule=test_mol, method=ORCA)
 
     # Can't execute ORCA in the CI environment so check at least the subprocess works
@@ -94,6 +96,9 @@ def test_subprocess_to_output():
     assert len(calc.output_file_lines) == 1
     assert len(calc.rev_output_file_lines) == 1
 
+    os.remove('test_subprocess.py')
+    os.remove('test_subprocess.out')
+    os.chdir(cwd)
 
 def test_no_solvent():
 
