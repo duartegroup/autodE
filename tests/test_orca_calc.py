@@ -6,14 +6,13 @@ from autode.exceptions import NoInputError
 import pytest
 
 import os
-cwd = os.getcwd()
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 
 
 def test_orca_opt_calculation():
 
-    os.chdir(here)
+    os.chdir(os.path.join(here, 'data'))
     ORCA.available = True
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
@@ -38,13 +37,13 @@ def test_orca_opt_calculation():
     assert calc.optimisation_nearly_converged() is False
 
     os.remove('opt_orca.inp')
-    os.chdir(cwd)
+    os.chdir(here)
 
 
 def test_orca_optts_calculation():
     # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
 
-    os.chdir(here)
+    os.chdir(os.path.join(here, 'data'))
     ORCA.available = True
 
     calc = Calculation(name='optts', molecule=test_mol, method=ORCA, opt=True,
@@ -59,7 +58,7 @@ def test_orca_optts_calculation():
     assert len(calc.get_imag_freqs()) == 1
 
     os.remove('optts_orca.inp')
-    os.chdir(cwd)
+    os.chdir(here)
 
 
 def test_bad_orca_output():
@@ -78,7 +77,7 @@ def test_bad_orca_output():
 
 def test_subprocess_to_output():
 
-    os.chdir(here)
+    os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='test', molecule=test_mol, method=ORCA)
 
@@ -98,7 +97,8 @@ def test_subprocess_to_output():
 
     os.remove('test_subprocess.py')
     os.remove('test_subprocess.out')
-    os.chdir(cwd)
+    os.chdir(here)
+
 
 def test_no_solvent():
 

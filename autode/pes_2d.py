@@ -95,8 +95,7 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(
-        dist_xyzs_energies, name=mol.name + '_2dscan'))
+    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, name=mol.name + '_2dscan'))
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
                    active_bonds=[active_bond1, active_bond2])
@@ -126,8 +125,7 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
     energies_not_none = list(replace_none(energies))
     flat_rel_energy_array = [Constants.ha2kcalmol *
                              (e - min(energies_not_none)) for e in energies_not_none]
-    logger.info(
-        'Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
+    logger.info('Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
 
     r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
     r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
@@ -135,6 +133,8 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
     m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
     r1_saddle, r2_saddle = poly2d_sationary_points(m)
     logger.info('Found a saddle point at {}, {}'.format(r1_saddle, r2_saddle))
+    if r1_saddle < 0 or r2_saddle < 0:
+        logger.error('2D surface has saddle points with negative distances!')
 
     logger.info('Plotting 2D scan and saving to {}.png'.format(name))
     plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)

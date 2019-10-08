@@ -80,8 +80,7 @@ class Calculation:
             exit()
 
         if not os.path.exists(self.input_filename):
-            logger.error(
-                'Could not run the calculation. Input file does not exist')
+            logger.error('Could not run the calculation. Input file does not exist')
             return
 
         if os.path.exists(self.output_filename):
@@ -90,12 +89,10 @@ class Calculation:
 
         if self.output_file_exists:
             if self.calculation_terminated_normally():
-                logger.info(
-                    'Calculated already terminated successfully. Skipping')
+                logger.info('Calculated already terminated successfully. Skipping')
                 return self.set_output_file_lines()
 
-        logger.info(
-            'Setting the number of OMP threads to {}'.format(self.n_cores))
+        logger.info('Setting the number of OMP threads to {}'.format(self.n_cores))
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
         with open(self.output_filename, 'w') as output_file:
@@ -104,8 +101,7 @@ class Calculation:
             if self.flags is not None:
                 params += self.flags
 
-            subprocess = Popen(params, stdout=output_file,
-                               stderr=open(os.devnull, 'w'))
+            subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
         subprocess.wait()
         logger.info('Calculation {} done'.format(self.output_filename))
 

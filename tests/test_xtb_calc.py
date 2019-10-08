@@ -2,13 +2,12 @@ from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.molecule import Molecule
 import os
-cwd = os.getcwd()
 here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_xtb_calculation():
 
-    os.chdir(here)
+    os.chdir(os.path.join(here, 'data'))
     XTB.available = True
 
     test_mol = Molecule(name='test_mol', smiles='O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O')
@@ -26,4 +25,4 @@ def test_xtb_calculation():
     assert calc.output_filename == 'opt_xtb.out'
 
     os.remove('opt_xtb.xyz')
-    os.chdir(cwd)
+    os.chdir(here)
