@@ -89,7 +89,3 @@ def test_strip_equivalent_rearrangements():
     possible_bond_rearrangs = [BondRearrangement([(0,5)], [(1,5)]), BondRearrangement([(0,6)], [(1,6)])]
     unique_rearrangs = locate_tss.strip_equivalent_bond_rearrangs(rearrang_reactant, possible_bond_rearrangs)
     assert len(unique_rearrangs) == 1
-
-
-def test_locate_tss():
-    ts = locate_tss.find_tss(rearrang_rearrangs)

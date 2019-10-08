@@ -19,4 +19,11 @@ def test_constrained_opt():
                                             keywords=Config.ORCA.scan_keywords, name='const_opt')
     assert ts_guess.active_bonds == [(0, 1)]
     assert ts_guess.n_atoms == 3
+
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith('.inp'):
+            os.remove(filename)
+        if filename.endswith('.png'):
+            os.remove(filename)
+        
     os.chdir(here)
