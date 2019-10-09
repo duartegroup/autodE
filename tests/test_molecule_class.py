@@ -12,6 +12,7 @@ def test_basic_attributes():
 
     methane = Molecule(name='methane', smiles='C')
 
+    assert methane._calc_multiplicity(1) == 2
     assert methane.name == 'methane'
     assert methane.smiles == 'C'
     assert methane.energy is None
