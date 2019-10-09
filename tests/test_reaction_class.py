@@ -1,5 +1,6 @@
 from autode import reaction
-
+from autode.transition_states.transition_state import TS
+from autode.transition_states.ts_guess import TSguess
 
 def test_reaction_class():
     #h + h > h2
@@ -9,12 +10,17 @@ def test_reaction_class():
         name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
     hh_reac = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh, name='h2_assoc')
 
+    h1.energy = 2
+    h2.energy = 3
+    hh.energy = 1
+
     assert hh_reac.type == reaction.reactions.Dissociation
     assert len(hh_reac.prods) == 2
     assert len(hh_reac.reacs) == 1
     assert hh_reac.ts == None
     assert hh_reac.tss == []
     assert hh_reac.name == 'h2_assoc'
+    assert hh_reac.calc_delta_e() == 4
 
     #h + h2 > h2 + h
     hh_reactant = reaction.Reactant(

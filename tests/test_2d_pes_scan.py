@@ -24,4 +24,12 @@ def test_get_ts_guess_1dscan():
 
     assert len(ts_guess.active_bonds) == 2
     assert os.path.exists('h4_2dscan.png')
+
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith('.inp'):
+            os.remove(filename)
+        if filename.endswith('.png'):
+            os.remove(filename)
+    
+
     os.chdir(here)
