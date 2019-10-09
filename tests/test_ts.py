@@ -54,8 +54,11 @@ def test_ts_guess_class():
     os.chdir(here)
 
 
-def test_ts_class():
-    ts_obj = TS(ts_guess=ts_guess_obj, name='ts')
+def test_get_ts():
+    os.chdir(os.path.join(here, 'data'))
+
+    ts_obj = optts.get_ts(ts_guess_obj)
+
     assert ts_obj.solvent == 'water'
     assert ts_obj.converged == True
     assert ts_obj.active_atoms == [0,1,2]
@@ -64,3 +67,9 @@ def test_ts_class():
     assert ts_obj.truncated_graph.number_of_nodes() == 6
     assert ts_obj.truncated_graph.number_of_edges() == 5
     assert ts_obj.is_true_ts() == True
+
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith('.inp'):
+            os.remove(filename)
+
+    os.chdir(here)
