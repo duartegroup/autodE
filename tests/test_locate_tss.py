@@ -25,12 +25,13 @@ rearang_reaction = reaction.Reaction(name='rearang', mol1=alkyl_reactant, mol2=a
 rearrang_reactant, rearrang_product = locate_tss.get_reactant_and_product_complexes(rearang_reaction)
 rearrang_rearrangs = locate_tss.get_bond_rearrangs(rearrang_reactant, rearrang_product)
 
-def test_reac_and_prod_complexes():
+def test_get_reac_and_prod_complexes():
 
     assert type(dissoc_reactant) == molecule.Reactant
     assert type(dissoc_product) == molecule.Molecule
     assert len(dissoc_reactant.xyzs) == 2
     assert len(dissoc_product.xyzs) == 2
+    assert dissoc_product.xyzs[1][3] - dissoc_product.xyzs[0][3] > 90
 
     assert type(subs_reactant) == molecule.Molecule
     assert type(subs_product) == molecule.Molecule

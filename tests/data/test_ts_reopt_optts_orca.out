@@ -1488,7 +1488,7 @@ Storing new coordinates                 .... done
           Max(Bonds)      0.0468      Max(Angles)    2.08
           Max(Dihed)        0.00      Max(Improp)    0.00
           ---------------------------------------------------------------------
-a b c d YES
+
 The optimization has not yet converged - more geometry cycles are needed
 
 
@@ -1993,7 +1993,7 @@ New trust radius                        ....     0.100000000
 
 
                     ***********************HURRAY********************
-                    ***            ***
+                    ***        THE OPTIMIZATION HAS CONVERGED     ***
                     *************************************************
 
 
