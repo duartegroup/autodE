@@ -7,6 +7,7 @@ from autode.units import KcalMol
 from autode.units import KjMol
 from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
+import os
 
 
 class Reaction:
@@ -71,9 +72,18 @@ class Reaction:
         optimise the unique (defined by an energy cut-off) conformers with an electronic structure method
         :return: None
         """
+        here = os.getcwd()
+        conformers_directory_path = os.path.join(here, self.name + '_conformers')
+        if not os.path.isdir(conformers_directory_path):
+            os.mkdir(conformers_directory_path)
+            logger.info(f'Creating directory to store conformer output files at {conformers_directory_path:}')
+        os.chdir(conformers_directory_path)
+        
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
                 mol.find_lowest_energy_conformer()
+
+        os.chdir(here)
 
     def optimise_reacs_prods(self):
         """
@@ -89,6 +99,13 @@ class Reaction:
         Perform a single point energy evaluations on all the reactants and products using the hcode
         :return: None
         """
+        here = os.getcwd()
+        single_points_directory_path = os.path.join(here, self.name + '_single_points')
+        if not os.path.isdir(single_points_directory_path):
+            os.mkdir(single_points_directory_path)
+            logger.info(f'Creating directory to store conformer output files at {single_points_directory_path:}')
+        os.chdir(single_points_directory_path)
+
         molecules = self.reacs + self.prods + [self.ts]
         [mol.single_point() for mol in molecules if mol is not None]
 
@@ -112,9 +129,17 @@ class Reaction:
             return self.tss[0]
 
     def locate_transition_state(self):
+        here = os.getcwd()
+        tss_directory_path = os.path.join(here, self.name + '_tss')
+        if not os.path.isdir(tss_directory_path):
+            os.mkdir(tss_directory_path)
+            logger.info(f'Creating directory to store conformer output files at {tss_directory_path:}')
+        os.chdir(tss_directory_path)
 
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
+
+        os.chdir(here)
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')

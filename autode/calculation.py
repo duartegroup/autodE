@@ -105,6 +105,14 @@ class Calculation:
         subprocess.wait()
         logger.info('Calculation {} done'.format(self.output_filename))
 
+        for filename in os.listdir(os.getcwd()):
+            name_string = (self.input_filename)[:-4]
+            if name_string in filename:
+                if not filename.endswith('.out'):
+                    os.remove(filename)
+
+        logger.info('Deleting non-output files')
+
         return self.set_output_file_lines()
 
     def run(self):

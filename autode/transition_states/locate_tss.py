@@ -3,7 +3,7 @@ from autode.atoms import get_maximal_valance
 from autode.bond_rearrangement import BondRearrangement
 from autode.substitution import set_complex_xyzs_translated_rotated
 from autode.molecule import Molecule
-from autode.reactions import Dissociation, Rearrangement, Substitution
+from autode.reactions import Dissociation, Rearrangement, Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
 from autode.mol_graphs import is_isomorphic
 from autode.transition_states.optts import get_ts
@@ -29,9 +29,9 @@ def find_tss(reaction):
 
     for bond_rearrangement in bond_rearrangs:
 
-        if reaction.type == Substitution:
+        if reaction.type == (Substitution, Elimination):
             set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement)
-
+            
         for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement):
             logger.info('Trying to find a TS guess with {}'.format(func.__name__))
             ts_guess = func(*params)
@@ -104,6 +104,14 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
         funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 7, name + 'est2d', reaction.type, hmethod,
                                                hmethod.scan_keywords, 1.5, 1.5)))
 
+
+    if bond_rearrang.n_bbonds ==2 and bond_rearrang.n_fbonds == 1:
+        bbond1, bbond2 = bond_rearrang.bbonds
+        funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 10, name + 'll2d', reaction.type, lmethod,
+                                               lmethod.scan_keywords, 1.5, 1.5)))
+        funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 7, name + 'est2d', reaction.type, hmethod,
+                                               hmethod.scan_keywords, 1.5, 1.5)))
+
     return funcs_params
 
 
@@ -128,6 +136,10 @@ def get_reactant_and_product_complexes(reaction):
     elif reaction.type == Substitution:
         reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
         product = gen_two_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
+
+    elif reaction.type == Elimination:
+        reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        product = gen_three_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
 
     else:
         logger.critical('Reaction type not currently supported')
@@ -278,6 +290,11 @@ def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, 
 def gen_two_mol_complex(name, mol1, mol2, mol2_shift_ang=100):
     return Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs],
                     solvent=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
+
+
+def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_ang=100, mol3_shift_ang=-100):
+    return Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs] + [xyz[:3] + [xyz[3] + mol3_shift_ang] for xyz in mol3.xyzs],
+                    solvent=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
 
 
 def generate_rearranged_graph(graph, fbonds, bbonds):

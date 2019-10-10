@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
-
+from autode.wrappers.ORCA import ORCA
+from autode.wrappers.MOPAC import MOPAC
+from autode.wrappers.XTB import XTB
+import os
 
 def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     """
@@ -53,9 +56,15 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     return 0
 
 
-def plot_1dpes(rs, rel_energies, name='1d_scan'):
+def plot_1dpes(rs, rel_energies, method, name='1d_scan'):
 
-    plt.plot(rs, rel_energies, marker='o', color='k')
+    if method == ORCA:
+        plt.plot(rs, rel_energies, marker='o', color='b', label='ORCA')
+    if method == XTB:
+        plt.plot(rs, rel_energies, marker='o', color='k', label='XTB')
+    if method == MOPAC:
+        plt.plot(rs, rel_energies, marker='o', color='g', label='MOPAC')
+    plt.legend()
     plt.xlabel('$r$ / Å')
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')
     plt.savefig(name + '.png')

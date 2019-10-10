@@ -55,7 +55,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(
-        dists, xyzs_list, energy_list, name=mol.name + '_1dscan'))
+        dists, xyzs_list, energy_list, name=mol.name + '_1dscan', method=method))
 
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
@@ -67,7 +67,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
 
 
-def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name):
+def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name, method):
     """
     Given a 1D list of energies find the maximum that between the end points
     :param dist_list: (ndarray)
@@ -93,7 +93,7 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name):
 
     logger.info('Plotting 1D scan and saving to {}.png'.format(name))
     plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
-                           for e in energy_list], name=name)
+                           for e in energy_list], name=name, method=method)
 
     if peak_e != min_e:
         logger.info(
