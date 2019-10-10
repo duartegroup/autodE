@@ -95,7 +95,7 @@ def test_ts_template():
     ts_obj = optts.get_ts(ts_guess_obj)
 
     ts_obj.save_ts_template(folder_path=here)
-    assert len(get_ts_templates(reaction_class=ts_obj.reaction_class, folder_path=here)) > 1
+    assert len(get_ts_templates(reaction_class=ts_obj.reaction_class, folder_path=here)) >= 1
     assert os.path.exists(os.path.join(here, 'template0.obj'))
     os.remove(os.path.join(here, 'template0.obj'))
     os.chdir(here)
