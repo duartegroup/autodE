@@ -33,12 +33,18 @@ class TS:
         [truncated_graph.remove_node(node) for node in nodes_list if node not in nodes_to_keep]
         self.truncated_graph = truncated_graph
 
-    def save_ts_template(self):
+    def save_ts_template(self, folder_path=None):
+        """
+        Save a transition state template containing the active bond lengths, solvent and charge in folder_path
+
+        :param folder_path: (str) folder to save the TS template to
+        :return:
+        """
         logger.info('Saving TS template')
         try:
             ts_template = TStemplate(self.truncated_graph, reaction_class=self.reaction_class, solvent=self.solvent,
                                      charge=self.charge, mult=self.mult)
-            ts_template.save_object()
+            ts_template.save_object(folder_path=folder_path)
             logger.info('Saved TS template')
 
         except (ValueError, AttributeError):
