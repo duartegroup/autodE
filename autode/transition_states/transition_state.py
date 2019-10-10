@@ -41,7 +41,7 @@ class TS:
             ts_template.save_object()
             logger.info('Saved TS template')
 
-        except ValueError or AttributeError:
+        except (ValueError, AttributeError):
             logger.error('Could not save TS template')
 
     def is_true_ts(self):

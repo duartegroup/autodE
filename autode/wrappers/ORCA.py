@@ -172,12 +172,13 @@ def get_normal_mode_displacements(calc, mode_number):
             if line.split()[0].startswith('0'):
                 values_sec = True
 
-        if values_sec and len(line.split()) == 6:
-            mode_numbers = [int(val) for val in line.split()]
-            if mode_number in mode_numbers:
-                col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
-                displacements = [float(disp_line.split()[col]) for disp_line in
-                                 calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
+        if values_sec:
+            if '.' not in line and len(line.split()) > 1:
+                mode_numbers = [int(val) for val in line.split()]
+                if mode_number in mode_numbers:
+                    col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
+                    displacements = [float(disp_line.split()[col]) for disp_line in
+                                    calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
 
     displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
     if len(displacements_xyz) != calc.n_atoms:

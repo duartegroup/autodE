@@ -1,7 +1,8 @@
 import os
 from subprocess import Popen
 from autode.log import logger
-from autode.exeptions import XYZsNotFound
+from autode.exceptions import XYZsNotFound
+from autode.exceptions import NoInputError
 
 
 class Calculation:
@@ -11,8 +12,9 @@ class Calculation:
         if self.terminated_normally:
             return self.method.get_energy(self)
 
-        logger.error('Calculation did not terminate normally – not returning the energy')
-        return None
+        else:
+            logger.error('Calculation did not terminate normally – not returning the energy')
+            return None
 
     def optimisation_converged(self):
         logger.info('Checking to see if the geometry converged')
@@ -45,20 +47,20 @@ class Calculation:
         xyzs = self.method.get_final_xyzs(self)
 
         if len(xyzs) == 0:
-            logger.error('Could not get xyzs from calculation file {}'.format(self.name))
+            logger.error(
+                'Could not get xyzs from calculation file {}'.format(self.name))
             raise XYZsNotFound
 
         return xyzs
 
-    def get_scan_values_xyzs_energies(self):
-        return self.method.get_scan_values_xyzs_energies(self)
-
     def calculation_terminated_normally(self):
-        logger.info('Checking to see if {} terminated normally'.format(self.output_filename))
+        logger.info('Checking to see if {} terminated normally'.format(
+            self.output_filename))
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
-        self.output_file_lines = [line for line in open(self.output_filename, 'r', encoding="utf-8")]
+        self.output_file_lines = [line for line in open(
+            self.output_filename, 'r', encoding="utf-8")]
         self.rev_output_file_lines = list(reversed(self.output_file_lines))
         return None
 
@@ -71,7 +73,7 @@ class Calculation:
 
         if self.input_filename is None:
             logger.error('Could not run the calculation. Input filename not defined')
-            return
+            raise NoInputError
 
         if self.method.available is False:
             logger.critical('Electronic structure method is not available')
@@ -137,14 +139,15 @@ class Calculation:
         self.solvent = molecule.solvent
 
         self.n_cores = n_cores
-        self.max_core_mb = max_core_mb                                                  # Maximum memory per core to use
+        # Maximum memory per core to use
+        self.max_core_mb = max_core_mb
 
         self.bond_ids_to_add = bond_ids_to_add
         self.optts_block = optts_block
         self.distance_constraints = distance_constraints
 
-        self.input_filename = None
-        self.output_filename = None
+        self.input_filename = None                              # Set in self.generate_input()
+        self.output_filename = None                             # Set in self.generate_input()
 
         self.output_file_exists = False
         self.terminated_normally = False
@@ -153,7 +156,8 @@ class Calculation:
 
         if molecule.solvent is not None:
             if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
-                logger.critical('Solvent is not available. Cannot run the calculation')
+                logger.critical(
+                    'Solvent is not available. Cannot run the calculation')
                 print('Available solvents are {}'.format(method.aval_solvents))
                 exit()
 

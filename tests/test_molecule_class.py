@@ -1,13 +1,18 @@
-from autode import molecule
+from autode.molecule import Molecule
 from autode.conformers import conformers
 from rdkit.Chem import Mol
 import numpy as np
+import pytest
+
+
+h2 = Molecule(name='h2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
 
 
 def test_basic_attributes():
 
-    methane = molecule.Molecule(name='methane', smiles='C')
+    methane = Molecule(name='methane', smiles='C')
 
+    assert methane._calc_multiplicity(1) == 2
     assert methane.name == 'methane'
     assert methane.smiles == 'C'
     assert methane.energy is None
@@ -22,8 +27,6 @@ def test_basic_attributes():
     assert -0.001 < np.trace(methane.distance_matrix) < 0.001
     assert isinstance(methane.mol_obj, Mol)
 
-    h2 = molecule.Molecule(name='h2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
-
     assert h2.n_atoms == 2
     assert h2.distance_matrix.shape == (2, 2)
     assert h2.smiles is None
@@ -33,10 +36,45 @@ def test_basic_attributes():
 
 def test_rdkit_conf_generation():
 
-    h2 = molecule.Molecule(name='h2', smiles='[H][H]')
+    h2 = Molecule(name='h2', smiles='[H][H]')
     h2._check_rdkit_graph_agreement()
 
     h2.generate_conformers(n_rdkit_confs=1)
     assert isinstance(h2.conformers[0], conformers.Conformer)
     assert len(h2.conformers) == 1
+    assert h2.n_conformers == 1
+
+
+def test_attributes_methods():
+
+    h_atom = Molecule(name='h', xyzs=[['H', 0.0, 0.0, 0.0]], mult=2)
+    assert h_atom.mult == 2
+    assert h2._calc_multiplicity(n_radical_electrons=2) == 1
+
+    h2_rdkit = Molecule(name='h2', smiles='[H][H]')
+    h2_rdkit.graph.remove_edge(0, 1)
+
+    with pytest.raises(SystemExit):
+        h2_rdkit._check_rdkit_graph_agreement()
+
+    assert 0.69 < h2.calc_bond_distance(bond=(0, 1)) < 0.71
+    assert len(h2.get_possible_forming_bonds()) == 0        # Can't form any bonds
+
+    assert h2.get_bonded_atoms_to_i(atom_i=0) == [1]
+
+    h2.set_xyzs(xyzs=None)
+    assert h2.xyzs is None
+    h2.set_xyzs(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
+    assert h2.n_bonds == 1
+    assert h2.n_atoms == 2
+
+
+def test_conf_strip():
+
+    # Pop[ulate a list with two identical conformers with the same energy for H2
+    h2.conformers = [conformers.Conformer(name='c1', energy=-0.5),
+                     conformers.Conformer(name='c1', energy=-0.5)]
+    h2.n_conformers = 2
+
+    h2.strip_non_unique_confs(energy_threshold_kj=1)
     assert h2.n_conformers == 1

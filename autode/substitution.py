@@ -29,7 +29,7 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
     # Get the vector of attack of the fragment with the forming bond
     if all([reac.n_atoms > 1 for reac in reactants]):
         logger.info('Rotating into best 180 degree attack')
-        normed_attack_vector = get_normalised_attack_vetor(reac_complex, reac_complex_coords, fr_atom)
+        normed_attack_vector = get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atom)
         rot_matrix = get_rot_matrix(normed_attack_vector, normed_lg_vector)
 
         for i in atoms_to_shift:
@@ -60,12 +60,12 @@ def get_normalised_lg_vector(bond_rearrangement, attacked_atom, reac_complex_coo
     return lg_vector / np.linalg.norm(lg_vector)
 
 
-def get_normalised_attack_vetor(reac_complex, reac_complex_coords, fr_atom):
+def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atom):
     fr_coords = reac_complex_coords[fr_atom].copy()
     fr_bonded_atoms = reac_complex.get_bonded_atoms_to_i(atom_i=fr_atom)
-    attack_vetor = np.average([fr_coords - reac_complex_coords[i] for i in range(reac_complex.n_atoms) if i in fr_bonded_atoms], axis=0)
+    attack_vector = np.average([fr_coords - reac_complex_coords[i] for i in range(reac_complex.n_atoms) if i in fr_bonded_atoms], axis=0)
 
-    return attack_vetor / np.linalg.norm(attack_vetor)
+    return attack_vector / np.linalg.norm(attack_vector)
 
 
 def get_rot_matrix(normed_attack_vector, normed_lg_vector):

@@ -12,13 +12,14 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol):
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
     init_coords = coords.reshape(3 * n_atoms, 1)
-    res = minimize(v, x0=init_coords, args=(bonds, k, d0, c), method='BFGS', tol=tol)
+    res = minimize(v, x0=init_coords, args=(
+        bonds, k, d0, c), method='BFGS', tol=tol)
     final_coords = res.x.reshape(n_atoms, 3)
 
     return final_coords
 
 
-def simnal(xyzs, bonds):
+def simanl(xyzs, bonds):
     """
         V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
     :param name: (str)
@@ -60,12 +61,13 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, n_simanls=20):
     logger.info('Doing simulated annealing with a harmonic+repulsion FF')
 
     if n_simanls == 1:
-        conf_xyzs = simnal(xyzs=init_xyzs, bonds=bond_list)
+        conf_xyzs = simanl(xyzs=init_xyzs, bonds=bond_list)
         return [conf_xyzs]
 
     logger.info('Splitting calculation into {} threads'.format(Config.n_cores))
     with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(simnal, (init_xyzs, bond_list)) for i in range(n_simanls)]
+        results = [pool.apply_async(simanl, (init_xyzs, bond_list))
+                   for i in range(n_simanls)]
         conf_xyzs = [res.get(timeout=None) for res in results]
 
     return conf_xyzs

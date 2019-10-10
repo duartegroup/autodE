@@ -1,2 +1,0 @@
-class XYZsNotFound(Exception):
-    pass

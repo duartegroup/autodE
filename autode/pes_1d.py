@@ -6,7 +6,7 @@ from autode.transition_states.ts_guess import TSguess
 from autode.plotting import plot_1dpes
 from autode.constants import Constants
 from autode.calculation import Calculation
-from autode.exeptions import XYZsNotFound
+from autode.exceptions import XYZsNotFound
 
 
 def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
@@ -54,13 +54,15 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, name=mol.name + '_1dscan'))
+    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(
+        dists, xyzs_list, energy_list, name=mol.name + '_1dscan'))
 
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
         return None
 
-    active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
+    active_bonds = [active_bond] if active_bonds_not_scanned is None else [
+        active_bond] + active_bonds_not_scanned
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
 
@@ -90,10 +92,12 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name):
             xyzs_peak_energy = xyzs_list[i]
 
     logger.info('Plotting 1D scan and saving to {}.png'.format(name))
-    plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e) for e in energy_list], name=name)
+    plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
+                           for e in energy_list], name=name)
 
     if peak_e != min_e:
-        logger.info('Energy at peak in PES at ∆E = {} kcal/mol'.format(Constants.ha2kcalmol * (peak_e - min_e)))
+        logger.info(
+            'Energy at peak in PES at ∆E = {} kcal/mol'.format(Constants.ha2kcalmol * (peak_e - min_e)))
     else:
         logger.warning('Couldn\'t find a peak in the PES')
 

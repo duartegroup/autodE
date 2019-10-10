@@ -7,7 +7,7 @@ from autode.log import logger
 from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
 from autode.transition_states.ts_guess import TSguess
-from autode.exeptions import XYZsNotFound
+from autode.exceptions import XYZsNotFound
 
 
 def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, delta_dist1=1.5,
@@ -34,7 +34,8 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
                                          np.linspace(curr_dist2, curr_dist2 + delta_dist2, n_steps))
 
     # Create a grid of molecules and associated constrained optimisation calculations
-    mol_grid = [[deepcopy(mol) for _ in range(n_steps)] for _ in range(n_steps)]
+    mol_grid = [[deepcopy(mol) for _ in range(n_steps)]
+                for _ in range(n_steps)]
 
     # Perform a 1d scan in serial
     for n in range(n_steps):
@@ -50,11 +51,13 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
         const_opt.run()
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
-            mol_grid[0][n].xyzs = const_opt.get_final_xyzs()    # Set the new xyzs of the molecule
+            # Set the new xyzs of the molecule
+            mol_grid[0][n].xyzs = const_opt.get_final_xyzs()
         except XYZsNotFound:
             mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else mol.xyzs
 
-        mol_grid[0][n].energy = const_opt.get_energy()      # Set the energy of the molecule. Can be None
+        # Set the energy of the molecule. Can be None
+        mol_grid[0][n].energy = const_opt.get_energy()
 
     # Execute the remaining set of optimisations in parallel
     for i in range(1, n_steps):
@@ -66,7 +69,8 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
 
         [calc.generate_input() for calc in calcs]
         with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(execute_calc, (calc,)) for calc in calcs]
+            results = [pool.apply_async(execute_calc, (calc,))
+                       for calc in calcs]
             [res.get(timeout=None) for res in results]
         [calc.set_output_file_lines() for calc in calcs]
 
@@ -86,7 +90,8 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
     dist_xyzs_energies = {}
     for n in range(n_steps):
         for m in range(n_steps):
-            dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (mol_grid[n][m].xyzs, mol_grid[n][m].energy)
+            dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (
+                mol_grid[n][m].xyzs, mol_grid[n][m].energy)
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
@@ -114,10 +119,12 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
 
     logger.info('Finding saddle point in 2D PES')
 
-    energies = [dists_xyzs_energies_dict[dists][1] for dists in dists_xyzs_energies_dict.keys()]
+    energies = [dists_xyzs_energies_dict[dists][1]
+                for dists in dists_xyzs_energies_dict.keys()]
     # The energy lis may have None values in, so to perform the fitting replace with the closest float value
     energies_not_none = list(replace_none(energies))
-    flat_rel_energy_array = [Constants.ha2kcalmol * (e - min(energies_not_none)) for e in energies_not_none]
+    flat_rel_energy_array = [Constants.ha2kcalmol *
+                             (e - min(energies_not_none)) for e in energies_not_none]
     logger.info('Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
 
     r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
@@ -126,11 +133,14 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
     m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
     r1_saddle, r2_saddle = poly2d_sationary_points(m)
     logger.info('Found a saddle point at {}, {}'.format(r1_saddle, r2_saddle))
+    if r1_saddle < 0 or r2_saddle < 0:
+        logger.error('2D surface has saddle points with negative distances!')
 
     logger.info('Plotting 2D scan and saving to {}.png'.format(name))
     plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)
 
-    closest_scan_point_dists = get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
+    closest_scan_point_dists = get_closest_point_dists_to_saddle(
+        r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
     xyzs_ts_guess = dists_xyzs_energies_dict[closest_scan_point_dists][0]
 
     return xyzs_ts_guess
@@ -143,7 +153,8 @@ def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
     scan_dists_tuple = None
 
     for dist in dists:
-        dist_to_saddle = np.linalg.norm(np.array(dist) - np.array([r1_saddle, r2_saddle]))
+        dist_to_saddle = np.linalg.norm(
+            np.array(dist) - np.array([r1_saddle, r2_saddle]))
         if dist_to_saddle < closest_dist_to_saddle:
             closest_dist_to_saddle = dist_to_saddle
             scan_dists_tuple = dist

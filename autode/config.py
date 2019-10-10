@@ -13,12 +13,12 @@ class Config:
     # DFT code to use. If set to None then the highest priority available code will be used:
     #                                                                      1. 'ORCA', 2. 'PSI4'
     #
-    hcode = None
+    hcode = 'ORCA'
     #
     # Semi-empirical/tight binding method to use. If set to None then the highest priority available
     # will be used:   1. 'XTB', 2. 'MOPAC'
     #
-    lcode = None
+    lcode = 'XTB'
     #
     # ----------------------------------------------------------------------------------------------
 
