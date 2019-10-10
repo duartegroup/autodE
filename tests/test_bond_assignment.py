@@ -22,6 +22,7 @@ def test_bond_assignment():
 
     xyz_bond_list = bond_lengths.get_xyz_bond_list(xyz_list)
     assert len(xyz_bond_list) == 13
+    assert 1.4 < bond_lengths.get_avg_bond_length(atom_i_label='Te', atom_j_label='Te') < 1.6
 
 
 def test_rdkit_bond_list_atom():

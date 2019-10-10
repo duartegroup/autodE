@@ -37,6 +37,14 @@ class Reaction:
             logger.critical('Solvents in reactants and products don\'t match')
             exit()
 
+    def set_solvent(self, solvent):
+        if solvent is not None:
+            logger.info('Setting solvent as {}'.format(solvent))
+
+            assert type(solvent) == str
+            for mol in self.reacs + self.prods:
+                mol.solvent = solvent
+
     def switch_addition(self):
         """
         Addition reactions are hard to find the TSs for so swap reactants and products and classify as dissociation
@@ -162,7 +170,7 @@ class Reaction:
                               ts_is_converged=self.ts.converged
                               )
 
-    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction'):
+    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction', solvent=None):
         logger.info('Generating a Reaction object for {}'.format(name))
 
         self.name = name
@@ -173,6 +181,7 @@ class Reaction:
 
         self.type = reactions.classify(reacs=self.reacs, prods=self.prods)
 
+        self.set_solvent(solvent)
         self.check_solvent()
         self.check_balance()
 

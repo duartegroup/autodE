@@ -27,6 +27,7 @@ def get_hmethod():
     else:
         method = ORCA  # if ORCA.available else PSI4
 
+    method.set_availability()
     if not method.available:
         logger.error('High-level method not available')
 
@@ -52,6 +53,7 @@ def get_lmethod():
     else:
         method = XTB  # if XTB.available else PSI4
 
+    method.set_availability()
     if not method.available:
         logger.error('Low-level method not available')
 

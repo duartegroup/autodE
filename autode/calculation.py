@@ -70,12 +70,14 @@ class Calculation:
 
     def execute_calculation(self):
         logger.info('Running calculation {}'.format(self.input_filename))
+        self.method.set_availability()
 
         if self.input_filename is None:
             logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
 
         if self.method.available is False:
+
             logger.critical('Electronic structure method is not available')
             exit()
 

@@ -30,6 +30,39 @@ def coords2xyzs(coords, old_xyzs):
         return [old_xyzs[0]] + coords.tolist()
 
 
+def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
+    """
+    For a geometry defined by a set of xyzs
+
+    :param xyzs: (list(list))
+    :param bonds: (list(tuple))  List of bond ids on for which the final_distances apply
+    :param final_distances: (list(float)) List of final bond distances for the bonds
+    :return: shifted xyzs (list(list))
+    """
+
+    coords = xyz2coord(xyzs)
+    atoms_and_shift_vecs = {}
+
+    for n, bond in enumerate(bonds):
+        atom_a, atom_b = bond
+        ab_vec = coords[atom_b] - coords[atom_a]
+        ab_dist = np.linalg.norm(ab_vec)
+        ab_final_dist = final_distances[n]
+
+        ab_norm_vec = ab_vec / ab_dist
+
+        atoms_and_shift_vecs[atom_b] = 0.5 * (ab_final_dist - ab_dist) * ab_norm_vec
+        atoms_and_shift_vecs[atom_a] = -0.5 * (ab_final_dist - ab_dist) * ab_norm_vec
+
+    for n, coord in enumerate(coords):
+        if n in atoms_and_shift_vecs.keys():
+            coord += atoms_and_shift_vecs[n]
+
+    new_xyzs = coords2xyzs(coords, old_xyzs=xyzs)
+
+    return new_xyzs
+
+
 def calc_distance_matrix(xyzs):
     """
     Calculate a distance matrix

@@ -93,9 +93,6 @@ class Conformer(object):
     def optimise(self, method=None):
         logger.info('Running optimisation of {}'.format(self.name))
 
-        logger.warning('Conformer optimisation is performed in the gas phase')
-        self.solvent = None
-
         if method is None:
             method = self.method
 
