@@ -98,9 +98,17 @@ class Reaction:
         Perform a geometry optimisation on all the reactants and products using the hcode
         :return: None
         """
+        here = os.getcwd()
+        opt_reacs_prods_directory_path = os.path.join(here, self.name + '_optimise_reactants_and_products')
+        if not os.path.isdir(opt_reacs_prods_directory_path):
+            os.mkdir(opt_reacs_prods_directory_path)
+            logger.info(f'Creating directory to store conformer output files at {opt_reacs_prods_directory_path:}')
+        os.chdir(opt_reacs_prods_directory_path)
 
         logger.info('Calculating optimised reactants and products')
         [mol.optimise() for mol in self.reacs + self.prods]
+
+        os.chdir(here)
 
     def calculate_single_points(self):
         """
@@ -116,6 +124,8 @@ class Reaction:
 
         molecules = self.reacs + self.prods + [self.ts]
         [mol.single_point() for mol in molecules if mol is not None]
+
+        os.chdir(here)
 
     def find_lowest_energy_ts(self):
         """

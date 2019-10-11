@@ -8,7 +8,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
 import os
 
-def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
+def plot_2dpes(r1, r2, flat_rel_energy_array, method, name='2d_scan'):
     """
     For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
     a 2d polynomial function
@@ -51,8 +51,13 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     plt.imshow(zz, extent=(r1.min(), r2.max(), r1.min(), r2.max()), origin='lower')
     # plt.scatter(r1_flat, r2_flat, c=flat_rel_energy_array)
     plt.colorbar()
-    plt.savefig(name + '.png')
-
+    if method == ORCA:
+        plt.savefig(name + '_ORCA.png')
+    if method == XTB:
+        plt.savefig(name + '_XTB.png')
+    if method == MOPAC:
+        plt.savefig(name + '_MOPAC.png')
+    
     return 0
 
 

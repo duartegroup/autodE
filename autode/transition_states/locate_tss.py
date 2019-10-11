@@ -16,7 +16,6 @@ from autode.methods import get_lmethod
 
 def find_tss(reaction):
     logger.info('Finding possible transition states')
-    # TODO elimination reactions
     tss = []
 
     reactant, product = get_reactant_and_product_complexes(reaction)
@@ -29,7 +28,7 @@ def find_tss(reaction):
 
     for bond_rearrangement in bond_rearrangs:
 
-        if reaction.type == (Substitution, Elimination):
+        if reaction.type in [Substitution, Elimination]:
             set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement)
             
         for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement):

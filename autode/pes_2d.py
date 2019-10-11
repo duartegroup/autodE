@@ -95,13 +95,13 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, name=mol.name + '_2dscan'))
+    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, name=mol.name + '_2dscan', method=method))
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
                    active_bonds=[active_bond1, active_bond2])
 
 
-def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
+def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name, method):
     """
     Find the first order saddle point on a 2D PES given a list of lists defined by their energy
     :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
@@ -137,7 +137,7 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name):
         logger.error('2D surface has saddle points with negative distances!')
 
     logger.info('Plotting 2D scan and saving to {}.png'.format(name))
-    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)
+    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name, method=method)
 
     closest_scan_point_dists = get_closest_point_dists_to_saddle(
         r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())

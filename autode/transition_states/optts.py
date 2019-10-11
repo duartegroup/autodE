@@ -18,12 +18,12 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
         return None
 
     ts_guess.run_orca_optts()
-    imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
 
     if not ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
                                            active_bonds=ts_guess.active_bonds):
         return None
-
+    imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
+    
     if len(imag_freqs) > 1:
         logger.warning('OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
         ts_guess.do_displacements()

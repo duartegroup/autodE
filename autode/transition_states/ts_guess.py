@@ -1,6 +1,7 @@
 from autode.log import logger
 from autode.config import Config
 from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mode
+from autode.transition_states.optts import ts_has_correct_imaginary_vector
 from autode.calculation import Calculation
 
 
@@ -46,6 +47,15 @@ class TSguess:
     def run_orca_optts(self):
         logger.info('Getting ORCA out lines from OptTS calculation')
 
+        self.hess_calc = Calculation(name=self.name +'_hess', molecule=self, method=self.method,
+                                      keywords=self.method.hess_keywords, n_cores=Config.n_cores,
+                                      max_core_mb=Config.max_core)
+        
+        self.hess_calc.run()
+        if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms,
+                                           active_bonds=self.active_bonds, threshold_contribution=0.1):
+            return None
+
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
@@ -79,3 +89,4 @@ class TSguess:
         self.optts_converged = False
         self.optts_nearly_converged = False
         self.optts_calc = None
+        self.hess_calc = None

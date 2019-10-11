@@ -4,6 +4,9 @@ $AUTODE_LOG_LEVEL = {'', INFO, WARNING, DEBUG}
 
 i.e. export AUTODE_LOG_LEVEL=DEBUG
 
+Also, set whether to log to a file with
+$AUTODE_LOG_FILE = filename
+
 """
 import logging
 import os
@@ -27,8 +30,23 @@ def get_log_level():
     return logging.CRITICAL
 
 
-logging.basicConfig(level=get_log_level(),
-                    format='%(name)-12s: %(levelname)-8s %(message)s')
+def log_to_log_file():
+
+    try:
+        _ = os.environ['AUTODE_LOG_FILE']
+        return True
+    except KeyError:
+        return False
+
+
+if log_to_log_file():
+    logging.basicConfig(level=get_log_level(),
+                        filename=os.environ['AUTODE_LOG_FILE'], filemode='w',
+                        format='%(name)-12s: %(levelname)-8s %(message)s')
+
+else:
+    logging.basicConfig(level=get_log_level(),
+                        format='%(name)-12s: %(levelname)-8s %(message)s')
 logger = logging.getLogger(__name__)
 
 # Try and use colourful logs...

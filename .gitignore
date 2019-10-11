@@ -28,3 +28,23 @@ autode/transition_states/__pycache__/
 autode/conformers/cconf_gen.c
 
 autode/._config.py
+
+examples/diels_alder_conformers/
+
+examples/diels_alder_tss/
+
+examples/sn2_tss/
+
+examples/sn2_conformers/
+
+examples/diels_alder_single_points/
+
+examples/sn2_optimise_reactants_and_products/
+
+examples/elimination_conformers/
+
+examples/elimination_optimise_reactants_and_products/
+
+examples/elimination_tss/
+
+examples/sn2_single_points/

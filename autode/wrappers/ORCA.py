@@ -75,7 +75,9 @@ def generate_input(calc):
             print('%cpcm\n smd true\n SMDsolvent \"' + calc.solvent + '\"\n end', file=inp_file)
 
         if calc.optts_block:
-            print(calc.optts_block, file=inp_file)
+            print(calc.optts_block[:17], file=inp_file)
+            print(f'InHessName "{calc.name[:-6]}_hess_orca.hess"', file=inp_file)
+            print(calc.optts_block[18:], file=inp_file)
 
         if calc.bond_ids_to_add:
             try:
