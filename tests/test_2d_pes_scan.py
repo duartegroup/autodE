@@ -8,7 +8,7 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_get_ts_guess_1dscan():
+def test_get_ts_guess_2dscan():
     os.chdir(os.path.join(here, 'data'))
 
     h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0], ['H', 0.0, -0.7, 0.0], ['H', 0.7, -0.7, 0.0]]
@@ -23,7 +23,7 @@ def test_get_ts_guess_1dscan():
                                delta_dist1=0.2, delta_dist2=0.2)
 
     assert len(ts_guess.active_bonds) == 2
-    assert os.path.exists('h4_2dscan.png')
+    assert os.path.exists('h4_2dscan_ORCA.png')
 
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.inp'):

@@ -45,7 +45,7 @@ def test_ts_guess_class():
     assert ts_energy == -599.478764991939
     assert ts_guess_obj.optts_converged == True
 
-    # testing optts.get_displaced_xyzs_along)imaginary_mode
+    # testing optts.get_displaced_xyzs_along_imaginary_mode
     displaced_xyzs = optts.get_displaced_xyzs_along_imaginary_mode(ts_guess_obj.optts_calc, 6)
 
     assert displaced_xyzs[0][1] == ts_xyzs[0][1] + 0.268035

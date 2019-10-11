@@ -1,0 +1,33 @@
+! OptTS Freq PBE0 RIJCOSX D3BJ def2-SVP def2/J
+%cpcm
+ smd true
+ SMDsolvent "water"
+ end
+%geom
+inhess Read
+Recalc_Hess 40
+Trust 0.2
+MaxIter 100
+InHessName "test_ts_reopt_dis_dis2_hess_orca.hess"
+end
+%geom
+modify_internal
+{ B 0 1 A } end
+end
+%geom
+modify_internal
+{ B 1 2 A } end
+end
+%geom MaxIter 100 end
+%scf 
+maxiter 250 
+end
+% maxcore 4000
+*xyz 0 1
+F  -2.00000000 -0.00000000  0.00000000 
+C  -0.19016300 -0.02160700  0.02378700 
+Cl  1.93513200  0.12612600 -0.14423900 
+H  -0.17540400 -0.79302600  0.78627400 
+H  -0.35067200 -0.31131400 -1.00668900 
+H  -0.33648700  1.00691600  0.32824500 
+*
