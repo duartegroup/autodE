@@ -19,6 +19,9 @@ modify_internal
 { B 1 2 A } end
 end
 %geom MaxIter 100 end
+%output 
+xyzfile=True 
+end 
 %scf 
 maxiter 250 
 end

@@ -31,27 +31,38 @@ autode/._config.py
 
 autode/transition_states/lib/Substitution/
 
+examples/diels_alder/
+
 examples/diels_alder/conformers/
 
 examples/diels_alder/optimise_reactants_and_products/
 
 examples/diels_alder/tss/
 
-examples/elimination/conformers/
-
-examples/sn2/conformers/
-
-examples/sn2/single_points/
-
-examples/sn2/tss/
-
 examples/diels_alder/single_points/
 
-examples/sn2/optimise_reactants_and_products/
+examples/elimination/
 
-examples/sn2/
+examples/elimination/conformers/
 
-examples/diels_alder/
 examples/elimination/optimise_reactants_and_products/
 
 examples/elimination/tss/
+
+examples/elimination/single_points/
+
+examples/sn2/
+
+examples/sn2/conformers/
+
+examples/sn2/optimise_reactants_and_products/
+
+examples/sn2/tss/
+
+examples/sn2/single_points/
+
+examples/diazene_addition/
+
+examples/diazene_addition/conformers
+
+*.log

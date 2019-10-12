@@ -100,6 +100,7 @@ def generate_input(calc):
 
         if calc.n_cores > 1:
             print('%pal nprocs ' + str(calc.n_cores) + '\nend', file=inp_file)
+        print('%output \nxyzfile=True \nend ', file=inp_file)
         print('%scf \nmaxiter 250 \nend', file=inp_file)
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)

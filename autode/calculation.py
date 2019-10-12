@@ -110,7 +110,7 @@ class Calculation:
         for filename in os.listdir(os.getcwd()):
             name_string = (self.input_filename)[:-4]
             if name_string in filename:
-                if not filename.endswith('.out' or '.hess' or '.xyz'):
+                if (not filename.endswith(('.out', '.hess', '.xyz'))) or filename.endswith('.smd.out'):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')
