@@ -15,6 +15,8 @@ XTB = ElectronicStructureMethod(name='xtb',
                                 aval_solvents=[solv.lower() for solv in solvents])
 
 
+XTB.__name__ = 'XTB'
+
 def generate_input(calc):
 
     calc.input_filename = calc.name + '_xtb.xyz'

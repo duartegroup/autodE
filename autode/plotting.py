@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
@@ -48,27 +50,26 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, method, name='2d_scan'):
                          np.linspace(r2.min(), r2.max(), ny))
     zz = polyval2d(xx, yy, m)
 
-    plt.imshow(zz, extent=(r1.min(), r2.max(), r1.min(), r2.max()), origin='lower')
+    fig = plt.figure(figsize=(10,3))
+    ax1=fig.add_subplot(1,2,1, projection='3d')
+    pos1 =ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
+    ax2 = fig.add_subplot(1,2,2)
+    pos2 = ax2.imshow(zz, extent=(r1.min(), r2.max(), r1.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
     # plt.scatter(r1_flat, r2_flat, c=flat_rel_energy_array)
-    plt.colorbar()
-    if method == ORCA:
-        plt.savefig(name + '_ORCA.png')
-    if method == XTB:
-        plt.savefig(name + '_XTB.png')
-    if method == MOPAC:
-        plt.savefig(name + '_MOPAC.png')
+    plt.colorbar(pos1, ax=ax1)
+    plt.colorbar(pos2, ax=ax2)
+    method_name=method.__name__
+    plt.savefig(name + f'_{method_name}.png')
     
     return 0
 
 
 def plot_1dpes(rs, rel_energies, method, name='1d_scan'):
 
-    if method == ORCA:
-        plt.plot(rs, rel_energies, marker='o', color='b', label='ORCA')
-    if method == XTB:
-        plt.plot(rs, rel_energies, marker='o', color='k', label='XTB')
-    if method == MOPAC:
-        plt.plot(rs, rel_energies, marker='o', color='g', label='MOPAC')
+    colour_method_dict={'orca':'k', 'xtb':'b', 'mopac':'g'}
+    method_name=method.__name__
+    colour = colour_method_dict.get(method_name.lower(), 'r')
+    plt.plot(rs, rel_energies, marker='o', color=colour, label=method_name)
     plt.legend()
     plt.xlabel('$r$ / Å')
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')

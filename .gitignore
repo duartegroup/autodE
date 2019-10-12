@@ -29,22 +29,29 @@ autode/conformers/cconf_gen.c
 
 autode/._config.py
 
-examples/diels_alder_conformers/
+autode/transition_states/lib/Substitution/
 
-examples/diels_alder_tss/
+examples/diels_alder/conformers/
 
-examples/sn2_tss/
+examples/diels_alder/optimise_reactants_and_products/
 
-examples/sn2_conformers/
+examples/diels_alder/tss/
 
-examples/diels_alder_single_points/
+examples/elimination/conformers/
 
-examples/sn2_optimise_reactants_and_products/
+examples/sn2/conformers/
 
-examples/elimination_conformers/
+examples/sn2/single_points/
 
-examples/elimination_optimise_reactants_and_products/
+examples/sn2/tss/
 
-examples/elimination_tss/
+examples/diels_alder/single_points/
 
-examples/sn2_single_points/
+examples/sn2/optimise_reactants_and_products/
+
+examples/sn2/
+
+examples/diels_alder/
+examples/elimination/optimise_reactants_and_products/
+
+examples/elimination/tss/

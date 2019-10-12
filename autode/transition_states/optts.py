@@ -19,6 +19,9 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
 
     ts_guess.run_orca_optts()
 
+    if not ts_guess.optts_calc:
+        return None
+
     if not ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
                                            active_bonds=ts_guess.active_bonds):
         return None

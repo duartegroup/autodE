@@ -28,6 +28,7 @@ MOPAC = ElectronicStructureMethod(name='mopac',
                                   path_to_licence=Config.MOPAC.licence_path,
                                   aval_solvents=solvents)
 
+MOPAC.__name__ = 'MOPAC'
 
 def generate_input(calc):
     logger.info(f'Generating MOPAC input for {calc.name}')

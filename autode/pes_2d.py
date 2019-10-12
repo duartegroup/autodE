@@ -136,7 +136,7 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name, method):
     if r1_saddle < 0 or r2_saddle < 0:
         logger.error('2D surface has saddle points with negative distances!')
 
-    logger.info('Plotting 2D scan and saving to {}.png'.format(name))
+    logger.info('Plotting 2D scan and saving to {}.png'.format(name + method.__name__))
     plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name, method=method)
 
     closest_scan_point_dists = get_closest_point_dists_to_saddle(

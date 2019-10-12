@@ -81,7 +81,7 @@ class Reaction:
         :return: None
         """
         here = os.getcwd()
-        conformers_directory_path = os.path.join(here, self.name + '_conformers')
+        conformers_directory_path = os.path.join(here, 'conformers')
         if not os.path.isdir(conformers_directory_path):
             os.mkdir(conformers_directory_path)
             logger.info(f'Creating directory to store conformer output files at {conformers_directory_path:}')
@@ -99,7 +99,7 @@ class Reaction:
         :return: None
         """
         here = os.getcwd()
-        opt_reacs_prods_directory_path = os.path.join(here, self.name + '_optimise_reactants_and_products')
+        opt_reacs_prods_directory_path = os.path.join(here, 'optimise_reactants_and_products')
         if not os.path.isdir(opt_reacs_prods_directory_path):
             os.mkdir(opt_reacs_prods_directory_path)
             logger.info(f'Creating directory to store conformer output files at {opt_reacs_prods_directory_path:}')
@@ -116,7 +116,7 @@ class Reaction:
         :return: None
         """
         here = os.getcwd()
-        single_points_directory_path = os.path.join(here, self.name + '_single_points')
+        single_points_directory_path = os.path.join(here, 'single_points')
         if not os.path.isdir(single_points_directory_path):
             os.mkdir(single_points_directory_path)
             logger.info(f'Creating directory to store conformer output files at {single_points_directory_path:}')
@@ -148,7 +148,7 @@ class Reaction:
 
     def locate_transition_state(self):
         here = os.getcwd()
-        tss_directory_path = os.path.join(here, self.name + '_tss')
+        tss_directory_path = os.path.join(here, 'tss')
         if not os.path.isdir(tss_directory_path):
             os.mkdir(tss_directory_path)
             logger.info(f'Creating directory to store conformer output files at {tss_directory_path:}')
@@ -161,6 +161,13 @@ class Reaction:
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
+        here = os.getcwd()
+        directory_path = os.path.join(here, self.name)
+        if not os.path.isdir(directory_path):
+            os.mkdir(directory_path)
+            logger.info(f'Creating directory to store all output files at {directory_path:}')
+        os.chdir(directory_path)
+
         self.find_lowest_energy_conformers()
         self.optimise_reacs_prods()
         self.locate_transition_state()
@@ -179,6 +186,8 @@ class Reaction:
                               is_true_ts=self.ts.is_true_ts(),
                               ts_is_converged=self.ts.converged
                               )
+
+        os.chdir(here)
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction', solvent=None):
         logger.info('Generating a Reaction object for {}'.format(name))
