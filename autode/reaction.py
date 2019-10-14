@@ -102,7 +102,7 @@ class Reaction:
         opt_reacs_prods_directory_path = os.path.join(here, 'optimise_reactants_and_products')
         if not os.path.isdir(opt_reacs_prods_directory_path):
             os.mkdir(opt_reacs_prods_directory_path)
-            logger.info(f'Creating directory to store conformer output files at {opt_reacs_prods_directory_path:}')
+            logger.info(f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
         os.chdir(opt_reacs_prods_directory_path)
 
         logger.info('Calculating optimised reactants and products')
@@ -119,7 +119,7 @@ class Reaction:
         single_points_directory_path = os.path.join(here, 'single_points')
         if not os.path.isdir(single_points_directory_path):
             os.mkdir(single_points_directory_path)
-            logger.info(f'Creating directory to store conformer output files at {single_points_directory_path:}')
+            logger.info(f'Creating directory to store single point output files at {single_points_directory_path:}')
         os.chdir(single_points_directory_path)
 
         molecules = self.reacs + self.prods + [self.ts]
@@ -151,7 +151,7 @@ class Reaction:
         tss_directory_path = os.path.join(here, 'tss')
         if not os.path.isdir(tss_directory_path):
             os.mkdir(tss_directory_path)
-            logger.info(f'Creating directory to store conformer output files at {tss_directory_path:}')
+            logger.info(f'Creating directory to store transition state output files at {tss_directory_path:}')
         os.chdir(tss_directory_path)
 
         self.tss = find_tss(self)
