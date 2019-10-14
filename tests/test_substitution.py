@@ -13,7 +13,7 @@ coords = np.array(([0, 0, 0], [0, 0, 1], [0, 2, 1]))
 
 def test_get_attacked_atom():
     attacked_atom = substitution.get_attacked_atom(rearrang)
-    assert attacked_atom == 1
+    assert attacked_atom[0] == 1
 
 
 def test_get_lg_or_fr_atom():

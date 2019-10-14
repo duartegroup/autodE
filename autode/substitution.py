@@ -4,37 +4,54 @@ from autode.geom import coords2xyzs
 from autode.geom import calc_rotation_matrix
 
 
-def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangement, shift_factor=2.0):
+def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangement, shift_factor=-2):
     logger.info('Translating reactant atoms into reactive complex')
     reac_complex_coords = reac_complex.get_coords()
 
-    attacked_atom = get_attacked_atom(bond_rearrangement)
-    attacked_atom_coords = reac_complex_coords[attacked_atom]
+    all_attacked_atoms = get_attacked_atom(bond_rearrangement)
+    all_attacked_atom_coords = [reac_complex_coords[attacked_atom] for attacked_atom in all_attacked_atoms]
+    avg_attacked_atom_coords = np.average(all_attacked_atom_coords, axis=0)
     # The second reactant has been shifted in the formation of the reactant complex, so move it back such that the
     # atom in the second
-    reac_complex_coords = reac_complex_coords - attacked_atom_coords
+    reac_complex_coords = reac_complex_coords - avg_attacked_atom_coords
 
-    atoms_to_shift = (range(reactants[0].n_atoms, reac_complex.n_atoms) if attacked_atom < reactants[0].n_atoms
-                      else range(reactants[0].n_atoms))
+    if (all(all_attacked_atoms) < reactants[0].n_atoms) or (all(all_attacked_atoms) >= reactants[0].n_atoms):
+        atoms_to_shift = (range(reactants[0].n_atoms, reac_complex.n_atoms) if all_attacked_atoms[0] < reactants[0].n_atoms 
+                            else range(reactants[0].n_atoms)) 
 
-    normed_lg_vector = get_normalised_lg_vector(bond_rearrangement, attacked_atom, reac_complex_coords)
+    else:
+        logger.critical(f'Attacked atoms in both moleucles not currently supported')
+        exit()
 
-    fr_atom = get_lg_or_fr_atom(bond_rearrangement.fbonds, attacked_atom)
-    fr_coords = reac_complex_coords[fr_atom].copy()
+    all_normed_lg_vector = [get_normalised_lg_vector(bond_rearrangement, attacked_atom, reac_complex_coords) 
+                            for attacked_atom in all_attacked_atoms]
+    
+    normed_lg_vector = check_vectors_directions(all_normed_lg_vector)
+
+    all_fr_atoms = [get_lg_or_fr_atom(bond_rearrangement.fbonds, attacked_atom) 
+                        for attacked_atom in all_attacked_atoms]
+    all_fr_coords = [reac_complex_coords[fr_atom].copy() for fr_atom in all_fr_atoms]
+    avg_fr_coords = np.average(all_fr_coords, axis=0)
 
     # Shift the forming bond atom onto the attacked atoms, then shift along the normalised lg_vector
     for i in atoms_to_shift:
-        reac_complex_coords[i] -= fr_coords
+        reac_complex_coords[i] -= avg_fr_coords
 
     # Get the vector of attack of the fragment with the forming bond
     if all([reac.n_atoms > 1 for reac in reactants]):
-        logger.info('Rotating into best 180 degree attack')
-        normed_attack_vector = get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atom)
+        logger.info('Rotating into best attack')
+        all_normed_attack_vector = [get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atom) 
+                                    for fr_atom in all_fr_atoms]
+        
+        normed_attack_vector = check_vectors_directions(all_normed_attack_vector)
+        print(normed_attack_vector)
+
         rot_matrix = get_rot_matrix(normed_attack_vector, normed_lg_vector)
 
         for i in atoms_to_shift:
+            reac_complex_coords[i] += shift_factor * normed_attack_vector
             reac_complex_coords[i] = np.matmul(rot_matrix, reac_complex_coords[i])
-            reac_complex_coords[i] += shift_factor * normed_lg_vector
+
     else:
         logger.info('Only had a single atom to shift, will skip rotation')
         for i in atoms_to_shift:
@@ -60,10 +77,25 @@ def get_normalised_lg_vector(bond_rearrangement, attacked_atom, reac_complex_coo
     return lg_vector / np.linalg.norm(lg_vector)
 
 
-def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atom):
+def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atom, tolerance=0.09):
     fr_coords = reac_complex_coords[fr_atom].copy()
     fr_bonded_atoms = reac_complex.get_bonded_atoms_to_i(atom_i=fr_atom)
-    attack_vector = np.average([fr_coords - reac_complex_coords[i] for i in range(reac_complex.n_atoms) if i in fr_bonded_atoms], axis=0)
+    fr_bond_vectors = [fr_coords - reac_complex_coords[i] for i in range(reac_complex.n_atoms) if i in fr_bonded_atoms]
+    if len(fr_bonded_atoms) < 3:
+        attack_vector = np.average(fr_bond_vectors, axis=0)
+    else:
+        #check if it is flat, if so want perp vector to plane, if not can take average of the bonds
+        perp_vector_1 = np.cross(fr_bond_vectors[0], fr_bond_vectors[1])
+        normed_perp_vector_1 = perp_vector_1 / np.linalg.norm(perp_vector_1)
+        perp_vector_2 = np.cross(fr_bond_vectors[0], fr_bond_vectors[2])
+        normed_perp_vector_2 = perp_vector_2 / np.linalg.norm(perp_vector_2)
+        theta = np.arccos(np.dot(normed_perp_vector_1, normed_perp_vector_2))
+        print(theta)
+
+        if (tolerance < theta < (np.pi/2 - tolerance)) or (np.pi/2 + tolerance) < theta < (np.pi - tolerance):
+            attack_vector = np.average(fr_bond_vectors, axis=0)
+        else:
+            attack_vector = perp_vector_1
 
     return attack_vector / np.linalg.norm(attack_vector)
 
@@ -89,16 +121,27 @@ def get_attacked_atom(bond_rearrangement):
             [possible_attacked_atoms.append(atom) for atom in fbond if atom in bbond]
 
     if len(possible_attacked_atoms) > 1:
-        logger.critical('Multiple possible attacked atoms in Substitution reaction {}'.format(possible_attacked_atoms))
-        exit()
+        logger.warning('Multiple possible attacked atoms in reaction {}'.format(possible_attacked_atoms))
+        possible_attacking_atoms = []
+        for attacked_atom in possible_attacked_atoms:
+            attacking_atom = get_lg_or_fr_atom(bond_rearrangement.fbonds, attacked_atom)
+            possible_attacking_atoms.append(attacking_atom)
+        if len(possible_attacked_atoms) > 2:
+            logger.critical('More than 2 attacked atoms not supprted')
+            exit()
+        if len(possible_attacked_atoms) == len(possible_attacking_atoms):
+            return possible_attacked_atoms
+        else:
+            logger.critical(f'Different number of attacking atoms ({possible_attacking_atoms}) and attacked atoms ({possible_attacked_atoms})')    
+            exit()
     else:
-        return possible_attacked_atoms[0]
+        return possible_attacked_atoms
 
 
 def get_lg_or_fr_atom(bbonds_or_fbonds, attacked_atom):
     """
-    Get the atom that attaches the attacked atom to the rest of the molecule. From get_attacked_atom there should
-    only be one possibility in the structure so returning immediately after finding one is fine
+    Get the atom that attaches the attacked atom to the rest of the molecule. Each attacked
+    atom is only attacked by one atom, so returning immediately after finding one is fine
 
     :param bbonds_or_fbonds: (list(tuple)) List of either breaking or forming bonds
     :param attacked_atom: (int) index of the attacked atom in the structure
@@ -113,3 +156,20 @@ def get_lg_or_fr_atom(bbonds_or_fbonds, attacked_atom):
     else:
         logger.critical('Couldn\'t find a leaving group atom')
         exit()
+
+
+def check_vectors_directions(vectors):
+    """Checks if the vectors point the same way, so the best vector will be their average, or opposite ways, and the best vecotr will be the cross product
+    
+    Arguments:
+        vectors {list of vectors} -- list of normalised vectors to check
+    """
+    if len(vectors) == 1:
+        return vectors[0]
+    if len(vectors) == 2:
+        theta = np.arccos(np.dot(vectors[0], vectors[1]))
+        if theta < np.pi/2:
+            return np.average(vectors, axis=0)
+        else:
+            avg_vector = np.cross(vectors[0], vectors[1])
+            return avg_vector / np.linalg.norm(avg_vector)

@@ -96,7 +96,7 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
         # funcs_params.append((get_est_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
         #                     'est2d_' + bds_str, delta_fbond_dist, 1.5)))
 
-    if bond_rearrang.n_bbonds == 2 and bond_rearrang.n_fbonds == 0:
+    if bond_rearrang.n_bbonds == 2:
         bbond1, bbond2 = bond_rearrang.bbonds
         funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 10, name + 'll2d', reaction.type, lmethod,
                                                lmethod.scan_keywords, 1.5, 1.5)))
@@ -104,11 +104,11 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
                                                hmethod.scan_keywords, 1.5, 1.5)))
 
 
-    if bond_rearrang.n_bbonds ==2 and bond_rearrang.n_fbonds == 1:
-        bbond1, bbond2 = bond_rearrang.bbonds
-        funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 10, name + 'll2d', reaction.type, lmethod,
+    if bond_rearrang.n_fbonds ==2:
+        fbond1, fbond2 = bond_rearrang.fbonds
+        funcs_params.append((get_ts_guess_2d, (reactant, fbond1, fbond2, 10, name + 'll2d', reaction.type, lmethod,
                                                lmethod.scan_keywords, 1.5, 1.5)))
-        funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 7, name + 'est2d', reaction.type, hmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, fbond1, fbond2, 7, name + 'est2d', reaction.type, hmethod,
                                                hmethod.scan_keywords, 1.5, 1.5)))
 
     return funcs_params
