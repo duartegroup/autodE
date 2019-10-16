@@ -2,6 +2,7 @@ from copy import deepcopy
 import numpy as np
 from autode.log import logger
 from autode.transition_states.transition_state import TS
+from autode.atoms import get_atomic_weight
 
 
 def get_ts(ts_guess, imag_freq_threshold=-100):
@@ -107,17 +108,27 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, threshold_contr
         logger.error('Have no imaginary normal mode displacements to analyse')
         return False
 
+    final_xyzs = calc.get_final_xyzs()
+
     imag_mode_magnitudes = [np.linalg.norm(np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
+
+    weighted_imag_mode_magnitudes = []
+
+    for index, atom in enumerate(final_xyzs):
+        atom_label = atom[0]
+        weighting = get_atomic_weight(atom_label)
+        weighted_imag_mode_magnitudes.append(imag_mode_magnitudes[index] * weighting)
+
 
     should_be_active_atom_magnitudes = []
     for atom_id in range(n_atoms):
         if any([atom_id in bond_ids for bond_ids in active_bonds]):
-            should_be_active_atom_magnitudes.append(imag_mode_magnitudes[atom_id])
+            should_be_active_atom_magnitudes.append(weighted_imag_mode_magnitudes[atom_id])
 
-    relative_contribution = np.sum(np.array(should_be_active_atom_magnitudes)) / np.sum(np.array(imag_mode_magnitudes))
+    relative_contribution = np.sum(np.array(should_be_active_atom_magnitudes)) / np.sum(np.array(weighted_imag_mode_magnitudes))
     if relative_contribution > threshold_contribution:
         logger.info('TS has significant contribution from the active atoms to the imag mode')
         return True
 
-    logger.info('TS has *no* significant contribution from the active atoms to the imag mode')
+    logger.info(f'TS has *no* significant contribution from the active atoms to the imag mode (contribution = {relative_contribution})')
     return False
