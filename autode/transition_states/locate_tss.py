@@ -12,6 +12,7 @@ from autode.pes_1d import get_ts_guess_1dpes_scan
 from autode.pes_2d import get_ts_guess_2d
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
+import numpy as np
 
 
 def find_tss(reaction):
@@ -34,6 +35,19 @@ def find_tss(reaction):
         for func, params in get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrangement):
             logger.info('Trying to find a TS guess with {}'.format(func.__name__))
             ts_guess = func(*params)
+
+            if ts_guess is not None:
+                logger.info('Checking correct bonds made')
+                ts_guess_coords = ts_guess.get_coords()
+                for bond in bond_rearrangement.fbonds:
+                    bond_vector = ts_guess_coords[bond[0]] - ts_guess_coords[bond[1]]
+                    bond_length = np.linalg.norm(bond_vector)
+                    if bond_length > 3.5:
+                        logger.warning(f'The bond {bond} was not made(length = {bond_length})')
+                        ts_guess = None
+                    if ts_guess == None:
+                        break
+
             ts = get_ts(ts_guess)
 
             if ts is not None:
@@ -96,19 +110,20 @@ def get_ts_guess_funcs_and_params(reaction, reactant, bond_rearrang):
         # funcs_params.append((get_est_ts_guess_2d, (reactant, fbond, bbond, 7, reaction.type, Config.scan_keywords,
         #                     'est2d_' + bds_str, delta_fbond_dist, 1.5)))
 
+    if bond_rearrang.n_fbonds == 2:
+        fbond1, fbond2 = bond_rearrang.fbonds
+        delta_fbond_dist1 = get_avg_bond_length(mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
+        delta_fbond_dist2 = get_avg_bond_length(mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
+        funcs_params.append((get_ts_guess_2d, (reactant, fbond1, fbond2, 10, name + 'll2d', reaction.type, lmethod,
+                                               lmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2)))
+        funcs_params.append((get_ts_guess_2d, (reactant, fbond1, fbond2, 7, name + 'est2d', reaction.type, hmethod,
+                                               hmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2)))
+
     if bond_rearrang.n_bbonds == 2:
         bbond1, bbond2 = bond_rearrang.bbonds
         funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 10, name + 'll2d', reaction.type, lmethod,
                                                lmethod.scan_keywords, 1.5, 1.5)))
         funcs_params.append((get_ts_guess_2d, (reactant, bbond1, bbond2, 7, name + 'est2d', reaction.type, hmethod,
-                                               hmethod.scan_keywords, 1.5, 1.5)))
-
-
-    if bond_rearrang.n_fbonds ==2:
-        fbond1, fbond2 = bond_rearrang.fbonds
-        funcs_params.append((get_ts_guess_2d, (reactant, fbond1, fbond2, 10, name + 'll2d', reaction.type, lmethod,
-                                               lmethod.scan_keywords, 1.5, 1.5)))
-        funcs_params.append((get_ts_guess_2d, (reactant, fbond1, fbond2, 7, name + 'est2d', reaction.type, hmethod,
                                                hmethod.scan_keywords, 1.5, 1.5)))
 
     return funcs_params

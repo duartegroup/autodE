@@ -24,7 +24,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
     :return: List of xyzs
     """
-    logger.info('Getting TS guess from 1D relaxed potential energy scan')
+    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
     mol_with_const = deepcopy(mol)
 
     curr_dist = mol.calc_bond_distance(active_bond)

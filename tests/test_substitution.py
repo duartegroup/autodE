@@ -22,7 +22,7 @@ def test_get_lg_or_fr_atom():
 
 
 def test_get_normalised_lg_vector():
-    lg_vector = substitution.get_normalised_lg_vector(rearrang, 1, coords)
+    lg_vector = substitution.get_normalised_lg_vector(rearrang, [1], coords)
     np.testing.assert_allclose(
         lg_vector, np.array([0., -1., 0., ]), atol=0.001)
 

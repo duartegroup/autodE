@@ -25,7 +25,7 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
     :param delta_dist2:
     :return:
     """
-    logger.info('Getting TS guess from 2D relaxed potential energy scan')
+    logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
     curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]

@@ -3,6 +3,7 @@ from autode.config import Config
 from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mode
 from autode.transition_states.optts import ts_has_correct_imaginary_vector
 from autode.calculation import Calculation
+from autode.geom import xyz2coord
 
 
 class TSguess:
@@ -67,6 +68,9 @@ class TSguess:
 
     def get_imag_frequencies_xyzs_energy(self):
         return self.optts_calc.get_imag_freqs(), self.optts_calc.get_final_xyzs(), self.optts_calc.get_energy()
+
+    def get_coords(self):
+        return xyz2coord(self.xyzs)
 
     def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None):
         """
