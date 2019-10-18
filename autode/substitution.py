@@ -121,7 +121,7 @@ def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atoms, to
                 all_attack_vectors.append([normed_first_cross_product, True])
             else:
                 logger.info('Attacking atom does not have flat coordination')
-                avg_attack = ((np.average(fr_bond_vectors, axis=0)), False)
+                avg_attack = np.average(fr_bond_vectors, axis=0)
                 normed_avg_attack = avg_attack / np.linalg.norm(avg_attack)
                 all_attack_vectors.append([normed_avg_attack, False])
     logger.info('Getting average attack vector')
@@ -171,12 +171,12 @@ def get_attacked_atom(bond_rearrangement):
     if len(possible_attacked_atoms) > 1:
         logger.warning('Multiple possible attacked atoms in reaction {}'.format(possible_attacked_atoms))
         possible_attacking_atoms = []
+        if len(possible_attacked_atoms) > 2:
+            logger.critical('More than 2 attacked atoms not supported')
+            exit()
         for attacked_atom in possible_attacked_atoms:
             attacking_atom = get_lg_or_fr_atom(bond_rearrangement.fbonds, attacked_atom)
             possible_attacking_atoms.append(attacking_atom)
-        if len(possible_attacked_atoms) > 2:
-            logger.critical('More than 2 attacked atoms not supprted')
-            exit()
         if len(possible_attacked_atoms) == len(possible_attacking_atoms):
             return possible_attacked_atoms
         else:
