@@ -70,7 +70,7 @@ def test_rearranged_graph():
 
 
 def test_get_funcs_and_params():
-    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(dissoc_reaction, dissoc_reactant, dissoc_rearrangs[0])
+    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0])
     assert type(dissoc_f_and_p) == list
     assert len(dissoc_f_and_p) == 4
     assert dissoc_f_and_p[0][0] == locate_tss.get_template_ts_guess
@@ -79,7 +79,7 @@ def test_get_funcs_and_params():
     assert dissoc_f_and_p[1][1][3] == 'H2--H+H_0-1_ll1d'
     assert dissoc_f_and_p[3][1][4] == locate_tss.Dissociation
 
-    subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(subs_reaction, subs_reactant, subs_rearrangs[0])
+    subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
     assert type(subs_f_and_p) == list
     assert len(subs_f_and_p) == 7
     assert subs_f_and_p[3][1][4] == locate_tss.Substitution

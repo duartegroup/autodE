@@ -98,4 +98,7 @@ def test_ts_template():
     assert len(get_ts_templates(reaction_class=ts_obj.reaction_class, folder_path=here)) >= 1
     assert os.path.exists(os.path.join(here, 'template0.obj'))
     os.remove(os.path.join(here, 'template0.obj'))
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith('.inp'):
+            os.remove(filename)
     os.chdir(here)
