@@ -22,7 +22,7 @@ def test_get_ts_guess_2dscan():
 
     ts_guess = get_ts_guess_2d(mol=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
                                reaction_class=Dissociation, method=ORCA, keywords=Config.ORCA.scan_keywords,
-                               product = product, delta_dist1=0.2, delta_dist2=0.2)
+                               products = [product], delta_dist1=0.2, delta_dist2=0.2)
 
     assert len(ts_guess.active_bonds) == 2
     assert os.path.exists('h4_2dscan_ORCA.png')

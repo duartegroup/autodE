@@ -9,10 +9,10 @@ from autode.constants import Constants
 from autode.calculation import Calculation
 from autode.exceptions import XYZsNotFound
 from autode.mol_graphs import make_graph
-from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import is_subgraph_isomorphic
 
 
-def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, product, delta_dist=1.5,
+def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, products, delta_dist=1.5,
                             active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
@@ -58,9 +58,10 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     #check product and TSGuess product graphs are isomorphic
     logger.info('Checking products were made')
     ts_product_graph = make_graph(xyzs_list[n_steps - 1], mol.n_atoms)
-    if not is_isomorphic(ts_product_graph, product.graph):
-        logger.warning('Products were not made')
-        return None
+    for product in products:
+        if not is_subgraph_isomorphic(ts_product_graph, product.graph):
+            logger.warning(f'{product.name} was not made')
+            return None
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
@@ -71,7 +72,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
         logger.warning('TS guess had no xyzs')
         return None
 
-    make_reaction_animation(name, xyzs_list)
+    make_reaction_animation(name, [mol.xyzs] + xyzs_list)
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [
         active_bond] + active_bonds_not_scanned

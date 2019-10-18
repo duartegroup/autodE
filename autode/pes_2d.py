@@ -10,10 +10,10 @@ from autode.plotting import make_reaction_animation
 from autode.transition_states.ts_guess import TSguess
 from autode.exceptions import XYZsNotFound
 from autode.mol_graphs import make_graph
-from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import is_subgraph_isomorphic
 
 
-def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, product, 
+def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, products, 
                     delta_dist1=1.5, delta_dist2=1.5):
     """
     :param mol:
@@ -99,15 +99,16 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
     #check product and TSGuess product graphs are isomorphic
     logger.info('Checking products were made')
     ts_product_graph = make_graph(mol_grid[n_steps-1][n_steps-1].xyzs, mol.n_atoms)
-    if not is_isomorphic(ts_product_graph, product.graph):
-        logger.warning('Products were not made')
-        return None
+    for product in products:
+        if not is_subgraph_isomorphic(ts_product_graph, product.graph):
+            logger.warning(f'{product.name} was not made')
+            return None
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name + '_2dscan', method=method))
 
-    mep_xyzs = []
+    mep_xyzs = [mol.xyzs]
 
     for i in range(n_steps): 
         xyz_list = [mol.xyzs for mol in mol_grid[i]]
