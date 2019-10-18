@@ -101,15 +101,46 @@ examples/carbonyl/tss/
 
 examples/carbonyl/single_points/
 
-examples/enolisation/
+examples/diimide_reduction_ethene/
 
-examples/enolisation/conformers/
+examples/diimide_reduction_ethene/conformers/
 
-examples/enolisation/optimise_reactants_and_products/
+examples/diimide_reduction_ethene/optimise_reactants_and_products/
 
-examples/enolisation/tss/
+examples/diimide_reduction_ethene/tss/
 
-examples/enolisation/single_points/
+examples/diimide_reduction_ethene/single_points/
+
+examples/carbonyl_reduction/
+
+examples/carbonyl_reduction/conformers/
+
+examples/carbonyl_reduction/optimise_reactants_and_products/
+
+examples/carbonyl_reduction/tss/
+
+examples/carbonyl_reduction/single_points/
+
+examples/cyclohexane_elimination/
+
+examples/cyclohexane_elimination/conformers/
+
+examples/cyclohexane_elimination/optimise_reactants_and_products/
+
+examples/cyclohexane_elimination/tss/
+
+examples/cyclohexane_elimination/single_points/
+
+examples/sulfonate_hydrolysis/
+
+examples/sulfonate_hydrolysis/conformers/
+
+examples/sulfonate_hydrolysis/optimise_reactants_and_products/
+
+examples/sulfonate_hydrolysis/tss/
+
+examples/sulfonate_hydrolysis/single_points/
 
 *.log
+
 .vscode/

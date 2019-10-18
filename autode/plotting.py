@@ -10,7 +10,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
 import os
 
-def plot_2dpes(r1, r2, flat_rel_energy_array, method, name='2d_scan'):
+def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     """
     For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
     a 2d polynomial function
@@ -58,22 +58,27 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, method, name='2d_scan'):
     # plt.scatter(r1_flat, r2_flat, c=flat_rel_energy_array)
     plt.colorbar(pos1, ax=ax1)
     plt.colorbar(pos2, ax=ax2)
-    method_name=method.__name__
-    plt.savefig(name + f'_{method_name}.png')
+    plt.savefig(name + '.png')
     
     return 0
 
 
-def plot_1dpes(rs, rel_energies, method, name='1d_scan'):
+def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
     colour_method_dict={'orca':'k', 'xtb':'b', 'mopac':'g'}
-    method_name=method.__name__
+    method_name = method.__name__
+    if 'fbond' in scan_name:
+        label=method_name + '_fbond'
+    elif 'bbond' in scan_name:
+        label=method_name + '_bbond'
+    else:
+        label=method_name
     colour = colour_method_dict.get(method_name.lower(), 'r')
-    plt.plot(rs, rel_energies, marker='o', color=colour, label=method_name)
+    plt.plot(rs, rel_energies, marker='o', color=colour, label=label)
     plt.legend()
     plt.xlabel('$r$ / Å')
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')
-    plt.savefig(name + '.png')
+    plt.savefig(plot_name + '.png')
 
     return 0
 
@@ -126,3 +131,18 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     plt.savefig('reaction_profile.png')
 
     return 0
+
+
+def make_reaction_animation(name, xyzs):
+    """makes an xyz file that animates the reaction pathway
+    
+    Arguments:
+        name {str} -- name of the xyz file to be created
+        xyzs {list of lists} -- list with each element of the list a list of xyzs
+    """
+    logger.info('Generating a reaction pathway animation')
+    with open(f'{name}_animation.xyz', 'w') as output_file:
+        for frame, xyz_list in enumerate(xyzs):
+            print(len(xyz_list), file=output_file)
+            print(frame, file=output_file)
+            [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=output_file) for line in xyz_list]

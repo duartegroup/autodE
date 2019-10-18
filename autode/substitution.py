@@ -143,6 +143,8 @@ def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atoms, to
                 all_attack_vectors[1][0] = opposite_attack
         best_attack_vectors = [all_attack_vectors[0][0], all_attack_vectors[1][0]]
         best_avg_attack_vector = np.average(best_attack_vectors, axis=0)
+    if np.linalg.norm(best_avg_attack_vector) == 0:
+        best_avg_attack_vector = all_attack_vectors[0][0]
     return best_avg_attack_vector / np.linalg.norm(best_avg_attack_vector)
 
 

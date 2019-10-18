@@ -6,12 +6,15 @@ from autode.constants import Constants
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
+from autode.plotting import make_reaction_animation
 from autode.transition_states.ts_guess import TSguess
 from autode.exceptions import XYZsNotFound
+from autode.mol_graphs import make_graph
+from autode.mol_graphs import is_isomorphic
 
 
-def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, delta_dist1=1.5,
-                    delta_dist2=1.5):
+def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, product, 
+                    delta_dist1=1.5, delta_dist2=1.5):
     """
     :param mol:
     :param active_bond1:
@@ -25,7 +28,7 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
     :param delta_dist2:
     :return:
     """
-    logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
+    logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} (delta distance = {delta_dist1}) and {active_bond2} (delta distance = {delta_dist2})')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
     curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
@@ -93,19 +96,39 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
             dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (
                 mol_grid[n][m].xyzs, mol_grid[n][m].energy)
 
+    #check product and TSGuess product graphs are isomorphic
+    logger.info('Checking products were made')
+    ts_product_graph = make_graph(mol_grid[n_steps-1][n_steps-1].xyzs, mol.n_atoms)
+    if not is_isomorphic(ts_product_graph, product.graph):
+        logger.warning('Products were not made')
+        return None
+
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, name=mol.name + '_2dscan', method=method))
+    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name + '_2dscan', method=method))
+
+    mep_xyzs = []
+
+    for i in range(n_steps): 
+        xyz_list = [mol.xyzs for mol in mol_grid[i]]
+        energies_list = [mol.energy for mol in mol_grid[i]]
+        min_energy = min(energies_list)
+        min_energy_index = energies_list.index(min_energy)
+        min_xyz = xyz_list[min_energy_index]
+        mep_xyzs.append(min_xyz)
+
+    make_reaction_animation(name, mep_xyzs)
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
                    active_bonds=[active_bond1, active_bond2])
 
 
-def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name, method):
+def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):
     """
     Find the first order saddle point on a 2D PES given a list of lists defined by their energy
     :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
-    :param name (str) name to use in the plot
+    :param scan_name: (str)
+    :param plot_name: (str) name to use in the plot
     :return:
     """
 
@@ -136,8 +159,16 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, name, method):
     if r1_saddle < 0 or r2_saddle < 0:
         logger.error('2D surface has saddle points with negative distances!')
 
-    logger.info('Plotting 2D scan and saving to {}.png'.format(name + method.__name__))
-    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name, method=method)
+    method_name=method.__name__
+    if 'fbond' in scan_name:
+        name = plot_name + f'_{method_name}_fbonds'
+    elif 'bbond' in scan_name:
+        name = plot_name + f'_{method_name}_bbonds'
+    else:
+        name = plot_name + f'_{method_name}'
+
+    logger.info('Plotting 2D scan and saving to {}.png'.format(name))
+    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)
 
     closest_scan_point_dists = get_closest_point_dists_to_saddle(
         r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())

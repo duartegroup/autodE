@@ -4,12 +4,15 @@ from autode.config import Config
 from autode.log import logger
 from autode.transition_states.ts_guess import TSguess
 from autode.plotting import plot_1dpes
+from autode.plotting import make_reaction_animation
 from autode.constants import Constants
 from autode.calculation import Calculation
 from autode.exceptions import XYZsNotFound
+from autode.mol_graphs import make_graph
+from autode.mol_graphs import is_isomorphic
 
 
-def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
+def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, product, delta_dist=1.5,
                             active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
@@ -52,14 +55,23 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
         # Update the molecule with constraints xyzs such that the next optimisation is as fast as possible
         mol_with_const.xyzs = xyzs
 
+    #check product and TSGuess product graphs are isomorphic
+    logger.info('Checking products were made')
+    ts_product_graph = make_graph(xyzs_list[n_steps - 1], mol.n_atoms)
+    if not is_isomorphic(ts_product_graph, product.graph):
+        logger.warning('Products were not made')
+        return None
+
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(
-        dists, xyzs_list, energy_list, name=mol.name + '_1dscan', method=method))
+        dists, xyzs_list, energy_list, scan_name=name, plot_name=mol.name + '_1dscan', method=method))
 
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
         return None
+
+    make_reaction_animation(name, xyzs_list)
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [
         active_bond] + active_bonds_not_scanned
@@ -67,13 +79,14 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
 
 
-def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name, method):
+def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):
     """
     Given a 1D list of energies find the maximum that between the end points
     :param dist_list: (ndarray)
     :param xyzs_list: (list)
     :param energy_list: (list)
-    :param name: (str)
+    :param scan_name: (str)
+    :param plot_name: (str)
     :return:
     """
 
@@ -91,9 +104,9 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, name, meth
             peak_e = energy_list[i]
             xyzs_peak_energy = xyzs_list[i]
 
-    logger.info('Plotting 1D scan and saving to {}.png'.format(name))
+    logger.info('Plotting 1D scan and saving to {}.png'.format(plot_name))
     plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
-                           for e in energy_list], name=name, method=method)
+                           for e in energy_list], scan_name=scan_name, plot_name=plot_name, method=method)
 
     if peak_e != min_e:
         logger.info(

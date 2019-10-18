@@ -116,8 +116,8 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, threshold_contr
 
     for index, atom in enumerate(final_xyzs):
         atom_label = atom[0]
-        weighting = get_atomic_weight(atom_label)
-        weighted_imag_mode_magnitudes.append(imag_mode_magnitudes[index] * weighting)
+        weighting = get_atomic_weight(atom_label) + 10
+        weighted_imag_mode_magnitudes.append((imag_mode_magnitudes[index] * weighting))
 
 
     should_be_active_atom_magnitudes = []
@@ -127,7 +127,7 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, threshold_contr
 
     relative_contribution = np.sum(np.array(should_be_active_atom_magnitudes)) / np.sum(np.array(weighted_imag_mode_magnitudes))
     if relative_contribution > threshold_contribution:
-        logger.info('TS has significant contribution from the active atoms to the imag mode')
+        logger.info(f'TS has significant contribution from the active atoms to the imag mode (contribution = {relative_contribution})')
         return True
 
     logger.info(f'TS has *no* significant contribution from the active atoms to the imag mode (contribution = {relative_contribution})')
