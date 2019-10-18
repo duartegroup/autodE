@@ -65,15 +65,18 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
 
 def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
-    colour_method_dict={'orca':'k', 'xtb':'b', 'mopac':'g'}
+    fbond_colour_method_dict={'orca':'magenta', 'xtb':'deepskyblue', 'mopac':'forestgreen'}
+    bbond_colour_method_dict={'orca':'darkmagenta', 'xtb':'cyan', 'mopac':'limegreen'}
     method_name = method.__name__
     if 'fbond' in scan_name:
-        label=method_name + '_fbond'
+        label=method_name + ' forming bonds'
+        colour = fbond_colour_method_dict.get(method_name.lower(), 'black')
     elif 'bbond' in scan_name:
-        label=method_name + '_bbond'
+        label=method_name + ' breaking bonds'
+        colour = bbond_colour_method_dict.get(method_name.lower(), 'orange')
     else:
         label=method_name
-    colour = colour_method_dict.get(method_name.lower(), 'r')
+        colour = fbond_colour_method_dict.get(method_name.lower(), 'sienna')
     plt.plot(rs, rel_energies, marker='o', color=colour, label=label)
     plt.legend()
     plt.xlabel('$r$ / Å')
