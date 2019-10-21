@@ -4,9 +4,20 @@ from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mo
 from autode.transition_states.optts import ts_has_correct_imaginary_vector
 from autode.calculation import Calculation
 from autode.geom import xyz2coord
+from autode.mol_graphs import make_graph
 
 
 class TSguess:
+
+    def get_bonded_atoms_to_i(self, atom_i):
+        self.graph = make_graph(self.xyzs, self.n_atoms)
+        bonded_atoms = []
+        for edge in self.graph.edges():
+            if edge[0] == atom_i:
+                bonded_atoms.append(edge[1])
+            if edge[1] == atom_i:
+                bonded_atoms.append(edge[0])
+        return bonded_atoms
 
     def check_optts_convergence(self):
 

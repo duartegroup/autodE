@@ -61,16 +61,6 @@ examples/sn2/tss/
 
 examples/sn2/single_points/
 
-examples/diazene_addition/
-
-examples/diazene_addition/conformers
-
-examples/diazene_addition/optimise_reactants_and_products/
-
-examples/diazene_addition/tss/
-
-examples/diazene_addition/single_points/
-
 examples/cope_rearrangement/
 
 examples/cope_rearrangement/conformers/
@@ -81,16 +71,6 @@ examples/cope_rearrangement/tss/
 
 examples/cope_rearrangement/single_points/
 
-examples/canizzaro/
-
-examples/canizzaro/conformers/
-
-examples/canizzaro/optimise_reactants_and_products/
-
-examples/canizzaro/tss/
-
-examples/canizzaro/single_points/
-
 examples/carbonyl/
 
 examples/carbonyl/conformers/
@@ -100,16 +80,6 @@ examples/carbonyl/optimise_reactants_and_products/
 examples/carbonyl/tss/
 
 examples/carbonyl/single_points/
-
-examples/diimide_reduction_ethene/
-
-examples/diimide_reduction_ethene/conformers/
-
-examples/diimide_reduction_ethene/optimise_reactants_and_products/
-
-examples/diimide_reduction_ethene/tss/
-
-examples/diimide_reduction_ethene/single_points/
 
 examples/carbonyl_reduction/
 
@@ -131,15 +101,25 @@ examples/cyclohexane_elimination/tss/
 
 examples/cyclohexane_elimination/single_points/
 
-examples/sulfonate_hydrolysis/
+examples/carbonyl_reduction_al/
 
-examples/sulfonate_hydrolysis/conformers/
+examples/carbonyl_reduction_al/conformers/
 
-examples/sulfonate_hydrolysis/optimise_reactants_and_products/
+examples/carbonyl_reduction_al/optimise_reactants_and_products/
 
-examples/sulfonate_hydrolysis/tss/
+examples/carbonyl_reduction_al/tss/
 
-examples/sulfonate_hydrolysis/single_points/
+examples/carbonyl_reduction_al/single_points/
+
+examples/sulfonate_ester_hydrolysis/
+
+examples/sulfonate_ester_hydrolysis/conformers/
+
+examples/sulfonate_ester_hydrolysis/optimise_reactants_and_products/
+
+examples/sulfonate_ester_hydrolysis/tss/
+
+examples/sulfonate_ester_hydrolysis/single_points/
 
 *.log
 

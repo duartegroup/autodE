@@ -97,6 +97,12 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, threshold_contr
     bond_ids_to_add
     :return:
     """
+    if threshold_contribution == 0.25:
+        if n_atoms > 20:
+            threshold_contribution = 0.20
+        if n_atoms > 30:
+            threshold_contribution = 0.15
+
     logger.info('Checking the active atoms contribute more than {} to the imag mode'.format(threshold_contribution))
 
     if active_bonds is None:

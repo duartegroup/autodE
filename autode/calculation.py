@@ -7,6 +7,19 @@ from autode.exceptions import NoInputError
 
 class Calculation:
 
+    def _get_core_atoms(self, molecule):
+        active_atoms = set()
+        for bond in self.bond_ids_to_add:
+            active_atoms.add(bond[0])
+            active_atoms.add(bond[1])
+        core_atoms = set()
+        for active_atom in active_atoms:
+            bonded_atoms = molecule.get_bonded_atoms_to_i(active_atom)
+            core_atoms.add(active_atom)
+            for bonded_atom in bonded_atoms:
+                core_atoms.add(bonded_atom)
+        self.core_atoms = list(core_atoms)
+
     def get_energy(self):
         logger.info('Getting energy from {}'.format(self.output_filename))
         if self.terminated_normally:
@@ -110,7 +123,7 @@ class Calculation:
         for filename in os.listdir(os.getcwd()):
             name_string = (self.input_filename)[:-4]
             if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz'))) or filename.endswith('.smd.out'):
+                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp'))) or filename.endswith('.smd.out'):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')
@@ -145,6 +158,7 @@ class Calculation:
         self.keywords = keywords
         self.flags = None
         self.opt = opt
+        self.core_atoms = None
 
         self.solvent = molecule.solvent
 
@@ -174,5 +188,8 @@ class Calculation:
         if self.xyzs is None:
             logger.error('Have no xyzs. Can\'t make a calculation')
             return
+
+        if self.bond_ids_to_add:
+            self._get_core_atoms(molecule)
 
         self.n_atoms = len(self.xyzs)

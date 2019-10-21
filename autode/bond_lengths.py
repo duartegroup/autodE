@@ -169,5 +169,7 @@ avg_bond_lengths = {
     'RhC': 2.2,
     'RhH': 1.5,
     'RhP': 2.20,
-    'SO': 1.63
+    'SO': 1.63,
+    'AlCl': 2.1,
+    'AlH': 1.66
 }

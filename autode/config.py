@@ -37,7 +37,7 @@ class Config:
         hess_keywords = ['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         opt_ts_block = ('%geom\n'
                         'inhess Read\n'
-                        'Recalc_Hess 40\n'
+                        'Recalc_Hess 30\n'
                         'Trust 0.2\n'
                         'MaxIter 100')
         sp_keywords = ['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP']

@@ -79,6 +79,9 @@ def generate_input(calc):
             print(calc.optts_block, file=inp_file)
             name = calc.name.replace('_optts', '_hess_orca.hess')
             print(f'InHessName "{name}"', file=inp_file)
+            if calc.core_atoms:
+                core_atoms_str = ' '.join(map(str, calc.core_atoms))
+                print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)            
             print('end', file=inp_file)
 
         if calc.bond_ids_to_add:
