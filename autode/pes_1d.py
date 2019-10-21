@@ -10,6 +10,7 @@ from autode.calculation import Calculation
 from autode.exceptions import XYZsNotFound
 from autode.mol_graphs import make_graph
 from autode.mol_graphs import is_subgraph_isomorphic
+from autode.pes_2d import replace_none
 
 
 def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, products, delta_dist=1.5,
@@ -57,11 +58,17 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
 
     #check product and TSGuess product graphs are isomorphic
     logger.info('Checking products were made')
-    ts_product_graph = make_graph(xyzs_list[n_steps - 1], mol.n_atoms)
-    for product in products:
-        if not is_subgraph_isomorphic(ts_product_graph, product.graph):
-            logger.warning(f'{product.name} was not made')
-            return None
+    ts_product_graphs = [make_graph(xyzs, mol.n_atoms) for xyzs in xyzs_list[::-1]]
+    products_made = False
+    for graph in ts_product_graphs:
+        if all(is_subgraph_isomorphic(graph, product.graph) for product in products):
+            products_made = True
+        if products_made:
+            break
+
+    if not products_made:
+        logger.info('Products not made')
+        return None    
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)

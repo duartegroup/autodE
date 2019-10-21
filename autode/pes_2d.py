@@ -98,11 +98,20 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
 
     #check product and TSGuess product graphs are isomorphic
     logger.info('Checking products were made')
-    ts_product_graph = make_graph(mol_grid[n_steps-1][n_steps-1].xyzs, mol.n_atoms)
-    for product in products:
-        if not is_subgraph_isomorphic(ts_product_graph, product.graph):
-            logger.warning(f'{product.name} was not made')
-            return None
+    products_made = False
+    for row in mol_grid[::-1]:
+        ts_product_graphs = [make_graph(mol.xyzs, mol.n_atoms) for mol in row[::-1]]
+        for graph in ts_product_graphs:
+            if all(is_subgraph_isomorphic(graph, product.graph) for product in products):
+                products_made = True
+            if products_made:
+                break
+        if products_made:
+            break
+
+    if not products_made:
+        logger.info('Products not made')
+        return None   
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
@@ -113,7 +122,8 @@ def get_ts_guess_2d(mol, active_bond1, active_bond2, n_steps, name, reaction_cla
     for i in range(n_steps): 
         xyz_list = [mol.xyzs for mol in mol_grid[i]]
         energies_list = [mol.energy for mol in mol_grid[i]]
-        min_energy = min(energies_list)
+        energies_not_none = replace_none(energies_list)
+        min_energy = min(energies_not_none)
         min_energy_index = energies_list.index(min_energy)
         min_xyz = xyz_list[min_energy_index]
         mep_xyzs.append(min_xyz)
@@ -217,7 +227,10 @@ def replace_none(lst):
     :param lst: (list)
     :return:
     """
-    last = None
+    for item in lst:
+        if item is not None:
+            last = item
+            break
     for item in lst:
         if item is None:
             yield last
