@@ -65,7 +65,7 @@ class TSguess:
         
         self.hess_calc.run()
 
-        imag_freqs = self.hess_calc.get_imag_freqs
+        imag_freqs = self.hess_calc.get_imag_freqs()
         if len(imag_freqs) == 0:
             logger.info('Hessian showed no imaginary modes')
             return None

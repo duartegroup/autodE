@@ -9,7 +9,7 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
     reac_complex_coords = reac_complex.get_coords()
 
     reactant_n_atoms = [reactant.n_atoms for reactant in reactants]
-    if all(reactant_n_atoms > 15):
+    if all(n_atoms > 15 for n_atoms in reactant_n_atoms):
         shift_factor =+ 0.5
 
     all_attacked_atoms = get_attacked_atom(bond_rearrangement)
