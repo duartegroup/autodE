@@ -30,7 +30,10 @@ def find_tss(reaction):
     for bond_rearrangement in bond_rearrangs:
 
         if reaction.type in [Substitution, Elimination]:
-            set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement)
+            fbond_ideal_lengths = [get_avg_bond_length(mol=reactant, bond=fbond) for fbond in bond_rearrangement.fbonds]
+            avg_fbond_length = np.average(fbond_ideal_lengths)
+
+            set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement, shift_factor=avg_fbond_length + 1.5)
             
         for func, params in get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrangement):
             logger.info('Trying to find a TS guess with {}'.format(func.__name__))

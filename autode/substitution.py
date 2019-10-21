@@ -8,6 +8,10 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
     logger.info('Translating reactant atoms into reactive complex')
     reac_complex_coords = reac_complex.get_coords()
 
+    reactant_n_atoms = [reactant.n_atoms for reactant in reactants]
+    if all(reactant_n_atoms > 15):
+        shift_factor =+ 0.5
+
     all_attacked_atoms = get_attacked_atom(bond_rearrangement)
     all_attacked_atom_coords = [reac_complex_coords[attacked_atom] for attacked_atom in all_attacked_atoms]
     avg_attacked_atom_coords = np.average(all_attacked_atom_coords, axis=0)

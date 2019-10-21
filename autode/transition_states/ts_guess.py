@@ -64,6 +64,14 @@ class TSguess:
                                       max_core_mb=Config.max_core)
         
         self.hess_calc.run()
+
+        imag_freqs = self.hess_calc.get_imag_freqs
+        if len(imag_freqs) == 0:
+            logger.info('Hessian showed no imaginary modes')
+            return None
+        if len(imag_freqs) > 1:
+            logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
+
         if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms,
                                            active_bonds=self.active_bonds, threshold_contribution=0.1):
             return None

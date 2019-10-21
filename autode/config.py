@@ -28,7 +28,7 @@ class Config:
         # ------------------------------------------------------------------------------------------
         #
         # Note: path can be unset and will be assigned if it can be found in $PATH
-        path = None
+        path = '/usr/local/orca_4_1_2_linux_x86-64/orca'
 
         scan_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
         conf_opt_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
@@ -48,7 +48,7 @@ class Config:
         # ------------------------------------------------------------------------------------------
         #
         # Note: path can be unset and will be assigned if it can be found in $PATH
-        path = None 
+        path = '/u/fd/ball4935/opt/bin/xtb'
 
     class MOPAC:
         # ------------------------------------------------------------------------------------------
