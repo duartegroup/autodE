@@ -40,6 +40,31 @@ class Molecule:
             logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
+    def _get_core_atoms(self, depth=3):
+        if self.active_atoms == None:
+            logger.error('No active atoms found')
+            return None
+        core_atoms=set(self.active_atoms)
+        for i in range(depth-1):
+            temp_core_atoms=set()
+            for atom in core_atoms:
+                bonded_list = self.get_bonded_atoms_to_i(atom)
+                temp_core_atoms.add(atom)
+                for bonded_atom in bonded_list:
+                    temp_core_atoms.add(bonded_atom)
+            core_atoms = temp_core_atoms
+
+        core_atoms_incl_ring=set()
+        for atom in core_atoms:
+            cycle = mol_graphs.find_cycle(self.graph, atom)
+            if cycle is not None:
+                for atom in cycle:
+                    core_atoms_incl_ring.add(atom)
+            else:
+                core_atoms_incl_ring.add(atom)
+        
+        return sorted(core_atoms_incl_ring)
+
     def calc_bond_distance(self, bond):
         return self.distance_matrix[bond[0], bond[1]]
 
@@ -122,6 +147,22 @@ class Molecule:
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
+    def strip_core(self):
+        logger.info('Stripping the extraneous atoms')
+        bonded_to_core = set()
+        core_atoms = self._get_core_atoms()
+        if core_atoms is None:
+            logger.error('No core atoms, not stripping extraneous atoms')
+            pass
+        for atom in core_atoms:
+            bonded_atoms = self.get_bonded_atoms_to_i(atom)
+            for bonded_atom in bonded_atoms:
+                if not bonded_atom in core_atoms:
+                    bonded_to_core.add(bonded_atom)
+        bonded_to_core_xyzs = [self.xyzs[i] for i in bonded_to_core]
+        truncated_xyzs = [self.xyzs[i] for i in core_atoms] + [['H'] + xyz[1:] for xyz in bonded_to_core_xyzs]
+        self.set_xyzs(truncated_xyzs)
+
     def find_lowest_energy_conformer(self):
         """
         For a molecule object find the lowest in energy and set it as the mol.xyzs and mol.energy
@@ -160,6 +201,7 @@ class Molecule:
             logger.error('Setting xyzs as None')
             return
 
+        self.n_atoms = len(xyzs)
         self.distance_matrix = calc_distance_matrix(xyzs)
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
         self.n_bonds = self.graph.number_of_edges()
@@ -253,6 +295,7 @@ class Molecule:
         self.rdkit_conf_gen_is_fine = True
         self.graph = None
         self.distance_matrix = None
+        self.active_atoms = None
 
         if smiles:
             self._init_smiles(name, smiles)

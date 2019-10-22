@@ -79,3 +79,27 @@ def is_isomorphic(graph1, graph2):
 
 def gm_is_isomorphic(gm, result):
     result[0] = gm.is_isomorphic()
+
+
+def find_cycle(graph, atom_i):
+    """Finds if atom i is part of a ring, and returns the members of the ring if so
+    
+    Arguments:
+        graph {nx.Graph} -- the molecular graph
+        atom_i {int} -- the index of the atom being investigated
+    
+    Returns:
+        list -- sorted list of atoms in the ring
+    """
+    logger.info('Looking for rings')
+    try:
+        cycle = nx.find_cycle(graph, atom_i)
+        logger.info('Atom {atom_i} is part of a ring')
+    except:
+        logger.info(f'Atom {atom_i} is not part of a ring')
+        return None
+    cycle_atoms = set()
+    for edge in cycle:
+        cycle_atoms.add(edge[0])
+        cycle_atoms.add(edge[1])
+    return sorted(cycle_atoms)
