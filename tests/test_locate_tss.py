@@ -75,14 +75,14 @@ def test_get_funcs_and_params():
     assert len(dissoc_f_and_p) == 4
     assert dissoc_f_and_p[0][0] == locate_tss.get_template_ts_guess
     assert type(dissoc_f_and_p[1][1][0]) == molecule.Reactant
-    assert dissoc_f_and_p[1][1][1] == (0,1)
-    assert dissoc_f_and_p[1][1][3] == 'H2--H+H_0-1_ll1d'
-    assert dissoc_f_and_p[3][1][4] == locate_tss.Dissociation
+    assert dissoc_f_and_p[1][1][2] == (0,1)
+    assert dissoc_f_and_p[1][1][4] == 'H2--H+H_0-1_ll1d'
+    assert dissoc_f_and_p[3][1][5] == locate_tss.Dissociation
 
     subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
     assert type(subs_f_and_p) == list
     assert len(subs_f_and_p) == 7
-    assert subs_f_and_p[3][1][4] == locate_tss.Substitution
+    assert subs_f_and_p[3][1][5] == locate_tss.Substitution
 
 
 def test_strip_equivalent_rearrangements():

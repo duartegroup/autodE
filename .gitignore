@@ -81,16 +81,6 @@ examples/carbonyl/tss/
 
 examples/carbonyl/single_points/
 
-examples/carbonyl_reduction/
-
-examples/carbonyl_reduction/conformers/
-
-examples/carbonyl_reduction/optimise_reactants_and_products/
-
-examples/carbonyl_reduction/tss/
-
-examples/carbonyl_reduction/single_points/
-
 examples/cyclohexane_elimination/
 
 examples/cyclohexane_elimination/conformers/
@@ -101,25 +91,25 @@ examples/cyclohexane_elimination/tss/
 
 examples/cyclohexane_elimination/single_points/
 
-examples/carbonyl_reduction_al/
+examples/hydroboration/
 
-examples/carbonyl_reduction_al/conformers/
+examples/hydroboration/conformers/
 
-examples/carbonyl_reduction_al/optimise_reactants_and_products/
+examples/hydroboration/optimise_reactants_and_products/
 
-examples/carbonyl_reduction_al/tss/
+examples/hydroboration/tss/
 
-examples/carbonyl_reduction_al/single_points/
+examples/hydroboration/single_points/
 
-examples/sulfonate_ester_hydrolysis/
+examples/electrophilic_sulfur/
 
-examples/sulfonate_ester_hydrolysis/conformers/
+examples/electrophilic_sulfur/conformers/
 
-examples/sulfonate_ester_hydrolysis/optimise_reactants_and_products/
+examples/electrophilic_sulfur/optimise_reactants_and_products/
 
-examples/sulfonate_ester_hydrolysis/tss/
+examples/electrophilic_sulfur/tss/
 
-examples/sulfonate_ester_hydrolysis/single_points/
+examples/electrophilic_sulfur/single_points/
 
 *.log
 

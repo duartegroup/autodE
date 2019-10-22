@@ -20,7 +20,7 @@ def test_get_ts_guess_2dscan():
     # May not actually be available, but the .out files are included so this should work
     mol.method.available = True
 
-    ts_guess = get_ts_guess_2d(mol=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
+    ts_guess = get_ts_guess_2d(mol=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
                                reaction_class=Dissociation, method=ORCA, keywords=Config.ORCA.scan_keywords,
                                products = [product], delta_dist1=0.2, delta_dist2=0.2)
 

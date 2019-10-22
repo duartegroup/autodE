@@ -13,11 +13,12 @@ from autode.mol_graphs import is_subgraph_isomorphic
 from autode.pes_2d import replace_none
 
 
-def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, method, keywords, products, delta_dist=1.5,
+def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, products, delta_dist=1.5,
                             active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
+    :param product: single molecule object of the products
     :param active_bond: (tuple) of atom ids
     :param method: (object) electronic structure method
     :param keywords (list) list of keywords required by an electronic structure method
@@ -25,6 +26,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     :param n_steps: (int) Number of scan steps to use in the XTB scan
     :param name: (str) Name of reaction
     :param reaction_class: (object) class of the reaction (reactions.py)
+    :param products: (object) list of product molecule objects
     :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
     :return: List of xyzs
     """
@@ -84,7 +86,7 @@ def get_ts_guess_1dpes_scan(mol, active_bond, n_steps, name, reaction_class, met
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [
         active_bond] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds)
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
 
 
 def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):
@@ -101,20 +103,23 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name,
     logger.info('Finding peak in 1D PES')
 
     xyzs_peak_energy = None
+
+    energies_not_none = list(replace_none(energy_list))
+
     if len(xyzs_list) == 0 or len(energy_list) == 0:
         logger.error('Had no distances, xyzs and energies')
         return None
 
-    peak_e, min_e = min(energy_list), min(energy_list)
+    peak_e, min_e = min(energies_not_none), min(energies_not_none)
 
     for i in range(1, len(dist_list) - 1):
-        if energy_list[i] > peak_e and energy_list[i-1] < energy_list[i] > energy_list[i+1]:
+        if energies_not_none[i] > peak_e and energies_not_none[i-1] <= energies_not_none[i] >= energies_not_none[i+1]:
             peak_e = energy_list[i]
             xyzs_peak_energy = xyzs_list[i]
 
     logger.info('Plotting 1D scan and saving to {}.png'.format(plot_name))
     plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
-                           for e in energy_list], scan_name=scan_name, plot_name=plot_name, method=method)
+                           for e in energies_not_none], scan_name=scan_name, plot_name=plot_name, method=method)
 
     if peak_e != min_e:
         logger.info(

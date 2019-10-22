@@ -91,7 +91,7 @@ class TSguess:
     def get_coords(self):
         return xyz2coord(self.xyzs)
 
-    def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None):
+    def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
         """
         :param name: (str)
         :param reaction_class: (object)
@@ -108,6 +108,8 @@ class TSguess:
         self.mult = molecule.mult
         self.active_bonds = active_bonds
         self.method = molecule.method
+        self.reactant = reactant
+        self.product = product
 
         self.optts_converged = False
         self.optts_nearly_converged = False
