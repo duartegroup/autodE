@@ -8,6 +8,7 @@ from autode.constants import Constants
 from autode.conformers.conformers import generate_unique_rdkit_confs
 from autode.bond_lengths import get_xyz_bond_list
 from autode.bond_lengths import get_bond_list_from_rdkit_bonds
+from autode.bond_lengths import get_avg_bond_length
 from autode.geom import calc_distance_matrix
 from autode.geom import xyz2coord
 from autode.conformers.conformers import extract_xyzs_from_rdkit_mol_object
@@ -16,6 +17,7 @@ from autode.conformers.conformers import rdkit_conformer_geometries_are_resonabl
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
 from autode.methods import get_hmethod
+import numpy as np
 
 
 class Molecule:
@@ -62,8 +64,16 @@ class Molecule:
                     core_atoms_incl_ring.add(atom)
             else:
                 core_atoms_incl_ring.add(atom)
+
+        core_atoms_incl_h = set()
+        for atom in core_atoms_incl_ring:
+            core_atoms_incl_h.add(atom)
+            bonded_list = self.get_bonded_atoms_to_i(atom)
+            for bonded_atom in bonded_list:
+                if self.get_atom_label(bonded_atom) == 'H':
+                    core_atoms_incl_h.add(bonded_atom)
         
-        return sorted(core_atoms_incl_ring)
+        return sorted(core_atoms_incl_h)
 
     def calc_bond_distance(self, bond):
         return self.distance_matrix[bond[0], bond[1]]
@@ -150,17 +160,32 @@ class Molecule:
     def strip_core(self):
         logger.info('Stripping the extraneous atoms')
         bonded_to_core = set()
+        bond_from_core = []
+        new_bond_from_core = []
         core_atoms = self._get_core_atoms()
+        non_core_atoms = [i for i in range(self.n_atoms) if not i in core_atoms]
+        coords = self.get_coords()
         if core_atoms is None:
             logger.error('No core atoms, not stripping extraneous atoms')
             pass
-        for atom in core_atoms:
+        for new_index, atom in enumerate(core_atoms):
             bonded_atoms = self.get_bonded_atoms_to_i(atom)
             for bonded_atom in bonded_atoms:
                 if not bonded_atom in core_atoms:
                     bonded_to_core.add(bonded_atom)
-        bonded_to_core_xyzs = [self.xyzs[i] for i in bonded_to_core]
-        truncated_xyzs = [self.xyzs[i] for i in core_atoms] + [['H'] + xyz[1:] for xyz in bonded_to_core_xyzs]
+                    bond_from_core.append((atom, bonded_atom))
+                    #want to get the indexes of the atoms when non core has been removed then re-added
+                    new_bonded_atom_index = len(core_atoms) - 1 + non_core_atoms.index(bonded_atom)
+                    new_bond_from_core.append((new_index, new_bonded_atom_index))
+        truncated_xyzs = [self.xyzs[i] for i in core_atoms]
+        for bond in bond_from_core:
+            core_atom = bond[0]
+            bonded_atom = bond[1]
+            bond_vector = coords[bonded_atom] - coords[core_atom]
+            normed_bond_vector = bond_vector / np.linalg.norm(bond_vector)
+            avg_bond_length = get_avg_bond_length(self.get_atom_label(core_atom), 'H')
+            h_coords = (coords[core_atom] + normed_bond_vector * avg_bond_length).tolist()
+            truncated_xyzs.append(['H'] + h_coords)
         self.set_xyzs(truncated_xyzs)
 
     def find_lowest_energy_conformer(self):
