@@ -59,11 +59,14 @@ def find_tss(reaction):
 def get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrang):
     products = reaction.prods
 
-    name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
-    name += '_' + '_'.join([str(bond[0]) + '-' + str(bond[1]) for bond in bond_rearrang.all]) + '_'
+    name = '+'.join([r.name for r in reaction.reacs]) + '--' + \
+        '+'.join([p.name for p in reaction.prods])
+    name += '_' + '_'.join([str(bond[0]) + '-' + str(bond[1])
+                            for bond in bond_rearrang.all]) + '_'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
-    funcs_params = [(get_template_ts_guess, (reactant, bond_rearrang.all, reaction.type))]
+    funcs_params = [
+        (get_template_ts_guess, (reactant, bond_rearrang.all, reaction.type))]
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, product, bond_rearrang.bbonds[0], 20, name + 'll1d',
@@ -86,7 +89,8 @@ def get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrang):
 
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
         fbond = bond_rearrang.fbonds[0]
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(
+            mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, product, fbond, 20, name + 'll1d_fbond', reaction.type, lmethod,
                                                        lmethod.scan_keywords, products, delta_fbond_dist, [fbond])))
@@ -95,7 +99,8 @@ def get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrang):
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(
+            mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 20, name + 'll2d', reaction.type, lmethod,
                                                lmethod.scan_keywords, products, delta_fbond_dist, 1.5)))
@@ -104,8 +109,10 @@ def get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrang):
 
     if bond_rearrang.n_fbonds == 2:
         fbond1, fbond2 = bond_rearrang.fbonds
-        delta_fbond_dist1 = get_avg_bond_length(mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
-        delta_fbond_dist2 = get_avg_bond_length(mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
+        delta_fbond_dist1 = get_avg_bond_length(
+            mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
+        delta_fbond_dist2 = get_avg_bond_length(
+            mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 10, name + 'll2d_fbonds', reaction.type, lmethod,
                                                lmethod.scan_keywords, products, delta_fbond_dist1, delta_fbond_dist2)))
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 7, name + 'hl2d_fbonds', reaction.type, hmethod,
@@ -133,19 +140,24 @@ def get_reactant_and_product_complexes(reaction):
 
     if reaction.type == Dissociation:
         reactant = reaction.reacs[0]
-        product = gen_two_mol_complex(name='product_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
+        product = gen_two_mol_complex(
+            name='product_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
 
     elif reaction.type == Rearrangement:
         reactant = reaction.reacs[0]
         product = reaction.prods[0]
 
     elif reaction.type == Substitution:
-        reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
-        product = gen_two_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
+        reactant = gen_two_mol_complex(
+            name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        product = gen_two_mol_complex(
+            name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
 
     elif reaction.type == Elimination:
-        reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
-        product = gen_three_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
+        reactant = gen_two_mol_complex(
+            name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        product = gen_three_mol_complex(
+            name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
 
     else:
         logger.critical('Reaction type not currently supported')
@@ -179,19 +191,24 @@ def get_bond_rearrangs(mol, product):
     elif delta_n_bonds == -1:
         funcs = [get_fbonds_bbonds_1b2f]
     else:
-        logger.error('Cannot treat a change in bonds reactant <- product of {}'.format(delta_n_bonds))
+        logger.error(
+            'Cannot treat a change in bonds reactant <- product of {}'.format(delta_n_bonds))
         return None
 
     for func in funcs:
-        possible_bond_rearrangements = func(possible_fbonds, possible_bbonds, mol, product, possible_bond_rearrangements)
+        possible_bond_rearrangements = func(
+            possible_fbonds, possible_bbonds, mol, product, possible_bond_rearrangements)
         if len(possible_bond_rearrangements) > 0:
-            logger.info('Found a molecular graph rearrangement to products with {}'.format(func.__name__))
+            logger.info('Found a molecular graph rearrangement to products with {}'.format(
+                func.__name__))
             # This function will return with from the first bond rearrangement that leads to products
 
             n_bond_rearrangs = len(possible_bond_rearrangements)
             if n_bond_rearrangs > 1:
-                logger.info('Multiple *{}* possible bond breaking/makings are possible'.format(n_bond_rearrangs))
-                possible_bond_rearrangements = strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangements)
+                logger.info(
+                    'Multiple *{}* possible bond breaking/makings are possible'.format(n_bond_rearrangs))
+                possible_bond_rearrangements = strip_equivalent_bond_rearrangs(
+                    mol, possible_bond_rearrangements)
 
             return possible_bond_rearrangements
 
@@ -210,9 +227,11 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
                 # we don't need to run isomorphism
                 return bond_rearrangs
 
-    rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=fbonds, bbonds=bbonds)
+    rearranged_graph = generate_rearranged_graph(
+        reactant.graph, fbonds=fbonds, bbonds=bbonds)
     if is_isomorphic(rearranged_graph, product.graph):
-        bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds))
+        bond_rearrangs.append(BondRearrangement(
+            forming_bonds=fbonds, breaking_bonds=bbonds))
 
     return bond_rearrangs
 
@@ -239,7 +258,8 @@ def get_fbonds_bbonds_2b(possible_fbonds, possible_bbonds, reactant, product, po
 
 def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
 
-    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)*len(possible_fbonds)))
+    logger.info('Have {} isomorphisms to do'.format(
+        len(possible_bbonds)*len(possible_fbonds)))
 
     for fbond in possible_fbonds:
         for bbond in possible_bbonds:
@@ -250,7 +270,8 @@ def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, 
 
 
 def get_fbonds_bbonds_1b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
-    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)*len(possible_fbonds)**2))
+    logger.info('Have {} isomorphisms to do'.format(
+        len(possible_bbonds)*len(possible_fbonds)**2))
 
     for bbond in possible_bbonds:
         for i in range(len(possible_fbonds)):
@@ -263,7 +284,8 @@ def get_fbonds_bbonds_1b2f(possible_fbonds, possible_bbonds, reactant, product, 
 
 
 def get_fbonds_bbonds_2b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
-    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)**2*len(possible_fbonds)))
+    logger.info('Have {} isomorphisms to do'.format(
+        len(possible_bbonds)**2*len(possible_fbonds)))
 
     for fbond in possible_fbonds:
         for i in range(len(possible_bbonds)):
@@ -277,7 +299,8 @@ def get_fbonds_bbonds_2b1f(possible_fbonds, possible_bbonds, reactant, product, 
 
 def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
     logger.info('Getting possible 2 breaking and 2 forming bonds')
-    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)**2*len(possible_fbonds)**2))
+    logger.info('Have {} isomorphisms to do'.format(
+        len(possible_bbonds)**2*len(possible_fbonds)**2))
 
     for m in range(len(possible_fbonds)):
         for n in range(len(possible_fbonds)):
@@ -288,7 +311,8 @@ def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, 
                             bbond1, bbond2 = possible_bbonds[i], possible_bbonds[j]
                             fbond1, fbond2 = possible_fbonds[m], possible_fbonds[n]
                             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
-                                                                            fbonds=[fbond1, fbond2],
+                                                                            fbonds=[
+                                                                                fbond1, fbond2],
                                                                             bbonds=[bbond1, bbond2])
     return possible_bond_rearrangs
 
@@ -330,7 +354,8 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
     :param possible_bond_rearrangs: (list(object)) list of BondRearrangement objects
     :return: (list(object)) list of BondRearrangement objects
     """
-    logger.info('Stripping the forming and breaking bond list by discarding rearrangements with equivalent atoms')
+    logger.info(
+        'Stripping the forming and breaking bond list by discarding rearrangements with equivalent atoms')
 
     unique_bond_rearrangements = []
 
@@ -347,5 +372,6 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
         if bond_rearrang_is_unique:
             unique_bond_rearrangements.append(bond_rearrang)
 
-    logger.info('Stripped {} bond rearrangements'.format(len(possible_bond_rearrangs)-len(unique_bond_rearrangements)))
+    logger.info('Stripped {} bond rearrangements'.format(
+        len(possible_bond_rearrangs)-len(unique_bond_rearrangements)))
     return unique_bond_rearrangements

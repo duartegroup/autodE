@@ -11,7 +11,8 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_constrained_opt():
     os.chdir(os.path.join(here, 'data'))
 
-    h3_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0], ['H', 1.7, 0.0, 0.0]]
+    h3_xyzs = [['H', 0.0, 0.0, 0.0], [
+        'H', 0.7, 0.0, 0.0], ['H', 1.7, 0.0, 0.0]]
     mol = Molecule(name='h3', xyzs=h3_xyzs, mult=2)
     mol.method = ORCA
 
@@ -25,5 +26,5 @@ def test_constrained_opt():
             os.remove(filename)
         if filename.endswith('.png'):
             os.remove(filename)
-        
+
     os.chdir(here)

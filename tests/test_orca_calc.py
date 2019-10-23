@@ -15,7 +15,8 @@ def test_orca_opt_calculation():
     os.chdir(os.path.join(here, 'data'))
     ORCA.available = True
 
-    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
+    methylchloride = Molecule(
+        name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=ORCA, opt=True,
                        keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
     calc.run()
@@ -47,7 +48,8 @@ def test_orca_optts_calculation():
     ORCA.available = True
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=ORCA, opt=True,
-                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                       keywords=['Opt', 'PBE0', 'RIJCOSX',
+                                 'D3BJ', 'def2-SVP', 'def2/J'],
                        optts_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
     calc.run()
 

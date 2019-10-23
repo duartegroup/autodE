@@ -46,16 +46,20 @@ def test_ts_guess_class():
     assert ts_guess_obj.optts_converged == True
 
     # testing optts.get_displaced_xyzs_along_imaginary_mode
-    displaced_xyzs = optts.get_displaced_xyzs_along_imaginary_mode(ts_guess_obj.optts_calc, 6)
+    displaced_xyzs = optts.get_displaced_xyzs_along_imaginary_mode(
+        ts_guess_obj.optts_calc, 6)
 
     assert displaced_xyzs[0][1] == ts_xyzs[0][1] + 0.268035
     assert displaced_xyzs[3][2] == ts_xyzs[3][2] - 0.020503
     assert displaced_xyzs[5][3] == ts_xyzs[5][3] - 0.015893
 
     # testing optts.ts_has_correct_imaginary_vector
-    assert optts.ts_has_correct_imaginary_vector(ts_guess_obj.optts_calc, 5, [(0,1), (1,2)]) == True
-    assert optts.ts_has_correct_imaginary_vector(ts_guess_obj.optts_calc, 5, None) == True
-    assert optts.ts_has_correct_imaginary_vector(ts_guess_obj.optts_calc, 5, [(3,4)]) == False
+    assert optts.ts_has_correct_imaginary_vector(
+        ts_guess_obj.optts_calc, 5, [(0, 1), (1, 2)]) == True
+    assert optts.ts_has_correct_imaginary_vector(
+        ts_guess_obj.optts_calc, 5, None) == True
+    assert optts.ts_has_correct_imaginary_vector(
+        ts_guess_obj.optts_calc, 5, [(3, 4)]) == False
 
     # testing ts_guess.do_displacements
     ts_guess_obj.do_displacements()
@@ -95,7 +99,8 @@ def test_ts_template():
     ts_obj = optts.get_ts(ts_guess_obj)
 
     ts_obj.save_ts_template(folder_path=here)
-    assert len(get_ts_templates(reaction_class=ts_obj.reaction_class, folder_path=here)) >= 1
+    assert len(get_ts_templates(
+        reaction_class=ts_obj.reaction_class, folder_path=here)) >= 1
     assert os.path.exists(os.path.join(here, 'template0.obj'))
     os.remove(os.path.join(here, 'template0.obj'))
     for filename in os.listdir(os.getcwd()):

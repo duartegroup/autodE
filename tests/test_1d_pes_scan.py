@@ -11,7 +11,8 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_get_ts_guess_1dscan():
     os.chdir(os.path.join(here, 'data'))
 
-    h3_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0], ['H', 1.7, 0.0, 0.0]]
+    h3_xyzs = [['H', 0.0, 0.0, 0.0], [
+        'H', 0.7, 0.0, 0.0], ['H', 1.7, 0.0, 0.0]]
     mol = Molecule(name='h3', xyzs=h3_xyzs, mult=2)
     mol.method = ORCA
 
@@ -20,7 +21,7 @@ def test_get_ts_guess_1dscan():
 
     ts_guess = get_ts_guess_1dpes_scan(mol=mol, product=mol, active_bond=(1, 2), n_steps=5, name='h3_subst',
                                        reaction_class=Substitution, method=ORCA, keywords=Config.ORCA.scan_keywords,
-                                       products = [mol], delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)])
+                                       products=[mol], delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)])
 
     assert len(ts_guess.active_bonds) == 2
     assert os.path.exists('h3_1dscan.png')
@@ -30,5 +31,5 @@ def test_get_ts_guess_1dscan():
             os.remove(filename)
         if filename.endswith('.png'):
             os.remove(filename)
-    
+
     os.chdir(here)

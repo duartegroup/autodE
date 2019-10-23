@@ -6,7 +6,8 @@ class BondRearrangement(object):
     def get_active_atom_neighbour_lists(self, mol, depth):
 
         if self.active_atom_nl is None:
-            self.active_atom_nl = [get_neighbour_list(atom_i=atom, mol=mol)[:depth] for atom in self.active_atoms]
+            self.active_atom_nl = [get_neighbour_list(atom_i=atom, mol=mol)[
+                :depth] for atom in self.active_atoms]
 
         return self.active_atom_nl
 

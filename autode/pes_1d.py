@@ -30,7 +30,8 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
     :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
     :return: List of xyzs
     """
-    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
+    logger.info(
+        f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
     mol_with_const = deepcopy(mol)
 
     curr_dist = mol.calc_bond_distance(active_bond)
@@ -58,9 +59,10 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
         # Update the molecule with constraints xyzs such that the next optimisation is as fast as possible
         mol_with_const.xyzs = xyzs
 
-    #check product and TSGuess product graphs are isomorphic
+    # check product and TSGuess product graphs are isomorphic
     logger.info('Checking products were made')
-    ts_product_graphs = [make_graph(xyzs, mol.n_atoms) for xyzs in xyzs_list[::-1]]
+    ts_product_graphs = [make_graph(xyzs, mol.n_atoms)
+                         for xyzs in xyzs_list[::-1]]
     products_made = False
     for graph in ts_product_graphs:
         if all(is_subgraph_isomorphic(graph, product.graph) for product in products):
@@ -70,7 +72,7 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
 
     if not products_made:
         logger.info('Products not made')
-        return None    
+        return None
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)

@@ -12,7 +12,8 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.1):
     length
     :return: (list(tuple)) list of bonds given as tuples of atom ids
     """
-    logger.info('Getting bond list from xyzs. Maximum bond is x(1+.{}) average'.format(relative_tolerance))
+    logger.info(
+        'Getting bond list from xyzs. Maximum bond is x(1+.{}) average'.format(relative_tolerance))
 
     bond_list = []
 
@@ -34,7 +35,8 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.1):
                 elif key2 in avg_bond_lengths:
                     i_j_bond_length = avg_bond_lengths[key2]
                 else:
-                    logger.warning('Couldn\'t find a default bond for {}–{}'.format(atom_i_label, atom_j_label))
+                    logger.warning('Couldn\'t find a default bond for {}–{}'.format(
+                        atom_i_label, atom_j_label))
                     i_j_bond_length = 1.5  # Default bonded distance
 
                 if dist < i_j_bond_length * (1.0 + relative_tolerance):
@@ -88,7 +90,8 @@ def get_ideal_bond_length_matrix(xyzs, bonds):
     for i in range(n_atoms):
         for j in range(n_atoms):
             if (i, j) in bonds or (j, i) in bonds:
-                ideal_bondl_matrix[i, j] = get_avg_bond_length(atom_i_label=xyzs[i][0], atom_j_label=xyzs[j][0])
+                ideal_bondl_matrix[i, j] = get_avg_bond_length(
+                    atom_i_label=xyzs[i][0], atom_j_label=xyzs[j][0])
 
     return ideal_bondl_matrix
 
@@ -116,7 +119,8 @@ def get_avg_bond_length(atom_i_label=None, atom_j_label=None, mol=None, bond=Non
     elif key2 in avg_bond_lengths.keys():
         return avg_bond_lengths[key2]
     else:
-        logger.warning('Couldn\'t find a default bond length for ({},{})'.format(atom_i_label, atom_j_label))
+        logger.warning('Couldn\'t find a default bond length for ({},{})'.format(
+            atom_i_label, atom_j_label))
         return 1.5
 
 

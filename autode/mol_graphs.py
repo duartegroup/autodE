@@ -22,7 +22,8 @@ def make_graph(xyzs, n_atoms):
 def is_subgraph_isomorphic(larger_graph, smaller_graph):
     logger.info('Running subgraph isomorphism')
     graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
-                                             node_match=isomorphism.categorical_node_match('atom_label', 'C'),
+                                             node_match=isomorphism.categorical_node_match(
+                                                 'atom_label', 'C'),
                                              edge_match=isomorphism.categorical_edge_match('active', False))
     if graph_matcher.subgraph_is_isomorphic():
         return True
@@ -33,9 +34,11 @@ def is_subgraph_isomorphic(larger_graph, smaller_graph):
 def get_mapping_ts_template(larger_graph, smaller_graph):
     logger.info('Getting mapping of molecule onto the TS template')
     graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
-                                             node_match=isomorphism.categorical_node_match('atom_label', 'C'),
+                                             node_match=isomorphism.categorical_node_match(
+                                                 'atom_label', 'C'),
                                              edge_match=isomorphism.categorical_edge_match('active', False))
-    return get_mapping(larger_graph, smaller_graph, graph_matcher)[0]       # hopefully the first one is fine(?)
+    # hopefully the first one is fine(?)
+    return get_mapping(larger_graph, smaller_graph, graph_matcher)[0]
 
 
 def get_mapping(larger_graph, smaller_graph, graph_matcher=None):
@@ -83,11 +86,11 @@ def gm_is_isomorphic(gm, result):
 
 def find_cycle(graph, atom_i):
     """Finds if atom i is part of a ring, and returns the members of the ring if so
-    
+
     Arguments:
         graph {nx.Graph} -- the molecular graph
         atom_i {int} -- the index of the atom being investigated
-    
+
     Returns:
         list -- sorted list of atoms in the ring
     """

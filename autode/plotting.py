@@ -10,6 +10,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
 import os
 
+
 def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     """
     For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
@@ -50,32 +51,35 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
                          np.linspace(r2.min(), r2.max(), ny))
     zz = polyval2d(xx, yy, m)
 
-    fig = plt.figure(figsize=(10,3))
-    ax1=fig.add_subplot(1,2,1, projection='3d')
-    pos1 =ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
-    ax2 = fig.add_subplot(1,2,2)
-    pos2 = ax2.imshow(zz, extent=(r1.min(), r2.max(), r1.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
+    fig = plt.figure(figsize=(10, 3))
+    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+    pos1 = ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
+    ax2 = fig.add_subplot(1, 2, 2)
+    pos2 = ax2.imshow(zz, extent=(r1.min(), r2.max(), r1.min(
+    ), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
     # plt.scatter(r1_flat, r2_flat, c=flat_rel_energy_array)
     plt.colorbar(pos1, ax=ax1)
     plt.colorbar(pos2, ax=ax2)
     plt.savefig(name + '.png')
-    
+
     return 0
 
 
 def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
-    fbond_colour_method_dict={'orca':'magenta', 'xtb':'deepskyblue', 'mopac':'forestgreen'}
-    bbond_colour_method_dict={'orca':'darkmagenta', 'xtb':'cyan', 'mopac':'limegreen'}
+    fbond_colour_method_dict = {'orca': 'magenta',
+                                'xtb': 'deepskyblue', 'mopac': 'forestgreen'}
+    bbond_colour_method_dict = {
+        'orca': 'darkmagenta', 'xtb': 'cyan', 'mopac': 'limegreen'}
     method_name = method.__name__
     if 'fbond' in scan_name:
-        label=method_name + ' forming bonds'
+        label = method_name + ' forming bonds'
         colour = fbond_colour_method_dict.get(method_name.lower(), 'black')
     elif 'bbond' in scan_name:
-        label=method_name + ' breaking bonds'
+        label = method_name + ' breaking bonds'
         colour = bbond_colour_method_dict.get(method_name.lower(), 'orange')
     else:
-        label=method_name
+        label = method_name
         colour = fbond_colour_method_dict.get(method_name.lower(), 'sienna')
     plt.plot(rs, rel_energies, marker='o', color=colour, label=label)
     plt.legend()
@@ -104,23 +108,28 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     xs = [0.05, 1.0, 1.86]
     ys = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
 
-    xs_markers = [[0.0, + marker_width], [1.0, 1.0 + marker_width], [2.0 - marker_width, 2.0]]
+    xs_markers = [[0.0, + marker_width],
+                  [1.0, 1.0 + marker_width], [2.0 - marker_width, 2.0]]
     ys_markers = [[ys[0], ys[0]], [ys[1], ys[1]], [ys[2], ys[2]]]
 
     xs_joins = [[marker_width, 1.0],  [1.0 + marker_width, 2.0 - marker_width]]
     ys_joins = [[ys[0], ys[1]], [ys[1], ys[2]]]
 
     fig, ax = plt.subplots()
-    [ax.plot(xs_markers[i], ys_markers[i], lw=3.0, c='k') for i in range(len(xs_markers))]
-    [ax.plot(xs_joins[i], ys_joins[i], ls='--', c='k') for i in range(len(xs_joins))]
+    [ax.plot(xs_markers[i], ys_markers[i], lw=3.0, c='k')
+     for i in range(len(xs_markers))]
+    [ax.plot(xs_joins[i], ys_joins[i], ls='--', c='k')
+     for i in range(len(xs_joins))]
 
     for i, txt in enumerate(ys):
         ax.annotate(txt, (xs[i], ys[i] + 0.02*max(ys)), fontsize=12)
 
     if not is_true_ts:
-        ax.annotate('TS has >1 imaginary frequency', (1.0, 0.1*max(ys)), ha='center', color='red')
+        ax.annotate('TS has >1 imaginary frequency',
+                    (1.0, 0.1*max(ys)), ha='center', color='red')
     if not ts_is_converged:
-        ax.annotate('TS is not fully converged', (1.0, 0.2*max(ys)), ha='center', color='red')
+        ax.annotate('TS is not fully converged',
+                    (1.0, 0.2*max(ys)), ha='center', color='red')
 
     plt.title(name, fontdict={'fontsize': 12})
     plt.xticks([])
@@ -138,7 +147,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
 
 def make_reaction_animation(name, xyzs):
     """makes an xyz file that animates the reaction pathway
-    
+
     Arguments:
         name {str} -- name of the xyz file to be created
         xyzs {list of lists} -- list with each element of the list a list of xyzs
@@ -148,4 +157,5 @@ def make_reaction_animation(name, xyzs):
         for frame, xyz_list in enumerate(xyzs):
             print(len(xyz_list), file=output_file)
             print(frame, file=output_file)
-            [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=output_file) for line in xyz_list]
+            [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(
+                *line), file=output_file) for line in xyz_list]

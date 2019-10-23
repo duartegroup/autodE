@@ -40,14 +40,16 @@ def extract_xyzs_from_rdkit_mol_object(mol, conf_ids):
     xyzs = []
 
     for i in range(len(conf_ids)):
-        mol_block_lines = Chem.MolToMolBlock(mol.mol_obj, confId=conf_ids[i]).split('\n')
+        mol_block_lines = Chem.MolToMolBlock(
+            mol.mol_obj, confId=conf_ids[i]).split('\n')
         mol_file_xyzs = []
 
         for line in mol_block_lines:
             split_line = line.split()
             if len(split_line) == 16:
                 atom_label, x, y, z = split_line[3], split_line[0], split_line[1], split_line[2]
-                mol_file_xyzs.append([atom_label, float(x), float(y), float(z)])
+                mol_file_xyzs.append(
+                    [atom_label, float(x), float(y), float(z)])
 
         xyzs.append(mol_file_xyzs)
 
@@ -67,7 +69,8 @@ def generate_unique_rdkit_confs(mol_obj, n_rdkit_confs):
     :param n_rdkit_confs: (int) number of rdkit conformers to generate
     :return:
     """
-    conf_ids = list(AllChem.EmbedMultipleConfs(mol_obj, numConfs=n_rdkit_confs, params=AllChem.ETKDG()))
+    conf_ids = list(AllChem.EmbedMultipleConfs(
+        mol_obj, numConfs=n_rdkit_confs, params=AllChem.ETKDG()))
     unique_conf_ids = [0]
 
     for i in range(1, len(conf_ids)):

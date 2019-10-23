@@ -59,8 +59,10 @@ def get_maximal_valance(atom_label):
     if atom_label in valid_valances.keys():
         return valid_valances[atom_label][-1]
     else:
-        logger.warning('Could not find a valid valance for {}. Guessing at 6'.format(atom_label))
+        logger.warning(
+            'Could not find a valid valance for {}. Guessing at 6'.format(atom_label))
         return 6
+
 
 def get_atomic_weight(atom_label):
     """
@@ -72,5 +74,6 @@ def get_atomic_weight(atom_label):
     if atom_label in atomic_weights.keys():
         return atomic_weights[atom_label]
     else:
-        logger.warning('Could not find a valid weight for {}. Guessing at 70'.format(atom_label))
+        logger.warning(
+            'Could not find a valid weight for {}. Guessing at 70'.format(atom_label))
         return 70

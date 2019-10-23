@@ -13,7 +13,7 @@ from autode.mol_graphs import make_graph
 from autode.mol_graphs import is_subgraph_isomorphic
 
 
-def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, products, 
+def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, products,
                     delta_dist1=1.5, delta_dist2=1.5):
     """
     :param mol:
@@ -30,7 +30,8 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     :param delta_dist2:
     :return:
     """
-    logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} (delta distance = {delta_dist1}) and {active_bond2} (delta distance = {delta_dist2})')
+    logger.info(
+        f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} (delta distance = {delta_dist1}) and {active_bond2} (delta distance = {delta_dist2})')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
     curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
@@ -98,11 +99,12 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (
                 mol_grid[n][m].xyzs, mol_grid[n][m].energy)
 
-    #check product and TSGuess product graphs are isomorphic
+    # check product and TSGuess product graphs are isomorphic
     logger.info('Checking products were made')
     products_made = False
     for row in mol_grid[::-1]:
-        ts_product_graphs = [make_graph(mol.xyzs, mol.n_atoms) for mol in row[::-1]]
+        ts_product_graphs = [make_graph(mol.xyzs, mol.n_atoms)
+                             for mol in row[::-1]]
         for graph in ts_product_graphs:
             if all(is_subgraph_isomorphic(graph, product.graph) for product in products):
                 products_made = True
@@ -113,15 +115,16 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     if not products_made:
         logger.info('Products not made')
-        return None   
+        return None
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name + '_2dscan', method=method))
+    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(
+        dist_xyzs_energies, scan_name=name, plot_name=mol.name + '_2dscan', method=method))
 
     mep_xyzs = [mol.xyzs]
 
-    for i in range(n_steps): 
+    for i in range(n_steps):
         xyz_list = [mol.xyzs for mol in mol_grid[i]]
         energies_list = [mol.energy for mol in mol_grid[i]]
         energies_not_none = list(replace_none(energies_list))
@@ -161,7 +164,8 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
     energies_not_none = list(replace_none(energies))
     flat_rel_energy_array = [Constants.ha2kcalmol *
                              (e - min(energies_not_none)) for e in energies_not_none]
-    logger.info('Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
+    logger.info(
+        'Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
 
     r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
     r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
@@ -172,7 +176,7 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
     if r1_saddle < 0 or r2_saddle < 0:
         logger.error('2D surface has saddle points with negative distances!')
 
-    method_name=method.__name__
+    method_name = method.__name__
     if 'fbond' in scan_name:
         name = plot_name + f'_{method_name}_fbonds'
     elif 'bbond' in scan_name:

@@ -37,7 +37,8 @@ class TSguess:
         return None
 
     def do_displacements(self):
-        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=1.0)
+        self.xyzs = get_displaced_xyzs_along_imaginary_mode(
+            self.optts_calc, displacement_magnitude=1.0)
         self.name += '_dis'
         self.run_orca_optts()
 
@@ -45,24 +46,27 @@ class TSguess:
         self.check_optts_convergence()
 
         if len(imag_freqs) > 1:
-            logger.warning('OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
-            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=-1.0)
+            logger.warning(
+                'OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
+            self.xyzs = get_displaced_xyzs_along_imaginary_mode(
+                self.optts_calc, displacement_magnitude=-1.0)
             self.name += '_dis2'
             self.run_orca_optts()
             self.check_optts_convergence()
 
             if len(imag_freqs) > 1:
-                logger.error('Couldn\'t remove other imaginary frequencies by displacement')
+                logger.error(
+                    'Couldn\'t remove other imaginary frequencies by displacement')
 
         return None
 
     def run_orca_optts(self):
         logger.info('Getting ORCA out lines from OptTS calculation')
 
-        self.hess_calc = Calculation(name=self.name +'_hess', molecule=self, method=self.method,
-                                      keywords=self.method.hess_keywords, n_cores=Config.n_cores,
-                                      max_core_mb=Config.max_core)
-        
+        self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
+                                     keywords=self.method.hess_keywords, n_cores=Config.n_cores,
+                                     max_core_mb=Config.max_core)
+
         self.hess_calc.run()
 
         imag_freqs = self.hess_calc.get_imag_freqs()
@@ -73,7 +77,7 @@ class TSguess:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
 
         if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms,
-                                           active_bonds=self.active_bonds, threshold_contribution=0.1):
+                                               active_bonds=self.active_bonds, threshold_contribution=0.1):
             return None
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
@@ -101,7 +105,8 @@ class TSguess:
         """
         self.name = name
         self.xyzs = molecule.xyzs
-        self.n_atoms = len(molecule.xyzs) if molecule.xyzs is not None else None
+        self.n_atoms = len(
+            molecule.xyzs) if molecule.xyzs is not None else None
         self.reaction_class = reaction_class
         self.solvent = molecule.solvent
         self.charge = molecule.charge

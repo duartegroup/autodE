@@ -19,8 +19,10 @@ class Reaction:
         :return: None
         """
 
-        n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [prod.n_atoms for prod in self.prods]
-        reac_charges, prod_charges = [r.charge for r in self.reacs], [p.charge for p in self.prods]
+        n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [
+            prod.n_atoms for prod in self.prods]
+        reac_charges, prod_charges = [r.charge for r in self.reacs], [
+            p.charge for p in self.prods]
         if sum(n_reac_atoms) != sum(n_prod_atoms):
             logger.critical('Number of atoms doesn\'t balance')
             exit()
@@ -50,7 +52,8 @@ class Reaction:
         Addition reactions are hard to find the TSs for so swap reactants and products and classify as dissociation
         :return: None
         """
-        logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
+        logger.info(
+            'Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
         self.type = reactions.Dissociation
         self.prods, self.reacs = self.reacs, self.prods
 
@@ -84,9 +87,10 @@ class Reaction:
         conformers_directory_path = os.path.join(here, 'conformers')
         if not os.path.isdir(conformers_directory_path):
             os.mkdir(conformers_directory_path)
-            logger.info(f'Creating directory to store conformer output files at {conformers_directory_path:}')
+            logger.info(
+                f'Creating directory to store conformer output files at {conformers_directory_path:}')
         os.chdir(conformers_directory_path)
-        
+
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
                 mol.find_lowest_energy_conformer()
@@ -99,10 +103,12 @@ class Reaction:
         :return: None
         """
         here = os.getcwd()
-        opt_reacs_prods_directory_path = os.path.join(here, 'optimise_reactants_and_products')
+        opt_reacs_prods_directory_path = os.path.join(
+            here, 'optimise_reactants_and_products')
         if not os.path.isdir(opt_reacs_prods_directory_path):
             os.mkdir(opt_reacs_prods_directory_path)
-            logger.info(f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
+            logger.info(
+                f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
         os.chdir(opt_reacs_prods_directory_path)
 
         logger.info('Calculating optimised reactants and products')
@@ -119,7 +125,8 @@ class Reaction:
         single_points_directory_path = os.path.join(here, 'single_points')
         if not os.path.isdir(single_points_directory_path):
             os.mkdir(single_points_directory_path)
-            logger.info(f'Creating directory to store single point output files at {single_points_directory_path:}')
+            logger.info(
+                f'Creating directory to store single point output files at {single_points_directory_path:}')
         os.chdir(single_points_directory_path)
 
         molecules = self.reacs + self.prods + [self.ts]
@@ -151,7 +158,8 @@ class Reaction:
         tss_directory_path = os.path.join(here, 'tss')
         if not os.path.isdir(tss_directory_path):
             os.mkdir(tss_directory_path)
-            logger.info(f'Creating directory to store transition state output files at {tss_directory_path:}')
+            logger.info(
+                f'Creating directory to store transition state output files at {tss_directory_path:}')
         os.chdir(tss_directory_path)
 
         self.tss = find_tss(self)
@@ -165,7 +173,8 @@ class Reaction:
         directory_path = os.path.join(here, self.name)
         if not os.path.isdir(directory_path):
             os.mkdir(directory_path)
-            logger.info(f'Creating directory to store all output files at {directory_path:}')
+            logger.info(
+                f'Creating directory to store all output files at {directory_path:}')
         os.chdir(directory_path)
 
         self.find_lowest_energy_conformers()
@@ -194,8 +203,10 @@ class Reaction:
 
         self.name = name
         molecules = [mol1, mol2, mol3, mol4, mol5, mol6]
-        self.reacs = [mol for mol in molecules if isinstance(mol, Reactant) and mol is not None]
-        self.prods = [mol for mol in molecules if isinstance(mol, Product) and mol is not None]
+        self.reacs = [mol for mol in molecules if isinstance(
+            mol, Reactant) and mol is not None]
+        self.prods = [mol for mol in molecules if isinstance(
+            mol, Product) and mol is not None]
         self.ts, self.tss = None, []
 
         self.type = reactions.classify(reacs=self.reacs, prods=self.prods)

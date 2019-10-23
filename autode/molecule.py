@@ -31,7 +31,8 @@ class Molecule:
             return 2
 
         if n_radical_electrons > 1:
-            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
+            logger.warning(
+                'Diradicals by default singlets. Set mol.mult if it\'s any different')
 
         return self.mult
 
@@ -39,16 +40,18 @@ class Molecule:
         try:
             assert self.n_bonds == self.graph.number_of_edges()
         except AssertionError:
-            logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
+            logger.error(
+                'Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
     def _get_core_atoms(self, depth=3):
         if self.active_atoms == None:
             logger.error('No active atoms found')
             return None
-        core_atoms=set(self.active_atoms)
+
+        core_atoms = set(self.active_atoms)
         for i in range(depth-1):
-            temp_core_atoms=set()
+            temp_core_atoms = set()
             for atom in core_atoms:
                 bonded_list = self.get_bonded_atoms_to_i(atom)
                 temp_core_atoms.add(atom)
@@ -56,7 +59,7 @@ class Molecule:
                     temp_core_atoms.add(bonded_atom)
             core_atoms = temp_core_atoms
 
-        core_atoms_incl_ring=set()
+        core_atoms_incl_ring = set()
         for atom in core_atoms:
             cycle = mol_graphs.find_cycle(self.graph, atom)
             if cycle is not None:
@@ -72,7 +75,7 @@ class Molecule:
             for bonded_atom in bonded_list:
                 if self.get_atom_label(bonded_atom) == 'H':
                     core_atoms_incl_h.add(bonded_atom)
-        
+
         return sorted(core_atoms_incl_h)
 
     def calc_bond_distance(self, bond):
@@ -122,13 +125,18 @@ class Molecule:
         self.conformers = []
 
         if self.rdkit_conf_gen_is_fine:
-            logger.info('Generating Molecule conformer xyz lists from rdkit mol object')
-            unique_conf_ids = generate_unique_rdkit_confs(self.mol_obj, n_rdkit_confs)
-            logger.info('Generated {} unique conformers with RDKit ETKDG'.format(len(unique_conf_ids)))
-            conf_xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=unique_conf_ids)
+            logger.info(
+                'Generating Molecule conformer xyz lists from rdkit mol object')
+            unique_conf_ids = generate_unique_rdkit_confs(
+                self.mol_obj, n_rdkit_confs)
+            logger.info('Generated {} unique conformers with RDKit ETKDG'.format(
+                len(unique_conf_ids)))
+            conf_xyzs = extract_xyzs_from_rdkit_mol_object(
+                self, conf_ids=unique_conf_ids)
 
         else:
-            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+            bond_list = get_bond_list_from_rdkit_bonds(
+                rdkit_bonds_obj=self.mol_obj.GetBonds())
             conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
                                              charge=self.charge)
 
@@ -139,9 +147,12 @@ class Molecule:
         self.n_conformers = len(self.conformers)
 
     def strip_non_unique_confs(self, energy_threshold_kj=1):
-        logger.info('Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
-        d_e = energy_threshold_kj / Constants.ha2kJmol                             # conformer.energy is in Hartrees
-        unique_conformers = [self.conformers[0]]                                   # The first conformer must be unique
+        logger.info(
+            'Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
+        # conformer.energy is in Hartrees
+        d_e = energy_threshold_kj / Constants.ha2kJmol
+        # The first conformer must be unique
+        unique_conformers = [self.conformers[0]]
 
         for i in range(1, self.n_conformers):
             unique = True
@@ -196,11 +207,13 @@ class Molecule:
         self.generate_conformers()
         [self.conformers[i].optimise() for i in range(len(self.conformers))]
         self.strip_non_unique_confs()
-        [self.conformers[i].optimise(method=self.method) for i in range(len(self.conformers))]
+        [self.conformers[i].optimise(method=self.method)
+         for i in range(len(self.conformers))]
 
         lowest_energy = None
         for conformer in self.conformers:
-            conformer_graph = mol_graphs.make_graph(conformer.xyzs, self.n_atoms)
+            conformer_graph = mol_graphs.make_graph(
+                conformer.xyzs, self.n_atoms)
 
             if mol_graphs.is_isomorphic(self.graph, conformer_graph):
                 # If the conformer retains the same connectivity
@@ -215,9 +228,11 @@ class Molecule:
                 else:
                     pass
             else:
-                logger.warning('Conformer had a different molecular graph. Ignoring')
+                logger.warning(
+                    'Conformer had a different molecular graph. Ignoring')
 
-        logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
+        logger.info(
+            'Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def set_xyzs(self, xyzs):
         logger.info('Setting molecule xyzs')
@@ -243,7 +258,8 @@ class Molecule:
         self.set_xyzs(xyzs=opt.get_final_xyzs())
 
     def single_point(self, method=None):
-        logger.info('Running single point energy evaluation of {}'.format(self.name))
+        logger.info(
+            'Running single point energy evaluation of {}'.format(self.name))
         if method is None:
             method = self.method
 
@@ -258,22 +274,26 @@ class Molecule:
             self.mol_obj = Chem.MolFromSmiles(smiles)
             self.mol_obj = Chem.AddHs(self.mol_obj)
         except RuntimeError:
-            logger.critical('Could not generate an rdkit mol object for {}'.format(name))
+            logger.critical(
+                'Could not generate an rdkit mol object for {}'.format(name))
             exit()
 
         self.n_atoms = self.mol_obj.GetNumAtoms()
         self.n_bonds = len(self.mol_obj.GetBonds())
         self.charge = Chem.GetFormalCharge(self.mol_obj)
-        n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
+        n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(
+            self.mol_obj)
         self.mult = self._calc_multiplicity(n_radical_electrons)
 
-        AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
+        AllChem.EmbedMultipleConfs(
+            self.mol_obj, numConfs=1, params=AllChem.ETKDG())
         self.xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=[0])[0]
 
         if not rdkit_conformer_geometries_are_resonable(conf_xyzs=[self.xyzs]):
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
-            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+            bond_list = get_bond_list_from_rdkit_bonds(
+                rdkit_bonds_obj=self.mol_obj.GetBonds())
             self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
                                              charge=self.charge, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)

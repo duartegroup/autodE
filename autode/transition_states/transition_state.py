@@ -16,7 +16,8 @@ class TS:
 
         for bond in self.active_bonds:
             atom_i, atom_j = bond
-            full_graph.add_edge(atom_i, atom_j, active=True, weight=distance_matrix[atom_i, atom_j])
+            full_graph.add_edge(atom_i, atom_j, active=True,
+                                weight=distance_matrix[atom_i, atom_j])
 
         nodes_to_keep = self.active_atoms.copy()
         for edge in full_graph.edges():
@@ -30,7 +31,8 @@ class TS:
 
         nodes_list = list(full_graph.nodes()).copy()
         truncated_graph = full_graph.copy()
-        [truncated_graph.remove_node(node) for node in nodes_list if node not in nodes_to_keep]
+        [truncated_graph.remove_node(
+            node) for node in nodes_list if node not in nodes_to_keep]
         self.truncated_graph = truncated_graph
 
     def save_ts_template(self, folder_path=None):
@@ -57,7 +59,8 @@ class TS:
             return False
 
     def single_point(self, method=None):
-        logger.info('Running single point energy evaluation of {}'.format(self.name))
+        logger.info(
+            'Running single point energy evaluation of {}'.format(self.name))
 
         sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
                          keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
@@ -77,7 +80,8 @@ class TS:
         self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
 
         self.active_bonds = ts_guess.active_bonds
-        self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
+        self.active_atoms = list(
+            set([atom_id for bond in self.active_bonds for atom_id in bond]))
         self.reaction_class = ts_guess.reaction_class
 
         self.graph = None

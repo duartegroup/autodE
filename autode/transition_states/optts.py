@@ -33,9 +33,10 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
                                            active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
         return None
     imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
-    
+
     if len(imag_freqs) > 1:
-        logger.warning('OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
+        logger.warning(
+            'OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
         ts_guess.do_displacements()
 
     ts_guess.check_optts_convergence()
@@ -80,12 +81,14 @@ def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_ma
 
     current_xyzs = calc.get_final_xyzs()
     n_atoms = len(current_xyzs)
-    mode_distplacement_coords = calc.get_normal_mode_displacements(mode_number=mode_number)
+    mode_distplacement_coords = calc.get_normal_mode_displacements(
+        mode_number=mode_number)
 
     displaced_xyzs = deepcopy(current_xyzs)
     for i in range(n_atoms):
         for j in range(3):
-            displaced_xyzs[i][j+1] += displacement_magnitude * mode_distplacement_coords[i][j]      # adding coord (nx3)
+            displaced_xyzs[i][j+1] += displacement_magnitude * \
+                mode_distplacement_coords[i][j]      # adding coord (nx3)
     #                                                                                               # to xyzs (nx4)
     return displaced_xyzs
 
@@ -104,84 +107,98 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
     :return:
     """
 
-    logger.info('Checking the active atoms contribute more than {} to the imag mode'.format(threshold_contribution))
+    logger.info('Checking the active atoms contribute more than {} to the imag mode'.format(
+        threshold_contribution))
 
     if active_bonds is None:
         logger.info('Cannot determine whether the correct atoms contribute')
         return True
 
-    imag_normal_mode_displacements_xyz = calc.get_normal_mode_displacements(mode_number=6)
+    imag_normal_mode_displacements_xyz = calc.get_normal_mode_displacements(
+        mode_number=6)
     if imag_normal_mode_displacements_xyz is None:
         logger.error('Have no imaginary normal mode displacements to analyse')
         return False
 
     final_xyzs = calc.get_final_xyzs()
 
-    imag_mode_magnitudes = [np.linalg.norm(np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
+    imag_mode_magnitudes = [np.linalg.norm(
+        np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
 
     weighted_imag_mode_magnitudes = []
 
     for index, atom in enumerate(final_xyzs):
         atom_label = atom[0]
         weighting = get_atomic_weight(atom_label) + 10
-        weighted_imag_mode_magnitudes.append((imag_mode_magnitudes[index] * weighting))
-
+        weighted_imag_mode_magnitudes.append(
+            (imag_mode_magnitudes[index] * weighting))
 
     should_be_active_atom_magnitudes = []
     for atom_id in range(n_atoms):
         if any([atom_id in bond_ids for bond_ids in active_bonds]):
-            should_be_active_atom_magnitudes.append(weighted_imag_mode_magnitudes[atom_id])
+            should_be_active_atom_magnitudes.append(
+                weighted_imag_mode_magnitudes[atom_id])
 
-    relative_contribution = np.sum(np.array(should_be_active_atom_magnitudes)) / np.sum(np.array(weighted_imag_mode_magnitudes))
+    relative_contribution = np.sum(np.array(
+        should_be_active_atom_magnitudes)) / np.sum(np.array(weighted_imag_mode_magnitudes))
 
     if molecules is not None:
         if threshold_contribution - 0.1 < relative_contribution < threshold_contribution + 0.1:
-            logger.info(f'Unsure if significant contribution from active atoms to imag mode (contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
+            logger.info(
+                f'Unsure if significant contribution from active atoms to imag mode (contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
             if check_close_imag_contribution(calc, molecules, method=get_lmethod()):
-                logger.info('Imaginary mode links reactants and products, TS found')
+                logger.info(
+                    'Imaginary mode links reactants and products, TS found')
                 return True
-            logger.info('Lower level method didn\'t find link, trying higher level of theory')
+            logger.info(
+                'Lower level method didn\'t find link, trying higher level of theory')
             if check_close_imag_contribution(calc, molecules, method=get_hmethod()):
-                logger.info('Imaginary mode links reactants and products, TS found')                
+                logger.info(
+                    'Imaginary mode links reactants and products, TS found')
                 return True
-            logger.info('Imaginary mode doesn\'t link reactants and products, TS *not* found')
+            logger.info(
+                'Imaginary mode doesn\'t link reactants and products, TS *not* found')
             return False
 
     if relative_contribution > threshold_contribution:
-        logger.info(f'TS has significant contribution from the active atoms to the imag mode (contribution = {relative_contribution:.3f})')
+        logger.info(
+            f'TS has significant contribution from the active atoms to the imag mode (contribution = {relative_contribution:.3f})')
         return True
 
-    logger.info(f'TS has *no* significant contribution from the active atoms to the imag mode (contribution = {relative_contribution:.3f})')
+    logger.info(
+        f'TS has *no* significant contribution from the active atoms to the imag mode (contribution = {relative_contribution:.3f})')
     return False
 
 
 def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     """Displaced atoms along the imaginary mode to see if products and reactants are made
-    
+
     Arguments:
         calc {calculation obj} -- 
         molecules {tuple} -- tuple containing the reactant and product objects
         method {electronic structure method} -- 
-    
+
     Keyword Arguments:
         disp_mag {int} -- Distance to be displaced along the imag mode (default: {2})
-    
+
     Returns:
         {bool} -- if the imag mode is correct or not
     """
-    forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=disp_mag)
+    forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(
+        calc, mode_number=6, displacement_magnitude=disp_mag)
     forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs)
     forward_displaced_calc = Calculation(name=calc.name + '_forwards_displacement', molecule=forward_displaced_mol, method=method,
-                                    keywords=method.opt_keywords, n_cores=Config.n_cores, 
-                                    max_core_mb=Config.max_core, opt=True)
+                                         keywords=method.opt_keywords, n_cores=Config.n_cores,
+                                         max_core_mb=Config.max_core, opt=True)
     forward_displaced_calc.run()
     forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_xyzs())
 
-    backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=-disp_mag)
+    backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(
+        calc, mode_number=6, displacement_magnitude=-disp_mag)
     backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs)
     backward_displaced_calc = Calculation(name=calc.name + '_backwards_displacement', molecule=backward_displaced_mol, method=method,
-                                    keywords=method.opt_keywords, n_cores=Config.n_cores, 
-                                    max_core_mb=Config.max_core, opt=True)
+                                          keywords=method.opt_keywords, n_cores=Config.n_cores,
+                                          max_core_mb=Config.max_core, opt=True)
     backward_displaced_calc.run()
     backward_displaced_mol.set_xyzs(backward_displaced_calc.get_final_xyzs())
 

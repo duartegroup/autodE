@@ -15,7 +15,9 @@ def test_bondrearr_obj():
                                                     breaking_bonds=[(1, 2)])
     assert rearrag2 == rearrag
 
-    h2_h_mol = Molecule(name='mol', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, -1.0], ['H', 0.0, 0.0, 1.0]])
-    active_atom_nl = rearrag.get_active_atom_neighbour_lists(mol=h2_h_mol, depth=1)
+    h2_h_mol = Molecule(name='mol', xyzs=[['H', 0.0, 0.0, 0.0], [
+                        'H', 0.0, 0.0, -1.0], ['H', 0.0, 0.0, 1.0]])
+    active_atom_nl = rearrag.get_active_atom_neighbour_lists(
+        mol=h2_h_mol, depth=1)
     assert len(active_atom_nl) == 4
     assert active_atom_nl == [['H'], ['H'], ['H'], ['H']]

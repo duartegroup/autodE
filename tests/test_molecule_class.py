@@ -58,7 +58,8 @@ def test_attributes_methods():
         h2_rdkit._check_rdkit_graph_agreement()
 
     assert 0.69 < h2.calc_bond_distance(bond=(0, 1)) < 0.71
-    assert len(h2.get_possible_forming_bonds()) == 0        # Can't form any bonds
+    assert len(h2.get_possible_forming_bonds()
+               ) == 0        # Can't form any bonds
 
     assert h2.get_bonded_atoms_to_i(atom_i=0) == [1]
 

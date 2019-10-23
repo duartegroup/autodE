@@ -2,6 +2,7 @@ from autode import reaction
 from autode.transition_states.transition_state import TS
 from autode.transition_states.ts_guess import TSguess
 
+
 def test_reaction_class():
     #h + h > h2
     h1 = reaction.Reactant(name='h1', xyzs=[['H', 0.0, 0.0, 0.0]])
