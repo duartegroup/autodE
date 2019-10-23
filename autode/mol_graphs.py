@@ -97,7 +97,7 @@ def find_cycle(graph, atom_i):
     logger.info('Looking for rings')
     try:
         cycle = nx.find_cycle(graph, atom_i)
-        logger.info('Atom {atom_i} is part of a ring')
+        logger.info(f'Atom {atom_i} is part of a ring')
     except:
         logger.info(f'Atom {atom_i} is not part of a ring')
         return None
