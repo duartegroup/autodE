@@ -189,7 +189,7 @@ def get_bond_rearrangs(mol, product):
     elif delta_n_bonds == 2:
         funcs = [get_fbonds_bbonds_2b]
     elif delta_n_bonds == -1:
-        funcs = [get_fbonds_bbonds_1b2f]
+        funcs = [get_fbonds_bbonds_1f, get_fbonds_bbonds_1b2f]
     else:
         logger.error(
             'Cannot treat a change in bonds reactant <- product of {}'.format(delta_n_bonds))
@@ -234,6 +234,14 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
             forming_bonds=fbonds, breaking_bonds=bbonds))
 
     return bond_rearrangs
+
+
+def get_fbonds_bbonds_1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
+
+    for fbond in possible_fbonds:
+        possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product,
+                                                        fbonds=[fbond], bbonds=[])
+    return possible_bond_rearrangs
 
 
 def get_fbonds_bbonds_1b(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
