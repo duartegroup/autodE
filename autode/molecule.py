@@ -241,6 +241,9 @@ class Molecule:
 
         lowest_energy = None
         for conformer in self.conformers:
+            if conformer.energy is None:
+                continue
+
             conformer_graph = mol_graphs.make_graph(
                 conformer.xyzs, self.n_atoms)
 
