@@ -211,7 +211,7 @@ class Molecule:
                         normed_bond_vector * avg_bond_length).tolist()
             fragment_xyzs.append(['H'] + h_coords)
 
-        if self.xyzs == fragment_xyzs:
+        if self.xyzs != fragment_xyzs:
             self.stripped = True
 
         return Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs, solvent=self.solvent, charge=self.charge, mult=self.mult)

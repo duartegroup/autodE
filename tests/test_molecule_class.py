@@ -95,8 +95,10 @@ def test_get_core():
 
     fragment_1 = reactant.strip_core()
     assert reactant.xyzs == fragment_1.xyzs
+    assert reactant.stripped == False
 
     reactant.active_atoms = [0, 1, 36]
 
     fragment_2 = reactant.strip_core()
     assert len(fragment_2.xyzs) == 29
+    assert reactant.stripped == True
