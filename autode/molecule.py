@@ -44,7 +44,7 @@ class Molecule:
                 'Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
-    def _get_core_atoms(self, depth=2):
+    def _get_core_atoms(self, product_graphs=None, depth=3):
         if self.active_atoms == None:
             logger.error('No active atoms found')
             return None
@@ -59,12 +59,27 @@ class Molecule:
             core_atoms.update(new_core_atoms)
 
         ring_atoms = set()
+        logger.info('Looking for rings in the reactants')
         for atom in core_atoms:
             cycle = mol_graphs.find_cycle(self.graph, atom)
             if cycle is not None:
                 for atom in cycle:
                     ring_atoms.add(atom)
         core_atoms.update(ring_atoms)
+
+        logger.info('Looking for rings in the products')
+        if product_graphs is None:
+            logger.warning(
+                'No product graph found, this will cause errors if rings are formed in the reaction')
+        else:
+            prod_ring_atoms = set()
+            for atom in core_atoms:
+                for graph in product_graphs:
+                    cycle = mol_graphs.find_cycle(graph, atom)
+                    if cycle is not None:
+                        for atom in cycle:
+                            prod_ring_atoms.add(atom)
+            core_atoms.update(prod_ring_atoms)
 
         core_atoms_h = set()
         for atom in core_atoms:
@@ -166,19 +181,20 @@ class Molecule:
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
-    def strip_core(self):
+    def strip_core(self, product_graph=None):
         logger.info('Stripping the extraneous atoms')
         bonded_to_core = set()
         bond_from_core = []
         new_bond_from_core = []
-        core_atoms = self._get_core_atoms()
-        non_core_atoms = [i for i in range(
-            self.n_atoms) if not i in core_atoms]
-        coords = self.get_coords()
+        core_atoms = self._get_core_atoms(product_graph)
 
         if core_atoms is None:
             logger.error('No core atoms, not stripping extraneous atoms')
-            pass
+            return
+
+        non_core_atoms = [i for i in range(
+            self.n_atoms) if not i in core_atoms]
+        coords = self.get_coords()
 
         for new_index, atom in enumerate(core_atoms):
             bonded_atoms = self.get_bonded_atoms_to_i(atom)

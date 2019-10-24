@@ -94,10 +94,8 @@ def find_cycle(graph, atom_i):
     Returns:
         list -- sorted list of atoms in the ring
     """
-    logger.info('Looking for rings')
     try:
         cycle = nx.find_cycle(graph, atom_i)
-        logger.info(f'Atom {atom_i} is part of a ring')
     except:
         logger.info(f'Atom {atom_i} is not part of a ring')
         return None
@@ -105,4 +103,17 @@ def find_cycle(graph, atom_i):
     for edge in cycle:
         cycle_atoms.add(edge[0])
         cycle_atoms.add(edge[1])
-    return sorted(cycle_atoms)
+    if atom_i in cycle_atoms:
+        logger.info(f'Atom {atom_i} is part of a ring')
+        return sorted(cycle_atoms)
+    else:
+        logger.info(f'Atom {atom_i} is not part of a ring')
+        return None
+
+
+def reac_graph_to_prods(reac_graph, bond_rearrang):
+    for fbond in bond_rearrang.fbonds:
+        reac_graph.add_edge(*fbond)
+    for bbond in bond_rearrang.bbonds:
+        reac_graph.remove_edge(*bbond)
+    return reac_graph

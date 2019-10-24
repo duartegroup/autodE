@@ -25,16 +25,33 @@ def find_tss(reaction):
         logger.error('Could not find a set of forming/breaking bonds')
         return None
 
-    logger.info('Found *{}* bond rearrangement(s) that lead to products'.format(len(bond_rearrangs)))
+    logger.info(
+        'Found *{}* bond rearrangement(s) that lead to products'.format(len(bond_rearrangs)))
+
+    active_atoms = set()
+    for bond_rearrangement in bond_rearrangs:
+        for active_atom in bond_rearrangement.active_atoms:
+            active_atoms.add(active_atom)
+
+    reactant.active_atoms = sorted(active_atoms)
+
+    prod_graphs_reac_indices = []
+
+    for bond_rearrangement in bond_rearrangs:
+        reac_graph = reactant.graph.copy()
+        prod_graphs_reac_indices.append(
+            reac_graph_to_prods(reac_graph, bond_rearrangement))
 
     for bond_rearrangement in bond_rearrangs:
 
         if reaction.type in [Substitution, Elimination]:
-            fbond_ideal_lengths = [get_avg_bond_length(mol=reactant, bond=fbond) for fbond in bond_rearrangement.fbonds]
+            fbond_ideal_lengths = [get_avg_bond_length(
+                mol=reactant, bond=fbond) for fbond in bond_rearrangement.fbonds]
             avg_fbond_length = np.average(fbond_ideal_lengths)
 
-            set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement, shift_factor=avg_fbond_length + 1.5)
-            
+            set_complex_xyzs_translated_rotated(
+                reactant, reaction.reacs, bond_rearrangement, shift_factor=avg_fbond_length + 1.5)
+
         for func, params in get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrangement):
             logger.info('Trying to find a TS guess with {}'.format(func.__name__))
             ts_guess = func(*params)
