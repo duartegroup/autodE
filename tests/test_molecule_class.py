@@ -1,8 +1,12 @@
 from autode.molecule import Molecule
+from autode.molecule import Reactant
+from autode.molecule import Product
+from autode.reaction import Reaction
 from autode.conformers import conformers
 from rdkit.Chem import Mol
 import numpy as np
 import pytest
+from autode.transition_states.locate_tss import get_reactant_and_product_complexes
 
 
 h2 = Molecule(name='h2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
@@ -79,3 +83,20 @@ def test_conf_strip():
 
     h2.strip_non_unique_confs(energy_threshold_kj=1)
     assert h2.n_conformers == 1
+
+
+def test_get_core():
+    reac1 = Reactant(smiles='BrC(C1CC(C)CCC1)CC(C)C')
+    reac2 = Reactant(smiles='[OH-]')
+    prod1 = Product(smiles='OC(C1CC(C)CCC1)CC(C)C')
+    prod2 = Product(xyzs=[['Br', 0.0, 0.0, 0.0]], charge=-1)
+    reaction = Reaction(reac1, reac2, prod1, prod2)
+    reactant, product = get_reactant_and_product_complexes(reaction)
+
+    fragment_1 = reactant.strip_core()
+    assert reactant.xyzs == fragment_1.xyzs
+
+    reactant.active_atoms = [0, 1, 36]
+
+    fragment_2 = reactant.strip_core()
+    assert len(fragment_2.xyzs) == 29

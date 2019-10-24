@@ -6,6 +6,7 @@ from autode.molecule import Molecule
 from autode.reactions import Dissociation, Rearrangement, Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
 from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import reac_graph_to_prods
 from autode.transition_states.optts import get_ts
 from autode.transition_states.template_ts_guess import get_template_ts_guess
 from autode.pes_1d import get_ts_guess_1dpes_scan
@@ -42,30 +43,40 @@ def find_tss(reaction):
         prod_graphs_reac_indices.append(
             reac_graph_to_prods(reac_graph, bond_rearrangement))
 
+    fragment = reactant.strip_core(prod_graphs_reac_indices)
+
     for bond_rearrangement in bond_rearrangs:
 
         if reaction.type in [Substitution, Elimination]:
             fbond_ideal_lengths = [get_avg_bond_length(
-                mol=reactant, bond=fbond) for fbond in bond_rearrangement.fbonds]
+                mol=fragment, bond=fbond) for fbond in bond_rearrangement.fbonds]
             avg_fbond_length = np.average(fbond_ideal_lengths)
 
             set_complex_xyzs_translated_rotated(
-                reactant, reaction.reacs, bond_rearrangement, shift_factor=avg_fbond_length + 1.5)
+                fragment, reaction.reacs, bond_rearrangement, shift_factor=avg_fbond_length + 1.5)
 
-        for func, params in get_ts_guess_funcs_and_params(reaction, reactant, product, bond_rearrangement):
-            logger.info('Trying to find a TS guess with {}'.format(func.__name__))
+        for func, params in get_ts_guess_funcs_and_params(reaction, fragment, product, bond_rearrangement):
+            logger.info(
+                'Trying to find a TS guess with {}'.format(func.__name__))
             ts_guess = func(*params)
 
             ts = get_ts(ts_guess)
 
             if ts is not None:
                 if ts.is_true_ts():
-                    logger.info('Found a transition state with {}'.format(func.__name__))
-                    tss.append(ts)
+                    logger.info(
+                        'Found a transition state with {}'.format(func.__name__))
+                    if reactant.stripped:
+                        ts_with_decoratation = get_template_ts_guess(
+                            reactant, bond_rearrangement.all, reaction.type)
+                        tss.append(ts_with_decoratation)
+                    else:
+                        tss.append(ts)
                     break
 
     if len(tss) > 0:
-        logger.info('Found *{}* transition state(s) that lead to products'.format(len(tss)))
+        logger.info(
+            'Found *{}* transition state(s) that lead to products'.format(len(tss)))
         return tss
 
     else:

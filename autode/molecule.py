@@ -185,32 +185,21 @@ class Molecule:
         logger.info('Stripping the extraneous atoms')
         bonded_to_core = set()
         bond_from_core = []
-        new_bond_from_core = []
         core_atoms = self._get_core_atoms(product_graph)
 
         if core_atoms is None:
             logger.error('No core atoms, not stripping extraneous atoms')
-            return
+            return self
 
-        non_core_atoms = [i for i in range(
-            self.n_atoms) if not i in core_atoms]
         coords = self.get_coords()
 
-        for new_index, atom in enumerate(core_atoms):
+        for atom in core_atoms:
             bonded_atoms = self.get_bonded_atoms_to_i(atom)
             for bonded_atom in bonded_atoms:
                 if not bonded_atom in core_atoms:
                     bonded_to_core.add(bonded_atom)
                     bond_from_core.append((atom, bonded_atom))
-                    # want to get the indexes of the atoms when non core has been removed then re-added
-                    new_bonded_atom_index = len(
-                        core_atoms) - 1 + non_core_atoms.index(bonded_atom)
-                    new_bond_from_core.append(
-                        (new_index, new_bonded_atom_index))
-        truncated_xyzs = [self.xyzs[i] for i in core_atoms]
-
-        self.no_core_atoms = len(core_atoms)
-        self.fragment_xyzs = [self.xyzs[i] for i in non_core_atoms]
+        fragment_xyzs = [self.xyzs[i] for i in core_atoms]
 
         for bond in bond_from_core:
             core_atom, bonded_atom = bond
@@ -220,13 +209,12 @@ class Molecule:
                 self.get_atom_label(core_atom), 'H')
             h_coords = (coords[core_atom] +
                         normed_bond_vector * avg_bond_length).tolist()
-            truncated_xyzs.append(['H'] + h_coords)
-        self.set_xyzs(truncated_xyzs)
+            fragment_xyzs.append(['H'] + h_coords)
 
-    def redecorate_core(self):
-        logger.info('Redecorating core with extraneous atoms')
-        self.set_xyzs(
-            xyzs=self.xyzs[:self.no_core_atoms] + self.fragment_xyzs)
+        if self.xyzs == fragment_xyzs:
+            self.stripped = True
+
+        return Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs, solvent=self.solvent, charge=self.charge, mult=self.mult)
 
     def find_lowest_energy_conformer(self):
         """
@@ -373,8 +361,7 @@ class Molecule:
         self.graph = None
         self.distance_matrix = None
         self.active_atoms = None
-        self.no_core_atoms = 0
-        self.fragment_xyzs = None
+        self.stripped = False
 
         if smiles:
             self._init_smiles(name, smiles)
