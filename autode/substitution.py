@@ -10,7 +10,7 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
 
     reactant_n_atoms = [reactant.n_atoms for reactant in reactants]
     if all(n_atoms > 15 for n_atoms in reactant_n_atoms):
-        shift_factor = + 0.5
+        shift_factor += 0.5
 
     all_attacked_atoms = get_attacked_atom(bond_rearrangement)
     all_attacked_atom_coords = [reac_complex_coords[attacked_atom]
@@ -112,7 +112,7 @@ def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atoms, to
         else:
             # check if it is flat, if so want perp vector to plane, if not can take average of the bonds
             logger.info(
-                f'Checking if attacking atom (id={fr_atom}) has flat coordination')
+                f'Checking if attacking atom ({fr_atom}) has flat geometry')
             flat = True
             for bonded_atom in fr_bonded_atoms:
                 for second_bonded_atom in fr_bonded_atoms:
@@ -140,10 +140,10 @@ def get_normalised_attack_vector(reac_complex, reac_complex_coords, fr_atoms, to
 
             if flat:
                 logger.info(
-                    f'Attacking atom (id={fr_atom}) has flat coordination')
+                    f'Attacking atom ({fr_atom}) has flat geometry')
                 all_attack_vectors.append([normed_first_cross_product, True])
             else:
-                logger.info('Attacking atom does not have flat coordination')
+                logger.info('Attacking atom does not have flat geometry')
                 avg_attack = np.average(fr_bond_vectors, axis=0)
                 normed_avg_attack = avg_attack / np.linalg.norm(avg_attack)
                 all_attack_vectors.append([normed_avg_attack, False])
