@@ -2,6 +2,7 @@ from autode.transition_states import locate_tss
 from autode import molecule
 from autode import reaction
 from autode.bond_rearrangement import BondRearrangement
+from autode.transition_states.template_ts_guess import get_template_ts_guess
 
 # h + h > h2 dissociation
 h_product_1 = molecule.Product(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
@@ -84,8 +85,12 @@ def test_rearranged_graph():
 
 
 def test_get_funcs_and_params():
-    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
-        dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0])
+    dissoc_rearrang = dissoc_rearrangs[0]
+    dissoc_funcs_params = [
+        (get_template_ts_guess, (dissoc_reactant, dissoc_rearrang.all, dissoc_reaction.type))]
+    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(dissoc_funcs_params,
+                                                              dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrang,
+                                                              [mol.graph for mol in dissoc_reaction.prods])
     assert type(dissoc_f_and_p) == list
     assert len(dissoc_f_and_p) == 4
     assert dissoc_f_and_p[0][0] == locate_tss.get_template_ts_guess
@@ -94,10 +99,13 @@ def test_get_funcs_and_params():
     assert dissoc_f_and_p[1][1][4] == 'H2--H+H_0-1_ll1d'
     assert dissoc_f_and_p[3][1][5] == locate_tss.Dissociation
 
+    subs_rearrang = subs_rearrangs[0]
+    subs_funcs_params = [
+        (get_template_ts_guess, (subs_reactant, subs_rearrang.all, subs_reaction.type))]
     subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
-        subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
+        subs_funcs_params, subs_reaction, subs_reactant, subs_product, subs_rearrangs[0], [mol.graph for mol in subs_reaction.prods])
     assert type(subs_f_and_p) == list
-    assert len(subs_f_and_p) == 7
+    assert len(subs_f_and_p) == 8
     assert subs_f_and_p[3][1][5] == locate_tss.Substitution
 
 

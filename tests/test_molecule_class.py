@@ -3,6 +3,7 @@ from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.reaction import Reaction
 from autode.conformers import conformers
+from autode.bond_rearrangement import BondRearrangement
 from rdkit.Chem import Mol
 import numpy as np
 import pytest
@@ -85,20 +86,36 @@ def test_conf_strip():
     assert h2.n_conformers == 1
 
 
-def test_get_core():
+def test_stripping_core():
     reac1 = Reactant(smiles='BrC(C1CC(C)CCC1)CC(C)C')
     reac2 = Reactant(smiles='[OH-]')
     prod1 = Product(smiles='OC(C1CC(C)CCC1)CC(C)C')
     prod2 = Product(xyzs=[['Br', 0.0, 0.0, 0.0]], charge=-1)
     reaction = Reaction(reac1, reac2, prod1, prod2)
-    reactant, product = get_reactant_and_product_complexes(reaction)
+    reactant, _ = get_reactant_and_product_complexes(reaction)
+    bond_rearrang = BondRearrangement(
+        forming_bonds=[(1, 36)], breaking_bonds=[(0, 1)])
 
-    fragment_1 = reactant.strip_core()
-    assert reactant.xyzs == fragment_1.xyzs
-    assert reactant.stripped == False
+    # test get core atoms
+    assert reactant.get_core_atoms() is None
 
     reactant.active_atoms = [0, 1, 36]
+    core1 = reactant.get_core_atoms(depth=2)
+    assert len(core1) == 24
 
-    fragment_2 = reactant.strip_core()
+    core2 = reactant.get_core_atoms(depth=3)
+    assert len(core2) == 26
+
+    # test strip core
+    fragment_1, bond_rearrang_1 = reactant.strip_core(
+        core_atoms=None, bond_rearrang=bond_rearrang)
+    assert reactant.xyzs == fragment_1.xyzs
+    assert reactant.stripped == False
+    assert bond_rearrang_1 == bond_rearrang
+
+    fragment_2, bond_rearrang_2 = reactant.strip_core(
+        core_atoms=core2, bond_rearrang=bond_rearrang)
     assert len(fragment_2.xyzs) == 29
     assert reactant.stripped == True
+    assert bond_rearrang_2.fbonds == [(1, 24)]
+    assert bond_rearrang_2.bbonds == [(0, 1)]

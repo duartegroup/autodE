@@ -17,8 +17,7 @@ from autode.mol_graphs import is_subgraph_isomorphic
 
 
 def get_ts_templates(reaction_class, folder_path=None):
-    logger.info('Getting TS templates from {}/{}'.format('lib',
-                                                         reaction_class.__name__))
+    logger.info(f'Getting TS templates from lib/{reaction_class.__name__}')
 
     if folder_path is None:
         folder_path = os.path.join(os.path.dirname(

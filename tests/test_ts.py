@@ -3,9 +3,11 @@ from autode.transition_states.templates import get_ts_templates
 from autode.reactions import Substitution
 from autode import molecule
 from autode.transition_states import optts
+from autode.config import Config
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
+Config.make_ts_template = False
 
 test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
                                       ['C', 0.0, 0.0, 0.0],

@@ -88,4 +88,5 @@ class TS:
         self.truncated_graph = None
         self.make_graph()
 
-        self.save_ts_template()
+        if Config.make_ts_template:
+            self.save_ts_template()

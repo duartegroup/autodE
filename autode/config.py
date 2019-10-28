@@ -20,6 +20,7 @@ class Config:
     #
     lcode = 'XTB'
     #
+    make_ts_template = True
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:
@@ -31,10 +32,13 @@ class Config:
         path = None
 
         scan_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
-        conf_opt_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
+        conf_opt_keywords = ['LooseOpt', 'PBE',
+                             'RI', 'D3BJ', 'def2-SVP', 'def2/J']
         opt_keywords = ['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
-        opt_ts_keywords = ['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
-        hess_keywords = ['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
+        opt_ts_keywords = ['OptTS', 'Freq', 'PBE0',
+                           'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
+        hess_keywords = ['Freq', 'PBE0', 'RIJCOSX',
+                         'D3BJ', 'def2-SVP', 'def2/J']
         opt_ts_block = ('%geom\n'
                         'inhess Read\n'
                         'Recalc_Hess 30\n'

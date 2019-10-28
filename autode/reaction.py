@@ -95,6 +95,8 @@ class Reaction:
             if mol.n_atoms > 1:
                 mol.find_lowest_energy_conformer()
 
+        self.clear_xtb_files()
+
         os.chdir(here)
 
     def optimise_reacs_prods(self):
@@ -165,7 +167,18 @@ class Reaction:
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
 
+        self.clear_xtb_files()
+
         os.chdir(here)
+
+    def clear_xtb_files(self):
+        xtb_files = ['xtbrestart', 'xtbopt.log',
+                     'xtbopt.xyz', 'charges', 'wbo', '.xtboptok']
+        for filename in xtb_files:
+            if os.path.exists(filename):
+                os.remove(filename)
+
+        logger.info('Clearing xtb files')
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')

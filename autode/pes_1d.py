@@ -13,7 +13,7 @@ from autode.mol_graphs import is_subgraph_isomorphic
 from autode.pes_2d import replace_none
 
 
-def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, products, delta_dist=1.5,
+def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, graphs, delta_dist=1.5,
                             active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
@@ -26,7 +26,6 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
     :param n_steps: (int) Number of scan steps to use in the XTB scan
     :param name: (str) Name of reaction
     :param reaction_class: (object) class of the reaction (reactions.py)
-    :param products: (object) list of product molecule objects
     :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
     :return: List of xyzs
     """
@@ -64,10 +63,9 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
     ts_product_graphs = [make_graph(xyzs, mol.n_atoms)
                          for xyzs in xyzs_list[::-1]]
     products_made = False
-    for graph in ts_product_graphs:
-        if all(is_subgraph_isomorphic(graph, product.graph) for product in products):
+    for ts_product_graph in ts_product_graphs:
+        if all(is_subgraph_isomorphic(ts_product_graph, graph) for graph in graphs):
             products_made = True
-        if products_made:
             break
 
     if not products_made:

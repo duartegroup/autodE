@@ -13,8 +13,8 @@ from autode.mol_graphs import make_graph
 from autode.mol_graphs import is_subgraph_isomorphic
 
 
-def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, products,
-                    delta_dist1=1.5, delta_dist2=1.5):
+def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, graphs,
+                    delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None):
     """
     :param mol:
     :param product: single product molecule object
@@ -105,10 +105,9 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     for row in mol_grid[::-1]:
         ts_product_graphs = [make_graph(mol.xyzs, mol.n_atoms)
                              for mol in row[::-1]]
-        for graph in ts_product_graphs:
-            if all(is_subgraph_isomorphic(graph, product.graph) for product in products):
+        for ts_product_graph in ts_product_graphs:
+            if all(is_subgraph_isomorphic(ts_product_graph, graph) for graph in graphs):
                 products_made = True
-            if products_made:
                 break
         if products_made:
             break
@@ -135,8 +134,11 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     make_reaction_animation(name, mep_xyzs)
 
+    active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [
+        active_bond1, active_bond2] + active_bonds_not_scanned
+
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
-                   active_bonds=[active_bond1, active_bond2], reactant=mol, product=product)
+                   active_bonds=active_bonds, reactant=mol, product=product)
 
 
 def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):

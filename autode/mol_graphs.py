@@ -117,3 +117,8 @@ def reac_graph_to_prods(reac_graph, bond_rearrang):
     for bbond in bond_rearrang.bbonds:
         reac_graph.remove_edge(*bbond)
     return reac_graph
+
+
+def get_fragment_products_graphs(frag_graph, rearrang):
+    prod_graph = reac_graph_to_prods(frag_graph, rearrang)
+    return list(nx.connected_component_subgraphs(prod_graph))

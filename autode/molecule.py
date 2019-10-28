@@ -9,6 +9,7 @@ from autode.conformers.conformers import generate_unique_rdkit_confs
 from autode.bond_lengths import get_xyz_bond_list
 from autode.bond_lengths import get_bond_list_from_rdkit_bonds
 from autode.bond_lengths import get_avg_bond_length
+from autode.bond_rearrangement import BondRearrangement
 from autode.geom import calc_distance_matrix
 from autode.geom import xyz2coord
 from autode.conformers.conformers import extract_xyzs_from_rdkit_mol_object
@@ -44,7 +45,7 @@ class Molecule:
                 'Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
-    def _get_core_atoms(self, product_graphs=None, depth=3):
+    def get_core_atoms(self, product_graph=None, depth=3):
         if self.active_atoms == None:
             logger.error('No active atoms found')
             return None
@@ -68,26 +69,26 @@ class Molecule:
         core_atoms.update(ring_atoms)
 
         logger.info('Looking for rings in the products')
-        if product_graphs is None:
+        if product_graph is None:
             logger.warning(
                 'No product graph found, this will cause errors if rings are formed in the reaction')
         else:
             prod_ring_atoms = set()
             for atom in core_atoms:
-                for graph in product_graphs:
-                    cycle = mol_graphs.find_cycle(graph, atom)
-                    if cycle is not None:
-                        for atom in cycle:
-                            prod_ring_atoms.add(atom)
+                cycle = mol_graphs.find_cycle(product_graph, atom)
+                if cycle is not None:
+                    for atom in cycle:
+                        prod_ring_atoms.add(atom)
             core_atoms.update(prod_ring_atoms)
 
-        core_atoms_h = set()
+        core_atoms_no_other_bonded = set()
         for atom in core_atoms:
             bonded_list = self.get_bonded_atoms_to_i(atom)
             for bonded_atom in bonded_list:
-                if self.get_atom_label(bonded_atom) == 'H':
-                    core_atoms_h.add(bonded_atom)
-        core_atoms.update(core_atoms_h)
+                no_bonded_atoms = len(self.get_bonded_atoms_to_i(bonded_atom))
+                if no_bonded_atoms == 1:
+                    core_atoms_no_other_bonded.add(bonded_atom)
+        core_atoms.update(core_atoms_no_other_bonded)
 
         return sorted(core_atoms)
 
@@ -181,18 +182,18 @@ class Molecule:
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
-    def strip_core(self, product_graph=None):
+    def strip_core(self, core_atoms, bond_rearrang):
         logger.info('Stripping the extraneous atoms')
         bonded_to_core = set()
         bond_from_core = []
-        core_atoms = self._get_core_atoms(product_graph)
 
         if core_atoms is None:
             logger.error('No core atoms, not stripping extraneous atoms')
-            return self
+            return (self, bond_rearrang)
 
         coords = self.get_coords()
 
+        # get the xyzs of the core part of the fragment
         for atom in core_atoms:
             bonded_atoms = self.get_bonded_atoms_to_i(atom)
             for bonded_atom in bonded_atoms:
@@ -201,6 +202,7 @@ class Molecule:
                     bond_from_core.append((atom, bonded_atom))
         fragment_xyzs = [self.xyzs[i] for i in core_atoms]
 
+        # put the extra H's on the fragment
         for bond in bond_from_core:
             core_atom, bonded_atom = bond
             bond_vector = coords[bonded_atom] - coords[core_atom]
@@ -211,10 +213,28 @@ class Molecule:
                         normed_bond_vector * avg_bond_length).tolist()
             fragment_xyzs.append(['H'] + h_coords)
 
+        # get the bond rearrangement in the new atom indices
+        new_fbonds = []
+        for fbond in bond_rearrang.fbonds:
+            new_atom_1 = core_atoms.index(fbond[0])
+            new_atom_2 = core_atoms.index(fbond[1])
+            new_fbonds.append((new_atom_1, new_atom_2))
+        new_bbonds = []
+        for bbond in bond_rearrang.bbonds:
+            new_atom_1 = core_atoms.index(bbond[0])
+            new_atom_2 = core_atoms.index(bbond[1])
+            new_bbonds.append((new_atom_1, new_atom_2))
+
+        new_bond_rearrang = BondRearrangement(
+            forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
+
         if self.xyzs != fragment_xyzs:
             self.stripped = True
 
-        return Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs, solvent=self.solvent, charge=self.charge, mult=self.mult)
+        fragment = Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs,
+                            solvent=self.solvent, charge=self.charge, mult=self.mult)
+
+        return (fragment, new_bond_rearrang)
 
     def find_lowest_energy_conformer(self):
         """

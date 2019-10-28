@@ -28,7 +28,6 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
         if template_matches(mol=mol, ts_template=ts_template, mol_graph=mol_graph):
             mapping = get_mapping_ts_template(
                 larger_graph=mol_graph, smaller_graph=ts_template.graph)
-
             for active_bond in active_bonds:
                 i, j = active_bond
                 try:
@@ -36,13 +35,13 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
                                                                                      mapping[j]]['weight']
                 except KeyError:
                     logger.warning(
-                        'Couldn\'t find a mapping for bond {}-{}'.format(i, j))
+                        f'Couldn\'t find a mapping for bond {i}-{j}')
 
             if len(active_bonds_and_dists_ts) == len(active_bonds):
                 logger.info('Found a TS guess from a template')
                 if any([mol.distance_matrix[bond[0], bond[1]] > dist_thresh for bond in active_bonds]):
                     logger.info(
-                        'TS template has => 1 active bond distance larger than {}. Passing'.format(dist_thresh))
+                        f'TS template has => 1 active bond distance larger than {dist_thresh}. Passing')
                     pass
                 else:
                     return get_ts_guess_constrained_opt(mol, keywords=mol.method.opt_keywords,
