@@ -48,7 +48,8 @@ smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE'
                 'O-CRESOL', 'CYCLOHEXANE', 'CYCLOHEXANONE']
 
 ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
-                                 aval_solvents=[solv.lower() for solv in smd_solvents],
+                                 aval_solvents=[solv.lower()
+                                                for solv in smd_solvents],
                                  scan_keywords=Config.ORCA.scan_keywords,
                                  conf_opt_keywords=Config.ORCA.conf_opt_keywords,
                                  opt_keywords=Config.ORCA.opt_keywords,
@@ -59,21 +60,24 @@ ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
 
 ORCA.__name__ = 'ORCA'
 
+
 def generate_input(calc):
     calc.input_filename = calc.name + '_orca.inp'
     calc.output_filename = calc.name + '_orca.out'
+    keywords = calc.keywords.copy()
 
     if len(calc.xyzs) == 1:
-        for keyword in calc.keywords:
+        for keyword in keywords:
             if keyword.lower() == 'opt' or keyword.lower() == 'looseopt' or keyword.lower() == 'tightopt':
                 logger.warning('Cannot do an optimisation for a single atom')
-                calc.keywords.remove(keyword)
+                keywords.remove(keyword)
 
     with open(calc.input_filename, 'w') as inp_file:
-        print('!', *calc.keywords, file=inp_file)
+        print('!', *keywords, file=inp_file)
 
         if calc.solvent:
-            print('%cpcm\n smd true\n SMDsolvent \"' + calc.solvent + '\"\n end', file=inp_file)
+            print('%cpcm\n smd true\n SMDsolvent \"' +
+                  calc.solvent + '\"\n end', file=inp_file)
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)
@@ -81,14 +85,14 @@ def generate_input(calc):
             print(f'InHessName "{name}"', file=inp_file)
             if calc.core_atoms:
                 core_atoms_str = ' '.join(map(str, calc.core_atoms))
-                print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)            
+                print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
             print('end', file=inp_file)
 
         if calc.bond_ids_to_add:
             try:
                 [print('%geom\nmodify_internal\n{ B', bond_ids[0], bond_ids[1], 'A } end\nend', file=inp_file)
                  for bond_ids in calc.bond_ids_to_add]
-            except IndexError or TypeError:
+            except (IndexError, TypeError):
                 logger.error('Could not add scanned bond')
 
         if calc.distance_constraints:
@@ -107,7 +111,8 @@ def generate_input(calc):
         print('%scf \nmaxiter 250 \nend', file=inp_file)
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)
-        [print('{:<3}{:^12.8f}{:^12.8f}{:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+        [print('{:<3}{:^12.8f}{:^12.8f}{:^12.8f}'.format(
+            *line), file=inp_file) for line in calc.xyzs]
         print('*', file=inp_file)
 
     return None
@@ -184,13 +189,16 @@ def get_normal_mode_displacements(calc, mode_number):
             if '.' not in line and len(line.split()) > 1:
                 mode_numbers = [int(val) for val in line.split()]
                 if mode_number in mode_numbers:
-                    col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
+                    col = [i for i in range(
+                        len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                     displacements = [float(disp_line.split()[col]) for disp_line in
-                                    calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
+                                     calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
 
-    displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
+    displacements_xyz = [displacements[i:i + 3]
+                         for i in range(0, len(displacements), 3)]
     if len(displacements_xyz) != calc.n_atoms:
-        logger.error('Something went wrong getting the displacements n != n_atoms')
+        logger.error(
+            'Something went wrong getting the displacements n != n_atoms')
         return None
 
     return displacements_xyz
