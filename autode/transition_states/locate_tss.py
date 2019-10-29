@@ -27,10 +27,17 @@ def find_tss(reaction):
         logger.error('Could not find a set of forming/breaking bonds')
         return None
 
-    logger.info(
-        'Found *{}* bond rearrangement(s) that lead to products'.format(len(bond_rearrangs)))
+    reactant_pi_systems = []
+    reac_no_atoms = [reac.n_atoms for reac in reaction.reacs]
+    for reac_no, reac in enumerate(reaction.reacs):
+        if reac.pi_systems is not None:
+            # indices will change in the reac complex
+            no_atoms = sum(reac_no_atoms[:reac_no])
+            for system in reac.pi_systems:
+                new_system = [atom + no_atoms for atom in system]
+                reactant_pi_systems.append(new_system)
 
-    for bond_rearrangement in bond_rearrangs:
+    reactant.pi_systems = reactant_pi_systems
 
         active_atoms = set()
         for active_atom in bond_rearrangement.active_atoms:
@@ -103,6 +110,9 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         '+'.join([p.name for p in reaction.prods])
     name += '_' + '_'.join([str(bond[0]) + '-' + str(bond[1])
                             for bond in bond_rearrang.all]) + '_'
+
+    if reactant.name.endswith('fragment'):
+        name += '_fragment'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 

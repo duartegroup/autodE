@@ -30,6 +30,7 @@ MOPAC = ElectronicStructureMethod(name='mopac',
 
 MOPAC.__name__ = 'MOPAC'
 
+
 def generate_input(calc):
     logger.info(f'Generating MOPAC input for {calc.name}')
 
@@ -65,11 +66,13 @@ def generate_input(calc):
             # interpolation to the xyzs then fix the Cartesians
 
             xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
-                                                  bonds=list(calc.distance_constraints.keys()),
+                                                  bonds=list(
+                                                      calc.distance_constraints.keys()),
                                                   final_distances=list(calc.distance_constraints.values()))
 
             # Populate a flat list of atom ids to fix
-            fixed_atoms = [i for bond in calc.distance_constraints.keys() for i in bond]
+            fixed_atoms = [i for bond in calc.distance_constraints.keys()
+                           for i in bond]
 
         else:
             xyzs = calc.xyzs
@@ -77,9 +80,11 @@ def generate_input(calc):
 
         for i, xyz_line in enumerate(xyzs):
             if i in fixed_atoms:
-                print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(*xyz_line), file=input_file)
+                print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(
+                    *xyz_line), file=input_file)
             else:
-                print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
+                print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(
+                    *xyz_line), file=input_file)
 
     return None
 
@@ -143,6 +148,10 @@ def get_final_xyzs(calc):
                 xyzs.append([atom_label, float(x), float(y), float(z)])
 
     return xyzs
+
+
+def get_pi_bonds(calc):
+    raise NotImplementedError
 
 
 # Bind all the required functions to the class definition

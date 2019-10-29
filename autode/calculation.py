@@ -67,6 +67,10 @@ class Calculation:
 
         return xyzs
 
+    def get_pi_bonds(self):
+        logger.info('Getting pi bonds from ORCA output file')
+        return self.method.get_pi_bonds(self)
+
     def calculation_terminated_normally(self):
         logger.info('Checking to see if {} terminated normally'.format(
             self.output_filename))

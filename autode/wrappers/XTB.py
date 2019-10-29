@@ -17,6 +17,7 @@ XTB = ElectronicStructureMethod(name='xtb',
 
 XTB.__name__ = 'XTB'
 
+
 def generate_input(calc):
 
     calc.input_filename = calc.name + '_xtb.xyz'
@@ -38,7 +39,7 @@ def generate_input(calc):
             for atom_ids in calc.distance_constraints.keys():  # XTB counts from 1 so increment atom ids by 1
                 print('$constrain\nforce constant=10\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
                     atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
-                      file=xcontrol_file)
+                    file=xcontrol_file)
 
         calc.flags += ['--input', xcontrol_filename]
 
@@ -101,6 +102,10 @@ def get_final_xyzs(calc):
                          float(y) * Constants.a02ang, float(z) * Constants.a02ang])
 
     return xyzs
+
+
+def get_pi_bonds(calc):
+    raise NotImplementedError
 
 
 # Bind all the required functions to the class definition
