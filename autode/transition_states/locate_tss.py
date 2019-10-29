@@ -39,64 +39,17 @@ def find_tss(reaction):
 
     reactant.pi_systems = reactant_pi_systems
 
-        active_atoms = set()
-        for active_atom in bond_rearrangement.active_atoms:
-            active_atoms.add(active_atom)
+    logger.info(
+        f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
 
-        reactant.active_atoms = sorted(active_atoms)
-
-        # get the product graph with the atom indices of the reactant
-        reac_graph = reactant.graph.copy()
-        prod_graph_reac_indices = reac_graph_to_prods(
-            reac_graph, bond_rearrangement)
-
-        if reaction.type in [Substitution, Elimination]:
-
-            set_complex_xyzs_translated_rotated(
-                reactant, reaction.reacs, bond_rearrangement)
-
-        reactant_core_atoms = reactant.get_core_atoms(prod_graph_reac_indices)
-
-        fragment, fragment_rearrangement = reactant.strip_core(
-            reactant_core_atoms, bond_rearrangement)
-
-        frag_products_graph = get_fragment_products_graphs(
-            fragment.graph, fragment_rearrangement)
-
-        funcs_params = [
-            (get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type))]
-
-        for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, fragment, product, fragment_rearrangement, frag_products_graph):
-            logger.info(f'Trying to find a TS guess with {func.__name__}')
-            ts_guess = func(*params)
-
-            ts = get_ts(ts_guess)
-
-            if ts is not None:
-                if ts.is_true_ts():
-                    logger.info(
-                        f'Found a transition state with {func.__name__}')
-                    if reactant.stripped:
-                        logger.info('Finding full TS')
-                        ts_guess_with_decoratation = get_template_ts_guess(
-                            reactant, bond_rearrangement.all, reaction.type)
-                        ts_guess_with_decoratation = get_ts(
-                            ts_guess_with_decoratation)
-                        if ts_guess_with_decoratation is not None:
-                            if ts_guess_with_decoratation.is_true_ts():
-                                logger.info('Found full TS')
-                                tss.append(ts_guess_with_decoratation)
-                    else:
-                        tss.append(ts)
-                    break
-
-    # if len(tss) == 0 and reactant.stripped:
-    #     logger.info('Found no transition states using the fragment, will try with the whole molecule')
-        # TODO
+    for bond_rearrangement in bond_rearrangs:
+        rearrang_tss = get_ts_obj(
+            reaction, reactant, product, bond_rearrangement)
+        tss += rearrang_tss
 
     if len(tss) > 0:
         logger.info(
-            'Found *{}* transition state(s) that lead to products'.format(len(tss)))
+            f'Found *{len(tss)}* transition state(s) that lead to products')
         return tss
 
     else:
@@ -112,7 +65,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                             for bond in bond_rearrang.all]) + '_'
 
     if reactant.name.endswith('fragment'):
-        name += '_fragment'
+        name += 'fragment_'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
@@ -240,21 +193,21 @@ def get_bond_rearrangs(mol, product):
         funcs = [get_fbonds_bbonds_1f, get_fbonds_bbonds_1b2f]
     else:
         logger.error(
-            'Cannot treat a change in bonds reactant <- product of {}'.format(delta_n_bonds))
+            f'Cannot treat a change in bonds reactant <- product of {delta_n_bonds}')
         return None
 
     for func in funcs:
         possible_bond_rearrangements = func(
             possible_fbonds, possible_bbonds, mol, product, possible_bond_rearrangements)
         if len(possible_bond_rearrangements) > 0:
-            logger.info('Found a molecular graph rearrangement to products with {}'.format(
-                func.__name__))
+            logger.info(
+                f'Found a molecular graph rearrangement to products with {func.__name__}')
             # This function will return with from the first bond rearrangement that leads to products
 
             n_bond_rearrangs = len(possible_bond_rearrangements)
             if n_bond_rearrangs > 1:
                 logger.info(
-                    'Multiple *{}* possible bond breaking/makings are possible'.format(n_bond_rearrangs))
+                    f'Multiple *{n_bond_rearrangs}* possible bond breaking/makings are possible')
                 possible_bond_rearrangements = strip_equivalent_bond_rearrangs(
                     mol, possible_bond_rearrangements)
 
@@ -301,7 +254,7 @@ def get_fbonds_bbonds_1b(possible_fbonds, possible_bbonds, reactant, product, po
 
 
 def get_fbonds_bbonds_2b(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
-    logger.info('Have {} isomorphisms to do'.format(len(possible_bbonds)**2))
+    logger.info(f'Have {len(possible_bbonds)**2} isomorphisms to do')
 
     for i in range(len(possible_bbonds)):
         for j in range(len(possible_bbonds)):
@@ -314,8 +267,8 @@ def get_fbonds_bbonds_2b(possible_fbonds, possible_bbonds, reactant, product, po
 
 def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
 
-    logger.info('Have {} isomorphisms to do'.format(
-        len(possible_bbonds)*len(possible_fbonds)))
+    logger.info(
+        f'Have {len(possible_bbonds)*len(possible_fbonds)} isomorphisms to do')
 
     for fbond in possible_fbonds:
         for bbond in possible_bbonds:
@@ -340,8 +293,8 @@ def get_fbonds_bbonds_1b2f(possible_fbonds, possible_bbonds, reactant, product, 
 
 
 def get_fbonds_bbonds_2b1f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
-    logger.info('Have {} isomorphisms to do'.format(
-        len(possible_bbonds)**2*len(possible_fbonds)))
+    logger.info(
+        f'Have {len(possible_bbonds)**2*len(possible_fbonds)} isomorphisms to do')
 
     for fbond in possible_fbonds:
         for i in range(len(possible_bbonds)):
@@ -355,8 +308,8 @@ def get_fbonds_bbonds_2b1f(possible_fbonds, possible_bbonds, reactant, product, 
 
 def get_fbonds_bbonds_2b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
     logger.info('Getting possible 2 breaking and 2 forming bonds')
-    logger.info('Have {} isomorphisms to do'.format(
-        len(possible_bbonds)**2*len(possible_fbonds)**2))
+    logger.info(
+        f'Have {len(possible_bbonds)**2*len(possible_fbonds)**2} isomorphisms to do')
 
     for m in range(len(possible_fbonds)):
         for n in range(len(possible_fbonds)):
@@ -428,6 +381,71 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
         if bond_rearrang_is_unique:
             unique_bond_rearrangements.append(bond_rearrang)
 
-    logger.info('Stripped {} bond rearrangements'.format(
-        len(possible_bond_rearrangs)-len(unique_bond_rearrangements)))
+    logger.info(
+        f'Stripped {len(possible_bond_rearrangs)-len(unique_bond_rearrangements)} bond rearrangements')
     return unique_bond_rearrangements
+
+
+def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
+    tss = []
+    if reaction.type in [Substitution, Elimination]:
+
+        set_complex_xyzs_translated_rotated(
+            reactant, reaction.reacs, bond_rearrangement)
+
+    reactant_core_atoms = None
+
+    active_atoms = set()
+    for active_atom in bond_rearrangement.active_atoms:
+        active_atoms.add(active_atom)
+
+    reactant.active_atoms = sorted(active_atoms)
+
+    if strip_molecule:
+        # get the product graph with the atom indices of the reactant
+        reac_graph = reactant.graph.copy()
+        prod_graph_reac_indices = reac_graph_to_prods(
+            reac_graph, bond_rearrangement)
+
+        reactant_core_atoms = reactant.get_core_atoms(prod_graph_reac_indices)
+
+    fragment, fragment_rearrangement = reactant.strip_core(
+        reactant_core_atoms, bond_rearrangement)
+
+    frag_products_graph = get_fragment_products_graphs(
+        fragment.graph, fragment_rearrangement)
+
+    funcs_params = [
+        (get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type))]
+
+    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, fragment, product, fragment_rearrangement, frag_products_graph):
+        logger.info(f'Trying to find a TS guess with {func.__name__}')
+        ts_guess = func(*params)
+
+        ts = get_ts(ts_guess)
+
+        if ts is not None:
+            if ts.is_true_ts():
+                logger.info(
+                    f'Found a transition state with {func.__name__}')
+                if reactant.stripped:
+                    logger.info('Finding full TS')
+                    ts_guess_with_decoratation = get_template_ts_guess(
+                        reactant, bond_rearrangement.all, reaction.type)
+                    ts_guess_with_decoratation = get_ts(
+                        ts_guess_with_decoratation)
+                    if ts_guess_with_decoratation is not None:
+                        if ts_guess_with_decoratation.is_true_ts():
+                            logger.info('Found full TS')
+                            tss.append(ts_guess_with_decoratation)
+                else:
+                    tss.append(ts)
+                break
+
+    if len(tss) == 0 and reactant.stripped:
+        logger.info(
+            'Found no transition states using the fragment, will try with the whole molecule')
+        tss = get_ts_obj(reaction, reactant, product,
+                         bond_rearrangement, strip_molecule=False)
+
+    return tss
