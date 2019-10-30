@@ -238,8 +238,8 @@ def get_pi_bonds(calc):
             bond_strs = line.split('B')[1:]
 
             for bond in bond_strs:
-                stripped_str = [bond.replace(',', ' ').split()[
-                    i] for i in [1, 2, 5]]
+                stripped_str = [bond.translate(str.maketrans(
+                    {',': None, '(': None, ')': None})).split()[i] for i in [0, 1, 3]]
                 atoms = (int(stripped_str[0].split('-')[0]),
                          int(stripped_str[1].split('-')[0]))
                 bond_order_dict[atoms] = float(stripped_str[2])

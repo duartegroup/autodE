@@ -2922,7 +2922,7 @@ LOEWDIN REDUCED ORBITAL CHARGES
   4 H      0.9084     1.0000     0.0916     0.9775     0.9775    -0.0000
 
   Mayer bond orders larger than 0.1
-B(  0-C ,  1-Cl) :   0.9988 B(  0-C ,  2-H ) :   0.9737 B(  0-C ,  3-H ) :   0.9736 
+B(  0-C ,  1-Cl) :   2 B(  0-C ,  2-H ) :   0.9737 B(  0-C ,  3-H ) :   0.9736 
 B(  0-C ,  4-H ) :   0.9736 
 
 -------

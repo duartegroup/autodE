@@ -36,6 +36,7 @@ def test_orca_opt_calculation():
     assert calc.calculation_terminated_normally() is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
+    assert calc.get_pi_bonds() == [(0, 1)]
 
     os.remove('opt_orca.inp')
     os.chdir(here)
