@@ -87,24 +87,38 @@ def test_conf_strip():
 
 
 def test_stripping_core():
-    reac1 = Reactant(smiles='BrC(C1CC(C)CCC1)CC(C)C')
+    reac1 = Reactant(smiles='BrC(CC(C)C)C1CC1CC')
     reac2 = Reactant(smiles='[OH-]')
-    prod1 = Product(smiles='OC(C1CC(C)CCC1)CC(C)C')
+    prod1 = Product(smiles='OC(CC(C)C)C1CC1CC')
     prod2 = Product(xyzs=[['Br', 0.0, 0.0, 0.0]], charge=-1)
     reaction = Reaction(reac1, reac2, prod1, prod2)
     reactant, _ = get_reactant_and_product_complexes(reaction)
     bond_rearrang = BondRearrangement(
-        forming_bonds=[(1, 36)], breaking_bonds=[(0, 1)])
+        forming_bonds=[(1, 30)], breaking_bonds=[(0, 1)])
+
+    # test pi systems
+    reactant.pi_bonds = [(3, 4), (1, 2), (6, 7), (9, 10)]
+    reactant._find_pi_systems()
+
+    assert len(reactant.pi_systems) == 2
+    assert len(reactant.pi_systems[0]) == 6
+    assert len(reactant.pi_systems[1]) == 2
+
+    reactant.pi_systems = None
 
     # test get core atoms
     assert reactant.get_core_atoms() is None
 
-    reactant.active_atoms = [0, 1, 36]
+    reactant.active_atoms = [0, 1, 30]
     core1 = reactant.get_core_atoms(depth=2)
-    assert len(core1) == 24
+    assert len(core1) == 15
 
     core2 = reactant.get_core_atoms(depth=3)
-    assert len(core2) == 26
+    assert len(core2) == 17
+
+    reactant.pi_systems = [[2, 3]]
+    core3 = reactant.get_core_atoms(depth=2)
+    assert len(core3) == 17
 
     # test strip core
     fragment_1, bond_rearrang_1 = reactant.strip_core(
@@ -114,8 +128,8 @@ def test_stripping_core():
     assert bond_rearrang_1 == bond_rearrang
 
     fragment_2, bond_rearrang_2 = reactant.strip_core(
-        core_atoms=core2, bond_rearrang=bond_rearrang)
-    assert len(fragment_2.xyzs) == 29
+        core_atoms=core1, bond_rearrang=bond_rearrang)
+    assert len(fragment_2.xyzs) == 17
     assert reactant.stripped == True
-    assert bond_rearrang_2.fbonds == [(1, 24)]
+    assert bond_rearrang_2.fbonds == [(1, 13)]
     assert bond_rearrang_2.bbonds == [(0, 1)]

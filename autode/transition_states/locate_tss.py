@@ -395,6 +395,8 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
 
     reactant_core_atoms = None
 
+    reactant.stripped = False
+
     active_atoms = set()
     for active_atom in bond_rearrangement.active_atoms:
         active_atoms.add(active_atom)
