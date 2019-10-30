@@ -29,8 +29,6 @@ autode/conformers/cconf_gen.c
 
 autode/._config.py
 
-autode/transition_states/lib/Substitution/
-
 examples/diels_alder/
 
 examples/diels_alder/conformers/
@@ -91,26 +89,36 @@ examples/cyclohexane_elimination/tss/
 
 examples/cyclohexane_elimination/single_points/
 
-examples/hydroboration/
+examples/sulfate_hydrolysis/
 
-examples/hydroboration/conformers/
+examples/sulfate_hydrolysis/conformers/
 
-examples/hydroboration/optimise_reactants_and_products/
+examples/sulfate_hydrolysis/optimise_reactants_and_products/
 
-examples/hydroboration/tss/
+examples/sulfate_hydrolysis/tss/
 
-examples/hydroboration/single_points/
+examples/sulfate_hydrolysis/single_points/
 
-examples/electrophilic_sulfur/
+examples/sulfonate_hydrolysis/
 
-examples/electrophilic_sulfur/conformers/
+examples/sulfonate_hydrolysis/conformers/
 
-examples/electrophilic_sulfur/optimise_reactants_and_products/
+examples/sulfonate_hydrolysis/optimise_reactants_and_products/
 
-examples/electrophilic_sulfur/tss/
+examples/sulfonate_hydrolysis/tss/
 
-examples/electrophilic_sulfur/single_points/
+examples/sulfonate_hydrolysis/single_points/
 
-*.log
+examples/big_sn2/
 
-.vscode/
+examples/big_sn2/conformers/
+
+examples/big_sn2/optimise_reactants_and_products/
+
+examples/big_sn2/tss/
+
+examples/big_sn2/single_points/
+
+examples/test_stripping.py
+
+examples/test_substitution.py

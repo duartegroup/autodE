@@ -164,6 +164,11 @@ class Reaction:
                 f'Creating directory to store transition state output files at {tss_directory_path:}')
         os.chdir(tss_directory_path)
 
+        # clear the PES graphs, so they don't write over each other
+        for filename in os.listdir(os.getcwd()):
+            if filename.endswith('.png'):
+                os.remove(filename)
+
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
 
