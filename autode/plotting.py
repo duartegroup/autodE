@@ -75,12 +75,16 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
     if 'fbond' in scan_name:
         label = method_name + ' forming bonds'
         colour = fbond_colour_method_dict.get(method_name.lower(), 'black')
+        plot_name += '_fbond'
     elif 'bbond' in scan_name:
         label = method_name + ' breaking bonds'
         colour = bbond_colour_method_dict.get(method_name.lower(), 'orange')
+        plot_name += '_bbond'
     else:
         label = method_name
         colour = fbond_colour_method_dict.get(method_name.lower(), 'sienna')
+
+    logger.info('Plotting 1D scan and saving to {}.png'.format(plot_name))
     plt.plot(rs, rel_energies, marker='o', color=colour, label=label)
     plt.legend()
     plt.xlabel('$r$ / Å')

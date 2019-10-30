@@ -117,7 +117,6 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name,
             peak_e = energy_list[i]
             xyzs_peak_energy = xyzs_list[i]
 
-    logger.info('Plotting 1D scan and saving to {}.png'.format(plot_name))
     plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
                            for e in energies_not_none], scan_name=scan_name, plot_name=plot_name, method=method)
 
