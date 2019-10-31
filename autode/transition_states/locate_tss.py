@@ -7,7 +7,7 @@ from autode.reactions import Dissociation, Rearrangement, Substitution, Eliminat
 from autode.bond_lengths import get_avg_bond_length
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import reac_graph_to_prods
-from autode.mol_graphs import get_fragment_products_graphs
+from autode.mol_graphs import get_products_graphs
 from autode.transition_states.optts import get_ts
 from autode.transition_states.template_ts_guess import get_template_ts_guess
 from autode.pes_1d import get_ts_guess_1dpes_scan
@@ -64,7 +64,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     name += '_' + '_'.join([str(bond[0]) + '-' + str(bond[1])
                             for bond in bond_rearrang.all]) + '_'
 
-    if reactant.name.endswith('fragment'):
+    if reactant.is_fragment:
         name += 'fragment_'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
@@ -400,8 +400,6 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
 
     reactant_core_atoms = None
 
-    reactant.stripped = False
-
     active_atoms = set()
     for active_atom in bond_rearrangement.active_atoms:
         active_atoms.add(active_atom)
@@ -416,16 +414,16 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
 
         reactant_core_atoms = reactant.get_core_atoms(prod_graph_reac_indices)
 
-    fragment, fragment_rearrangement = reactant.strip_core(
+    reac_mol, reac_mol_rearrangement = reactant.strip_core(
         reactant_core_atoms, bond_rearrangement)
 
-    frag_products_graph = get_fragment_products_graphs(
-        fragment.graph, fragment_rearrangement)
+    products_graphs = get_products_graphs(
+        reac_mol.graph, reac_mol_rearrangement)
 
     funcs_params = [
         (get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type))]
 
-    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, fragment, product, fragment_rearrangement, frag_products_graph):
+    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, product, reac_mol_rearrangement, products_graphs):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)
 
@@ -435,7 +433,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
             if ts.is_true_ts():
                 logger.info(
                     f'Found a transition state with {func.__name__}')
-                if reactant.stripped:
+                if reac_mol.is_fragment:
                     logger.info('Finding full TS')
                     ts_guess_with_decoratation = get_template_ts_guess(
                         reactant, bond_rearrangement.all, reaction.type)
@@ -449,7 +447,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
                     tss.append(ts)
                 break
 
-    if len(tss) == 0 and reactant.stripped:
+    if len(tss) == 0 and reac_mol.is_fragment:
         logger.info(
             'Found no transition states using the fragment, will try with the whole molecule')
         tss = get_ts_obj(reaction, reactant, product,

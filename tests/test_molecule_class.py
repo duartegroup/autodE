@@ -127,13 +127,13 @@ def test_stripping_core():
     fragment_1, bond_rearrang_1 = reactant.strip_core(
         core_atoms=None, bond_rearrang=bond_rearrang)
     assert reactant == fragment_1
-    assert reactant.stripped == False
+    assert fragment_1.is_fragment == False
     assert bond_rearrang_1 == bond_rearrang
 
     fragment_2, bond_rearrang_2 = reactant.strip_core(
         core_atoms=core1, bond_rearrang=bond_rearrang)
     assert len(fragment_2.xyzs) == 17
-    assert reactant.stripped == True
+    assert fragment_2.is_fragment == True
     assert bond_rearrang_2.fbonds == [(1, 13)]
     assert bond_rearrang_2.bbonds == [(0, 1)]
 

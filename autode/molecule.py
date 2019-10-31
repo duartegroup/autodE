@@ -271,9 +271,8 @@ class Molecule:
         new_bond_rearrang = BondRearrangement(
             forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
 
-        self.stripped = True
         fragment = Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs,
-                            solvent=self.solvent, charge=self.charge, mult=self.mult)
+                            solvent=self.solvent, charge=self.charge, mult=self.mult, is_fragment=True)
         return (fragment, new_bond_rearrang)
 
     def find_lowest_energy_conformer(self):
@@ -394,7 +393,7 @@ class Molecule:
         self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
         self.distance_matrix = calc_distance_matrix(xyzs)
 
-    def __init__(self, name='molecule', smiles=None, xyzs=None, solvent=None, charge=0, mult=1):
+    def __init__(self, name='molecule', smiles=None, xyzs=None, solvent=None, charge=0, mult=1, is_fragment=False):
         """
         Initialise a Molecule object.
         Will generate xyz lists of all the conformers found by RDKit within the number
@@ -413,6 +412,7 @@ class Molecule:
         self.charge = charge
         self.mult = mult
         self.xyzs = xyzs
+        self.is_fragment = is_fragment
         self.method = get_hmethod()
         self.mol_obj = None
         self.energy = None
@@ -424,7 +424,6 @@ class Molecule:
         self.graph = None
         self.distance_matrix = None
         self.active_atoms = None
-        self.stripped = False
         self.pi_bonds = None
         self.pi_systems = None
 
