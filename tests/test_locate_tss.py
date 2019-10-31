@@ -105,7 +105,7 @@ def test_get_funcs_and_params():
     subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
         subs_funcs_params, subs_reaction, subs_reactant, subs_product, subs_rearrangs[0], [mol.graph for mol in subs_reaction.prods])
     assert type(subs_f_and_p) == list
-    assert len(subs_f_and_p) == 8
+    assert len(subs_f_and_p) == 9
     assert subs_f_and_p[3][1][5] == locate_tss.Substitution
 
 

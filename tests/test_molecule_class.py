@@ -116,14 +116,17 @@ def test_stripping_core():
     core2 = reactant.get_core_atoms(depth=3)
     assert len(core2) == 17
 
+    core3 = reactant.get_core_atoms(depth=5)
+    assert len(core3) == 32
+
     reactant.pi_systems = [[2, 3]]
-    core3 = reactant.get_core_atoms(depth=2)
-    assert len(core3) == 17
+    core4 = reactant.get_core_atoms(depth=2)
+    assert len(core4) == 17
 
     # test strip core
     fragment_1, bond_rearrang_1 = reactant.strip_core(
         core_atoms=None, bond_rearrang=bond_rearrang)
-    assert reactant.xyzs == fragment_1.xyzs
+    assert reactant == fragment_1
     assert reactant.stripped == False
     assert bond_rearrang_1 == bond_rearrang
 
@@ -133,3 +136,8 @@ def test_stripping_core():
     assert reactant.stripped == True
     assert bond_rearrang_2.fbonds == [(1, 13)]
     assert bond_rearrang_2.bbonds == [(0, 1)]
+
+    fragment_3, bond_rearrang_3 = reactant.strip_core(
+        core_atoms=core3, bond_rearrang=bond_rearrang)
+    assert reactant == fragment_3
+    assert bond_rearrang_3 == bond_rearrang

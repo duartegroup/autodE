@@ -77,7 +77,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, product, bond_rearrang.bbonds[0], 10, name + 'hl1d_opt_level',
                                                        reaction.type, hmethod, hmethod.opt_keywords, prod_graphs)))
 
-    if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type == Substitution:
+    if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, product, bond_rearrang.bbonds[0], 20, name + 'll1d_bbond',
                                                        reaction.type, lmethod, lmethod.scan_keywords, prod_graphs, 1.5,
                                                        [bond_rearrang.fbonds[0]])))
@@ -97,6 +97,8 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                                                        lmethod.scan_keywords, prod_graphs, delta_fbond_dist, bond_rearrang.bbonds)))
         funcs_params.append((get_ts_guess_1dpes_scan, (reactant, product, fbond, 10, name + 'hl1d_fbond', reaction.type, hmethod,
                                                        hmethod.scan_keywords, prod_graphs, delta_fbond_dist, bond_rearrang.bbonds)))
+        funcs_params.append((get_ts_guess_1dpes_scan, (reactant, product, fbond, 10, name + 'hl1d_opt_level_fbond', reaction.type, hmethod,
+                                                       hmethod.opt_keywords, prod_graphs, delta_fbond_dist, bond_rearrang.bbonds)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1:
         fbond, bbond = bond_rearrang.fbonds[0], bond_rearrang.bbonds[0]
@@ -389,9 +391,12 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
 def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
     tss = []
     if reaction.type in [Substitution, Elimination]:
-
+        if reaction.charge == 0:
+            shift_factor = 2
+        else:
+            shift_factor = 3
         set_complex_xyzs_translated_rotated(
-            reactant, reaction.reacs, bond_rearrangement)
+            reactant, reaction.reacs, bond_rearrangement, shift_factor)
 
     reactant_core_atoms = None
 

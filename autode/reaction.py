@@ -29,6 +29,7 @@ class Reaction:
         if sum(reac_charges) != sum(prod_charges):
             logger.critical('Charge doesn\'t balance')
             exit()
+        self.charge = sum(reac_charges)
 
     def check_solvent(self):
         """
@@ -226,6 +227,7 @@ class Reaction:
         self.prods = [mol for mol in molecules if isinstance(
             mol, Product) and mol is not None]
         self.ts, self.tss = None, []
+        self.charge = None
 
         self.type = reactions.classify(reacs=self.reacs, prods=self.prods)
 

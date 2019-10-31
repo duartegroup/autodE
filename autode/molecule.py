@@ -252,6 +252,10 @@ class Molecule:
                         normed_bond_vector * avg_bond_length).tolist()
             fragment_xyzs.append(['H'] + h_coords)
 
+        if self.xyzs == fragment_xyzs:
+            logger.info('No atoms to strip')
+            return (self, bond_rearrang)
+
         # get the bond rearrangement in the new atom indices
         new_fbonds = []
         for fbond in bond_rearrang.fbonds:
@@ -267,12 +271,9 @@ class Molecule:
         new_bond_rearrang = BondRearrangement(
             forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
 
-        if self.xyzs != fragment_xyzs:
-            self.stripped = True
-
+        self.stripped = True
         fragment = Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs,
                             solvent=self.solvent, charge=self.charge, mult=self.mult)
-
         return (fragment, new_bond_rearrang)
 
     def find_lowest_energy_conformer(self):
