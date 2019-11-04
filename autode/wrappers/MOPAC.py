@@ -74,6 +74,9 @@ def generate_input(calc):
             xyzs = calc.xyzs
             fixed_atoms = []
 
+        if calc.cartesian_constraints is not None:
+            fixed_atoms += calc.cartesian_constraints
+
         for i, xyz_line in enumerate(xyzs):
             if i in fixed_atoms:
                 print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(*xyz_line), file=input_file)
