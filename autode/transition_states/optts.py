@@ -24,25 +24,25 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
         logger.warning('Cannot find a transition state; had no TS guess')
         return None
 
-    ts_guess.run_orca_optts()
-
-    if not ts_guess.optts_calc:
+    if not ts_guess.run_orca_optts():
         return None
 
     if not ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
                                            active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
         return None
-    imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
+    imag_freqs, _, _ = ts_guess.get_imag_frequencies_xyzs_energy()
 
     if len(imag_freqs) > 1:
         logger.warning(
             'OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
-        ts_guess.do_displacements()
+        if not ts_guess.do_displacements():
+            return None
 
-    ts_guess.check_optts_convergence()
+    if not ts_guess.check_optts_convergence():
+        return None
 
     if ts_guess.optts_converged or ts_guess.optts_nearly_converged:
-        imag_freqs, ts_xyzs, ts_energy = ts_guess.get_imag_frequencies_xyzs_energy()
+        imag_freqs, _, _ = ts_guess.get_imag_frequencies_xyzs_energy()
         if len(imag_freqs) > 0:
 
             if imag_freqs[0] > imag_freq_threshold:

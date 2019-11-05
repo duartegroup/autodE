@@ -64,7 +64,7 @@ def test_ts_guess_class():
         ts_guess_obj.optts_calc, 5, [(3, 4)]) == False
 
     # testing ts_guess.do_displacements
-    ts_guess_obj.do_displacements()
+    ts_guess_obj.do_displacements(magnitude=1)
     assert ts_guess_obj.xyzs[0] == ['F', -2, 0, 0]
 
     for filename in os.listdir(os.getcwd()):

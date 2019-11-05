@@ -50,7 +50,7 @@ class Reaction:
 
     def switch_addition(self):
         """
-        Addition reactions are hard to find the TSs for so swap reactants and products and classify as dissociation
+        Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
         :return: None
         """
         logger.info(

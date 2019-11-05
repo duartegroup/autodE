@@ -5,6 +5,8 @@ from autode.transition_states.optts import ts_has_correct_imaginary_vector
 from autode.calculation import Calculation
 from autode.geom import xyz2coord
 from autode.mol_graphs import make_graph
+from copy import deepcopy
+from copy import copy
 
 
 class TSguess:
@@ -34,33 +36,61 @@ class TSguess:
         else:
             self.optts_converged = True
 
-        return None
+        return True
 
-    def do_displacements(self):
+    def do_displacements(self, magnitude=0.75):
+        """displaces along the second imaginary mode
+
+        Returns:
+            bool -- returns True if it reached the end, otherwise False (lost imag mode)
+        """
+        mode_lost = False
+        imag_freqs = []
+        orig_optts_calc = deepcopy(self.optts_calc)
+        orig_name = copy(self.name)
         self.xyzs = get_displaced_xyzs_along_imaginary_mode(
-            self.optts_calc, displacement_magnitude=1.0)
+            self.optts_calc, displacement_magnitude=magnitude)
         self.name += '_dis'
-        self.run_orca_optts()
+        if not self.run_orca_optts():
+            logger.error(
+                'Displacement lost correct imaginary mode, trying backwards displacement')
+            mode_lost = True
 
-        imag_freqs, ts_xyzs, ts_energy = self.get_imag_frequencies_xyzs_energy()
-        self.check_optts_convergence()
+        if not mode_lost:
+            if self.check_optts_convergence():
+                imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
+                if len(imag_freqs) > 1:
+                    logger.warning(
+                        f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, trying displacement backwards')
+            else:
+                logger.error(
+                    'Displacement lost correct imaginary mode, trying backwards displacement')
+                mode_lost = True
 
-        if len(imag_freqs) > 1:
-            logger.warning(
-                'OptTS calculation returned {} imaginary frequencies'.format(len(imag_freqs)))
+        if len(imag_freqs) > 1 or mode_lost:
+            self.optts_calc = orig_optts_calc
+            self.name = orig_name
             self.xyzs = get_displaced_xyzs_along_imaginary_mode(
-                self.optts_calc, displacement_magnitude=-1.0)
+                self.optts_calc, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
-            self.run_orca_optts()
-            self.check_optts_convergence()
+            if not self.run_orca_optts():
+                logger.error('Displacement lost correct imaginary mode')
+                return False
+
+            imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
 
             if len(imag_freqs) > 1:
                 logger.error(
                     'Couldn\'t remove other imaginary frequencies by displacement')
 
-        return None
+        return True
 
     def run_orca_optts(self):
+        """runs the optts calc
+
+        Returns:
+            bool -- true if the optts calc happened, false otherwise
+        """
         logger.info('Getting ORCA out lines from OptTS calculation')
 
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
@@ -72,13 +102,13 @@ class TSguess:
         imag_freqs = self.hess_calc.get_imag_freqs()
         if len(imag_freqs) == 0:
             logger.info('Hessian showed no imaginary modes')
-            return None
+            return False
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
 
         if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms,
                                                active_bonds=self.active_bonds, threshold_contribution=0.1):
-            return None
+            return False
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
@@ -87,7 +117,7 @@ class TSguess:
 
         self.optts_calc.run()
         self.xyzs = self.optts_calc.get_final_xyzs()
-        return None
+        return True
 
     def get_imag_frequencies_xyzs_energy(self):
         return self.optts_calc.get_imag_freqs(), self.optts_calc.get_final_xyzs(), self.optts_calc.get_energy()
