@@ -25,5 +25,13 @@ def test_xtb_calculation():
     assert calc.input_filename == 'opt_xtb.xyz'
     assert calc.output_filename == 'opt_xtb.out'
 
+    const_opt = Calculation(name='opt', molecule=test_mol,
+                            method=XTB, opt=True, distance_constraints={(0, 1): 1.2539792})
+    const_opt.generate_input()
+    assert os.path.exists('xcontrol_opt')
+    assert const_opt.flags == ['--chrg', '0',
+                               '--opt', '--input', 'xcontrol_opt']
+
     os.remove('opt_xtb.xyz')
+    os.remove('xcontrol_opt')
     os.chdir(here)

@@ -1,5 +1,6 @@
 from autode import mol_graphs
 from autode.bond_rearrangement import BondRearrangement
+from autode.molecule import Molecule
 import networkx as nx
 
 h2_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]]
@@ -58,3 +59,11 @@ def test_reac_to_prods():
     for edge in expected_edges:
         expected_graph.add_edge(*edge)
     assert mol_graphs.is_isomorphic(expected_graph, prod_graph)
+
+
+def test_prod_core_atoms():
+    mol = Molecule(smiles='CC(C)CC')
+    stripped_mol = Molecule(smiles='CC(C)C')
+    prod_core_atoms = mol_graphs.get_product_core_atoms(
+        mol, stripped_mol.graph)
+    assert prod_core_atoms == [0, 1, 2, 3]
