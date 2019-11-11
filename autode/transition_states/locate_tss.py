@@ -271,8 +271,8 @@ def get_fbonds_bbonds_1b1f(possible_fbonds, possible_bbonds, reactant, product, 
 
 
 def get_fbonds_bbonds_1b2f(possible_fbonds, possible_bbonds, reactant, product, possible_bond_rearrangs):
-    logger.info('Have {} isomorphisms to do'.format(
-        len(possible_bbonds)*len(possible_fbonds)**2))
+    logger.info(
+        f'Have {len(possible_bbonds)*len(possible_fbonds)**2} isomorphisms to do')
 
     for bbond in possible_bbonds:
         for i in range(len(possible_fbonds)):
@@ -420,7 +420,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
     prod_mol, _ = product.strip_core(product_core_atoms)
 
     funcs_params = [
-        (get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type))]
+        (get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type, product))]
 
     for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, prod_mol, reac_mol_rearrangement):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
@@ -435,7 +435,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
                 if reac_mol.is_fragment:
                     logger.info('Finding full TS')
                     ts_guess_with_decoratation = get_template_ts_guess(
-                        reactant, bond_rearrangement.all, reaction.type)
+                        reactant, bond_rearrangement.all, reaction.type, product)
                     ts_guess_with_decoratation = get_ts(
                         ts_guess_with_decoratation)
                     if ts_guess_with_decoratation is not None:

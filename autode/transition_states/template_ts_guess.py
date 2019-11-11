@@ -5,7 +5,7 @@ from autode.transition_states.templates import template_matches
 from autode.log import logger
 
 
-def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
+def get_template_ts_guess(mol, active_bonds, reaction_class, product, dist_thresh=4.0):
     """
     Get a transition state guess object by searching though the stored TS templates
 
@@ -47,7 +47,7 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, dist_thresh=4.0):
                     return get_ts_guess_constrained_opt(mol, keywords=mol.method.opt_keywords,
                                                         name='template_ts_guess',
                                                         distance_consts=active_bonds_and_dists_ts,
-                                                        reaction_class=reaction_class)
+                                                        reaction_class=reaction_class, product=product)
 
     logger.info('Couldn\'t find a TS guess from a template')
     return None

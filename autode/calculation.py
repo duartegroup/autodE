@@ -150,7 +150,7 @@ class Calculation:
         return None
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None):
+                 optts_block=None, opt=False, distance_constraints=None, constraints_already_met=False, mode=None):
         """
         :param name: (str)
         :param molecule: (object) a Molecule object
@@ -180,6 +180,7 @@ class Calculation:
         self.bond_ids_to_add = bond_ids_to_add
         self.optts_block = optts_block
         self.distance_constraints = distance_constraints
+        self.constraints_already_met = constraints_already_met
 
         # Set in self.generate_input()
         self.input_filename = None

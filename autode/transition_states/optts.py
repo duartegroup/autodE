@@ -183,7 +183,7 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
     return False
 
 
-def check_close_imag_contribution(calc, molecules, method, mode_number=6, disp_mag=0.8):
+def check_close_imag_contribution(calc, molecules, method, mode_number=6, disp_mag=1):
     """Displaced atoms along the imaginary mode to see if products and reactants are made
 
     Arguments:
@@ -193,7 +193,7 @@ def check_close_imag_contribution(calc, molecules, method, mode_number=6, disp_m
 
 
     Keyword Arguments:
-        disp_mag {int} -- Distance to be displaced along the imag mode (default: {0.8})
+        disp_mag {int} -- Distance to be displaced along the imag mode (default: {1})
         mode_number {int} -- normal mode number to be checked (default: {6})
 
     Returns:
@@ -201,19 +201,34 @@ def check_close_imag_contribution(calc, molecules, method, mode_number=6, disp_m
     """
     forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(
         calc, mode_number=mode_number, displacement_magnitude=disp_mag)
-    forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs)
+    forward_displaced_mol = Molecule(
+        xyzs=forward_displaced_xyzs, charge=calc.charge, mult=calc.mult)
+    forward_coords = forward_displaced_mol.get_coords()
+    forward_distance_constraints = {}
+    for active_bond in calc.bond_ids_to_add:
+        distance = np.linalg.norm(
+            forward_coords[active_bond[0]] - forward_coords[active_bond[1]])
+        forward_distance_constraints[active_bond] = distance
     forward_displaced_calc = Calculation(name=calc.name + f'_{mode_number}_forwards_displacement', molecule=forward_displaced_mol, method=method,
                                          keywords=method.opt_keywords, n_cores=Config.n_cores,
-                                         max_core_mb=Config.max_core, opt=True)
+                                         max_core_mb=Config.max_core, opt=True, distance_constraints=forward_distance_constraints, constraints_already_met=True)
     forward_displaced_calc.run()
     forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_xyzs())
 
     backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(
         calc, mode_number=mode_number, displacement_magnitude=-disp_mag)
-    backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs)
+    backward_displaced_mol = Molecule(
+        xyzs=backward_displaced_xyzs, charge=calc.charge, mult=calc.mult)
+    backward_coords = backward_displaced_mol.get_coords()
+    backward_distance_constraints = {}
+    for active_bond in calc.bond_ids_to_add:
+        distance = np.linalg.norm(
+            backward_coords[active_bond[0]] - backward_coords[active_bond[1]])
+        backward_distance_constraints[active_bond] = distance
+
     backward_displaced_calc = Calculation(name=calc.name + f'_{mode_number}_backwards_displacement', molecule=backward_displaced_mol, method=method,
                                           keywords=method.opt_keywords, n_cores=Config.n_cores,
-                                          max_core_mb=Config.max_core, opt=True)
+                                          max_core_mb=Config.max_core, opt=True, distance_constraints=backward_distance_constraints, constraints_already_met=True)
     backward_displaced_calc.run()
     backward_displaced_mol.set_xyzs(backward_displaced_calc.get_final_xyzs())
 

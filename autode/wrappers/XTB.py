@@ -34,12 +34,15 @@ def generate_input(calc):
         calc.flags += ['--gbsa', calc.solvent]
 
     if calc.distance_constraints:
+        force_constant = 10
+        if calc.constraints_already_met:
+            force_constant += 90
         xcontrol_filename = 'xcontrol_' + calc.name
         with open(xcontrol_filename, 'w') as xcontrol_file:
-            for atom_ids in calc.distance_constraints.keys():  # XTB counts from 1 so increment atom ids by 1
-                print('$constrain\nforce constant=10\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
-                    atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
-                    file=xcontrol_file)
+                for atom_ids in calc.distance_constraints.keys():  # XTB counts from 1 so increment atom ids by 1
+                    print(f'$constrain\nforce constant={force_constant}\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
+                        atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
+                        file=xcontrol_file)
 
         calc.flags += ['--input', xcontrol_filename]
 

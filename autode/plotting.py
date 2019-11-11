@@ -80,16 +80,16 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
     colour = colour_method_dict.get(label.lower(), 'black')
 
-    # bbond 1d scan happens first, close the fig so bbonds and fbonds are plotted separately
-    if os.path.exists(plot_name + '_bbond.png') and not os.path.exists(plot_name + '_fbond.png'):
-        plt.close()
-
     if 'fbond' in scan_name:
         plot_name += '_fbond'
     elif 'bbond' in scan_name:
         plot_name += '_bbond'
 
-    logger.info('Plotting 1D scan and saving to {}.png'.format(plot_name))
+    # close the plot so different scan types don't get drawn on top of each other
+    if not os.path.exists(plot_name + '.png'):
+        plt.close()
+
+    logger.info(f'Plotting 1D scan and saving to {plot_name}.png')
     plt.plot(rs, rel_energies, marker='o', color=colour, label=label)
     plt.legend()
     plt.xlabel('$r$ / Å')
