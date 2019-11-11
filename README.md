@@ -31,7 +31,7 @@ conda activate autode_env
 
 ## Usage
 
-Broadly, **atuodE** is invoked by first setting appropriate parameters in config.py, or specifying in a python script. 
+Broadly, **autodE** is invoked by first setting appropriate parameters in config.py, or specifying in a python script. 
 Then, initialising _Reactant_ and _Product_ objects, generating a _Reaction_ object from those and invoking a method 
 e.g. _locate_transtion_state()_ or _calculate_reaction_profile()_.
 

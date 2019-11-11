@@ -112,13 +112,45 @@ def find_cycle(graph, atom_i):
 
 
 def reac_graph_to_prods(reac_graph, bond_rearrang):
+    """Makes the graph of the product from the reactant and the bond rearrang, so it has the indices of the reactant
+
+    Arguments:
+        reac_graph {nx.graph} -- graph of the reactant
+        bond_rearrang {bond rearrang object} -- the bond rearrang linking reacs and prods
+
+    Returns:
+        nx.graph -- graph of the product with each atom indexed as in the reactants
+    """
+    prod_graph = reac_graph.copy()
     for fbond in bond_rearrang.fbonds:
-        reac_graph.add_edge(*fbond)
+        prod_graph.add_edge(*fbond)
     for bbond in bond_rearrang.bbonds:
-        reac_graph.remove_edge(*bbond)
-    return reac_graph
+        prod_graph.remove_edge(*bbond)
+    return prod_graph
+def get_separate_subgraphs(graph):
+    """Find all the unconnected graphs in a graph
 
+    Arguments:
+        graph {nx.graph} -- graph
 
-def get_products_graphs(frag_graph, rearrang):
-    prod_graph = reac_graph_to_prods(frag_graph, rearrang)
-    return list(nx.connected_component_subgraphs(prod_graph))
+    Returns:
+        list -- list of graphs separate graphs
+    """
+    return list(nx.connected_component_subgraphs(graph))
+
+def get_product_core_atoms(prod_mol, stripped_prod_graph):
+    """Maps the
+
+    Arguments:
+        prod_mol {[type]} -- [description]
+        stripped_prod_graph {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
+    # have to remove H's from stripped graph as they won't be there in the whole mol
+    for i in list(stripped_prod_graph.nodes):
+        if stripped_prod_graph.nodes[i]['atom_label'] == 'H':
+            stripped_prod_graph.remove_node(i)
+    mapping_dict = get_mapping(prod_mol.graph, stripped_prod_graph)[0]
+    return list(mapping_dict.keys())

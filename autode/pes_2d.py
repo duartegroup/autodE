@@ -9,11 +9,10 @@ from autode.plotting import plot_2dpes
 from autode.plotting import make_reaction_animation
 from autode.transition_states.ts_guess import TSguess
 from autode.exceptions import XYZsNotFound
-from autode.mol_graphs import make_graph
-from autode.mol_graphs import is_subgraph_isomorphic
+from autode import mol_graphs
 
 
-def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, graphs,
+def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
                     delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None):
     """
     :param mol:
@@ -100,13 +99,14 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                 mol_grid[n][m].xyzs, mol_grid[n][m].energy)
 
     # check product and TSGuess product graphs are isomorphic
+    expected_prod_graphs = mol_graphs.get_separate_subgraphs(product.graph)
     logger.info('Checking products were made')
     products_made = False
     for row in mol_grid[::-1]:
-        ts_product_graphs = [make_graph(mol.xyzs, mol.n_atoms)
+        ts_product_graphs = [mol_graphs.make_graph(mol.xyzs, mol.n_atoms)
                              for mol in row[::-1]]
         for ts_product_graph in ts_product_graphs:
-            if all(is_subgraph_isomorphic(ts_product_graph, graph) for graph in graphs):
+            if all(mol_graphs.is_subgraph_isomorphic(ts_product_graph, graph) for graph in expected_prod_graphs):
                 products_made = True
                 break
         if products_made:

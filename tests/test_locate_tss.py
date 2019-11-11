@@ -81,7 +81,8 @@ def test_add_bond_rearrangement():
 def test_rearranged_graph():
     rearranged_graph = locate_tss.generate_rearranged_graph(
         subs_reactant.graph, [(0, 1)], [(1, 2)])
-    assert locate_tss.is_isomorphic(rearranged_graph, subs_product.graph)
+    assert locate_tss.mol_graphs.is_isomorphic(
+        rearranged_graph, subs_product.graph)
 
 
 def test_get_funcs_and_params():
@@ -89,8 +90,7 @@ def test_get_funcs_and_params():
     dissoc_funcs_params = [
         (get_template_ts_guess, (dissoc_reactant, dissoc_rearrang.all, dissoc_reaction.type))]
     dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(dissoc_funcs_params,
-                                                              dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrang,
-                                                              [mol.graph for mol in dissoc_reaction.prods])
+                                                              dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrang)
     assert type(dissoc_f_and_p) == list
     assert len(dissoc_f_and_p) == 4
     assert dissoc_f_and_p[0][0] == locate_tss.get_template_ts_guess
@@ -103,7 +103,7 @@ def test_get_funcs_and_params():
     subs_funcs_params = [
         (get_template_ts_guess, (subs_reactant, subs_rearrang.all, subs_reaction.type))]
     subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
-        subs_funcs_params, subs_reaction, subs_reactant, subs_product, subs_rearrangs[0], [mol.graph for mol in subs_reaction.prods])
+        subs_funcs_params, subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
     assert type(subs_f_and_p) == list
     assert len(subs_f_and_p) == 9
     assert subs_f_and_p[3][1][5] == locate_tss.Substitution

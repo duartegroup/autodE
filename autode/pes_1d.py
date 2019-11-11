@@ -8,12 +8,11 @@ from autode.plotting import make_reaction_animation
 from autode.constants import Constants
 from autode.calculation import Calculation
 from autode.exceptions import XYZsNotFound
-from autode.mol_graphs import make_graph
-from autode.mol_graphs import is_subgraph_isomorphic
+from autode import mol_graphs
 from autode.pes_2d import replace_none
 
 
-def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, graphs, delta_dist=1.5,
+def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
                             active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
@@ -59,13 +58,15 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
         mol_with_const.xyzs = xyzs
 
     # check product and TSGuess product graphs are isomorphic
+    expected_prod_graphs = mol_graphs.get_separate_subgraphs(product.graph)
     logger.info('Checking products were made')
-    ts_product_graphs = [make_graph(xyzs, mol.n_atoms)
+    ts_product_graphs = [mol_graphs.make_graph(xyzs, mol.n_atoms)
                          for xyzs in xyzs_list[::-1]]
     products_made = False
     for ts_product_graph in ts_product_graphs:
-        if all(is_subgraph_isomorphic(ts_product_graph, graph) for graph in graphs):
+        if all(mol_graphs.is_subgraph_isomorphic(ts_product_graph, graph) for graph in expected_prod_graphs):
             products_made = True
+            logger.info('Products made')
             break
 
     if not products_made:
@@ -122,7 +123,7 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name,
 
     if peak_e != min_e:
         logger.info(
-            'Energy at peak in PES at ∆E = {} kcal/mol'.format(Constants.ha2kcalmol * (peak_e - min_e)))
+            f'Energy at peak in PES at ∆E = {Constants.ha2kcalmol * (peak_e - min_e)} kcal/mol')
     else:
         logger.warning('Couldn\'t find a peak in the PES')
 

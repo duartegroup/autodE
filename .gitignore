@@ -31,93 +31,29 @@ autode/._config.py
 
 examples/diels_alder/
 
-examples/diels_alder/conformers/
-
-examples/diels_alder/optimise_reactants_and_products/
-
-examples/diels_alder/tss/
-
-examples/diels_alder/single_points/
-
 examples/elimination/
-
-examples/elimination/conformers/
-
-examples/elimination/optimise_reactants_and_products/
-
-examples/elimination/tss/
-
-examples/elimination/single_points/
 
 examples/sn2/
 
-examples/sn2/conformers/
-
-examples/sn2/optimise_reactants_and_products/
-
-examples/sn2/tss/
-
-examples/sn2/single_points/
-
 examples/cope_rearrangement/
-
-examples/cope_rearrangement/conformers/
-
-examples/cope_rearrangement/optimise_reactants_and_products/
-
-examples/cope_rearrangement/tss/
-
-examples/cope_rearrangement/single_points/
 
 examples/carbonyl/
 
-examples/carbonyl/conformers/
-
-examples/carbonyl/optimise_reactants_and_products/
-
-examples/carbonyl/tss/
-
-examples/carbonyl/single_points/
-
 examples/cyclohexane_elimination/
-
-examples/cyclohexane_elimination/conformers/
-
-examples/cyclohexane_elimination/optimise_reactants_and_products/
-
-examples/cyclohexane_elimination/tss/
-
-examples/cyclohexane_elimination/single_points/
 
 examples/sulfate_hydrolysis/
 
-examples/sulfate_hydrolysis/conformers/
-
-examples/sulfate_hydrolysis/optimise_reactants_and_products/
-
-examples/sulfate_hydrolysis/tss/
-
-examples/sulfate_hydrolysis/single_points/
-
 examples/sulfonate_hydrolysis/
-
-examples/sulfonate_hydrolysis/conformers/
-
-examples/sulfonate_hydrolysis/optimise_reactants_and_products/
-
-examples/sulfonate_hydrolysis/tss/
-
-examples/sulfonate_hydrolysis/single_points/
 
 examples/big_sn2/
 
-examples/big_sn2/conformers/
+examples/electrocyclisation/
 
-examples/big_sn2/optimise_reactants_and_products/
+examples/chiral_carbonyl/
 
-examples/big_sn2/tss/
+examples/organocatalysis/
 
-examples/big_sn2/single_points/
+examples/chiral_elimination/
 
 examples/test_stripping.py
 

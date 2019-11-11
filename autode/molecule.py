@@ -120,6 +120,15 @@ class Molecule:
                         break
             core_atoms.update(core_atoms_pi_bonds)
 
+        # don't want to make OH, SH or NH, as these can be acidic and can mess things up
+        bonded_to_heteroatoms = set()
+        for atom in core_atoms:
+            if self.get_atom_label(atom) in ('O', 'S', 'N'):
+                bonded_atoms = self.get_bonded_atoms_to_i(atom)
+                for bonded_atom in bonded_atoms:
+                    bonded_to_heteroatoms.add(bonded_atom)
+        core_atoms.update(bonded_to_heteroatoms)
+
         core_atoms_no_other_bonded = set()
         for atom in core_atoms:
             bonded_list = self.get_bonded_atoms_to_i(atom)
@@ -182,8 +191,8 @@ class Molecule:
                 'Generating Molecule conformer xyz lists from rdkit mol object')
             unique_conf_ids = generate_unique_rdkit_confs(
                 self.mol_obj, n_rdkit_confs)
-            logger.info('Generated {} unique conformers with RDKit ETKDG'.format(
-                len(unique_conf_ids)))
+            logger.info(
+                f'Generated {len(unique_conf_ids)} unique conformers with RDKit ETKDG')
             conf_xyzs = extract_xyzs_from_rdkit_mol_object(
                 self, conf_ids=unique_conf_ids)
 
@@ -216,18 +225,22 @@ class Molecule:
             if unique:
                 unique_conformers.append(self.conformers[i])
 
-        logger.info('Stripped {} conformers from a total of {}'.format(self.n_conformers - len(unique_conformers),
-                                                                       self.n_conformers))
+        logger.info(
+            f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
-    def strip_core(self, core_atoms, bond_rearrang):
+    def strip_core(self, core_atoms, bond_rearrang=None):
         logger.info('Stripping the extraneous atoms')
         bonded_to_core = set()
         bond_from_core = []
 
         if core_atoms is None:
             logger.info('No core atoms, not stripping extraneous atoms')
+            return (self, bond_rearrang)
+
+        if self.n_atoms - len(core_atoms) < 5:
+            logger.info('Not enough atoms to strip for it to be worthwhile')
             return (self, bond_rearrang)
 
         coords = self.get_coords()
@@ -256,20 +269,23 @@ class Molecule:
             logger.info('No atoms to strip')
             return (self, bond_rearrang)
 
-        # get the bond rearrangement in the new atom indices
-        new_fbonds = []
-        for fbond in bond_rearrang.fbonds:
-            new_atom_1 = core_atoms.index(fbond[0])
-            new_atom_2 = core_atoms.index(fbond[1])
-            new_fbonds.append((new_atom_1, new_atom_2))
-        new_bbonds = []
-        for bbond in bond_rearrang.bbonds:
-            new_atom_1 = core_atoms.index(bbond[0])
-            new_atom_2 = core_atoms.index(bbond[1])
-            new_bbonds.append((new_atom_1, new_atom_2))
+        if bond_rearrang is not None:
+            # get the bond rearrangement in the new atom indices
+            new_fbonds = []
+            for fbond in bond_rearrang.fbonds:
+                new_atom_1 = core_atoms.index(fbond[0])
+                new_atom_2 = core_atoms.index(fbond[1])
+                new_fbonds.append((new_atom_1, new_atom_2))
+            new_bbonds = []
+            for bbond in bond_rearrang.bbonds:
+                new_atom_1 = core_atoms.index(bbond[0])
+                new_atom_2 = core_atoms.index(bbond[1])
+                new_bbonds.append((new_atom_1, new_atom_2))
 
-        new_bond_rearrang = BondRearrangement(
-            forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
+            new_bond_rearrang = BondRearrangement(
+                forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
+        else:
+            new_bond_rearrang = None
 
         fragment = Molecule(name=self.name + '_fragment', xyzs=fragment_xyzs,
                             solvent=self.solvent, charge=self.charge, mult=self.mult, is_fragment=True)
@@ -326,7 +342,7 @@ class Molecule:
         self.n_bonds = self.graph.number_of_edges()
 
     def optimise(self, method=None):
-        logger.info('Running optimisation of {}'.format(self.name))
+        logger.info(f'Running optimisation of {self.name}')
         if method is None:
             method = self.method
 
@@ -340,8 +356,7 @@ class Molecule:
             self._find_pi_systems()
 
     def single_point(self, method=None):
-        logger.info(
-            'Running single point energy evaluation of {}'.format(self.name))
+        logger.info(f'Running single point energy evaluation of {self.name}')
         if method is None:
             method = self.method
 
@@ -357,7 +372,7 @@ class Molecule:
             self.mol_obj = Chem.AddHs(self.mol_obj)
         except RuntimeError:
             logger.critical(
-                'Could not generate an rdkit mol object for {}'.format(name))
+                f'Could not generate an rdkit mol object for {name}')
             exit()
 
         self.n_atoms = self.mol_obj.GetNumAtoms()
@@ -404,7 +419,7 @@ class Molecule:
         :param charge: (int) charge on the molecule
         :param mult: (int) spin multiplicity on the molecule
         """
-        logger.info('Generating a Molecule object for {}'.format(name))
+        logger.info(f'Generating a Molecule object for {name}')
 
         self.name = name
         self.smiles = smiles
