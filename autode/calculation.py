@@ -21,7 +21,7 @@ class Calculation:
         self.core_atoms = list(core_atoms)
 
     def get_energy(self):
-        logger.info('Getting energy from {}'.format(self.output_filename))
+        logger.info(f'Getting energy from {self.output_filename}')
         if self.terminated_normally:
             return self.method.get_energy(self)
 
@@ -57,12 +57,12 @@ class Calculation:
         return self.method.get_normal_mode_displacements(self, mode_number)
 
     def get_final_xyzs(self):
-        logger.info('Getting final xyzs from {}'.format(self.output_filename))
+        logger.info(f'Getting final xyzs from {self.output_filename}')
         xyzs = self.method.get_final_xyzs(self)
 
         if len(xyzs) == 0:
             logger.error(
-                'Could not get xyzs from calculation file {}'.format(self.name))
+                f'Could not get xyzs from calculation file {self.name}')
             raise XYZsNotFound
 
         return xyzs
@@ -72,8 +72,8 @@ class Calculation:
         return self.method.get_pi_bonds(self)
 
     def calculation_terminated_normally(self):
-        logger.info('Checking to see if {} terminated normally'.format(
-            self.output_filename))
+        logger.info(
+            f'Checking to see if {self.output_filename} terminated normally')
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
@@ -83,11 +83,11 @@ class Calculation:
         return None
 
     def generate_input(self):
-        logger.info('Generating input file for {}'.format(self.name))
+        logger.info(f'Generating input file for {self.name}')
         return self.method.generate_input(self)
 
     def execute_calculation(self):
-        logger.info('Running calculation {}'.format(self.input_filename))
+        logger.info(f'Running calculation {self.input_filename}')
         self.method.set_availability()
 
         if self.input_filename is None:
@@ -114,9 +114,9 @@ class Calculation:
                 logger.info(
                     'Calculated already terminated successfully. Skipping')
                 return self.set_output_file_lines()
+            #TODO else remove files
 
-        logger.info(
-            'Setting the number of OMP threads to {}'.format(self.n_cores))
+        logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
         with open(self.output_filename, 'w') as output_file:
@@ -128,7 +128,7 @@ class Calculation:
             subprocess = Popen(params, stdout=output_file,
                                stderr=open(os.devnull, 'w'))
         subprocess.wait()
-        logger.info('Calculation {} done'.format(self.output_filename))
+        logger.info(f'Calculation {self.output_filename} done')
 
         for filename in os.listdir(os.getcwd()):
             name_string = (self.input_filename)[:-4]
@@ -141,7 +141,7 @@ class Calculation:
         return self.set_output_file_lines()
 
     def run(self):
-        logger.info('Running calculation of {}'.format(self.name))
+        logger.info(f'Running calculation of {self.name}')
 
         self.generate_input()
         self.execute_calculation()
@@ -169,6 +169,7 @@ class Calculation:
         self.flags = None
         self.opt = opt
         self.core_atoms = None
+        self.mode = mode
 
         self.solvent = molecule.solvent
 
@@ -194,7 +195,7 @@ class Calculation:
             if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
                 logger.critical(
                     'Solvent is not available. Cannot run the calculation')
-                print('Available solvents are {}'.format(method.aval_solvents))
+                print(f'Available solvents are {method.aval_solvents}')
                 exit()
 
         if self.xyzs is None:
