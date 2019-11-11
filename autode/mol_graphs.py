@@ -136,7 +136,7 @@ def get_separate_subgraphs(graph):
     Returns:
         list -- list of graphs separate graphs
     """
-    return list(nx.connected_component_subgraphs(graph))
+    return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
 def get_product_core_atoms(prod_mol, stripped_prod_graph):
     """Maps the
