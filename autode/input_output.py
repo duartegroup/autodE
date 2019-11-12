@@ -19,7 +19,7 @@ def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
         logger.error('xyz filename cannot be None')
         return None
 
-    logger.info('Generating xyz file for {}'.format(filename))
+    logger.info(f'Generating xyz file for {filename}')
 
     if not filename.endswith('.xyz'):
         logger.error('xyz filename does not end with .xyz')

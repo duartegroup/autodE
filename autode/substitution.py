@@ -194,8 +194,8 @@ def get_attacked_atom(bond_rearrangement):
              for atom in fbond if atom in bbond]
 
     if len(possible_attacked_atoms) > 1:
-        logger.warning('Multiple possible attacked atoms in reaction {}'.format(
-            possible_attacked_atoms))
+        logger.warning(
+            f'Multiple possible attacked atoms in reaction {possible_attacked_atoms}')
         possible_attacking_atoms = []
         if len(possible_attacked_atoms) > 2:
             logger.critical('More than 2 attacked atoms not supported')

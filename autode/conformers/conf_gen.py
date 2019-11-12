@@ -64,7 +64,7 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, n_simanls=20):
         conf_xyzs = simanl(xyzs=init_xyzs, bonds=bond_list)
         return [conf_xyzs]
 
-    logger.info('Splitting calculation into {} threads'.format(Config.n_cores))
+    logger.info(f'Splitting calculation into {Config.n_cores} threads')
     with Pool(processes=Config.n_cores) as pool:
         results = [pool.apply_async(simanl, (init_xyzs, bond_list))
                    for i in range(n_simanls)]

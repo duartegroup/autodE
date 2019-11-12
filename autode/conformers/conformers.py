@@ -94,7 +94,7 @@ def generate_unique_rdkit_confs(mol_obj, n_rdkit_confs):
 class Conformer(object):
 
     def optimise(self, method=None):
-        logger.info('Running optimisation of {}'.format(self.name))
+        logger.info(f'Running optimisation of {self.name}')
 
         if method is None:
             method = self.method

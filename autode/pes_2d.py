@@ -166,15 +166,14 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
     energies_not_none = list(replace_none(energies))
     flat_rel_energy_array = [Constants.ha2kcalmol *
                              (e - min(energies_not_none)) for e in energies_not_none]
-    logger.info(
-        'Maximum energy is {} kcal mol-1'.format(max(flat_rel_energy_array)))
+    logger.info(f'Maximum energy is {max(flat_rel_energy_array)} kcal mol-1')
 
     r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
     r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
 
     m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
     r1_saddle, r2_saddle = poly2d_sationary_points(m)
-    logger.info('Found a saddle point at {}, {}'.format(r1_saddle, r2_saddle))
+    logger.info(f'Found a saddle point at {r1_saddle}, {r2_saddle}')
     if r1_saddle < 0 or r2_saddle < 0:
         logger.error('2D surface has saddle points with negative distances!')
 
@@ -186,7 +185,7 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
     else:
         name = plot_name + f'_{method_name}'
 
-    logger.info('Plotting 2D scan and saving to {}.png'.format(name))
+    logger.info(f'Plotting 2D scan and saving to {name}.png')
     plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)
 
     closest_scan_point_dists = get_closest_point_dists_to_saddle(
