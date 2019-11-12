@@ -15,6 +15,9 @@ h2 = Molecule(name='h2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
 
 def test_basic_attributes():
 
+    with pytest.raises(SystemExit):
+        bad_mol = Molecule(xyzs=[[]])
+
     methane = Molecule(name='methane', smiles='C')
 
     assert methane._calc_multiplicity(1) == 2

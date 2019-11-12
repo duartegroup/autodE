@@ -403,6 +403,11 @@ class Molecule:
         self.distance_matrix = calc_distance_matrix(self.xyzs)
 
     def _init_xyzs(self, xyzs):
+        for xyz in xyzs:
+            if len(xyz) != 4:
+                logger.critical(
+                    f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). Found {xyz} instead')
+                exit()
         self.n_atoms = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))
         self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)

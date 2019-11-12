@@ -116,3 +116,36 @@ def test_strip_equivalent_rearrangements():
     unique_rearrangs = locate_tss.strip_equivalent_bond_rearrangs(
         rearrang_reactant, possible_bond_rearrangs)
     assert len(unique_rearrangs) == 1
+
+
+def test_get_fbonds_bbonds():
+    reac1 = molecule.Molecule(
+        xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.8], ['H', 0.0, 0.0, 1.6]])
+    prod1 = molecule.Molecule(
+        xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 50], ['H', 0.0, 0.0, 100]])
+    two_bbond = locate_tss.get_fbonds_bbonds_2b(
+        [], [(0, 1), (1, 2)], reac1, prod1, [])
+    assert two_bbond == [BondRearrangement(breaking_bonds=[(1, 2), (0, 1)])]
+
+    reac2 = molecule.Molecule(
+        xyzs=[['H', 0.0, 0.0, -1.5], ['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.8], ['H', 0.0, 0.0, 1.6]])
+    prod2 = molecule.Molecule(
+        xyzs=[['H', 0.0, 0.0, -0.7], ['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 5], ['H', 0.0, 0.0, 10]])
+    two_bbond_one_fbond = locate_tss.get_fbonds_bbonds_2b1f(
+        [(0, 1)], [(1, 2), (2, 3)], reac2, prod2, [])
+    assert two_bbond_one_fbond == [BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(2, 3), (1, 2)])]
+
+    one_bbond_two_fbond = locate_tss.get_fbonds_bbonds_1b2f(
+        [(1, 2), (2, 3)], [(0, 1)], prod2, reac2, [])
+    assert one_bbond_two_fbond == [BondRearrangement(
+        forming_bonds=[(2, 3), (1, 2)], breaking_bonds=[(0, 1)])]
+
+    reac3 = molecule.Molecule(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.8], [
+                              'H', 10, 0.0, 0.0], ['H', 10, 0.0, 0.8]])
+    prod3 = molecule.Molecule(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 10], [
+                              'H', 0.8, 0.0, 0.0], ['H', 0.8, 0.0, 10]])
+    two_bbond_two_fbond = locate_tss.get_fbonds_bbonds_2b2f(
+        [(0, 2), (1, 3)], [(0, 1), (2, 3)], reac3, prod3, [])
+    assert two_bbond_two_fbond == [BondRearrangement(
+        forming_bonds=[(1, 3), (0, 2)], breaking_bonds=[(2, 3), (0, 1)])]

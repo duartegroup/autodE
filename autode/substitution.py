@@ -229,6 +229,5 @@ def get_lg_or_fr_atom(bbonds_or_fbonds, attacked_atom):
             return bond[1]
         if bond[1] == attacked_atom:
             return bond[0]
-    else:
-        logger.critical('Couldn\'t find a leaving group atom')
-        exit()
+    logger.critical('Couldn\'t find a leaving group atom')
+    exit()

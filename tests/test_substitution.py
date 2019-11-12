@@ -5,6 +5,7 @@ from autode.molecule import Product
 from autode.reaction import Reaction
 from autode.transition_states.locate_tss import get_reactant_and_product_complexes
 import numpy as np
+import pytest
 
 
 rearrang = BondRearrangement([(0, 1)], [(1, 2)])
@@ -19,10 +20,19 @@ def test_get_attacked_atom():
     multiple_attacked_atoms = substitution.get_attacked_atom(second_rearrang)
     assert multiple_attacked_atoms == [2, 3]
 
+    # >2 attacked atoms
+    with pytest.raises(SystemExit):
+        bad_rearrang = BondRearrangement(
+            [(0, 1), (2, 3), (4, 5)], [(1, 2), (3, 4), (5, 6)])
+        substitution.get_attacked_atom(bad_rearrang)
+
 
 def test_get_lg_or_fr_atom():
     fr_atom = substitution.get_lg_or_fr_atom([(0, 1)], 1)
     assert fr_atom == 0
+
+    with pytest.raises(SystemExit):
+        substitution.get_lg_or_fr_atom([(0, 1)], 2)
 
 
 def test_get_normalised_lg_vector():
