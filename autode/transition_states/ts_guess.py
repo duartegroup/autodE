@@ -161,6 +161,8 @@ class TSguess:
         self.reactant = reactant
         self.product = product
 
+        self.pi_bonds = None
+
         self.optts_converged = False
         self.optts_nearly_converged = False
         self.optts_calc = None

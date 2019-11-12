@@ -105,6 +105,12 @@ def generate_input(calc):
                       file=inp_file)
             print('    end\nend', file=inp_file)
 
+        if calc.cartesian_constraints:
+            print('%geom Constraints', file=inp_file)
+            [print('{ C', atom_id, 'C }', file=inp_file)
+             for atom_id in calc.cartesian_constraints]
+            print('    end\nend', file=inp_file)
+
         if len(calc.xyzs) < 33:
             print('%geom MaxIter 100 end', file=inp_file)
 

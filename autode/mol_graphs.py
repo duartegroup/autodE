@@ -127,6 +127,28 @@ def reac_graph_to_prods(reac_graph, bond_rearrang):
     for bbond in bond_rearrang.bbonds:
         prod_graph.remove_edge(*bbond)
     return prod_graph
+
+
+def bond_in_cycle(graph, bond):
+    """finds if a bond is in a ring
+
+    Arguments:
+        graph {nx.graph} -- molecular graph
+        bond {tuple} -- bond
+
+    Returns:
+        bool -- if bond is in a ring
+    """
+    for atom in bond:
+        try:
+            cycle = nx.find_cycle(graph, atom)
+        except:
+            continue
+        if bond in cycle or (bond[1], bond[0]) in cycle:
+            return True
+    return False
+
+
 def get_separate_subgraphs(graph):
     """Find all the unconnected graphs in a graph
 
@@ -137,6 +159,42 @@ def get_separate_subgraphs(graph):
         list -- list of graphs separate graphs
     """
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
+
+
+def split_mol_across_bond(graph, bonds, return_graphs=False):
+    """gets a list of atoms on either side of a bond, or the two subgraphs is return_graphs=True
+
+    Arguments:
+        graph {nx.graph} -- molecular graph
+        bond {list} -- list of bonds to be split across
+        return_graphs {bool} -- true if want graphs instead of list of nodes
+    """
+    graph_copy = graph.copy()
+    for bond in bonds:
+        graph_copy.remove_edge(*bond)
+    split_subgraphs = get_separate_subgraphs(graph_copy)
+    if return_graphs:
+        return split_subgraphs
+    return [list(graph.nodes) for graph in split_subgraphs]
+
+
+def get_pathway(graph, start_atom, end_atom):
+    """Gets all the pathways from one atom to another
+
+    Arguments:
+        graph {nx.graph} -- mol graph
+        start_atom {int} -- index of the starting atom node
+        end_atom {int} -- index of the ending atom node
+
+    Returns:
+        list -- list of all simple pathways from start to end atoms
+    """
+    path_edges_list = []
+    path_list = list(nx.all_simple_paths(graph, start_atom, end_atom))
+    for path in map(nx.utils.pairwise, path_list):
+        path_edges_list.append(list(path))
+    return path_edges_list
+
 
 def get_product_core_atoms(prod_mol, stripped_prod_graph):
     """Maps the

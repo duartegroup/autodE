@@ -7,6 +7,7 @@ from autode.units import KcalMol
 from autode.units import KjMol
 from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
+from copy import deepcopy
 import os
 
 
@@ -42,7 +43,7 @@ class Reaction:
 
     def set_solvent(self, solvent):
         if solvent is not None:
-            logger.info('Setting solvent as {}'.format(solvent))
+            logger.info(f'Setting solvent as {solvent}')
 
             assert type(solvent) == str
             for mol in self.reacs + self.prods:
@@ -109,6 +110,8 @@ class Reaction:
                 f'Creating directory to store conformer output files at {conformers_directory_path:}')
         os.chdir(conformers_directory_path)
 
+        self.clear_tmp_files()
+
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
                 mol.find_lowest_energy_conformer()
@@ -131,6 +134,8 @@ class Reaction:
                 f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
         os.chdir(opt_reacs_prods_directory_path)
 
+        self.clear_tmp_files()
+
         logger.info('Calculating optimised reactants and products')
         [mol.optimise() for mol in self.reacs + self.prods]
 
@@ -148,6 +153,8 @@ class Reaction:
             logger.info(
                 f'Creating directory to store single point output files at {single_points_directory_path:}')
         os.chdir(single_points_directory_path)
+
+        self.clear_tmp_files()
 
         molecules = self.reacs + self.prods + [self.ts]
         [mol.single_point() for mol in molecules if mol is not None]
@@ -187,8 +194,34 @@ class Reaction:
             if filename.endswith('.png'):
                 os.remove(filename)
 
+        self.clear_tmp_files()
+
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
+
+        self.clear_xtb_files()
+
+        os.chdir(here)
+
+    def ts_confs(self):
+        logger.info('Optimising TS conformation')
+        here = os.getcwd()
+        ts_conf_directory_path = os.path.join(here, 'ts_confs')
+        if not os.path.isdir(ts_conf_directory_path):
+            os.mkdir(ts_conf_directory_path)
+            logger.info(
+                f'Creating directory to store ts conformer output files at {ts_conf_directory_path:}')
+        os.chdir(ts_conf_directory_path)
+
+        self.clear_tmp_files()
+
+        ts_copy = deepcopy(self.ts)
+        self.ts.do_conformers()
+        # TODO check TS still true TS
+        if self.ts.energy > ts_copy.energy:
+            logger.warning(
+                f'Rotating increased TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree, reverting to initial TS')
+            #self.ts = ts_copy
 
         self.clear_xtb_files()
 
@@ -197,11 +230,18 @@ class Reaction:
     def clear_xtb_files(self):
         xtb_files = ['xtbrestart', 'xtbopt.log',
                      'xtbopt.xyz', 'charges', 'wbo', '.xtboptok']
+        if any(file in xtb_files for file in os.listdir(os.getcwd())):
+            logger.info('Clearing xtb files')
         for filename in xtb_files:
             if os.path.exists(filename):
                 os.remove(filename)
 
-        logger.info('Clearing xtb files')
+    def clear_tmp_files(self):
+        if any(file.endswith('.tmp') for file in os.listdir(os.getcwd())):
+            logger.info('Clearing tmp files')
+        for filename in os.listdir(os.getcwd()):
+            if filename.endswith('.tmp'):
+                os.remove(filename)
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
@@ -216,6 +256,8 @@ class Reaction:
         self.find_lowest_energy_conformers()
         self.optimise_reacs_prods()
         self.locate_transition_state()
+        if self.ts is not None:
+            self.ts_confs()
         self.calculate_single_points()
 
         if self.ts is None:
@@ -229,13 +271,12 @@ class Reaction:
                               name=(' + '.join([r.name for r in self.reacs]) + ' → ' +
                                     ' + '.join([p.name for p in self.prods])),
                               is_true_ts=self.ts.is_true_ts(),
-                              ts_is_converged=self.ts.converged
-                              )
+                              ts_is_converged=self.ts.converged)
 
         os.chdir(here)
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction', solvent=None):
-        logger.info('Generating a Reaction object for {}'.format(name))
+        logger.info(f'Generating a Reaction object for {name}')
 
         self.name = name
         molecules = [mol1, mol2, mol3, mol4, mol5, mol6]
