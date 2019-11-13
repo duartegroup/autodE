@@ -133,7 +133,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(
-        dist_xyzs_energies, scan_name=name, plot_name=mol.name + '_2dscan', method=method))
+        dist_xyzs_energies, scan_name=name, plot_name=mol.name + f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method))
 
     mep_xyzs = [mol.xyzs]
 

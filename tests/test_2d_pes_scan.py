@@ -24,10 +24,10 @@ def test_get_ts_guess_2dscan():
                                delta_dist1=0.2, delta_dist2=0.2)
 
     assert len(ts_guess.active_bonds) == 2
-    assert os.path.exists('h4_2dscan_ORCA.png')
+    assert os.path.exists('h4_0_2_1_3_2dscan_ORCA.png')
 
     for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png', '.xyz')):
+        if filename.endswith(('.inp', '.png')) or 'animation' in filename:
             os.remove(filename)
 
     os.chdir(here)

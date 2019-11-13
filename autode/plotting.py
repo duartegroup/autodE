@@ -44,6 +44,8 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
         c, _, _, _ = np.linalg.lstsq(g, z, rcond=None)
         return c
 
+    plt.close()
+
     r1_flat, r2_flat = r1.flatten(), r2.flatten()
     m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
     nx, ny = 20, 20

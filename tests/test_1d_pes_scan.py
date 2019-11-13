@@ -24,12 +24,10 @@ def test_get_ts_guess_1dscan():
                                        delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)])
 
     assert len(ts_guess.active_bonds) == 2
-    assert os.path.exists('h3_1dscan.png')
+    assert os.path.exists('h3_1_2_1dscan.png')
 
     for filename in os.listdir(os.getcwd()):
-        if filename.endswith('.inp'):
-            os.remove(filename)
-        if filename.endswith('.png'):
+        if filename.endswith(('.inp', '.png')) or 'animation' in filename:
             os.remove(filename)
 
     os.chdir(here)
