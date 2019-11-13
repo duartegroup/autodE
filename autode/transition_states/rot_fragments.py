@@ -29,7 +29,7 @@ class RotFragment:
                 rot_pathway = rot_path
         self.rot_pathway = rot_pathway
 
-    def avoid_group(self, conf, other_frag, no_attempts=2):
+    def avoid_group(self, conf, other_frag, hlevel, no_attempts=2):
         cart_consts = [i for i in conf.cart_consts if not i in self.atoms]
         for atom in self.ts.active_atoms:
             if not atom in cart_consts:
@@ -67,7 +67,7 @@ class RotFragment:
                                                      rot_frags=self.ts.rot_frags, dist_consts=self.dist_consts, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
             if len(rot_confs) > 1:
                 logger.info('Multiple fixes found, getting lowest energy one')
-                [conf.optimise() for conf in rot_confs]
+                [conf.optimise(hlevel) for conf in rot_confs]
                 lowest_energy = None
                 for conf in rot_confs:
                     if conf.energy is None or conf.xyzs is None:
@@ -89,7 +89,7 @@ class RotFragment:
                     f'Rotating bond {rotating_bond} did not fix the clash')
         return None
 
-    def rotate(self):
+    def rotate(self, hlevel):
         cart_consts = [i for i in range(
             len(self.ts.xyzs)) if not i in self.atoms]
         for atom in self.ts.active_atoms:
@@ -106,7 +106,7 @@ class RotFragment:
         logger.info('Attempting to fix any close atoms')
         for conf in rot_confs_with_clashes:
             if conf.close_atoms is not None:
-                conf.avoid_clash(self.rot_bond)
+                conf.avoid_clash(self.rot_bond, hlevel)
                 if not conf.unfixed_clashes:
                     rot_confs.append(conf)
             else:
@@ -114,7 +114,7 @@ class RotFragment:
 
         logger.info('Getting energy of each rotamer')
 
-        [conf.optimise() for conf in rot_confs]
+        [conf.optimise(hlevel) for conf in rot_confs]
 
         lowest_energy = None
 

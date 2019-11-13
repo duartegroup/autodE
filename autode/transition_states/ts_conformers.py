@@ -28,7 +28,7 @@ def rot_bond(mol, bond, number_rotations=12):
 
     rot_xyzs = []
 
-    for i in range(number_rotations):
+    for _ in range(number_rotations):
         close_atoms = []
         for atom in atoms_to_shift:
             coords[atom] = np.matmul(rot_matrix, coords[atom])
@@ -51,17 +51,18 @@ def rot_bond(mol, bond, number_rotations=12):
 
 class TSConformer():
 
-    def optimise(self, method=None):
+    def optimise(self, hlevel):
         logger.info(f'Running optimisation of {self.name}')
 
         dist_consts = None
         cart_consts = None
 
-        if method is None:
+        if hlevel:
+            method = get_hmethod()
+            cart_consts = self.cart_consts
+        else:
             method = get_lmethod()
             dist_consts = self.dist_consts
-        else:
-            cart_consts = self.cart_consts
 
         opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
                           n_cores=Config.n_cores, max_core_mb=Config.max_core, opt=True, distance_constraints=dist_consts, cartesian_constraints=cart_consts, constraints_already_met=True)
@@ -70,15 +71,11 @@ class TSConformer():
         if opt.terminated_normally:
             self.energy = opt.get_energy()
             self.xyzs = opt.get_final_xyzs()
-            with open('all_confs.xyz', 'a') as xyz_file:
-                print(len(self.xyzs), '\n 0', file=xyz_file)
-                [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(
-                    *line), file=xyz_file) for line in self.xyzs]
         else:
             self.xyzs = None
             self.energy = None
 
-    def avoid_clash(self, current_rot_bond):
+    def avoid_clash(self, current_rot_bond, hlevel):
         unfixed_clashes = False
         for (atom1, atom2) in self.close_atoms:
             logger.info(
@@ -96,9 +93,11 @@ class TSConformer():
                     if atom2 in frag.atoms:
                         atom2_frag = frag
                 if atom1_frag.level > atom2_frag.level:
-                    fixed_xyzs = atom1_frag.avoid_group(self, atom2_frag)
+                    fixed_xyzs = atom1_frag.avoid_group(
+                        self, atom2_frag, hlevel)
                 else:
-                    fixed_xyzs = atom2_frag.avoid_group(self, atom1_frag)
+                    fixed_xyzs = atom2_frag.avoid_group(
+                        self, atom1_frag, hlevel)
             # check if fixed
             if fixed_xyzs is not None:
                 logger.info('Clash fixed')

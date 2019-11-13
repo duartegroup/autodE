@@ -213,13 +213,18 @@ class TS(TSguess):
 
         self.rot_frags = ordered_frags
 
-    def rotate(self):
+    def rotate(self, hlevel):
         # go from the outside in
         logger.info('Rotating fragments')
         for frag in self.rot_frags:
-            frag.rotate()
+            frag.rotate(hlevel)
 
-    def opt_ts(self):
+    def opt_ts(self, hlevel):
+        name = self.name
+        if hlevel:
+            self.name += '_hlevel'
+        else:
+            self.name += '_llevel'
         opt = Calculation(name=self.name + '_opt', molecule=self, method=self.method, keywords=self.method.opt_keywords,
                           n_cores=Config.n_cores, max_core_mb=Config.max_core, distance_constraints=self.dist_consts)
         opt.run()
@@ -232,15 +237,15 @@ class TS(TSguess):
         self.converged = ts_conf_get_ts_output[1]
         return self
 
-    def do_conformers(self):
+    def do_conformers(self, hlevel=False):
         self.get_rotatable_bonds()
         if len(self.rotatable_bonds) == 0:
             logger.info('No bonds to rotate')
             return
         self.get_central_bond()
         self.decompose()
-        self.rotate()
-        return self.opt_ts()
+        self.rotate(hlevel)
+        return self.opt_ts(hlevel)
 
     def __init__(self, ts_guess, name='TS', converged=True):
         logger.info(f'Generating a TS object for {name}')

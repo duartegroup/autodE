@@ -141,26 +141,6 @@ class Reaction:
 
         os.chdir(here)
 
-    def calculate_single_points(self):
-        """
-        Perform a single point energy evaluations on all the reactants and products using the hcode
-        :return: None
-        """
-        here = os.getcwd()
-        single_points_directory_path = os.path.join(here, 'single_points')
-        if not os.path.isdir(single_points_directory_path):
-            os.mkdir(single_points_directory_path)
-            logger.info(
-                f'Creating directory to store single point output files at {single_points_directory_path:}')
-        os.chdir(single_points_directory_path)
-
-        self.clear_tmp_files()
-
-        molecules = self.reacs + self.prods + [self.ts]
-        [mol.single_point() for mol in molecules if mol is not None]
-
-        os.chdir(here)
-
     def find_lowest_energy_ts(self):
         """
         From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
@@ -216,19 +196,50 @@ class Reaction:
         self.clear_tmp_files()
 
         ts_copy = deepcopy(self.ts)
+        logger.info(
+            'Trying to find lowest energy TS conformer using the lower level method')
         self.ts = self.ts.do_conformers()
-        if self.ts.energy > ts_copy.energy:
-            logger.error(
-                f'Rotating increased TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree, reverting to initial TS')
+        if not self.test_ts_conf(ts_copy):
             self.ts = ts_copy
-        if self.ts is None:
-            logger.error('Rotations lost the TS, reverting to initial TS')
-            self.ts = ts_copy
+            logger.info(
+                'Trying to find lowest energy TS conformer using the higher level method')
+            ts_copy = deepcopy(self.ts)
+            self.ts = self.ts.do_conformers(hlevel=True)
+            if not self.test_ts_conf(ts_copy):
+                logger.error('Could not improve the TS, using the original TS')
+                self.ts = ts_copy
+
         self.clear_xtb_files()
 
         os.chdir(here)
 
+    def test_ts_conf(self, ts_copy):
+        if self.ts.energy > ts_copy.energy:
+            logger.error(
+                f'Rotating increased TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
+            return False
+        if self.ts is None:
+            logger.error('Rotations lost the TS')
+            return False
+        return True
+
     def calculate_single_points(self):
+        """
+        Perform a single point energy evaluations on all the reactants and products using the hcode
+        :return: None
+        """
+        here = os.getcwd()
+        single_points_directory_path = os.path.join(here, 'single_points')
+        if not os.path.isdir(single_points_directory_path):
+            os.mkdir(single_points_directory_path)
+            logger.info(
+                f'Creating directory to store single point output files at {single_points_directory_path:}')
+        os.chdir(single_points_directory_path)
+
+        self.clear_tmp_files()
+
+        molecules = self.reacs + self.prods + [self.ts]
+        [mol.single_point() for mol in molecules if mol is not None]
 
         os.chdir(here)
 
