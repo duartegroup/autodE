@@ -1,5 +1,6 @@
 from autode.transition_states import ts_guess
 from autode.transition_states.templates import get_ts_templates
+from autode.transition_states.transition_state import TS
 from autode.reactions import Substitution
 from autode import molecule
 from autode.transition_states import optts
@@ -77,7 +78,8 @@ def test_ts_guess_class():
 def test_get_ts():
     os.chdir(os.path.join(here, 'data'))
 
-    ts_obj = optts.get_ts(ts_guess_obj)
+    get_ts_output = optts.get_ts(ts_guess_obj)
+    ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 
     assert ts_obj.solvent == 'water'
     assert ts_obj.converged == True
@@ -98,7 +100,8 @@ def test_get_ts():
 def test_ts_template():
     os.chdir(os.path.join(here, 'data'))
 
-    ts_obj = optts.get_ts(ts_guess_obj)
+    get_ts_output = optts.get_ts(ts_guess_obj)
+    ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 
     ts_obj.save_ts_template(folder_path=here)
     assert len(get_ts_templates(

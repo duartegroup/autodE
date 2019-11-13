@@ -4,6 +4,7 @@ from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.base import req_methods
 import numpy as np
+import os
 
 smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE', 'CYCLOPENTANOL',
                 '1,2,4-TRIMETHYLBENZENE', 'CYCLOPENTANONE', '1,2-DIBROMOETHANE', '1,2-DICHLOROETHANE ',
@@ -216,20 +217,16 @@ def get_normal_mode_displacements(calc, mode_number):
 def get_final_xyzs(calc):
 
     xyzs = []
-    xyz_section = False
+    if calc.output_filename:
+        xyz_file_name = calc.output_filename[:-4] + '.xyz'
+        if os.path.exists(xyz_file_name):
+            with open(xyz_file_name, 'r') as file:
+                for line_no, line in enumerate(file):
+                    if line_no > 1:
+                        atom_label, x, y, z = line.split()
+                        xyzs.append([atom_label, float(x), float(y), float(z)])
 
-    for line in calc.rev_output_file_lines:
-
-        if 'CARTESIAN COORDINATES (A.U.)' in line:
-            xyz_section = True
-        if 'CARTESIAN COORDINATES (ANGSTROEM)' in line and xyz_section:
-            break
-
-        if xyz_section and len(line.split()) == 4:
-            atom_label, x, y, z = line.split()
-            xyzs.append([atom_label, float(x), float(y), float(z)])
-
-    return list(reversed(xyzs))
+    return xyzs
 
 
 def get_pi_bonds(calc):
