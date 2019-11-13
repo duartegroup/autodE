@@ -67,16 +67,30 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     # Execute the remaining set of optimisations in parallel
     for i in range(1, n_steps):
 
-        calcs = [Calculation(name+'_scan'+str(i)+'_'+str(n), mol_grid[i-1][n], method, n_cores=1, opt=True,
+        if Config.n_cores <= n_steps:
+            cores_per_process = 1
+        else:
+            cores_per_process = Config.n_cores//n_steps
+            if Config.n_cores % n_steps != 0:
+                logger.warning(
+                    f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a multiple of {n_steps} cores')
+
+        calcs = [Calculation(name+'_scan'+str(i)+'_'+str(n), mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
                              keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
                                                                       active_bond2: dist_grid2[i][n]})
                  for n in range(n_steps)]
 
         [calc.generate_input() for calc in calcs]
-        with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(execute_calc, (calc,))
-                       for calc in calcs]
-            [res.get(timeout=None) for res in results]
+        if Config.n_cores <= n_steps:
+            with Pool(processes=Config.n_cores) as pool:
+                results = [pool.apply_async(execute_calc, (calc,))
+                           for calc in calcs]
+                [res.get(timeout=None) for res in results]
+        else:
+            with Pool(processes=n_steps) as pool:
+                results = [pool.apply_async(execute_calc, (calc,))
+                           for calc in calcs]
+                [res.get(timeout=None) for res in results]
         [calc.set_output_file_lines() for calc in calcs]
 
         # Add attributes for molecules in the mol_grid

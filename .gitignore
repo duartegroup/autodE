@@ -53,8 +53,6 @@ examples/chiral_carbonyl/
 
 examples/organocatalysis/
 
-examples/chiral_elimination/
-
 examples/test_stripping.py
 
 examples/test_substitution.py

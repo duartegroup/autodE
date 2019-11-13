@@ -103,9 +103,9 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         delta_fbond_dist = get_avg_bond_length(
             mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
-        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 20, name + 'll2d', reaction.type, lmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, name + 'll2d', reaction.type, lmethod,
                                                lmethod.scan_keywords, delta_fbond_dist, 1.5)))
-        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 7, name + 'hl2d', reaction.type, hmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, name + 'hl2d', reaction.type, hmethod,
                                                hmethod.scan_keywords, delta_fbond_dist, 1.5)))
 
     if bond_rearrang.n_fbonds == 2:
@@ -114,16 +114,16 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
             mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
         delta_fbond_dist2 = get_avg_bond_length(
             mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
-        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 10, name + 'll2d_fbonds', reaction.type, lmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 16, name + 'll2d_fbonds', reaction.type, lmethod,
                                                lmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
-        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 7, name + 'hl2d_fbonds', reaction.type, hmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 8, name + 'hl2d_fbonds', reaction.type, hmethod,
                                                hmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
 
     if bond_rearrang.n_bbonds == 2:
         bbond1, bbond2 = bond_rearrang.bbonds
-        funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 10, name + 'll2d_bbonds', reaction.type, lmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 16, name + 'll2d_bbonds', reaction.type, lmethod,
                                                lmethod.scan_keywords, 1.5, 1.5, bond_rearrang.fbonds)))
-        funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 7, name + 'hl2d_bbonds', reaction.type, hmethod,
+        funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, name + 'hl2d_bbonds', reaction.type, hmethod,
                                                hmethod.scan_keywords, 1.5, 1.5, bond_rearrang.fbonds)))
 
     return funcs_params
