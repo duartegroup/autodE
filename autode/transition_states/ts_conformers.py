@@ -54,11 +54,17 @@ class TSConformer():
     def optimise(self, method=None):
         logger.info(f'Running optimisation of {self.name}')
 
+        dist_consts = None
+        cart_consts = None
+
         if method is None:
-            method = self.method
+            method = get_lmethod()
+            dist_consts = self.dist_consts
+        else:
+            cart_consts = self.cart_consts
 
         opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
-                          n_cores=Config.n_cores, max_core_mb=Config.max_core, opt=True, cartesian_constraints=self.cart_consts, constraints_already_met=True)
+                          n_cores=Config.n_cores, max_core_mb=Config.max_core, opt=True, distance_constraints=dist_consts, cartesian_constraints=cart_consts, constraints_already_met=True)
         opt.run()
 
         if opt.terminated_normally:
@@ -103,16 +109,16 @@ class TSConformer():
                 break
         self.unfixed_clashes = unfixed_clashes
 
-    def __init__(self, name='conf', close_atoms=None, xyzs=None, rot_frags=None, cart_consts=None, energy=None, solvent=None, charge=0, mult=1):
+    def __init__(self, name='conf', close_atoms=None, xyzs=None, rot_frags=None, dist_consts=None, cart_consts=None, energy=None, solvent=None, charge=0, mult=1):
         self.name = name
         self.close_atoms = close_atoms if close_atoms is not [] else None
         self.xyzs = xyzs
         self.rot_frags = rot_frags
+        self.dist_consts = dist_consts
         self.cart_consts = cart_consts
         self.n_atoms = len(xyzs) if xyzs is not None else None
         self.energy = energy
         self.solvent = solvent
         self.charge = charge
         self.mult = mult
-        self.method = get_hmethod()
         self.unfixed_clashes = False

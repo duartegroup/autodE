@@ -216,14 +216,19 @@ class Reaction:
         self.clear_tmp_files()
 
         ts_copy = deepcopy(self.ts)
-        self.ts.do_conformers()
-        # TODO check TS still true TS
+        self.ts = self.ts.do_conformers()
         if self.ts.energy > ts_copy.energy:
-            logger.warning(
+            logger.error(
                 f'Rotating increased TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree, reverting to initial TS')
-            #self.ts = ts_copy
-
+            self.ts = ts_copy
+        if self.ts is None:
+            logger.error('Rotations lost the TS, reverting to initial TS')
+            self.ts = ts_copy
         self.clear_xtb_files()
+
+        os.chdir(here)
+
+    def calculate_single_points(self):
 
         os.chdir(here)
 

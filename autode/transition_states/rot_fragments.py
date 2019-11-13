@@ -52,7 +52,7 @@ class RotFragment:
             for i, (xyzs, close_atoms) in enumerate(xyzs_close_atoms):
                 if not close_atoms:
                     rot_confs.append(TSConformer(name=conf.name + f'_rot_{self.rot_bond[0]}_{self.rot_bond[1]}_{i}', close_atoms=close_atoms, xyzs=xyzs,
-                                                 rot_frags=self.ts.rot_frags, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
+                                                 rot_frags=self.ts.rot_frags, dist_consts=self.dist_consts, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
                 else:
                     fixed_clash = True
                     for (atom1, atom2) in close_atoms:
@@ -64,7 +64,7 @@ class RotFragment:
                             fixed_clash = False
                     if fixed_clash:
                         rot_confs.append(TSConformer(name=conf.name + f'_rot_{self.rot_bond[0]}_{self.rot_bond[1]}_{i}', close_atoms=close_atoms, xyzs=xyzs,
-                                                     rot_frags=self.ts.rot_frags, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
+                                                     rot_frags=self.ts.rot_frags, dist_consts=self.dist_consts, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
             if len(rot_confs) > 1:
                 logger.info('Multiple fixes found, getting lowest energy one')
                 [conf.optimise() for conf in rot_confs]
@@ -99,7 +99,7 @@ class RotFragment:
         rot_xyzs_close_atoms = rot_bond(mol=self.ts, bond=self.rot_bond)
         for i, (xyzs, close_atoms) in enumerate(rot_xyzs_close_atoms):
             rot_confs_with_clashes.append(TSConformer(name=self.ts.name + f'_rot_{self.rot_bond[0]}_{self.rot_bond[1]}_{i}', close_atoms=close_atoms,
-                                                      xyzs=xyzs, rot_frags=self.ts.rot_frags, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
+                                                      xyzs=xyzs, rot_frags=self.ts.rot_frags, dist_consts=self.dist_consts, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
 
         rot_confs = []
 
@@ -135,13 +135,14 @@ class RotFragment:
             self.ts.xyzs = lowest_energy_conf.xyzs
             self.ts.energy = lowest_energy_conf.energy
 
-    def __init__(self, ts, rot_bond, level, atoms=None, base_atom=None, parent_graph=None, all_rot_bonds=None):
+    def __init__(self, ts, rot_bond, level, dist_consts, atoms=None, base_atom=None, parent_graph=None, all_rot_bonds=None):
         self.rot_bond = rot_bond
         self.ts = ts
         self.atoms = atoms
         self.base_atom = base_atom
         self.parent_graph = parent_graph
         self.level = level
+        self.dist_consts = dist_consts
         if all_rot_bonds is not None:
             self.all_rot_bonds = all_rot_bonds + [rot_bond]
         self.full_graph = ts.graph

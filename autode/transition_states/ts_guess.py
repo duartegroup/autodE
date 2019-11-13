@@ -12,7 +12,6 @@ from copy import copy
 class TSguess:
 
     def get_bonded_atoms_to_i(self, atom_i):
-        self.graph = make_graph(self.xyzs, self.n_atoms)
         bonded_atoms = []
         for edge in self.graph.edges():
             if edge[0] == atom_i:
@@ -160,6 +159,7 @@ class TSguess:
         self.method = molecule.method
         self.reactant = reactant
         self.product = product
+        self.graph = make_graph(self.xyzs, self.n_atoms)
 
         self.pi_bonds = None
 

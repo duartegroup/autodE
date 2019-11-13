@@ -2,7 +2,6 @@ from copy import deepcopy
 import numpy as np
 from autode.config import Config
 from autode.log import logger
-from autode.transition_states.transition_state import TS
 from autode.atoms import get_atomic_weight
 from autode.molecule import Molecule
 from autode.calculation import Calculation
@@ -69,10 +68,10 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
                 ts_guess.pi_bonds = ts_guess.optts_calc.get_pi_bonds()
 
                 if ts_guess.optts_converged:
-                    return TS(ts_guess)
+                    return ts_guess, True
 
                 if ts_guess.optts_nearly_converged:
-                    return TS(ts_guess, converged=False)
+                    return ts_guess, False
         else:
             logger.warning('TS has *0* imaginary frequencies')
 

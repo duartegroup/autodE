@@ -12,6 +12,7 @@ from autode.pes_1d import get_ts_guess_1dpes_scan
 from autode.pes_2d import get_ts_guess_2d
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
+from autode.transition_states.transition_state import TS
 import numpy as np
 
 
@@ -426,9 +427,10 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)
 
-        ts = get_ts(ts_guess)
+        get_ts_output = get_ts(ts_guess)
 
-        if ts is not None:
+        if get_ts_output is not None:
+            ts = TS(get_ts_output[0], converged=get_ts_output[1])
             if ts.is_true_ts():
                 logger.info(
                     f'Found a transition state with {func.__name__}')
@@ -436,12 +438,14 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
                     logger.info('Finding full TS')
                     ts_guess_with_decoratation = get_template_ts_guess(
                         reactant, bond_rearrangement.all, reaction.type, product)
-                    ts_guess_with_decoratation = get_ts(
+                    full_get_ts_output = get_ts(
                         ts_guess_with_decoratation)
-                    if ts_guess_with_decoratation is not None:
-                        if ts_guess_with_decoratation.is_true_ts():
+                    if full_get_ts_output is not None:
+                        ts_with_decoratation = TS(
+                            full_get_ts_output[0], converged=full_get_ts_output[1])
+                        if ts_with_decoratation.is_true_ts():
                             logger.info('Found full TS')
-                            tss.append(ts_guess_with_decoratation)
+                            tss.append(ts_with_decoratation)
                 else:
                     tss.append(ts)
                 break

@@ -7,10 +7,12 @@ from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
 from autode.transition_states.ts_conformers import rot_bond
 from autode.transition_states.rot_fragments import RotFragment
+from autode.transition_states.ts_guess import TSguess
+from autode.transition_states.optts import get_ts
 import numpy as np
 
 
-class TS:
+class TS(TSguess):
 
     def make_graph(self):
         logger.info('Making TS graph with \'active\' edges')
@@ -62,20 +64,8 @@ class TS:
         except (ValueError, AttributeError):
             logger.error('Could not save TS template')
 
-    def get_coords(self):
-        return xyz2coord(self.xyzs)
-
     def get_atom_label(self, atom_i):
         return self.xyzs[atom_i][0]
-
-    def get_bonded_atoms_to_i(self, atom_i):
-        bonded_atoms = []
-        for edge in self.graph.edges():
-            if edge[0] == atom_i:
-                bonded_atoms.append(edge[1])
-            if edge[1] == atom_i:
-                bonded_atoms.append(edge[0])
-        return bonded_atoms
 
     def get_dist_consts(self):
         dist_const_dict = {}
@@ -104,11 +94,12 @@ class TS:
         """Looks to see if each bond is worth rotating, i.e not methyl, trifluoromethyl or linear
 
         Returns:
-            list -- list of bond tuples 
+            list -- list of bond tuples
         """
         logger.info('Finding the bonds worth rotating')
         bonds = list(self.graph_with_fbonds.edges)
         bonds_worth_rotating = []
+        coords = self.get_coords()
 
         for potential_bond in bonds:
             if self.pi_bonds is not None:
@@ -116,18 +107,26 @@ class TS:
                     continue
             suitable_bond = True
             for index, atom in enumerate(potential_bond):
+                other_bond_atom = potential_bond[1-index]
                 bonded_atoms = self.get_bonded_atoms_to_i(atom)
-                bonded_atoms.remove(potential_bond[1-index])
+                bonded_atoms.remove(other_bond_atom)
                 # don't rotate terminal atoms
                 if len(bonded_atoms) == 0:
                     suitable_bond = False
-                # don't rotate nitrile, methyl or trifluoromethyl
-                if len(bonded_atoms) == 1 and self.get_atom_label(atom) == 'C':
-                    if self.get_atom_label(bonded_atoms[0]) == 'N':
+                # don't rotate linear
+                if len(bonded_atoms) == 1:
+                    bond_vector1 = coords[atom] - coords[other_bond_atom]
+                    normed_bond_vector1 = bond_vector1 / \
+                        np.linalg.norm(bond_vector1)
+                    bond_vector2 = coords[bonded_atoms[0]] - coords[atom]
+                    normed_bond_vector2 = bond_vector2 / \
+                        np.linalg.norm(bond_vector2)
+                    theta = np.arccos(
+                        np.dot(normed_bond_vector1, normed_bond_vector2))
+                    if theta < 0.09:
                         suitable_bond = False
-                if all([self.get_atom_label(i) == 'H' for i in bonded_atoms]):
-                    suitable_bond = False
-                if all([self.get_atom_label(i) == 'F' for i in bonded_atoms]):
+                # don't rotate methyl like
+                if all(len(self.get_bonded_atoms_to_i(atom_i)) == 1 for atom_i in bonded_atoms) and all(self.get_atom_label(atom_i) == self.get_atom_label(bonded_atoms[0]) for atom_i in bonded_atoms):
                     suitable_bond = False
             if suitable_bond:
                 # don't rotate rings
@@ -189,7 +188,7 @@ class TS:
             for edge_bond in edge_bonds:
                 rot_bonds.remove(edge_bond)
             for edge_bond, frag_atoms in zip(edge_bonds, all_fragment_atoms):
-                rot_frags.append(RotFragment(ts=self, rot_bond=edge_bond, atoms=frag_atoms,
+                rot_frags.append(RotFragment(ts=self, rot_bond=edge_bond, dist_consts=self.dist_consts, atoms=frag_atoms,
                                              base_atom=base_atom, parent_graph=parent_graph, level=frag_level, all_rot_bonds=rot_bonds))
                 atoms_in_frags += frag_atoms
             all_bonds_split_graphs = mol_graphs.split_mol_across_bond(
@@ -199,7 +198,7 @@ class TS:
                     parent_graph = graph
                     break
             frag_level += 1
-        rot_frags.append(RotFragment(ts=self, rot_bond=self.central_bond, level=frag_level, atoms=[
+        rot_frags.append(RotFragment(ts=self, rot_bond=self.central_bond, level=frag_level, dist_consts=self.dist_consts, atoms=[
                          atom for atom in range(len(self.xyzs)) if atom not in atoms_in_frags]))
         frag_level += 1
 
@@ -227,18 +226,11 @@ class TS:
         self.energy = opt.get_energy()
         self.xyzs = opt.get_final_xyzs()
 
-        self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
-                                     keywords=self.method.hess_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
-
-        self.hess_calc.run()
-
-        self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
-                                      keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
-                                      max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      optts_block=self.method.opt_ts_block)
-
-        self.optts_calc.run()
-        self.xyzs = self.optts_calc.get_final_xyzs()
+        ts_conf_get_ts_output = get_ts(self)
+        if ts_conf_get_ts_output is None:
+            return None
+        self.converged = ts_conf_get_ts_output[1]
+        return self
 
     def do_conformers(self):
         self.get_rotatable_bonds()
@@ -248,7 +240,7 @@ class TS:
         self.get_central_bond()
         self.decompose()
         self.rotate()
-        self.opt_ts()
+        return self.opt_ts()
 
     def __init__(self, ts_guess, name='TS', converged=True):
         logger.info(f'Generating a TS object for {name}')
@@ -261,7 +253,11 @@ class TS:
         self.method = ts_guess.method
         self.pi_bonds = ts_guess.pi_bonds
 
+        self.reactant = ts_guess.reactant
+        self.product = ts_guess.product
+
         self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
+        self.n_atoms = len(self.xyzs)
 
         self.active_bonds = ts_guess.active_bonds
         self.active_atoms = list(
