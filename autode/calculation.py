@@ -170,7 +170,6 @@ class Calculation:
         self.flags = None
         self.opt = opt
         self.core_atoms = None
-        self.mode = mode
 
         self.solvent = molecule.solvent
 

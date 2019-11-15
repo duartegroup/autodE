@@ -89,9 +89,6 @@ def generate_input(calc):
                 print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
             print('end', file=inp_file)
 
-        if calc.mode:
-            print(f'%geom\nTS_Mode {{M {calc.mode}}}\nend\nend', file=inp_file)
-
         if calc.bond_ids_to_add:
             try:
                 [print('%geom\nmodify_internal\n{ B', bond_ids[0], bond_ids[1], 'A } end\nend', file=inp_file)

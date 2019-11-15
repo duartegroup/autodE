@@ -37,24 +37,17 @@ class TSguess:
 
         return True
 
-    def do_displacements(self, correct_mode=6, magnitude=0.75):
+    def do_displacements(self, magnitude=0.75):
         """displaces along the second imaginary mode
-        Arguments:
-            correct_mode {int} -- the correct imaginary mode
-
         Returns:
             bool -- returns True if it reached the end, otherwise False (lost imag mode)
         """
-        if correct_mode == 6:
-            displace_mode = 7
-        else:
-            displace_mode = 6
         mode_lost = False
         imag_freqs = []
         orig_optts_calc = deepcopy(self.optts_calc)
         orig_name = copy(self.name)
         self.xyzs = get_displaced_xyzs_along_imaginary_mode(
-            self.optts_calc, mode_number=displace_mode, displacement_magnitude=magnitude)
+            self.optts_calc, displacement_magnitude=magnitude)
         self.name += '_dis'
         if not self.run_orca_optts():
             logger.error(
@@ -76,7 +69,7 @@ class TSguess:
             self.optts_calc = orig_optts_calc
             self.name = orig_name
             self.xyzs = get_displaced_xyzs_along_imaginary_mode(
-                self.optts_calc, mode_number=displace_mode, displacement_magnitude=-1 * magnitude)
+                self.optts_calc, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
             if not self.run_orca_optts():
                 logger.error('Displacement lost correct imaginary mode')
@@ -111,23 +104,13 @@ class TSguess:
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
 
-        # check all imag modes
-        correct_mode = None
-        for i in range(len(imag_freqs)):
-            mode = i + 6
-            logger.info(
-                f'Checking to see if imag mode {i} has the correct vector')
-            if ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds, threshold_contribution=0.1, mode_number=mode):
-                correct_mode = i
-                break
-
-        if correct_mode is None:
+        if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds, threshold_contribution=0.1):
             return False
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      optts_block=self.method.opt_ts_block, mode=correct_mode)
+                                      optts_block=self.method.opt_ts_block)
 
         self.optts_calc.run()
         self.xyzs = self.optts_calc.get_final_xyzs()
