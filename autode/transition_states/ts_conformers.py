@@ -67,13 +67,8 @@ class TSConformer():
         opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
                           n_cores=Config.n_cores, max_core_mb=Config.max_core, opt=True, distance_constraints=dist_consts, cartesian_constraints=cart_consts, constraints_already_met=True)
         opt.run()
-
-        if opt.terminated_normally:
-            self.energy = opt.get_energy()
-            self.xyzs = opt.get_final_xyzs()
-        else:
-            self.xyzs = None
-            self.energy = None
+        self.energy = opt.get_energy()
+        self.xyzs = opt.get_final_xyzs()
 
     def avoid_clash(self, current_rot_bond, hlevel):
         unfixed_clashes = False

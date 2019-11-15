@@ -106,6 +106,7 @@ class TS(TSguess):
                 if potential_bond in self.pi_bonds:
                     continue
             suitable_bond = True
+            half_suitable_bond = True
             for index, atom in enumerate(potential_bond):
                 other_bond_atom = potential_bond[1-index]
                 bonded_atoms = self.get_bonded_atoms_to_i(atom)
@@ -124,7 +125,10 @@ class TS(TSguess):
                     theta = np.arccos(
                         np.dot(normed_bond_vector1, normed_bond_vector2))
                     if theta < 0.09:
-                        suitable_bond = False
+                        # want both atoms to have linear bonds, otherwise it is worth rotating
+                        if not half_suitable_bond:
+                            suitable_bond = False
+                        half_suitable_bond = False
                 # don't rotate methyl like
                 if all(len(self.get_bonded_atoms_to_i(atom_i)) == 1 for atom_i in bonded_atoms) and all(self.get_atom_label(atom_i) == self.get_atom_label(bonded_atoms[0]) for atom_i in bonded_atoms):
                     suitable_bond = False
@@ -235,13 +239,14 @@ class TS(TSguess):
         if ts_conf_get_ts_output is None:
             return None
         self.converged = ts_conf_get_ts_output[1]
+        self.name = name
         return self
 
     def do_conformers(self, hlevel=False):
         self.get_rotatable_bonds()
         if len(self.rotatable_bonds) == 0:
             logger.info('No bonds to rotate')
-            return
+            return self
         self.get_central_bond()
         self.decompose()
         self.rotate(hlevel)
@@ -286,3 +291,8 @@ class TS(TSguess):
 
         if Config.make_ts_template:
             self.save_ts_template()
+
+        self.optts_converged = False
+        self.optts_nearly_converged = False
+        self.optts_calc = None
+        self.hess_calc = None
