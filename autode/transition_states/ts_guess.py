@@ -35,7 +35,7 @@ class TSguess:
         else:
             self.optts_converged = True
 
-        return True
+        return
 
     def do_displacements(self, magnitude=0.75):
         """displaces along the second imaginary mode
@@ -49,17 +49,23 @@ class TSguess:
         self.xyzs = get_displaced_xyzs_along_imaginary_mode(
             self.optts_calc, displacement_magnitude=magnitude)
         self.name += '_dis'
-        if not self.run_orca_optts():
+        self.run_orca_optts()
+        if self.calc_failed:
             logger.error(
                 'Displacement lost correct imaginary mode, trying backwards displacement')
             mode_lost = True
+            self.calc_failed = False
 
         if not mode_lost:
-            if self.check_optts_convergence():
+            self.check_optts_convergence()
+            if not self.calc_failed:
                 imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
                 if len(imag_freqs) > 1:
                     logger.warning(
                         f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, trying displacement backwards')
+                if len(imag_freqs) == 1:
+                    logger.info('Displacement fixed multiple imaginary modes')
+                    return
             else:
                 logger.error(
                     'Displacement lost correct imaginary mode, trying backwards displacement')
@@ -71,9 +77,11 @@ class TSguess:
             self.xyzs = get_displaced_xyzs_along_imaginary_mode(
                 self.optts_calc, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
-            if not self.run_orca_optts():
+            self.run_orca_optts()
+            if self.calc_failed:
                 logger.error('Displacement lost correct imaginary mode')
-                return False
+                self.calc_failed = True
+                return
 
             imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
 
@@ -81,7 +89,7 @@ class TSguess:
                 logger.error(
                     'Couldn\'t remove other imaginary frequencies by displacement')
 
-        return True
+        return
 
     def run_orca_optts(self):
         """runs the optts calc
@@ -100,12 +108,14 @@ class TSguess:
         imag_freqs = self.hess_calc.get_imag_freqs()
         if len(imag_freqs) == 0:
             logger.info('Hessian showed no imaginary modes')
-            return False
+            self.calc_failed = True
+            return
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
 
         if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds, threshold_contribution=0.1):
-            return False
+            self.calc_failed = True
+            return
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
@@ -114,7 +124,7 @@ class TSguess:
 
         self.optts_calc.run()
         self.xyzs = self.optts_calc.get_final_xyzs()
-        return True
+        return
 
     def get_imag_frequencies_xyzs_energy(self):
         return self.optts_calc.get_imag_freqs(), self.optts_calc.get_final_xyzs(), self.optts_calc.get_energy()
@@ -150,3 +160,5 @@ class TSguess:
         self.optts_nearly_converged = False
         self.optts_calc = None
         self.hess_calc = None
+
+        self.calc_failed = False
