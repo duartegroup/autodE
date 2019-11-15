@@ -82,8 +82,6 @@ def generate_input(calc):
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)
-            name = calc.name.replace('_optts', '_hess_orca.hess')
-            print(f'InHessName "{name}"', file=inp_file)
             if calc.core_atoms and len(calc.xyzs) > 15:
                 core_atoms_str = ' '.join(map(str, calc.core_atoms))
                 print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)

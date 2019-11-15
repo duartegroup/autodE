@@ -99,7 +99,7 @@ class RotFragment:
         rot_xyzs_close_atoms = rot_bond(mol=self.ts, bond=self.rot_bond)
         for i, (xyzs, close_atoms) in enumerate(rot_xyzs_close_atoms):
             rot_confs_with_clashes.append(TSConformer(name=self.ts.name + f'_rot_{self.rot_bond[0]}_{self.rot_bond[1]}_{i}', close_atoms=close_atoms,
-                                                      xyzs=xyzs, rot_frags=self.ts.rot_frags, dist_consts=self.dist_consts, cart_consts=cart_consts, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
+                                                      xyzs=xyzs, rot_frags=self.ts.rot_frags, dist_consts=self.dist_consts, cart_consts=cart_consts, energy=self.ts.energy, solvent=self.ts.solvent, charge=self.ts.charge, mult=self.ts.mult))
 
         rot_confs = []
 
@@ -112,7 +112,7 @@ class RotFragment:
             else:
                 rot_confs.append(conf)
 
-        logger.info('Getting energy of each rotamer')
+        logger.info('Getting energy of each conformer')
 
         [conf.optimise(hlevel) for conf in rot_confs]
 
