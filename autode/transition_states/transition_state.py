@@ -296,3 +296,5 @@ class TS(TSguess):
         self.optts_nearly_converged = False
         self.optts_calc = None
         self.hess_calc = None
+
+        self.calc_failed = False
