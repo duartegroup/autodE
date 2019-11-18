@@ -3,7 +3,7 @@ from autode.log import logger
 from autode.geom import xyz2coord
 
 
-def get_xyz_bond_list(xyzs, relative_tolerance=0.1):
+def get_xyz_bond_list(xyzs, relative_tolerance=0.2):
     """
     Determine the 'bonds' between atoms defined in a xyzs list.
 
