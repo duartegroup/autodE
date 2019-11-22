@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.polynomial import polynomial
 from copy import deepcopy
 from multiprocessing.pool import Pool
 from autode.config import Config
@@ -10,6 +11,9 @@ from autode.plotting import make_reaction_animation
 from autode.transition_states.ts_guess import TSguess
 from autode.exceptions import XYZsNotFound
 from autode import mol_graphs
+from autode.saddle_points import poly2d_saddlepoints
+from autode.saddle_points import best_saddlepoint
+from autode.min_energy_pathway import get_mep
 
 
 def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
@@ -30,13 +34,14 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     :return:
     """
     logger.info(
-        f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} (delta distance = {delta_dist1:.3f}) and {active_bond2} (delta distance = {delta_dist2:.3f})')
+        f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
     curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
 
-    dist_grid1, dist_grid2 = np.meshgrid(np.linspace(curr_dist1, curr_dist1 + delta_dist1, n_steps),
-                                         np.linspace(curr_dist2, curr_dist2 + delta_dist2, n_steps))
+    r1 = np.linspace(curr_dist1, curr_dist1 + delta_dist1, n_steps)
+    r2 = np.linspace(curr_dist2, curr_dist2 + delta_dist2, n_steps)
+    dist_grid1, dist_grid2 = np.meshgrid(r1, r2)
 
     # Create a grid of molecules and associated constrained optimisation calculations
     mol_grid = [[deepcopy(mol) for _ in range(n_steps)]
@@ -49,7 +54,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         else:
             molecule = mol_grid[0][n-1]
 
-        const_opt = Calculation(name=name + '_scan0_' + str(n), molecule=molecule, method=method, opt=True,
+        const_opt = Calculation(name=name + f'_scan0_{n}', molecule=molecule, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
                                                                               active_bond2: dist_grid2[0][n]},
                                 keywords=keywords)
@@ -75,7 +80,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                 logger.warning(
                     f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a multiple of {n_steps} cores')
 
-        calcs = [Calculation(name+'_scan'+str(i)+'_'+str(n), mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
+        calcs = [Calculation(name+f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
                              keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
                                                                       active_bond2: dist_grid2[i][n]})
                  for n in range(n_steps)]
@@ -105,7 +110,8 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             # Set the energy, this may be None
             mol_grid[i][n].energy = calcs[n].get_energy()
 
-    # Populate the dictionary of distances, xyzs and energies – legacy
+    # Populate the dictionary of distances, xyzs and energies
+    # TODO make this nicer
     dist_xyzs_energies = {}
     for n in range(n_steps):
         for m in range(n_steps):
@@ -132,21 +138,23 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_2dpes_maximum_energy_xyzs(
-        dist_xyzs_energies, scan_name=name, plot_name=mol.name + f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method))
+    saddle_point_xyzs, saddlepoint = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
+                                                                 f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method)
+    if saddle_point_xyzs is None:
+        logger.error('No xyzs found for the saddle point')
+        return None
+    tsguess_mol.set_xyzs(xyzs=saddle_point_xyzs)
 
-    mep_xyzs = [mol.xyzs]
-
-    for i in range(n_steps):
-        xyz_list = [mol.xyzs for mol in mol_grid[i]]
-        energies_list = [mol.energy for mol in mol_grid[i]]
-        energies_not_none = list(replace_none(energies_list))
-        min_energy = min(energies_not_none)
-        min_energy_index = energies_list.index(min_energy)
-        min_xyz = xyz_list[min_energy_index]
-        mep_xyzs.append(min_xyz)
-
-    make_reaction_animation(name, mep_xyzs)
+    logger.info(
+        'Running a constrain optimisation for the analytic saddlepoint distances')
+    ts_const_opt = Calculation(name+'_saddlepoint_opt', tsguess_mol, method, n_cores=Config.n_cores, opt=True,
+                               keywords=keywords, distance_constraints={active_bond1: saddlepoint[0],
+                                                                        active_bond2: saddlepoint[1]})
+    ts_const_opt.run()
+    try:
+        tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_xyzs())
+    except XYZsNotFound:
+        pass
 
     active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [
         active_bond1, active_bond2] + active_bonds_not_scanned
@@ -155,7 +163,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                    active_bonds=active_bonds, reactant=mol, product=product)
 
 
-def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):
+def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):
     """
     Find the first order saddle point on a 2D PES given a list of lists defined by their energy
     :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
@@ -164,19 +172,11 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
     :return:
     """
 
-    def poly2d_sationary_points(c_vec):
-
-        a = np.array([[c_vec[3], 2.0 * c_vec[4]], [2.0 * c_vec[5], c_vec[3]]])
-        b = np.array([-c_vec[2], -c_vec[1]])
-        y_stat_point, x_stat_point = np.linalg.solve(a, b)
-
-        return x_stat_point, y_stat_point
-
     logger.info('Finding saddle point in 2D PES')
 
     energies = [dists_xyzs_energies_dict[dists][1]
                 for dists in dists_xyzs_energies_dict.keys()]
-    # The energy lis may have None values in, so to perform the fitting replace with the closest float value
+    # The energy list may have None values in, so to perform the fitting replace with the closest float value
     energies_not_none = list(replace_none(energies))
     flat_rel_energy_array = [Constants.ha2kcalmol *
                              (e - min(energies_not_none)) for e in energies_not_none]
@@ -184,12 +184,6 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
 
     r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
     r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
-
-    m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
-    r1_saddle, r2_saddle = poly2d_sationary_points(m)
-    logger.info(f'Found a saddle point at {r1_saddle}, {r2_saddle}')
-    if r1_saddle < 0 or r2_saddle < 0:
-        logger.error('2D surface has saddle points with negative distances!')
 
     method_name = method.__name__
     if 'fbond' in scan_name:
@@ -200,18 +194,63 @@ def find_2dpes_maximum_energy_xyzs(dists_xyzs_energies_dict, scan_name, plot_nam
         name = plot_name + f'_{method_name}'
 
     logger.info(f'Plotting 2D scan and saving to {name}.png')
-    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, name=name)
+    coeff_mat = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
+
+    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
+
+    saddle_points = poly2d_saddlepoints(coeff_mat)
+
+    n_points = 40
+    r1 = np.linspace(r1_flat[0], r1_flat[-1], n_points)
+    r2 = np.linspace(r2_flat[0], r2_flat[-1], n_points)
+    x, y = np.meshgrid(r1, r2)
+    # do transpose so energy_grid[i,j] comes from r1[i] r2[j]
+    energy_grid = polynomial.polyval2d(x, y, coeff_mat).transpose()
+
+    saddle_points_in_range = []
+    for point in saddle_points:
+        if (min(r1_flat) < point[0] < max(r1_flat)) and (min(r2_flat) < point[1] < max(r2_flat)):
+            saddle_points_in_range.append(point)
+
+    if len(saddle_points) == 0:
+        logger.error('No saddle points were found')
+        return None
+    elif len(saddle_points_in_range) == 1:
+        min_energy_pathway = get_mep(
+            r1, r2, energy_grid, saddle_points_in_range[0])
+        r1_saddle, r2_saddle = saddle_points_in_range[0]
+    else:
+        logger.warning(
+            f'Found {len(saddle_points_in_range)} saddle points, finding the minimum energy pathway from each to reacs and prods')
+        r1_saddle, r2_saddle, min_energy_pathway = best_saddlepoint(
+            saddle_points_in_range, r1, r2, energy_grid)
+
+    logger.info(f'Found a saddle point at {r1_saddle:.3f}, {r2_saddle:.3f}')
+
+    logger.info('Finding closest scan points to minimum energy pathway')
+    mep_distances = []
+    for coord in min_energy_pathway:
+        mep_distances.append((r1[coord[0]], r2[coord[1]]))
+    mep_xyzs = []
+    for r1_dist, r2_dist in mep_distances:
+        closest_dists = get_closest_point_dists_to_saddle(
+            r1_dist, r2_dist, dists_xyzs_energies_dict.keys())
+        coord_xyzs = dists_xyzs_energies_dict[closest_dists][0]
+        if not coord_xyzs in mep_xyzs:
+            mep_xyzs.append(coord_xyzs)
+
+    make_reaction_animation(scan_name, mep_xyzs)
+
+    logger.info('Getting the closest scan point to the analytic saddle point')
 
     closest_scan_point_dists = get_closest_point_dists_to_saddle(
         r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
     xyzs_ts_guess = dists_xyzs_energies_dict[closest_scan_point_dists][0]
 
-    return xyzs_ts_guess
+    return xyzs_ts_guess, (r1_saddle, r2_saddle)
 
 
 def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
-    logger.info('Getting the closest scan point to the analytic saddle point')
-
     closest_dist_to_saddle = 99999.9
     scan_dists_tuple = None
 
@@ -223,19 +262,6 @@ def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
             scan_dists_tuple = dist
 
     return scan_dists_tuple
-
-
-def polyfit2d(x, y, z):  # order=2
-    logger.info('Fitting 2D surface to 2nd order polynomial in x and y')
-    # ncols = (order + 1) ** 2
-    ij = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (0, 2)]
-    g = np.zeros((x.size, len(ij)))
-    # ij = itertools.product(range(order + 1), range(order + 1)))
-    for k, (i, j) in enumerate(ij):
-        # print(k, 'x order', i, 'y order', j)
-        g[:, k] = x ** i * y ** j
-    m, _, _, _ = np.linalg.lstsq(g, z, rcond=None)
-    return m
 
 
 def execute_calc(calc):
@@ -258,3 +284,26 @@ def replace_none(lst):
         else:
             last = item
             yield item
+
+
+def polyfit2d(x, y, z, order=5):
+    """Takes x and y coordinates and their resultant z value, and creates a matrix where element i,j is the coefficient of the desired order polynomial x ** i * y ** j
+
+    Arguments:
+        x {np.array} -- flat array of x coordinates
+        y {np.array} -- flat array of y coordinates
+        z {np.array} -- flat array of z value at the corresponding x and y value
+
+    Keyword Arguments:
+        order {int} -- max order of polynomial to work out (default: {2})
+
+    Returns:
+        np.array -- matrix of polynomial coefficients
+    """
+    logger.info('Fitting 2D surface to polynomial in x and y')
+    deg = np.array([order, order])
+    vander = polynomial.polyvander2d(x, y, deg)
+    # vander matrix is matrix where each row i deals with x=x[i] and y=y[i], and each item in the
+    # row has value x ** m * y ** n with (m,n) = (0,0), (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
+    coeff_mat, _, _, _ = np.linalg.lstsq(vander, z, rcond=None)
+    return coeff_mat.reshape(deg + 1)

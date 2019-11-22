@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.polynomial import polynomial
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
@@ -11,7 +12,7 @@ from autode.wrappers.XTB import XTB
 import os
 
 
-def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
+def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, name='2d_scan'):
     """
     For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
     a 2d polynomial function
@@ -21,37 +22,13 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     :param name (str)
     :return:
     """
-
-    def polyval2d(x, y, c):
-        # order = int(np.sqrt(len(m))) - 1
-        # ij = itertools.product(range(order + 1), range(order + 1)))
-        ij = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (0, 2)]
-
-        z = np.zeros_like(x)
-        for a, (i, j) in zip(c, ij):
-            z += a * x ** i * y ** j
-        return z
-
-    def polyfit2d(x, y, z):  # order=2
-        logger.info('Fitting 2D surface to 2nd order polynomial in x and y')
-        # ncols = (order + 1) ** 2
-        ij = [(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (0, 2)]
-        g = np.zeros((x.size, len(ij)))
-        # ij = itertools.product(range(order + 1), range(order + 1)))
-        for k, (i, j) in enumerate(ij):
-            # print(k, 'x order', i, 'y order', j)
-            g[:, k] = x ** i * y ** j
-        c, _, _, _ = np.linalg.lstsq(g, z, rcond=None)
-        return c
-
     plt.close()
 
-    r1_flat, r2_flat = r1.flatten(), r2.flatten()
-    m = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
     nx, ny = 20, 20
     xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
                          np.linspace(r2.min(), r2.max(), ny))
-    zz = polyval2d(xx, yy, m)
+    # polyval2d gives matrix with element i,j = f(x,y) with f being the polynomial defined by m and x = xx[i,j] and y = yy[i,j]
+    zz = polynomial.polyval2d(xx, yy, coeff_mat)
 
     fig = plt.figure(figsize=(10, 3))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
@@ -59,7 +36,6 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, name='2d_scan'):
     ax2 = fig.add_subplot(1, 2, 2)
     pos2 = ax2.imshow(zz, extent=(r1.min(), r2.max(), r1.min(
     ), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
-    # plt.scatter(r1_flat, r2_flat, c=flat_rel_energy_array)
     plt.colorbar(pos1, ax=ax1)
     plt.colorbar(pos2, ax=ax2)
     plt.savefig(name + '.png')
