@@ -97,17 +97,14 @@ def find_cycle(graph, atom_i):
     try:
         cycle = nx.find_cycle(graph, atom_i)
     except:
-        logger.info(f'Atom {atom_i} is not part of a ring')
         return None
     cycle_atoms = set()
     for edge in cycle:
         cycle_atoms.add(edge[0])
         cycle_atoms.add(edge[1])
     if atom_i in cycle_atoms:
-        logger.info(f'Atom {atom_i} is part of a ring')
         return sorted(cycle_atoms)
     else:
-        logger.info(f'Atom {atom_i} is not part of a ring')
         return None
 
 

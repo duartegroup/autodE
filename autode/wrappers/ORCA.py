@@ -82,7 +82,7 @@ def generate_input(calc):
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)
-            if calc.core_atoms and len(calc.xyzs) > 15:
+            if calc.core_atoms and len(calc.xyzs) > 25:
                 core_atoms_str = ' '.join(map(str, calc.core_atoms))
                 print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
             print('end', file=inp_file)
@@ -126,10 +126,10 @@ def generate_input(calc):
 def calculation_terminated_normally(calc):
 
     for n_line, line in enumerate(calc.rev_output_file_lines):
-        if 'ORCA TERMINATED NORMALLY' in line or 'The optimization did not converge' in line:
+        if any(substring in line for substring in['ORCA TERMINATED NORMALLY', 'The optimization did not converge', 'HUGE, UNRELIABLE STEP WAS ABOUT TO BE TAKEN']):
             logger.info('ORCA terminated normally')
             return True
-        if n_line > 20:
+        if n_line > 30:
             # The above lines are pretty close to the end of the file – there's no point parsing it all
             return False
 
@@ -236,17 +236,16 @@ def get_pi_bonds(calc):
             break
 
         if bond_order_section and line.startswith('B'):
-            bond_strs = line.split('B')[1:]
-
+            bond_strs = line.split('B(')[1:]
             for bond in bond_strs:
                 stripped_str = [bond.translate(str.maketrans(
-                    {',': None, '(': None, ')': None})).split()[i] for i in [0, 1, 3]]
+                    {',': None, ')': None})).split()[i] for i in [0, 1, 3]]
                 atoms = (int(stripped_str[0].split('-')[0]),
                          int(stripped_str[1].split('-')[0]))
                 bond_order_dict[atoms] = float(stripped_str[2])
 
-    for (bond, order) in bond_order_dict.items():
-        if order > 1.5:
+    for (bond, bond_order) in bond_order_dict.items():
+        if bond_order > 1.2:
             pi_bonds.append(bond)
     if len(pi_bonds) > 0:
         return pi_bonds

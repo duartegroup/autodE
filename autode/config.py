@@ -39,7 +39,7 @@ class Config:
                            'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         hess_keywords = ['Freq', 'PBE0', 'RIJCOSX',
                          'D3BJ', 'def2-SVP', 'def2/J']
-        opt_ts_block = ('%geom\n'
+        opt_ts_block = ('%geom\nCalc_Hess true\n'
                         'Recalc_Hess 30\n'
                         'Trust -0.1\n'
                         'MaxIter 100')

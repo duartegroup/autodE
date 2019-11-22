@@ -1,4 +1,4 @@
-from autode.pes_1d import get_ts_guess_1dpes_scan
+from autode.pes_1d import get_ts_guess_1d
 from autode.molecule import Molecule
 from autode.config import Config
 from autode.reactions import Substitution
@@ -19,9 +19,9 @@ def test_get_ts_guess_1dscan():
     # May not actually be available, but the .out files are included so this should work
     mol.method.available = True
 
-    ts_guess = get_ts_guess_1dpes_scan(mol=mol, product=mol, active_bond=(1, 2), n_steps=5, name='h3_subst',
-                                       reaction_class=Substitution, method=ORCA, keywords=Config.ORCA.scan_keywords,
-                                       delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)])
+    ts_guess = get_ts_guess_1d(mol=mol, product=mol, active_bond=(1, 2), n_steps=5, name='h3_subst',
+                               reaction_class=Substitution, method=ORCA, keywords=Config.ORCA.scan_keywords,
+                               delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)])
 
     assert len(ts_guess.active_bonds) == 2
     assert os.path.exists('h3_1_2_1dscan.png')

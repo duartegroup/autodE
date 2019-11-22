@@ -28,7 +28,8 @@ class TSguess:
                 self.optts_nearly_converged = True
                 self.xyzs = self.optts_calc.get_final_xyzs()
                 self.name += '_reopt'
-                return self.run_orca_optts()
+                self.run_orca_optts()
+                return
 
             logger.warning('OptTS calculation was no where near converging')
 

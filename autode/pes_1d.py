@@ -12,8 +12,8 @@ from autode import mol_graphs
 from autode.pes_2d import replace_none
 
 
-def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
-                            active_bonds_not_scanned=None):
+def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
+                    active_bonds_not_scanned=None):
     """
     Scan the distance between 2 atoms and return the xyzs with peak energy
     :param mol: Molecule object
@@ -40,7 +40,7 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
 
     # Run a relaxed potential energy surface scan by running sequential constrained optimisations
     for n, dist in enumerate(dists):
-        const_opt = Calculation(name=name + '_scan' + str(n), molecule=mol_with_const, method=method, opt=True,
+        const_opt = Calculation(name=name + f'_scan{n}', molecule=mol_with_const, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords=keywords)
         const_opt.run()
 
@@ -73,6 +73,8 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
         logger.info('Products not made')
         return None
 
+    make_reaction_animation(name, [mol.xyzs] + xyzs_list)
+
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(
@@ -81,8 +83,6 @@ def get_ts_guess_1dpes_scan(mol, product, active_bond, n_steps, name, reaction_c
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
         return None
-
-    make_reaction_animation(name, [mol.xyzs] + xyzs_list)
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [
         active_bond] + active_bonds_not_scanned
