@@ -158,7 +158,6 @@ class Calculation:
         :param optts_block: (bool)
         :param distance_constraints: (dict) keys: tuple of atom ids (indexed from 0), values: float of the distance
         :param cartesian_constraints: (list(int)) list of atom ids to fix at their cartesian coordinates
-        :param mode: (int) normal mode for optts to follow
         """
 
         self.name = name

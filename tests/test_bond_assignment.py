@@ -22,8 +22,10 @@ def test_bond_assignment():
 
     xyz_bond_list = bond_lengths.get_xyz_bond_list(xyz_list)
     assert len(xyz_bond_list) == 13
+
+    # Check that if the pair isn't found then a length is still returned
     assert 1.4 < bond_lengths.get_avg_bond_length(
-        atom_i_label='Te', atom_j_label='Te') < 1.6
+        atom_i_label='X', atom_j_label='X') < 1.6
 
 
 def test_rdkit_bond_list_atom():
@@ -63,7 +65,7 @@ def test_avg_bond_lengths():
     methane = Molecule(name='methane', smiles='C')
 
     # Methane has 4 bonds
-    assert 1.0 < bond_lengths.get_avg_bond_length(
-        mol=methane, bond=(0, 1)) < 1.5
-    assert 1.0 < bond_lengths.get_avg_bond_length(
-        atom_i_label='C', atom_j_label='H') < 1.5
+    assert 0.8 < bond_lengths.get_avg_bond_length(
+        mol=methane, bond=(0, 1)) < 1.2
+    assert 0.8 < bond_lengths.get_avg_bond_length(
+        atom_i_label='C', atom_j_label='H') < 1.2

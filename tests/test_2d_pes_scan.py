@@ -11,8 +11,8 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_get_ts_guess_2dscan():
     os.chdir(os.path.join(here, 'data'))
 
-    h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0],
-               ['H', 0.0, -0.7, 0.0], ['H', 0.7, -0.7, 0.0]]
+    h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.6, 0.0, 0.0],
+               ['H', 0.0, -0.6, 0.0], ['H', 0.6, -0.6, 0.0]]
     mol = Molecule(name='h4', xyzs=h4_xyzs, mult=1)
     mol.method = ORCA
 
