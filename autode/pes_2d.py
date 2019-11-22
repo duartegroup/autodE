@@ -138,11 +138,13 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    saddle_point_xyzs, saddlepoint = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
-                                                                 f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, order=order)
-    if saddle_point_xyzs is None:
+    saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
+                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, order=order)
+    if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None
+    else:
+        saddle_point_xyzs, saddlepoint = saddle_point_xyzs_output
     tsguess_mol.set_xyzs(xyzs=saddle_point_xyzs)
 
     logger.info(
@@ -211,7 +213,6 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     for point in saddle_points:
         if (min(r1_flat) < point[0] < max(r1_flat)) and (min(r2_flat) < point[1] < max(r2_flat)):
             saddle_points_in_range.append(point)
-
     if len(saddle_points) == 0:
         logger.error('No saddle points were found')
         return None
@@ -222,8 +223,11 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     else:
         logger.warning(
             f'Found {len(saddle_points_in_range)} saddle points, finding the minimum energy pathway from each to reacs and prods')
-        r1_saddle, r2_saddle, min_energy_pathway = best_saddlepoint(
+        best_saddlepoint_output = best_saddlepoint(
             saddle_points_in_range, r1, r2, energy_grid)
+        if best_saddlepoint_output is None:
+            return None
+        r1_saddle, r2_saddle, min_energy_pathway = best_saddlepoint_output
 
     logger.info(f'Found a saddle point at {r1_saddle:.3f}, {r2_saddle:.3f}')
 

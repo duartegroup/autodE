@@ -32,11 +32,13 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, name='2d_scan'):
 
     fig = plt.figure(figsize=(10, 3))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
-    pos1 = ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
+    pos1 = ax1.contour3D(xx, yy, zz, 30, colors='k', antialiased=True)
+    pos1 = ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'), alpha=0.8)
+    plt.colorbar(pos1, ax=ax1)
+    ax1.view_init(45)
     ax2 = fig.add_subplot(1, 2, 2)
     pos2 = ax2.imshow(zz, extent=(r1.min(), r2.max(), r1.min(
     ), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
-    plt.colorbar(pos1, ax=ax1)
     plt.colorbar(pos2, ax=ax2)
     plt.savefig(name + '.png')
 

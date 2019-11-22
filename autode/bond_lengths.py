@@ -13,7 +13,7 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.2):
     :return: (list(tuple)) list of bonds given as tuples of atom ids
     """
     logger.info(
-        f'Getting bond list from xyzs. Maximum bond is x(1+.{relative_tolerance}) average')
+        f'Getting bond list from xyzs. Maximum bond is {1 + relative_tolerance}x average')
 
     bond_list = []
 
