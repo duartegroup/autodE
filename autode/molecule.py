@@ -79,7 +79,7 @@ class Molecule:
             return None
 
         core_atoms = set(self.active_atoms)
-        for i in range(depth-1):
+        for _ in range(depth-1):
             new_core_atoms = set()
             for atom in core_atoms:
                 bonded_list = self.get_bonded_atoms_to_i(atom)
@@ -87,47 +87,51 @@ class Molecule:
                     new_core_atoms.add(bonded_atom)
             core_atoms.update(new_core_atoms)
 
-        ring_atoms = set()
-        logger.info('Looking for rings in the reactants')
-        for atom in core_atoms:
-            cycle = mol_graphs.find_cycle(self.graph, atom)
-            if cycle is not None:
-                for atom in cycle:
-                    ring_atoms.add(atom)
-        core_atoms.update(ring_atoms)
+        old_core_atoms = set()
 
-        logger.info('Looking for rings in the products')
-        if product_graph is None:
-            logger.warning(
-                'No product graph found, this will cause errors if rings are formed in the reaction')
-        else:
-            prod_ring_atoms = set()
+        while len(old_core_atoms) < len(core_atoms):
+            old_core_atoms = core_atoms.copy()
+            ring_atoms = set()
+            logger.info('Looking for rings in the reactants')
             for atom in core_atoms:
-                cycle = mol_graphs.find_cycle(product_graph, atom)
+                cycle = mol_graphs.find_cycle(self.graph, atom)
                 if cycle is not None:
                     for atom in cycle:
-                        prod_ring_atoms.add(atom)
-            core_atoms.update(prod_ring_atoms)
+                        ring_atoms.add(atom)
+            core_atoms.update(ring_atoms)
 
-        if self.pi_systems is not None:
-            logger.info('Checking for pi bonds')
-            core_atoms_pi_bonds = set()
+            logger.info('Looking for rings in the products')
+            if product_graph is None:
+                logger.warning(
+                    'No product graph found, this will cause errors if rings are formed in the reaction')
+            else:
+                prod_ring_atoms = set()
+                for atom in core_atoms:
+                    cycle = mol_graphs.find_cycle(product_graph, atom)
+                    if cycle is not None:
+                        for atom in cycle:
+                            prod_ring_atoms.add(atom)
+                core_atoms.update(prod_ring_atoms)
+
+            if self.pi_systems is not None:
+                logger.info('Checking for pi bonds')
+                core_atoms_pi_bonds = set()
+                for atom in core_atoms:
+                    for system in self.pi_systems:
+                        if atom in system:
+                            for other_atom in system:
+                                core_atoms_pi_bonds.add(other_atom)
+                            break
+                core_atoms.update(core_atoms_pi_bonds)
+
+            # don't want to make OH, SH or NH, as these can be acidic and can mess things up
+            bonded_to_heteroatoms = set()
             for atom in core_atoms:
-                for system in self.pi_systems:
-                    if atom in system:
-                        for other_atom in system:
-                            core_atoms_pi_bonds.add(other_atom)
-                        break
-            core_atoms.update(core_atoms_pi_bonds)
-
-        # don't want to make OH, SH or NH, as these can be acidic and can mess things up
-        bonded_to_heteroatoms = set()
-        for atom in core_atoms:
-            if self.get_atom_label(atom) in ('O', 'S', 'N'):
-                bonded_atoms = self.get_bonded_atoms_to_i(atom)
-                for bonded_atom in bonded_atoms:
-                    bonded_to_heteroatoms.add(bonded_atom)
-        core_atoms.update(bonded_to_heteroatoms)
+                if self.get_atom_label(atom) in ('O', 'S', 'N'):
+                    bonded_atoms = self.get_bonded_atoms_to_i(atom)
+                    for bonded_atom in bonded_atoms:
+                        bonded_to_heteroatoms.add(bonded_atom)
+            core_atoms.update(bonded_to_heteroatoms)
 
         core_atoms_no_other_bonded = set()
         for atom in core_atoms:
