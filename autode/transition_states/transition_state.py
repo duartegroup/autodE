@@ -114,6 +114,7 @@ class TS(TSguess):
                 # don't rotate terminal atoms
                 if len(bonded_atoms) == 0:
                     suitable_bond = False
+                    break
                 # don't rotate linear
                 if len(bonded_atoms) == 1:
                     bond_vector1 = coords[atom] - coords[other_bond_atom]
@@ -125,13 +126,19 @@ class TS(TSguess):
                     theta = np.arccos(
                         np.dot(normed_bond_vector1, normed_bond_vector2))
                     if theta < 0.09:
+                        # have 3 colinear atoms, no need to rotate both bonds
+                        if ((atom, bonded_atoms[0]) in bonds_worth_rotating) or ((bonded_atoms[0], atom) in bonds_worth_rotating):
+                            suitable_bond = False
+                            break
                         # want both atoms to have linear bonds, otherwise it is worth rotating
                         if not half_suitable_bond:
                             suitable_bond = False
+                            break
                         half_suitable_bond = False
                 # don't rotate methyl like
                 if all(len(self.get_bonded_atoms_to_i(atom_i)) == 1 for atom_i in bonded_atoms) and all(self.get_atom_label(atom_i) == self.get_atom_label(bonded_atoms[0]) for atom_i in bonded_atoms):
                     suitable_bond = False
+                    break
             if suitable_bond:
                 # don't rotate rings
                 if not mol_graphs.bond_in_cycle(self.graph_with_fbonds, potential_bond):

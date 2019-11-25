@@ -52,12 +52,6 @@ def rot_bond(mol, bond, number_rotations=12):
 class TSConformer():
 
     def optimise(self, hlevel):
-        # conf 11 is the original molecule (rotated full 360 degrees, so don't want to optimise it)
-        if self.name.endswith('11'):
-            return
-
-        self.energy = None
-
         logger.info(f'Running optimisation of {self.name}')
 
         dist_consts = None
