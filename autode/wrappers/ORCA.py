@@ -245,7 +245,7 @@ def get_pi_bonds(calc):
                 bond_order_dict[atoms] = float(stripped_str[2])
 
     for (bond, bond_order) in bond_order_dict.items():
-        if bond_order > 1.2:
+        if bond_order > 1.5:
             pi_bonds.append(bond)
     if len(pi_bonds) > 0:
         return pi_bonds

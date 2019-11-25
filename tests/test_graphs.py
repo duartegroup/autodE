@@ -46,8 +46,8 @@ for edge in edges:
 def test_find_cycle():
 
     assert mol_graphs.find_cycle(graph, 0) == [0, 1, 2]
-    assert mol_graphs.find_cycle(graph, 3) == None
-    assert mol_graphs.find_cycle(graph, 4) == None
+    assert mol_graphs.find_cycle(graph, 3) == []
+    assert mol_graphs.find_cycle(graph, 4) == []
 
 
 def test_reac_to_prods():

@@ -95,9 +95,8 @@ class Molecule:
             logger.info('Looking for rings in the reactants')
             for atom in core_atoms:
                 cycle = mol_graphs.find_cycle(self.graph, atom)
-                if cycle is not None:
-                    for atom in cycle:
-                        ring_atoms.add(atom)
+                for atom in cycle:
+                    ring_atoms.add(atom)
             core_atoms.update(ring_atoms)
 
             logger.info('Looking for rings in the products')

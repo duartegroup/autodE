@@ -17,7 +17,7 @@ from autode.min_energy_pathway import get_mep
 
 
 def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
-                    delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None, order=5):
+                    delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None):
     """
     :param mol:
     :param product: single product molecule object
@@ -139,7 +139,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
-                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, order=order)
+                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method)
     if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None
@@ -165,7 +165,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                    active_bonds=active_bonds, reactant=mol, product=product)
 
 
-def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, order):
+def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):
     """
     Find the first order saddle point on a 2D PES given a list of lists defined by their energy
     :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
@@ -196,7 +196,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
         name = plot_name + f'_{method_name}'
 
     logger.info(f'Plotting 2D scan and saving to {name}.png')
-    coeff_mat = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array, order=order)
+    coeff_mat = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
 
     # plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
 
@@ -215,7 +215,8 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
             saddle_points_in_range.append(point)
     if len(saddle_points) == 0:
         logger.error('No saddle points were found')
-        plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
+        plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
+                   coeff_mat, name=name)
         return None
     elif len(saddle_points_in_range) == 1:
         min_energy_pathway = get_mep(
@@ -227,7 +228,8 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
         best_saddlepoint_output = best_saddlepoint(
             saddle_points_in_range, r1, r2, energy_grid)
         if best_saddlepoint_output is None:
-            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
+            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
+                       coeff_mat, name=name)
             return None
         r1_saddle, r2_saddle, min_energy_pathway = best_saddlepoint_output
 
@@ -295,7 +297,7 @@ def replace_none(lst):
             yield item
 
 
-def polyfit2d(x, y, z, order):
+def polyfit2d(x, y, z, order=5):
     """Takes x and y coordinates and their resultant z value, and creates a matrix where element i,j is the coefficient of the desired order polynomial x ** i * y ** j
 
     Arguments:

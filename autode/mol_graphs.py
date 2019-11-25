@@ -94,18 +94,22 @@ def find_cycle(graph, atom_i):
     Returns:
         list -- sorted list of atoms in the ring
     """
-    try:
-        cycle = nx.find_cycle(graph, atom_i)
-    except:
-        return None
-    cycle_atoms = set()
-    for edge in cycle:
-        cycle_atoms.add(edge[0])
-        cycle_atoms.add(edge[1])
-    if atom_i in cycle_atoms:
-        return sorted(cycle_atoms)
-    else:
-        return None
+    cycles = []
+    for node in list(graph.neighbors(atom_i)) + [atom_i]:
+        # pick up atoms in multiple rings
+        try:
+            cycles.append(nx.find_cycle(graph, node))
+        except:
+            pass
+    all_cycle_atoms = set()
+    for cycle in cycles:
+        cycle_atoms = set()
+        for edge in cycle:
+            cycle_atoms.add(edge[0])
+            cycle_atoms.add(edge[1])
+        if atom_i in cycle_atoms:
+            all_cycle_atoms.update(cycle_atoms)
+    return sorted(all_cycle_atoms)
 
 
 def reac_graph_to_prods(reac_graph, bond_rearrang):
