@@ -14,6 +14,7 @@ from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 from autode.transition_states.transition_state import TS
 import numpy as np
+import os
 
 
 def find_tss(reaction):
@@ -21,7 +22,50 @@ def find_tss(reaction):
     tss = []
 
     reactant, product = get_reactant_and_product_complexes(reaction)
-    bond_rearrangs = get_bond_rearrangs(reactant, product)
+
+    logger.info('Looking for a file with bond rearrangements in it')
+    if os.path.exists('bond_rearrangs.txt'):
+        logger.info('Getting bond rearrangements from file')
+        bond_rearrangs = []
+        with open('bond_rearrangs.txt', 'r') as file:
+            fbonds_block = False
+            bbonds_block = True
+            fbonds = []
+            bbonds = []
+            for line in file:
+                if 'fbonds' in line:
+                    fbonds_block = True
+                    bbonds_block = False
+                if 'bbonds' in line:
+                    fbonds_block = False
+                    bbonds_block = True
+                if fbonds_block and len(line.split()) == 2:
+                    atom_id_string = line.split()
+                    fbonds.append(
+                        (int(atom_id_string[0]), int(atom_id_string[1])))
+                if bbonds_block and len(line.split()) == 2:
+                    atom_id_string = line.split()
+                    bbonds.append(
+                        (int(atom_id_string[0]), int(atom_id_string[1])))
+                if 'end' in line:
+                    bond_rearrangs.append(BondRearrangement(
+                        forming_bonds=fbonds, breaking_bonds=bbonds))
+                    fbonds = []
+                    bbonds = []
+    else:
+        bond_rearrangs = get_bond_rearrangs(reactant, product)
+        logger.info('Saving bond rearrangements to bond_rearrange.txt')
+        with open('bond_rearrangs.txt', 'w') as file:
+            print(len(bond_rearrangs))
+            for bond_rearrang in bond_rearrangs:
+                print('fbonds', file=file)
+                for fbond in bond_rearrang.fbonds:
+                    print(*fbond, file=file)
+                print('bbonds', file=file)
+                for bbond in bond_rearrang.bbonds:
+                    print(*bbond, file=file)
+                print('end', file=file)
+
     if bond_rearrangs is None:
         logger.error('Could not find a set of forming/breaking bonds')
         return None
@@ -139,29 +183,29 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, scan_name + '_hl2d_bbonds', reaction.type, hmethod,
                                                hmethod.scan_keywords, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
 
-    if bond_rearrang.n_fbonds == 2 and bond_rearrang.n_bbonds == 1:
-        fbond1, fbond2 = bond_rearrang.fbonds
-        bbond = bond_rearrang.bbonds[0]
-        scan_name = name + \
-            f'_{fbond1[0]}-{fbond1[1]}_{fbond2[0]}-{fbond2[1]}_{bbond[0]}-{bbond[1]}'
-        delta_fbond_dist1 = get_avg_bond_length(
-            mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
-        delta_fbond_dist2 = get_avg_bond_length(
-            mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
-        delta_bbond_dist = get_bbond_dist(reaction)
-        funcs_params.append((get_ts_guess_3d, (reactant, product, fbond1, fbond2, bbond, 8, scan_name + '_ll3d_bbonds', reaction.type, lmethod,
-                                               lmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2, delta_bbond_dist, bond_rearrang.fbonds)))
+    # if bond_rearrang.n_fbonds == 2 and bond_rearrang.n_bbonds == 1:
+    #     fbond1, fbond2 = bond_rearrang.fbonds
+    #     bbond = bond_rearrang.bbonds[0]
+    #     scan_name = name + \
+    #         f'_{fbond1[0]}-{fbond1[1]}_{fbond2[0]}-{fbond2[1]}_{bbond[0]}-{bbond[1]}'
+    #     delta_fbond_dist1 = get_avg_bond_length(
+    #         mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
+    #     delta_fbond_dist2 = get_avg_bond_length(
+    #         mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
+    #     delta_bbond_dist = get_bbond_dist(reaction)
+    #     funcs_params.append((get_ts_guess_3d, (reactant, product, fbond1, fbond2, bbond, 8, scan_name + '_ll3d_bbonds', reaction.type, lmethod,
+    #                                            lmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2, delta_bbond_dist, bond_rearrang.fbonds)))
 
-    if bond_rearrang.n_fbonds == 1 and bond_rearrang.n_bbonds == 2:
-        fbond = bond_rearrang.fbonds[0]
-        bbond1, bbond2 = bond_rearrang.bbonds
-        scan_name = name + \
-            f'_{fbond[0]}-{fbond[1]}_{bbond1[0]}-{bbond1[1]}_{bbond2[0]}-{bbond2[1]}'
-        delta_fbond_dist = get_avg_bond_length(
-            mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-        delta_bbond_dist = get_bbond_dist(reaction)
-        funcs_params.append((get_ts_guess_3d, (reactant, product, fbond, bbond1, bbond2, 8, scan_name + '_ll3d_bbonds', reaction.type, lmethod,
-                                               lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
+    # if bond_rearrang.n_fbonds == 1 and bond_rearrang.n_bbonds == 2:
+    #     fbond = bond_rearrang.fbonds[0]
+    #     bbond1, bbond2 = bond_rearrang.bbonds
+    #     scan_name = name + \
+    #         f'_{fbond[0]}-{fbond[1]}_{bbond1[0]}-{bbond1[1]}_{bbond2[0]}-{bbond2[1]}'
+    #     delta_fbond_dist = get_avg_bond_length(
+    #         mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+    #     delta_bbond_dist = get_bbond_dist(reaction)
+    #     funcs_params.append((get_ts_guess_3d, (reactant, product, fbond, bbond1, bbond2, 8, scan_name + '_ll3d_bbonds', reaction.type, lmethod,
+    #                                            lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
 
     return funcs_params
 
