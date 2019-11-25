@@ -198,7 +198,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     logger.info(f'Plotting 2D scan and saving to {name}.png')
     coeff_mat = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array, order=order)
 
-    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
+    # plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
 
     saddle_points = poly2d_saddlepoints(coeff_mat)
 
@@ -215,6 +215,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
             saddle_points_in_range.append(point)
     if len(saddle_points) == 0:
         logger.error('No saddle points were found')
+        plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
         return None
     elif len(saddle_points_in_range) == 1:
         min_energy_pathway = get_mep(
@@ -226,6 +227,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
         best_saddlepoint_output = best_saddlepoint(
             saddle_points_in_range, r1, r2, energy_grid)
         if best_saddlepoint_output is None:
+            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
             return None
         r1_saddle, r2_saddle, min_energy_pathway = best_saddlepoint_output
 
@@ -242,6 +244,9 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
         coord_xyzs = dists_xyzs_energies_dict[closest_dists][0]
         if not coord_xyzs in mep_xyzs:
             mep_xyzs.append(coord_xyzs)
+
+    plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
+               coeff_mat, mep_distances, name=name)
 
     make_reaction_animation(scan_name, mep_xyzs)
 

@@ -1,4 +1,5 @@
 from autode.log import logger
+import networkx as nx
 
 
 def get_mep(r1, r2, energies, saddlepoint):
@@ -7,6 +8,15 @@ def get_mep(r1, r2, energies, saddlepoint):
     n_points = len(r1)
     reac_coords = (0, 0)
     prod_coords = (n_points-1, n_points-1)
+
+    energies_graph = nx.DiGraph()
+    for i in range(n_points):
+        for j in range(n_points):
+            neighbouring_points = get_neighbouring_points((i, j), n_points)
+            for neighbour in neighbouring_points:
+                weight = energies[neighbour[0],
+                                  neighbour[1]] - energies[i, j] + 10
+                energies_graph.add_edge((i, j), neighbour, weight=weight)
 
     # saddlepoint coords on the grid
     saddle_coords = get_point_on_grid(saddlepoint, r1, r2)
@@ -26,12 +36,12 @@ def get_mep(r1, r2, energies, saddlepoint):
             if not saddle_coords[index] == 0:
                 other_side_of_saddle.append(coord - 2)
             else:
-                other_side_of_saddle.append(0)
+                return None
         else:
             if not saddle_coords[index] == n_points - 1:
                 other_side_of_saddle.append(coord + 2)
             else:
-                other_side_of_saddle.append(n_points - 1)
+                return None
 
     # see which point is closest to reacs
     first_dist_to_reacs = one_side_of_saddle[0] ** 2 + one_side_of_saddle[1]**2
@@ -45,11 +55,14 @@ def get_mep(r1, r2, energies, saddlepoint):
         prod_saddle_coords = (one_side_of_saddle[0], one_side_of_saddle[1])
 
     reac_mep = find_point_on_mep(
-        energies, reac_coords, reac_saddle_coords, n_points, saddle_coords)
+        energies_graph, reac_saddle_coords, reac_coords)
     prod_mep = find_point_on_mep(
-        energies, prod_coords, prod_saddle_coords, n_points, saddle_coords)
+        energies_graph, prod_saddle_coords, prod_coords)
 
     if reac_mep is None or prod_mep is None:
+        return None
+
+    if saddle_coords in reac_mep or saddle_coords in prod_mep:
         return None
 
     full_mep = list(reversed(reac_mep)) + [saddle_coords] + prod_mep
@@ -65,48 +78,10 @@ def get_point_on_grid(point, r1, r2):
     return (r1_index, r2_index)
 
 
-def find_point_on_mep(energies, point_to_find, start, n_points, other_side):
-    # fit sometimes leaves the end not at a minimum, so check for this
-    end_neighbours = get_neighbouring_points(point_to_find, n_points)
-    end_neighbouring_energies = [energies[x, y] for x, y in end_neighbours]
-    path_to_point_from_min = []
-    if any([energy < energies[point_to_find[0], point_to_find[1]] for energy in end_neighbouring_energies]):
-        path_to_point_from_min.append(point_to_find)
-        going_down = True
-        while going_down:
-            current_point = path_to_point_from_min[-1]
-            point_energy = energies[current_point[0], [current_point[1]]]
-            neighbouring_points = get_neighbouring_points(
-                current_point, n_points)
-            neighbouring_energies = [energies[x, y]
-                                     for x, y in neighbouring_points]
-            if any([energy < point_energy for energy in neighbouring_energies]):
-                min_energy_index = neighbouring_energies.index(
-                    min(neighbouring_energies))
-                min_coord = neighbouring_points[min_energy_index]
-                path_to_point_from_min.append(min_coord)
-            else:
-                going_down = False
-                point_to_find = current_point
-                path_to_point_from_min.remove(current_point)
+def find_point_on_mep(energies_graph, start, end):
+    mep = nx.dijkstra_path(energies_graph, start, end)
 
-    found_point = False
-    mep = [other_side, start]
-    while not found_point:
-        current_point = mep[-1]
-        neighbouring_points = get_neighbouring_points(current_point, n_points)
-        new_points = [
-            point for point in neighbouring_points if not point in mep]
-        if len(new_points) == 0:
-            return None
-        neighbouring_energies = [energies[x, y] for x, y in new_points]
-        min_energy_index = neighbouring_energies.index(
-            min(neighbouring_energies))
-        min_coord = new_points[min_energy_index]
-        mep.append(min_coord)
-        if min_coord == point_to_find:
-            found_point = True
-    return mep[1:] + list(reversed(path_to_point_from_min))
+    return mep
 
 
 def get_neighbouring_points(point, n_points):

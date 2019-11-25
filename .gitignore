@@ -58,3 +58,9 @@ examples/test_stripping.py
 examples/test_substitution.py
 
 examples/bad_organocatalysis/
+
+examples/cheletropic_addition/
+
+examples/crotyl_transfer/
+
+examples/reaction/
