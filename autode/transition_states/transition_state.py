@@ -1,7 +1,9 @@
 from autode.log import logger
 from autode.config import Config
 from autode.geom import calc_distance_matrix
-from autode.geom import xyz2coord
+from autode.geom import coords2xyzs
+from autode.geom import calc_rotation_matrix
+from autode.atoms import get_vdw_radii
 from autode import mol_graphs
 from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
@@ -9,6 +11,7 @@ from autode.transition_states.ts_conformers import rot_bond
 from autode.transition_states.rot_fragments import RotFragment
 from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.optts import get_ts
+from autode.transition_states.ts_conformers import TSConformer
 import numpy as np
 
 
@@ -101,20 +104,58 @@ class TS(TSguess):
         bonds_worth_rotating = []
         coords = self.get_coords()
 
+        cycles = mol_graphs.find_cycle(self.graph_with_fbonds)
+
+        ring_atoms = {}
+
         for potential_bond in bonds:
-            if self.pi_bonds is not None:
-                if potential_bond in self.pi_bonds:
-                    continue
             suitable_bond = True
             half_suitable_bond = True
+
+            # don't rotate pi bonds
+            if self.pi_bonds is not None:
+                if potential_bond in self.pi_bonds:
+                    suitable_bond = False
+
+            # don't rotate rings
+            for cycle in cycles:
+                if potential_bond[0] in cycle and potential_bond[1] in cycle:
+                    suitable_bond = False
+                    for atom in potential_bond:
+                        if not atom in ring_atoms.keys():
+                            bonded_atoms = self.get_bonded_atoms_to_i(atom)
+                            non_ring_atoms = [
+                                bonded_atom for bonded_atom in bonded_atoms if not bonded_atom in cycle]
+                            two_rings = False
+                            for non_ring_atom in non_ring_atoms:
+                                for second_cycle in cycles:
+                                    if non_ring_atom in second_cycle:
+                                        two_rings = True
+                                        break
+                            if two_rings:
+                                break
+                            if len(non_ring_atoms) > 1:
+                                if not (all(len(self.get_bonded_atoms_to_i(atom_i)) == 1 for atom_i in non_ring_atoms) and all(self.get_atom_label(atom_i) == self.get_atom_label(non_ring_atoms[0]) for atom_i in non_ring_atoms)):
+                                    ring_bonded_atoms = [
+                                        bonded_atom for bonded_atom in bonded_atoms if bonded_atom in cycle]
+                                    ring_bonds = [(atom, ring_atom)
+                                                  for ring_atom in ring_bonded_atoms]
+                                    ring_atoms[atom] = ring_bonds
+                    break
+
+            if not suitable_bond:
+                continue
+
             for index, atom in enumerate(potential_bond):
                 other_bond_atom = potential_bond[1-index]
                 bonded_atoms = self.get_bonded_atoms_to_i(atom)
                 bonded_atoms.remove(other_bond_atom)
+
                 # don't rotate terminal atoms
                 if len(bonded_atoms) == 0:
                     suitable_bond = False
                     break
+
                 # don't rotate linear
                 if len(bonded_atoms) == 1:
                     bond_vector1 = coords[atom] - coords[other_bond_atom]
@@ -135,15 +176,22 @@ class TS(TSguess):
                             suitable_bond = False
                             break
                         half_suitable_bond = False
+
                 # don't rotate methyl like
                 if all(len(self.get_bonded_atoms_to_i(atom_i)) == 1 for atom_i in bonded_atoms) and all(self.get_atom_label(atom_i) == self.get_atom_label(bonded_atoms[0]) for atom_i in bonded_atoms):
                     suitable_bond = False
                     break
+
             if suitable_bond:
-                # don't rotate rings
-                if not mol_graphs.bond_in_cycle(self.graph_with_fbonds, potential_bond):
-                    bonds_worth_rotating.append(potential_bond)
-        logger.info(f'Found {len(bonds_worth_rotating)} bonds worth rotating')
+                bonds_worth_rotating.append(potential_bond)
+
+        logger.info(
+            f'Found {len(bonds_worth_rotating)} bond(s) worth rotating')
+        logger.info(f'Found {len(ring_atoms)} ring atom(s) worth rotating')
+
+        if len(ring_atoms) > 0:
+            self.ring_atoms = ring_atoms
+
         self.rotatable_bonds = bonds_worth_rotating
 
     def get_central_bond(self):
@@ -226,9 +274,67 @@ class TS(TSguess):
 
     def rotate(self, hlevel):
         # go from the outside in
+        if self.ring_atoms is not None:
+            logger.info('Rotating ring atoms')
+            self.rotate_ring_atoms(hlevel)
+
         logger.info('Rotating fragments')
         for frag in self.rot_frags:
             frag.rotate(hlevel)
+
+    def rotate_ring_atoms(self, hlevel, n_rotations=6):
+        theta = np.pi * 2 / n_rotations
+        for ring_atom, ring_bonds in self.ring_atoms.items():
+            fragments = mol_graphs.split_mol_across_bond(
+                self.graph_with_fbonds, ring_bonds)
+            for fragment in fragments:
+                if ring_atom in fragment:
+                    atoms_to_rotate = fragment
+                    break
+            coords = self.get_coords()
+            coords = coords - coords[ring_atom]
+            rot_axis = coords[ring_bonds[0][1]] - coords[ring_bonds[1][1]]
+            rot_matrix = calc_rotation_matrix(rot_axis, theta)
+            confs = []
+            for i in range(n_rotations):
+                close_atoms = []
+                for atom in atoms_to_rotate:
+                    coords[atom] = np.matmul(rot_matrix, coords[atom])
+                # check if any atoms are close
+                for atom in range(len(coords)):
+                    for other_atom in range(len(coords)):
+                        if atom != other_atom:
+                            distance_threshold = get_vdw_radii(
+                                self.xyzs[atom][0]) + get_vdw_radii(self.xyzs[other_atom][0]) - 1.2
+                            distance = np.linalg.norm(
+                                coords[atom] - coords[other_atom])
+                            if distance < distance_threshold:
+                                close_atoms.append((atom, other_atom))
+                    xyzs = coords2xyzs(coords, self.xyzs)
+                confs.append(TSConformer(name=self.name + f'_rot_ring_{ring_atom}_{i}', close_atoms=close_atoms, xyzs=xyzs, rot_frags=self.rot_frags,
+                                         dist_consts=self.dist_consts, solvent=self.solvent, charge=self.charge, mult=self.mult))
+
+            [conf.optimise(hlevel) for conf in confs]
+
+            logger.info('Setting TS xyzs as lowest energy xyzs')
+
+            lowest_energy = None
+
+            for conf in confs:
+                if conf.energy is None or conf.xyzs is None:
+                    continue
+                if lowest_energy is None:
+                    lowest_energy = conf.energy
+                    lowest_energy_conf = conf
+                elif conf.energy <= lowest_energy:
+                    lowest_energy_conf = conf
+                    lowest_energy = conf.energy
+                else:
+                    pass
+
+            if lowest_energy is not None:
+                self.xyzs = lowest_energy_conf.xyzs
+                self.energy = lowest_energy_conf.energy
 
     def opt_ts(self, hlevel):
         name = self.name
@@ -251,7 +357,7 @@ class TS(TSguess):
 
     def do_conformers(self, hlevel=False):
         self.get_rotatable_bonds()
-        if len(self.rotatable_bonds) == 0:
+        if len(self.rotatable_bonds) == 0 and len(self.ring_atoms) == 0:
             logger.info('No bonds to rotate')
             return self
         self.get_central_bond()
@@ -287,6 +393,7 @@ class TS(TSguess):
         self.make_graph()
 
         self.rotatable_bonds = []
+        self.ring_atoms = None
         self.central_bond = None
         self.rot_fragments = []
 

@@ -10,8 +10,8 @@ from autode.atoms import get_vdw_radii
 import numpy as np
 
 
-def rot_bond(mol, bond, number_rotations=12):
-    theta = np.pi * 2 / number_rotations
+def rot_bond(mol, bond, n_rotations=12):
+    theta = np.pi * 2 / n_rotations
     logger.info(f'Rotating bond {bond} in increments of {theta:.3f} radians')
     bond_atom_1, bond_atom_2 = bond
     coords = mol.get_coords().copy()
@@ -28,7 +28,7 @@ def rot_bond(mol, bond, number_rotations=12):
 
     rot_xyzs = []
 
-    for _ in range(number_rotations):
+    for _ in range(n_rotations):
         close_atoms = []
         for atom in atoms_to_shift:
             coords[atom] = np.matmul(rot_matrix, coords[atom])
