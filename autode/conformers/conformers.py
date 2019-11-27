@@ -100,12 +100,12 @@ class Conformer(object):
             method = self.method
 
         opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
-                          n_cores=Config.n_cores, opt=True, max_core_mb=Config.max_core)
+                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts, constraints_already_met=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
         self.xyzs = opt.get_final_xyzs()
 
-    def __init__(self, name='conf', xyzs=None, energy=None, solvent=None, charge=0, mult=1):
+    def __init__(self, name='conf', xyzs=None, energy=None, solvent=None, charge=0, mult=1, dist_consts=None):
         self.name = name
         self.xyzs = xyzs
         self.n_atoms = len(xyzs) if xyzs is not None else None
@@ -114,3 +114,4 @@ class Conformer(object):
         self.charge = charge
         self.mult = mult
         self.method = get_lmethod()
+        self.dist_consts = dist_consts

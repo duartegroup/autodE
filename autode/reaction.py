@@ -196,18 +196,16 @@ class Reaction:
         self.clear_tmp_files()
 
         ts_copy = deepcopy(self.ts)
-        logger.info(
-            'Trying to find lowest energy TS conformer using the lower level method')
-        self.ts = self.ts.do_conformers()
-        if not self.test_ts_conf(ts_copy):
+        logger.info('Trying to find lowest energy TS conformer')
+
+        self.ts = self.ts.find_lowest_energy_conformer()
+        if self.ts is None:
+            logger.error('Conformer search lost the TS, using the original TS')
             self.ts = ts_copy
-            logger.info(
-                'Trying to find lowest energy TS conformer using the higher level method')
-            ts_copy = deepcopy(self.ts)
-            self.ts = self.ts.do_conformers(hlevel=True)
-            if not self.test_ts_conf(ts_copy):
-                logger.error('Could not improve the TS, using the original TS')
-                self.ts = ts_copy
+        elif self.ts.energy > ts_copy.energy:
+            logger.error(
+                f'Conformer search increased the TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
+            self.ts = ts_copy
 
         self.clear_xtb_files()
 
