@@ -84,32 +84,16 @@ def gm_is_isomorphic(gm, result):
     result[0] = gm.is_isomorphic()
 
 
-def find_cycle(graph, atom_i):
-    """Finds if atom i is part of a ring, and returns the members of the ring if so
+def find_cycle(graph):
+    """Finds all the cycles in a graph
 
     Arguments:
         graph {nx.Graph} -- the molecular graph
-        atom_i {int} -- the index of the atom being investigated
 
     Returns:
-        list -- sorted list of atoms in the ring
+        list of list -- each list has the atoms in a cycle
     """
-    cycles = []
-    for node in list(graph.neighbors(atom_i)) + [atom_i]:
-        # pick up atoms in multiple rings
-        try:
-            cycles.append(nx.find_cycle(graph, node))
-        except:
-            pass
-    all_cycle_atoms = set()
-    for cycle in cycles:
-        cycle_atoms = set()
-        for edge in cycle:
-            cycle_atoms.add(edge[0])
-            cycle_atoms.add(edge[1])
-        if atom_i in cycle_atoms:
-            all_cycle_atoms.update(cycle_atoms)
-    return sorted(all_cycle_atoms)
+    return nx.cycle_basis(graph)
 
 
 def reac_graph_to_prods(reac_graph, bond_rearrang):
@@ -130,26 +114,6 @@ def reac_graph_to_prods(reac_graph, bond_rearrang):
     return prod_graph
 
 
-def bond_in_cycle(graph, bond):
-    """finds if a bond is in a ring
-
-    Arguments:
-        graph {nx.graph} -- molecular graph
-        bond {tuple} -- bond
-
-    Returns:
-        bool -- if bond is in a ring
-    """
-    for atom in bond:
-        try:
-            cycle = nx.find_cycle(graph, atom)
-        except:
-            continue
-        if bond in cycle or (bond[1], bond[0]) in cycle:
-            return True
-    return False
-
-
 def get_separate_subgraphs(graph):
     """Find all the unconnected graphs in a graph
 
@@ -163,7 +127,7 @@ def get_separate_subgraphs(graph):
 
 
 def split_mol_across_bond(graph, bonds, return_graphs=False):
-    """gets a list of atoms on either side of a bond, or the two subgraphs is return_graphs=True
+    """gets a list of atoms on either side of a bond, or the two subgraphs if return_graphs=True
 
     Arguments:
         graph {nx.graph} -- molecular graph

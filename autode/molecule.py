@@ -89,14 +89,19 @@ class Molecule:
 
         old_core_atoms = set()
 
+        cycles = mol_graphs.find_cycle(self.graph)
+        if product_graph is not None:
+            prod_cycles = cycle = mol_graphs.find_cycle(product_graph)
+
         while len(old_core_atoms) < len(core_atoms):
             old_core_atoms = core_atoms.copy()
             ring_atoms = set()
             logger.info('Looking for rings in the reactants')
             for atom in core_atoms:
-                cycle = mol_graphs.find_cycle(self.graph, atom)
-                for atom in cycle:
-                    ring_atoms.add(atom)
+                for cycle in cycles:
+                    if atom in cycle:
+                        for cycle_atom in cycle:
+                            ring_atoms.add(cycle_atom)
             core_atoms.update(ring_atoms)
 
             logger.info('Looking for rings in the products')
@@ -106,10 +111,10 @@ class Molecule:
             else:
                 prod_ring_atoms = set()
                 for atom in core_atoms:
-                    cycle = mol_graphs.find_cycle(product_graph, atom)
-                    if cycle is not None:
-                        for atom in cycle:
-                            prod_ring_atoms.add(atom)
+                    for cycle in prod_cycles:
+                        if atom in cycle:
+                            for cycle_atom in cycle:
+                                prod_ring_atoms.add(cycle_atom)
                 core_atoms.update(prod_ring_atoms)
 
             if self.pi_systems is not None:
