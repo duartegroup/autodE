@@ -213,7 +213,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     for point in saddle_points:
         if (min(r1_flat) < point[0] < max(r1_flat)) and (min(r2_flat) < point[1] < max(r2_flat)):
             saddle_points_in_range.append(point)
-    if len(saddle_points) == 0:
+    if len(saddle_points_in_range) == 0:
         logger.error('No saddle points were found')
         plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
                    coeff_mat, name=name)

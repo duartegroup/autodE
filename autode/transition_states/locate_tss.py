@@ -56,7 +56,6 @@ def find_tss(reaction):
         bond_rearrangs = get_bond_rearrangs(reactant, product)
         logger.info('Saving bond rearrangements to bond_rearrange.txt')
         with open('bond_rearrangs.txt', 'w') as file:
-            print(len(bond_rearrangs))
             for bond_rearrang in bond_rearrangs:
                 print('fbonds', file=file)
                 for fbond in bond_rearrang.fbonds:
@@ -151,6 +150,9 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     if bond_rearrang.n_bbonds >= 1 and bond_rearrang.n_fbonds >= 1:
         for fbond in bond_rearrang.fbonds:
             for bbond in bond_rearrang.bbonds:
+                scanned_bonds = [fbond, bbond]
+                active_bonds_not_scanned = [
+                    bond for bond in bond_rearrang.all if not bond in scanned_bonds]
                 scan_name = name + \
                     f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
                 delta_fbond_dist = get_avg_bond_length(
@@ -158,9 +160,9 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                 delta_bbond_dist = get_bbond_dist(reaction)
 
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
-                                                       lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist)))
+                                                       lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
-                                                       hmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist)))
+                                                       hmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
 
     if bond_rearrang.n_fbonds == 2:
         fbond1, fbond2 = bond_rearrang.fbonds

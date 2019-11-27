@@ -42,8 +42,8 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
                         color='forestgreen', lw=2, alpha=1)
     ax1.view_init(45)
     ax2 = fig.add_subplot(1, 2, 2)
-    pos2 = ax2.imshow(zz, extent=(r1.min(), r2.max(), r1.min(
-    ), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
+    pos2 = ax2.imshow(zz, aspect='equal', extent=(r1.min(), r1.max(
+    ), r2.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
     plt.colorbar(pos2, ax=ax2)
     plt.savefig(name + '.png', dpi=1000)
 

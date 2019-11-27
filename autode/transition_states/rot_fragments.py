@@ -106,7 +106,7 @@ class RotFragment:
         logger.info('Attempting to fix any close atoms')
         for conf in rot_confs_with_clashes:
             if conf.close_atoms is not None:
-                conf.avoid_clash(self.rot_bond, hlevel)
+                conf.avoid_clash(hlevel)
                 if not conf.unfixed_clashes:
                     rot_confs.append(conf)
             else:

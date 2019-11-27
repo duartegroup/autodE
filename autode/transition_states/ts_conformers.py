@@ -74,7 +74,7 @@ class TSConformer():
             self.energy = None
             self.xyzs = None
 
-    def avoid_clash(self, current_rot_bond, hlevel):
+    def avoid_clash(self, hlevel):
         unfixed_clashes = False
         for (atom1, atom2) in self.close_atoms:
             logger.info(

@@ -59,8 +59,10 @@ examples/test_substitution.py
 
 examples/bad_organocatalysis/
 
+examples/bad_organocatalysis.py
+
 examples/cheletropic_addition/
 
 examples/crotyl_transfer/
 
-examples/reaction/
+examples/h_h/
