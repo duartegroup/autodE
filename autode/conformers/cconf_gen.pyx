@@ -45,9 +45,9 @@ cdef calc_forces(int n_atoms, array forces, array coords, int[:, :] bond_matrix,
                 d = sqrt(delta_x*delta_x + delta_y*delta_y + delta_z*delta_z)
 
                 repulsion = -4.0 * c / pow(d, 6)
-                forces.data.as_doubles[3*i] +=  repulsion * delta_x
-                forces.data.as_doubles[3*i+1] +=  repulsion * delta_y
-                forces.data.as_doubles[3*i+2] +=  repulsion * delta_z
+                forces.data.as_doubles[3*i] += repulsion * delta_x
+                forces.data.as_doubles[3*i+1] += repulsion * delta_y
+                forces.data.as_doubles[3*i+2] += repulsion * delta_z
 
                 if bond_matrix[i][j] == 1:
                     bonded = 2.0 * k * (1.0 - d0[i][j]/d)
@@ -146,7 +146,7 @@ def v(py_flat_coords, py_bonds, py_k, py_d0, py_c, py_fixed_bonds):
     return calc_energy(n_atoms, coords, bond_matrix, k, d0, c)
 
 
-def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_fixed_bonds):
+def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_fixed_bonds, py_non_random_atoms):
     """
     Run an MD simulation under a potential:
 
@@ -163,6 +163,7 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_f
     :param d0: (np.array) matrix of ideal bond lengths
     :param c: (float) strength of the repulsive term
     :param py_fixed_bonds: (list(tuples)) defining which atoms have fixed separations together
+    :param py_non_random_atoms: (list) atoms that must not be randomly placed, to keep stereochem
     :return: np array of coordinates
     """
 
@@ -200,7 +201,11 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_f
         vel[i] = 5.0 * np.random.normal()
         a[i] = 0.0
         forces[i] = 0.0
-        coords[i] = 3 * np.random.normal()
+        if i//3 in py_non_random_atoms:
+            coords[i] = py_flat_coords[i]
+        else:
+            coords[i] = 3 * np.random.normal()
+            
 
     a = calc_forces(n_atoms, forces, coords, bond_matrix, k, d0, c)
 
@@ -210,8 +215,8 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_f
 
         t += dt
         for i in range(3 * n_atoms):
-            coords.data.as_doubles[i] += dt * vel.data.as_doubles[i] + 0.5 * dt * dt * a.data.as_doubles[i]
-            vel.data.as_doubles[i] += a.data.as_doubles[i] * dt
+                coords.data.as_doubles[i] += dt * vel.data.as_doubles[i] + 0.5 * dt * dt * a.data.as_doubles[i]
+                vel.data.as_doubles[i] += a.data.as_doubles[i] * dt
 
         a = calc_forces(n_atoms, forces, coords, bond_matrix, k, d0, c)
 

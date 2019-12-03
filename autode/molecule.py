@@ -208,7 +208,7 @@ class Molecule:
             bond_list = get_bond_list_from_rdkit_bonds(
                 rdkit_bonds_obj=self.mol_obj.GetBonds())
             conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
-                                             charge=self.charge)
+                                             charge=self.charge, stereocentres=self.stereocentres)
 
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(name=self.name + '_conf' + str(i), xyzs=conf_xyzs[i],
@@ -394,13 +394,28 @@ class Molecule:
             self.mol_obj, numConfs=1, params=AllChem.ETKDG())
         self.xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=[0])[0]
 
+        unassigned_stereocentres = False
+        stereocentres = []
+        stereochem_info = Chem.FindMolChiralCenters(
+            self.mol_obj, includeUnassigned=True)
+        for atom, assignment in stereochem_info:
+            if assignment == '?':
+                unassigned_stereocentres = True
+            else:
+                stereocentres.append(atom)
+
+        if len(stereocentres) > 0:
+            self.stereocentres = stereocentres
+            if unassigned_stereocentres:
+                logger.warning('Unassigned stereocentres found')
+
         if not rdkit_conformer_geometries_are_resonable(conf_xyzs=[self.xyzs]):
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
             bond_list = get_bond_list_from_rdkit_bonds(
                 rdkit_bonds_obj=self.mol_obj.GetBonds())
             self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
-                                             charge=self.charge, n_simanls=1)[0]
+                                             charge=self.charge, stereocentres=self.stereocentres, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
             self.n_bonds = self.graph.number_of_edges()
 
@@ -416,6 +431,11 @@ class Molecule:
                 logger.critical(
                     f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). Found {xyz} instead')
                 exit()
+
+        if isinstance(self, (Reactant, Product)):
+            logger.warning(
+                'Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate from a SMILES string to keep stereochemistry')
+
         self.n_atoms = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))
         self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
@@ -452,6 +472,7 @@ class Molecule:
         self.graph = None
         self.distance_matrix = None
         self.active_atoms = None
+        self.stereocentres = None
         self.pi_bonds = None
         self.pi_systems = None
 

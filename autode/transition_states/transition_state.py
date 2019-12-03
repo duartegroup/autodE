@@ -93,7 +93,7 @@ class TS(TSguess):
 
         bond_list = list(self.graph.edges)
         conf_xyzs = gen_simanl_conf_xyzs(
-            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge, dist_consts=self.dist_consts)
+            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge, stereocentres=self.stereocentres, dist_consts=self.dist_consts)
 
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(
@@ -124,10 +124,14 @@ class TS(TSguess):
         self.n_conformers = len(self.conformers)
 
     def opt_ts(self):
+        name = self.name
+
         ts_conf_get_ts_output = get_ts(self)
         if ts_conf_get_ts_output is None:
             return None
         self.converged = ts_conf_get_ts_output[1]
+
+        self.name = name
 
         return self
 
@@ -199,6 +203,7 @@ class TS(TSguess):
         self.dist_consts = None
         self.get_dist_consts()
 
+        self.stereocentres = None
         self.conformers = None
         self.n_conformers = None
 

@@ -1,9 +1,14 @@
 import os
 import numpy as np
+import networkx as nx
 from scipy.optimize import minimize
 from autode.bond_lengths import get_ideal_bond_length_matrix
 from autode.log import logger
 from autode.config import Config
+from autode.geom import xyz2coord
+from autode.geom import coords2xyzs
+from autode.geom import calc_rotation_matrix
+from autode.mol_graphs import split_mol_across_bond
 from multiprocessing import Pool
 from cconf_gen import do_md
 from cconf_gen import v
@@ -20,7 +25,7 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return final_coords
 
 
-def simanl(xyzs, bonds, dist_consts):
+def simanl(xyzs, bonds, dist_consts, non_random_atoms, stereocentres):
     """
         V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
     :param name: (str)
@@ -46,8 +51,35 @@ def simanl(xyzs, bonds, dist_consts):
             d0[bond[1], bond[0]] = length
             fixed_bonds.append(bond)
 
+    graph = nx.Graph()
+    for bond in bonds:
+        graph.add_edge(*bond)
+
+    coords = xyz2coord(xyzs)
+
+    if stereocentres is not None:
+        for atom1 in stereocentres:
+            for atom2 in stereocentres:
+                if atom1 < atom2:
+                    if (atom1, atom2) in bonds or (atom2, atom1) in bonds:
+                        theta = np.random.random_sample() * np.pi * 2
+                        split_atoms = split_mol_across_bond(
+                            graph, [(atom1, atom2)])
+                        if atom1 in split_atoms[0]:
+                            atoms_to_rot = split_atoms[0]
+                        else:
+                            atoms_to_rot = split_atoms[1]
+                        coords = coords - coords[atom1]
+                        rot_axis = coords[atom1] - coords[atom2]
+                        rot_matrix = calc_rotation_matrix(rot_axis, theta)
+                        for atom in atoms_to_rot:
+                            coords[atom] = np.matmul(rot_matrix, coords[atom])
+
+        xyzs = coords2xyzs(coords, xyzs)
+
     logger.info('Running high temp MD')
-    coords = do_md(xyzs, bonds, n_steps, temp, dt, k, d0, c, fixed_bonds)
+    coords = do_md(xyzs, bonds, n_steps, temp, dt, k,
+                   d0, c, fixed_bonds, non_random_atoms)
 
     logger.info('Minimising with BFGS')
     coords = get_coords_minimised_v(
@@ -57,7 +89,7 @@ def simanl(xyzs, bonds, dist_consts):
     return xyzs
 
 
-def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, dist_consts=None, n_simanls=40):
+def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, stereocentres, dist_consts={}, n_simanls=40):
     """
     Generate conformer xyzs using the cconf_gen Cython code, which is compiled when setup.py install is run.
 
@@ -71,14 +103,33 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, dist_consts=None, n
     logger.info(
         'Doing simulated annealing with a harmonic + repulsion force field')
 
+    important_stereoatoms = set()
+    if stereocentres is not None:
+        for stereocentre in stereocentres:
+            important_atoms = set()
+            for bond in bond_list:
+                if stereocentre in bond:
+                    important_atoms.add(bond[0])
+                    important_atoms.add(bond[1])
+            for atom1 in important_atoms:
+                for atom2 in important_atoms:
+                    if atom1 > atom2:
+                        coord1 = np.asarray(init_xyzs[atom1][1:])
+                        coord2 = np.asarray(init_xyzs[atom2][1:])
+                        bond_length = np.linalg.norm(coord1 - coord2)
+                        dist_consts[(atom1, atom2)] = bond_length
+            important_stereoatoms.update(important_atoms)
+
+    non_random_atoms = sorted(important_stereoatoms)
+
     if n_simanls == 1:
-        conf_xyzs = simanl(xyzs=init_xyzs, bonds=bond_list,
-                           dist_consts=dist_consts)
+        conf_xyzs = simanl(xyzs=init_xyzs, bonds=bond_list, dist_consts=dist_consts,
+                           non_random_atoms=non_random_atoms, stereocentres=stereocentres)
         return [conf_xyzs]
 
     logger.info(f'Splitting calculation into {Config.n_cores} threads')
     with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(simanl, (init_xyzs, bond_list, dist_consts))
+        results = [pool.apply_async(simanl, (init_xyzs, bond_list, dist_consts, non_random_atoms, stereocentres))
                    for i in range(n_simanls)]
         conf_xyzs = [res.get(timeout=None) for res in results]
 

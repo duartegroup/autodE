@@ -479,11 +479,12 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
 
     reactant.active_atoms = sorted(active_atoms)
 
-    if strip_molecule:
-        # get the product graph with the atom indices of the reactant
-        full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(
-            reactant.graph, bond_rearrangement)
+    # get the product graph with the atom indices of the reactant
+    full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(
+        reactant.graph, bond_rearrangement)
+    reaction.product_graph = full_prod_graph_reac_indices.copy()
 
+    if strip_molecule:
         reactant_core_atoms = reactant.get_core_atoms(
             full_prod_graph_reac_indices)
         product_core_atoms = mol_graphs.get_product_core_atoms(

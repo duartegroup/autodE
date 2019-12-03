@@ -126,51 +126,22 @@ def get_separate_subgraphs(graph):
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
 
-def split_mol_across_bond(graph, bonds, return_graphs=False):
-    """gets a list of atoms on either side of a bond, or the two subgraphs if return_graphs=True
+def split_mol_across_bond(graph, bonds):
+    """gets a list of atoms on either side of a bond
 
     Arguments:
         graph {nx.graph} -- molecular graph
         bond {list} -- list of bonds to be split across
-        return_graphs {bool} -- true if want graphs instead of list of nodes
+
     """
     graph_copy = graph.copy()
     for bond in bonds:
         graph_copy.remove_edge(*bond)
     split_subgraphs = get_separate_subgraphs(graph_copy)
-    if return_graphs:
-        return split_subgraphs
     return [list(graph.nodes) for graph in split_subgraphs]
 
 
-def get_pathway(graph, start_atom, end_atom):
-    """Gets all the pathways from one atom to another
-
-    Arguments:
-        graph {nx.graph} -- mol graph
-        start_atom {int} -- index of the starting atom node
-        end_atom {int} -- index of the ending atom node
-
-    Returns:
-        list -- list of all simple pathways from start to end atoms
-    """
-    path_edges_list = []
-    path_list = list(nx.all_simple_paths(graph, start_atom, end_atom))
-    for path in map(nx.utils.pairwise, path_list):
-        path_edges_list.append(list(path))
-    return path_edges_list
-
-
 def get_product_core_atoms(prod_mol, stripped_prod_graph):
-    """Maps the
-
-    Arguments:
-        prod_mol {[type]} -- [description]
-        stripped_prod_graph {[type]} -- [description]
-
-    Returns:
-        [type] -- [description]
-    """
     # have to remove H's from stripped graph as they won't be there in the whole mol
     for i in list(stripped_prod_graph.nodes):
         if stripped_prod_graph.nodes[i]['atom_label'] == 'H':

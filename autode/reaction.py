@@ -7,6 +7,7 @@ from autode.units import KcalMol
 from autode.units import KjMol
 from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
+from autode.mol_graphs import get_mapping
 from copy import deepcopy
 import os
 
@@ -184,7 +185,6 @@ class Reaction:
         os.chdir(here)
 
     def ts_confs(self):
-        logger.info('Optimising TS conformation')
         here = os.getcwd()
         ts_conf_directory_path = os.path.join(here, 'ts_confs')
         if not os.path.isdir(ts_conf_directory_path):
@@ -194,6 +194,25 @@ class Reaction:
         os.chdir(ts_conf_directory_path)
 
         self.clear_tmp_files()
+
+        logger.info('Finding all the stereocentres in the transition state')
+
+        stereocentres = set()
+        n_atoms = 0
+        for reac in self.reacs:
+            if reac.stereocentres is not None:
+                for stereocentre in reac.stereocentres:
+                    stereocentres.add(stereocentre + n_atoms)
+            n_atoms += reac.n_atoms
+
+        for mol in self.prods:
+            if mol.stereocentres is not None:
+                mapping = get_mapping(self.product_graph, mol.graph)[0]
+                for ts_index, mol_index in mapping.items():
+                    if mol_index in mol.stereocentres:
+                        stereocentres.add(ts_index)
+
+        self.ts.stereocentres = sorted(stereocentres)
 
         ts_copy = deepcopy(self.ts)
         logger.info('Trying to find lowest energy TS conformer')
@@ -242,8 +261,8 @@ class Reaction:
         os.chdir(here)
 
     def clear_xtb_files(self):
-        xtb_files = ['xtbrestart', 'xtbopt.log',
-                     'xtbopt.xyz', 'charges', 'wbo', '.xtboptok']
+        xtb_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
+                     'charges', 'wbo', '.xtboptok', 'NOT_CONVERGED']
         if any(file in xtb_files for file in os.listdir(os.getcwd())):
             logger.info('Clearing xtb files')
         for filename in xtb_files:
@@ -306,6 +325,8 @@ class Reaction:
         self.set_solvent(solvent)
         self.check_solvent()
         self.check_balance()
+
+        self.product_graph = None
 
         if self.type == reactions.Addition:
             self.switch_addition()
