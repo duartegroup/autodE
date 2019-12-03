@@ -184,14 +184,13 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     """Displaced atoms along the imaginary mode to see if products and reactants are made
 
     Arguments:
-        calc {calculation obj} -- 
+        calc {calculation obj} --
         molecules {tuple} -- tuple containing the reactant and product objects
-        method {electronic structure method} -- 
+        method {electronic structure method} --
 
 
     Keyword Arguments:
         disp_mag {int} -- Distance to be displaced along the imag mode (default: {1})
-        mode_number {int} -- normal mode number to be checked (default: {6})
 
     Returns:
         {bool} -- if the imag mode is correct or not

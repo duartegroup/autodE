@@ -185,30 +185,6 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, scan_name + '_hl2d_bbonds', reaction.type, hmethod,
                                                hmethod.scan_keywords, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
 
-    # if bond_rearrang.n_fbonds == 2 and bond_rearrang.n_bbonds == 1:
-    #     fbond1, fbond2 = bond_rearrang.fbonds
-    #     bbond = bond_rearrang.bbonds[0]
-    #     scan_name = name + \
-    #         f'_{fbond1[0]}-{fbond1[1]}_{fbond2[0]}-{fbond2[1]}_{bbond[0]}-{bbond[1]}'
-    #     delta_fbond_dist1 = get_avg_bond_length(
-    #         mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
-    #     delta_fbond_dist2 = get_avg_bond_length(
-    #         mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
-    #     delta_bbond_dist = get_bbond_dist(reaction)
-    #     funcs_params.append((get_ts_guess_3d, (reactant, product, fbond1, fbond2, bbond, 8, scan_name + '_ll3d_bbonds', reaction.type, lmethod,
-    #                                            lmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2, delta_bbond_dist, bond_rearrang.fbonds)))
-
-    # if bond_rearrang.n_fbonds == 1 and bond_rearrang.n_bbonds == 2:
-    #     fbond = bond_rearrang.fbonds[0]
-    #     bbond1, bbond2 = bond_rearrang.bbonds
-    #     scan_name = name + \
-    #         f'_{fbond[0]}-{fbond[1]}_{bbond1[0]}-{bbond1[1]}_{bbond2[0]}-{bbond2[1]}'
-    #     delta_fbond_dist = get_avg_bond_length(
-    #         mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-    #     delta_bbond_dist = get_bbond_dist(reaction)
-    #     funcs_params.append((get_ts_guess_3d, (reactant, product, fbond, bbond1, bbond2, 8, scan_name + '_ll3d_bbonds', reaction.type, lmethod,
-    #                                            lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
-
     return funcs_params
 
 

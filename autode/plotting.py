@@ -29,7 +29,7 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
                          np.linspace(r2.min(), r2.max(), ny))
     # polyval2d gives matrix with element i,j = f(x,y) with f being the polynomial defined by m and x = xx[i,j] and y = yy[i,j]
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
-    fig = plt.figure(figsize=(10, 3))
+    fig = plt.figure(figsize=(12, 4))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
     pos1 = ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'), alpha=0.7)
     plt.colorbar(pos1, ax=ax1)
@@ -41,9 +41,14 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
         pos1 = ax1.plot(mep_r1, mep_r2, mep_energies,
                         color='forestgreen', lw=2, alpha=1)
     ax1.view_init(45)
+    ax1.set_xlabel('$r1$ / Å')
+    ax1.set_ylabel('$r2$ / Å')
+    ax1.set_zlabel('∆$E$ / kcal mol$^{-1}$')
     ax2 = fig.add_subplot(1, 2, 2)
-    pos2 = ax2.imshow(zz, aspect='equal', extent=(r1.min(), r1.max(
+    pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())), extent=(r1.min(), r1.max(
     ), r2.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
+    ax2.set_xlabel('$r1$ / Å')
+    ax2.set_ylabel('$r2$ / Å')
     plt.colorbar(pos2, ax=ax2)
     plt.savefig(name + '.png', dpi=1000)
 
@@ -109,7 +114,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     xs_joins = [[marker_width, 1.0],  [1.0 + marker_width, 2.0 - marker_width]]
     ys_joins = [[ys[0], ys[1]], [ys[1], ys[2]]]
 
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     [ax.plot(xs_markers[i], ys_markers[i], lw=3.0, c='k')
      for i in range(len(xs_markers))]
     [ax.plot(xs_joins[i], ys_joins[i], ls='--', c='k')
