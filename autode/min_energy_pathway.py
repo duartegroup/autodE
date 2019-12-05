@@ -71,6 +71,17 @@ def get_mep(r1, r2, energies, saddlepoint):
 
 
 def get_point_on_grid(point, r1, r2):
+    """For grid of distances, find the closest point on the grid to a point lying 
+    within - but not on - the grid
+
+    Arguments:
+        point {tuple} -- the point to be assigned to the grid
+        r1 {list} -- the distances of grid points on one axis
+        r2 {list} -- the distances of grid points on one axis
+
+    Returns:
+        tuple -- the closest grid point to the point
+    """
     r1_diff_from_point = [abs(point[0] - distance) for distance in r1]
     r1_index = r1_diff_from_point.index(min(r1_diff_from_point))
     r2_diff_from_point = [abs(point[1] - distance) for distance in r2]
@@ -79,12 +90,32 @@ def get_point_on_grid(point, r1, r2):
 
 
 def find_point_on_mep(energies_graph, start, end):
+    """Finds the lowest weighted path from start point to end point
+
+    Arguments:
+        energies_graph {nx.Graph} -- graph from a grid of the PES, with 
+        the edges having the weight of the energy change between the two nodes
+        start {tuple} -- start node
+        end {tuple} -- end node
+
+    Returns:
+        list -- list of nodes of the minimum energy path
+    """
     mep = nx.dijkstra_path(energies_graph, start, end)
 
     return mep
 
 
 def get_neighbouring_points(point, n_points):
+    """Gets the neigbouring points to a point in a grid
+
+    Arguments:
+        point {tuple} -- coords of the point
+        n_points {int} -- size of the grid
+
+    Returns:
+        list -- list of the neigbouring points
+    """
     x, y = point
     if x == 0:
         new_xs = [x, x + 1]

@@ -24,6 +24,8 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     """
     plt.close()
 
+    logger.info(f'Plotting 2D scan and saving to {name}.png')
+
     nx, ny = 20, 20
     xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
                          np.linspace(r2.min(), r2.max(), ny))
