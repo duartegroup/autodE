@@ -127,15 +127,45 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, stereocentres, dist
                            non_random_atoms=non_random_atoms, stereocentres=stereocentres)
         return [conf_xyzs]
 
-    logger.info(f'Splitting calculation into {Config.n_cores} threads')
-    with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(simanl, (init_xyzs, bond_list, dist_consts, non_random_atoms, stereocentres))
-                   for i in range(n_simanls)]
-        conf_xyzs = [res.get(timeout=None) for res in results]
+    all_conf_xyzs = []
+
+    logger.info('Looking for previously generated conformers')
+
+    no_conf = []
+    for i in range(n_simanls):
+        xyz_file_name_start = f'{name}_conf{i}'
+        for filename in os.listdir(os.getcwd()):
+            if filename.startswith(xyz_file_name_start) and filename.endswith('.xyz'):
+                xyzs = []
+                with open(filename, 'r') as file:
+                    for line_no, line in enumerate(file):
+                        if line_no > 1:
+                            atom_label, x, y, z = line.split()
+                            xyzs.append(
+                                [atom_label, float(x), float(y), float(z)])
+                all_conf_xyzs.append(xyzs)
+                break
+            no_conf.append(i)
+
+    logger.info(f'Found {len(all_conf_xyzs)} previously generated conformers')
+
+    simanls_left = n_simanls - len(all_conf_xyzs)
+
+    logger.info(f'Have {simanls_left} conformers left to generate')
+
+    if simanls_left > 0:
+        logger.info(f'Splitting calculation into {Config.n_cores} threads')
+        with Pool(processes=Config.n_cores) as pool:
+            results = [pool.apply_async(simanl, (init_xyzs, bond_list, dist_consts, non_random_atoms, stereocentres))
+                       for i in range(simanls_left)]
+            conf_xyzs = [res.get(timeout=None) for res in results]
+
+        for i in range(simanls_left):
+            all_conf_xyzs.insert(no_conf[i], conf_xyzs[i])
 
     good_conf_xyzs = []
 
-    for xyzs in conf_xyzs:
+    for xyzs in all_conf_xyzs:
         good_xyz = True
         for xyz in xyzs:
             for item in xyz:

@@ -87,13 +87,13 @@ class TS(TSguess):
         sp.run()
         self.energy = sp.get_energy()
 
-    def generate_conformers(self, n_rdkit_confs=300):
+    def generate_conformers(self):
 
         self.conformers = []
 
         bond_list = list(self.graph.edges)
         conf_xyzs = gen_simanl_conf_xyzs(
-            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge, stereocentres=self.stereocentres, dist_consts=self.dist_consts)
+            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
 
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(

@@ -262,7 +262,7 @@ class Reaction:
 
     def clear_xtb_files(self):
         xtb_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
-                     'charges', 'wbo', '.xtboptok', 'NOT_CONVERGED']
+                     'charges', 'wbo', '.xtboptok']
         if any(file in xtb_files for file in os.listdir(os.getcwd())):
             logger.info('Clearing xtb files')
         for filename in xtb_files:

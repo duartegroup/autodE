@@ -116,7 +116,7 @@ def generate_input(calc):
         print('%scf \nmaxiter 250 \nend', file=inp_file)
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)
-        [print('{:<3}{:^12.8f}{:^12.8f}{:^12.8f}'.format(
+        [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(
             *line), file=inp_file) for line in calc.xyzs]
         print('*', file=inp_file)
 
