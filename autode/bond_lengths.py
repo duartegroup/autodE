@@ -28,16 +28,8 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.2):
 
                 # Get the possible keys e.g. CH and HC that might be in the avg_bond_lengths dictionary
                 atom_i_label, atom_j_label = xyzs[i][0], xyzs[j][0]
-                key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
-
-                if key1 in avg_bond_lengths:
-                    i_j_bond_length = avg_bond_lengths[key1]
-                elif key2 in avg_bond_lengths:
-                    i_j_bond_length = avg_bond_lengths[key2]
-                else:
-                    logger.warning(
-                        f'Couldn\'t find a default bond for {atom_i_label}–{atom_j_label}')
-                    i_j_bond_length = 1.5  # Default bonded distance
+                
+                i_j_bond_length = get_avg_bond_length(atom_i_label, atom_j_label)
 
                 if dist < i_j_bond_length * (1.0 + relative_tolerance):
                     bond_list.append((i, j))

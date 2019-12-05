@@ -65,3 +65,8 @@ def test_prod_core_atoms():
     prod_core_atoms = mol_graphs.get_product_core_atoms(
         mol, stripped_mol.graph)
     assert prod_core_atoms == [0, 1, 2, 3]
+
+
+def test_split_graph():
+    assert mol_graphs.split_mol_across_bond(
+        graph, [(0, 3)]) == [[0, 1, 2], [3, 4]]

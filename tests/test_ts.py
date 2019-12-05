@@ -81,6 +81,7 @@ def test_get_ts():
     get_ts_output = optts.get_ts(ts_guess_obj)
     ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 
+    assert ts_obj.get_atom_label(0) == 'F'
     assert ts_obj.solvent == 'water'
     assert ts_obj.converged == True
     assert ts_obj.active_atoms == [0, 1, 2]

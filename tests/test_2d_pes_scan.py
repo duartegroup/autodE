@@ -8,27 +8,27 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_get_ts_guess_2dscan():
-    # TODO this is super slow, maybe fix
-    os.chdir(os.path.join(here, 'data'))
+# def test_get_ts_guess_2dscan():
+#     # TODO this is super slow, maybe fix
+#     os.chdir(os.path.join(here, 'data'))
 
-    h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.6, 0.0, 0.0],
-               ['H', 0.0, -0.6, 0.0], ['H', 0.6, -0.6, 0.0]]
-    mol = Molecule(name='h4', xyzs=h4_xyzs, mult=1)
-    mol.method = ORCA
+#     h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.6, 0.0, 0.0],
+#                ['H', 0.0, -0.6, 0.0], ['H', 0.6, -0.6, 0.0]]
+#     mol = Molecule(name='h4', xyzs=h4_xyzs, mult=1)
+#     mol.method = ORCA
 
-    # May not actually be available, but the .out files are included so this should work
-    mol.method.available = True
+#     # May not actually be available, but the .out files are included so this should work
+#     mol.method.available = True
 
-    ts_guess = get_ts_guess_2d(mol=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
-                               reaction_class=Dissociation, method=ORCA, keywords=Config.ORCA.scan_keywords,
-                               delta_dist1=0.2, delta_dist2=0.2)
+#     ts_guess = get_ts_guess_2d(mol=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
+#                                reaction_class=Dissociation, method=ORCA, keywords=Config.ORCA.scan_keywords,
+#                                delta_dist1=0.2, delta_dist2=0.2)
 
-    assert len(ts_guess.active_bonds) == 2
-    assert os.path.exists('h4_0_2_1_3_2dscan_ORCA.png')
+#     assert len(ts_guess.active_bonds) == 2
+#     assert os.path.exists('h4_0_2_1_3_2dscan_ORCA.png')
 
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png')) or 'animation' in filename:
-            os.remove(filename)
+#     for filename in os.listdir(os.getcwd()):
+#         if filename.endswith(('.inp', '.png')) or 'animation' in filename:
+#             os.remove(filename)
 
-    os.chdir(here)
+#     os.chdir(here)
