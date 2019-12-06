@@ -123,29 +123,32 @@ def test_get_fbonds_bbonds():
         xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.6], ['H', 0.0, 0.0, 1.2]])
     prod1 = molecule.Molecule(
         xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 50], ['H', 0.0, 0.0, 100]])
-    two_bbond = locate_tss.get_fbonds_bbonds_2b(
-        [], [(0, 1), (1, 2)], reac1, prod1, [])
-    assert two_bbond == [BondRearrangement(breaking_bonds=[(1, 2), (0, 1)])]
+    two_bbond = locate_tss.get_fbonds_bbonds_2b(reac1, prod1, [])
+    assert two_bbond == [BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
 
     reac2 = molecule.Molecule(
         xyzs=[['H', 0.0, 0.0, -1.2], ['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.6], ['H', 0.0, 0.0, 1.2]])
     prod2 = molecule.Molecule(
         xyzs=[['H', 0.0, 0.0, -0.6], ['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 5], ['H', 0.0, 0.0, 10]])
-    two_bbond_one_fbond = locate_tss.get_fbonds_bbonds_2b1f(
-        [(0, 1)], [(1, 2), (2, 3)], reac2, prod2, [])
-    assert two_bbond_one_fbond == [BondRearrangement(
-        forming_bonds=[(0, 1)], breaking_bonds=[(2, 3), (1, 2)])]
+    two_bbond_one_fbond = locate_tss.get_fbonds_bbonds_2b1f(reac2, prod2, [])
+    assert two_bbond_one_fbond == [BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(1, 2), (2, 3)]),
+                                    BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(1, 2), (2, 3)]),
+                                    BondRearrangement(forming_bonds=[(0, 3)], breaking_bonds=[(1, 2), (2, 3)]),
+                                    BondRearrangement(forming_bonds=[(1, 3)], breaking_bonds=[(1, 2), (2, 3)])]
 
-    one_bbond_two_fbond = locate_tss.get_fbonds_bbonds_1b2f(
-        [(1, 2), (2, 3)], [(0, 1)], prod2, reac2, [])
-    assert one_bbond_two_fbond == [BondRearrangement(
-        forming_bonds=[(2, 3), (1, 2)], breaking_bonds=[(0, 1)])]
+    one_bbond_two_fbond = locate_tss.get_fbonds_bbonds_1b2f(prod2, reac2, [])
+    assert one_bbond_two_fbond == [BondRearrangement(forming_bonds=[(0, 2), (0, 3)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(0, 3), (1, 3)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(1, 2), (1, 3)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(0, 2), (2, 3)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(1, 2), (2, 3)], breaking_bonds=[(0, 1)]),
+                                    BondRearrangement(forming_bonds=[(1, 3), (2, 3)], breaking_bonds=[(0, 1)])]
 
     reac3 = molecule.Molecule(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.6], [
                               'H', 10, 0.0, 0.0], ['H', 10, 0.0, 0.6]])
     prod3 = molecule.Molecule(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 10], [
                               'H', 0.6, 0.0, 0.0], ['H', 0.6, 0.0, 10]])
-    two_bbond_two_fbond = locate_tss.get_fbonds_bbonds_2b2f(
-        [(0, 2), (1, 3)], [(0, 1), (2, 3)], reac3, prod3, [])
-    assert two_bbond_two_fbond == [BondRearrangement(
-        forming_bonds=[(1, 3), (0, 2)], breaking_bonds=[(2, 3), (0, 1)])]
+    two_bbond_two_fbond = locate_tss.get_fbonds_bbonds_2b2f(reac3, prod3, [])
+    assert two_bbond_two_fbond == [BondRearrangement(forming_bonds=[(0, 3), (1, 2)], breaking_bonds=[(0, 1), (2, 3)]), BondRearrangement(forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)])]

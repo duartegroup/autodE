@@ -148,3 +148,55 @@ def get_product_core_atoms(prod_mol, stripped_prod_graph):
             stripped_prod_graph.remove_node(i)
     mapping_dict = get_mapping(prod_mol.graph, stripped_prod_graph)[0]
     return list(mapping_dict.keys())
+
+
+def get_bond_type_list(graph):
+    """Finds the types (i.e CH) of all the bonds in a molecular graph
+
+    Arguments:
+        graph {nx.Graph} -- Molecular graph
+
+    Returns:
+        bond_list_dict {dict} -- key = bond type, value = list of bonds of this type
+    """
+    bond_list_dict = {}
+    atom_types = set()
+
+    for _, atom_label in graph.nodes.data('atom_label'):
+        atom_types.add(atom_label)
+
+    ordered_atom_labels = sorted(atom_types)
+
+    for index, atom_label in enumerate(ordered_atom_labels):
+        for i in range(index, len(ordered_atom_labels)):
+            key = atom_label + ordered_atom_labels[i]
+            bond_list_dict[key] = []
+
+    for bond in graph.edges:
+        atom_i_label = graph.node[bond[0]]['atom_label']
+        atom_j_label = graph.node[bond[1]]['atom_label']
+        key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
+
+        if key1 in bond_list_dict.keys():
+            bond_list_dict[key1].append(bond)
+        elif key2 in bond_list_dict.keys():
+            bond_list_dict[key2].append(bond)
+
+    return bond_list_dict
+
+
+def get_fbonds(graph, key):
+    possible_fbonds = []
+    bonds = list(graph.edges)
+    for atom_i in graph.nodes:
+        for atom_j in graph.nodes:
+            if atom_i < atom_j:
+                if not (atom_i, atom_j) in bonds and not (atom_j, atom_i) in bonds:
+                    bond = (atom_i, atom_j)
+                    atom_i_label = graph.node[bond[0]]['atom_label']
+                    atom_j_label = graph.node[bond[1]]['atom_label']
+                    key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
+                    if key1 == key or key2 == key:
+                        possible_fbonds.append(bond)
+
+    return possible_fbonds
