@@ -134,6 +134,7 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, stereocentres, dist
     no_conf = []
     for i in range(n_simanls):
         xyz_file_name_start = f'{name}_conf{i}'
+        has_conf = False
         for filename in os.listdir(os.getcwd()):
             if filename.startswith(xyz_file_name_start) and filename.endswith('.xyz'):
                 xyzs = []
@@ -144,7 +145,9 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, stereocentres, dist
                             xyzs.append(
                                 [atom_label, float(x), float(y), float(z)])
                 all_conf_xyzs.append(xyzs)
+                has_conf = True
                 break
+        if not has_conf:
             no_conf.append(i)
 
     logger.info(f'Found {len(all_conf_xyzs)} previously generated conformers')
@@ -163,18 +166,4 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, charge, stereocentres, dist
         for i in range(simanls_left):
             all_conf_xyzs.insert(no_conf[i], conf_xyzs[i])
 
-    good_conf_xyzs = []
-
-    for xyzs in all_conf_xyzs:
-        good_xyz = True
-        for xyz in xyzs:
-            for item in xyz:
-                if str(item) == 'nan':
-                    good_xyz = False
-                    break
-            if not good_xyz:
-                break
-        if good_xyz:
-            good_conf_xyzs.append(xyzs)
-
-    return good_conf_xyzs
+    return all_conf_xyzs
