@@ -173,8 +173,8 @@ def get_bond_type_list(graph):
             bond_list_dict[key] = []
 
     for bond in graph.edges:
-        atom_i_label = graph.node[bond[0]]['atom_label']
-        atom_j_label = graph.node[bond[1]]['atom_label']
+        atom_i_label = graph.nodes[bond[0]]['atom_label']
+        atom_j_label = graph.nodes[bond[1]]['atom_label']
         key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
 
         if key1 in bond_list_dict.keys():
@@ -193,8 +193,8 @@ def get_fbonds(graph, key):
             if atom_i < atom_j:
                 if not (atom_i, atom_j) in bonds and not (atom_j, atom_i) in bonds:
                     bond = (atom_i, atom_j)
-                    atom_i_label = graph.node[bond[0]]['atom_label']
-                    atom_j_label = graph.node[bond[1]]['atom_label']
+                    atom_i_label = graph.nodes[bond[0]]['atom_label']
+                    atom_j_label = graph.nodes[bond[1]]['atom_label']
                     key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
                     if key1 == key or key2 == key:
                         possible_fbonds.append(bond)
