@@ -3,6 +3,7 @@ from autode import molecule
 from autode import reaction
 from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.template_ts_guess import get_template_ts_guess
+import autode.bond_rearrangement as bond_rearrangement
 
 # h + h > h2 dissociation
 h_product_1 = molecule.Product(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
@@ -73,13 +74,13 @@ def test_get_bond_rearrangs():
 
 def test_add_bond_rearrangement():
     # rearrangment doesn't get product, shouldn't be added
-    bond_rearrangs = locate_tss.add_bond_rearrangment(
+    bond_rearrangs = bond_rearrangement.add_bond_rearrangment(
         [], subs_reactant, subs_product, [(0, 1)], [])
     assert bond_rearrangs == []
 
 
 def test_rearranged_graph():
-    rearranged_graph = locate_tss.generate_rearranged_graph(
+    rearranged_graph = bond_rearrangement.generate_rearranged_graph(
         subs_reactant.graph, [(0, 1)], [(1, 2)])
     assert locate_tss.mol_graphs.is_isomorphic(
         rearranged_graph, subs_product.graph)
@@ -113,42 +114,6 @@ def test_strip_equivalent_rearrangements():
     # 5 and 6 should be equivalent Hs
     possible_bond_rearrangs = [BondRearrangement(
         [(0, 5)], [(1, 5)]), BondRearrangement([(0, 6)], [(1, 6)])]
-    unique_rearrangs = locate_tss.strip_equivalent_bond_rearrangs(
+    unique_rearrangs = bond_rearrangement.strip_equivalent_bond_rearrangs(
         rearrang_reactant, possible_bond_rearrangs)
     assert len(unique_rearrangs) == 1
-
-
-def test_get_fbonds_bbonds():
-    reac1 = molecule.Molecule(
-        xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.6], ['H', 0.0, 0.0, 1.2]])
-    prod1 = molecule.Molecule(
-        xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 50], ['H', 0.0, 0.0, 100]])
-    two_bbond = locate_tss.get_fbonds_bbonds_2b(reac1, prod1, [])
-    assert two_bbond == [BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
-
-    reac2 = molecule.Molecule(
-        xyzs=[['H', 0.0, 0.0, -1.2], ['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.6], ['H', 0.0, 0.0, 1.2]])
-    prod2 = molecule.Molecule(
-        xyzs=[['H', 0.0, 0.0, -0.6], ['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 5], ['H', 0.0, 0.0, 10]])
-    two_bbond_one_fbond = locate_tss.get_fbonds_bbonds_2b1f(reac2, prod2, [])
-    assert two_bbond_one_fbond == [BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(1, 2), (2, 3)]),
-                                    BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(1, 2), (2, 3)]),
-                                    BondRearrangement(forming_bonds=[(0, 3)], breaking_bonds=[(1, 2), (2, 3)]),
-                                    BondRearrangement(forming_bonds=[(1, 3)], breaking_bonds=[(1, 2), (2, 3)])]
-
-    one_bbond_two_fbond = locate_tss.get_fbonds_bbonds_1b2f(prod2, reac2, [])
-    assert one_bbond_two_fbond == [BondRearrangement(forming_bonds=[(0, 2), (0, 3)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(0, 3), (1, 3)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(1, 2), (1, 3)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(0, 2), (2, 3)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(1, 2), (2, 3)], breaking_bonds=[(0, 1)]),
-                                    BondRearrangement(forming_bonds=[(1, 3), (2, 3)], breaking_bonds=[(0, 1)])]
-
-    reac3 = molecule.Molecule(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 0.6], [
-                              'H', 10, 0.0, 0.0], ['H', 10, 0.0, 0.6]])
-    prod3 = molecule.Molecule(xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.0, 0.0, 10], [
-                              'H', 0.6, 0.0, 0.0], ['H', 0.6, 0.0, 10]])
-    two_bbond_two_fbond = locate_tss.get_fbonds_bbonds_2b2f(reac3, prod3, [])
-    assert two_bbond_two_fbond == [BondRearrangement(forming_bonds=[(0, 3), (1, 2)], breaking_bonds=[(0, 1), (2, 3)]), BondRearrangement(forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)])]
