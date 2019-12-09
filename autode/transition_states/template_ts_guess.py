@@ -6,15 +6,20 @@ from autode.log import logger
 
 
 def get_template_ts_guess(mol, active_bonds, reaction_class, product, dist_thresh=4.0):
-    """
-    Get a transition state guess object by searching though the stored TS templates
+    """Get a transition state guess object by searching though the stored TS templates
 
-    :param mol: (object) Molecule object
-    :param active_bonds: (list(tuple)) List of active bonds in the TS, defined by atom IDs of the atom pair as a tuple
-    :param reaction_class: (object) Reaction class (reactions.py)
-    :param dist_thresh: (float) distance above which a constrained optimisation probably won't work
-    due to the inital geometry being too far away from the ideal
-    :return: TSguess object
+    Arguments:
+        mol {mol object} -- reactant object
+        active_bonds {list(tuple)} -- List of active bonds in the TS, defined by atom IDs of the atom pair as a tuple
+        reaction_class {object} -- Reaction class (reactions.py)
+        product {mol object} -- product object
+
+    Keyword Arguments:
+        dist_thresh {float} -- distance above which a constrained optimisation probably won't work
+        due to the inital geometry being too far away from the ideal (default: {4.0})
+
+    Returns:
+        {TSGuess object} -- ts guess object
     """
     logger.info('Getting TS guess from stored TS template')
     active_bonds_and_dists_ts = {}

@@ -39,9 +39,10 @@ class TSguess:
         return
 
     def do_displacements(self, magnitude=0.75):
-        """displaces along the second imaginary mode
-        Returns:
-            bool -- returns True if it reached the end, otherwise False (lost imag mode)
+        """Attempts to remove second imaginary mode by displacing either way along it
+
+        Keyword Arguments:
+            magnitude {float} -- magnitude to displace along (default: {0.75})
         """
         mode_lost = False
         imag_freqs = []
@@ -93,10 +94,7 @@ class TSguess:
         return
 
     def run_orca_optts(self):
-        """runs the optts calc
-
-        Returns:
-            bool -- true if the optts calc happened, false otherwise
+        """Runs the optts calc
         """
         logger.info('Getting ORCA out lines from OptTS calculation')
 
@@ -135,11 +133,13 @@ class TSguess:
 
     def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
         """
-        :param name: (str)
-        :param reaction_class: (object)
-        :param molecule: (object)
-
-        :param active_bonds:
+        Keyword Arguments:
+            name {str} -- name of ts guess (default: {'ts_guess'})
+            molecule {molecule object} -- molecule to base ts guess off (default: {None})
+            reaction_class {object} -- reaction type (reactions.py) (default: {None})
+            active_bonds {list(tuples)} -- list of bonds being made/broken (default: {None})
+            reactant {molecule object} -- reactant object (default: {None})
+            product {molecule object} -- product object (default: {None})
         """
         self.name = name
         self.xyzs = molecule.xyzs

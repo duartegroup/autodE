@@ -13,14 +13,18 @@ import os
 
 
 def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan'):
-    """
-    For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
+    """For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
     a 2d polynomial function
-    :param r1: (np.ndarray)
-    :param r2: (np.ndarray)
-    :param flat_rel_energy_array: (np.ndarray)
-    :param name (str)
-    :return:
+
+    Arguments:
+        r1 {np.ndarray} -- r1 distance points
+        r2 {np.ndarray} -- r2 distance points
+        flat_rel_energy_array {np.ndarray} -- flat array of energies, i.e all energies at r1[0], then r1[1]...
+        coeff_mat {np.array} -- matrix of polynomial coefficients for the energy surface
+
+    Keyword Arguments:
+        mep {list(tuple)} -- list of coordinates on the grid for the min energy pathway across the surface (default: {None})
+        name {str} -- name of the plot (default: {'2d_scan'})
     """
     plt.close()
 
@@ -54,8 +58,6 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     plt.colorbar(pos2, ax=ax2)
     plt.savefig(name + '.png', dpi=1000)
 
-    return 0
-
 
 def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
@@ -88,20 +90,18 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')
     plt.savefig(plot_name + '.png')
 
-    return 0
-
 
 def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_converged):
-    """
-    For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
-    :param e_reac: (float) relative reactant energy, usually 0.0
-    :param e_ts: (float)
-    :param e_prod: (float)
-    :param units: (object) an object defined in units.py
-    :param name: (str) reaction name to annotate to the plot
-    :param is_true_ts: (bool) flag for whether the TS is good, i.e. has a single imaginary frequency
-    :param ts_is_converged: (bool) flag for whether the TS geometry is converged or not
-    :return:
+    """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
+
+    Arguments:
+        e_reac {float} -- relative reactant energy, usually 0.0
+        e_ts {float} -- relative ts energy
+        e_prod {float} -- relative product energy
+        units {object} -- an object defined in units.py
+        name {str} -- reaction name to annotate to the plot
+        is_true_ts {bool} -- flag for whether the TS is good, i.e. has a single imaginary frequency
+        ts_is_converged {bool} -- flag for whether the TS geometry is converged or not
     """
     logger.info('Plotting reaction profile')
     marker_width = 0.2
@@ -142,8 +142,6 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
 
     plt.ylim(min(ys) - 0.05*max(ys), 1.2 * max(ys))
     plt.savefig('reaction_profile.png')
-
-    return 0
 
 
 def make_reaction_animation(name, xyzs):

@@ -62,13 +62,18 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
 
 
 def get_normalised_lg_vector(bond_rearrangement, all_attacked_atoms, reac_complex_coords, tolerance=0.09):
-    """
-    Get the vector from the attacked atom to the one bonded to tbe breaking bond
+    """Get the vector from the attacked atom to the one bonded to tbe breaking bond
 
-    :param bond_rearrangement: (object)
-    :param attacked_atom: (int)
-    :param reac_complex_coords: (list(nd.array))
-    :return: (np.array) normalised vector
+    Arguments:
+        bond_rearrangement {object} -- bond rearrangement object
+        all_attacked_atoms {list} -- list of attacked atoms
+        reac_complex_coords {np.ndarray} -- coords of the reac complex
+
+    Keyword Arguments:
+        tolerance {float} -- if the angle between two bonds is less than this, the bonds are treated as parallel (default: {0.09})
+
+    Returns:
+        {np.ndarray} -- avg leaving group vector
     """
     all_lg_vectors = []
     all_lg_atoms = []
@@ -180,11 +185,14 @@ def get_rot_matrix(normed_attack_vector, normed_lg_vector):
 
 
 def get_attacked_atom(bond_rearrangement):
-    """
-    For a bond rearrangement find the atom which is common to both a forming and breaking bond in a substitution
-    reaction thus has been attacked. Exit if there are multiple
-    :param bond_rearrangement: (object)
-    :return: (int) index of the attacked atom
+    """For a bond rearrangement find the atom which is common to both a forming and breaking bond in a substitution
+    reaction thus has been attacked. Exit if there are more than two
+
+    Arguments:
+        bond_rearrangement {object} -- bond rearrangement object
+
+    Returns:
+        list -- list of attacked atoms
     """
 
     possible_attacked_atoms = []
@@ -215,13 +223,15 @@ def get_attacked_atom(bond_rearrangement):
 
 
 def get_lg_or_fr_atom(bbonds_or_fbonds, attacked_atom):
-    """
-    Get the atom that attaches the attacked atom to the rest of the molecule. Each attacked
+    """Get the atom that attaches the attacked atom to the rest of the molecule. Each attacked
     atom is only attacked by one atom, so returning immediately after finding one is fine
 
-    :param bbonds_or_fbonds: (list(tuple)) List of either breaking or forming bonds
-    :param attacked_atom: (int) index of the attacked atom in the structure
-    :return:
+    Arguments:
+        bbonds_or_fbonds {list(tuple)} -- List of either breaking or forming bonds
+        attacked_atom {int} -- index of the attacked atom in the structure
+
+    Returns:
+        {int} -- index of the attacking atom
     """
 
     for bond in bbonds_or_fbonds:

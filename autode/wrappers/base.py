@@ -28,18 +28,21 @@ class ElectronicStructureMethod:
                  conf_opt_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None, opt_ts_block=None,
                  sp_keywords=None):
         """
-        :param name: (str)
-        :param path: (str) absolute path to the executable
-        :param req_licence: (bool) does the method require a licence file to run?
-        :param path_to_licence: (str) absolute path to the licence file if it is required
-        :param aval_solvents: (list) list of available solvents
-        :param scan_keywords: (list) keywords to use if performing a relaxed PES scan
-        :param conf_opt_keywords: (list) keywords to use to optimised conformers
-        :param opt_keywords: (list) keywords to use when performing a regular optimisation
-        :param opt_ts_keywords: (list) keywords to use when performing a TS search
-        :param hess_keywords: (list) keywords to use when just performing a hessian calculation
-        :param opt_ts_block: (str) additional OptTS parameters
-        :param sp_keywords: (list) keywords to use when performing a single point calculation
+        Arguments:
+            name {str} -- wrapper name
+            path {str} -- absolute path to the executable
+
+        Keyword Arguments:
+            req_licence {bool} -- does the method require a licence file to run? (default: {False})
+            path_to_licence {str} -- absolute path to the licence file if it is required (default: {None})
+            aval_solvents {list} -- list of available solvents (default: {None})
+            scan_keywords {list} -- keywords to use if performing a relaxed PES scan (default: {None})
+            conf_opt_keywords {list} -- keywords to use to optimised conformers (default: {None})
+            opt_keywords {list} -- keywords to use when performing a regular optimisation (default: {None})
+            opt_ts_keywords {list} -- keywords to use when performing a TS search (default: {None})
+            hess_keywords {list} -- keywords to use when just performing a hessian calculation (default: {None})
+            opt_ts_block {list} -- additional OptTS parameters (default: {None})
+            sp_keywords {list} -- keywords to use when performing a single point calculation (default: {None})
         """
 
         # If the path is not set in config.py search in $PATH

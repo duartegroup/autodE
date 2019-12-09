@@ -1,9 +1,8 @@
-
-\.DS_Store
 \build/
+
 \dist/
+
 \.idea/
-tests/high_level/
 
 autode/__pycache__/
 
@@ -23,48 +22,6 @@ autode/transition_states/__pycache__/
 
 *.pyc
 
-.vscode/.ropeproject/
-
 autode/conformers/cconf_gen.c
 
-autode/._config.py
-
-examples/diels_alder/
-
-examples/elimination/
-
-examples/sn2/
-
-examples/cope_rearrangement/
-
-examples/carbonyl/
-
-examples/cyclohexane_elimination/
-
-examples/sulfate_hydrolysis/
-
-examples/sulfonate_hydrolysis/
-
-examples/big_sn2/
-
-examples/electrocyclisation/
-
-examples/chiral_carbonyl/
-
-examples/organocatalysis/
-
-examples/test_stripping.py
-
-examples/test_substitution.py
-
-examples/bad_organocatalysis/
-
-examples/cheletropic_addition/
-
-examples/crotyl_transfer/
-
-examples/h_h/
-
-examples/diazo_addition/
-
-examples/wittig/
+examples/

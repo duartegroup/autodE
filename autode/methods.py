@@ -11,9 +11,10 @@ from autode.wrappers.XTB import XTB
 
 
 def get_hmethod():
-    """
-    Get the high-level electronic structure theory method to use
-    :return: (object) ElectronicStructureMethod
+    """Get the high-level electronic structure theory method to use
+
+    Returns:
+        {object} -- ElectronicStructureMethod
     """
     method = ORCA
     if Config.hcode is not None:
@@ -35,9 +36,10 @@ def get_hmethod():
 
 
 def get_lmethod():
-    """
-    Get the low-level electronic structure theory method to use
-    :return: (object) ElectronicStructureMethod
+    """Get the low-level electronic structure theory method to use
+
+    Returns:
+        {object} -- ElectronicStructureMethod
     """
     method = XTB
     if Config.lcode is not None:

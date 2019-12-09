@@ -18,20 +18,26 @@ from autode.min_energy_pathway import get_mep
 
 def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
                     delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None):
-    """
-    :param mol:
-    :param product: single product molecule object
-    :param active_bond1:
-    :param active_bond2:
-    :param n_steps:
-        :param keywords (list) list of keywords required by an electronic structure method
-    :param method: (object) electronic structure method
-    :param reaction_class:
-    :param products: list of product molecule objects
-    :param name:
-    :param delta_dist1:
-    :param delta_dist2:
-    :return:
+    """Scan the distance between two sets of two atoms and return a guess for the TS
+
+    Arguments:
+        mol {molcule object} -- reactant complex
+        product {molecule object} -- product complex
+        active_bond1 {tuple} -- tuple of atom ids showing the first bond being scanned
+        active_bond2 {tuple} -- tuple of atom ids showing the second bond being scanned
+        n_steps {int} -- number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
+        name {str} -- name of reaction
+        reaction_class {object} -- class of the reaction (reactions.py)
+        method {object} -- electronic structure wrapper to use for the calcs
+        keywords {list} -- keywords to use in the calcs
+
+    Keyword Arguments:
+        delta_dist1 {float} -- distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
+        delta_dist2 {float} -- distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
+        active_bonds_not_scanned {list(tuple)} -- pairs of atoms that are active, but will not be scanned in the 2D PES (default: {None})
+
+    Returns:
+        {ts guess object} -- ts guess
     """
     logger.info(
         f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
@@ -166,12 +172,16 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
 
 def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):
-    """
-    Find the first order saddle point on a 2D PES given a list of lists defined by their energy
-    :param dists_xyzs_energies_dict: (dict) [value] = (xyzs, energy)
-    :param scan_name: (str)
-    :param plot_name: (str) name to use in the plot
-    :return:
+    """Find the best saddle point on a 2D PES given a list of lists defined by their energy
+
+    Arguments:
+        dists_xyzs_energies_dict {dict} -- [dist] = (xyzs, energy)
+        scan_name {str} -- name of reaction
+        plot_name {[type]} -- name of plot made
+        method {object} -- electronic structure wrapper to use for the calcs
+
+    Returns:
+        {tuple} -- (saddlepoint xyzs, (r1 saddle coord, r2 saddle coord))
     """
 
     logger.info('Finding saddle point in 2D PES')
@@ -224,7 +234,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
             return None
         r1_saddle, r2_saddle = saddle_points_in_range[0]
     else:
-        logger.warning(
+        logger.info(
             f'Found {len(saddle_points_in_range)} saddle points, finding the minimum energy pathway from each to reacs and prods')
         best_saddlepoint_output = best_saddlepoint(
             saddle_points_in_range, r1, r2, energy_grid)
@@ -281,10 +291,13 @@ def execute_calc(calc):
 
 
 def replace_none(lst):
-    """
-    Replace Nones in a flat list with the closest preceding value
-    :param lst: (list)
-    :return:
+    """Replace Nones in a flat list with the closest preceding value
+
+    Arguments:
+        lst {list} -- list of value
+
+    Yields:
+        float -- value from list
     """
     for item in lst:
         if item is not None:

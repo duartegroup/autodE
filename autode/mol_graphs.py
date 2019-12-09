@@ -51,13 +51,15 @@ def get_mapping(larger_graph, smaller_graph, graph_matcher=None):
 
 
 def is_isomorphic(graph1, graph2):
-    """
-    Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method is found
+    """Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method is found
     to ocassionaly get stuck
 
-    :param graph1: (object) nx graph
-    :param graph2: (object) nx graph
-    :return:
+    Arguments:
+        graph1 {nx.Graph} -- graph 1
+        graph2 {nx.Graph} -- graph 2
+
+    Returns:
+        {bool} -- if the graphs are isomorphic
     """
 
     if isomorphism.faster_could_be_isomorphic(graph1, graph2):

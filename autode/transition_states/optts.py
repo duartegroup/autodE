@@ -11,12 +11,17 @@ from autode.methods import get_lmethod
 
 
 def get_ts(ts_guess, imag_freq_threshold=-100):
-    """
-    Get a transition object from a set of xyzs by running an ORCA OptTS calculation
-    :param ts_guess: (object) TSguess object
-    :param imag_freq_threshold: (float) Imaginary frequency threshold for a *true* TS, given as as a negative
-    i.e. non-complex value
-    :return:
+    """Get a transition object from a set of xyzs by running an ORCA OptTS calculation
+
+    Arguments:
+        ts_guess {ts guess object} -- object to be optimised to a TS
+
+    Keyword Arguments:
+        imag_freq_threshold {float} -- Imaginary frequency threshold for a *true* TS, given as as a negative 
+        i.e. non-complex value (default: {-100})
+
+    Returns:
+        {tuple} -- (TS object, bool saying if true TS or not)
     """
 
     if ts_guess is None:
@@ -77,14 +82,19 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
 
 
 def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_magnitude=1.0):
-    """
-    Displace the geometry along the imaginary mode with mode number iterating from 0, where 0-2 are translational
+    """Displace the geometry along the imaginary mode with mode number iterating from 0, where 0-2 are translational
     normal modes, 3-5 are rotational modes and 6 is the largest imaginary mode. To displace along the second imaginary
     mode we have mode_number=7
-    :param calc: (object)
-    :param mode_number: (int)
-    :param displacement_magnitude: (float)
-    :return: (list)
+
+    Arguments:
+        calc {calc object} -- calculation object
+
+    Keyword Arguments:
+        mode_number {int} -- mode number to displace along (default: {7})
+        displacement_magnitude {float} -- distance to displace (default: {1.0})
+
+    Returns:
+        {list(list)} -- list of xyzs
     """
     logger.info('Displacing along imaginary mode')
 
@@ -103,18 +113,22 @@ def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_ma
 
 
 def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None, threshold_contribution=0.25):
-    """
-    For an orca output file check that the first imaginary mode (number 6) in the final frequency calculation
+    """For an orca output file check that the first imaginary mode (number 6) in the final frequency calculation
     contains the correct motion, i.e. contributes more than threshold_contribution in relative terms to the
     magnitude of the sum of the forces
 
-    :param calc: (object)
-    :param n_atoms: (int) number of atoms
-    :param active_bonds: (list(tuples))
-    :param threshold_contribution: (float) threshold contribution to the imaginary mode from the atoms in
-    bond_ids_to_add
-    :param mode_numer: (int) which normal mode to check
-    :return:
+    Arguments:
+        calc {calc object} -- calculation object
+        n_atoms {int} -- number of atoms
+        active_bonds {list(tuples)} -- bonds being made/broken
+
+    Keyword Arguments:
+        molecules {list} -- list of reactant and product molecule objects (default: {None})
+        threshold_contribution {float} -- threshold contribution to the imaginary mode from the atoms in
+        bond_ids_to_add (default: {0.25})
+
+    Returns:
+        {bool} -- if the imaginary mode is correct or not
     """
 
     logger.info(
@@ -181,10 +195,10 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
 
 
 def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
-    """Displaced atoms along the imaginary mode to see if products and reactants are made
+    """Displaces atoms along the imaginary mode to see if products and reactants are made
 
     Arguments:
-        calc {calculation obj} --
+        calc {calculation obj} -- calculation oobject
         molecules {tuple} -- tuple containing the reactant and product objects
         method {electronic structure method} --
 

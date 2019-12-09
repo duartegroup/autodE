@@ -15,10 +15,8 @@ import os
 class Reaction:
 
     def check_balance(self):
-        """
-        Check that the number of atoms and charge balances between reactants and products. If they don't exit
+        """Check that the number of atoms and charge balances between reactants and products. If they don't exit
         immediately
-        :return: None
         """
 
         n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [
@@ -34,9 +32,7 @@ class Reaction:
         self.charge = sum(reac_charges)
 
     def check_solvent(self):
-        """
-        Check that all the solvents are the same for reactants and products
-        :return: None
+        """Check that all the solvents are the same for reactants and products
         """
         if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
             logger.critical('Solvents in reactants and products don\'t match')
@@ -51,9 +47,7 @@ class Reaction:
                 mol.solvent = solvent
 
     def switch_addition(self):
-        """
-        Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
-        :return: None
+        """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
         """
         logger.info(
             'Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
@@ -62,7 +56,6 @@ class Reaction:
 
     def check_rearrangement(self):
         """Could be an intramolecular addition, so will swap reactants and products if this is the case
-        :return: None
         """
         logger.info(
             'Reaction classified as rearrangement, checking if it is an intramolecular addition')
@@ -78,17 +71,19 @@ class Reaction:
                 'Does not appear to be an intramolecular addition, continuing')
 
     def calc_delta_e(self):
-        """
-        Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
-        :return: (float) energy difference in Hartrees
+        """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
+
+        Returns:
+            float -- energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
         return sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
 
     def calc_delta_e_ddagger(self):
-        """
-        Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
-        :return: (float) Energy difference in Hartrees
+        """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
+
+        Returns:
+            float -- energy difference in Hartrees
         """
         logger.info('Calculating ∆E‡')
         if self.ts.energy is not None:
@@ -98,10 +93,8 @@ class Reaction:
             return None
 
     def find_lowest_energy_conformers(self):
-        """
-        Try and locate the lowest energy conformation using RDKit, then optimise them with XTB, then
+        """Try and locate the lowest energy conformation using RDKit, then optimise them with XTB, then
         optimise the unique (defined by an energy cut-off) conformers with an electronic structure method
-        :return: None
         """
         here = os.getcwd()
         conformers_directory_path = os.path.join(here, 'conformers')
@@ -122,9 +115,7 @@ class Reaction:
         os.chdir(here)
 
     def optimise_reacs_prods(self):
-        """
-        Perform a geometry optimisation on all the reactants and products using the hcode
-        :return: None
+        """Perform a geometry optimisation on all the reactants and products using the hcode
         """
         here = os.getcwd()
         opt_reacs_prods_directory_path = os.path.join(
@@ -143,10 +134,8 @@ class Reaction:
         os.chdir(here)
 
     def find_lowest_energy_ts(self):
-        """
-        From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
+        """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
         otherwise return the single transtion state or None if there no TS objects.
-        :return:
         """
 
         if self.tss is None:
@@ -241,9 +230,7 @@ class Reaction:
         return True
 
     def calculate_single_points(self):
-        """
-        Perform a single point energy evaluations on all the reactants and products using the hcode
-        :return: None
+        """Perform a single point energy evaluations on all the reactants and products using the hcode
         """
         here = os.getcwd()
         single_points_directory_path = os.path.join(here, 'single_points')

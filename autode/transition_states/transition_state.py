@@ -45,11 +45,10 @@ class TS(TSguess):
         self.truncated_graph = truncated_graph
 
     def save_ts_template(self, folder_path=None):
-        """
-        Save a transition state template containing the active bond lengths, solvent and charge in folder_path
+        """Save a transition state template containing the active bond lengths, solvent and charge in folder_path
 
-        :param folder_path: (str) folder to save the TS template to
-        :return:
+        Keyword Arguments:
+            folder_path {str} -- folder to save the TS template to (default: {None})
         """
         logger.info('Saving TS template')
         try:
@@ -93,7 +92,7 @@ class TS(TSguess):
 
         bond_list = list(self.graph.edges)
         conf_xyzs = gen_simanl_conf_xyzs(
-            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, charge=self.charge, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
+            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
 
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(
@@ -136,9 +135,10 @@ class TS(TSguess):
         return self
 
     def find_lowest_energy_conformer(self):
-        """
-        For a molecule object find the lowest in energy and set it as the mol.xyzs and mol.energy
-        :return:
+        """For a transitionn state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
+
+        Returns:
+            {ts object} -- optimised ts object
         """
         self.generate_conformers()
         [self.conformers[i].optimise() for i in range(len(self.conformers))]

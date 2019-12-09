@@ -14,19 +14,24 @@ from autode.pes_2d import replace_none
 
 def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, delta_dist=1.5,
                     active_bonds_not_scanned=None):
-    """
-    Scan the distance between 2 atoms and return the xyzs with peak energy
-    :param mol: Molecule object
-    :param product: single molecule object of the products
-    :param active_bond: (tuple) of atom ids
-    :param method: (object) electronic structure method
-    :param keywords (list) list of keywords required by an electronic structure method
-    :param delta_dist: (float) Distance to add onto the current distance (Å)
-    :param n_steps: (int) Number of scan steps to use in the XTB scan
-    :param name: (str) Name of reaction
-    :param reaction_class: (object) class of the reaction (reactions.py)
-    :param active_bonds_not_scanned: list(tuple) pairs of atoms that are active, but will not be scanned in the 1D PES
-    :return: List of xyzs
+    """Scan the distance between two atoms and return a guess for the TS
+
+    Arguments:
+        mol {molcule object} -- reactant complex
+        product {molecule object} -- product complex
+        active_bond {tuple} -- tuple of atom ids showing the bond being scanned
+        n_steps {int} -- number of steps to take in the scan
+        name {str} -- name of reaction
+        reaction_class {object} -- class of the reaction (reactions.py)
+        method {object} -- electronic structure wrapper to use for the calcs
+        keywords {list} -- keywords to use in the calcs
+
+    Keyword Arguments:
+        delta_dist {float} -- distance to add onto the current distance (Å) in n_steps (default: {1.5})
+        active_bonds_not_scanned {list(tuple)} -- pairs of atoms that are active, but will not be scanned in the 1D PES (default: {None})
+
+    Returns:
+        {ts guess object} -- ts guess
     """
     logger.info(
         f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
@@ -91,14 +96,18 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
 
 def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):
-    """
-    Given a 1D list of energies find the maximum that between the end points
-    :param dist_list: (ndarray)
-    :param xyzs_list: (list)
-    :param energy_list: (list)
-    :param scan_name: (str)
-    :param plot_name: (str)
-    :return:
+    """Given a 1D list of energies find the maximum that lies between the end points
+
+    Arguments:
+        dist_list {np.ndarray} -- list of distances the scan points are at
+        xyzs_list {list(list(list))} -- list of the xyzs at the scan point
+        energy_list {list(float)} -- list of energies at the scan points
+        scan_name {str} -- name of the reaction
+        plot_name {str} -- name of the plot made
+        method {object} -- electronic structure wrapper used for the calcs
+
+    Returns:
+        {list(list)} -- xyzs at the peak of the PES
     """
 
     logger.info('Finding peak in 1D PES')

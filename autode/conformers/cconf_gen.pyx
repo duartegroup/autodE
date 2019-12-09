@@ -93,9 +93,6 @@ def print_traj_point(py_xyzs, coords, traj_name):
             traj_file.write('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line))
             traj_file.write('\n')
 
-    return 0
-
-
 cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, double[:, :] d0, double c):
 
     cdef int i, j
@@ -147,26 +144,27 @@ def v(py_flat_coords, py_bonds, py_k, py_d0, py_c, py_fixed_bonds):
 
 
 def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_fixed_bonds, py_non_random_atoms):
-    """
-    Run an MD simulation under a potential:
+    """Run an MD simulation under a potential:
 
     V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
     where k and c are constants to be determined. Masses are all 1
 
-    :param py_xyzs: (list(list)) e.g. [['C', 0.0, 0.0, 0.0], ...]
-    :param py_bonds: (list(tuples)) defining which atoms are bonded together
-    :param py_n_steps: (int) number of MD steps to do
-    :param py_temp: (float) reduced temperature to run the dynamics (1 is fine)
-    :param py_dt: (float) ∆t to use in the velocity verlet
-    :param py_k: (float) harmonic force constant
-    :param d0: (np.array) matrix of ideal bond lengths
-    :param c: (float) strength of the repulsive term
-    :param py_fixed_bonds: (list(tuples)) defining which atoms have fixed separations together
-    :param py_non_random_atoms: (list) atoms that must not be randomly placed, to keep stereochem
-    :return: np array of coordinates
+    Arguments:
+        py_xyzs {list(list)} -- e.g. [['C', 0.0, 0.0, 0.0], ...]
+        py_bonds {list(tuples)} -- defining which atoms are bonded together
+        py_n_steps {int} -- number of MD steps to do
+        py_temp {float} -- reduced temperature to run the dynamics (1 is fine)
+        py_dt {float} -- ∆t to use in the velocity verlet
+        py_k {float} -- harmonic force constant
+        py_d0 {np.array} -- matrix of ideal bond lengths
+        py_c {float} -- strength of the repulsive term
+        py_fixed_bonds {list(tuples)} -- defining which atoms have fixed separations together
+        py_non_random_atoms {list} -- atoms that must not be randomly placed, to keep stereochem
+    
+    Returns:
+        np.array -- final coordinates
     """
-
 
     cdef int n_atoms = len(py_xyzs)
 

@@ -32,7 +32,7 @@ atomic_weights = {'H': 1,
                   'Si': 28,
                   'P': 31,
                   'S': 32,
-                  'Cl': 35.5,
+                  'Cl': 36,
                   'Ar': 40,
                   'K': 39,
                   'Ca': 40,
@@ -98,10 +98,13 @@ vdw_radii = {
 
 
 def get_maximal_valance(atom_label):
-    """
-    Get the maximum valance of an atom
-    :param atom_label: (str) atom label e.g. C or Pd
-    :return: (int)
+    """Get the maximum valance of an atom
+
+    Arguments:
+        atom_label {str} -- atom label e.g. C or Pd
+
+    Returns:
+        {int} -- maximal valence of the atom
     """
 
     if atom_label in valid_valances.keys():
@@ -113,10 +116,13 @@ def get_maximal_valance(atom_label):
 
 
 def get_atomic_weight(atom_label):
-    """
-    Get the atomic weight of an atom
-    :param atom_label: (str) atom label e.g. C or Pd
-    :return: (int)
+    """Get the atomic weight of an atom
+
+    Arguments:
+        atom_label {str} -- atom label e.g. C or Pd
+
+    Returns:
+        {int} -- atomic weight of the atom
     """
 
     if atom_label in atomic_weights.keys():
@@ -128,7 +134,14 @@ def get_atomic_weight(atom_label):
 
 
 def get_vdw_radii(atom_label):
+    """Get the van der waal's radius of an atom
 
+    Arguments:
+        atom_label {str} -- atom label e.g. C or Pd
+
+    Returns:
+        {int} -- van der waal's radius of the atom
+    """
     if atom_label in vdw_radii.keys():
         vdv_radii = vdw_radii[atom_label]
     else:
