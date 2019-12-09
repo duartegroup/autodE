@@ -116,14 +116,14 @@ def best_saddlepoint(saddle_points, r1, r2, energy_grid):
             min_energy_pathways.append(min_energy_pathway)
 
     if len(saddle_points_on_mep) == 0:
-        logger.error(
-            'No saddle points were found on the minimum energy pathway')
+        logger.info(
+            'No saddle points were found connecting reactants and products')
         return None
     elif len(saddle_points_on_mep) == 1:
         min_energy_pathway = min_energy_pathways[0]
         r1_saddle, r2_saddle = saddle_points_on_mep[0]
     elif len(saddle_points_on_mep) > 1:
-        logger.warning(
+        logger.info(
             'Multiple saddlepoints remain, choosing the highest peak on the lowest minimum energy pathway')
 
         peak_of_meps = []

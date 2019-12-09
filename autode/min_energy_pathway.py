@@ -1,5 +1,6 @@
 from autode.log import logger
 import networkx as nx
+import numpy as np
 
 
 def get_mep(r1, r2, energies, saddlepoint):
@@ -10,12 +11,13 @@ def get_mep(r1, r2, energies, saddlepoint):
     prod_coords = (n_points-1, n_points-1)
 
     energies_graph = nx.DiGraph()
+    no_negative_weight = np.amax(energies) - np.amin(energies)
     for i in range(n_points):
         for j in range(n_points):
             neighbouring_points = get_neighbouring_points((i, j), n_points)
             for neighbour in neighbouring_points:
                 weight = energies[neighbour[0],
-                                  neighbour[1]] - energies[i, j] + 10
+                                  neighbour[1]] - energies[i, j] + no_negative_weight
                 energies_graph.add_edge((i, j), neighbour, weight=weight)
 
     # saddlepoint coords on the grid
@@ -58,9 +60,6 @@ def get_mep(r1, r2, energies, saddlepoint):
         energies_graph, reac_saddle_coords, reac_coords)
     prod_mep = find_point_on_mep(
         energies_graph, prod_saddle_coords, prod_coords)
-
-    if reac_mep is None or prod_mep is None:
-        return None
 
     if saddle_coords in reac_mep or saddle_coords in prod_mep:
         return None
