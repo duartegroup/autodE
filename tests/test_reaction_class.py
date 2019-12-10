@@ -48,6 +48,13 @@ def test_bad_balance():
         _ = reaction.Reaction(mol1=h1, mol2=hh)
 
     h1 = reaction.Reactant(
+        name='h1', xyzs=[['H', 0.0, 0.0, 0.0]], charge=-1)
+    h2 = reaction.Product(
+        name='h2', xyzs=[['H', 1.0, 0.0, 0.0]])
+    with pytest.raises(SystemExit):
+        _ = reaction.Reaction(mol1=h1, mol2=h2)
+
+    h1 = reaction.Reactant(
         name='h1', xyzs=[['H', 0.0, 0.0, 0.0]], solvent='water')
     h2 = reaction.Reactant(
         name='h2', xyzs=[['H', 1.0, 0.0, 0.0]], solvent='water')

@@ -9,6 +9,7 @@ from autode.units import KcalMol
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
+from autode.config import Config
 import os
 
 
@@ -56,7 +57,11 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     ax2.set_xlabel('$r1$ / Å')
     ax2.set_ylabel('$r2$ / Å')
     plt.colorbar(pos2, ax=ax2)
-    plt.savefig(name + '.png', dpi=1000)
+    if Config.high_qual_plots:
+        dpi = 1000
+    else:
+        dpi = 10
+    plt.savefig(name + '.png', dpi=dpi)
 
 
 def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):

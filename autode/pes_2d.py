@@ -171,14 +171,18 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                    active_bonds=active_bonds, reactant=mol, product=product)
 
 
-def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method):
-    """Find the best saddle point on a 2D PES given a list of lists defined by their energy
+def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, n_points=40, order=5):
+    """Find the best saddle point on a 2D PES, and the closest xyzs to this point given the grid of distances, xyzs and energies
 
     Arguments:
         dists_xyzs_energies_dict {dict} -- [dist] = (xyzs, energy)
         scan_name {str} -- name of reaction
         plot_name {[type]} -- name of plot made
         method {object} -- electronic structure wrapper to use for the calcs
+
+    Keyword Arguments:
+        n_points {int} -- number of points along each axis of the energy grid (default: {40})
+        order {int} -- order of polynomial to fit the data to (default: {5})
 
     Returns:
         {tuple} -- (saddlepoint xyzs, (r1 saddle coord, r2 saddle coord))
@@ -205,11 +209,10 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     else:
         name = plot_name + f'_{method_name}'
 
-    coeff_mat = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array)
+    coeff_mat = polyfit2d(r1_flat, r2_flat, flat_rel_energy_array, order=order)
 
     saddle_points = poly2d_saddlepoints(coeff_mat)
 
-    n_points = 40
     r1 = np.linspace(r1_flat[0], r1_flat[-1], n_points)
     r2 = np.linspace(r2_flat[0], r2_flat[-1], n_points)
     x, y = np.meshgrid(r1, r2)
@@ -311,7 +314,7 @@ def replace_none(lst):
             yield item
 
 
-def polyfit2d(x, y, z, order=5):
+def polyfit2d(x, y, z, order):
     """Takes x and y coordinates and their resultant z value, and creates a matrix where element i,j is the coefficient of the desired order polynomial x ** i * y ** j
 
     Arguments:

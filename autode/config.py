@@ -21,6 +21,8 @@ class Config:
     lcode = 'XTB'
     #
     make_ts_template = True
+    #
+    high_qual_plots = True
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:

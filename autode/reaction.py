@@ -219,16 +219,6 @@ class Reaction:
 
         os.chdir(here)
 
-    def test_ts_conf(self, ts_copy):
-        if self.ts is None:
-            logger.error('Rotations lost the TS')
-            return False
-        if self.ts.energy > ts_copy.energy:
-            logger.error(
-                f'Rotating increased TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
-            return False
-        return True
-
     def calculate_single_points(self):
         """Perform a single point energy evaluations on all the reactants and products using the hcode
         """
