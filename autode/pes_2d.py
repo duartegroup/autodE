@@ -17,7 +17,7 @@ from autode.min_energy_pathway import get_mep
 
 
 def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
-                    delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None):
+                    delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None, e_grid_points=40, polynomial_order=5):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:
@@ -35,6 +35,8 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         delta_dist1 {float} -- distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
         delta_dist2 {float} -- distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
         active_bonds_not_scanned {list(tuple)} -- pairs of atoms that are active, but will not be scanned in the 2D PES (default: {None})
+        n_points {int} -- number of points along each axis of the energy grid in the saddlepoint finding (default: {40})
+        polynomial_order {int} -- order of polynomial to fit the data to (default: {5})
 
     Returns:
         {ts guess object} -- ts guess
@@ -145,7 +147,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
-                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method)
+                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
     if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None
@@ -171,7 +173,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                    active_bonds=active_bonds, reactant=mol, product=product)
 
 
-def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, n_points=40, order=5):
+def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, n_points, order):
     """Find the best saddle point on a 2D PES, and the closest xyzs to this point given the grid of distances, xyzs and energies
 
     Arguments:

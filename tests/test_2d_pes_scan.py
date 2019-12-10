@@ -1,5 +1,7 @@
 import autode.pes_2d as pes_2d
 import numpy as np
+from autode.molecule import Molecule
+from autode.reactions import Dissociation
 from autode.wrappers.ORCA import ORCA
 from autode.config import Config
 import os
@@ -55,6 +57,31 @@ def test_find_2dpes_saddle_xyzs():
 
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.png') or 'animation' in filename:
+            os.remove(filename)
+
+    os.chdir(here)
+
+
+def test_get_ts_guess_2dscan():
+    os.chdir(os.path.join(here, 'data'))
+
+    h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.6, 0.0, 0.0],
+               ['H', 0.0, -0.6, 0.0], ['H', 0.6, -0.6, 0.0]]
+    mol = Molecule(name='h4', xyzs=h4_xyzs, mult=1)
+    mol.method = ORCA
+
+    # May not actually be available, but the .out files are included so this should work
+    mol.method.available = True
+
+    ts_guess = pes_2d.get_ts_guess_2d(mol=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
+                                      reaction_class=Dissociation, method=ORCA, keywords=Config.ORCA.scan_keywords,
+                                      delta_dist1=0.2, delta_dist2=0.2, e_grid_points=4, polynomial_order=1)
+
+    assert len(ts_guess.active_bonds) == 2
+    assert os.path.exists('h4_0_2_1_3_2dscan_ORCA.png')
+
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith(('.inp', '.png')) or 'animation' in filename:
             os.remove(filename)
 
     os.chdir(here)
