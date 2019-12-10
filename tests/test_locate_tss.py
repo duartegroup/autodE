@@ -57,35 +57,6 @@ def test_get_reac_and_prod_complexes():
     assert len(rearrang_product.xyzs) == 7
 
 
-def test_get_bond_rearrangs():
-
-    assert len(dissoc_rearrangs) == 1
-    assert type(dissoc_rearrangs[0]) == BondRearrangement
-    assert dissoc_rearrangs[0].all == [(0, 1)]
-
-    assert len(subs_rearrangs) == 1
-    assert type(subs_rearrangs[0]) == BondRearrangement
-    assert subs_rearrangs[0].all == [(0, 1), (1, 2)]
-
-    assert len(rearrang_rearrangs) == 1
-    assert type(rearrang_rearrangs[0]) == BondRearrangement
-    assert rearrang_rearrangs[0].all == [(0, 5), (1, 5)]
-
-
-def test_add_bond_rearrangement():
-    # rearrangment doesn't get product, shouldn't be added
-    bond_rearrangs = bond_rearrangement.add_bond_rearrangment(
-        [], subs_reactant, subs_product, [(0, 1)], [])
-    assert bond_rearrangs == []
-
-
-def test_rearranged_graph():
-    rearranged_graph = bond_rearrangement.generate_rearranged_graph(
-        subs_reactant.graph, [(0, 1)], [(1, 2)])
-    assert locate_tss.mol_graphs.is_isomorphic(
-        rearranged_graph, subs_product.graph)
-
-
 def test_get_funcs_and_params():
     dissoc_rearrang = dissoc_rearrangs[0]
     dissoc_funcs_params = [
@@ -108,12 +79,3 @@ def test_get_funcs_and_params():
     assert type(subs_f_and_p) == list
     assert len(subs_f_and_p) == 9
     assert subs_f_and_p[3][1][5] == locate_tss.Substitution
-
-
-def test_strip_equivalent_rearrangements():
-    # 5 and 6 should be equivalent Hs
-    possible_bond_rearrangs = [BondRearrangement(
-        [(0, 5)], [(1, 5)]), BondRearrangement([(0, 6)], [(1, 6)])]
-    unique_rearrangs = bond_rearrangement.strip_equivalent_bond_rearrangs(
-        rearrang_reactant, possible_bond_rearrangs)
-    assert len(unique_rearrangs) == 1
