@@ -27,16 +27,6 @@ subs_reactant, subs_product = locate_tss.get_reactant_and_product_complexes(
     subs_reaction)
 subs_rearrangs = locate_tss.get_bond_rearrangs(subs_reactant, subs_product)
 
-# ch2fch2+ > +chfch3 rearrangement
-alkyl_reactant = molecule.Reactant(smiles='[CH2+]CF')
-alkyl_product = molecule.Product(smiles='C[CH+]F')
-rearang_reaction = reaction.Reaction(
-    name='rearang', mol1=alkyl_reactant, mol2=alkyl_product)
-rearrang_reactant, rearrang_product = locate_tss.get_reactant_and_product_complexes(
-    rearang_reaction)
-rearrang_rearrangs = locate_tss.get_bond_rearrangs(
-    rearrang_reactant, rearrang_product)
-
 
 def test_get_reac_and_prod_complexes():
 
@@ -51,31 +41,58 @@ def test_get_reac_and_prod_complexes():
     assert len(subs_reactant.xyzs) == 3
     assert len(subs_product.xyzs) == 3
 
+    # ch2fch2+ > +chfch3 rearrangement
+    alkyl_reactant = molecule.Reactant(smiles='[CH2+]CF')
+    alkyl_product = molecule.Product(smiles='C[CH+]F')
+    rearang_reaction = reaction.Reaction(
+        name='rearang', mol1=alkyl_reactant, mol2=alkyl_product)
+    rearrang_reactant, rearrang_product = locate_tss.get_reactant_and_product_complexes(
+        rearang_reaction)
     assert type(rearrang_reactant) == molecule.Reactant
     assert type(rearrang_product) == molecule.Product
     assert len(rearrang_reactant.xyzs) == 7
     assert len(rearrang_product.xyzs) == 7
 
+    # h + ch3ch2cl > h2 + ch2ch2 + Cl
+    propyl_chloride = molecule.Reactant(smiles='CCCl')
+    chlorine = molecule.Product(xyzs=[['Cl', 0.0, 0.0, 0.0]])
+    ethene = molecule.Product(smiles='C=C')
+    elim_reaction = reaction.Reaction(
+        h_reactant, propyl_chloride, hh_product, ethene, chlorine)
+    elim_reactant, elim_product = locate_tss.get_reactant_and_product_complexes(
+        elim_reaction)
+    assert type(elim_reactant) == molecule.Molecule
+    assert type(elim_product) == molecule.Molecule
+    assert len(elim_reactant.xyzs) == 9
+    assert len(elim_product.xyzs) == 9
+
 
 def test_get_funcs_and_params():
-    dissoc_rearrang = dissoc_rearrangs[0]
-    dissoc_funcs_params = [
-        (get_template_ts_guess, (dissoc_reactant, dissoc_rearrang.all, dissoc_reaction.type))]
-    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(dissoc_funcs_params,
-                                                              dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrang)
+    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
+        [], dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0])
     assert type(dissoc_f_and_p) == list
-    assert len(dissoc_f_and_p) == 4
-    assert dissoc_f_and_p[0][0] == locate_tss.get_template_ts_guess
-    assert type(dissoc_f_and_p[1][1][0]) == molecule.Reactant
-    assert dissoc_f_and_p[1][1][2] == (0, 1)
-    assert dissoc_f_and_p[1][1][4] == 'H2--H+H_0-1_ll1d'
-    assert dissoc_f_and_p[3][1][5] == locate_tss.Dissociation
+    assert len(dissoc_f_and_p) == 3
+    assert type(dissoc_f_and_p[0][1][0]) == molecule.Reactant
+    assert dissoc_f_and_p[0][1][2] == (0, 1)
+    assert dissoc_f_and_p[0][1][4] == 'H2--H+H_0-1_ll1d'
+    assert dissoc_f_and_p[2][1][5] == locate_tss.Dissociation
 
-    subs_rearrang = subs_rearrangs[0]
-    subs_funcs_params = [
-        (get_template_ts_guess, (subs_reactant, subs_rearrang.all, subs_reaction.type))]
     subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
-        subs_funcs_params, subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
+        [], subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
     assert type(subs_f_and_p) == list
-    assert len(subs_f_and_p) == 9
-    assert subs_f_and_p[3][1][5] == locate_tss.Substitution
+    assert len(subs_f_and_p) == 8
+    assert subs_f_and_p[2][1][5] == locate_tss.Substitution
+
+    butadiene = molecule.Reactant(name='a', smiles='C=CC=C')
+    ethene = molecule.Reactant(name='b', smiles='C=C')
+    cyclohexene = molecule.Product(name='c', smiles='C1C=CCCC1')
+    d_a = reaction.Reaction(butadiene, ethene, cyclohexene)
+    d_a_reactant, d_a_product = locate_tss.get_reactant_and_product_complexes(
+        d_a)
+    d_a_rearrangs = locate_tss.get_bond_rearrangs(d_a_reactant, d_a_product)
+    d_a_f_and_p = locate_tss.get_ts_guess_funcs_and_params(
+        [], d_a, d_a_reactant, d_a_product, d_a_rearrangs[0])
+    assert type(d_a_f_and_p) == list
+    assert len(d_a_f_and_p) == 2
+    assert d_a_f_and_p[0][0] == locate_tss.get_ts_guess_2d
+    assert d_a_f_and_p[1][1][5] == 'c--a+b_0-5_3-4_hl2d_bbonds'

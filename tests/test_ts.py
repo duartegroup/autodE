@@ -78,6 +78,8 @@ def test_ts_guess_class():
 def test_get_ts():
     os.chdir(os.path.join(here, 'data'))
 
+    assert optts.get_ts(None) is None
+
     get_ts_output = optts.get_ts(ts_guess_obj)
     ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 

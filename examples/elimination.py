@@ -3,7 +3,7 @@ from autode import *
 Config.n_cores = 4
 
 methoxide = Reactant(name='methoxide', smiles='C[O-]', solvent='water')
-propyl_chloride = Reactant(name='ethyl_chloride',
+propyl_chloride = Reactant(name='propyl_chloride',
                            smiles='CCCCl', solvent='water')
 chloride = Product(
     name='Cl-', xyzs=[['Cl', 0.0, 0.0, 0.0]], charge=-1, solvent='water')

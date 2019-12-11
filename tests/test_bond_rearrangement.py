@@ -67,100 +67,58 @@ def test_2b():
 
 
 def test_1b1f():
-    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 10, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 10, 0, 0], ['H', 10.6, 0, 0]])
-    assert rearr.get_fbonds_bbonds_1b1f(reac, prod, [], [], [], [[[(0, 1)], [(1, 2)]]], [], [], 0) == [
-        rearr.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])]
-
     reac = Molecule(xyzs=[['C', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 10, 0, 0]])
     prod = Molecule(xyzs=[['C', 0, 0, 0], ['H', 10, 0, 0], ['H', 10.6, 0, 0]])
     assert rearr.get_fbonds_bbonds_1b1f(reac, prod, [], [[(0, 1)]], [[(1, 2)]], [], [], [], 0) == [
         rearr.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])]
 
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 10, 0, 0], ['H', 10.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_1b1f(reac, prod, [], [], [], [[[(0, 1)], [(1, 2)]]], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])]
+
 
 def test_1b2f():
-    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], [
-                    'H', 10, 0, 0], ['H', 20, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 10, 0, 0], [
-                    'H', 10.6, 0, 0], ['H', 11.2, 0, 0]])
-    assert len(rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [], [
-               [(0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]], [], [], [(0, 1)], 0)) == 8
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['O', 0.6, 0, 0], ['C', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['O', 1.2, 0, 0], ['C', 0.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [[(0, 1)]], [[(0, 2)], [(1, 2)]], [], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)])]
 
-    reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], [
-                    'H', 10, 0, 0], ['H', 20, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], [
-                    'H', 10.6, 0, 0], ['H', 11.2, 0, 0]])
-    assert len(rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [], [
-               [(0, 2), (0, 3), (2, 3)]], [[[(0, 1)], [(1, 2), (1, 3)]]], [], [], 0)) == 4
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['C', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 1.2, 0, 0], ['C', 0.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [[(0, 1)]], [[(0, 2), (1, 2)]], [], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)])]
 
-    reac = Molecule(xyzs=[['C', 0, 0, 0], ['H', 0.6, 0, 0], [
-                    'H', 10, 0, 0], ['H', 20, 0, 0]])
-    prod = Molecule(xyzs=[['C', 0, 0, 0], ['H', 10, 0, 0], [
-                    'H', 10.6, 0, 0], ['H', 11.2, 0, 0]])
-    assert len(rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [[(0, 1)]], [
-               [(1, 2), (1, 3), (2, 3)]], [], [], [], 0)) == 3
-
-    reac = Molecule(xyzs=[['C', 0, 0, 0], ['H', 0.6, 0, 0], [
-                    'H', 10, 0, 0], ['N', 20, 0, 0]])
-    prod = Molecule(xyzs=[['C', 0, 0, 0], ['H', 10, 0, 0], [
-                    'H', 10.6, 0, 0], ['N', 11.2, 0, 0]])
-    assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [[(0, 1)]], [[(1, 2)], [(1, 3), (2, 3)]], [], [], [], 0) == [
-        rearr.BondRearrangement(
-            forming_bonds=[(1, 2), (1, 3)], breaking_bonds=[(0, 1)]),
-        rearr.BondRearrangement(forming_bonds=[(1, 2), (2, 3)], breaking_bonds=[(0, 1)])]
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 1.2, 0, 0]])
+    assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [], [[(0, 2), (1, 2)]], [], [], [(0, 1)], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)])]
 
 
 def test_2b1f():
-    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], [
-                    'H', 1.2, 0, 0], ['H', 10, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 10, 0, 0], [
-                    'H', 20, 0, 0], ['H', 20.6, 0, 0]])
-    assert len(rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [
-               [(0, 1), (1, 2)]], [], [], [(0, 2), (0, 3), (1, 3), (2, 3)], [], 0)) == 4
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], ['O', 1.2, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], ['O', 0.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1)], [(1, 2)]], [[(0, 2)]], [], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
 
-    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], [
-                    'C', 1.2, 0, 0], ['H', 10, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 10, 0, 0], [
-                    'C', 20, 0, 0], ['H', 20.6, 0, 0]])
-    assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1)]], [], [[[(1, 2)], [(0, 2), (2, 3)]]], [], [], 0) == [
-        rearr.BondRearrangement(
-            forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]),
-        rearr.BondRearrangement(forming_bonds=[(2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], ['H', 1.2, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], ['H', 0.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 2)]], [], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
 
-    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], [
-        'H', 1.2, 0, 0], ['C', 10, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 10, 0, 0], [
-        'H', 20, 0, 0], ['C', 20.6, 0, 0]])
-    assert len(rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1), (1, 2)]], [
-               [(0, 3), (1, 3), (2, 3)]], [], [(0, 2)], [], 0)) == 3
-
-    reac = Molecule(xyzs=[['C', 0, 0, 0], ['H', 0.6, 0, 0], [
-        'H', 1.2, 0, 0], ['N', 10, 0, 0]])
-    prod = Molecule(xyzs=[['C', 0, 0, 0], ['H', 10, 0, 0], [
-        'H', 20, 0, 0], ['N', 20.6, 0, 0]])
-    assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1)], [(1, 2)]], [[(1, 3), (2, 3)]], [], [], [], 0) == [
-        rearr.BondRearrangement(
-            forming_bonds=[(1, 3)], breaking_bonds=[(0, 1), (1, 2)]),
-        rearr.BondRearrangement(forming_bonds=[(2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 1.2, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['H', 0.6, 0, 0], ['H', 10, 0, 0]])
+    assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
 
 
 def test_2b2f():
-    reac = Molecule(xyzs=[['C', 0, 0, 0], ['H', 0.6, 0, 0], [
-                    'H', 0, 10, 0], ['H', 0.6, 10, 0], ])
-    prod = Molecule(xyzs=[['C', 0, 0, 0], ['H', 10, 0, 0], [
-                    'H', 0, 0.6, 0], ['H', 10, 0.6, 0]])
-    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [], [], [[[(0, 1)], [(0, 2), (0, 3)]], [[(2, 3)], [(1, 2), (1, 3)]]], [], [], 0) == [
-        rearr.BondRearrangement(
-            forming_bonds=[(0, 3), (1, 2)], breaking_bonds=[(0, 1), (2, 3)]),
-        rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)])]
-
     reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], [
-                    'O', 0, 10, 0], ['N', 0.6, 10, 0], ])
+                    'N', 10, 0, 0], ['O', 10.6, 0, 0]])
     prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], [
-                    'O', 0, 0.6, 0], ['N', 10, 0.6, 0]])
+                    'N', 0.6, 0, 0], ['O', 10.6, 0, 0]])
     assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [[(0, 1)], [(2, 3)]], [[(0, 2)], [(1, 3)]], [], [], [], 0) == [
-        rearr.BondRearrangement(
-            forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)])]
+        rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)])]
 
     reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], [
                     'H', 10, 0, 0], ['N', 10.6, 0, 0], ['O', 20, 0, 0]])
@@ -170,10 +128,24 @@ def test_2b2f():
         rearr.BondRearrangement(forming_bonds=[(0, 4), (2, 4)], breaking_bonds=[(0, 1), (2, 3)])]
 
     reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], [
-                    'H', 1.2, 0, 0], ['N', 10.6, 0, 0], ['O', 20, 0, 0]])
-    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 20, 0, 0], [
-                    'H', 10, 0, 0], ['N', 10.6, 0, 0], ['O', 0.6, 0, 0]])
-    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 4), (2, 4)], [(0, 3), (2, 3)]], [], [], [], 0) == [
+                    'H', 1.2, 0, 0], ['O', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], [
+                    'H', 11.2, 0, 0], ['O', 10.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 3), (2, 3)], [(1, 3)]], [], [], [], 0) == [
         rearr.BondRearrangement(
-            forming_bonds=[(0, 4), (2, 3)], breaking_bonds=[(0, 1), (1, 2)]),
-        rearr.BondRearrangement(forming_bonds=[(0, 3), (2, 4)], breaking_bonds=[(0, 1), (1, 2)])]
+            forming_bonds=[(0, 3), (1, 3)], breaking_bonds=[(0, 1), (1, 2)]),
+        rearr.BondRearrangement(forming_bonds=[(1, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
+
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], [
+                    'H', 1.2, 0, 0], ['O', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], [
+                    'H', 1.2, 0, 0], ['O', 0.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 3), (2, 3)]], [], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
+
+    reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], [
+                    'N', 1.2, 0, 0], ['C', 10, 0, 0]])
+    prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], [
+                    'N', 1.2, 0, 0], ['C', 0.6, 0, 0]])
+    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [], [], [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]], [], [], 0) == [
+        rearr.BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
