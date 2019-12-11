@@ -5,10 +5,25 @@ from autode.reactions import Substitution
 from autode import molecule
 from autode.transition_states import optts
 from autode.config import Config
+from autode.wrappers.ORCA import ORCA
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 Config.make_ts_template = False
+
+test_ts_reac = molecule.Molecule(xyzs=[['F', -2.0, 0.0, 0.0],
+                                       ['C', 0.0, 0.0, 0.0],
+                                       ['Cl', 1.8, 0.0, 0.0],
+                                       ['H', -0.4, -0.5, -0.9],
+                                       ['H', -0.4, -0.5, 0.9],
+                                       ['H', -0.5, 1.0, 0.0]])
+
+test_ts_prod = molecule.Molecule(xyzs=[['F', -1.0, 0.0, 0.0],
+                                       ['C', 0.0, 0.0, 0.0],
+                                       ['Cl', 3.0, 0.0, 0.0],
+                                       ['H', -0.4, -0.5, -0.9],
+                                       ['H', -0.4, -0.5, 0.9],
+                                       ['H', -0.5, 1.0, 0.0]])
 
 test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
                                       ['C', 0.0, 0.0, 0.0],
@@ -16,7 +31,7 @@ test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
                                       ['H', 0.0, -0.8, 0.7],
                                       ['H', -0.2, -0.3, -1.0],
                                       ['H', -0.2, 1.0, 0.3]],
-                                solvent='water')
+                                solvent='water', charge=-1)
 
 ts_guess_obj = ts_guess.TSguess(name='test_ts', molecule=test_ts_mol,
                                 active_bonds=[(0, 1), (1, 2)], reaction_class=Substitution)
@@ -63,6 +78,10 @@ def test_ts_guess_class():
         ts_guess_obj.optts_calc, 5, None) == True
     assert optts.ts_has_correct_imaginary_vector(
         ts_guess_obj.optts_calc, 5, [(3, 4)]) == False
+
+    # testing optts.check_close_imag_contribution
+    assert optts.check_close_imag_contribution(
+        ts_guess_obj.optts_calc, (test_ts_reac, test_ts_prod), ORCA) == True
 
     # testing ts_guess.do_displacements
     ts_guess_obj.do_displacements(magnitude=1)
