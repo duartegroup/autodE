@@ -26,8 +26,7 @@ class Calculation:
             return self.method.get_energy(self)
 
         else:
-            logger.error(
-                'Calculation did not terminate normally – not returning the energy')
+            logger.error('Calculation did not terminate normally – not returning the energy')
             return None
 
     def optimisation_converged(self):
@@ -64,8 +63,7 @@ class Calculation:
         xyzs = self.method.get_final_xyzs(self)
 
         if len(xyzs) == 0:
-            logger.error(
-                f'Could not get xyzs from calculation file {self.name}')
+            logger.error(f'Could not get xyzs from calculation file {self.name}')
             raise XYZsNotFound
 
         return xyzs
@@ -75,13 +73,11 @@ class Calculation:
         return self.method.get_pi_bonds(self)
 
     def calculation_terminated_normally(self):
-        logger.info(
-            f'Checking to see if {self.output_filename} terminated normally')
+        logger.info(f'Checking to see if {self.output_filename} terminated normally')
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
-        self.output_file_lines = [line for line in open(
-            self.output_filename, 'r', encoding="utf-8")]
+        self.output_file_lines = [line for line in open(self.output_filename, 'r', encoding="utf-8")]
         self.rev_output_file_lines = list(reversed(self.output_file_lines))
         return None
 
@@ -94,8 +90,7 @@ class Calculation:
         self.method.set_availability()
 
         if self.input_filename is None:
-            logger.error(
-                'Could not run the calculation. Input filename not defined')
+            logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
 
         if self.method.available is False:
@@ -104,8 +99,7 @@ class Calculation:
             exit()
 
         if not os.path.exists(self.input_filename):
-            logger.error(
-                'Could not run the calculation. Input file does not exist')
+            logger.error('Could not run the calculation. Input file does not exist')
             return
 
         if os.path.exists(self.output_filename):
@@ -114,8 +108,7 @@ class Calculation:
 
         if self.output_file_exists:
             if self.calculation_terminated_normally():
-                logger.info(
-                    'Calculated already terminated successfully. Skipping')
+                logger.info('Calculation already terminated successfully. Skipping')
                 return self.set_output_file_lines()
 
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
@@ -135,7 +128,7 @@ class Calculation:
         for filename in os.listdir(os.getcwd()):
             name_string = (self.input_filename)[:-4]
             if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp'))) or filename.endswith('.smd.out'):
+                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log'))) or filename.endswith('.smd.out'):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')
@@ -204,8 +197,7 @@ class Calculation:
 
         if molecule.solvent is not None:
             if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
-                logger.critical(
-                    'Solvent is not available. Cannot run the calculation')
+                logger.critical('Solvent is not available. Cannot run the calculation')
                 print(f'Available solvents are {method.aval_solvents}')
                 exit()
 

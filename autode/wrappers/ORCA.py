@@ -67,9 +67,9 @@ def generate_input(calc):
     calc.output_filename = calc.name + '_orca.out'
     keywords = calc.keywords.copy()
 
-    if len(calc.xyzs) == 1:
+    if calc.n_atoms == 1:
         for keyword in keywords:
-            if keyword.lower() == 'opt' or keyword.lower() == 'looseopt' or keyword.lower() == 'tightopt':
+            if 'opt' in keyword.lower():
                 logger.warning('Cannot do an optimisation for a single atom')
                 keywords.remove(keyword)
 
@@ -82,7 +82,7 @@ def generate_input(calc):
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)
-            if calc.core_atoms and len(calc.xyzs) > 25:
+            if calc.core_atoms and calc.n_atoms > 25:
                 core_atoms_str = ' '.join(map(str, calc.core_atoms))
                 print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
             print('end', file=inp_file)
@@ -107,7 +107,7 @@ def generate_input(calc):
              for atom_id in calc.cartesian_constraints]
             print('    end\nend', file=inp_file)
 
-        if len(calc.xyzs) < 33:
+        if calc.n_atoms < 33:
             print('%geom MaxIter 100 end', file=inp_file)
 
         if calc.n_cores > 1:

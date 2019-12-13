@@ -8,6 +8,7 @@ from autode.log import logger
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
+from autode.wrappers.G09 import G09
 
 
 def get_hmethod():
@@ -20,13 +21,13 @@ def get_hmethod():
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
             method = ORCA
-        # elif Config.hcode.lower() == 'psi4':
-        #     method = PSI4
+        elif Config.hcode.lower() == 'g09':
+            method = G09
         else:
             logger.critical('Electronic structure code doesn\'t exist')
             exit()
     else:
-        method = ORCA  # if ORCA.available else PSI4
+        method = ORCA
 
     method.set_availability()
     if not method.available:

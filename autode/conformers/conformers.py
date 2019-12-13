@@ -107,7 +107,7 @@ class Conformer(object):
         if method is None:
             method = self.method
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.opt_keywords,
+        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.conf_opt_keywords,
                           n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts, constraints_already_met=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
