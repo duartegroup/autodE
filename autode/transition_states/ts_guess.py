@@ -155,8 +155,6 @@ class TSguess:
         self.product = product
         self.graph = make_graph(self.xyzs, self.n_atoms)
 
-        self.pi_bonds = None
-
         self.optts_converged = False
         self.optts_nearly_converged = False
         self.optts_calc = None

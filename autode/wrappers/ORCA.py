@@ -224,34 +224,5 @@ def get_final_xyzs(calc):
     return xyzs
 
 
-def get_pi_bonds(calc):
-    pi_bonds = []
-    bond_order_dict = {}
-    bond_order_section = False
-
-    for line in calc.rev_output_file_lines:
-        if 'TIMINGS' in line:
-            bond_order_section = True
-        if 'Mayer bond orders larger than 0.1' in line and bond_order_section:
-            break
-
-        if bond_order_section and line.startswith('B'):
-            bond_strs = line.split('B(')[1:]
-            for bond in bond_strs:
-                stripped_str = [bond.translate(str.maketrans(
-                    {',': None, ')': None})).split()[i] for i in [0, 1, 3]]
-                atoms = (int(stripped_str[0].split('-')[0]),
-                         int(stripped_str[1].split('-')[0]))
-                bond_order_dict[atoms] = float(stripped_str[2])
-
-    for (bond, bond_order) in bond_order_dict.items():
-        if bond_order > 1.5:
-            pi_bonds.append(bond)
-    if len(pi_bonds) > 0:
-        return pi_bonds
-    else:
-        return None
-
-
 # Bind all the required functions to the class definition
 [setattr(ORCA, method, globals()[method]) for method in req_methods]

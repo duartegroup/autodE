@@ -49,34 +49,6 @@ class Molecule:
                 'Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
-    def _find_pi_systems(self):
-        logger.info('Finding pi systems')
-        pi_systems = []
-        pi_system = None
-        if self.pi_bonds is not None:
-            for pi_bond in self.pi_bonds:
-                for system in pi_systems:
-                    if pi_bond in system:
-                        pi_system = system
-                        pi_systems.remove(pi_system)
-                        break
-                if pi_system is None:
-                    pi_system = []
-                for other_pi_bond in self.pi_bonds:
-                    if not other_pi_bond in pi_system:
-                        for atom in other_pi_bond:
-                            bonded_list = self.get_bonded_atoms_to_i(atom)
-                            if any(bonded_atom in pi_bond for bonded_atom in bonded_list):
-                                pi_system.append(other_pi_bond)
-                pi_systems.append(pi_system)
-                pi_system = None
-        flat_pi_systems = []
-        for system in pi_systems:
-            flat_system = [atom for bond in system for atom in bond]
-            flat_system_set = set(flat_system)
-            flat_pi_systems.append(sorted(flat_system_set))
-        self.pi_systems = flat_pi_systems
-
     def get_core_atoms(self, product_graph=None, depth=3):
         if self.active_atoms == None:
             logger.error('No active atoms found')
@@ -121,13 +93,13 @@ class Molecule:
                                 prod_ring_atoms.add(cycle_atom)
                 core_atoms.update(prod_ring_atoms)
 
-            if self.pi_systems is not None:
+            if self.pi_bonds is not None:
                 logger.info('Checking for pi bonds')
                 core_atoms_pi_bonds = set()
                 for atom in core_atoms:
-                    for system in self.pi_systems:
-                        if atom in system:
-                            for other_atom in system:
+                    for bond in self.pi_bonds:
+                        if atom in bond:
+                            for other_atom in bond:
                                 core_atoms_pi_bonds.add(other_atom)
                             break
                 core_atoms.update(core_atoms_pi_bonds)
@@ -361,9 +333,6 @@ class Molecule:
         opt.run()
         self.energy = opt.get_energy()
         self.set_xyzs(xyzs=opt.get_final_xyzs())
-        self.pi_bonds = opt.get_pi_bonds()
-        if self.pi_bonds is not None:
-            self._find_pi_systems()
 
     def single_point(self, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
@@ -374,6 +343,25 @@ class Molecule:
                          n_cores=Config.n_cores, max_core_mb=Config.max_core)
         sp.run()
         self.energy = sp.get_energy()
+
+    def is_possible_pi_atom(self, atom_i):
+        #metals may break this
+        pi_valencies = {'B': [1,2], 'N': [1,2], 'O': [1], 'C': [1,2,3], 'P': [1,2,3,4], 'S': [1,3,4,5], 'Si': [1,2,3]}
+        atom_label = self.get_atom_label(atom_i)
+        if atom_label in pi_valencies.keys():
+            if len(self.get_bonded_atoms_to_i(atom_i)) in pi_valencies[self.get_atom_label(atom_i)]:
+                return True
+        return False
+
+    def set_pi_bonds(self):
+        pi_bonds = []
+        bonds = list(self.graph.edges)
+        for bond in bonds:
+            if self.is_possible_pi_atom(bond[0]) and self.is_possible_pi_atom(bond[1]):
+                pi_bonds.append(bond)
+
+        if len(pi_bonds) > 0:
+            self.pi_bonds = pi_bonds
 
     def _init_smiles(self, name, smiles):
 
@@ -479,13 +467,14 @@ class Molecule:
         self.active_atoms = None
         self.stereocentres = None
         self.pi_bonds = None
-        self.pi_systems = None
 
         if smiles:
             self._init_smiles(name, smiles)
 
         if xyzs:
             self._init_xyzs(xyzs)
+
+        self.set_pi_bonds()
 
 
 class Reactant(Molecule):

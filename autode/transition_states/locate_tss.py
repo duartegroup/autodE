@@ -69,18 +69,6 @@ def find_tss(reaction):
                     print(*bbond, file=file)
                 print('end', file=file)
 
-    reactant_pi_systems = []
-    reac_no_atoms = [reac.n_atoms for reac in reaction.reacs]
-    for reac_no, reac in enumerate(reaction.reacs):
-        if reac.pi_systems is not None:
-            # indices will change in the reac complex
-            no_atoms = sum(reac_no_atoms[:reac_no])
-            for system in reac.pi_systems:
-                new_system = [atom + no_atoms for atom in system]
-                reactant_pi_systems.append(new_system)
-
-    reactant.pi_systems = reactant_pi_systems
-
     logger.info(
         f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
 

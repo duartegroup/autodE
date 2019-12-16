@@ -89,6 +89,14 @@ def test_conf_strip():
     assert h2.n_conformers == 1
 
 
+def test_set_pi_bonds():
+    mol = Molecule(smiles='C=CC')
+    assert mol.pi_bonds == [(0, 1)]
+
+    mol2 = Molecule(smiles='C=CC=C')
+    assert mol2.pi_bonds == [(0, 1), (1, 2), (2, 3)]
+
+
 def test_stripping_core():
     reac1 = Reactant(smiles='BrC(CC(C)C)C1CC1CC')
     reac2 = Reactant(smiles='[OH-]')
@@ -98,16 +106,6 @@ def test_stripping_core():
     reactant, _ = get_reactant_and_product_complexes(reaction)
     bond_rearrang = BondRearrangement(
         forming_bonds=[(1, 30)], breaking_bonds=[(0, 1)])
-
-    # test pi systems
-    reactant.pi_bonds = [(3, 4), (1, 2), (6, 7), (9, 10)]
-    reactant._find_pi_systems()
-
-    assert len(reactant.pi_systems) == 2
-    assert len(reactant.pi_systems[0]) == 6
-    assert len(reactant.pi_systems[1]) == 2
-
-    reactant.pi_systems = None
 
     # test get core atoms
     assert reactant.get_core_atoms() is None
@@ -122,7 +120,7 @@ def test_stripping_core():
     core3 = reactant.get_core_atoms(depth=5)
     assert len(core3) == 32
 
-    reactant.pi_systems = [[2, 3]]
+    reactant.pi_bonds = [[2, 3]]
     core4 = reactant.get_core_atoms(depth=2)
     assert len(core4) == 17
 

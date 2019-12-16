@@ -86,7 +86,7 @@ def generate_input(calc):
 
         if calc.bond_ids_to_add:
             for bond_ids in calc.bond_ids_to_add:
-                    print('B', bond_ids[0] + 1, bond_ids[1] + 1, file=inp_file)
+                print('B', bond_ids[0] + 1, bond_ids[1] + 1, file=inp_file)
 
         if calc.distance_constraints:
             for bond_ids in calc.distance_constraints.keys():  # Gaussian counts from 1
@@ -110,7 +110,8 @@ def calculation_terminated_normally(calc):
             return True
 
         if 'Bend failed for angle' in line:
-            logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
+            logger.info(
+                'Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
             cart_calc = deepcopy(calc)
             for keyword in cart_calc.keywords:
                 if keyword.lower().startswith('geom'):
@@ -118,9 +119,10 @@ def calculation_terminated_normally(calc):
                 elif keyword.lower().startswith('opt'):
                     options = []
                     if '=(' in keyword:
-                        #get the individual options
+                        # get the individual options
                         messy_options = keyword[5:-1].split(',')
-                        options = [option.lower().strip() for option in messy_options]
+                        options = [option.lower().strip()
+                                   for option in messy_options]
                         for option in options:
                             if option.startswith('maxcycles') or option.startswith('maxstep'):
                                 options.remove(option)
@@ -139,7 +141,7 @@ def calculation_terminated_normally(calc):
             cart_calc.name += '_cartesian'
             cart_calc.xyzs = calc.get_final_xyzs()
             cart_calc.distance_constraints = None
-            cart_calc.cartesian_constraints = None  
+            cart_calc.cartesian_constraints = None
             cart_calc.bond_ids_to_add = None
             cart_calc.input_filename = None
             cart_calc.output_filename = None
@@ -222,14 +224,15 @@ def get_imag_freqs(calc):
 
     for line in calc.output_file_lines:
         if 'normal coordinates' in line:
-            normal_mode_section= True
+            normal_mode_section = True
             imag_freqs = []
 
         if 'Thermochemistry' in line:
             normal_mode_section = False
 
         if normal_mode_section and 'Frequencies' in line:
-            freqs = [float(line.split()[i]) for i in range(2, len(line.split()))]
+            freqs = [float(line.split()[i])
+                     for i in range(2, len(line.split()))]
             for freq in freqs:
                 if freq < 0:
                     imag_freqs.append(freq)
@@ -244,7 +247,7 @@ def get_normal_mode_displacements(calc, mode_number):
 
     for j, line in enumerate(calc.output_file_lines):
         if 'normal coordinates' in line:
-            normal_mode_section= True
+            normal_mode_section = True
             displacements = []
 
         if 'Thermochemistry' in line:
@@ -255,16 +258,20 @@ def get_normal_mode_displacements(calc, mode_number):
                 try:
                     mode_numbers = [int(val) for val in line.split()]
                     if mode_number in mode_numbers:
-                        start_col = 3*[i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
+                        start_col = 3 * \
+                            [i for i in range(
+                                len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
                         for i in range(calc.n_atoms):
                             disp_line = calc.output_file_lines[j + 7 + i]
-                            xyz_disp = [float(disp_line.split()[k]) for k in range(start_col, start_col + 3)]
+                            xyz_disp = [float(disp_line.split()[k])
+                                        for k in range(start_col, start_col + 3)]
                             displacements.append(xyz_disp)
                 except ValueError:
                     pass
 
     if len(displacements) != calc.n_atoms:
-        logger.error('Something went wrong getting the displacements n != n_atoms')
+        logger.error(
+            'Something went wrong getting the displacements n != n_atoms')
         return None
 
     return displacements
@@ -286,7 +293,7 @@ def get_final_xyzs(calc):
             dashed_line += 1
             if dashed_line == 3:
                 xyz_section = False
-                
+
                 if atom_index != calc.n_atoms - 1:
                     logger.critical('Calc changed the number of atoms')
                     exit()
@@ -305,21 +312,17 @@ def get_final_xyzs(calc):
 
     zero_xyzs = False
     for xyz in xyzs:
-        if all(xyz[i] == 0.0 for i in range(1,4)):
+        if all(xyz[i] == 0.0 for i in range(1, 4)):
             if zero_xyzs:
                 return []
             else:
                 zero_xyzs = True
-                
+
     xyz_filename = f'{calc.name}_g09.xyz'
     if not os.path.exists(xyz_filename):
         xyzs2xyzfile(xyzs, xyz_filename)
 
     return xyzs
-
-
-def get_pi_bonds(calc):
-    return None
 
 
 # Bind all the required functions to the class definition

@@ -4,7 +4,7 @@ from autode.log import logger
 
 # List of required methods that need to be added to construct a valid electronic structure method wrapper
 req_methods = ['generate_input', 'calculation_terminated_normally',  'get_energy', 'optimisation_converged',
-               'optimisation_nearly_converged', 'get_imag_freqs', 'get_normal_mode_displacements', 'get_final_xyzs', 'get_pi_bonds']
+               'optimisation_nearly_converged', 'get_imag_freqs', 'get_normal_mode_displacements', 'get_final_xyzs']
 
 
 class ElectronicStructureMethod:
