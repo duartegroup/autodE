@@ -62,7 +62,7 @@ def test_gauss_optts_calc():
     os.chdir(here)
 
 
-def test_bad_orca_output():
+def test_bad_gauss_output():
 
     calc = Calculation(name='no_output', molecule=test_mol, method=G09)
     calc.output_file_lines = []
@@ -76,7 +76,32 @@ def test_bad_orca_output():
         calc.execute_calculation()
 
 
-def test_no_solvent():
+def test_fix_angle_error():
+
+    os.chdir(os.path.join(here, 'data'))
+
+    mol = Molecule(smiles='CC/C=C/CO')
+
+    calc = Calculation(name='angle_fail', molecule=mol, method=G09, opt=True,
+                    keywords=['PBE1PBE/Def2SVP', 'Opt'])
+    calc.run()
+
+    assert os.path.exists('angle_fail_cartesian_g09.com') is True
+    assert os.path.exists('angle_fail_internal_g09.com') is True
+    assert calc.output_filename == 'angle_fail_internal_g09.log'
+    assert calc.terminated_normally is True
+
+    os.remove('angle_fail_cartesian_g09.xyz')
+    os.remove('angle_fail_g09.xyz')
+
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith('.com'):
+            os.remove(filename)
+
+    os.chdir(here)
+
+
+def test_gauss_no_solvent():
 
     test_mol.solvent = 'not_a_real_solvent'
 

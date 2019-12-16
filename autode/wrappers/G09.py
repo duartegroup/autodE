@@ -103,10 +103,12 @@ def generate_input(calc):
 
 def calculation_terminated_normally(calc):
 
-    for n_line, line in enumerate(calc.rev_output_file_lines):
-        if 'Normal termination of Gaussian' in line:
+    for line in calc.rev_output_file_lines:
+
+        if 'Normal termination of Gaussian' in line or 'Number of steps exceeded' in line:
             logger.info('Gaussian09 terminated normally')
             return True
+
         if 'Bend failed for angle' in line:
             logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
             cart_calc = deepcopy(calc)
@@ -146,12 +148,13 @@ def calculation_terminated_normally(calc):
             cart_calc.output_file_lines = None
             cart_calc.rev_output_file_lines = None
             cart_calc.run()
-            if cart_calc.terminated_normally:
-                calc.name = fixed_angle_calc.name
-                calc.output_filename = cart_calc.output_filename
-                calc.set_output_file_lines()
-                logger.info('The cartesian optimisation converged')
-                return True
+            for line in cart_calc.rev_output_file_lines:
+                if 'Normal termination of Gaussian' in line:
+                    calc.name = cart_calc.name
+                    calc.output_filename = cart_calc.output_filename
+                    calc.set_output_file_lines()
+                    logger.info('The cartesian optimisation converged')
+                    return True
 
             logger.info('Returning to internal coordinates')
 
@@ -174,10 +177,7 @@ def calculation_terminated_normally(calc):
             else:
                 return False
 
-
-        if n_line > 30:
-            # The above lines are pretty close to the end of the file – there's no point parsing it all
-            return False
+    return False
 
 
 def get_energy(calc):
