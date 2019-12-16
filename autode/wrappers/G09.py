@@ -186,6 +186,12 @@ def get_energy(calc):
             return float(line.split()[4])
         if 'E(CORR)' in line:
             return float(line.split()[3])
+        if 'E(CI)' in line:
+            return float(line.split()[3])
+        if 'E(CIS)' in line:
+            return float(line.split()[4])
+        if 'E(CIS(D))' in line:
+            return float(line.split()[5])
 
 
 def optimisation_converged(calc):
