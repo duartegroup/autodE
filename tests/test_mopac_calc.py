@@ -3,6 +3,7 @@ from autode.calculation import Calculation
 from autode.molecule import Molecule
 from autode.constants import Constants
 import os
+import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,6 +35,12 @@ def test_mopac_opt_calculation():
     assert calc.terminated_normally is True
     assert calc.calculation_terminated_normally() is True
     assert calc.optimisation_converged() is True
+    with pytest.raises(NotImplementedError):
+        _ = calc.optimisation_nearly_converged()
+    with pytest.raises(NotImplementedError):
+        _ = calc.get_imag_freqs()
+    with pytest.raises(NotImplementedError):
+        _ = calc.get_normal_mode_displacements(4)
 
     os.remove('opt_mopac.mop')
     os.chdir(here)

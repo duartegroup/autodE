@@ -240,7 +240,7 @@ def get_imag_freqs(calc):
 
 def get_normal_mode_displacements(calc, mode_number):
     mode_number -= 5
-    normal_mode_section, displacements = False, None
+    normal_mode_section, displacements = False, []
 
     for j, line in enumerate(calc.output_file_lines):
         if 'normal coordinates' in line:
@@ -303,11 +303,19 @@ def get_final_xyzs(calc):
 
     xyzs = coords2xyzs(coords, calc.xyzs)
 
+    zero_xyzs = False
+    for xyz in xyzs:
+        if all(xyz[i] == 0.0 for i in range(1,4)):
+            if zero_xyzs:
+                return []
+            else:
+                zero_xyzs = True
+                
     xyz_filename = f'{calc.name}_g09.xyz'
     if not os.path.exists(xyz_filename):
         xyzs2xyzfile(xyzs, xyz_filename)
 
-    return coords2xyzs(coords, calc.xyzs)
+    return xyzs
 
 
 def get_pi_bonds(calc):
