@@ -141,15 +141,6 @@ def split_mol_across_bond(graph, bonds):
     return [list(graph.nodes) for graph in split_subgraphs]
 
 
-def get_product_core_atoms(prod_mol, stripped_prod_graph):
-    # have to remove H's from stripped graph as they won't be there in the whole mol
-    for i in list(stripped_prod_graph.nodes):
-        if stripped_prod_graph.nodes[i]['atom_label'] == 'H':
-            stripped_prod_graph.remove_node(i)
-    mapping_dict = get_mapping(prod_mol.graph, stripped_prod_graph)[0]
-    return list(mapping_dict.keys())
-
-
 def get_bond_type_list(graph):
     """Finds the types (i.e CH) of all the bonds in a molecular graph
 
@@ -186,6 +177,15 @@ def get_bond_type_list(graph):
 
 
 def get_fbonds(graph, key):
+    """Get all the possible forming bonds of a certain type
+    
+    Arguments:
+        graph {nx.Graph} -- graph object of a molecule
+        key {str} -- string representing the bond type to be examined
+    
+    Returns:
+        {list} -- list of bonds that can be made of this type
+    """
     possible_fbonds = []
     bonds = list(graph.edges)
     for atom_i in graph.nodes:

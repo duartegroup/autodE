@@ -5,6 +5,16 @@ from autode.geom import calc_rotation_matrix
 
 
 def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangement, shift_factor=2):
+    """Sets the xyzs in the complex such that the attacking atoms are pointing at the atom they attack
+    
+    Arguments:
+        reac_complex {mol obj} -- reactant complex object
+        reactants {list} -- list of reactant mol objects
+        bond_rearrangement {bond rearrang obj} -- the bond rearrangement corresponding to the reaction
+    
+    Keyword Arguments:
+        shift_factor {int} -- distance the reacting atoms should be apart (default: {2})
+    """
     logger.info('Translating reactant atoms into reactive complex')
     reac_complex_coords = reac_complex.get_coords()
 
@@ -53,7 +63,7 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
             reac_complex_coords[i] += shift_factor * normed_lg_vector
 
     reac_complex_xyzs = coords2xyzs(coords=reac_complex_coords, old_xyzs=reac_complex.xyzs)
-    return reac_complex.set_xyzs(reac_complex_xyzs)
+    reac_complex.set_xyzs(reac_complex_xyzs)
 
 
 def get_normalised_lg_vector(bond_rearrangement, all_attacked_atoms, reac_complex_coords, tolerance=0.09):

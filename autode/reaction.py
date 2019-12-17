@@ -164,6 +164,8 @@ class Reaction:
         os.chdir(here)
 
     def ts_confs(self):
+        """Find the lowest energy conformer of the transition state
+        """
         here = os.getcwd()
         ts_conf_directory_path = os.path.join(here, 'ts_confs')
         if not os.path.isdir(ts_conf_directory_path):

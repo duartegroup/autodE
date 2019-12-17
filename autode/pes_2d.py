@@ -268,6 +268,16 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
 
 
 def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
+    """Finds the closest scan point to a pair of coordinates.
+    
+    Arguments:
+        r1_saddle {float} -- point on the r1 axis
+        r2_saddle {float} -- point on the r2 axis
+        dists {list(tuple)} -- list of r1, r2 distances for points that have been scanned
+    
+    Returns:
+        {tuple} -- the closest scan point
+    """
     closest_dist_to_saddle = 99999.9
     scan_dists_tuple = None
 

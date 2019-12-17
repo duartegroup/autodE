@@ -106,6 +106,17 @@ def calc_delta(coeff_mat, root):
 
 
 def best_saddlepoint(saddle_points, r1, r2, energy_grid):
+    """Finds the saddle point with the lowest peak in its minimum energy pathway
+    
+    Arguments:
+        saddle_points {list(tuple)} -- list of saddlepoints, defined by their coordinates in r1 and r2
+        r1 {tuple} -- [description]
+        r2 {tuple} -- the distances of grid points on one axis
+        energy_grid {np.array} -- grid of the energy at each grid point given by r1 and r2
+    
+    Returns:
+        {tuple} -- (r1 saddle distance, r2 saddle distance, list of mep coords)
+    """
     saddle_points_on_mep = []
     min_energy_pathways = []
 

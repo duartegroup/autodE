@@ -11,7 +11,7 @@ from autode.methods import get_lmethod
 
 
 def get_ts(ts_guess, imag_freq_threshold=-100):
-    """Get a transition object from a set of xyzs by running an ORCA OptTS calculation
+    """Get a transition state object from a set of xyzs by running an ORCA OptTS calculation
 
     Arguments:
         ts_guess {ts guess object} -- object to be optimised to a TS
@@ -102,7 +102,7 @@ def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_ma
     for i in range(n_atoms):
         for j in range(3):
             displaced_xyzs[i][j+1] += displacement_magnitude * mode_distplacement_coords[i][j]      # adding coord (nx3)
-    #                                                                                               # to xyzs (nx4)
+                                                                                                    # to xyzs (nx4)
     return displaced_xyzs
 
 

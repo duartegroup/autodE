@@ -6,7 +6,8 @@ from autode.atoms import get_maximal_valance
 
 def get_bond_rearrangs(mol, product):
     """For a reactant and product (complex) find the set of breaking and forming bonds that will turn reactants into
-    products. 
+    products. This works by determining the types of bonds that have been made/broken (i.e CH) and then only considering
+    rearrangements involving those bonds. 
 
     Arguments:
         mol {molecule object} -- reactant complex

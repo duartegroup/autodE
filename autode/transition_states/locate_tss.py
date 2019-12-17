@@ -17,6 +17,14 @@ import os
 
 
 def find_tss(reaction):
+    """Finds the transition states of a reaction
+    
+    Arguments:
+        reaction {reaction object} -- reaction being examined
+    
+    Returns:
+        {list} -- list of transition state objects
+    """
     logger.info('Finding possible transition states')
     tss = []
 
@@ -232,13 +240,17 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
 
     if strip_molecule:
         reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
-        product_core_atoms = mol_graphs.get_product_core_atoms(product, full_prod_graph_reac_indices)
 
     reac_mol, reac_mol_rearrangement = reactant.strip_core(reactant_core_atoms, bond_rearrangement)
 
     if reac_mol.is_fragment:
         stripped_prod_graph = mol_graphs.reac_graph_to_prods(reac_mol.graph, reac_mol_rearrangement)
-        product_core_atoms = mol_graphs.get_product_core_atoms(product, stripped_prod_graph)
+        # get the reactant core atoms in the index of the product complex
+        for i in list(stripped_prod_graph.nodes):
+            if stripped_prod_graph.nodes[i]['atom_label'] == 'H':
+                stripped_prod_graph.remove_node(i)
+            mapping_dict = mol_graphs.get_mapping(product.graph, stripped_prod_graph)[0]
+            product_core_atoms = list(mapping_dict.keys())
     else:
         product_core_atoms = None
 

@@ -48,6 +48,16 @@ class Molecule:
             exit()
 
     def get_core_atoms(self, product_graph=None, depth=3):
+        """Finds the 'core' of a molecule, to find atoms that should not be stripped. Core atoms are those within a certain
+        number of bonds from atoms that are reacting. Also checks to ensure rings and pi bonda aren't being broken.
+        
+        Keyword Arguments:
+            product_graph {nx.Graph} -- Graph of the product molecule, to see if a ring is being made (default: {None})
+            depth {int} -- Number of bonds from the active atoms within which atoms are 'core' (default: {3})
+        
+        Returns:
+            {list} -- list of core atoms
+        """
         if self.active_atoms == None:
             logger.error('No active atoms found')
             return None
@@ -124,14 +134,6 @@ class Molecule:
     def calc_bond_distance(self, bond):
         return self.distance_matrix[bond[0], bond[1]]
 
-    def get_possible_forming_bonds(self):
-        curr_bonds = [pair for pair in self.graph.edges()]
-        return [(i, j) for i in range(self.n_atoms) for j in range(self.n_atoms)
-                if i < j and (i, j) not in curr_bonds and (j, i) not in curr_bonds]
-
-    def get_possible_breaking_bonds(self):
-        return [pair for pair in self.graph.edges()]
-
     def get_atom_label(self, atom_i):
         return self.xyzs[atom_i][0]
 
@@ -204,6 +206,18 @@ class Molecule:
         self.n_conformers = len(self.conformers)
 
     def strip_core(self, core_atoms, bond_rearrang=None):
+        """Removes extraneous atoms from the core, to hasten the TS search calculations. If given, it will also find the bond
+        rearrangement in the new indices of the molecule. If there are too few atoms to strip it will return the original molecule.
+        
+        Arguments:
+            core_atoms {list} -- list of core atoms, which must be kept
+        
+        Keyword Arguments:
+            bond_rearrang {bond rearrang object} -- the bond rearrangement of the reaction (default: {None})
+        
+        Returns:
+            {tuple} -- (stripped molecule, new bond rearrangement)
+        """
         logger.info('Stripping the extraneous atoms')
         bonded_to_core = set()
         bond_from_core = []

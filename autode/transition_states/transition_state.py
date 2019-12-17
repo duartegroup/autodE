@@ -118,6 +118,11 @@ class TS(TSguess):
         self.n_conformers = len(self.conformers)
 
     def opt_ts(self):
+        """Run the optts calculation
+        
+        Returns:
+            {ts object} -- the optimised transition state conformer
+        """
         name = self.name
 
         ts_conf_get_ts_output = get_ts(self)

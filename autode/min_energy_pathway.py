@@ -4,6 +4,17 @@ import numpy as np
 
 
 def get_mep(r1, r2, energies, saddlepoint):
+    """Finds the minimum energy pathway from reactants to products over a given saddlepoint
+    
+    Arguments:
+        r1 {tuple} -- the distances of grid points on one axis
+        r2 {tuple} -- the distances of grid points on one axis
+        energies {np.array} -- grid of the energy at each grid point given by r1 and r2
+        saddlepoint {tuple} -- coordinates of the saddle point in terms of r1 and r2
+    
+    Returns:
+        {list} -- list of grid coordinates corresponding to the mep
+    """
     logger.info('Generating minimum energy pathway')
     # reac and prod coords on the grid
     n_points = len(r1)
@@ -71,8 +82,8 @@ def get_point_on_grid(point, r1, r2):
 
     Arguments:
         point {tuple} -- the point to be assigned to the grid
-        r1 {list} -- the distances of grid points on one axis
-        r2 {list} -- the distances of grid points on one axis
+        r1 {tuple} -- the distances of grid points on one axis
+        r2 {tuple} -- the distances of grid points on one axis
 
     Returns:
         tuple -- the closest grid point to the point

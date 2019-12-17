@@ -70,9 +70,9 @@ def test_get_funcs_and_params():
     assert len(subs_f_and_p) == 8
     assert subs_f_and_p[2][1][5] == locate_tss.Substitution
 
-    butadiene = molecule.Reactant(name='a', smiles='C=CC=C')
-    ethene = molecule.Reactant(name='b', smiles='C=C')
-    cyclohexene = molecule.Product(name='c', smiles='C1C=CCCC1')
+    butadiene = molecule.Reactant(name='butadiene', smiles='C=CC=C')
+    ethene = molecule.Reactant(name='ethene', smiles='C=C')
+    cyclohexene = molecule.Product(name='cyclohexene', smiles='C1C=CCCC1')
     d_a = reaction.Reaction(butadiene, ethene, cyclohexene)
     d_a_reactant, d_a_product = locate_tss.get_reactant_and_product_complexes(d_a)
     d_a_rearrangs = locate_tss.get_bond_rearrangs(d_a_reactant, d_a_product)
@@ -80,4 +80,4 @@ def test_get_funcs_and_params():
     assert type(d_a_f_and_p) == list
     assert len(d_a_f_and_p) == 2
     assert d_a_f_and_p[0][0] == locate_tss.get_ts_guess_2d
-    assert d_a_f_and_p[1][1][5] == 'c--a+b_0-5_3-4_hl2d_bbonds'
+    assert d_a_f_and_p[1][1][5] == 'cyclohexene--butadiene+ethene_0-5_3-4_hl2d_bbonds'

@@ -8,6 +8,12 @@ from autode.exceptions import NoInputError
 class Calculation:
 
     def _get_core_atoms(self, molecule):
+        """Finds the atoms involved in the reaction, and those bonded to them. These atoms are then
+        calculated exactly in the hybrid hessian, if a full exact hessian is not calculated
+        
+        Arguments:
+            molecule {mol obj} -- the molecule being calculated
+        """
         active_atoms = set()
         for bond in self.bond_ids_to_add:
             active_atoms.add(bond[0])
