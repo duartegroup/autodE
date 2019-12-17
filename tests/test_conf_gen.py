@@ -10,16 +10,13 @@ def test_conf_gen():
     xyz_list = [['H', 0.0, 0.0, 0.0], ['H', 1.0, 0.0, 0.0]]
     Config.n_cores = 1
 
-    conf_list = conf_gen.gen_simanl_conf_xyzs(
-        name='H2', init_xyzs=xyz_list, bond_list=[(0, 1)], stereocentres=[0], n_simanls=1)
+    conf_list = conf_gen.gen_simanl_conf_xyzs(name='H2', init_xyzs=xyz_list, bond_list=[(0, 1)], stereocentres=[0], n_simanls=1)
     assert len(conf_list) == 1
 
-    conf_list = conf_gen.gen_simanl_conf_xyzs(
-        name='H2', init_xyzs=xyz_list, bond_list=[(0, 1)], stereocentres=None, n_simanls=2)
+    conf_list = conf_gen.gen_simanl_conf_xyzs(name='H2', init_xyzs=xyz_list, bond_list=[(0, 1)], stereocentres=None, n_simanls=2)
     assert len(conf_list) == 2
 
-    conf_list2 = conf_gen.gen_simanl_conf_xyzs(
-        name='h2', init_xyzs=xyz_list, bond_list=[(0, 1)], stereocentres=None, n_simanls=2)
+    conf_list2 = conf_gen.gen_simanl_conf_xyzs(name='h2', init_xyzs=xyz_list, bond_list=[(0, 1)], stereocentres=None, n_simanls=2)
     assert len(conf_list2) == 2
     assert conf_list2[0] == [['H', 0.0, 0.0, 0.0], ['H', -1.0, 0.0, 0.0]]
 

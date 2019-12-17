@@ -116,15 +116,13 @@ def best_saddlepoint(saddle_points, r1, r2, energy_grid):
             min_energy_pathways.append(min_energy_pathway)
 
     if len(saddle_points_on_mep) == 0:
-        logger.info(
-            'No saddle points were found connecting reactants and products')
+        logger.info('No saddle points were found connecting reactants and products')
         return None
     elif len(saddle_points_on_mep) == 1:
         min_energy_pathway = min_energy_pathways[0]
         r1_saddle, r2_saddle = saddle_points_on_mep[0]
     elif len(saddle_points_on_mep) > 1:
-        logger.info(
-            'Multiple saddlepoints remain, choosing the highest peak on the lowest minimum energy pathway')
+        logger.info('Multiple saddlepoints remain, choosing the highest peak on the lowest minimum energy pathway')
 
         peak_of_meps = []
         for mep in min_energy_pathways:
@@ -141,10 +139,8 @@ def best_saddlepoint(saddle_points, r1, r2, energy_grid):
                 grid_saddlepoints_in_lowest_mep.append(saddlepoint_on_grid)
                 saddlepoints_in_lowest_mep.append(saddlepoint)
 
-        saddlepoint_in_lowest_mep_energies = [
-            energy_grid[x, y] for x, y in grid_saddlepoints_in_lowest_mep]
-        max_saddle_energy_index = saddlepoint_in_lowest_mep_energies.index(
-            max(saddlepoint_in_lowest_mep_energies))
+        saddlepoint_in_lowest_mep_energies = [energy_grid[x, y] for x, y in grid_saddlepoints_in_lowest_mep]
+        max_saddle_energy_index = saddlepoint_in_lowest_mep_energies.index(max(saddlepoint_in_lowest_mep_energies))
         r1_saddle, r2_saddle = saddlepoints_in_lowest_mep[max_saddle_energy_index]
 
     return r1_saddle, r2_saddle, min_energy_pathway

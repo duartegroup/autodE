@@ -48,13 +48,11 @@ class TSguess:
         imag_freqs = []
         orig_optts_calc = deepcopy(self.optts_calc)
         orig_name = copy(self.name)
-        self.xyzs = get_displaced_xyzs_along_imaginary_mode(
-            self.optts_calc, displacement_magnitude=magnitude)
+        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=magnitude)
         self.name += '_dis'
         self.run_orca_optts()
         if self.calc_failed:
-            logger.error(
-                'Displacement lost correct imaginary mode, trying backwards displacement')
+            logger.error('Displacement lost correct imaginary mode, trying backwards displacement')
             mode_lost = True
             self.calc_failed = False
 
@@ -63,21 +61,18 @@ class TSguess:
             if not self.calc_failed:
                 imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
                 if len(imag_freqs) > 1:
-                    logger.warning(
-                        f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, trying displacement backwards')
+                    logger.warning(f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, trying displacement backwards')
                 if len(imag_freqs) == 1:
                     logger.info('Displacement fixed multiple imaginary modes')
                     return
             else:
-                logger.error(
-                    'Displacement lost correct imaginary mode, trying backwards displacement')
+                logger.error('Displacement lost correct imaginary mode, trying backwards displacement')
                 mode_lost = True
 
         if len(imag_freqs) > 1 or mode_lost:
             self.optts_calc = orig_optts_calc
             self.name = orig_name
-            self.xyzs = get_displaced_xyzs_along_imaginary_mode(
-                self.optts_calc, displacement_magnitude=-1 * magnitude)
+            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
             self.run_orca_optts()
             if self.calc_failed:
@@ -88,8 +83,7 @@ class TSguess:
             imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
 
             if len(imag_freqs) > 1:
-                logger.error(
-                    'Couldn\'t remove other imaginary frequencies by displacement')
+                logger.error('Couldn\'t remove other imaginary frequencies by displacement')
 
         return
 
@@ -143,8 +137,7 @@ class TSguess:
         """
         self.name = name
         self.xyzs = molecule.xyzs
-        self.n_atoms = len(
-            molecule.xyzs) if molecule.xyzs is not None else None
+        self.n_atoms = len(molecule.xyzs) if molecule.xyzs is not None else None
         self.reaction_class = reaction_class
         self.solvent = molecule.solvent
         self.charge = molecule.charge

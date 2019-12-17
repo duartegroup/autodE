@@ -110,8 +110,7 @@ def get_maximal_valance(atom_label):
     if atom_label in valid_valances.keys():
         return valid_valances[atom_label][-1]
     else:
-        logger.warning(
-            f'Could not find a valid valance for {atom_label}. Guessing at 6')
+        logger.warning(f'Could not find a valid valance for {atom_label}. Guessing at 6')
         return 6
 
 
@@ -128,8 +127,7 @@ def get_atomic_weight(atom_label):
     if atom_label in atomic_weights.keys():
         return atomic_weights[atom_label]
     else:
-        logger.warning(
-            f'Could not find a valid weight for {atom_label}. Guessing at 70')
+        logger.warning(f'Could not find a valid weight for {atom_label}. Guessing at 70')
         return 70
 
 
@@ -145,8 +143,7 @@ def get_vdw_radii(atom_label):
     if atom_label in vdw_radii.keys():
         vdv_radii = vdw_radii[atom_label]
     else:
-        logger.error(
-            f'Couldn\'t find the VdV radii for {atom_label}. Guessing at 1.5')
+        logger.error(f'Couldn\'t find the VdV radii for {atom_label}. Guessing at 1.5')
         vdv_radii = 1.5
 
     return vdv_radii

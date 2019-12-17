@@ -66,8 +66,7 @@ def generate_input(calc):
             # interpolation to the xyzs then fix the Cartesians
 
             xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
-                                                  bonds=list(
-                                                      calc.distance_constraints.keys()),
+                                                  bonds=list(calc.distance_constraints.keys()),
                                                   final_distances=list(calc.distance_constraints.values()))
 
             # Populate a flat list of atom ids to fix
@@ -83,11 +82,9 @@ def generate_input(calc):
 
         for i, xyz_line in enumerate(xyzs):
             if i in fixed_atoms:
-                print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(
-                    *xyz_line), file=input_file)
+                print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(*xyz_line), file=input_file)
             else:
-                print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(
-                    *xyz_line), file=input_file)
+                print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
 
     return None
 

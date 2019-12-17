@@ -79,8 +79,7 @@ def generate_input(calc):
         print(f'\n {calc.name}\n', file=inp_file)
 
         print(calc.charge, calc.mult, file=inp_file)
-        [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(
-            *line), file=inp_file) for line in calc.xyzs]
+        [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
 
         print('', file=inp_file)
 
@@ -110,8 +109,7 @@ def calculation_terminated_normally(calc):
             return True
 
         if 'Bend failed for angle' in line:
-            logger.info(
-                'Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
+            logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
             cart_calc = deepcopy(calc)
             for keyword in cart_calc.keywords:
                 if keyword.lower().startswith('geom'):
@@ -171,7 +169,7 @@ def calculation_terminated_normally(calc):
             fixed_angle_calc.rev_output_file_lines = None
             fixed_angle_calc.run()
             if fixed_angle_calc.terminated_normally:
-                logger.info('The 180° angle error has been fixed')
+                logger.info('The 180° angle issue has been fixed')
                 calc.output_filename = fixed_angle_calc.output_filename
                 calc.name = fixed_angle_calc.name
                 calc.set_output_file_lines()
@@ -258,9 +256,7 @@ def get_normal_mode_displacements(calc, mode_number):
                 try:
                     mode_numbers = [int(val) for val in line.split()]
                     if mode_number in mode_numbers:
-                        start_col = 3 * \
-                            [i for i in range(
-                                len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
+                        start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
                         for i in range(calc.n_atoms):
                             disp_line = calc.output_file_lines[j + 7 + i]
                             xyz_disp = [float(disp_line.split()[k])
@@ -270,8 +266,7 @@ def get_normal_mode_displacements(calc, mode_number):
                     pass
 
     if len(displacements) != calc.n_atoms:
-        logger.error(
-            'Something went wrong getting the displacements n != n_atoms')
+        logger.error('Something went wrong getting the displacements n != n_atoms')
         return None
 
     return displacements

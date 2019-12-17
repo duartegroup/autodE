@@ -40,8 +40,7 @@ class TS(TSguess):
 
         nodes_list = list(full_graph.nodes()).copy()
         truncated_graph = full_graph.copy()
-        [truncated_graph.remove_node(
-            node) for node in nodes_list if node not in nodes_to_keep]
+        [truncated_graph.remove_node(node) for node in nodes_list if node not in nodes_to_keep]
         self.truncated_graph = truncated_graph
 
     def save_ts_template(self, folder_path=None):
@@ -91,18 +90,15 @@ class TS(TSguess):
         self.conformers = []
 
         bond_list = list(self.graph.edges)
-        conf_xyzs = gen_simanl_conf_xyzs(
-            name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
+        conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
 
         for i in range(len(conf_xyzs)):
-            self.conformers.append(Conformer(
-                name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent=self.solvent, charge=self.charge, mult=self.mult, dist_consts=self.dist_consts))
+            self.conformers.append(Conformer(name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent=self.solvent, charge=self.charge, mult=self.mult, dist_consts=self.dist_consts))
 
         self.n_conformers = len(self.conformers)
 
     def strip_non_unique_confs(self, energy_threshold_kj=1):
-        logger.info(
-            'Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
+        logger.info('Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
         # conformer.energy is in Hartrees
         d_e = energy_threshold_kj / Constants.ha2kJmol
         # The first conformer must be unique
@@ -117,8 +113,7 @@ class TS(TSguess):
             if unique:
                 unique_conformers.append(self.conformers[i])
 
-        logger.info(
-            f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
+        logger.info(f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
@@ -166,11 +161,9 @@ class TS(TSguess):
                 else:
                     pass
             else:
-                logger.warning(
-                    'Conformer had a different molecular graph. Ignoring')
+                logger.warning('Conformer had a different molecular graph. Ignoring')
 
-        logger.info(
-            'Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
+        logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
         return self.opt_ts()
 
@@ -191,8 +184,7 @@ class TS(TSguess):
         self.n_atoms = len(self.xyzs)
 
         self.active_bonds = ts_guess.active_bonds
-        self.active_atoms = list(
-            set([atom_id for bond in self.active_bonds for atom_id in bond]))
+        self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
         self.reaction_class = ts_guess.reaction_class
 
         self.graph = None

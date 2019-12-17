@@ -26,8 +26,7 @@ def get_mep(r1, r2, energies, saddlepoint):
     # get two coords so are always just below saddlepoint, and don't have to worry about going over it
     saddle_neighbours = get_neighbouring_points(saddle_coords, n_points)
     saddle_neighbour_energies = [energies[x, y] for x, y in saddle_neighbours]
-    lowest_saddle_neighbour_index = saddle_neighbour_energies.index(
-        min(saddle_neighbour_energies))
+    lowest_saddle_neighbour_index = saddle_neighbour_energies.index(min(saddle_neighbour_energies))
     one_side_of_saddle = saddle_neighbours[lowest_saddle_neighbour_index]
     other_side_of_saddle = []
     # get opposite point of square around saddle point
@@ -47,8 +46,7 @@ def get_mep(r1, r2, energies, saddlepoint):
 
     # see which point is closest to reacs
     first_dist_to_reacs = one_side_of_saddle[0] ** 2 + one_side_of_saddle[1]**2
-    second_dist_to_reacs = other_side_of_saddle[0] ** 2 + \
-        other_side_of_saddle[1]**2
+    second_dist_to_reacs = other_side_of_saddle[0] ** 2 + other_side_of_saddle[1]**2
     if first_dist_to_reacs < second_dist_to_reacs:
         reac_saddle_coords = (one_side_of_saddle[0], one_side_of_saddle[1])
         prod_saddle_coords = (other_side_of_saddle[0], other_side_of_saddle[1])
@@ -56,10 +54,8 @@ def get_mep(r1, r2, energies, saddlepoint):
         reac_saddle_coords = (other_side_of_saddle[0], other_side_of_saddle[1])
         prod_saddle_coords = (one_side_of_saddle[0], one_side_of_saddle[1])
 
-    reac_mep = find_point_on_mep(
-        energies_graph, reac_saddle_coords, reac_coords)
-    prod_mep = find_point_on_mep(
-        energies_graph, prod_saddle_coords, prod_coords)
+    reac_mep = find_point_on_mep(energies_graph, reac_saddle_coords, reac_coords)
+    prod_mep = find_point_on_mep(energies_graph, prod_saddle_coords, prod_coords)
 
     if saddle_coords in reac_mep or saddle_coords in prod_mep:
         return None

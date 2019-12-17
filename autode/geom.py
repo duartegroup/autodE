@@ -60,10 +60,8 @@ def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
 
         ab_norm_vec = ab_vec / ab_dist
 
-        atoms_and_shift_vecs[atom_b] = 0.5 * \
-            (ab_final_dist - ab_dist) * ab_norm_vec
-        atoms_and_shift_vecs[atom_a] = -0.5 * \
-            (ab_final_dist - ab_dist) * ab_norm_vec
+        atoms_and_shift_vecs[atom_b] = 0.5 * (ab_final_dist - ab_dist) * ab_norm_vec
+        atoms_and_shift_vecs[atom_a] = -0.5 * (ab_final_dist - ab_dist) * ab_norm_vec
 
     for n, coord in enumerate(coords):
         if n in atoms_and_shift_vecs.keys():

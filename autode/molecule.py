@@ -36,8 +36,7 @@ class Molecule:
             return 2
 
         if n_radical_electrons > 1:
-            logger.warning(
-                'Diradicals by default singlets. Set mol.mult if it\'s any different')
+            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
 
         return self.mult
 
@@ -45,8 +44,7 @@ class Molecule:
         try:
             assert self.n_bonds == self.graph.number_of_edges()
         except AssertionError:
-            logger.error(
-                'Number of rdkit bonds doesn\'t match the the molecular graph')
+            logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
     def get_core_atoms(self, product_graph=None, depth=3):
@@ -82,8 +80,7 @@ class Molecule:
 
             logger.info('Looking for rings in the products')
             if product_graph is None:
-                logger.warning(
-                    'No product graph found, this will cause errors if rings are formed in the reaction')
+                logger.warning('No product graph found, this will cause errors if rings are formed in the reaction')
             else:
                 prod_ring_atoms = set()
                 for atom in core_atoms:
@@ -171,20 +168,14 @@ class Molecule:
         self.conformers = []
 
         if self.rdkit_conf_gen_is_fine:
-            logger.info(
-                'Generating Molecule conformer xyz lists from rdkit mol object')
-            unique_conf_ids = generate_unique_rdkit_confs(
-                self.mol_obj, n_rdkit_confs)
-            logger.info(
-                f'Generated {len(unique_conf_ids)} unique conformers with RDKit ETKDG')
-            conf_xyzs = extract_xyzs_from_rdkit_mol_object(
-                self, conf_ids=unique_conf_ids)
+            logger.info('Generating Molecule conformer xyz lists from rdkit mol object')
+            unique_conf_ids = generate_unique_rdkit_confs(self.mol_obj, n_rdkit_confs)
+            logger.info(f'Generated {len(unique_conf_ids)} unique conformers with RDKit ETKDG')
+            conf_xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=unique_conf_ids)
 
         else:
-            bond_list = get_bond_list_from_rdkit_bonds(
-                rdkit_bonds_obj=self.mol_obj.GetBonds())
-            conf_xyzs = gen_simanl_conf_xyzs(
-                name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres)
+            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+            conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres)
 
         for i in range(len(conf_xyzs)):
             self.conformers.append(Conformer(name=self.name + '_conf' + str(i), xyzs=conf_xyzs[i],
@@ -193,8 +184,7 @@ class Molecule:
         self.n_conformers = len(self.conformers)
 
     def strip_non_unique_confs(self, energy_threshold_kj=1):
-        logger.info(
-            'Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
+        logger.info('Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
         # conformer.energy is in Hartrees
         d_e = energy_threshold_kj / Constants.ha2kJmol
         # The first conformer must be unique
@@ -209,8 +199,7 @@ class Molecule:
             if unique:
                 unique_conformers.append(self.conformers[i])
 
-        logger.info(
-            f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
+        logger.info(f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
         self.conformers = unique_conformers
         self.n_conformers = len(self.conformers)
 
@@ -243,8 +232,7 @@ class Molecule:
             core_atom, bonded_atom = bond
             bond_vector = coords[bonded_atom] - coords[core_atom]
             normed_bond_vector = bond_vector / np.linalg.norm(bond_vector)
-            avg_bond_length = get_avg_bond_length(
-                self.get_atom_label(core_atom), 'H')
+            avg_bond_length = get_avg_bond_length(self.get_atom_label(core_atom), 'H')
             h_coords = (coords[core_atom] +
                         normed_bond_vector * avg_bond_length).tolist()
             fragment_xyzs.append(['H'] + h_coords)
@@ -266,8 +254,7 @@ class Molecule:
                 new_atom_2 = core_atoms.index(bbond[1])
                 new_bbonds.append((new_atom_1, new_atom_2))
 
-            new_bond_rearrang = BondRearrangement(
-                forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
+            new_bond_rearrang = BondRearrangement(forming_bonds=new_fbonds, breaking_bonds=new_bbonds)
         else:
             new_bond_rearrang = None
 
@@ -289,8 +276,7 @@ class Molecule:
             if conformer.energy is None:
                 continue
 
-            conformer_graph = mol_graphs.make_graph(
-                conformer.xyzs, self.n_atoms)
+            conformer_graph = mol_graphs.make_graph(conformer.xyzs, self.n_atoms)
 
             if mol_graphs.is_isomorphic(self.graph, conformer_graph):
                 # If the conformer retains the same connectivity
@@ -305,11 +291,9 @@ class Molecule:
                 else:
                     pass
             else:
-                logger.warning(
-                    'Conformer had a different molecular graph. Ignoring')
+                logger.warning('Conformer had a different molecular graph. Ignoring')
 
-        logger.info(
-            'Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
+        logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def set_xyzs(self, xyzs):
         logger.info('Setting molecule xyzs')
@@ -369,25 +353,21 @@ class Molecule:
             self.mol_obj = Chem.MolFromSmiles(smiles)
             self.mol_obj = Chem.AddHs(self.mol_obj)
         except RuntimeError:
-            logger.critical(
-                f'Could not generate an rdkit mol object for {name}')
+            logger.critical(f'Could not generate an rdkit mol object for {name}')
             exit()
 
         self.n_atoms = self.mol_obj.GetNumAtoms()
         self.n_bonds = len(self.mol_obj.GetBonds())
         self.charge = Chem.GetFormalCharge(self.mol_obj)
-        n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(
-            self.mol_obj)
+        n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
         self.mult = self._calc_multiplicity(n_radical_electrons)
 
-        AllChem.EmbedMultipleConfs(
-            self.mol_obj, numConfs=1, params=AllChem.ETKDG())
+        AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
         self.xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=[0])[0]
 
         unassigned_stereocentres = False
         stereocentres = []
-        stereochem_info = Chem.FindMolChiralCenters(
-            self.mol_obj, includeUnassigned=True)
+        stereochem_info = Chem.FindMolChiralCenters(self.mol_obj, includeUnassigned=True)
         for atom, assignment in stereochem_info:
             if assignment == '?':
                 unassigned_stereocentres = True
@@ -402,10 +382,8 @@ class Molecule:
         if not rdkit_conformer_geometries_are_resonable(conf_xyzs=[self.xyzs]):
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
-            bond_list = get_bond_list_from_rdkit_bonds(
-                rdkit_bonds_obj=self.mol_obj.GetBonds())
-            self.xyzs = gen_simanl_conf_xyzs(
-                name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, n_simanls=1)[0]
+            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+            self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
             self.n_bonds = self.graph.number_of_edges()
 
@@ -418,13 +396,11 @@ class Molecule:
     def _init_xyzs(self, xyzs):
         for xyz in xyzs:
             if len(xyz) != 4:
-                logger.critical(
-                    f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). Found {xyz} instead')
+                logger.critical(f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). Found {xyz} instead')
                 exit()
 
         if isinstance(self, (Reactant, Product)):
-            logger.warning(
-                'Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate from a SMILES string to keep stereochemistry')
+            logger.warning('Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate from a SMILES string to keep stereochemistry')
 
         self.n_atoms = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))

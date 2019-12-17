@@ -14,8 +14,7 @@ def test_root_finder():
 
 def test_calc_delta():
     # 3x^3 + 2y^3 + x^2y^2
-    coeff_mat = np.array(
-        [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 1, 0], [3, 0, 0, 0]])
+    coeff_mat = np.array([[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 1, 0], [3, 0, 0, 0]])
     assert saddle_points.calc_delta(coeff_mat, (2, 3)) == 1800
 
 
@@ -37,11 +36,9 @@ def test_best_saddlepoints():
     r2 = np.linspace(7, -3, 10)
     xx, yy = np.meshgrid(r1, r2)
     energy_grid = polynomial.polyval2d(xx, yy, coeff_mat)
-    best_saddle_output = saddle_points.best_saddlepoint(
-        saddles, r1, r2, energy_grid)
+    best_saddle_output = saddle_points.best_saddlepoint(saddles, r1, r2, energy_grid)
     assert 1.09883 < best_saddle_output[0] < 1.09887
     assert -0.575301 < best_saddle_output[1] < -0.575297
     assert type(best_saddle_output[2]) == list
 
-    assert saddle_points.best_saddlepoint(
-        [(10, 10)], r1, r2, energy_grid) is None
+    assert saddle_points.best_saddlepoint([(10, 10)], r1, r2, energy_grid) is None

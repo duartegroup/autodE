@@ -27,5 +27,4 @@ def test_get_mep():
     r1 = np.linspace(-0.5, 0.5, 5)
     x, y = np.meshgrid(r1, r1)
     energy_grid = polynomial.polyval2d(x, y, coeff_mat).transpose()
-    assert mep.get_mep(r1, r1, energy_grid, (0, 0)) == [
-        (0, 0), (1, 1), (2, 2), (3, 3), (4, 4)]
+    assert mep.get_mep(r1, r1, energy_grid, (0, 0)) == [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)]

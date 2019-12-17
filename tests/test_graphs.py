@@ -17,8 +17,7 @@ def test_graph_generation():
 def test_isomorphic_graphs():
 
     h2_graph1 = mol_graphs.make_graph(h2_xyzs, n_atoms=len(h2_xyzs))
-    h2_graph2 = mol_graphs.make_graph(
-        list(reversed(h2_xyzs)), n_atoms=len(h2_xyzs))
+    h2_graph2 = mol_graphs.make_graph(list(reversed(h2_xyzs)), n_atoms=len(h2_xyzs))
 
     assert mol_graphs.is_isomorphic(h2_graph1, h2_graph2) is True
 
@@ -28,11 +27,9 @@ def test_subgraph_isomorphism():
     h2_graph = mol_graphs.make_graph(h2_xyzs, n_atoms=len(h2_xyzs))
     h4_graph = mol_graphs.make_graph(h2_xyzs*2, n_atoms=len(h2_xyzs)*2)
 
-    assert mol_graphs.is_subgraph_isomorphic(
-        larger_graph=h4_graph, smaller_graph=h2_graph) is True
+    assert mol_graphs.is_subgraph_isomorphic(larger_graph=h4_graph, smaller_graph=h2_graph) is True
 
-    h2_h4_mapping = mol_graphs.get_mapping_ts_template(
-        larger_graph=h4_graph, smaller_graph=h2_graph)
+    h2_h4_mapping = mol_graphs.get_mapping_ts_template(larger_graph=h4_graph, smaller_graph=h2_graph)
     assert type(h2_h4_mapping) == dict
     assert len(h2_h4_mapping) == 2
 
@@ -62,11 +59,9 @@ def test_reac_to_prods():
 def test_prod_core_atoms():
     mol = Molecule(smiles='CC(C)CC')
     stripped_mol = Molecule(smiles='CC(C)C')
-    prod_core_atoms = mol_graphs.get_product_core_atoms(
-        mol, stripped_mol.graph)
+    prod_core_atoms = mol_graphs.get_product_core_atoms(mol, stripped_mol.graph)
     assert prod_core_atoms == [0, 1, 2, 3]
 
 
 def test_split_graph():
-    assert mol_graphs.split_mol_across_bond(
-        graph, [(0, 3)]) == [[0, 1, 2], [3, 4]]
+    assert mol_graphs.split_mol_across_bond(graph, [(0, 3)]) == [[0, 1, 2], [3, 4]]

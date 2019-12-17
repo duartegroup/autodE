@@ -19,10 +19,8 @@ class Reaction:
         immediately
         """
 
-        n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [
-            prod.n_atoms for prod in self.prods]
-        reac_charges, prod_charges = [r.charge for r in self.reacs], [
-            p.charge for p in self.prods]
+        n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [prod.n_atoms for prod in self.prods]
+        reac_charges, prod_charges = [r.charge for r in self.reacs], [p.charge for p in self.prods]
         if sum(n_reac_atoms) != sum(n_prod_atoms):
             logger.critical('Number of atoms doesn\'t balance')
             exit()
@@ -49,26 +47,22 @@ class Reaction:
     def switch_addition(self):
         """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
         """
-        logger.info(
-            'Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
+        logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
         self.type = reactions.Dissociation
         self.prods, self.reacs = self.reacs, self.prods
 
     def check_rearrangement(self):
         """Could be an intramolecular addition, so will swap reactants and products if this is the case
         """
-        logger.info(
-            'Reaction classified as rearrangement, checking if it is an intramolecular addition')
+        logger.info('Reaction classified as rearrangement, checking if it is an intramolecular addition')
         reac_bonds_list = [mol.n_bonds for mol in self.reacs]
         prod_bonds_list = [mol.n_bonds for mol in self.prods]
         delta_n_bonds = sum(reac_bonds_list) - sum(prod_bonds_list)
         if delta_n_bonds < 0:
-            logger.info(
-                'Products have more bonds than the reactants, swapping reacs and prods and going in reverse')
+            logger.info('Products have more bonds than the reactants, swapping reacs and prods and going in reverse')
             self.prods, self.reacs = self.reacs, self.prods
         else:
-            logger.info(
-                'Does not appear to be an intramolecular addition, continuing')
+            logger.info('Does not appear to be an intramolecular addition, continuing')
 
     def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
@@ -100,8 +94,7 @@ class Reaction:
         conformers_directory_path = os.path.join(here, 'conformers')
         if not os.path.isdir(conformers_directory_path):
             os.mkdir(conformers_directory_path)
-            logger.info(
-                f'Creating directory to store conformer output files at {conformers_directory_path:}')
+            logger.info(f'Creating directory to store conformer output files at {conformers_directory_path:}')
         os.chdir(conformers_directory_path)
 
         self.clear_tmp_files()
@@ -118,12 +111,10 @@ class Reaction:
         """Perform a geometry optimisation on all the reactants and products using the hcode
         """
         here = os.getcwd()
-        opt_reacs_prods_directory_path = os.path.join(
-            here, 'optimise_reactants_and_products')
+        opt_reacs_prods_directory_path = os.path.join(here, 'optimise_reactants_and_products')
         if not os.path.isdir(opt_reacs_prods_directory_path):
             os.mkdir(opt_reacs_prods_directory_path)
-            logger.info(
-                f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
+            logger.info(f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
         os.chdir(opt_reacs_prods_directory_path)
 
         self.clear_tmp_files()
@@ -155,8 +146,7 @@ class Reaction:
         tss_directory_path = os.path.join(here, 'tss')
         if not os.path.isdir(tss_directory_path):
             os.mkdir(tss_directory_path)
-            logger.info(
-                f'Creating directory to store transition state output files at {tss_directory_path:}')
+            logger.info(f'Creating directory to store transition state output files at {tss_directory_path:}')
         os.chdir(tss_directory_path)
 
         # clear the PES graphs, so they don't write over each other
@@ -178,8 +168,7 @@ class Reaction:
         ts_conf_directory_path = os.path.join(here, 'ts_confs')
         if not os.path.isdir(ts_conf_directory_path):
             os.mkdir(ts_conf_directory_path)
-            logger.info(
-                f'Creating directory to store ts conformer output files at {ts_conf_directory_path:}')
+            logger.info(f'Creating directory to store ts conformer output files at {ts_conf_directory_path:}')
         os.chdir(ts_conf_directory_path)
 
         self.clear_tmp_files()
@@ -211,8 +200,7 @@ class Reaction:
             logger.error('Conformer search lost the TS, using the original TS')
             self.ts = ts_copy
         elif self.ts.energy > ts_copy.energy:
-            logger.error(
-                f'Conformer search increased the TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
+            logger.error(f'Conformer search increased the TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
             self.ts = ts_copy
 
         self.clear_xtb_files()
@@ -226,8 +214,7 @@ class Reaction:
         single_points_directory_path = os.path.join(here, 'single_points')
         if not os.path.isdir(single_points_directory_path):
             os.mkdir(single_points_directory_path)
-            logger.info(
-                f'Creating directory to store single point output files at {single_points_directory_path:}')
+            logger.info(f'Creating directory to store single point output files at {single_points_directory_path:}')
         os.chdir(single_points_directory_path)
 
         self.clear_tmp_files()
@@ -259,8 +246,7 @@ class Reaction:
         directory_path = os.path.join(here, self.name)
         if not os.path.isdir(directory_path):
             os.mkdir(directory_path)
-            logger.info(
-                f'Creating directory to store all output files at {directory_path:}')
+            logger.info(f'Creating directory to store all output files at {directory_path:}')
         os.chdir(directory_path)
 
         self.find_lowest_energy_conformers()
@@ -290,10 +276,8 @@ class Reaction:
 
         self.name = name
         molecules = [mol1, mol2, mol3, mol4, mol5, mol6]
-        self.reacs = [mol for mol in molecules if isinstance(
-            mol, Reactant) and mol is not None]
-        self.prods = [mol for mol in molecules if isinstance(
-            mol, Product) and mol is not None]
+        self.reacs = [mol for mol in molecules if isinstance(mol, Reactant) and mol is not None]
+        self.prods = [mol for mol in molecules if isinstance(mol, Product) and mol is not None]
         self.ts, self.tss = None, []
         self.charge = None
 

@@ -39,7 +39,6 @@ def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
 
     with open(filename, 'w') as xyz_file:
         print(len(xyzs), '\n', title_line, sep='', file=xyz_file)
-        [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(
-            *line), file=xyz_file) for line in xyzs]
+        [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
 
     return filename

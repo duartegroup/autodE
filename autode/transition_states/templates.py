@@ -20,12 +20,10 @@ def get_ts_templates(reaction_class, folder_path=None):
     logger.info(f'Getting TS templates from lib/{reaction_class.__name__}')
 
     if folder_path is None:
-        folder_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), 'lib', reaction_class.__name__)
+        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
 
     if os.path.exists(folder_path):
-        obj_files = [filename for filename in os.listdir(
-            folder_path) if filename.endswith('.obj')]
+        obj_files = [filename for filename in os.listdir(folder_path) if filename.endswith('.obj')]
         return [pickle.load(open(os.path.join(folder_path, filename), 'rb')) for filename in obj_files]
     return []
 
@@ -47,8 +45,7 @@ class TStemplate:
 
         name, i = basename + '0', 0
         if folder_path is None:
-            folder_path = os.path.join(os.path.dirname(
-                os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
+            folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
         if not os.path.exists(folder_path):
             os.mkdir(folder_path)
 

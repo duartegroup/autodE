@@ -116,8 +116,7 @@ def generate_input(calc):
         print('%scf \nmaxiter 250 \nend', file=inp_file)
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)
-        [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(
-            *line), file=inp_file) for line in calc.xyzs]
+        [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
         print('*', file=inp_file)
 
     return None
@@ -194,16 +193,14 @@ def get_normal_mode_displacements(calc, mode_number):
             if '.' not in line and len(line.split()) > 1:
                 mode_numbers = [int(val) for val in line.split()]
                 if mode_number in mode_numbers:
-                    col = [i for i in range(
-                        len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
+                    col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                     displacements = [float(disp_line.split()[col]) for disp_line in
                                      calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
 
     displacements_xyz = [displacements[i:i + 3]
                          for i in range(0, len(displacements), 3)]
     if len(displacements_xyz) != calc.n_atoms:
-        logger.error(
-            'Something went wrong getting the displacements n != n_atoms')
+        logger.error('Something went wrong getting the displacements n != n_atoms')
         return None
 
     return displacements_xyz

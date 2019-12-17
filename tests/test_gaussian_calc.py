@@ -16,8 +16,7 @@ def test_gauss_opt_calc():
     os.chdir(os.path.join(here, 'data'))
     G09.available = True
 
-    methylchloride = Molecule(
-        name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
+    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=G09, opt=True,
                        keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()

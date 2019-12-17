@@ -48,8 +48,7 @@ def test_find_2dpes_saddle_xyzs():
     dist_dict[(1.125, 1.125)] = ([['H', 4, 0, 0]], 5)
     dist_dict[(1.5, 0.75)] = ([['H', 2, 0, 0]], 10)
     dist_dict[(1.5, 1.5)] = ([['H', 0, 0, 0]], 0)
-    saddle_xyzs = pes_2d.find_2dpes_saddlepoint_xyzs(
-        dist_dict, 'test', 'test', method, n_points=4, order=1)
+    saddle_xyzs = pes_2d.find_2dpes_saddlepoint_xyzs(dist_dict, 'test', 'test', method, n_points=4, order=1)
     assert type(saddle_xyzs) == tuple
     assert saddle_xyzs[0] == [['H', 4, 0, 0]]
     assert type(saddle_xyzs[1]) == tuple

@@ -40,15 +40,12 @@ def find_tss(reaction):
                     bbonds_block = True
                 if fbonds_block and len(line.split()) == 2:
                     atom_id_string = line.split()
-                    fbonds.append(
-                        (int(atom_id_string[0]), int(atom_id_string[1])))
+                    fbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
                 if bbonds_block and len(line.split()) == 2:
                     atom_id_string = line.split()
-                    bbonds.append(
-                        (int(atom_id_string[0]), int(atom_id_string[1])))
+                    bbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
                 if 'end' in line:
-                    bond_rearrangs.append(BondRearrangement(
-                        forming_bonds=fbonds, breaking_bonds=bbonds))
+                    bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds))
                     fbonds = []
                     bbonds = []
     else:
@@ -69,17 +66,14 @@ def find_tss(reaction):
                     print(*bbond, file=file)
                 print('end', file=file)
 
-    logger.info(
-        f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
+    logger.info(f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
 
     for bond_rearrangement in bond_rearrangs:
-        rearrang_tss = get_ts_obj(
-            reaction, reactant, product, bond_rearrangement)
+        rearrang_tss = get_ts_obj(reaction, reactant, product, bond_rearrangement)
         tss += rearrang_tss
 
     if len(tss) > 0:
-        logger.info(
-            f'Found *{len(tss)}* transition state(s) that lead to products')
+        logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
         return tss
 
     else:
@@ -89,8 +83,7 @@ def find_tss(reaction):
 
 def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang):
 
-    name = '+'.join([r.name for r in reaction.reacs]) + '--' + \
-        '+'.join([p.name for p in reaction.prods])
+    name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
 
     if reactant.is_fragment:
         name += 'fragment_'
@@ -125,8 +118,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
         fbond = bond_rearrang.fbonds[0]
         scan_name = name + f'_{fbond[0]}-{fbond[1]}'
-        delta_fbond_dist = get_avg_bond_length(
-            mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
 
         funcs_params.append((get_ts_guess_1d, (reactant, product, fbond, 20, scan_name + '_ll1d_fbond', reaction.type, lmethod,
                                                lmethod.scan_keywords, delta_fbond_dist, bond_rearrang.bbonds)))
@@ -139,12 +131,9 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         for fbond in bond_rearrang.fbonds:
             for bbond in bond_rearrang.bbonds:
                 scanned_bonds = [fbond, bbond]
-                active_bonds_not_scanned = [
-                    bond for bond in bond_rearrang.all if not bond in scanned_bonds]
-                scan_name = name + \
-                    f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
-                delta_fbond_dist = get_avg_bond_length(
-                    mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
+                scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
+                delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
                 delta_bbond_dist = get_bbond_dist(reaction)
 
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
@@ -155,10 +144,8 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     if bond_rearrang.n_fbonds == 2:
         fbond1, fbond2 = bond_rearrang.fbonds
         scan_name = name + f'_{fbond1[0]}-{fbond1[1]}_{fbond2[0]}-{fbond2[1]}'
-        delta_fbond_dist1 = get_avg_bond_length(
-            mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
-        delta_fbond_dist2 = get_avg_bond_length(
-            mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
+        delta_fbond_dist1 = get_avg_bond_length(mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
+        delta_fbond_dist2 = get_avg_bond_length(mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 16, scan_name + '_ll2d_fbonds', reaction.type, lmethod,
                                                lmethod.scan_keywords, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 8, scan_name + '_hl2d_fbonds', reaction.type, hmethod,
@@ -191,24 +178,19 @@ def get_reactant_and_product_complexes(reaction):
 
     if reaction.type == Dissociation:
         reactant = reaction.reacs[0]
-        product = gen_two_mol_complex(
-            name='product_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
+        product = gen_two_mol_complex(name='product_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
 
     elif reaction.type == Rearrangement:
         reactant = reaction.reacs[0]
         product = reaction.prods[0]
 
     elif reaction.type == Substitution:
-        reactant = gen_two_mol_complex(
-            name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
-        product = gen_two_mol_complex(
-            name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
+        reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        product = gen_two_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
 
     elif reaction.type == Elimination:
-        reactant = gen_two_mol_complex(
-            name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
-        product = gen_three_mol_complex(
-            name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
+        reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        product = gen_three_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
 
     else:
         logger.critical('Reaction type not currently supported')
@@ -234,8 +216,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
             shift_factor = 3
         else:
             shift_factor = 2
-        set_complex_xyzs_translated_rotated(
-            reactant, reaction.reacs, bond_rearrangement, shift_factor)
+        set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement, shift_factor)
 
     reactant_core_atoms = None
 
@@ -246,31 +227,24 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
     reactant.active_atoms = sorted(active_atoms)
 
     # get the product graph with the atom indices of the reactant
-    full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(
-        reactant.graph, bond_rearrangement)
+    full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(reactant.graph, bond_rearrangement)
     reaction.product_graph = full_prod_graph_reac_indices.copy()
 
     if strip_molecule:
-        reactant_core_atoms = reactant.get_core_atoms(
-            full_prod_graph_reac_indices)
-        product_core_atoms = mol_graphs.get_product_core_atoms(
-            product, full_prod_graph_reac_indices)
+        reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
+        product_core_atoms = mol_graphs.get_product_core_atoms(product, full_prod_graph_reac_indices)
 
-    reac_mol, reac_mol_rearrangement = reactant.strip_core(
-        reactant_core_atoms, bond_rearrangement)
+    reac_mol, reac_mol_rearrangement = reactant.strip_core(reactant_core_atoms, bond_rearrangement)
 
     if reac_mol.is_fragment:
-        stripped_prod_graph = mol_graphs.reac_graph_to_prods(
-            reac_mol.graph, reac_mol_rearrangement)
-        product_core_atoms = mol_graphs.get_product_core_atoms(
-            product, stripped_prod_graph)
+        stripped_prod_graph = mol_graphs.reac_graph_to_prods(reac_mol.graph, reac_mol_rearrangement)
+        product_core_atoms = mol_graphs.get_product_core_atoms(product, stripped_prod_graph)
     else:
         product_core_atoms = None
 
     prod_mol, _ = product.strip_core(product_core_atoms)
 
-    funcs_params = [
-        (get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type, product))]
+    funcs_params = [(get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type, product))]
 
     for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, prod_mol, reac_mol_rearrangement):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
@@ -281,17 +255,13 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
         if get_ts_output is not None:
             ts = TS(get_ts_output[0], converged=get_ts_output[1])
             if ts.is_true_ts():
-                logger.info(
-                    f'Found a transition state with {func.__name__}')
+                logger.info(f'Found a transition state with {func.__name__}')
                 if reac_mol.is_fragment:
                     logger.info('Finding full TS')
-                    ts_guess_with_decoratation = get_template_ts_guess(
-                        reactant, bond_rearrangement.all, reaction.type, product)
-                    full_get_ts_output = get_ts(
-                        ts_guess_with_decoratation)
+                    ts_guess_with_decoratation = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
+                    full_get_ts_output = get_ts(ts_guess_with_decoratation)
                     if full_get_ts_output is not None:
-                        ts_with_decoratation = TS(
-                            full_get_ts_output[0], converged=full_get_ts_output[1])
+                        ts_with_decoratation = TS(full_get_ts_output[0], converged=full_get_ts_output[1])
                         if ts_with_decoratation.is_true_ts():
                             logger.info('Found full TS')
                             tss.append(ts_with_decoratation)
@@ -300,10 +270,8 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
                 break
 
     if len(tss) == 0 and reac_mol.is_fragment:
-        logger.info(
-            'Found no transition states using the fragment, will try with the whole molecule')
-        tss = get_ts_obj(reaction, reactant, product,
-                         bond_rearrangement, strip_molecule=False)
+        logger.info('Found no transition states using the fragment, will try with the whole molecule')
+        tss = get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=False)
 
     return tss
 

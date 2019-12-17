@@ -41,8 +41,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     Returns:
         {ts guess object} -- ts guess
     """
-    logger.info(
-        f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
+    logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
 
     curr_dist1 = mol.distance_matrix[active_bond1[0], active_bond1[1]]
     curr_dist2 = mol.distance_matrix[active_bond2[0], active_bond2[1]]
@@ -85,8 +84,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         else:
             cores_per_process = Config.n_cores//n_steps
             if Config.n_cores % n_steps != 0:
-                logger.warning(
-                    f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a multiple of {n_steps} cores')
+                logger.warning(f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a multiple of {n_steps} cores')
 
         calcs = [Calculation(name+f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
                              keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
@@ -123,8 +121,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     dist_xyzs_energies = {}
     for n in range(n_steps):
         for m in range(n_steps):
-            dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (
-                mol_grid[n][m].xyzs, mol_grid[n][m].energy)
+            dist_xyzs_energies[(dist_grid1[n, m], dist_grid2[n, m])] = (mol_grid[n][m].xyzs, mol_grid[n][m].energy)
 
     # check product and TSGuess product graphs are isomorphic
     expected_prod_graphs = mol_graphs.get_separate_subgraphs(product.graph)
@@ -155,8 +152,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         saddle_point_xyzs, saddlepoint = saddle_point_xyzs_output
     tsguess_mol.set_xyzs(xyzs=saddle_point_xyzs)
 
-    logger.info(
-        'Running a constrain optimisation for the analytic saddlepoint distances')
+    logger.info('Running a constrain optimisation for the analytic saddlepoint distances')
     ts_const_opt = Calculation(name+'_saddlepoint_opt', tsguess_mol, method, n_cores=Config.n_cores, opt=True,
                                keywords=keywords, distance_constraints={active_bond1: saddlepoint[0],
                                                                         active_bond2: saddlepoint[1]})
@@ -166,8 +162,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     except XYZsNotFound:
         pass
 
-    active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [
-        active_bond1, active_bond2] + active_bonds_not_scanned
+    active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
                    active_bonds=active_bonds, reactant=mol, product=product)
@@ -231,18 +226,15 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
                    coeff_mat, name=name)
         return None
     elif len(saddle_points_in_range) == 1:
-        min_energy_pathway = get_mep(
-            r1, r2, energy_grid, saddle_points_in_range[0])
+        min_energy_pathway = get_mep(r1, r2, energy_grid, saddle_points_in_range[0])
         if min_energy_pathway is None:
             plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
                        coeff_mat, name=name)
             return None
         r1_saddle, r2_saddle = saddle_points_in_range[0]
     else:
-        logger.info(
-            f'Found {len(saddle_points_in_range)} saddle points, finding the minimum energy pathway from each to reacs and prods')
-        best_saddlepoint_output = best_saddlepoint(
-            saddle_points_in_range, r1, r2, energy_grid)
+        logger.info(f'Found {len(saddle_points_in_range)} saddle points, finding the minimum energy pathway from each to reacs and prods')
+        best_saddlepoint_output = best_saddlepoint(saddle_points_in_range, r1, r2, energy_grid)
         if best_saddlepoint_output is None:
             plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
                        coeff_mat, name=name)
@@ -257,8 +249,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
         mep_distances.append((r1[coord[0]], r2[coord[1]]))
     mep_xyzs = []
     for r1_dist, r2_dist in mep_distances:
-        closest_dists = get_closest_point_dists_to_saddle(
-            r1_dist, r2_dist, dists_xyzs_energies_dict.keys())
+        closest_dists = get_closest_point_dists_to_saddle(r1_dist, r2_dist, dists_xyzs_energies_dict.keys())
         coord_xyzs = dists_xyzs_energies_dict[closest_dists][0]
         if not coord_xyzs in mep_xyzs:
             mep_xyzs.append(coord_xyzs)
@@ -270,8 +261,7 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
 
     logger.info('Getting the closest scan point to the analytic saddle point')
 
-    closest_scan_point_dists = get_closest_point_dists_to_saddle(
-        r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
+    closest_scan_point_dists = get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists_xyzs_energies_dict.keys())
     xyzs_ts_guess = dists_xyzs_energies_dict[closest_scan_point_dists][0]
 
     return xyzs_ts_guess, (r1_saddle, r2_saddle)
@@ -282,8 +272,7 @@ def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
     scan_dists_tuple = None
 
     for dist in dists:
-        dist_to_saddle = np.linalg.norm(
-            np.array(dist) - np.array([r1_saddle, r2_saddle]))
+        dist_to_saddle = np.linalg.norm(np.array(dist) - np.array([r1_saddle, r2_saddle]))
         if dist_to_saddle < closest_dist_to_saddle:
             closest_dist_to_saddle = dist_to_saddle
             scan_dists_tuple = dist

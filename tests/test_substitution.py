@@ -22,8 +22,7 @@ def test_get_attacked_atom():
 
     # >2 attacked atoms
     with pytest.raises(SystemExit):
-        bad_rearrang = BondRearrangement(
-            [(0, 1), (2, 3), (4, 5)], [(1, 2), (3, 4), (5, 6)])
+        bad_rearrang = BondRearrangement([(0, 1), (2, 3), (4, 5)], [(1, 2), (3, 4), (5, 6)])
         substitution.get_attacked_atom(bad_rearrang)
 
 
@@ -37,8 +36,7 @@ def test_get_lg_or_fr_atom():
 
 def test_get_normalised_lg_vector():
     lg_vector = substitution.get_normalised_lg_vector(rearrang, [1], coords)
-    np.testing.assert_allclose(
-        lg_vector, np.array([0., -1., 0., ]), atol=0.001)
+    np.testing.assert_allclose(lg_vector, np.array([0., -1., 0., ]), atol=0.001)
 
 
 def test_get_rot_matrix():
@@ -49,16 +47,13 @@ def test_get_rot_matrix():
     np.testing.assert_allclose(rot_matrix, ideal_rot_matrix, atol=0.001)
 
 
-ch2 = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], [
-               'H', 0.0, 0.6, 0.6], ['H', 0.0, 0.6, -0.6]])
+ch2 = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], ['H', 0.0, 0.6, 0.6], ['H', 0.0, 0.6, -0.6]])
 ch2_coords = ch2.get_coords()
 
-ch3_flat = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], ['H', 0.0, 0.6, 0.6], [
-                    'H', 0.0, 0.6, -0.6], ['H', 0.0, -0.7, 0.0]])
+ch3_flat = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], ['H', 0.0, 0.6, 0.6], ['H', 0.0, 0.6, -0.6], ['H', 0.0, -0.7, 0.0]])
 ch3_flat_coords = ch3_flat.get_coords()
 
-ch3_pyramidal = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], ['H', 0.2, 0.5, 0.5], [
-                         'H', 0.2, 0.5, -0.5], ['H', 0.2, -1.0, 0.0]])
+ch3_pyramidal = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], ['H', 0.2, 0.5, 0.5], ['H', 0.2, 0.5, -0.5], ['H', 0.2, -1.0, 0.0]])
 ch3_pyramidal_coords = ch3_pyramidal.get_coords()
 
 two_attack_mol = Reactant(xyzs=[['C', 0.0, 0.0, 0.0], ['H', 0.0, 0.6, 0.6], ['H', 0.0, 0.6, -0.6],
@@ -67,24 +62,17 @@ two_attack_coords = two_attack_mol.get_coords()
 
 
 def test_get_normalised_attack_vector():
-    ch2_attack_vector = substitution.get_normalised_attack_vector(
-        ch2, ch2_coords, [0])
+    ch2_attack_vector = substitution.get_normalised_attack_vector(ch2, ch2_coords, [0])
     np.testing.assert_allclose(ch2_attack_vector, [0.0, -1.0, 0.0], atol=0.001)
 
-    ch3_flat_attack_vector = substitution.get_normalised_attack_vector(
-        ch3_flat, ch3_flat_coords, [0])
-    np.testing.assert_allclose(ch3_flat_attack_vector, [
-                               1.0, 0.0, 0.0], atol=0.001)
+    ch3_flat_attack_vector = substitution.get_normalised_attack_vector(ch3_flat, ch3_flat_coords, [0])
+    np.testing.assert_allclose(ch3_flat_attack_vector, [1.0, 0.0, 0.0], atol=0.001)
 
-    ch3_pyramidal_attack_vector = substitution.get_normalised_attack_vector(
-        ch3_pyramidal, ch3_pyramidal_coords, [0])
-    np.testing.assert_allclose(
-        ch3_pyramidal_attack_vector, [-1.0, 0.0, 0.0], atol=0.001)
+    ch3_pyramidal_attack_vector = substitution.get_normalised_attack_vector(ch3_pyramidal, ch3_pyramidal_coords, [0])
+    np.testing.assert_allclose(ch3_pyramidal_attack_vector, [-1.0, 0.0, 0.0], atol=0.001)
 
-    two_attack_vector = substitution.get_normalised_attack_vector(
-        two_attack_mol, two_attack_coords, [0, 3])
-    np.testing.assert_allclose(
-        two_attack_vector, [0.707, -0.707, 0.0], atol=0.001)
+    two_attack_vector = substitution.get_normalised_attack_vector(two_attack_mol, two_attack_coords, [0, 3])
+    np.testing.assert_allclose(two_attack_vector, [0.707, -0.707, 0.0], atol=0.001)
 
 
 hydroxide = Reactant(name='OH-', xyzs=[['F', 0., 0., 0.]], charge=-1)
@@ -97,8 +85,7 @@ bond_rearrang = BondRearrangement([(0, 1)], [(1, 2)])
 
 
 def test_set_complex_xyzs_translated_rotated():
-    substitution.set_complex_xyzs_translated_rotated(
-        reactants, reaction.reacs, bond_rearrang)
+    substitution.set_complex_xyzs_translated_rotated(reactants, reaction.reacs, bond_rearrang)
     new_xyzs = reactants.xyzs
     CF = [(new_xyzs[0][i]-new_xyzs[1][i]) for i in range(1, 4)]
     CCl = [(new_xyzs[1][i]-new_xyzs[2][i]) for i in range(1, 4)]

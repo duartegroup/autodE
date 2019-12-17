@@ -52,8 +52,8 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     ax1.set_ylabel('$r2$ / Å')
     ax1.set_zlabel('∆$E$ / kcal mol$^{-1}$')
     ax2 = fig.add_subplot(1, 2, 2)
-    pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())), extent=(r1.min(), r1.max(
-    ), r2.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
+    pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())), extent=(r1.min(), r1.max(),
+                         r2.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
     ax2.set_xlabel('$r1$ / Å')
     ax2.set_ylabel('$r2$ / Å')
     plt.colorbar(pos2, ax=ax2)
@@ -161,5 +161,4 @@ def make_reaction_animation(name, xyzs):
         for frame, xyz_list in enumerate(xyzs):
             print(len(xyz_list), file=output_file)
             print(frame, file=output_file)
-            [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(
-                *line), file=output_file) for line in xyz_list]
+            [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=output_file) for line in xyz_list]

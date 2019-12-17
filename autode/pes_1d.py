@@ -33,8 +33,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
     Returns:
         {ts guess object} -- ts guess
     """
-    logger.info(
-        f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
+    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
     mol_with_const = deepcopy(mol)
 
     curr_dist = mol.calc_bond_distance(active_bond)
@@ -82,15 +81,13 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(
-        dists, xyzs_list, energy_list, scan_name=name, plot_name=mol.name + f'_{active_bond[0]}_{active_bond[1]}_1dscan', method=method))
+    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, scan_name=name, plot_name=mol.name + f'_{active_bond[0]}_{active_bond[1]}_1dscan', method=method))
 
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
         return None
 
-    active_bonds = [active_bond] if active_bonds_not_scanned is None else [
-        active_bond] + active_bonds_not_scanned
+    active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
 
@@ -131,8 +128,7 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name,
                            for e in energies_not_none], scan_name=scan_name, plot_name=plot_name, method=method)
 
     if peak_e != min_e:
-        logger.info(
-            f'Energy at peak in PES at ∆E = {Constants.ha2kcalmol * (peak_e - min_e)} kcal/mol')
+        logger.info(f'Energy at peak in PES at ∆E = {Constants.ha2kcalmol * (peak_e - min_e)} kcal/mol')
     else:
         logger.warning('Couldn\'t find a peak in the PES')
 

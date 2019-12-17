@@ -13,8 +13,7 @@ def test_mopac_opt_calculation():
     os.chdir(os.path.join(here, 'data'))
     MOPAC.available = True
 
-    methylchloride = Molecule(
-        name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
+    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
     calc = Calculation(name='opt', molecule=methylchloride,
                        method=MOPAC, opt=True)
     calc.run()

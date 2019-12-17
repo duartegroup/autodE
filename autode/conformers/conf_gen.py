@@ -18,8 +18,7 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
     init_coords = coords.reshape(3 * n_atoms, 1)
-    res = minimize(v, x0=init_coords, args=(
-        bonds, k, d0, c, fixed_bonds), method='BFGS', tol=tol)
+    res = minimize(v, x0=init_coords, args=(bonds, k, d0, c, fixed_bonds), method='BFGS', tol=tol)
     final_coords = res.x.reshape(n_atoms, 3)
 
     return final_coords
@@ -67,8 +66,7 @@ def simanl(xyzs, bonds, dist_consts, non_random_atoms, stereocentres):
                 if atom1 < atom2:
                     if (atom1, atom2) in bonds or (atom2, atom1) in bonds:
                         theta = np.random.random_sample() * np.pi * 2
-                        split_atoms = split_mol_across_bond(
-                            graph, [(atom1, atom2)])
+                        split_atoms = split_mol_across_bond(graph, [(atom1, atom2)])
                         if atom1 in split_atoms[0]:
                             atoms_to_rot = split_atoms[0]
                         else:
@@ -82,12 +80,10 @@ def simanl(xyzs, bonds, dist_consts, non_random_atoms, stereocentres):
         xyzs = coords2xyzs(coords, xyzs)
 
     logger.info('Running high temp MD')
-    coords = do_md(xyzs, bonds, n_steps, temp, dt, k,
-                   d0, c, fixed_bonds, non_random_atoms)
+    coords = do_md(xyzs, bonds, n_steps, temp, dt, k, d0, c, fixed_bonds, non_random_atoms)
 
     logger.info('Minimising with BFGS')
-    coords = get_coords_minimised_v(
-        coords, bonds, k, c, d0, len(xyzs)/5, fixed_bonds)
+    coords = get_coords_minimised_v(coords, bonds, k, c, d0, len(xyzs)/5, fixed_bonds)
     xyzs = [[xyzs[i][0]] + coords[i].tolist() for i in range(len(xyzs))]
 
     return xyzs
@@ -109,8 +105,7 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, stereocentres, dist_consts=
     Returns:
         {list(list(list))} -- list of n_simanls xyzs
     """
-    logger.info(
-        'Doing simulated annealing with a harmonic + repulsion force field')
+    logger.info('Doing simulated annealing with a harmonic + repulsion force field')
 
     important_stereoatoms = set()
     if stereocentres is not None:
@@ -151,8 +146,7 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, stereocentres, dist_consts=
                     for line_no, line in enumerate(file):
                         if line_no > 1:
                             atom_label, x, y, z = line.split()
-                            xyzs.append(
-                                [atom_label, float(x), float(y), float(z)])
+                            xyzs.append([atom_label, float(x), float(y), float(z)])
                 all_conf_xyzs.append(xyzs)
                 has_conf = True
                 break
