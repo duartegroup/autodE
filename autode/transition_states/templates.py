@@ -43,20 +43,38 @@ class TStemplate:
 
     def save_object(self, basename='template', folder_path=None):
 
-        name, i = basename + '0', 0
-        if folder_path is None:
-            folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
-        if not os.path.exists(folder_path):
-            os.mkdir(folder_path)
+        if folder_path is not None:
+            logger.info(f'Saving template to user-defined directory: {folder_path}')
 
+            if not os.path.exists(folder_path):
+                logger.critical('Cannot save TS templates to a directory that doesn\'t exist')
+                exit()
+
+        # If the folder_path is None then save to the default location
+        else:
+            base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
+            if not os.path.exists(base_path):
+                logger.info(f'Making base directory {base_path}')
+                os.mkdir(base_path)
+
+            folder_path = os.path.join(base_path, self.reaction_class.__name__)
+            if not os.path.exists(folder_path):
+                os.mkdir(folder_path)
+
+        # Iterate i until the i.obj file doesn't exist
+        name, i = basename + '0', 0
         while True:
             if not os.path.exists(os.path.join(folder_path, name + '.obj')):
                 break
             name = basename + str(i)
             i += 1
 
-        with open(os.path.join(folder_path, name + '.obj'), 'wb') as pickled_file:
+        file_path = os.path.join(folder_path, name + '.obj')
+        logger.info(f'Saving the template as {file_path}')
+        with open(file_path, 'wb') as pickled_file:
             pickle.dump(self, file=pickled_file)
+
+        return None
 
     def __init__(self, graph, reaction_class, solvent=None, charge=0, mult=1):
         """Construct a TS template object

@@ -10,7 +10,7 @@ req_methods = ['generate_input', 'calculation_terminated_normally',  'get_energy
 class ElectronicStructureMethod:
 
     def set_availability(self):
-        logger.info('Setting the availability of an electronic structure code')
+        logger.info(f'Setting the availability of an electronic structure code: {self.name}')
 
         if self.req_licence:
             if self.path is not None and self.path_to_licence is not None:
@@ -44,6 +44,7 @@ class ElectronicStructureMethod:
             opt_ts_block {list} -- additional OptTS parameters (default: {None})
             sp_keywords {list} -- keywords to use when performing a single point calculation (default: {None})
         """
+        self.name = name
 
         # If the path is not set in config.py search in $PATH
         self.path = path if path is not None else which(name)
@@ -51,6 +52,7 @@ class ElectronicStructureMethod:
         self.path_to_licence = path_to_licence
         self.aval_solvents = aval_solvents
 
+        # Set the availability of the method
         self.available = False
         self.set_availability()
 
