@@ -16,7 +16,7 @@ def test_constrained_opt():
     mol.method = ORCA
 
     ts_guess = get_ts_guess_constrained_opt(mol=mol, distance_consts={(0, 1): 1.0}, reaction_class=Substitution,
-                                            keywords=Config.ORCA.scan_keywords, name='const_opt')
+                                            keywords=Config.ORCA.scan_keywords, name='template_ts_guess', product=mol)
     assert ts_guess.active_bonds == [(0, 1)]
     assert ts_guess.n_atoms == 3
 
@@ -25,5 +25,5 @@ def test_constrained_opt():
             os.remove(filename)
         if filename.endswith('.png'):
             os.remove(filename)
-        
+
     os.chdir(here)

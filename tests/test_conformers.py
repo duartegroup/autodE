@@ -13,4 +13,3 @@ def test_reasonable_conformers():
     h4_too_close = [[['H', 0.0, 0.0, 0.0], ['H', 0.4, 0.0, 0.4], ['H', 2.0, 0.0, 1.0], ['H', 3.0, 0.0, 1.0]]]
     h4_too_close_check = conformers.rdkit_conformer_geometries_are_resonable(h4_too_close)
     assert h4_too_close_check == False
-

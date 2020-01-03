@@ -1,4 +1,5 @@
 from autode import reactions
+import pytest
 
 
 def test_classify():
@@ -17,3 +18,6 @@ def test_classify():
 
     rearrangement = reactions.classify([0], [0])
     assert rearrangement.name == 'rearrangement'
+
+    with pytest.raises(SystemExit):
+        bad_reaction = reactions.classify([], [])

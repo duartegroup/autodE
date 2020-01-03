@@ -1,9 +1,9 @@
-[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=equiv_atoms)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=joseph)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/joseph/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/joseph) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![alt text](autode/common/llogo.png)
 ***
 ## Introduction
 
-**autode** is a Python module designed for the automated calculation of reaction
+**autodE** is a Python module designed for the automated calculation of reaction
 profiles from just SMILES strings of reactant(s) and product(s).
 
 ***
@@ -31,7 +31,7 @@ conda activate autode_env
 
 ## Usage
 
-Broadly, **atuodE** is invoked by first setting appropriate parameters in config.py, or specifying in a python script. 
+Broadly, **autodE** is invoked by first setting appropriate parameters in config.py, or specifying in a python script. 
 Then, initialising _Reactant_ and _Product_ objects, generating a _Reaction_ object from those and invoking a method 
 e.g. _locate_transtion_state()_ or _calculate_reaction_profile()_.
 

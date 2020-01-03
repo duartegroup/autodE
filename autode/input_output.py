@@ -2,14 +2,18 @@ from autode.log import logger
 
 
 def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
-    """
-    For a list of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] convert create a standard .xyz file
+    """For a list of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] create a standard .xyz file
 
-    :param xyzs: List of xyzs
-    :param filename: Name of the generated xyz file
-    :param basename: Name of the generated xyz file without the file extension
-    :param title_line: String to print on the title line of an xyz file
-    :return: The filename
+    Arguments:
+        xyzs {list(list)} -- List of xyzs
+
+    Keyword Arguments:
+        filename {str} -- Name of the generated xyz file (default: {None})
+        basename {str} -- Name of the generated xyz file without the file extension (default: {None})
+        title_line {str} -- String to print on the title line of an xyz file (default: {''})
+
+    Returns:
+        {str} -- Name of the generated xyz file
     """
 
     if basename:
@@ -19,7 +23,7 @@ def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
         logger.error('xyz filename cannot be None')
         return None
 
-    logger.info('Generating xyz file for {}'.format(filename))
+    logger.info(f'Generating xyz file for {filename}')
 
     if not filename.endswith('.xyz'):
         logger.error('xyz filename does not end with .xyz')
@@ -35,6 +39,6 @@ def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
 
     with open(filename, 'w') as xyz_file:
         print(len(xyzs), '\n', title_line, sep='', file=xyz_file)
-        [print('{:<3}{:^10.5f}{:^10.5f}{:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
+        [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
 
     return filename

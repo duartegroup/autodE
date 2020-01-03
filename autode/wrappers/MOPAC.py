@@ -28,6 +28,8 @@ MOPAC = ElectronicStructureMethod(name='mopac',
                                   path_to_licence=Config.MOPAC.licence_path,
                                   aval_solvents=solvents)
 
+MOPAC.__name__ = 'MOPAC'
+
 
 def generate_input(calc):
     logger.info(f'Generating MOPAC input for {calc.name}')
@@ -68,7 +70,8 @@ def generate_input(calc):
                                                   final_distances=list(calc.distance_constraints.values()))
 
             # Populate a flat list of atom ids to fix
-            fixed_atoms = [i for bond in calc.distance_constraints.keys() for i in bond]
+            fixed_atoms = [i for bond in calc.distance_constraints.keys()
+                           for i in bond]
 
         else:
             xyzs = calc.xyzs
