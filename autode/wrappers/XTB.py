@@ -30,13 +30,19 @@ def generate_input(calc):
     if calc.solvent:
         calc.flags += ['--gbsa', calc.solvent]
 
-    if calc.distance_constraints:
+    if calc.distance_constraints or calc.cartesian_constraints:
         xcontrol_filename = 'xcontrol_' + calc.name
         with open(xcontrol_filename, 'w') as xcontrol_file:
-            for atom_ids in calc.distance_constraints.keys():  # XTB counts from 1 so increment atom ids by 1
-                print('$constrain\nforce constant=10\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
-                    atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
-                      file=xcontrol_file)
+            if calc.distance_constraints:
+                for atom_ids in calc.distance_constraints.keys():  # XTB counts from 1 so increment atom ids by 1
+                    print('$constrain\nforce constant=10\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
+                        atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
+                          file=xcontrol_file)
+
+            if calc.cartesian_constraints:
+                print('$constrain\nforce constant=100\n atoms:', end='', file=xcontrol_file)
+                [print(atom_id, sep=',', end='', file=xcontrol_file) for atom_id in calc.cartesian_constraints]
+                print('\n$', file=xcontrol_file)
 
         calc.flags += ['--input', xcontrol_filename]
 

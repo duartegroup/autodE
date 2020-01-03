@@ -16,12 +16,15 @@ from autode.log import logger
 from autode.mol_graphs import is_subgraph_isomorphic
 
 
-def get_ts_templates(reaction_class):
+def get_ts_templates(reaction_class, folder_path=None):
     logger.info('Getting TS templates from {}/{}'.format('lib', reaction_class.__name__))
 
-    folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
-    if os.path.exists(folder_name):
-        return [pickle.load(open(os.path.join(folder_name, filename), 'rb')) for filename in os.listdir(folder_name)]
+    if folder_path is None:
+        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
+
+    if os.path.exists(folder_path):
+        obj_files = [filename for filename in os.listdir(folder_path) if filename.endswith('.obj')]
+        return [pickle.load(open(os.path.join(folder_path, filename), 'rb')) for filename in obj_files]
     return []
 
 
@@ -38,20 +41,21 @@ def template_matches(mol, ts_template, mol_graph):
 
 class TStemplate:
 
-    def save_object(self, basename='template'):
+    def save_object(self, basename='template', folder_path=None):
 
         name, i = basename + '0', 0
-        folder_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
-        if not os.path.exists(folder_name):
-            os.mkdir(folder_name)
+        if folder_path is None:
+            folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', self.reaction_class.__name__)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
 
         while True:
-            if not os.path.exists(os.path.join(folder_name, name + '.obj')):
+            if not os.path.exists(os.path.join(folder_path, name + '.obj')):
                 break
             name = basename + str(i)
             i += 1
 
-        with open(os.path.join(folder_name, name + '.obj'), 'wb') as pickled_file:
+        with open(os.path.join(folder_path, name + '.obj'), 'wb') as pickled_file:
             pickle.dump(self, file=pickled_file)
 
     def __init__(self, graph, reaction_class, solvent=None, charge=0, mult=1):

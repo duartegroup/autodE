@@ -70,12 +70,14 @@ class Calculation:
 
     def execute_calculation(self):
         logger.info('Running calculation {}'.format(self.input_filename))
+        self.method.set_availability()
 
         if self.input_filename is None:
             logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
 
         if self.method.available is False:
+
             logger.critical('Electronic structure method is not available')
             exit()
 
@@ -117,7 +119,7 @@ class Calculation:
         return None
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None):
+                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None):
         """
         :param name: (str)
         :param molecule: (object) a Molecule object
@@ -125,6 +127,7 @@ class Calculation:
         :param bond_ids_to_add: (list(tuples))
         :param optts_block: (bool)
         :param distance_constraints: (dict) keys: tuple of atom ids (indexed from 0), values: float of the distance
+        :param cartesian_constraints: (list(int)) list of atom ids to fix at their cartesian coordinates
         """
 
         self.name = name
@@ -145,6 +148,7 @@ class Calculation:
         self.bond_ids_to_add = bond_ids_to_add
         self.optts_block = optts_block
         self.distance_constraints = distance_constraints
+        self.cartesian_constraints = cartesian_constraints
 
         self.input_filename = None                              # Set in self.generate_input()
         self.output_filename = None                             # Set in self.generate_input()

@@ -132,12 +132,25 @@ class Molecule:
         self.strip_non_unique_confs()
         [self.conformers[i].optimise(method=self.method) for i in range(len(self.conformers))]
 
-        lowest_energy = min([conf.energy for conf in self.conformers])
+        lowest_energy = None
         for conformer in self.conformers:
-            if conformer.energy == lowest_energy:
-                self.energy = conformer.energy
-                self.set_xyzs(conformer.xyzs)
-                break
+            conformer_graph = mol_graphs.make_graph(conformer.xyzs, self.n_atoms)
+
+            if mol_graphs.is_isomorphic(self.graph, conformer_graph):
+                # If the conformer retains the same connectivity
+                if lowest_energy is None:
+                    lowest_energy = conformer.energy
+
+                elif conformer.energy <= lowest_energy:
+                    self.energy = conformer.energy
+                    self.set_xyzs(conformer.xyzs)
+                    lowest_energy = conformer.energy
+
+                else:
+                    pass
+            else:
+                logger.warning('Conformer had a different molecular graph. Ignoring')
+
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
     def set_xyzs(self, xyzs):

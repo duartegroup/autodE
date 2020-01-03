@@ -1,4 +1,6 @@
 from shutil import which
+import os
+from autode.log import logger
 
 # List of required methods that need to be added to construct a valid electronic structure method wrapper
 req_methods = ['generate_input', 'calculation_terminated_normally',  'get_energy', 'optimisation_converged',
@@ -6,6 +8,21 @@ req_methods = ['generate_input', 'calculation_terminated_normally',  'get_energy
 
 
 class ElectronicStructureMethod:
+
+    def set_availability(self):
+        logger.info('Setting the availability of an electronic structure code')
+
+        if self.req_licence:
+            if self.path is not None and self.path_to_licence is not None:
+                if os.path.exists(self.path) and os.path.exists(self.path_to_licence):
+                    self.available = True
+
+        else:
+            if self.path is not None:
+                if os.path.exists(self.path):
+                    self.available = True
+
+        return None
 
     def __init__(self, name, path, req_licence=False, path_to_licence=None, aval_solvents=None, scan_keywords=None,
                  conf_opt_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None, opt_ts_block=None,
@@ -26,12 +43,12 @@ class ElectronicStructureMethod:
         """
 
         self.path = path if path is not None else which(name)      # If the path is not set in config.py search in $PATH
+        self.req_licence = req_licence
+        self.path_to_licence = path_to_licence
         self.aval_solvents = aval_solvents
 
-        if req_licence:
-            self.available = True if self.path is not None and path_to_licence is not None else False
-        else:
-            self.available = True if self.path is not None else False
+        self.available = False
+        self.set_availability()
 
         self.scan_keywords = scan_keywords
         self.conf_opt_keywords = conf_opt_keywords

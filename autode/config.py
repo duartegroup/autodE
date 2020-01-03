@@ -58,6 +58,10 @@ class Config:
         # Note: path can be unset and will be assigned if it can be found in $PATH
         path = None
         licence_path = None
+        #
+        # Note: all optimisations at this low level will be in the gas phase using the keywords
+        # specified here. Solvent in MOPAC is defined by EPS and the dielectric
+        keywords = ['PM7', 'PRECISE']
 
     class PSI4:
         # ------------------------------------------------------------------------------------------

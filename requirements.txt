@@ -2,7 +2,7 @@ rdkit
 numpy
 networkx
 matplotlib
-Cython
+cython
 scipy
 pytest-cov
 codecov

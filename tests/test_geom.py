@@ -73,3 +73,11 @@ def test_neighbour_list():
     assert len(neighbour_list) == 5
     assert type(neighbour_list) == list
     assert type(neighbour_list[0]) == str
+
+
+def test_shifted_xyzs_linear_interp():
+
+    new_xyzs = geom.get_shifted_xyzs_linear_interp(xyzs=xyz_list, bonds=[(0, 1)], final_distances=[0.7])
+    new_coords = geom.xyz2coord(xyzs=new_xyzs)
+
+    assert 0.69 < np.linalg.norm(new_coords[0] - new_coords[1]) < 0.71
