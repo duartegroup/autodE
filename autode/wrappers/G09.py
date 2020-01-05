@@ -47,7 +47,7 @@ G09 = ElectronicStructureMethod(name='g09', path=Config.G09.path,
                                 hess_keywords=Config.G09.hess_keywords,
                                 sp_keywords=Config.G09.sp_keywords)
 
-G09.__name__ = 'gaussian09'
+G09.__name__ = 'G09'
 
 
 def generate_input(calc):

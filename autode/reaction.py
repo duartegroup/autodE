@@ -8,6 +8,7 @@ from autode.units import KjMol
 from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
 from autode.mol_graphs import get_mapping
+from autode.utils import work_in
 from copy import deepcopy
 import os
 
@@ -86,43 +87,21 @@ class Reaction:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
 
+    @work_in('conformers')
     def find_lowest_energy_conformers(self):
         """Try and locate the lowest energy conformation using RDKit, then optimise them with XTB, then
-        optimise the unique (defined by an energy cut-off) conformers with an electronic structure method
-        """
-        here = os.getcwd()
-        conformers_directory_path = os.path.join(here, 'conformers')
-        if not os.path.isdir(conformers_directory_path):
-            os.mkdir(conformers_directory_path)
-            logger.info(f'Creating directory to store conformer output files at {conformers_directory_path:}')
-        os.chdir(conformers_directory_path)
-
-        self.clear_tmp_files()
+        optimise the unique (defined by an energy cut-off) conformers with an electronic structure method"""
 
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
                 mol.find_lowest_energy_conformer()
 
-        self.clear_xtb_files()
-
-        os.chdir(here)
-
+    @work_in('optimise_reactants_and_products')
     def optimise_reacs_prods(self):
         """Perform a geometry optimisation on all the reactants and products using the hcode
         """
-        here = os.getcwd()
-        opt_reacs_prods_directory_path = os.path.join(here, 'optimise_reactants_and_products')
-        if not os.path.isdir(opt_reacs_prods_directory_path):
-            os.mkdir(opt_reacs_prods_directory_path)
-            logger.info(f'Creating directory to store optimised reactant and product output files at {opt_reacs_prods_directory_path:}')
-        os.chdir(opt_reacs_prods_directory_path)
-
-        self.clear_tmp_files()
-
         logger.info('Calculating optimised reactants and products')
         [mol.optimise() for mol in self.reacs + self.prods]
-
-        os.chdir(here)
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
@@ -141,40 +120,20 @@ class Reaction:
         else:
             return self.tss[0]
 
+    @work_in('tss')
     def locate_transition_state(self):
-        here = os.getcwd()
-        tss_directory_path = os.path.join(here, 'tss')
-        if not os.path.isdir(tss_directory_path):
-            os.mkdir(tss_directory_path)
-            logger.info(f'Creating directory to store transition state output files at {tss_directory_path:}')
-        os.chdir(tss_directory_path)
 
-        # clear the PES graphs, so they don't write over each other
+        # Clear the PES graphs, so they don't write over each other
         for filename in os.listdir(os.getcwd()):
             if filename.endswith('.png'):
                 os.remove(filename)
 
-        self.clear_tmp_files()
-
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
 
-        self.clear_xtb_files()
-
-        os.chdir(here)
-
+    @work_in('ts_confs')
     def ts_confs(self):
-        """Find the lowest energy conformer of the transition state
-        """
-        here = os.getcwd()
-        ts_conf_directory_path = os.path.join(here, 'ts_confs')
-        if not os.path.isdir(ts_conf_directory_path):
-            os.mkdir(ts_conf_directory_path)
-            logger.info(f'Creating directory to store ts conformer output files at {ts_conf_directory_path:}')
-        os.chdir(ts_conf_directory_path)
-
-        self.clear_tmp_files()
-
+        """Find the lowest energy conformer of the transition state"""
         logger.info('Finding all the stereocentres in the transition state')
 
         stereocentres = set()
@@ -205,59 +164,25 @@ class Reaction:
             logger.error(f'Conformer search increased the TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
             self.ts = ts_copy
 
-        self.clear_xtb_files()
-
-        os.chdir(here)
-
+    @work_in('single_points')
     def calculate_single_points(self):
-        """Perform a single point energy evaluations on all the reactants and products using the hcode
-        """
-        here = os.getcwd()
-        single_points_directory_path = os.path.join(here, 'single_points')
-        if not os.path.isdir(single_points_directory_path):
-            os.mkdir(single_points_directory_path)
-            logger.info(f'Creating directory to store single point output files at {single_points_directory_path:}')
-        os.chdir(single_points_directory_path)
-
-        self.clear_tmp_files()
-
+        """Perform a single point energy evaluations on all the reactants and products using the hcode"""
         molecules = self.reacs + self.prods + [self.ts]
         [mol.single_point() for mol in molecules if mol is not None]
 
-        os.chdir(here)
-
-    def clear_xtb_files(self):
-        xtb_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
-                     'charges', 'wbo', '.xtboptok']
-        if any(file in xtb_files for file in os.listdir(os.getcwd())):
-            logger.info('Clearing xtb files')
-        for filename in xtb_files:
-            if os.path.exists(filename):
-                os.remove(filename)
-
-    def clear_tmp_files(self):
-        if any(file.endswith('.tmp') for file in os.listdir(os.getcwd())):
-            logger.info('Clearing tmp files')
-        for filename in os.listdir(os.getcwd()):
-            if filename.endswith('.tmp'):
-                os.remove(filename)
-
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
-        here = os.getcwd()
-        directory_path = os.path.join(here, self.name)
-        if not os.path.isdir(directory_path):
-            os.mkdir(directory_path)
-            logger.info(f'Creating directory to store all output files at {directory_path:}')
-        os.chdir(directory_path)
 
-        self.find_lowest_energy_conformers()
-        self.optimise_reacs_prods()
-        self.locate_transition_state()
-        if self.ts is not None:
-            self.ts_confs()
-        self.calculate_single_points()
+        @work_in(self.name)
+        def calc_reaction_profile():
+            self.find_lowest_energy_conformers()
+            self.optimise_reacs_prods()
+            self.locate_transition_state()
+            if self.ts is not None:
+                self.ts_confs()
+            self.calculate_single_points()
 
+        calc_reaction_profile()
         if self.ts is None:
             return logger.error('TS is None – cannot plot a reaction profile')
 
@@ -270,8 +195,7 @@ class Reaction:
                                     ' + '.join([p.name for p in self.prods])),
                               is_true_ts=self.ts.is_true_ts(),
                               ts_is_converged=self.ts.converged)
-
-        os.chdir(here)
+        return None
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction', solvent=None):
         logger.info(f'Generating a Reaction object for {name}')

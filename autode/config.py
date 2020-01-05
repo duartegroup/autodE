@@ -11,7 +11,7 @@ class Config:
     #
     # ----------------------------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code will be used:
-    # 1. 'ORCA', 2. 'Gaussian'
+    # 1. 'ORCA', 2. 'G09'
     #
     hcode = 'ORCA'
     #
@@ -55,7 +55,8 @@ class Config:
         scan_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
         conf_opt_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
         opt_keywords = ['PBE1PBE/Def2SVP', 'Opt']
-        opt_ts_keywords = ['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', 'Freq']
+        opt_ts_keywords = ['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)',
+                           'Freq']
         hess_keywords = ['PBE1PBE/Def2SVP', 'Freq']
         sp_keywords = ['PBE1PBE/Def2TZVP']
 

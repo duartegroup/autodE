@@ -81,7 +81,9 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, scan_name=name, plot_name=mol.name + f'_{active_bond[0]}_{active_bond[1]}_1dscan', method=method))
+    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, scan_name=name,
+                                                             plot_name=f'{mol.name}_{active_bond[0]}_{active_bond[1]}_1dscan',
+                                                             method=method))
 
     if tsguess_mol.xyzs is None:
         logger.warning('TS guess had no xyzs')
@@ -89,7 +91,8 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds,
+                   reactant=mol, product=product)
 
 
 def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):

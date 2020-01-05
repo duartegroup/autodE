@@ -156,7 +156,9 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
 
     if molecules is not None:
         if threshold_contribution - 0.1 < relative_contribution < threshold_contribution + 0.1:
-            logger.info(f'Unsure if significant contribution from active atoms to imag mode (contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
+            logger.info(f'Unsure if significant contribution from active atoms to imag mode '
+                        f'(contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
+
             if check_close_imag_contribution(calc, molecules, method=get_lmethod()):
                 logger.info('Imaginary mode links reactants and products, TS found')
                 return True
@@ -168,10 +170,12 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
             return False
 
     if relative_contribution > threshold_contribution:
-        logger.info(f'TS has significant contribution from the active atoms to the imag mode (contribution = {relative_contribution:.3f})')
+        logger.info(f'TS has significant contribution from the active atoms to the imag mode '
+                    f'(contribution = {relative_contribution:.3f})')
         return True
 
-    logger.info(f'TS has *no* significant contribution from the active atoms to the imag mode (contribution = {relative_contribution:.3f})')
+    logger.info(f'TS has *no* significant contribution from the active atoms to the imag mode '
+                f'(contribution = {relative_contribution:.3f})')
     return False
 
 
@@ -194,6 +198,7 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs, charge=calc.charge, mult=calc.mult)
     forward_coords = forward_displaced_mol.get_coords()
     forward_distance_constraints = {}
+
     for active_bond in calc.bond_ids_to_add:
         distance = np.linalg.norm(forward_coords[active_bond[0]] - forward_coords[active_bond[1]])
         forward_distance_constraints[active_bond] = distance
@@ -207,6 +212,7 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs, charge=calc.charge, mult=calc.mult)
     backward_coords = backward_displaced_mol.get_coords()
     backward_distance_constraints = {}
+
     for active_bond in calc.bond_ids_to_add:
         distance = np.linalg.norm(backward_coords[active_bond[0]] - backward_coords[active_bond[1]])
         backward_distance_constraints[active_bond] = distance

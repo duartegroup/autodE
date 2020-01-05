@@ -1,5 +1,7 @@
 from shutil import which
 import os
+from autode.config import Config
+import inspect
 from autode.log import logger
 
 # List of required methods that need to be added to construct a valid electronic structure method wrapper
@@ -12,6 +14,12 @@ class ElectronicStructureMethod:
     def set_availability(self):
         logger.info(f'Setting the availability of an electronic structure code: {self.name}')
 
+        # Config.EST.path can be set at run time so if it's not None update self.path
+        for _, est_config_class in inspect.getmembers(Config, inspect.isclass):
+            if self.__name__ == est_config_class.__name__:
+                if est_config_class.path is not None:
+                    self.path = est_config_class.path
+
         if self.req_licence:
             if self.path is not None and self.path_to_licence is not None:
                 if os.path.exists(self.path) and os.path.exists(self.path_to_licence):
@@ -22,6 +30,7 @@ class ElectronicStructureMethod:
                 if os.path.exists(self.path):
                     self.available = True
 
+        logger.info(f'{self.name} is available {self.available}')
         return None
 
     def __init__(self, name, path, req_licence=False, path_to_licence=None, aval_solvents=None, scan_keywords=None,
@@ -29,7 +38,7 @@ class ElectronicStructureMethod:
                  sp_keywords=None):
         """
         Arguments:
-            name {str} -- wrapper name
+            name {str} -- wrapper name. ALSO the name of the executable
             path {str} -- absolute path to the executable
 
         Keyword Arguments:
@@ -44,6 +53,7 @@ class ElectronicStructureMethod:
             opt_ts_block {list} -- additional OptTS parameters (default: {None})
             sp_keywords {list} -- keywords to use when performing a single point calculation (default: {None})
         """
+        self.__name__ = name
         self.name = name
 
         # If the path is not set in config.py search in $PATH
