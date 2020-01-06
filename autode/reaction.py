@@ -53,12 +53,13 @@ class Reaction:
         self.prods, self.reacs = self.reacs, self.prods
 
     def check_rearrangement(self):
-        """Could be an intramolecular addition, so will swap reactants and products if this is the case
-        """
+        """Could be an intramolecular addition, so will swap reactants and products if this is the case"""
+
         logger.info('Reaction classified as rearrangement, checking if it is an intramolecular addition')
         reac_bonds_list = [mol.n_bonds for mol in self.reacs]
         prod_bonds_list = [mol.n_bonds for mol in self.prods]
         delta_n_bonds = sum(reac_bonds_list) - sum(prod_bonds_list)
+
         if delta_n_bonds < 0:
             logger.info('Products have more bonds than the reactants, swapping reacs and prods and going in reverse')
             self.prods, self.reacs = self.reacs, self.prods

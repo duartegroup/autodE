@@ -172,10 +172,15 @@ class TS(TSguess):
 
         return self.opt_ts()
 
-    def __init__(self, ts_guess, name='TS', converged=True):
+    def __init__(self, ts_guess=None, name='TS', converged=True):
         logger.info(f'Generating a TS object for {name}')
 
         self.name = name
+
+        if ts_guess is None:
+            logger.error('A TS needs to be initialised from a TSguess object')
+            return
+
         self.solvent = ts_guess.solvent
         self.charge = ts_guess.charge
         self.mult = ts_guess.mult

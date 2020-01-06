@@ -33,6 +33,23 @@ def test_reaction_class():
     assert h1.solvent == 'water'
 
 
+def test_check_rearrangement():
+
+    # Linear H3 -> Trigonal H3
+    lin_h3 = reaction.Reactant(name='h3_linear', xyzs=[['H', -1.76172,        0.79084,       -0.00832],
+                                                       ['H', -2.13052 ,       0.18085,        0.00494],
+                                                       ['H', -1.39867 ,       1.39880,       -0.00676]])
+
+    trig_h3 = reaction.Product(name='h3_trigonal', xyzs=[['H', -1.76172,       0.79084,       -0.00832],
+                                                         ['H', -1.65980,       1.15506,       0.61469],
+                                                         ['H', -1.39867,        1.39880,       -0.00676]])
+    reac = reaction.Reaction(trig_h3, lin_h3)
+
+    # Should switch reactants and products if the products have more bonds than the reactants
+    assert reac.reacs[0].name == 'h3_trigonal'
+    assert reac.prods[0].name == 'h3_linear'
+
+
 def test_reaction_identical_reac_prods():
     # H2 -> H2
     hh_r = reaction.Reactant(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
@@ -59,3 +76,28 @@ def test_bad_balance():
     hh = reaction.Product(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]], solvent='thf')
     with pytest.raises(SystemExit):
         _ = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh)
+
+
+def test_calc_delta_e():
+
+    r1 = reaction.Reactant(name='h', xyzs=[['H', 0.0, 0.0, 0.0]])
+    r1.energy = -0.5
+
+    r2 = reaction.Reactant(name='h', xyzs=[['H', 0.0, 0.0, 0.0]])
+    r2.energy = -0.5
+
+    ts = TS()
+    ts.energy = -0.8
+
+    p = reaction.Product(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
+    p.energy = -1.0
+
+    reac = reaction.Reaction(r1, r2, p)
+    reac.ts = ts
+
+    assert -1E-6 < reac.calc_delta_e() < 1E-6
+    assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
+
+
+
+

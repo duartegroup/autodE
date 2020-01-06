@@ -405,7 +405,8 @@ class Molecule:
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
             bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
-            self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, n_simanls=1)[0]
+            self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
+                                             stereocentres=self.stereocentres, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
             self.n_bonds = self.graph.number_of_edges()
 
@@ -418,11 +419,13 @@ class Molecule:
     def _init_xyzs(self, xyzs):
         for xyz in xyzs:
             if len(xyz) != 4:
-                logger.critical(f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). Found {xyz} instead')
+                logger.critical(f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). '
+                                f'Found {xyz} instead')
                 exit()
 
         if isinstance(self, (Reactant, Product)):
-            logger.warning('Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate from a SMILES string to keep stereochemistry')
+            logger.warning('Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate '
+                           'from a SMILES string to keep stereochemistry')
 
         self.n_atoms = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))
