@@ -136,6 +136,11 @@ class TSguess:
             product {molecule object} -- product object (default: {None})
         """
         self.name = name
+
+        if molecule is None:
+            logger.error('A TSguess needs a molecule object to initialise')
+            return
+
         self.xyzs = molecule.xyzs
         self.n_atoms = len(molecule.xyzs) if molecule.xyzs is not None else None
         self.reaction_class = reaction_class

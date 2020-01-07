@@ -2,6 +2,7 @@ from autode.geom import get_neighbour_list
 from autode.log import logger
 from autode import mol_graphs
 from autode.atoms import get_maximal_valance
+from autode.mol_graphs import is_isomorphic
 
 
 def get_bond_rearrangs(mol, product):
@@ -17,6 +18,11 @@ def get_bond_rearrangs(mol, product):
         list -- list of bond rearrang objects linking reacs and prods
     """
     logger.info('Finding the possible forming and breaking bonds')
+
+    if is_isomorphic(mol.graph, product.graph) and product.n_atoms > 3:
+        logger.error('Reactant (complex) is isomorphic to product (complex). Bond rearrangement '
+                     'cannot be determined unless the substrates are limited in size')
+        return None
 
     possible_bond_rearrangements = []
 

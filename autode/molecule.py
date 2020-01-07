@@ -5,6 +5,7 @@ from rdkit import Chem
 import rdkit.Chem.Descriptors
 from autode import mol_graphs
 from autode.constants import Constants
+from autode.mol_graphs import is_isomorphic
 from autode.conformers.conformers import generate_unique_rdkit_confs
 from autode.bond_lengths import get_xyz_bond_list
 from autode.bond_lengths import get_bond_list_from_rdkit_bonds
@@ -58,7 +59,7 @@ class Molecule:
         Returns:
             {list} -- list of core atoms
         """
-        if self.active_atoms == None:
+        if self.active_atoms is None:
             logger.error('No active atoms found')
             return None
 
@@ -312,13 +313,20 @@ class Molecule:
     def set_xyzs(self, xyzs):
         logger.info('Setting molecule xyzs')
         self.xyzs = xyzs
+
         if xyzs is None:
             logger.error('Setting xyzs as None')
             return
 
         self.n_atoms = len(xyzs)
         self.distance_matrix = calc_distance_matrix(xyzs)
+
+        old_xyzs_graph = self.graph.copy()
         self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
+
+        if not is_isomorphic(old_xyzs_graph, self.graph):
+            logger.warning('New xyzs result in a modified molecular graph')
+
         self.n_bonds = self.graph.number_of_edges()
 
     def optimise(self, method=None):
@@ -397,7 +405,8 @@ class Molecule:
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
             bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
-            self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, n_simanls=1)[0]
+            self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
+                                             stereocentres=self.stereocentres, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
             self.n_bonds = self.graph.number_of_edges()
 
@@ -410,11 +419,13 @@ class Molecule:
     def _init_xyzs(self, xyzs):
         for xyz in xyzs:
             if len(xyz) != 4:
-                logger.critical(f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). Found {xyz} instead')
+                logger.critical(f'XYZ input is not the correct format (needs to be e.g. [\'H\',0,0,0]). '
+                                f'Found {xyz} instead')
                 exit()
 
         if isinstance(self, (Reactant, Product)):
-            logger.warning('Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate from a SMILES string to keep stereochemistry')
+            logger.warning('Initiating a molecule from xyzs means any stereocentres will probably be lost. Initiate '
+                           'from a SMILES string to keep stereochemistry')
 
         self.n_atoms = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))
