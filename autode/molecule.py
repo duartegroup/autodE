@@ -401,17 +401,18 @@ class Molecule:
             if unassigned_stereocentres:
                 logger.warning('Unassigned stereocentres found')
 
+        bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
+
         if not rdkit_conformer_geometries_are_resonable(conf_xyzs=[self.xyzs]):
             logger.info('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
-            bond_list = get_bond_list_from_rdkit_bonds(rdkit_bonds_obj=self.mol_obj.GetBonds())
             self.xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list,
                                              stereocentres=self.stereocentres, n_simanls=1)[0]
             self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
             self.n_bonds = self.graph.number_of_edges()
 
         else:
-            self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
+            self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms, bond_list)
             self._check_rdkit_graph_agreement()
 
         self.distance_matrix = calc_distance_matrix(self.xyzs)

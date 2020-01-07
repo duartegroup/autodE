@@ -5,14 +5,18 @@ from networkx.algorithms import isomorphism
 from autode.bond_lengths import get_xyz_bond_list
 
 
-def make_graph(xyzs, n_atoms):
+def make_graph(xyzs, n_atoms, bonds=None):
     logger.info('Generating molecular graph with networkx')
 
     graph = nx.Graph()
     for i in range(n_atoms):
         graph.add_node(i, atom_label=xyzs[i][0])
 
-    bonded_atom_list = get_xyz_bond_list(xyzs)
+    if bonds is None:
+        bonded_atom_list = get_xyz_bond_list(xyzs)
+    else:
+        bonded_atom_list = bonds
+        
     for pair in bonded_atom_list:
         graph.add_edge(*pair)
 
