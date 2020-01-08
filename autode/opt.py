@@ -9,15 +9,15 @@ def get_ts_guess_constrained_opt(mol, keywords, name, distance_consts, reaction_
     """Get a TS guess from a constrained optimisation with the active atoms fixed at values defined in distance_consts
 
     Arguments:
-        mol {molecule object} -- molecule to opt
-        keywords {list} -- keywords to use in the calc
-        name {name} -- ts guess name
-        distance_consts {dict} -- keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
-        reaction_class {object} -- reaction type (reactions.py)
-        product {molecule object} -- product complex
+        mol (molecule object): molecule to opt
+        keywords (list): keywords to use in the calc
+        name (name): ts guess name
+        distance_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
+        reaction_class (object): reaction type (reactions.py)
+        product (molecule object): product complex
 
     Returns:
-        {ts guess object} -- ts guess
+        ts guess object: ts guess
     """
 
     logger.info('Getting TS guess from constrained optimisation')

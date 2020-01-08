@@ -151,19 +151,19 @@ def do_md(py_xyzs, py_bonds, py_n_steps, py_temp, py_dt, py_k, py_d0, py_c, py_f
     where k and c are constants to be determined. Masses are all 1
 
     Arguments:
-        py_xyzs {list(list)} -- e.g. [['C', 0.0, 0.0, 0.0], ...]
-        py_bonds {list(tuples)} -- defining which atoms are bonded together
-        py_n_steps {int} -- number of MD steps to do
-        py_temp {float} -- reduced temperature to run the dynamics (1 is fine)
-        py_dt {float} -- ∆t to use in the velocity verlet
-        py_k {float} -- harmonic force constant
-        py_d0 {np.array} -- matrix of ideal bond lengths
-        py_c {float} -- strength of the repulsive term
-        py_fixed_bonds {list(tuples)} -- defining which atoms have fixed separations together
-        py_non_random_atoms {list} -- atoms that must not be randomly placed, to keep stereochem
+        py_xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
+        py_bonds (list(tuples)): defining which atoms are bonded together
+        py_n_steps (int): number of MD steps to do
+        py_temp (float): reduced temperature to run the dynamics (1 is fine)
+        py_dt (float): ∆t to use in the velocity verlet
+        py_k (float): harmonic force constant
+        py_d0 (np.array): matrix of ideal bond lengths
+        py_c (float): strength of the repulsive term
+        py_fixed_bonds (list(tuples)): defining which atoms have fixed separations together
+        py_non_random_atoms (list): atoms that must not be randomly placed, to keep stereochem
     
     Returns:
-        np.array -- final coordinates
+        np.array: final coordinates
     """
 
     cdef int n_atoms = len(py_xyzs)

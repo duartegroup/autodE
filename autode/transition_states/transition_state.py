@@ -47,7 +47,7 @@ class TS(TSguess):
         """Save a transition state template containing the active bond lengths, solvent and charge in folder_path
 
         Keyword Arguments:
-            folder_path {str} -- folder to save the TS template to (default: {None})
+            folder_path (str): folder to save the TS template to (default: {None})
         """
         logger.info('Saving TS template')
         try:
@@ -121,7 +121,7 @@ class TS(TSguess):
         """Run the optts calculation
         
         Returns:
-            {ts object} -- the optimised transition state conformer
+            ts object: the optimised transition state conformer
         """
         name = self.name
 
@@ -138,7 +138,7 @@ class TS(TSguess):
         """For a transitionn state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
 
         Returns:
-            {ts object} -- optimised ts object
+            ts object: optimised ts object
         """
         self.generate_conformers()
         [self.conformers[i].optimise() for i in range(len(self.conformers))]

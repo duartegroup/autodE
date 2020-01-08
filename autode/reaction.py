@@ -70,7 +70,7 @@ class Reaction:
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
 
         Returns:
-            float -- energy difference in Hartrees
+            float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
         return sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
@@ -79,7 +79,7 @@ class Reaction:
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
 
         Returns:
-            float -- energy difference in Hartrees
+            float: energy difference in Hartrees
         """
         logger.info('Calculating ∆E‡')
         if self.ts.energy is not None:

@@ -21,25 +21,25 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:
-        mol {molcule object} -- reactant complex
-        product {molecule object} -- product complex
-        active_bond1 {tuple} -- tuple of atom ids showing the first bond being scanned
-        active_bond2 {tuple} -- tuple of atom ids showing the second bond being scanned
-        n_steps {int} -- number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
-        name {str} -- name of reaction
-        reaction_class {object} -- class of the reaction (reactions.py)
-        method {object} -- electronic structure wrapper to use for the calcs
-        keywords {list} -- keywords to use in the calcs
+        mol (molcule object): reactant complex
+        product (molecule object): product complex
+        active_bond1 (tuple): tuple of atom ids showing the first bond being scanned
+        active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
+        n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
+        name (str): name of reaction
+        reaction_class (object): class of the reaction (reactions.py)
+        method (object): electronic structure wrapper to use for the calcs
+        keywords (list): keywords to use in the calcs
 
     Keyword Arguments:
-        delta_dist1 {float} -- distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
-        delta_dist2 {float} -- distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
-        active_bonds_not_scanned {list(tuple)} -- pairs of atoms that are active, but will not be scanned in the 2D PES (default: {None})
-        n_points {int} -- number of points along each axis of the energy grid in the saddlepoint finding (default: {40})
-        polynomial_order {int} -- order of polynomial to fit the data to (default: {5})
+        delta_dist1 (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
+        delta_dist2 (float): distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
+        active_bonds_not_scanned (list(tuple)): pairs of atoms that are active, but will not be scanned in the 2D PES (default: {None})
+        n_points (int): number of points along each axis of the energy grid in the saddlepoint finding (default: {40})
+        polynomial_order (int): order of polynomial to fit the data to (default: {5})
 
     Returns:
-        {ts guess object} -- ts guess
+        ts guess object: ts guess
     """
     logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds {active_bond1} and {active_bond2}')
 
@@ -172,17 +172,17 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     """Find the best saddle point on a 2D PES, and the closest xyzs to this point given the grid of distances, xyzs and energies
 
     Arguments:
-        dists_xyzs_energies_dict {dict} -- [dist] = (xyzs, energy)
-        scan_name {str} -- name of reaction
-        plot_name {[type]} -- name of plot made
-        method {object} -- electronic structure wrapper to use for the calcs
+        dists_xyzs_energies_dict (dict): [dist] = (xyzs, energy)
+        scan_name (str): name of reaction
+        plot_name ([type]): name of plot made
+        method (object): electronic structure wrapper to use for the calcs
 
     Keyword Arguments:
-        n_points {int} -- number of points along each axis of the energy grid (default: {40})
-        order {int} -- order of polynomial to fit the data to (default: {5})
+        n_points (int): number of points along each axis of the energy grid (default: {40})
+        order (int): order of polynomial to fit the data to (default: {5})
 
     Returns:
-        {tuple} -- (saddlepoint xyzs, (r1 saddle coord, r2 saddle coord))
+        tuple: (saddlepoint xyzs, (r1 saddle coord, r2 saddle coord))
     """
 
     logger.info('Finding saddle point in 2D PES')
@@ -271,12 +271,12 @@ def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
     """Finds the closest scan point to a pair of coordinates.
     
     Arguments:
-        r1_saddle {float} -- point on the r1 axis
-        r2_saddle {float} -- point on the r2 axis
-        dists {list(tuple)} -- list of r1, r2 distances for points that have been scanned
+        r1_saddle (float): point on the r1 axis
+        r2_saddle (float): point on the r2 axis
+        dists (list(tuple)): list of r1, r2 distances for points that have been scanned
     
     Returns:
-        {tuple} -- the closest scan point
+        tuple: the closest scan point
     """
     closest_dist_to_saddle = 99999.9
     scan_dists_tuple = None
@@ -298,10 +298,10 @@ def replace_none(lst):
     """Replace Nones in a flat list with the closest preceding value
 
     Arguments:
-        lst {list} -- list of value
+        lst (list): list of value
 
     Yields:
-        float -- value from list
+        float: value from list
     """
     for item in lst:
         if item is not None:
@@ -319,13 +319,13 @@ def polyfit2d(x, y, z, order):
     """Takes x and y coordinates and their resultant z value, and creates a matrix where element i,j is the coefficient of the desired order polynomial x ** i * y ** j
 
     Arguments:
-        x {np.array} -- flat array of x coordinates
-        y {np.array} -- flat array of y coordinates
-        z {np.array} -- flat array of z value at the corresponding x and y value
-        order {int} -- max order of polynomial to work out
+        x (np.array): flat array of x coordinates
+        y (np.array): flat array of y coordinates
+        z (np.array): flat array of z value at the corresponding x and y value
+        order (int): max order of polynomial to work out
 
     Returns:
-        np.array -- matrix of polynomial coefficients
+        np.array: matrix of polynomial coefficients
     """
     logger.info('Fitting 2D surface to polynomial in x and y')
     deg = np.array([order, order])

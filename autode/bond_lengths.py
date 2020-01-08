@@ -7,14 +7,13 @@ def get_xyz_bond_list(xyzs, relative_tolerance=0.2):
     """Determine the 'bonds' between atoms defined in a xyzs list.
 
     Arguments:
-        xyzs {list(list)} -- e.g. [['C', 0.0, 0.0, 0.0], ...]
+        xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
 
     Keyword Arguments:
-        relative_tolerance {float} -- relative tolerance to consider a bond e.g. max bond length = 1.1 x avg. bond
-        length (default: {0.2})
+        relative_tolerance (float): relative tolerance to consider a bond e.g. max bond length = 1.1 x avg. bond length (default: {0.2})
 
     Returns:
-        {list(tuple)} -- list of bonds given as tuples of atom ids
+        list(tuple): list of bonds given as tuples of atom ids
     """
     logger.info(f'Getting bond list from xyzs. Maximum bond is {1 + relative_tolerance}x average')
 
@@ -47,10 +46,10 @@ def get_bond_list_from_rdkit_bonds(rdkit_bonds_obj):
     """For an RDKit bonds object get the standard xyz_bond_list
 
     Arguments:
-        rdkit_bonds_obj {rdkit bonds object} -- rdkit bonds object
+        rdkit_bonds_obj (rdkit bonds object): rdkit bonds object
     
     Returns:
-        {list(tuple)} -- list of bonds given as tuples of atom ids
+        list(tuple): list of bonds given as tuples of atom ids
     """
     logger.info('Converting RDKit bonds to bond list')
 
@@ -74,11 +73,11 @@ def get_ideal_bond_length_matrix(xyzs, bonds):
     """Populate a n_atoms x n_atoms matrix of ideal bond lengths. All non-bonded atoms will have zero ideal bond lengths
     
     Arguments:
-        xyzs {list(list)} -- standard xyzs list
-        bonds {list(tuple)} -- list of bonds defined by tuples of atom ids
+        xyzs (list(list)): standard xyzs list
+        bonds (list(tuple)): list of bonds defined by tuples of atom ids
     
     Returns:
-        {np.ndarray} -- matrix of idea bond lengths
+        np.ndarray: matrix of idea bond lengths
     """
 
     logger.info('Getting ideal bond length matrix')
@@ -99,13 +98,13 @@ def get_avg_bond_length(atom_i_label=None, atom_j_label=None, mol=None, bond=Non
     atom_j_label = 'H')
     
     Keyword Arguments:
-        atom_i_label {str} -- atom label e.g 'C' (default: {None})
-        atom_j_label {str} -- atom label e.g 'C' (default: {None})
-        mol {molecule obj} -- molecule object
-        bond {tuple} -- bond defined by the two atom ids
+        atom_i_label (str): atom label e.g 'C' (default: {None})
+        atom_j_label (str): atom label e.g 'C' (default: {None})
+        mol (molecule obj): molecule object
+        bond (tuple): bond defined by the two atom ids
     
     Returns:
-        {float} -- avg bond length of the bond
+        float: avg bond length of the bond
     """
     if mol is not None and bond is not None:
         atom_i_label = mol.get_atom_label(bond[0])

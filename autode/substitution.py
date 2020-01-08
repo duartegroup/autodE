@@ -8,12 +8,12 @@ def set_complex_xyzs_translated_rotated(reac_complex, reactants, bond_rearrangem
     """Sets the xyzs in the complex such that the attacking atoms are pointing at the atom they attack
     
     Arguments:
-        reac_complex {mol obj} -- reactant complex object
-        reactants {list} -- list of reactant mol objects
-        bond_rearrangement {bond rearrang obj} -- the bond rearrangement corresponding to the reaction
+        reac_complex (mol obj): reactant complex object
+        reactants (list): list of reactant mol objects
+        bond_rearrangement (bond rearrang obj): the bond rearrangement corresponding to the reaction
     
     Keyword Arguments:
-        shift_factor {int} -- distance the reacting atoms should be apart (default: {2})
+        shift_factor (int): distance the reacting atoms should be apart (default: {2})
     """
     logger.info('Translating reactant atoms into reactive complex')
     reac_complex_coords = reac_complex.get_coords()
@@ -70,15 +70,15 @@ def get_normalised_lg_vector(bond_rearrangement, all_attacked_atoms, reac_comple
     """Get the vector from the attacked atom to the one bonded to tbe breaking bond
 
     Arguments:
-        bond_rearrangement {object} -- bond rearrangement object
-        all_attacked_atoms {list} -- list of attacked atoms
-        reac_complex_coords {np.ndarray} -- coords of the reac complex
+        bond_rearrangement (object): bond rearrangement object
+        all_attacked_atoms (list): list of attacked atoms
+        reac_complex_coords (np.ndarray): coords of the reac complex
 
     Keyword Arguments:
-        tolerance {float} -- if the angle between two bonds is less than this, the bonds are treated as parallel (default: {0.09})
+        tolerance (float): if the angle between two bonds is less than this, the bonds are treated as parallel (default: {0.09})
 
     Returns:
-        {np.ndarray} -- avg leaving group vector
+        np.ndarray: avg leaving group vector
     """
     all_lg_vectors = []
     all_lg_atoms = []
@@ -180,10 +180,10 @@ def get_attacked_atom(bond_rearrangement):
     reaction thus has been attacked. Exit if there are more than two
 
     Arguments:
-        bond_rearrangement {object} -- bond rearrangement object
+        bond_rearrangement (object): bond rearrangement object
 
     Returns:
-        list -- list of attacked atoms
+        list: list of attacked atoms
     """
 
     possible_attacked_atoms = []
@@ -215,11 +215,11 @@ def get_lg_or_fr_atom(bbonds_or_fbonds, attacked_atom):
     atom is only attacked by one atom, so returning immediately after finding one is fine
 
     Arguments:
-        bbonds_or_fbonds {list(tuple)} -- List of either breaking or forming bonds
-        attacked_atom {int} -- index of the attacked atom in the structure
+        bbonds_or_fbonds (list(tuple)): List of either breaking or forming bonds
+        attacked_atom (int): index of the attacked atom in the structure
 
     Returns:
-        {int} -- index of the attacking atom
+        int: index of the attacking atom
     """
 
     for bond in bbonds_or_fbonds:

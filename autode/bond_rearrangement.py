@@ -11,11 +11,11 @@ def get_bond_rearrangs(mol, product):
     rearrangements involving those bonds. 
 
     Arguments:
-        mol {molecule object} -- reactant complex
-        product {molecule object} -- product complex
+        mol (molecule object): reactant complex
+        product (molecule object): product complex
 
     Returns:
-        list -- list of bond rearrang objects linking reacs and prods
+        list: list of bond rearrang objects linking reacs and prods
     """
     logger.info('Finding the possible forming and breaking bonds')
 
@@ -84,14 +84,14 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     """For a possible bond rearrangement, sees if the products are made, and adds it to the bond rearrang list if it does
 
     Arguments:
-        bond_rearrangs {list} -- list of working bond rearrangments
-        reactant {molecule object} -- reactant complex
-        product {molecule object} -- product complex
-        fbonds {list of tuples} -- list of bonds to be made
-        bbonds {list of tuples} -- list of bonds to be broken
+        bond_rearrangs (list): list of working bond rearrangments
+        reactant (molecule object): reactant complex
+        product (molecule object): product complex
+        fbonds (list of tuples): list of bonds to be made
+        bbonds (list of tuples): list of bonds to be broken
 
     Returns:
-        list -- updated list of working bond rearrangments
+        list: updated list of working bond rearrangments
     """
 
     # Check that the bond rearrangement doesn't exceed standard atom valances
@@ -129,12 +129,12 @@ def generate_rearranged_graph(graph, fbonds, bbonds):
     """Generate a rearranged graph by breaking bonds (edge) and forming others (edge)
 
     Arguments:
-        graph {nx.Graph} -- reactant graph
-        fbonds {list(tuple)} -- list of bonds to be made
-        bbonds {list(tuple)} -- list of bonds to be broken
+        graph (nx.Graph): reactant graph
+        fbonds (list(tuple)): list of bonds to be made
+        bbonds (list(tuple)): list of bonds to be broken
 
     Returns:
-        {nx.Graph} -- rearranged graph
+        nx.Graph: rearranged graph
     """
     rearranged_graph = graph.copy()
     for fbond in fbonds:
@@ -386,14 +386,14 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
     unique_bond_rearrangements list
 
     Arguments:
-        mol {molecule object} -- reactant object
-        possible_bond_rearrangs {list(object)} -- list of BondRearrangement objects
+        mol (molecule object): reactant object
+        possible_bond_rearrangs (list(object)): list of BondRearrangement objects
 
     Keyword Arguments:
-        depth {int} -- Depth of neighbour list that must be identical for a set of atoms to be considered equivalent (default: {6})
+        depth (int): Depth of neighbour list that must be identical for a set of atoms to be considered equivalent (default: {6})
 
     Returns:
-        {list(object)} -- stripped list of BondRearrangement objects
+        list(object): stripped list of BondRearrangement objects
     """
     logger.info('Stripping the forming and breaking bond list by discarding rearrangements with equivalent atoms')
 

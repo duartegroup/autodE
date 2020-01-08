@@ -57,11 +57,11 @@ def is_isomorphic(graph1, graph2):
     to ocassionaly get stuck
 
     Arguments:
-        graph1 {nx.Graph} -- graph 1
-        graph2 {nx.Graph} -- graph 2
+        graph1 (nx.Graph): graph 1
+        graph2 (nx.Graph): graph 2
 
     Returns:
-        {bool} -- if the graphs are isomorphic
+        bool: if the graphs are isomorphic
     """
 
     if isomorphism.faster_could_be_isomorphic(graph1, graph2):
@@ -92,10 +92,10 @@ def find_cycle(graph):
     """Finds all the cycles in a graph
 
     Arguments:
-        graph {nx.Graph} -- the molecular graph
+        graph (nx.Graph): the molecular graph
 
     Returns:
-        list of list -- each list has the atoms in a cycle
+        list(list): each list has the atoms in a cycle
     """
     return nx.cycle_basis(graph)
 
@@ -104,11 +104,11 @@ def reac_graph_to_prods(reac_graph, bond_rearrang):
     """Makes the graph of the product from the reactant and the bond rearrang, so it has the indices of the reactant
 
     Arguments:
-        reac_graph {nx.graph} -- graph of the reactant
-        bond_rearrang {bond rearrang object} -- the bond rearrang linking reacs and prods
+        reac_graph (nx.graph): graph of the reactant
+        bond_rearrang (bond rearrang object): the bond rearrang linking reacs and prods
 
     Returns:
-        nx.graph -- graph of the product with each atom indexed as in the reactants
+        nx.graph: graph of the product with each atom indexed as in the reactants
     """
     prod_graph = reac_graph.copy()
     for fbond in bond_rearrang.fbonds:
@@ -122,10 +122,10 @@ def get_separate_subgraphs(graph):
     """Find all the unconnected graphs in a graph
 
     Arguments:
-        graph {nx.graph} -- graph
+        graph (nx.graph): graph
 
     Returns:
-        list -- list of graphs separate graphs
+        list: list of graphs separate graphs
     """
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
@@ -134,8 +134,8 @@ def split_mol_across_bond(graph, bonds):
     """gets a list of atoms on either side of a bond
 
     Arguments:
-        graph {nx.graph} -- molecular graph
-        bond {list} -- list of bonds to be split across
+        graph (nx.graph): molecular graph
+        bond (ist): list of bonds to be split across
 
     """
     graph_copy = graph.copy()
@@ -149,10 +149,10 @@ def get_bond_type_list(graph):
     """Finds the types (i.e CH) of all the bonds in a molecular graph
 
     Arguments:
-        graph {nx.Graph} -- Molecular graph
+        graph (nx.Graph): Molecular graph
 
     Returns:
-        bond_list_dict {dict} -- key = bond type, value = list of bonds of this type
+        bond_list_dict (dict): key = bond type, value = list of bonds of this type
     """
     bond_list_dict = {}
     atom_types = set()
@@ -184,11 +184,11 @@ def get_fbonds(graph, key):
     """Get all the possible forming bonds of a certain type
     
     Arguments:
-        graph {nx.Graph} -- graph object of a molecule
-        key {str} -- string representing the bond type to be examined
+        graph (nx.Graph): graph object of a molecule
+        key (str): string representing the bond type to be examined
     
     Returns:
-        {list} -- list of bonds that can be made of this type
+        list: list of bonds that can be made of this type
     """
     possible_fbonds = []
     bonds = list(graph.edges)

@@ -80,13 +80,13 @@ class TStemplate:
         """Construct a TS template object
 
         Arguments:
-            graph {nx.Graph} -- Active bonds in the TS are represented by the edges with attribute active=True, going out to nearest bonded neighbours
-            reaction_class {object} -- Reaction class (reactions.py)
+            graph (nx.Graph): Active bonds in the TS are represented by the edges with attribute active=True, going out to nearest bonded neighbours
+            reaction_class (object): Reaction class (reactions.py)
 
         Keyword Arguments:
-            solvent {str} -- solvent (default: {None})
-            charge {int} -- charge (default: {0})
-            mult {int} -- multiplicity of the molecule (default: {1})
+            solvent (str): solvent (default: {None})
+            charge (int): charge (default: {0})
+            mult (int): multiplicity of the molecule (default: {1})
         """
 
         self.graph = graph

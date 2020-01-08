@@ -18,14 +18,14 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     a 2d polynomial function
 
     Arguments:
-        r1 {np.ndarray} -- r1 distance points
-        r2 {np.ndarray} -- r2 distance points
-        flat_rel_energy_array {np.ndarray} -- flat array of energies, i.e all energies at r1[0], then r1[1]...
-        coeff_mat {np.array} -- matrix of polynomial coefficients for the energy surface
+        r1 (np.ndarray): r1 distance points
+        r2 (np.ndarray): r2 distance points
+        flat_rel_energy_array (np.ndarray): flat array of energies, i.e all energies at r1[0], then r1[1]...
+        coeff_mat (np.array): matrix of polynomial coefficients for the energy surface
 
     Keyword Arguments:
-        mep {list(tuple)} -- list of coordinates on the grid for the min energy pathway across the surface (default: {None})
-        name {str} -- name of the plot (default: {'2d_scan'})
+        mep (list(tuple)): list of coordinates on the grid for the min energy pathway across the surface (default: {None})
+        name (str): name of the plot (default: {'2d_scan'})
     """
     plt.close()
 
@@ -100,13 +100,13 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
 
     Arguments:
-        e_reac {float} -- relative reactant energy, usually 0.0
-        e_ts {float} -- relative ts energy
-        e_prod {float} -- relative product energy
-        units {object} -- an object defined in units.py
-        name {str} -- reaction name to annotate to the plot
-        is_true_ts {bool} -- flag for whether the TS is good, i.e. has a single imaginary frequency
-        ts_is_converged {bool} -- flag for whether the TS geometry is converged or not
+        e_reac (float): relative reactant energy, usually 0.0
+        e_ts (float): relative ts energy
+        e_prod (float): relative product energy
+        units (object): an object defined in units.py
+        name (str): reaction name to annotate to the plot
+        is_true_ts (bool): flag for whether the TS is good, i.e. has a single imaginary frequency
+        ts_is_converged (bool): flag for whether the TS geometry is converged or not
     """
     logger.info('Plotting reaction profile')
     marker_width = 0.2
@@ -153,8 +153,8 @@ def make_reaction_animation(name, xyzs):
     """makes an xyz file that animates the reaction pathway
 
     Arguments:
-        name {str} -- name of the xyz file to be created
-        xyzs {list of lists} -- list with each element of the list a list of xyzs
+        name (str): name of the xyz file to be created
+        xyzs (list of lists): list with each element of the list a list of xyzs
     """
     logger.info('Generating a reaction pathway animation')
     with open(f'{name}_animation.xyz', 'w') as output_file:

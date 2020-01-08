@@ -35,4 +35,4 @@ Broadly, **autodE** is invoked by first setting appropriate parameters in config
 Then, initialising _Reactant_ and _Product_ objects, generating a _Reaction_ object from those and invoking a method 
 e.g. _locate_transtion_state()_ or _calculate_reaction_profile()_.
 
-See _examples/_ for example usage.
+See _examples/_ for example usage. Additional documentation is available at [duartegroup.github.io/autodE/](https://duartegroup.github.io/autodE/).

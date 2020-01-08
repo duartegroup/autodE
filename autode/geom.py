@@ -7,10 +7,10 @@ def xyz2coord(xyzs):
     just the x, y, z coordinates
 
     Arguments:
-        xyzs {list(list)} -- List of xyzs
+        xyzs (list(list)): List of xyzs
 
     Returns:
-        {np.array} -- array of coords
+        np.array: array of coords
     """
     if isinstance(xyzs[0], list):
         return np.array([np.array(line[1:4]) for line in xyzs])
@@ -22,11 +22,11 @@ def coords2xyzs(coords, old_xyzs):
     """Insert a set of coordinates into a set of xyzs to a new list of xyzs
 
     Arguments:
-        coords {np.array} -- array of coordinates
-        old_xyzs {list(lists)} -- list of old xyzs
+        coords (np.array): array of coordinates
+        old_xyzs (list(lists)): list of old xyzs
 
     Returns:
-        list(list) -- coords in xyz form
+        list(list): coords in xyz form
     """
     if isinstance(old_xyzs[0], list):
         assert len(old_xyzs) == len(coords)
@@ -41,12 +41,12 @@ def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
 
     Arguments:
-        xyzs {list(list)} -- list of xyzs
-        bonds {list(tuple)} -- List of bond ids on for which the final_distances apply
-        final_distances {list(float)} -- List of final bond distances for the bonds
+        xyzs (list(list)): list of xyzs
+        bonds (list(tuple)): List of bond ids on for which the final_distances apply
+        final_distances (list(float)): List of final bond distances for the bonds
 
     Returns:
-        {list(list)} -- shifted xyzs
+        list(list): shifted xyzs
     """
 
     coords = xyz2coord(xyzs)
@@ -76,10 +76,10 @@ def calc_distance_matrix(xyzs):
     """Calculate a distance matrix
 
     Arguments:
-        xyzs {list(list)} -- list of xyzs
+        xyzs (list(list)): list of xyzs
 
     Returns:
-        np.array -- array of distances between all the atoms
+        np.array: array of distances between all the atoms
     """
 
     n_atoms = len(xyzs)
@@ -98,11 +98,11 @@ def get_neighbour_list(atom_i, mol):
     """Calculate a neighbour list from atom i as a list of atom labels
 
     Arguments:
-        atom_i {int} -- index of the atom
-        mol {molecule object} -- Molecule object
+        atom_i (int): index of the atom
+        mol (molecule object): Molecule object
 
     Returns:
-        list -- list of atom ids in ascending distance away from atom_i
+        list: list of atom ids in ascending distance away from atom_i
     """
     distance_vector = mol.distance_matrix[atom_i]
     dists_and_atom_labels = {}
@@ -121,11 +121,11 @@ def calc_rotation_matrix(axis, theta):
     the given axis by theta radians.
 
     Arguments:
-        axis {np.array} -- axis to be rotated about
-        theta {float} -- angle in radians to be rotated
+        axis (np.array}: axis to be rotated about
+        theta (float): angle in radians to be rotated
 
     Returns:
-        {np.array} -- rotation matrix
+        np.array: rotation matrix
     """
     axis = np.asarray(axis)
     axis = axis/np.linalg.norm(axis)

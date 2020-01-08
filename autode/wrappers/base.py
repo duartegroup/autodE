@@ -38,20 +38,20 @@ class ElectronicStructureMethod:
                  sp_keywords=None):
         """
         Arguments:
-            name {str} -- wrapper name. ALSO the name of the executable
-            path {str} -- absolute path to the executable
+            name (str): wrapper name. ALSO the name of the executable
+            path (str): absolute path to the executable
 
         Keyword Arguments:
-            req_licence {bool} -- does the method require a licence file to run? (default: {False})
-            path_to_licence {str} -- absolute path to the licence file if it is required (default: {None})
-            aval_solvents {list} -- list of available solvents (default: {None})
-            scan_keywords {list} -- keywords to use if performing a relaxed PES scan (default: {None})
-            conf_opt_keywords {list} -- keywords to use to optimised conformers (default: {None})
-            opt_keywords {list} -- keywords to use when performing a regular optimisation (default: {None})
-            opt_ts_keywords {list} -- keywords to use when performing a TS search (default: {None})
-            hess_keywords {list} -- keywords to use when just performing a hessian calculation (default: {None})
-            opt_ts_block {list} -- additional OptTS parameters (default: {None})
-            sp_keywords {list} -- keywords to use when performing a single point calculation (default: {None})
+            req_licence (bool): does the method require a licence file to run? (default: {False})
+            path_to_licence (str): absolute path to the licence file if it is required (default: {None})
+            aval_solvents (list): list of available solvents (default: {None})
+            scan_keywords (list): keywords to use if performing a relaxed PES scan (default: {None})
+            conf_opt_keywords (list): keywords to use to optimised conformers (default: {None})
+            opt_keywords (list): keywords to use when performing a regular optimisation (default: {None})
+            opt_ts_keywords (list): keywords to use when performing a TS search (default: {None})
+            hess_keywords (list): keywords to use when just performing a hessian calculation (default: {None})
+            opt_ts_block (list): additional OptTS parameters (default: {None})
+            sp_keywords (list): keywords to use when performing a single point calculation (default: {None})
         """
         self.__name__ = name
         self.name = name

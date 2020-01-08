@@ -20,10 +20,10 @@ def find_tss(reaction):
     """Finds the transition states of a reaction
     
     Arguments:
-        reaction {reaction object} -- reaction being examined
+        reaction (reaction object): reaction being examined
     
     Returns:
-        {list} -- list of transition state objects
+        list: list of transition state objects
     """
     logger.info('Finding possible transition states')
     tss = []
@@ -176,10 +176,10 @@ def get_reactant_and_product_complexes(reaction):
     and products in the same xyzs, whereas for a Dissociation the reactant will be the sole reactant
 
     Arguments:
-        reaction {reaction object} -- reaction object
+        reaction (reaction object): reaction object
 
     Returns:
-        {tuple} -- (reactant molecule object, product molecule object)
+        tuple: (reactant molecule object, product molecule object)
     """
 
     reactant, product = None, None
