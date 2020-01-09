@@ -93,7 +93,11 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
     plt.legend()
     plt.xlabel('$r$ / Å')
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')
-    plt.savefig(plot_name + '.png')
+    if Config.high_qual_plots:
+        dpi = 1000
+    else:
+        dpi = 10
+    plt.savefig(plot_name + '.png', dpi=dpi)
 
 
 def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_converged):
@@ -146,7 +150,11 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
         plt.ylabel('∆$E$/ kcal mol$^{-1}$', fontsize=12)
 
     plt.ylim(min(ys) - 0.05*max(ys), 1.2 * max(ys))
-    plt.savefig('reaction_profile.png')
+    if Config.high_qual_plots:
+        dpi = 1000
+    else:
+        dpi = 10
+    plt.savefig('reaction_profile.png', dpi=dpi)
 
 
 def make_reaction_animation(name, xyzs):

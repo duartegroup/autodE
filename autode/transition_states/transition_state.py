@@ -128,7 +128,9 @@ class TS(TSguess):
         ts_conf_get_ts_output = get_ts(self)
         if ts_conf_get_ts_output is None:
             return None
+            
         self.converged = ts_conf_get_ts_output[1]
+        self.energy = self.optts_calc.get_energy()
 
         self.name = name
 
