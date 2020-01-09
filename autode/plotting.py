@@ -119,33 +119,70 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
 
     file_extension = Config.image_file_extension
 
-    marker_width = 0.2
+    dg = e_prod - e_reac
+    dgdd = e_ts - e_reac
 
-    xs = [0.05, 1.0, 1.86]
-    ys = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
+    # 0 < x < 1, position of TS along reaction coordinate
+    if dg > 0:
+        if dgdd < dg:
+            x = dgdd/dg
+        else:
+            x = 1 - (dgdd - dg)/(2*dgdd)
+    else:
+        if dgdd < 0:
+            x = dgdd/dg
+        else:
+            x = (dgdd)/(2*(dgdd-dg))
+    #make a cubic line from reac to TS, and another from TS to prod
+    #reac to TS
+    a = np.array([[x**3, x**2], [3*x**2, 2*x]])
+    b = np.array([dgdd, 0])
+    reac_to_ts = np.linalg.solve(a,b)
+    #TS to prod, shift curve so TS at (0,0) to make algebra easier
+    y = 1-x
+    a = np.array([[y**3, y**2], [3*y**2, 2*y]])
+    b = np.array([dg-dgdd, 0])
+    ts_to_prod = np.linalg.solve(a,b)
 
-    xs_markers = [[0.0, + marker_width],
-                  [1.0, 1.0 + marker_width], [2.0 - marker_width, 2.0]]
-    ys_markers = [[ys[0], ys[0]], [ys[1], ys[1]], [ys[2], ys[2]]]
-
-    xs_joins = [[marker_width, 1.0],  [1.0 + marker_width, 2.0 - marker_width]]
-    ys_joins = [[ys[0], ys[1]], [ys[1], ys[2]]]
-
+    x_vals = np.linspace(-0.2, 1.2, 140)
+    y_vals = []
+    begin_x = 0
+    end_x = len(x_vals)
+    for index, val in enumerate(x_vals):
+        if val < x:
+            a, b = reac_to_ts
+            y = a*val**3 + b*val**2
+            #don't want to go up too far at before reacs
+            if (val < 0) and not (-1 < y < 1):
+                begin_x = index + 1
+            else:
+                y_vals.append(y + e_reac)
+        else:
+            a, b = ts_to_prod
+            shift_val = val - x
+            y = a*shift_val**3 + b*shift_val**2 + dgdd #shift back TS
+            if (val > 1) and not ((dg - 1) < y < (dg + 1)):
+                end_x = index
+                break
+            else:
+                y_vals.append(y + e_reac)
+    
     _, ax = plt.subplots()
-    [ax.plot(xs_markers[i], ys_markers[i], lw=3.0, c='k')
-     for i in range(len(xs_markers))]
-    [ax.plot(xs_joins[i], ys_joins[i], ls='--', c='k')
-     for i in range(len(xs_joins))]
+    ax.plot(x_vals[begin_x: end_x], y_vals, c='k')
 
-    for i, txt in enumerate(ys):
-        ax.annotate(txt, (xs[i], ys[i] + 0.02*max(ys)), fontsize=12)
+    x_label_coords = [-0.035, x-.035, 0.965]
+    x_point_coords = [0, x, 1]
+    energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
+    for i, energy in enumerate(energies):
+        ax.annotate(energy, (x_label_coords[i], energy + 0.05*max(y_vals)), fontsize=12)
+        plt.plot(x_point_coords[i], energy, marker='o', markersize=3, color='b')
 
     if not is_true_ts:
         ax.annotate('TS has >1 imaginary frequency',
-                    (1.0, 0.1*max(ys)), ha='center', color='red')
+                    (0.5, 0.1*max(y_vals)), ha='center', color='red')
     if not ts_is_converged:
         ax.annotate('TS is not fully converged',
-                    (1.0, 0.2*max(ys)), ha='center', color='red')
+                    (0.5, 0.2*max(y_vals)), ha='center', color='red')
 
     plt.title(name, fontdict={'fontsize': 12})
     plt.xticks([])
@@ -155,7 +192,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     if units == KcalMol:
         plt.ylabel('∆$E$/ kcal mol$^{-1}$', fontsize=12)
 
-    plt.ylim(min(ys) - 0.05*max(ys), 1.2 * max(ys))
+    plt.ylim(min(y_vals) - 0.05*max(y_vals), 1.2 * max(y_vals))
     if Config.high_qual_plots:
         dpi = 1000
     else:
