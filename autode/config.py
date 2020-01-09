@@ -23,6 +23,10 @@ class Config:
     make_ts_template = True
     #
     high_qual_plots = True
+    #
+    # File extension to use for the images made
+    #
+    image_file_extension = '.png'
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:

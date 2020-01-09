@@ -12,7 +12,6 @@ from autode.wrappers.XTB import XTB
 from autode.config import Config
 import os
 
-
 def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan'):
     """For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
     a 2d polynomial function
@@ -29,7 +28,9 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     """
     plt.close()
 
-    logger.info(f'Plotting 2D scan and saving to {name}.png')
+    file_extension = Config.image_file_extension
+
+    logger.info(f'Plotting 2D scan and saving to {name}{file_extension}')
 
     nx, ny = 20, 20
     xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
@@ -61,10 +62,12 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
         dpi = 1000
     else:
         dpi = 10
-    plt.savefig(name + '.png', dpi=dpi)
+    plt.savefig(name + file_extension, dpi=dpi)
 
 
 def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
+
+    file_extension = Config.image_file_extension
 
     colour_method_dict = {'orca pbe': 'darkmagenta', 'orca pbe0': 'deeppink',
                           'xtb': 'deepskyblue', 'mopac': 'forestgreen'}
@@ -85,10 +88,10 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
         plot_name += '_bbond'
 
     # close the plot so different scan types don't get drawn on top of each other
-    if not os.path.exists(plot_name + '.png'):
+    if not os.path.exists(plot_name + file_extension):
         plt.close()
 
-    logger.info(f'Plotting 1D scan and saving to {plot_name}.png')
+    logger.info(f'Plotting 1D scan and saving to {plot_name}{file_extension}')
     plt.plot(rs, rel_energies, marker='o', color=colour, label=label)
     plt.legend()
     plt.xlabel('$r$ / Å')
@@ -97,7 +100,7 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
         dpi = 1000
     else:
         dpi = 10
-    plt.savefig(plot_name + '.png', dpi=dpi)
+    plt.savefig(plot_name + file_extension, dpi=dpi)
 
 
 def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_converged):
@@ -113,6 +116,9 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
         ts_is_converged (bool): flag for whether the TS geometry is converged or not
     """
     logger.info('Plotting reaction profile')
+
+    file_extension = Config.image_file_extension
+
     marker_width = 0.2
 
     xs = [0.05, 1.0, 1.86]
@@ -154,7 +160,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
         dpi = 1000
     else:
         dpi = 10
-    plt.savefig('reaction_profile.png', dpi=dpi)
+    plt.savefig('reaction_profile' + file_extension, dpi=dpi)
 
 
 def make_reaction_animation(name, xyzs):

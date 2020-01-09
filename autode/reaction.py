@@ -9,6 +9,7 @@ from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
 from autode.mol_graphs import get_mapping
 from autode.utils import work_in
+from autode.config import Config
 from copy import deepcopy
 import os
 
@@ -125,8 +126,9 @@ class Reaction:
     def locate_transition_state(self):
 
         # Clear the PES graphs, so they don't write over each other
+        file_extension = Config.image_file_extension
         for filename in os.listdir(os.getcwd()):
-            if filename.endswith('.png'):
+            if filename.endswith(file_extension):
                 os.remove(filename)
 
         self.tss = find_tss(self)
