@@ -28,7 +28,7 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     """
     plt.close()
 
-    file_extension = Config.image_file_extension
+    file_extension = '.png'
 
     logger.info(f'Plotting 2D scan and saving to {name}{file_extension}')
 

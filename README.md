@@ -16,7 +16,7 @@ python setup.py install
 ```
 
 ### Dependencies
-* [Python] (https://www.python.org/) > v. 3.5
+* [Python](https://www.python.org/) > v. 3.5
 * [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.1
 * [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/) > v. 6.1
 

@@ -1,12 +1,12 @@
 Tutorial
 ========
 
-SN2 Reaction (examples/sn2.py)
+S\ :sub:`N`\2 Reaction (examples/sn2.py)
 ------------------------------
 
 .. image:: ../examples/common/sn2_image.png
 
-Considering the SN2 reaction between F- and methyl chloride we have the
+Considering the S\ :sub:`N`\2 reaction between F- and methyl chloride we have the
 smiles strings for the reactant and products generated from Chemdraw:
 
 flouride        : [F-]
