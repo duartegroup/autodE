@@ -28,14 +28,14 @@ def simanl(xyzs, bonds, dist_consts, non_random_atoms, stereocentres):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
     Arguments:
-        xyzs {list(list)} -- e.g. [['C', 0.0, 0.0, 0.0], ...]
-        bonds {list(tuples)} -- defining which atoms are bonded together
-        dist_consts {dict} -- keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
-        non_random_atoms {list} -- atoms that must not be randomly placed, to keep stereochem
-        stereocentres {list} -- list of stereocentres
+        xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
+        bonds (list(tuples)): defining which atoms are bonded together
+        dist_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
+        non_random_atoms (list): atoms that must not be randomly placed, to keep stereochem
+        stereocentres (list): list of stereocentres
 
     Returns:
-        {list(list)} -- e.g. [['C', 0.0, 0.0, 0.0], ...]
+        list(list): e.g. [['C', 0.0, 0.0, 0.0], ...]
     """
 
     np.random.seed()
@@ -93,17 +93,17 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, stereocentres, dist_consts=
     """Generate conformer xyzs using the cconf_gen Cython code, which is compiled when setup.py install is run.
 
     Arguments:
-        name {str} -- name of the molecule to run, needed to check for existing confs
-        init_xyzs {list(list)} -- e.g. [['C', 0.0, 0.0, 0.0], ...]
-        bond_list {list(tuple)} -- defining which atoms are bonded together
-        stereocentres {[type]} -- list of stereocentres
+        name (str): name of the molecule to run, needed to check for existing confs
+        init_xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
+        bond_list (list(tuple)): defining which atoms are bonded together
+        stereocentres (list): list of stereocentres
 
     Keyword Arguments:
-        dist_consts {dict} -- keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at (default: {{}})
-        n_simanls {int} -- number of simulated anneling steps to do (default: {40})
+        dist_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at (default: {{}})
+        n_simanls (int): number of simulated anneling steps to do (default: {40})
 
     Returns:
-        {list(list(list))} -- list of n_simanls xyzs
+        list(list(list)): list of n_simanls xyzs
     """
     logger.info('Doing simulated annealing with a harmonic + repulsion force field')
 

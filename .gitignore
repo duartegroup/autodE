@@ -25,4 +25,5 @@ autode/transition_states/__pycache__/
 autode/conformers/cconf_gen.c
 
 examples/
-.DS_Store
+
+doc/_build/

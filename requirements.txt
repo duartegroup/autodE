@@ -1,4 +1,4 @@
-rdkit=2019.03.4.0
+rdkit
 numpy
 networkx
 matplotlib

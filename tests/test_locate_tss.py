@@ -21,6 +21,35 @@ subs_reactant, subs_product = locate_tss.get_reactant_and_product_complexes(subs
 subs_rearrangs = locate_tss.get_bond_rearrangs(subs_reactant, subs_product)
 
 
+def test_get_funcs_and_params():
+    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0])
+    assert type(dissoc_f_and_p) == list
+    assert len(dissoc_f_and_p) == 3
+    assert type(dissoc_f_and_p[0][1][0]) == molecule.Reactant
+    assert dissoc_f_and_p[0][1][2] == (0, 1)
+    assert dissoc_f_and_p[0][1][4] == 'H2--H+H_0-1_ll1d'
+    assert dissoc_f_and_p[2][1][5] == locate_tss.Dissociation
+
+    subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
+    assert type(subs_f_and_p) == list
+    assert len(subs_f_and_p) == 8
+    assert subs_f_and_p[2][1][5] == locate_tss.Substitution
+
+    butadiene = molecule.Reactant(name='butadiene', smiles='C=CC=C')
+    ethene = molecule.Reactant(name='ethene', smiles='C=C')
+    cyclohexene = molecule.Product(name='cyclohexene', smiles='C1C=CCCC1')
+    d_a = reaction.Reaction(butadiene, ethene, cyclohexene)
+    d_a_reactant, d_a_product = locate_tss.get_reactant_and_product_complexes(d_a)
+    print(d_a_reactant.graph.edges)
+    print(d_a_product.graph.edges)
+    d_a_rearrangs = locate_tss.get_bond_rearrangs(d_a_reactant, d_a_product)
+    d_a_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], d_a, d_a_reactant, d_a_product, d_a_rearrangs[0])
+    assert type(d_a_f_and_p) == list
+    assert len(d_a_f_and_p) == 2
+    assert d_a_f_and_p[0][0] == locate_tss.get_ts_guess_2d
+    assert d_a_f_and_p[1][1][5] == 'cyclohexene--butadiene+ethene_0-5_3-4_hl2d_bbonds'
+
+
 def test_get_reac_and_prod_complexes():
 
     assert type(dissoc_reactant) == molecule.Reactant
@@ -54,30 +83,3 @@ def test_get_reac_and_prod_complexes():
     assert type(elim_product) == molecule.Molecule
     assert len(elim_reactant.xyzs) == 9
     assert len(elim_product.xyzs) == 9
-
-
-def test_get_funcs_and_params():
-    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0])
-    assert type(dissoc_f_and_p) == list
-    assert len(dissoc_f_and_p) == 3
-    assert type(dissoc_f_and_p[0][1][0]) == molecule.Reactant
-    assert dissoc_f_and_p[0][1][2] == (0, 1)
-    assert dissoc_f_and_p[0][1][4] == 'H2--H+H_0-1_ll1d'
-    assert dissoc_f_and_p[2][1][5] == locate_tss.Dissociation
-
-    subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
-    assert type(subs_f_and_p) == list
-    assert len(subs_f_and_p) == 8
-    assert subs_f_and_p[2][1][5] == locate_tss.Substitution
-
-    butadiene = molecule.Reactant(name='butadiene', smiles='C=CC=C')
-    ethene = molecule.Reactant(name='ethene', smiles='C=C')
-    cyclohexene = molecule.Product(name='cyclohexene', smiles='C1C=CCCC1')
-    d_a = reaction.Reaction(butadiene, ethene, cyclohexene)
-    d_a_reactant, d_a_product = locate_tss.get_reactant_and_product_complexes(d_a)
-    d_a_rearrangs = locate_tss.get_bond_rearrangs(d_a_reactant, d_a_product)
-    d_a_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], d_a, d_a_reactant, d_a_product, d_a_rearrangs[0])
-    assert type(d_a_f_and_p) == list
-    assert len(d_a_f_and_p) == 2
-    assert d_a_f_and_p[0][0] == locate_tss.get_ts_guess_2d
-    assert d_a_f_and_p[1][1][5] == 'cyclohexene--butadiene+ethene_0-5_3-4_hl2d_bbonds'

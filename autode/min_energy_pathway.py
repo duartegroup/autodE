@@ -7,13 +7,13 @@ def get_mep(r1, r2, energies, saddlepoint):
     """Finds the minimum energy pathway from reactants to products over a given saddlepoint
     
     Arguments:
-        r1 {tuple} -- the distances of grid points on one axis
-        r2 {tuple} -- the distances of grid points on one axis
-        energies {np.array} -- grid of the energy at each grid point given by r1 and r2
-        saddlepoint {tuple} -- coordinates of the saddle point in terms of r1 and r2
+        r1 (tuple): the distances of grid points on one axis
+        r2 (tuple): the distances of grid points on one axis
+        energies (np.array): grid of the energy at each grid point given by r1 and r2
+        saddlepoint (tuple): coordinates of the saddle point in terms of r1 and r2
     
     Returns:
-        {list} -- list of grid coordinates corresponding to the mep
+        list: list of grid coordinates corresponding to the mep
     """
     logger.info('Generating minimum energy pathway')
     # reac and prod coords on the grid
@@ -81,12 +81,12 @@ def get_point_on_grid(point, r1, r2):
     within - but not on - the grid
 
     Arguments:
-        point {tuple} -- the point to be assigned to the grid
-        r1 {tuple} -- the distances of grid points on one axis
-        r2 {tuple} -- the distances of grid points on one axis
+        point (tuple): the point to be assigned to the grid
+        r1 (tuple): the distances of grid points on one axis
+        r2 (tuple): the distances of grid points on one axis
 
     Returns:
-        tuple -- the closest grid point to the point
+        tuple: the closest grid point to the point
     """
     r1_diff_from_point = [abs(point[0] - distance) for distance in r1]
     r1_index = r1_diff_from_point.index(min(r1_diff_from_point))
@@ -99,13 +99,12 @@ def find_point_on_mep(energies_graph, start, end):
     """Finds the lowest weighted path from start point to end point
 
     Arguments:
-        energies_graph {nx.Graph} -- graph from a grid of the PES, with 
-        the edges having the weight of the energy change between the two nodes
-        start {tuple} -- start node
-        end {tuple} -- end node
+        energies_graph (nx.Graph): graph from a grid of the PES, with the edges having the weight of the energy change between the two nodes
+        start (tuple): start node
+        end (tuple): end node
 
     Returns:
-        list -- list of nodes of the minimum energy path
+        list: list of nodes of the minimum energy path
     """
     mep = nx.dijkstra_path(energies_graph, start, end)
 
@@ -116,11 +115,11 @@ def get_neighbouring_points(point, n_points):
     """Gets the neigbouring points to a point in a grid
 
     Arguments:
-        point {tuple} -- coords of the point
-        n_points {int} -- size of the grid
+        point (tuple): coords of the point
+        n_points (int): size of the grid
 
     Returns:
-        list -- list of the neigbouring points
+        list: list of the neigbouring points
     """
     x, y = point
     if x == 0:

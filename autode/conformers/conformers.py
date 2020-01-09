@@ -14,10 +14,10 @@ def rdkit_conformer_geometries_are_resonable(conf_xyzs):
     to try and generate some conformers
 
     Arguments:
-        conf_xyzs {(list(list(list)))} -- List of xyzs
+        conf_xyzs (list(list(list))): List of xyzs
 
     Returns:
-        {bool} -- if geoms are reasonable or not
+        bool: if geoms are reasonable or not
     """
     if len(conf_xyzs) == 1:
         xyzs = conf_xyzs[0]
@@ -37,11 +37,11 @@ def extract_xyzs_from_rdkit_mol_object(mol, conf_ids):
     """Generate xyz lists for all the conformers in mol.conf_ids
 
     Arguments:
-        mol {mol obj} -- Molecule object
-        conf_ids {list} -- list of conformer ids to convert to xyz
+        mol (mol obj): Molecule object
+        conf_ids (list): list of conformer ids to convert to xyz
 
     Returns:
-        {list} -- list of xyz lists
+        list: list of xyz lists
     """
     xyzs = []
 
@@ -69,11 +69,11 @@ def generate_unique_rdkit_confs(mol_obj, n_rdkit_confs):
     larger than 0.5 Å
 
     Arguments:
-        mol_obj {rdkit mol obj} -- rdkit mol object
-        n_rdkit_confs {int} -- number of rdkit conformers generated
+        mol_obj (rdkit mol obj): rdkit mol object
+        n_rdkit_confs (int): number of rdkit conformers generated
 
     Returns:
-        {list} -- list of conf ids that are unique
+        list: list of conf ids that are unique
     """
     conf_ids = list(AllChem.EmbedMultipleConfs(mol_obj, numConfs=n_rdkit_confs, params=AllChem.ETKDG()))
     unique_conf_ids = [0]

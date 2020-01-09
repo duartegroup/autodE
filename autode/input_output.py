@@ -5,15 +5,15 @@ def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
     """For a list of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] create a standard .xyz file
 
     Arguments:
-        xyzs {list(list)} -- List of xyzs
+        xyzs (list(list)): List of xyzs
 
     Keyword Arguments:
-        filename {str} -- Name of the generated xyz file (default: {None})
-        basename {str} -- Name of the generated xyz file without the file extension (default: {None})
-        title_line {str} -- String to print on the title line of an xyz file (default: {''})
+        filename (str): Name of the generated xyz file (default: {None})
+        basename (str): Name of the generated xyz file without the file extension (default: {None})
+        title_line (str): String to print on the title line of an xyz file (default: {''})
 
     Returns:
-        {str} -- Name of the generated xyz file
+        str: Name of the generated xyz file
     """
 
     if basename:

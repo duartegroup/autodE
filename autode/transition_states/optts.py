@@ -14,14 +14,13 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
     """Get a transition state object from a set of xyzs by running an ORCA OptTS calculation
 
     Arguments:
-        ts_guess {ts guess object} -- object to be optimised to a TS
+        ts_guess (ts guess object): object to be optimised to a TS
 
     Keyword Arguments:
-        imag_freq_threshold {float} -- Imaginary frequency threshold for a *true* TS, given as as a negative 
-        i.e. non-complex value (default: {-100})
+        imag_freq_threshold (float): Imaginary frequency threshold for a *true* TS, given as as a negative i.e. non-complex value (default: {-100})
 
     Returns:
-        {tuple} -- (TS object, bool saying if true TS or not)
+        tuple: (TS object, bool saying if true TS or not)
     """
 
     if ts_guess is None:
@@ -83,14 +82,14 @@ def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_ma
     mode we have mode_number=7
 
     Arguments:
-        calc {calc object} -- calculation object
+        calc (calc object): calculation object
 
     Keyword Arguments:
-        mode_number {int} -- mode number to displace along (default: {7})
-        displacement_magnitude {float} -- distance to displace (default: {1.0})
+        mode_number (int): mode number to displace along (default: {7})
+        displacement_magnitude (float): distance to displace (default: {1.0})
 
     Returns:
-        {list(list)} -- list of xyzs
+        list(list): list of xyzs
     """
     logger.info('Displacing along imaginary mode')
 
@@ -112,17 +111,17 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
     magnitude of the sum of the forces
 
     Arguments:
-        calc {calc object} -- calculation object
-        n_atoms {int} -- number of atoms
-        active_bonds {list(tuples)} -- bonds being made/broken
+        calc (calc object): calculation object
+        n_atoms (int): number of atoms
+        active_bonds (list(tuples)): bonds being made/broken
 
     Keyword Arguments:
-        molecules {list} -- list of reactant and product molecule objects (default: {None})
-        threshold_contribution {float} -- threshold contribution to the imaginary mode from the atoms in
-        bond_ids_to_add (default: {0.25})
+        molecules (list): list of reactant and product molecule objects (default: {None})
+        threshold_contribution (float): threshold contribution to the imaginary mode from the atoms in
+        bond_ids_to_add (default: (0.25})
 
     Returns:
-        {bool} -- if the imaginary mode is correct or not
+        bool: if the imaginary mode is correct or not
     """
 
     logger.info(f'Checking the active atoms contribute more than {threshold_contribution} to the imag mode')
@@ -183,16 +182,16 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     """Displaces atoms along the imaginary mode to see if products and reactants are made
 
     Arguments:
-        calc {calculation obj} -- calculation oobject
-        molecules {tuple} -- tuple containing the reactant and product objects
-        method {electronic structure method} --
+        calc (calculation obj): calculation oobject
+        molecules (tuple): tuple containing the reactant and product objects
+        method (electronic structure method): electronic structure method to use
 
 
     Keyword Arguments:
-        disp_mag {int} -- Distance to be displaced along the imag mode (default: {1})
+        disp_mag (int): Distance to be displaced along the imag mode (default: {1})
 
     Returns:
-        {bool} -- if the imag mode is correct or not
+        bool: if the imag mode is correct or not
     """
     forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=disp_mag)
     forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs, charge=calc.charge, mult=calc.mult)

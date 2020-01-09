@@ -15,7 +15,7 @@ def get_hmethod():
     """Get the high-level electronic structure theory method to use
 
     Returns:
-        {object} -- ElectronicStructureMethod
+        object: ElectronicStructureMethod
     """
     method = ORCA
     if Config.hcode is not None:
@@ -40,7 +40,7 @@ def get_lmethod():
     """Get the low-level electronic structure theory method to use
 
     Returns:
-        {object} -- ElectronicStructureMethod
+        object: ElectronicStructureMethod
     """
     method = XTB
     if Config.lcode is not None:

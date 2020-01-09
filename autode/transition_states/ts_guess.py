@@ -42,7 +42,7 @@ class TSguess:
         """Attempts to remove second imaginary mode by displacing either way along it
 
         Keyword Arguments:
-            magnitude {float} -- magnitude to displace along (default: {0.75})
+            magnitude (float): magnitude to displace along (default: {0.75})
         """
         mode_lost = False
         imag_freqs = []
@@ -128,12 +128,12 @@ class TSguess:
     def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
         """
         Keyword Arguments:
-            name {str} -- name of ts guess (default: {'ts_guess'})
-            molecule {molecule object} -- molecule to base ts guess off (default: {None})
-            reaction_class {object} -- reaction type (reactions.py) (default: {None})
-            active_bonds {list(tuples)} -- list of bonds being made/broken (default: {None})
-            reactant {molecule object} -- reactant object (default: {None})
-            product {molecule object} -- product object (default: {None})
+            name (str): name of ts guess (default: {'ts_guess'})
+            molecule (molecule object): molecule to base ts guess off (default: {None})
+            reaction_class (object): reaction type (reactions.py) (default: {None})
+            active_bonds (list(tuples)): list of bonds being made/broken (default: {None})
+            reactant (molecule object): reactant object (default: {None})
+            product (molecule object): product object (default: {None})
         """
         self.name = name
 

@@ -45,7 +45,6 @@ def test_basic_attributes():
 def test_rdkit_conf_generation():
 
     h2 = Molecule(name='h2', smiles='[H][H]')
-    h2._check_rdkit_graph_agreement()
 
     h2.generate_conformers(n_rdkit_confs=1)
     assert isinstance(h2.conformers[0], conformers.Conformer)
@@ -61,9 +60,6 @@ def test_attributes_methods():
 
     h2_rdkit = Molecule(name='h2', smiles='[H][H]')
     h2_rdkit.graph.remove_edge(0, 1)
-
-    with pytest.raises(SystemExit):
-        h2_rdkit._check_rdkit_graph_agreement()
 
     assert 0.69 < h2.calc_bond_distance(bond=(0, 1)) < 0.71
 

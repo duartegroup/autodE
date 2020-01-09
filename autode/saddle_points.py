@@ -8,10 +8,10 @@ def poly2d_saddlepoints(coeff_mat):
     """Finds the saddle points of a 2d surface defined by a matrix of coefficients
 
     Arguments:
-        coeff_mat {np.array} -- Matrix of coefficients of the n order polynomial
+        coeff_mat (np.array): Matrix of coefficients of the n order polynomial
 
     Returns:
-        list -- list of saddle points
+        list: list of saddle points
     """
 
     logger.info('Finding saddle points')
@@ -59,11 +59,11 @@ def root_finder(vector, coeff_mat):
     """For a coordinate, and function, finds df/dx and df/dy
 
     Arguments:
-        vector {tuple} -- (x,y)
-        coeff_mat {np.array} -- Matrix of coefficients of the n order polynomial
+        vector (tuple): (x,y)
+        coeff_mat (np.array): Matrix of coefficients of the n order polynomial
 
     Returns:
-        tuple -- (df/dx, df/dy)
+        tuple: (df/dx, df/dy)
     """
     order = coeff_mat.shape[0]
     x, y = vector
@@ -82,11 +82,11 @@ def calc_delta(coeff_mat, root):
     """calculates delta ((d2f/dx2)*(d2f/dy2) - (d2f/dxdy)**2), to determine if the stationary point is a saddle point (delta < 0) 
 
     Arguments:
-        coeff_mat {np.array} -- Matrix of the coefficients of the n order polynomial
-        root {tuple} -- the stationary point to be examined
+        coeff_mat (np.array): Matrix of the coefficients of the n order polynomial
+        root (tuple): the stationary point to be examined
 
     Returns:
-        delta {int} -- value of delta
+        delta (int): value of delta
     """
     dx2 = 0
     dy2 = 0
@@ -109,13 +109,13 @@ def best_saddlepoint(saddle_points, r1, r2, energy_grid):
     """Finds the saddle point with the lowest peak in its minimum energy pathway
     
     Arguments:
-        saddle_points {list(tuple)} -- list of saddlepoints, defined by their coordinates in r1 and r2
-        r1 {tuple} -- [description]
-        r2 {tuple} -- the distances of grid points on one axis
-        energy_grid {np.array} -- grid of the energy at each grid point given by r1 and r2
+        saddle_points {list(tuple)): list of saddlepoints, defined by their coordinates in r1 and r2
+        r1 (tuple): the distances of grid points on one axis
+        r2 (tuple): the distances of grid points on one axis
+        energy_grid (np.array): grid of the energy at each grid point given by r1 and r2
     
     Returns:
-        {tuple} -- (r1 saddle distance, r2 saddle distance, list of mep coords)
+        tuple: (r1 saddle distance, r2 saddle distance, list of mep coords)
     """
     saddle_points_on_mep = []
     min_energy_pathways = []

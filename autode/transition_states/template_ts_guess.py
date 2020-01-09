@@ -9,17 +9,16 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, product, dist_thres
     """Get a transition state guess object by searching though the stored TS templates
 
     Arguments:
-        mol {mol object} -- reactant object
-        active_bonds {list(tuple)} -- List of active bonds in the TS, defined by atom IDs of the atom pair as a tuple
-        reaction_class {object} -- Reaction class (reactions.py)
-        product {mol object} -- product object
+        mol (mol object): reactant object
+        active_bonds (list(tuple)): List of active bonds in the TS, defined by atom IDs of the atom pair as a tuple
+        reaction_class (object): Reaction class (reactions.py)
+        product (mol object): product object
 
     Keyword Arguments:
-        dist_thresh {float} -- distance above which a constrained optimisation probably won't work
-        due to the inital geometry being too far away from the ideal (default: {4.0})
+        dist_thresh (float): distance above which a constrained optimisation probably won't work due to the inital geometry being too far away from the ideal (default: {4.0})
 
     Returns:
-        {TSGuess object} -- ts guess object
+        TSGuess object: ts guess object
     """
     logger.info('Getting TS guess from stored TS template')
     active_bonds_and_dists_ts = {}
