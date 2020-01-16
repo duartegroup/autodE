@@ -25,7 +25,7 @@ solvents_and_dielectrics = {"acetic acid": 6.15, "acetone": 20.7, "acetonitrile"
 MOPAC = ElectronicStructureMethod(name='mopac',
                                   path=Config.MOPAC.path,
                                   req_licence=True,
-                                  path_to_licence=Config.MOPAC.licence_path,
+                                  path_to_licence=Config.MOPAC.path_to_licence,
                                   aval_solvents=solvents)
 
 MOPAC.__name__ = 'MOPAC'

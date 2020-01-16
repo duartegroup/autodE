@@ -33,6 +33,18 @@ class ElectronicStructureMethod:
         logger.info(f'{self.name} is available {self.available}')
         return None
 
+    def reset(self, Config):
+
+        attributes = ['path', 'path_to_licence', 'scan_keywords', 'conf_opt_keywords', 'opt_keywords', 'opt_ts_keywords', 'hess_keywords', 'opt_ts_block', 'sp_keywords']
+        esw = getattr(Config, self.__name__)
+        for attribute in attributes:
+            try:
+                new_attr_val = getattr(esw, attribute)
+                if new_attr_val is not None:
+                    setattr(self, attribute, new_attr_val)
+            except(AttributeError):
+                pass
+
     def __init__(self, name, path, req_licence=False, path_to_licence=None, aval_solvents=None, scan_keywords=None,
                  conf_opt_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None, opt_ts_block=None,
                  sp_keywords=None):
