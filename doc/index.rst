@@ -22,6 +22,7 @@ Documentation
    reference/index
    install
    tutorial
+   config
 
 Indices and tables
 ==================
