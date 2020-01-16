@@ -9,6 +9,7 @@ from autode.wrappers.ORCA import ORCA
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
 from autode.wrappers.G09 import G09
+from autode.wrappers.NWChem import NWChem
 
 
 def get_hmethod():
@@ -23,6 +24,8 @@ def get_hmethod():
             method = ORCA
         elif Config.hcode.lower() == 'g09':
             method = G09
+        elif Config.hcode.lower() == 'nwchem':
+            method = NWChem
         else:
             logger.critical('Electronic structure code doesn\'t exist')
             exit()

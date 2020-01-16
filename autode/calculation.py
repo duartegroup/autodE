@@ -4,6 +4,7 @@ from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
 from autode.config import Config
+from shutil import which
 
 
 class Calculation:
@@ -118,7 +119,11 @@ class Calculation:
 
         with open(self.output_filename, 'w') as output_file:
 
-            params = [self.method.path, self.input_filename]
+            if self.method.mpirun:
+                mpirun_path = which('mpirun')
+                params = [mpirun_path, '-np', str(self.n_cores), self.method.path, self.input_filename]
+            else:
+                params = [self.method.path, self.input_filename]
             if self.flags is not None:
                 params += self.flags
 
@@ -128,9 +133,9 @@ class Calculation:
         logger.info(f'Calculation {self.output_filename} done')
 
         for filename in os.listdir(os.getcwd()):
-            name_string = (self.input_filename)[:-4]
+            name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log'))) or filename.endswith('.smd.out'):
+                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or filename.endswith(('.smd.out', '.drv.hess')):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')
