@@ -78,6 +78,8 @@ class Calculation:
 
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
+        if self.output_file_lines is None:
+            return False
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
