@@ -5,8 +5,12 @@ def xyz2coord(xyzs):
     """
     For a set of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] convert to a np array of coordinates, containing just
     just the x, y, z coordinates
-    :param xyzs: List of xyzs
-    :return: numpy array of coords
+
+    Arguments:
+        xyzs (list(list)): List of xyzs
+
+    Returns:
+        np.array: array of coords
     """
     if isinstance(xyzs[0], list):
         return np.array([np.array(line[1:4]) for line in xyzs])
@@ -15,11 +19,14 @@ def xyz2coord(xyzs):
 
 
 def coords2xyzs(coords, old_xyzs):
-    """
-    Insert a set of coordinates into a set of xyzs to a new list of xyzs
-    :param coords: list(nd.array)
-    :param old_xyzs: (list(list))
-    :return: (list(list))
+    """Insert a set of coordinates into a set of xyzs to a new list of xyzs
+
+    Arguments:
+        coords (np.array): array of coordinates
+        old_xyzs (list(lists)): list of old xyzs
+
+    Returns:
+        list(list): coords in xyz form
     """
     if isinstance(old_xyzs[0], list):
         assert len(old_xyzs) == len(coords)
@@ -31,13 +38,15 @@ def coords2xyzs(coords, old_xyzs):
 
 
 def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
-    """
-    For a geometry defined by a set of xyzs
+    """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
 
-    :param xyzs: (list(list))
-    :param bonds: (list(tuple))  List of bond ids on for which the final_distances apply
-    :param final_distances: (list(float)) List of final bond distances for the bonds
-    :return: shifted xyzs (list(list))
+    Arguments:
+        xyzs (list(list)): list of xyzs
+        bonds (list(tuple)): List of bond ids on for which the final_distances apply
+        final_distances (list(float)): List of final bond distances for the bonds
+
+    Returns:
+        list(list): shifted xyzs
     """
 
     coords = xyz2coord(xyzs)
@@ -64,10 +73,13 @@ def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
 
 
 def calc_distance_matrix(xyzs):
-    """
-    Calculate a distance matrix
-    :param xyzs: List of xyzs
-    :return:
+    """Calculate a distance matrix
+
+    Arguments:
+        xyzs (list(list)): list of xyzs
+
+    Returns:
+        np.array: array of distances between all the atoms
     """
 
     n_atoms = len(xyzs)
@@ -83,13 +95,15 @@ def calc_distance_matrix(xyzs):
 
 
 def get_neighbour_list(atom_i, mol):
-    """
-    Calculate a neighbour list from atom i as a list of atom labels
-    :param atom_i: (int) index of the atom
-    :param mol: (object) Molecule object
-    :return:
-    """
+    """Calculate a neighbour list from atom i as a list of atom labels
 
+    Arguments:
+        atom_i (int): index of the atom
+        mol (molecule object): Molecule object
+
+    Returns:
+        list: list of atom ids in ascending distance away from atom_i
+    """
     distance_vector = mol.distance_matrix[atom_i]
     dists_and_atom_labels = {}
     for atom_j, dist in enumerate(distance_vector):
@@ -103,9 +117,15 @@ def get_neighbour_list(atom_i, mol):
 
 
 def calc_rotation_matrix(axis, theta):
-    """
-    Return the rotation matrix associated with counterclockwise rotation about
+    """Return the rotation matrix associated with counterclockwise rotation about
     the given axis by theta radians.
+
+    Arguments:
+        axis (np.array}: axis to be rotated about
+        theta (float): angle in radians to be rotated
+
+    Returns:
+        np.array: rotation matrix
     """
     axis = np.asarray(axis)
     axis = axis/np.linalg.norm(axis)

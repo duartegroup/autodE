@@ -19,8 +19,26 @@ install:
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - source activate test-env
   - python setup.py install
-script:
-  - python -m pytest tests/
-  - python -m pytest --cov-report term --cov autode tests/
-after_success:
-  - codecov
+jobs:
+  include:
+    - stage: test
+      name: Run unit tests
+      script:
+        - python -m pytest tests/
+        - python -m pytest --cov-report term --cov autode tests/
+      after_success:
+        - codecov
+    - stage: deploy
+      name: Deploy to GitHub Pages 
+      script:
+        - pip install -r doc/requirements.txt
+        - cd doc
+        - make html
+        - touch _build/html/.nojekyll 
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $token
+        local_dir: doc/_build/html
+        on:
+          branch: master

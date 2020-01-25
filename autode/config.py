@@ -11,7 +11,7 @@ class Config:
     #
     # ----------------------------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code will be used:
-    #                                                                      1. 'ORCA', 2. 'PSI4'
+    # 1. 'ORCA', 2. 'G09'
     #
     hcode = 'ORCA'
     #
@@ -20,6 +20,13 @@ class Config:
     #
     lcode = 'XTB'
     #
+    make_ts_template = True
+    #
+    high_qual_plots = True
+    #
+    # File extension to use for the images made
+    #
+    image_file_extension = '.png'
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:
@@ -36,11 +43,26 @@ class Config:
         opt_ts_keywords = ['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         hess_keywords = ['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         opt_ts_block = ('%geom\nCalc_Hess true\n'
-                        'Recalc_Hess 40\n'
-                        'Trust 0.2\n'
-                        'MaxIter 100\n'
-                        'end')
+                        'Recalc_Hess 30\n'
+                        'Trust -0.1\n'
+                        'MaxIter 100')
         sp_keywords = ['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP']
+
+    class G09:
+        # ------------------------------------------------------------------------------------------
+        # Parameters for G09                                      https://gaussian.com/glossary/g09/
+        # ------------------------------------------------------------------------------------------
+        #
+        # Note: path can be unset and will be assigned if it can be found in $PATH
+        path = None
+
+        scan_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
+        conf_opt_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
+        opt_keywords = ['PBE1PBE/Def2SVP', 'Opt']
+        opt_ts_keywords = ['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)',
+                           'Freq']
+        hess_keywords = ['PBE1PBE/Def2SVP', 'Freq']
+        sp_keywords = ['PBE1PBE/Def2TZVP']
 
     class XTB:
         # ------------------------------------------------------------------------------------------
@@ -62,28 +84,3 @@ class Config:
         # Note: all optimisations at this low level will be in the gas phase using the keywords
         # specified here. Solvent in MOPAC is defined by EPS and the dielectric
         keywords = ['PM7', 'PRECISE']
-
-    class PSI4:
-        # ------------------------------------------------------------------------------------------
-        # Parameters for PSI4                                                 http://www.psicode.org
-        # ------------------------------------------------------------------------------------------
-        #
-        # Note: path can be unset and will be assigned if it can be found in $PATH
-        path = None
-        scan_keywords = ['set {basis def2-svp\n'
-                         'g_convergence gau_loose'
-                         '}',
-                         "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
-        conf_opt_keywords = ['set {basis def2-svp\ng_convergence gau_loose}',
-                             "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
-        opt_keywords = ['set basis def2-svp',
-                        "optimize('scf', dft_functional = 'PBE0-D3BJ')"]
-        opt_ts_keywords = ['set {full_hess_every 30\n'
-                           'opt_type ts\n'
-                           'basis def2-svp\n}',
-                           "optimize('scf', dft_functional = 'PBE0-D3BJ', dertype=1)",
-                           "frequencies('scf', dft_functional = 'PBE0-D3BJ', dertype=1)"]
-        hess_keywords = None
-        opt_ts_block = 'set intrafrag_step_limit 0.1'
-        sp_keywords = ['set basis def2-tzvp',
-                       "energy('scf', dft_functional = 'PBE0-D3BJ')"]

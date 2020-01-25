@@ -1,6 +1,7 @@
 from autode import log
 import os
 
+
 def test_log_level():
     os.environ['AUTODE_LOG_LEVEL'] = 'DEBUG'
     assert log.get_log_level() == log.logging.DEBUG

@@ -4,6 +4,7 @@ from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.base import req_methods
 import numpy as np
+import os
 
 smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE', 'CYCLOPENTANOL',
                 '1,2,4-TRIMETHYLBENZENE', 'CYCLOPENTANONE', '1,2-DIBROMOETHANE', '1,2-DICHLOROETHANE ',
@@ -48,7 +49,8 @@ smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE'
                 'O-CRESOL', 'CYCLOHEXANE', 'CYCLOHEXANONE']
 
 ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
-                                 aval_solvents=[solv.lower() for solv in smd_solvents],
+                                 aval_solvents=[solv.lower()
+                                                for solv in smd_solvents],
                                  scan_keywords=Config.ORCA.scan_keywords,
                                  conf_opt_keywords=Config.ORCA.conf_opt_keywords,
                                  opt_keywords=Config.ORCA.opt_keywords,
@@ -57,31 +59,39 @@ ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
                                  opt_ts_block=Config.ORCA.opt_ts_block,
                                  sp_keywords=Config.ORCA.sp_keywords)
 
+ORCA.__name__ = 'ORCA'
+
 
 def generate_input(calc):
     calc.input_filename = calc.name + '_orca.inp'
     calc.output_filename = calc.name + '_orca.out'
+    keywords = calc.keywords.copy()
 
-    if len(calc.xyzs) == 1:
-        for keyword in calc.keywords:
-            if keyword.lower() == 'opt' or keyword.lower() == 'looseopt' or keyword.lower() == 'tightopt':
+    if calc.n_atoms == 1:
+        for keyword in keywords:
+            if 'opt' in keyword.lower():
                 logger.warning('Cannot do an optimisation for a single atom')
-                calc.keywords.remove(keyword)
+                keywords.remove(keyword)
 
     with open(calc.input_filename, 'w') as inp_file:
-        print('!', *calc.keywords, file=inp_file)
+        print('!', *keywords, file=inp_file)
 
         if calc.solvent:
-            print('%cpcm\n smd true\n SMDsolvent \"' + calc.solvent + '\"\n end', file=inp_file)
+            print('%cpcm\n smd true\n SMDsolvent \"' +
+                  calc.solvent + '\"\n end', file=inp_file)
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)
+            if calc.core_atoms and calc.n_atoms > 25:
+                core_atoms_str = ' '.join(map(str, calc.core_atoms))
+                print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
+            print('end', file=inp_file)
 
         if calc.bond_ids_to_add:
             try:
                 [print('%geom\nmodify_internal\n{ B', bond_ids[0], bond_ids[1], 'A } end\nend', file=inp_file)
                  for bond_ids in calc.bond_ids_to_add]
-            except IndexError or TypeError:
+            except (IndexError, TypeError):
                 logger.error('Could not add scanned bond')
 
         if calc.distance_constraints:
@@ -93,18 +103,20 @@ def generate_input(calc):
 
         if calc.cartesian_constraints:
             print('%geom Constraints', file=inp_file)
-            [print('{ C', atom_id, 'C }', file=inp_file) for atom_id in calc.cartesian_constraints]
+            [print('{ C', atom_id, 'C }', file=inp_file)
+             for atom_id in calc.cartesian_constraints]
             print('    end\nend', file=inp_file)
 
-        if len(calc.xyzs) < 33:
+        if calc.n_atoms < 33:
             print('%geom MaxIter 100 end', file=inp_file)
 
         if calc.n_cores > 1:
             print('%pal nprocs ' + str(calc.n_cores) + '\nend', file=inp_file)
+        print('%output \nxyzfile=True \nend ', file=inp_file)
         print('%scf \nmaxiter 250 \nend', file=inp_file)
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)
-        [print('{:<3}{:^12.8f}{:^12.8f}{:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+        [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
         print('*', file=inp_file)
 
     return None
@@ -113,10 +125,10 @@ def generate_input(calc):
 def calculation_terminated_normally(calc):
 
     for n_line, line in enumerate(calc.rev_output_file_lines):
-        if 'ORCA TERMINATED NORMALLY' in line or 'The optimization did not converge' in line:
+        if any(substring in line for substring in['ORCA TERMINATED NORMALLY', 'The optimization did not converge', 'HUGE, UNRELIABLE STEP WAS ABOUT TO BE TAKEN']):
             logger.info('ORCA terminated normally')
             return True
-        if n_line > 20:
+        if n_line > 30:
             # The above lines are pretty close to the end of the file – there's no point parsing it all
             return False
 
@@ -159,7 +171,7 @@ def get_imag_freqs(calc):
             freqs = [float(l.split()[1]) for l in freq_lines]
             imag_freqs = [freq for freq in freqs if freq < 0]
 
-    logger.info('Found imaginary freqs {}'.format(imag_freqs))
+    logger.info(f'Found imaginary freqs {imag_freqs}')
     return imag_freqs
 
 
@@ -183,9 +195,10 @@ def get_normal_mode_displacements(calc, mode_number):
                 if mode_number in mode_numbers:
                     col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                     displacements = [float(disp_line.split()[col]) for disp_line in
-                                    calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
+                                     calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
 
-    displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
+    displacements_xyz = [displacements[i:i + 3]
+                         for i in range(0, len(displacements), 3)]
     if len(displacements_xyz) != calc.n_atoms:
         logger.error('Something went wrong getting the displacements n != n_atoms')
         return None
@@ -196,20 +209,16 @@ def get_normal_mode_displacements(calc, mode_number):
 def get_final_xyzs(calc):
 
     xyzs = []
-    xyz_section = False
+    if calc.output_filename:
+        xyz_file_name = calc.output_filename[:-4] + '.xyz'
+        if os.path.exists(xyz_file_name):
+            with open(xyz_file_name, 'r') as file:
+                for line_no, line in enumerate(file):
+                    if line_no > 1:
+                        atom_label, x, y, z = line.split()
+                        xyzs.append([atom_label, float(x), float(y), float(z)])
 
-    for line in calc.rev_output_file_lines:
-
-        if 'CARTESIAN COORDINATES (A.U.)' in line:
-            xyz_section = True
-        if 'CARTESIAN COORDINATES (ANGSTROEM)' in line and xyz_section:
-            break
-
-        if xyz_section and len(line.split()) == 4:
-            atom_label, x, y, z = line.split()
-            xyzs.append([atom_label, float(x), float(y), float(z)])
-
-    return list(reversed(xyzs))
+    return xyzs
 
 
 # Bind all the required functions to the class definition

@@ -1,9 +1,8 @@
-
-\.DS_Store
 \build/
+
 \dist/
+
 \.idea/
-tests/high_level/
 
 autode/__pycache__/
 
@@ -23,8 +22,8 @@ autode/transition_states/__pycache__/
 
 *.pyc
 
-.vscode/.ropeproject/
-
 autode/conformers/cconf_gen.c
 
-autode/._config.py
+examples/
+
+doc/_build/

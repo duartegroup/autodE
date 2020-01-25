@@ -47,7 +47,8 @@ def test_orca_optts_calculation():
     ORCA.available = True
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=ORCA, opt=True,
-                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                       keywords=['Opt', 'PBE0', 'RIJCOSX',
+                                 'D3BJ', 'def2-SVP', 'def2/J'],
                        optts_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
     calc.run()
 
@@ -95,7 +96,6 @@ def test_subprocess_to_output():
     assert len(calc.output_file_lines) == 1
     assert len(calc.rev_output_file_lines) == 1
 
-    os.remove('test_subprocess.py')
     os.remove('test_subprocess.out')
     os.chdir(here)
 
