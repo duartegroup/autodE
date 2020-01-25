@@ -69,18 +69,15 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
     file_extension = Config.image_file_extension
 
-    colour_method_dict = {'orca pbe': 'darkmagenta', 'orca pbe0': 'deeppink',
-                          'xtb': 'deepskyblue', 'mopac': 'forestgreen'}
-
     label = method.__name__
 
-    if label.lower() == 'orca':
-        label += ' PBE'
-
     if 'opt_level' in scan_name:
-        label += '0'
-
-    colour = colour_method_dict.get(label.lower(), 'black')
+        label += ' higher level'
+        colour = 'deeppink'
+    elif 'll1d' in scan_name:
+        colour = 'deepskyblue'
+    else:
+        colour = 'darkmagenta'
 
     if 'fbond' in scan_name:
         plot_name += '_fbond'

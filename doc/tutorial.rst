@@ -2,7 +2,7 @@ Tutorial
 ========
 
 S\ :sub:`N`\2 Reaction (examples/sn2.py)
-------------------------------
+----------------------------------------
 
 .. image:: ../examples/common/sn2_image.png
 

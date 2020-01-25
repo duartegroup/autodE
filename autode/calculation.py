@@ -3,6 +3,8 @@ from subprocess import Popen
 from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
+from autode.config import Config
+from shutil import which
 
 
 class Calculation:
@@ -10,7 +12,7 @@ class Calculation:
     def _get_core_atoms(self, molecule):
         """Finds the atoms involved in the reaction, and those bonded to them. These atoms are then
         calculated exactly in the hybrid hessian, if a full exact hessian is not calculated
-        
+
         Arguments:
             molecule (mol obj): the molecule being calculated
         """
@@ -76,6 +78,8 @@ class Calculation:
 
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
+        if self.output_file_lines is None:
+            return False
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
@@ -89,7 +93,6 @@ class Calculation:
 
     def execute_calculation(self):
         logger.info(f'Running calculation {self.input_filename}')
-        self.method.set_availability()
 
         if self.input_filename is None:
             logger.error('Could not run the calculation. Input filename not defined')
@@ -118,7 +121,11 @@ class Calculation:
 
         with open(self.output_filename, 'w') as output_file:
 
-            params = [self.method.path, self.input_filename]
+            if self.method.mpirun:
+                mpirun_path = which('mpirun')
+                params = [mpirun_path, '-np', str(self.n_cores), self.method.path, self.input_filename]
+            else:
+                params = [self.method.path, self.input_filename]
             if self.flags is not None:
                 params += self.flags
 
@@ -128,9 +135,9 @@ class Calculation:
         logger.info(f'Calculation {self.output_filename} done')
 
         for filename in os.listdir(os.getcwd()):
-            name_string = (self.input_filename)[:-4]
+            name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log'))) or filename.endswith('.smd.out'):
+                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or filename.endswith(('.smd.out', '.drv.hess')):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')
@@ -211,3 +218,5 @@ class Calculation:
             self._get_core_atoms(molecule)
 
         self.n_atoms = len(self.xyzs)
+
+        self.method.reset(Config)
