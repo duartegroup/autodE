@@ -52,6 +52,7 @@ class Reaction:
         logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
         self.type = reactions.Dissociation
         self.prods, self.reacs = self.reacs, self.prods
+        self.switched_reacs_prods = True
 
     def check_rearrangement(self):
         """Could be an intramolecular addition, so will swap reactants and products if this is the case"""
@@ -193,10 +194,11 @@ class Reaction:
                                   e_ts=conversion * self.calc_delta_e_ddagger(),
                                   e_prod=conversion * self.calc_delta_e(),
                                   units=units,
-                                  name=(' + '.join([r.name for r in self.reacs]) + ' → ' +
-                                        ' + '.join([p.name for p in self.prods])),
+                                  reacs=self.reacs,
+                                  prods=self.prods,
                                   is_true_ts=self.ts.is_true_ts(),
-                                  ts_is_converged=self.ts.converged)
+                                  ts_is_converged=self.ts.converged,
+                                  switched=self.switched_reacs_prods)
 
         calc_reaction_profile()
 
@@ -218,8 +220,9 @@ class Reaction:
         self.check_solvent()
         self.check_balance()
 
-        self.product_graph = None
+        self.product_graph = None                       #: Full graph of the products
 
+        self.switched_reacs_prods = False               #: Have the reactants and products been switched to
         if self.type == reactions.Addition:
             self.switch_addition()
 
