@@ -9,7 +9,7 @@ from shutil import which
 
 class Calculation:
 
-    def _get_core_atoms(self, molecule):
+    def _set_core_atoms(self, molecule):
         """Finds the atoms involved in the reaction, and those bonded to them. These atoms are then
         calculated exactly in the hybrid hessian, if a full exact hessian is not calculated
 
@@ -20,13 +20,16 @@ class Calculation:
         for bond in self.bond_ids_to_add:
             active_atoms.add(bond[0])
             active_atoms.add(bond[1])
+
         core_atoms = set()
         for active_atom in active_atoms:
             bonded_atoms = molecule.get_bonded_atoms_to_i(active_atom)
             core_atoms.add(active_atom)
             for bonded_atom in bonded_atoms:
                 core_atoms.add(bonded_atom)
+
         self.core_atoms = list(core_atoms)
+        return None
 
     def get_energy(self):
         logger.info(f'Getting energy from {self.output_filename}')
@@ -68,6 +71,11 @@ class Calculation:
 
     def get_final_xyzs(self):
         logger.info(f'Getting final xyzs from {self.output_filename}')
+
+        if self.output_file_lines is None:
+            logger.error('Could not get the final xyzs. The output file lines were not set')
+            return None
+
         xyzs = self.method.get_final_xyzs(self)
 
         if len(xyzs) == 0:
@@ -80,16 +88,32 @@ class Calculation:
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
         if self.output_file_lines is None:
             return False
+
         return self.method.calculation_terminated_normally(self)
 
     def set_output_file_lines(self):
+
         self.output_file_lines = [line for line in open(self.output_filename, 'r', encoding="utf-8")]
         self.rev_output_file_lines = list(reversed(self.output_file_lines))
+
         return None
 
     def generate_input(self):
         logger.info(f'Generating input file for {self.name}')
         return self.method.generate_input(self)
+
+    def remove_non_input_output_files(self):
+        logger.info('Deleting non-output files')
+
+        for filename in os.listdir(os.getcwd()):
+            name_string = '.'.join(self.input_filename.split('.')[:-1])
+            if name_string in filename:
+                # Currently only ORCa and G09 non-output files are deleted
+                if ((not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or
+                        filename.endswith(('.smd.out', '.drv.hess'))):
+                    os.remove(filename)
+
+        return None
 
     def execute_calculation(self):
         logger.info(f'Running calculation {self.input_filename}')
@@ -99,13 +123,12 @@ class Calculation:
             raise NoInputError
 
         if self.method.available is False:
-
             logger.critical('Electronic structure method is not available')
             exit()
 
         if not os.path.exists(self.input_filename):
             logger.error('Could not run the calculation. Input file does not exist')
-            return
+            raise NoInputError
 
         if os.path.exists(self.output_filename):
             self.output_file_exists = True
@@ -134,13 +157,7 @@ class Calculation:
         subprocess.wait()
         logger.info(f'Calculation {self.output_filename} done')
 
-        for filename in os.listdir(os.getcwd()):
-            name_string = '.'.join(self.input_filename.split('.')[:-1])
-            if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or filename.endswith(('.smd.out', '.drv.hess')):
-                    os.remove(filename)
-
-        logger.info('Deleting non-output files')
+        self.remove_non_input_output_files()
 
         return self.set_output_file_lines()
 
@@ -154,7 +171,8 @@ class Calculation:
         return None
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False):
+                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
+                 constraints_already_met=False):
         """
         Arguments:
             name (str): calc name
@@ -215,7 +233,7 @@ class Calculation:
             return
 
         if self.bond_ids_to_add:
-            self._get_core_atoms(molecule)
+            self._set_core_atoms(molecule)
 
         self.n_atoms = len(self.xyzs)
 
