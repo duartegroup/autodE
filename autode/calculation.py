@@ -186,9 +186,11 @@ class Calculation:
             bond_ids_to_add (list(tuples)): list of active bonds (default: {None})
             optts_block (list): keywords to use when performing a TS search (default: {None})
             opt (bool): opt calc or not (needed for XTB) (default: {False})
-            distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at (default: {None})
+            distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length
+                                         to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
-            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB force constant) (default: {False})
+            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB
+                                            force constant) (default: {False})
         """
         self.name = name
         self.xyzs = molecule.xyzs
@@ -225,8 +227,7 @@ class Calculation:
         if molecule.solvent is not None:
             if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
                 logger.critical('Solvent is not available. Cannot run the calculation')
-                print(f'Available solvents are {method.aval_solvents}')
-                exit()
+                exit(f'Available solvents are {method.aval_solvents}')
 
         if self.xyzs is None:
             logger.error('Have no xyzs. Can\'t make a calculation')
