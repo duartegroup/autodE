@@ -214,8 +214,9 @@ class Calculation:
                 lmethod = get_lmethod()
                 print(f'Available solvents for {hmethod.__name__} as the higher level method and {lmethod.__name__} as the lower level method are {get_available_solvents(hmethod.__name__, lmethod.__name__)}')
                 exit()
-
-        self.solvent_keyword = getattr(molecule.solvent, method.__name__)
+            self.solvent_keyword = getattr(molecule.solvent, method.__name__)
+        else:
+            self.solvent_keyword = None
 
         if self.xyzs is None:
             logger.error('Have no xyzs. Can\'t make a calculation')

@@ -98,12 +98,3 @@ def test_subprocess_to_output():
 
     os.remove('test_subprocess.out')
     os.chdir(here)
-
-
-def test_no_solvent():
-
-    test_mol.solvent = 'not_a_real_solvent'
-
-    # The calculation object will fail to build and call sys.exit() as the solvent doesn't exist in the library
-    with pytest.raises(SystemExit):
-        _ = Calculation(name='tmp', molecule=test_mol, method=ORCA)

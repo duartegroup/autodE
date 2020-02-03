@@ -25,7 +25,7 @@ def test_gauss_opt_calc():
     assert os.path.exists('opt_g09.log') is True
     assert len(calc.get_final_xyzs()) == 5
     assert os.path.exists('opt_g09.xyz') is True
-    assert calc.get_energy() ==  -499.729222331
+    assert calc.get_energy() == -499.729222331
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
@@ -82,7 +82,7 @@ def test_fix_angle_error():
     mol = Molecule(smiles='CC/C=C/CO')
 
     calc = Calculation(name='angle_fail', molecule=mol, method=G09, opt=True,
-                    keywords=['PBE1PBE/Def2SVP', 'Opt'])
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
     assert os.path.exists('angle_fail_cartesian_g09.com') is True
@@ -98,12 +98,3 @@ def test_fix_angle_error():
             os.remove(filename)
 
     os.chdir(here)
-
-
-def test_gauss_no_solvent():
-
-    test_mol.solvent = 'not_a_real_solvent'
-
-    # The calculation object will fail to build and call sys.exit() as the solvent doesn't exist in the library
-    with pytest.raises(SystemExit):
-        _ = Calculation(name='tmp', molecule=test_mol, method=G09)

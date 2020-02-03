@@ -32,7 +32,7 @@ class Solvent:
 
 
 water_solv = Solvent(name='water', smiles='O', aliases=['water', 'h2o'], ORCA='water', G09='Water', NWChem='water', XTB='Water', MOPAC='water')
-dcm_solv = Solvent(name='dichloromethane', smiles='ClCCl', aliases=['dichloromethane', 'methyl dichloride'], ORCA='dichloromethane', G09='Dichloromethane', NWChem='dcm', XTB='CH2Cl2', MOPAC='dichloromethane')
+dcm_solv = Solvent(name='dichloromethane', smiles='ClCCl', aliases=['dichloromethane', 'methyl dichloride', 'dcm'], ORCA='dichloromethane', G09='Dichloromethane', NWChem='dcm', XTB='CH2Cl2', MOPAC='dichloromethane')
 acetone_solv = Solvent(name='acetone', smiles='CC(C)=O', aliases=['acetone', 'propanone'], ORCA='acetone', G09='Acetone', NWChem='acetone', XTB='Acetone', MOPAC='acetone')
 acetonitrile_solv = Solvent(name='acetonitrile', smiles='CC#N', aliases=['acetonitrile', 'mecn', 'ch3cn'], ORCA='acetonitrile', G09='Acetonitrile', NWChem='acetntrl', XTB='Acetonitrile', MOPAC='acetonitrile')
 benzene_solv = Solvent(name='benzene', smiles='C1=CC=CC=C1', aliases=['benzene', 'cyclohexatriene'], ORCA='benzene', G09='Benzene', NWChem='benzene', XTB='Benzene', MOPAC='benzene')

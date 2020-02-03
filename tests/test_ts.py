@@ -6,6 +6,7 @@ from autode import molecule
 from autode.transition_states import optts
 from autode.config import Config
 from autode.wrappers.ORCA import ORCA
+from autode.solvent.solvents import Solvent
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -98,7 +99,8 @@ def test_get_ts():
     ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 
     assert ts_obj.get_atom_label(0) == 'F'
-    assert ts_obj.solvent == 'water'
+    assert type(ts_obj.solvent) == Solvent
+    assert ts_obj.solvent.name == 'water'
     assert ts_obj.converged == True
     assert ts_obj.active_atoms == [0, 1, 2]
     assert ts_obj.graph.number_of_nodes() == 6
