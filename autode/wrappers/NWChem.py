@@ -7,24 +7,7 @@ from autode.input_output import xyzs2xyzfile
 import numpy as np
 import os
 
-smd_solvents = ['h2o', 'water', 'acetacid', 'acetone', 'acetntrl', 'acetphen', 'aniline', 'anisole', 'benzaldh', 'benzene', 'benzntrl', 'benzylcl', 'brisobut',
-                'brbenzen', 'brethane', 'bromform', 'broctane', 'brpentan', 'brpropa2', 'brpropan', 'butanal', 'butacid', 'butanol', 'butanol2', 'butanone',
-                'butantrl', 'butile', 'nba', 'nbutbenz', 'sbutbenz', 'tbutbenz', 'cs2', 'carbntet', 'clbenzen', 'secbutcl', 'chcl3', 'clhexane', 'clpentan',
-                'clpropan', 'ocltolue', 'm-cresol', 'o-cresol', 'cychexan', 'cychexon', 'cycpentn', 'cycpntol', 'cycpnton', 'declncis', 'declntra', 'declnmix',
-                'decane', 'decanol', 'edb12', 'dibrmetn', 'butyleth', 'odiclbnz', 'edc12', 'c12dce', 't12dce', 'dcm', 'ether', 'et2s', 'dietamin', 'mi', 'dipe',
-                'dmds', 'dmso', 'dma', 'cisdmchx', 'dmf', 'dmepen24', 'dmepyr24', 'dmepyr26', 'dioxane', 'phoph', 'dproamin', 'dodecan', 'meg', 'etsh', 'ethanol',
-                'etoac', 'etome', 'eb', 'phenetol', 'c6h5f', 'foctane', 'formamid', 'formacid', 'heptane', 'heptanol', 'heptnon2', 'heptnon4', 'hexadecn',
-                'hexane', 'hexnacid', 'hexanol', 'hexanon2', 'hexene', 'hexyne', 'c6h5i', 'iobutane', 'c2h5i', 'iohexdec', 'ch3i', 'iopentan', 'iopropan',
-                'cumene', 'p-cymene', 'mesityln', 'methanol', 'egme', 'meacetat', 'mebnzate', 'mebutate', 'meformat', 'mibk', 'mepropyl', 'isobutol', 'terbutol',
-                'nmeaniln', 'mecychex', 'nmfmixtr', 'isohexan', 'mepyrid2', 'mepyrid3', 'mepyrid4', 'c6h5no2', 'c2h5no2', 'ch3no2', 'ntrprop1', 'ntrprop2',
-                'ontrtolu', 'nonane', 'nonanol', 'nonanone', 'octane', 'octanol', 'octanon2', 'pentdecn', 'pentanal', 'npentane', 'pentacid', 'pentanol', 'pentnon2',
-                'pentnon3', 'pentene', 'e2penten', 'pentacet', 'pentamin', 'pfb', 'benzalcl', 'propanal', 'propacid', 'propanol', 'propnol2', 'propntrl', 'propenol',
-                'propacet', 'propamin', 'pyridine', 'c2cl4', 'thf', 'sulfolan', 'tetralin', 'thiophen', 'phsh', 'toluene', 'tbp', 'tca111', 'tca112', 'tce', 'et3n',
-                'tfe222', 'tmben124', 'isoctane', 'undecane', 'm-xylene', 'o-xylene', 'p-xylene', 'xylenemx']
-
 NWChem = ElectronicStructureMethod(name='nwchem', path=Config.NWChem.path,
-                                   aval_solvents=[solv.lower()
-                                                  for solv in smd_solvents],
                                    scan_keywords=Config.NWChem.scan_keywords,
                                    conf_opt_keywords=Config.NWChem.conf_opt_keywords,
                                    opt_keywords=Config.NWChem.opt_keywords,
@@ -60,12 +43,18 @@ def generate_input(calc):
             new_keyword = '\n'.join(lines)
             new_keywords.append(new_keyword)
         elif keyword.lower().startswith('scf'):
+            if calc.solvent_keyword:
+                logger.critical('NWChem only supports solvent for DFT calculations')
+                exit()
             scf_block = True
             lines = keyword.split('\n')
             lines.insert(1, f'  nopen {calc.mult - 1}')
             new_keyword = '\n'.join(lines)
             new_keywords.append(new_keyword)
         elif any(string in keyword.lower() for string in ['ccsd', 'mp2']) and not scf_block:
+            if calc.solvent_keyword:
+                logger.critical('NWChem only supports solvent for DFT calculations')
+                exit()
             new_keywords.append(f'scf\n  nopen {calc.mult - 1}\nend')
             new_keywords.append(keyword)
         else:
@@ -76,23 +65,20 @@ def generate_input(calc):
 
         print(f'start {calc.name}_nwchem\necho', file=inp_file)
 
-        if calc.solvent:
-            print(
-                f'cosmo\n do_cosmo_smd true\n solvent {calc.solvent}\nend', file=inp_file)
+        if calc.solvent_keyword:
+            print(f'cosmo\n do_cosmo_smd true\n solvent {calc.solvent_keyword}\nend', file=inp_file)
 
         print('geometry', end=' ', file=inp_file)
         if calc.distance_constraints or calc.cartesian_constraints:
             print('noautoz', file=inp_file)
         else:
             print('', file=inp_file)
-        [print('  {:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(
-            *line), file=inp_file) for line in calc.xyzs]
+        [print('  {:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
         if calc.bond_ids_to_add or calc.distance_constraints:
             print('  zcoord', file=inp_file)
             if calc.bond_ids_to_add:
                 try:
-                    [print('    bond', bond_ids[0] + 1, bond_ids[1] + 1,
-                           file=inp_file) for bond_ids in calc.bond_ids_to_add]
+                    [print('    bond', bond_ids[0] + 1, bond_ids[1] + 1, file=inp_file) for bond_ids in calc.bond_ids_to_add]
                 except (IndexError, TypeError):
                     logger.error('Could not add scanned bond')
             if calc.distance_constraints:

@@ -9,7 +9,7 @@ extensions = [Extension('cconf_gen',
 setup(
     name='autode',
     version='v1.0.0-alpha',
-    packages=['autode', 'autode.conformers', 'autode.wrappers', 'autode.transition_states'],
+    packages=['autode', 'autode.conformers', 'autode.wrappers', 'autode.transition_states', 'autode.solvent'],
     include_package_data=True,
     package_data={'autode.transition_states': ['lib/Addition/*.obj', 'lib/Dissociation/*.obj', 'lib/Elimination/*.obj',
                                                'lib/Rearrangement/*.obj', 'lib/Substitution/*.obj']},

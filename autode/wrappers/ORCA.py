@@ -6,51 +6,12 @@ from autode.wrappers.base import req_methods
 import numpy as np
 import os
 
-smd_solvents = ['1,1,1-TRICHLOROETHANE', 'CYCLOPENTANE', '1,1,2-TRICHLOROETHANE', 'CYCLOPENTANOL',
-                '1,2,4-TRIMETHYLBENZENE', 'CYCLOPENTANONE', '1,2-DIBROMOETHANE', '1,2-DICHLOROETHANE ',
-                'CIS-DECALIN',
-                '1,2-ETHANEDIOL ', 'N-DECANE', '1,4-DIOXANEDIBROMOMETHANE', '1-BROMO-2-METHYLPROPANE',
-                'DIBUTYLETHER',
-                '1-BROMOOCTANE', 'O-DICHLOROBENZENE', '1-BROMOPENTANE', 'E-1,2-DICHLOROETHENE', '1-BROMOPROPANE ',
-                'Z-1,2-DICHLOROETHENE', '1-BUTANOL', 'DICHLOROMETHANE', '1-CHLOROHEXANE', '1-CHLOROPENTANE',
-                '1-CHLOROPROPANE', 'DIETHYLAMINE', '1-DECANOL', 'DIIODOMETHANE', '1-FLUOROOCTANE', '1-HEPTANOL',
-                'CIS-1,2-DIMETHYLCYCLOHEXANE', 'DECALIN', 'DIETHYL ETHER ', 'DIETHYL SULFIDE', 'DIISOPROPYL ETHER',
-                '1-HEXANOL', '1-HEXENE', 'N,N-DIMETHYLACETAMIDE', '1-HEXYNE', 'N,N-DIMETHYLFORMAMIDE DMF',
-                '1-IODOBUTANE', 'DIMETHYLSULFOXIDE DMSO', '1-IODOHEXADECANE', 'DIPHENYLETHER', '1-IODOPENTANE',
-                'DIPROPYLAMINE', '1-IODOPROPANE', 'N-DODECANE', '1-NITROPROPANE', 'ETHANETHIOL', '1-NONANOL',
-                'ETHANOL',
-                '1-OCTANOL', '1-PENTANOL', '1-PENTENE', '1-PROPANOL', 'ETHYLBENZENE', '2,2,2-TRIFLUOROETHANOL',
-                'LUOROBENZENE', '2,2,4-TRIMETHYLPENTANE', 'FORMAMIDE', '2,4-DIMETHYLPENTANE',
-                '2,4-DIMETHYLPYRIDINE',
-                'N-HEPTANE', '2,6-DIMETHYLPYRIDINE', 'N-HEXADECANE', '2-BROMOPROPANE', 'N-HEXANE',
-                'DIMETHYL DISULFIDE',
-                'ETHYL ETHANOATE ', 'ETHYL METHANOATE ', 'ETHYL PHENYL ETHER', 'FORMIC ACID', '2-BUTANOL',
-                'HEXANOIC ACID', '2-CHLOROBUTANE', '2-HEPTANONE', '2-HEXANONE', '2-METHOXYETHANOL',
-                '2-METHYL-1-PROPANOL', '2-METHYL-2-PROPANOL', '2-METHYLPENTANE', '2-METHYLPYRIDINE',
-                '2-NITROPROPANE', '2-OCTANONE', '2-PENTANONE', 'IODOBENZENE', 'IODOETHANE', 'IODOMETHANE',
-                'ISOPROPYLBENZENE', 'P-ISOPROPYLTOLUENE', 'MESITYLENE', 'METHANOL', 'METHYL BENZOATE',
-                'METHYL BUTANOATE', 'METHYL ETHANOATE', 'METHYL METHANOATE', 'METHYL PROPANOATE', 'N-METHYLANILINE',
-                'METHYLCYCLOHEXANE', 'N-METHYLFORMAMIDE (E/Z MIXTURE)', 'NITROBENZENE', 'PhNO2', 'NITROETHANE',
-                'NITROMETHANE', 'MeNO2 ', 'O-NITROTOLUENE', 'N-NONANE', 'N-OCTANE', 'N-PENTADECANE', 'PENTANAL',
-                'N-PENTANE', 'PENTANOIC ACID', 'PENTYL ETHANOATE', 'PENTYLAMINE', 'PERFLUOROBENZENE', 'PROPANAL',
-                'PROPANOIC ACID', 'PROPANONITRILE', 'PROPYL ETHANOATE', 'PROPYLAMINE', 'PYRIDINE',
-                'TETRACHLOROETHENE',
-                'TETRAHYDROFURAN', 'THF', 'TETRAHYDROTHIOPHENE-S,S-DIOXIDE', 'TETRALIN', 'THIOPHENE', 'THIOPHENOL',
-                'TOLUENE', 'TRANS-DECALIN', 'TRIBUTYLPHOSPHATE', 'TRICHLOROETHENE', 'TRIETHYLAMINE', 'N-UNDECANE',
-                'WATER', 'XYLENE (MIXTURE)', 'M-XYLENE', 'O-XYLENE', 'P-XYLENE', '2-PROPANOL', '2-PROPEN-1-OL',
-                'E-2-PENTENE', '3-METHYLPYRIDINE', '3-PENTANONE', '4-HEPTANONE', '4-METHYL-2-PENTANONE',
-                '4-METHYLPYRIDINE', '5-NONANONE', 'ACETIC ACID', 'ACETONE', 'ACETONITRILE MeCN', 'ACETOPHENONE',
-                'ANILINE', 'ANISOLE', 'BENZALDEHYDE', 'BENZENE', 'BENZONITRILE', 'BENZYL ALCOHOL', 'BROMOBENZENE',
-                'BROMOETHANE', 'BROMOFORM', 'BUTANAL', 'BUTANOIC ACID', 'BUTANONE', 'BUTANONITRILE',
-                'BUTYL ETHANOATE',
-                'BUTYLAMINE', 'N-BUTYLBENZENE', 'SEC-BUTYLBENZENE', 'TERT-BUTYLBENZENE', 'CARBON DISULFIDE',
-                'CARBON TETRACHLORIDE', 'CHLOROBENZENE', 'CHLOROFORM', 'A-CHLOROTOLUENE', 'O-CHLOROTOLUENE',
-                'M-CRESOL',
-                'O-CRESOL', 'CYCLOHEXANE', 'CYCLOHEXANONE']
+vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
+                             'carbon tetrachloride': 'CCl4', '1,2-dichloroethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',
+                             'n,n-dimethylformamide': 'DMF', 'dimethylsulfoxide': 'DMSO', 'ethanol': 'Ethanol', 'n-hexane': 'Hexane',
+                             'methanol': 'Methanol', '1-octanol': 'Octanol', 'pyridine': 'Pyridine', 'tetrahydrofuran': 'THF', 'toluene': 'Toluene'}
 
 ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
-                                 aval_solvents=[solv.lower()
-                                                for solv in smd_solvents],
                                  scan_keywords=Config.ORCA.scan_keywords,
                                  conf_opt_keywords=Config.ORCA.conf_opt_keywords,
                                  opt_keywords=Config.ORCA.opt_keywords,
@@ -67,18 +28,29 @@ def generate_input(calc):
     calc.output_filename = calc.name + '_orca.out'
     keywords = calc.keywords.copy()
 
-    if calc.n_atoms == 1:
-        for keyword in keywords:
-            if 'opt' in keyword.lower():
+    opt_or_sp = False
+
+    for keyword in keywords:
+        if keyword.lower() == 'opt':
+            opt_or_sp = True
+        if 'opt' in keyword.lower():
+            if calc.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
                 keywords.remove(keyword)
+        if keyword.lower() == 'sp':
+            opt_or_sp = True
+
+    if opt_or_sp and calc.solvent_keyword in vdw_gaussian_solvent_dict.keys():
+        keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
 
     with open(calc.input_filename, 'w') as inp_file:
         print('!', *keywords, file=inp_file)
 
-        if calc.solvent:
-            print('%cpcm\n smd true\n SMDsolvent \"' +
-                  calc.solvent + '\"\n end', file=inp_file)
+        if calc.solvent_keyword:
+            if calc.solvent_keyword in vdw_gaussian_solvent_dict.keys() and opt_or_sp:
+                print('%cpcm\n surfacetype vdw_gaussian\nend', file=inp_file)
+            else:
+                print('%cpcm\nsmd true\nSMDsolvent \"' + calc.solvent_keyword + '\"\nend', file=inp_file)
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)

@@ -18,7 +18,7 @@ python setup.py install
 ### Dependencies
 * [Python](https://www.python.org/) > v. 3.5
 * One of:
-   * [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.1
+   * [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.2
    * [Gaussian09](https://gaussian.com/glossary/g09/)
    * [NWChem](http://www.nwchem-sw.org/index.php/Main_Page)
 * One of:

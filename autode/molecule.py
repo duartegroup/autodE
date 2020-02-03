@@ -19,6 +19,7 @@ from autode.conformers.conformers import rdkit_conformer_geometries_are_resonabl
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
 from autode.methods import get_hmethod
+from autode.solvent.solvents import get_solvent
 import numpy as np
 
 
@@ -47,6 +48,15 @@ class Molecule:
         except AssertionError:
             logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
+
+    def set_solvent(self, solvent):
+        if isinstance(solvent, str):
+            self.solvent=get_solvent(solvent)
+            if self.solvent is None:
+                logger.critical('Could not find the solvent specified')
+                exit()
+        else:
+            self.solvent = solvent
 
     def get_core_atoms(self, product_graph=None, depth=3):
         """Finds the 'core' of a molecule, to find atoms that should not be stripped. Core atoms are those within a certain
@@ -451,7 +461,7 @@ class Molecule:
 
         self.name = name
         self.smiles = smiles
-        self.solvent = solvent
+        self.set_solvent(solvent)
         self.charge = charge
         self.mult = mult
         self.xyzs = xyzs

@@ -9,37 +9,7 @@ from copy import deepcopy
 import numpy as np
 import os
 
-smd_solvents = ['Water', 'Acetonitrile', 'Methanol', 'Ethanol', 'IsoQuinoline', 'Quinoline', 'Chloroform',
-                'DiethylEther', 'Dichloromethane', 'DiChloroEthane', 'CarbonTetraChloride', 'Benzene', 'Toluene',
-                'ChloroBenzene', 'NitroMethane', 'Heptane', 'CycloHexane', 'Aniline', 'Acetone', 'TetraHydroFuran',
-                'DiMethylSulfoxide', 'Argon', 'Krypton', 'Xenon', 'n-Octanol', '1,1,1-TriChloroEthane', '1,1,2-TriChloroEthane',
-                '1,2,4-TriMethylBenzene', '1,2-DiBromoEthane', '1,2-EthaneDiol', '1,4-Dioxane', '1-Bromo-2-MethylPropane',
-                '1-BromoOctane', '1-BromoPentane', '1-BromoPropane', '1-Butanol', '1-ChloroHexane', '1-ChloroPentane',
-                '1-ChloroPropane', '1-Decanol', '1-FluoroOctane', '1-Heptanol', '1-Hexanol', '1-Hexene', '1-Hexyne',
-                '1-IodoButane', '1-IodoHexaDecane', '1-IodoPentane', '1-IodoPropane', '1-NitroPropane', '1-Nonanol',
-                '1-Pentanol', '1-Pentene', '1-Propanol', '2,2,2-TriFluoroEthanol', '2,2,4-TriMethylPentane', '2,4-DiMethylPentane',
-                '2,4-DiMethylPyridine', '2,6-DiMethylPyridine', '2-BromoPropane', '2-Butanol', '2-ChloroButane', '2-Heptanone',
-                '2-Hexanone', '2-MethoxyEthanol', '2-Methyl-1-Propanol', '2-Methyl-2-Propanol', '2-MethylPentane', '2-MethylPyridine',
-                '2-NitroPropane', '2-Octanone', '2-Pentanone', '2-Propanol', '2-Propen-1-ol', '3-MethylPyridine', '3-Pentanone', '4-Heptanone',
-                '4-Methyl-2-Pentanone', '4-MethylPyridine', '5-Nonanone', 'AceticAcid', 'AcetoPhenone', 'a-ChloroToluene', 'Anisole',
-                'Benzaldehyde', 'BenzoNitrile', 'BenzylAlcohol', 'BromoBenzene', 'BromoEthane', 'Bromoform', 'Butanal', 'ButanoicAcid',
-                'Butanone', 'ButanoNitrile', 'ButylAmine', 'ButylEthanoate', 'CarbonDiSulfide', 'Cis-1,2-DiMethylCycloHexane', 'Cis-Decalin', 'CycloHexanone',
-                'CycloPentane', 'CycloPentanol', 'CycloPentanone', 'Decalin-mixture', 'DiBromomEthane', 'DiButylEther', 'DiEthylAmine',
-                'DiEthylSulfide', 'DiIodoMethane', 'DiIsoPropylEther', 'DiMethylDiSulfide', 'DiPhenylEther', 'DiPropylAmine',
-                'e-1,2-DiChloroEthene', 'e-2-Pentene', 'EthaneThiol', 'EthylBenzene', 'EthylEthanoate', 'EthylMethanoate', 'EthylPhenylEther',
-                'FluoroBenzene', 'Formamide', 'FormicAcid', 'HexanoicAcid', 'IodoBenzene', 'IodoBenzene', 'IodoMethane', 'IsoPropylBenzene',
-                'm-Cresol', 'Mesitylene', 'MethylBenzoate', 'MethylButanoate', 'MethylCycloHexane', 'MethylEthanoate', 'MethylEthanoate',
-                'MethylEthanoate', 'm-Xylene', 'n-ButylBenzene', 'n-Decane', 'n-Dodecane', 'n-Hexadecane', 'n-Hexane', 'NitroBenzene',
-                'NitroEthane', 'n-MethylAniline', 'n-MethylFormamide-mixture', 'n,n-DiMethylAcetamide', 'n,n-DiMethylFormamide',
-                'n-Nonane', 'n-Octane', 'n-Pentadecane', 'n-Pentane', 'n-Undecane', 'o-ChloroToluene', 'o-Cresol', 'o-DiChloroBenzene',
-                'o-NitroToluene', 'o-Xylene', 'Pentanal', 'PentanoicAcid', 'PentylAmine', 'PentylEthanoate', 'PerFluoroBenzene',
-                'p-IsoPropylToluene', 'Propanal', 'PropanoicAcid', 'PropanoNitrile', 'PropylAmine', 'PropylEthanoate', 'p-Xylene',
-                'Pyridine', 'sec-ButylBenzene', 'tert-ButylBenzene', 'TetraChloroEthene', 'TetraHydroThiophene-s,s-dioxide', 'Tetralin',
-                'Thiophene', 'Thiophenol', 'trans-Decalin', 'TriButylPhosphate', 'TriChloroEthene', 'TriEthylAmine', 'Xylene-mixture', 'z-1,2-DiChloroEthene']
-
 G09 = ElectronicStructureMethod(name='g09', path=Config.G09.path,
-                                aval_solvents=[solv.lower()
-                                               for solv in smd_solvents],
                                 scan_keywords=Config.G09.scan_keywords,
                                 conf_opt_keywords=Config.G09.conf_opt_keywords,
                                 opt_keywords=Config.G09.opt_keywords,
@@ -71,8 +41,8 @@ def generate_input(calc):
 
         print('#', *keywords, file=inp_file, end=' ')
 
-        if calc.solvent:
-            print(f'scrf=(smd,solvent={calc.solvent})', file=inp_file)
+        if calc.solvent_keyword:
+            print(f'scrf=(smd,solvent={calc.solvent_keyword})', file=inp_file)
         else:
             print('', file=inp_file)
 

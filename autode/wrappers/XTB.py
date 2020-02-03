@@ -7,13 +7,7 @@ import numpy as np
 from autode.wrappers.base import req_methods
 
 
-solvents = ['Acetone', 'Acetonitrile', 'Benzene', 'CH2Cl2', 'CHCl3', 'CS2', 'DMF', 'DMSO', 'Ether', 'Water',
-            'H2O', 'Methanol', 'n-Hexane', 'THF', 'Toluene']
-
-XTB = ElectronicStructureMethod(name='xtb',
-                                path=Config.XTB.path,
-                                aval_solvents=[solv.lower() for solv in solvents])
-
+XTB = ElectronicStructureMethod(name='xtb', path=Config.XTB.path)
 
 XTB.__name__ = 'XTB'
 
@@ -30,8 +24,8 @@ def generate_input(calc):
     if calc.opt:
         calc.flags.append('--opt')
 
-    if calc.solvent:
-        calc.flags += ['--gbsa', calc.solvent]
+    if calc.solvent_keyword:
+        calc.flags += ['--gbsa', calc.solvent_keyword]
 
     if calc.distance_constraints or calc.cartesian_constraints:
         force_constant = 10

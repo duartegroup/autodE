@@ -24,5 +24,6 @@ Further, the parameters used in the calculations can be changed, e.g to change h
   Config.ORCA.sp_keywords = ['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP']
 
 We suggest you look in the config file to see the format used.
-Note: NWChem currently only supports DFT.
+
+Note: NWChem currently only supports solvents for DFT, other methods must not have a solvent.
 

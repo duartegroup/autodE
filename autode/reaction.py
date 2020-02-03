@@ -13,6 +13,8 @@ from autode.config import Config
 from copy import deepcopy
 import os
 
+from autode.solvent.solvents import get_solvent
+
 
 class Reaction:
 

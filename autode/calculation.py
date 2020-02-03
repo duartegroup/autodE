@@ -4,6 +4,9 @@ from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
 from autode.config import Config
+from autode.methods import get_hmethod
+from autode.methods import get_lmethod
+from autode.solvent.solvents import get_available_solvents
 from shutil import which
 
 
@@ -205,10 +208,14 @@ class Calculation:
         self.rev_output_file_lines = None
 
         if molecule.solvent is not None:
-            if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
+            if getattr(molecule.solvent, method.__name__) is False:
                 logger.critical('Solvent is not available. Cannot run the calculation')
-                print(f'Available solvents are {method.aval_solvents}')
+                hmethod = get_hmethod()
+                lmethod = get_lmethod()
+                print(f'Available solvents for {hmethod.__name__} as the higher level method and {lmethod.__name__} as the lower level method are {get_available_solvents(hmethod.__name__, lmethod.__name__)}')
                 exit()
+
+        self.solvent_keyword = getattr(molecule.solvent, method.__name__)
 
         if self.xyzs is None:
             logger.error('Have no xyzs. Can\'t make a calculation')

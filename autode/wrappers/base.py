@@ -45,7 +45,7 @@ class ElectronicStructureMethod:
             except(AttributeError):
                 pass
 
-    def __init__(self, name, path, req_licence=False, path_to_licence=None, aval_solvents=None, scan_keywords=None,
+    def __init__(self, name, path, req_licence=False, path_to_licence=None, scan_keywords=None,
                  conf_opt_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None, opt_ts_block=None,
                  sp_keywords=None, mpirun=False):
         """
@@ -56,7 +56,6 @@ class ElectronicStructureMethod:
         Keyword Arguments:
             req_licence (bool): does the method require a licence file to run? (default: {False})
             path_to_licence (str): absolute path to the licence file if it is required (default: {None})
-            aval_solvents (list): list of available solvents (default: {None})
             scan_keywords (list): keywords to use if performing a relaxed PES scan (default: {None})
             conf_opt_keywords (list): keywords to use to optimised conformers (default: {None})
             opt_keywords (list): keywords to use when performing a regular optimisation (default: {None})
@@ -73,7 +72,6 @@ class ElectronicStructureMethod:
         self.path = path if path is not None else which(name)
         self.req_licence = req_licence
         self.path_to_licence = path_to_licence
-        self.aval_solvents = aval_solvents
 
         # Set the availability of the method
         self.available = False

@@ -7,7 +7,7 @@ Dependencies
 * `Python <https://www.python.org/>`_ > v. 3.5
 * One of:
 
-  * `ORCA <https://sites.google.com/site/orcainputlibrary/home/>`_ > v. 4.1
+  * `ORCA <https://sites.google.com/site/orcainputlibrary/home/>`_ > v. 4.2
   * `Gaussian09 <https://gaussian.com/glossary/g09/>`_
   * `NWChem <http://www.nwchem-sw.org/index.php/Main_Page>`_
 * One of:
