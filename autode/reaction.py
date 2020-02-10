@@ -39,14 +39,21 @@ class Reaction:
         if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
             logger.critical('Solvents in reactants and products don\'t match')
             exit()
+        self.solvent = self.reacs[0].solvent
 
     def set_solvent(self, solvent):
         if solvent is not None:
             logger.info(f'Setting solvent as {solvent}')
 
-            assert type(solvent) == str
+            solvent_obj = get_solvent(solvent)
+            if solvent_obj is None:
+                logger.critical('Could not find the solvent specified')
+                exit()
             for mol in self.reacs + self.prods:
-                mol.solvent = solvent
+                mol.solvent = solvent_obj
+            self.solvent = solvent_obj
+        else:
+            self.solvent = None
 
     def switch_addition(self):
         """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
@@ -177,32 +184,24 @@ class Reaction:
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
+        self.find_lowest_energy_conformers()
+        self.optimise_reacs_prods()
+        self.locate_transition_state()
+        if self.ts is not None:
+            self.ts_confs()
+        self.calculate_single_points()
 
-        @work_in(self.name)
-        def calc_reaction_profile():
-            self.find_lowest_energy_conformers()
-            self.optimise_reacs_prods()
-            self.locate_transition_state()
-            if self.ts is not None:
-                self.ts_confs()
-            self.calculate_single_points()
+        if self.ts is None:
+            return logger.error('TS is None – cannot plot a reaction profile')
 
-            if self.ts is None:
-                return logger.error('TS is None – cannot plot a reaction profile')
-
-            conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
-            plot_reaction_profile(e_reac=0.0,
-                                  e_ts=conversion * self.calc_delta_e_ddagger(),
-                                  e_prod=conversion * self.calc_delta_e(),
-                                  units=units,
-                                  name=(' + '.join([r.name for r in self.reacs]) + ' → ' +
-                                        ' + '.join([p.name for p in self.prods])),
-                                  is_true_ts=self.ts.is_true_ts(),
-                                  ts_is_converged=self.ts.converged)
-
-        calc_reaction_profile()
-
-        return None
+        conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
+        plot_reaction_profile(e_reac=0.0,
+                              e_ts=conversion * self.calc_delta_e_ddagger(),
+                              e_prod=conversion * self.calc_delta_e(),
+                              units=units,
+                              name=(' + '.join([r.name for r in self.reacs]) + ' → ' + ' + '.join([p.name for p in self.prods])),
+                              is_true_ts=self.ts.is_true_ts(),
+                              ts_is_converged=self.ts.converged)
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction', solvent=None):
         logger.info(f'Generating a Reaction object for {name}')
