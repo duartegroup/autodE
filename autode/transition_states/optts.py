@@ -65,6 +65,8 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
             if ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
                                                active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
 
+                ts_guess.remove_explicit_solvent()
+
                 if ts_guess.optts_converged:
                     return ts_guess, True
 

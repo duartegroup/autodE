@@ -173,5 +173,9 @@ def get_final_xyzs(calc):
     return xyzs
 
 
+def get_atomic_charges(calc):
+    raise NotImplementedError
+
+
 # Bind all the required functions to the class definition
 [setattr(MOPAC, method, globals()[method]) for method in req_methods]

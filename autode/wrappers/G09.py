@@ -289,5 +289,23 @@ def get_final_xyzs(calc):
     return xyzs
 
 
+def get_atomic_charges(calc):
+
+    charges_section = False
+    charges = []
+    for line in calc.rev_output_file_lines:
+        if 'Sum of Mulliken charges' in line:
+            charges_section = True
+        if 'MULLIKEN ATOMIC CHARGES' in line:
+            charges_section = False
+            return list(reversed(charges))
+
+        if charges_section and len(line.split()) == 3:
+            charges.append(float(line.split()[2]))
+
+    logger.error('Something went wrong finding the atomic charges')
+    return None
+
+
 # Bind all the required functions to the class definition
 [setattr(G09, method, globals()[method]) for method in req_methods]

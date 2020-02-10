@@ -16,12 +16,12 @@ from autode.transition_states.transition_state import TS
 import os
 
 
-def find_tss(reaction):
+def find_tss(reaction, solvent_xyzs=None, solvent_charges=None, solvent_bonds=None, explicit_solvent=True):
     """Finds the transition states of a reaction
-    
+
     Arguments:
         reaction (reaction object): reaction being examined
-    
+
     Returns:
         list: list of transition state objects
     """
@@ -77,7 +77,7 @@ def find_tss(reaction):
     logger.info(f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
 
     for bond_rearrangement in bond_rearrangs:
-        rearrang_tss = get_ts_obj(reaction, reactant, product, bond_rearrangement)
+        rearrang_tss = get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_xyzs, solvent_charges, solvent_bonds, explicit_solvent)
         tss += rearrang_tss
 
     if len(tss) > 0:
@@ -194,10 +194,12 @@ def get_reactant_and_product_complexes(reaction):
 
     elif reaction.type == Substitution:
         reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        reactant.charges = reaction.reacs[0].charges + reaction.reacs[1].charges
         product = gen_two_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
 
     elif reaction.type == Elimination:
         reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
+        reactant.charges = reaction.reacs[0].charges + reaction.reacs[1].charges
         product = gen_three_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
 
     else:
@@ -217,14 +219,10 @@ def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_ang=100, mol3_shift
                     solvent=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
 
 
-def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
+def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_xyzs, solvent_charges, solvent_bonds, explicit_solvent, strip_molecule=True,):
     tss = []
     if reaction.type in [Substitution, Elimination]:
-        if any(mol.charge != 0 for mol in reaction.reacs):
-            shift_factor = 3
-        else:
-            shift_factor = 2
-        set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement, shift_factor)
+        set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement)
 
     reactant_core_atoms = None
 
@@ -253,6 +251,9 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
             product_core_atoms = list(mapping_dict.keys())
     else:
         product_core_atoms = None
+
+    if explicit_solvent:
+        reac_mol.add_explicit_solvent(solvent_xyzs, solvent_charges, solvent_bonds, complex_mol=True)
 
     prod_mol, _ = product.strip_core(product_core_atoms)
 
@@ -283,13 +284,14 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=T
 
     if len(tss) == 0 and reac_mol.is_fragment:
         logger.info('Found no transition states using the fragment, will try with the whole molecule')
-        tss = get_ts_obj(reaction, reactant, product, bond_rearrangement, strip_molecule=False)
+        tss = get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_xyzs, solvent_charges,
+                         solvent_bonds, explicit_solvent, strip_molecule=False)
 
     return tss
 
 
 def get_bbond_dist(reaction):
-    if any(mol.charge != 0 for mol in reaction.prods):
-        return 2.5
-    else:
-        return 1.5
+    # if any(mol.charge != 0 for mol in reaction.prods):
+    #     return 2.5
+    # else:
+    return 1.5

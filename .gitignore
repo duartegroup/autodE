@@ -12,8 +12,6 @@ autode\.egg-info/
 
 coverage.xml
 
-autode/cconf_gen.c
-
 tests/__pycache__/
 
 autode/conformers/__pycache__/
@@ -23,6 +21,8 @@ autode/transition_states/__pycache__/
 *.pyc
 
 autode/conformers/cconf_gen.c
+
+autode/solvent/csolvent.c
 
 examples/
 

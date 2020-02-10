@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
-                             'carbon tetrachloride': 'CCl4', '1,2-dichloroethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',
+                             'carbon tetrachloride': 'CCl4', 'dichloromethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',
                              'n,n-dimethylformamide': 'DMF', 'dimethylsulfoxide': 'DMSO', 'ethanol': 'Ethanol', 'n-hexane': 'Hexane',
                              'methanol': 'Methanol', '1-octanol': 'Octanol', 'pyridine': 'Pyridine', 'tetrahydrofuran': 'THF', 'toluene': 'Toluene'}
 
@@ -31,9 +31,9 @@ def generate_input(calc):
     opt_or_sp = False
 
     for keyword in keywords:
-        if keyword.lower() == 'opt':
-            opt_or_sp = True
         if 'opt' in keyword.lower():
+            if keyword.lower() != 'optts':
+                opt_or_sp = True
             if calc.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
                 keywords.remove(keyword)
@@ -191,6 +191,23 @@ def get_final_xyzs(calc):
                         xyzs.append([atom_label, float(x), float(y), float(z)])
 
     return xyzs
+
+
+def get_atomic_charges(calc):
+
+    charges_section = False
+    charges = []
+    for line in calc.output_file_lines:
+        if 'MULLIKEN ATOMIC CHARGES' in line:
+            charges_section = True
+            charges = []
+        if 'Sum of atomic charges' in line:
+            charges_section = False
+        if charges_section and len(line.split()) > 1:
+            if line.split()[0].isdigit():
+                charges.append(float(line.split()[-1]))
+
+    return charges
 
 
 # Bind all the required functions to the class definition

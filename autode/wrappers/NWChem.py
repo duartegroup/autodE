@@ -121,6 +121,8 @@ def generate_input(calc):
 
         print(f'memory {Config.max_core} mb', file=inp_file)
 
+        print('property\n  mulliken\nend', file=inp_file)
+
         print(*keywords, sep='\n', file=inp_file)
 
     return None
@@ -243,6 +245,21 @@ def get_final_xyzs(calc):
     xyzs2xyzfile(xyzs, xyz_filename)
 
     return xyzs
+
+
+def get_atomic_charges(calc):
+
+    charges_section = False
+    charges = []
+    for line in calc.rev_output_file_lines:
+        if '----- Bond indices -----' in line:
+            charges_section = True
+        if 'gross population on atoms' in line:
+            charges_section = False
+            return list(reversed(charges))
+
+        if charges_section and len(line.split()) == 4:
+            charges.append(float(line.split()[2]) - float(line.split()[3]))
 
 
 # Bind all the required functions to the class definition

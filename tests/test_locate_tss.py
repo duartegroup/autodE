@@ -15,8 +15,10 @@ dissoc_rearrangs = locate_tss.get_bond_rearrangs(dissoc_reactant, dissoc_product
 
 # h2 + h > h + h2 substitution
 h_reactant = molecule.Reactant(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
-hh_product = molecule.Product( name='H2', xyzs=[['H', 0.7, 0.0, 0.0], ['H', 1.4, 0.0, 0.0]])
+hh_product = molecule.Product(name='H2', xyzs=[['H', 0.7, 0.0, 0.0], ['H', 1.4, 0.0, 0.0]])
 subs_reaction = reaction.Reaction(name='subs', mol1=h_reactant, mol2=hh_reactant, mol3=hh_product, mol4=h_product_2)
+h_reactant.charges = [0]
+hh_reactant.charges = [0, 0]
 subs_reactant, subs_product = locate_tss.get_reactant_and_product_complexes(subs_reaction)
 subs_rearrangs = locate_tss.get_bond_rearrangs(subs_reactant, subs_product)
 
@@ -77,6 +79,7 @@ def test_get_reac_and_prod_complexes():
     propyl_chloride = molecule.Reactant(smiles='CCCl')
     chlorine = molecule.Product(xyzs=[['Cl', 0.0, 0.0, 0.0]])
     ethene = molecule.Product(smiles='C=C')
+    propyl_chloride.charges = [0, 0, 0, 0, 0]
     elim_reaction = reaction.Reaction(h_reactant, propyl_chloride, hh_product, ethene, chlorine)
     elim_reactant, elim_product = locate_tss.get_reactant_and_product_complexes(elim_reaction)
     assert type(elim_reactant) == molecule.Molecule

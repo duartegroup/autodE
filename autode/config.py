@@ -27,6 +27,10 @@ class Config:
     # File extension to use for the images made
     #
     image_file_extension = '.png'
+    #
+    # Whether to do explicit solvation or not
+    #
+    explicit_solvation = True
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:
@@ -74,9 +78,9 @@ class Config:
         scan_keywords = ['driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\nend',
                          'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize']
         conf_opt_keywords = ['driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\nend',
-                             'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize']
+                             'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize', 'task dft property']
         opt_keywords = ['driver\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\nend',
-                        'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc pbe0\nend', 'task dft optimize']
+                        'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc pbe0\nend', 'task dft optimize', 'task dft property']
         opt_ts_keywords = ['driver\n  maxiter 100\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\nend',
                            'basis\n  *   library Def2-SVP\nend', 'dft\n  xc pbe0\nend', 'task dft saddle', 'task dft freq']
         hess_keywords = ['basis\n  *   library Def2-SVP\nend',

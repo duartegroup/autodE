@@ -87,7 +87,7 @@ class TSguess:
 
         return
 
-    def run_optts(self):
+    def run_optts(self, imag_freq_threshold=-50):
         """Runs the optts calc
         """
         logger.info('Getting ORCA out lines from OptTS calculation')
@@ -105,6 +105,10 @@ class TSguess:
             return
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
+        if imag_freqs[0] > imag_freq_threshold:
+            logger.info('Imaginary modes were too small to be significat')
+            self.calc_failed = True
+            return
 
         if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds, threshold_contribution=0.1):
             self.calc_failed = True
@@ -125,6 +129,9 @@ class TSguess:
     def get_coords(self):
         return xyz2coord(self.xyzs)
 
+    def remove_explicit_solvent(self):
+        self.xyzs = self.xyzs[:self.n_atoms_no_solvent]
+
     def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
         """
         Keyword Arguments:
@@ -143,6 +150,7 @@ class TSguess:
 
         self.xyzs = molecule.xyzs
         self.n_atoms = len(molecule.xyzs) if molecule.xyzs is not None else None
+        self.n_atoms_no_solvent = molecule.n_atoms_no_solvent
         self.reaction_class = reaction_class
         self.solvent = molecule.solvent
         self.charge = molecule.charge

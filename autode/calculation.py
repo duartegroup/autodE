@@ -79,6 +79,16 @@ class Calculation:
 
         return xyzs
 
+    def get_atomic_charges(self):
+        logger.info(f'Getting atomic charges from calculation file {self.output_filename}')
+        charges = self.method.get_atomic_charges(self)
+
+        if len(charges) != self.n_atoms:
+            logger.error(f'Could not get atomic charges from calculation file {self.name}, estimating based on electronegativity')
+            pass  # TODO
+
+        return charges
+
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
         if self.output_file_lines is None:
@@ -140,7 +150,7 @@ class Calculation:
         for filename in os.listdir(os.getcwd()):
             name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or filename.endswith(('.smd.out', '.drv.hess')):
+                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')

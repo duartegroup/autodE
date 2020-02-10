@@ -97,6 +97,8 @@ def test_stripping_core():
     prod1 = Product(smiles='OC(CC(C)C)C1CC1CC')
     prod2 = Product(xyzs=[['Br', 0.0, 0.0, 0.0]], charge=-1)
     reaction = Reaction(reac1, reac2, prod1, prod2)
+    reac1.charges = [0]
+    reac2.charges = [0]
     reactant, _ = get_reactant_and_product_complexes(reaction)
     bond_rearrang = BondRearrangement(forming_bonds=[(1, 30)], breaking_bonds=[(0, 1)])
 

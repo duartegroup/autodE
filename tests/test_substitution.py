@@ -80,6 +80,8 @@ methyl_chloride = Reactant(name='CH3Cl', smiles='[H]C([H])(Cl)[H]')
 chloride = Product(name='Cl-',  xyzs=[['Cl', 0., 0., 0.]], charge=-1)
 methyl_hydroxide = Product(name='CH3OH', smiles='[H]C([H])(F)[H]')
 reaction = Reaction(hydroxide, methyl_chloride, chloride, methyl_hydroxide)
+hydroxide.charges = [-1, 0]
+methyl_chloride.charges = [0, 0, 0, 0, 0]
 reactants, products = get_reactant_and_product_complexes(reaction)
 bond_rearrang = BondRearrangement([(0, 1)], [(1, 2)])
 
