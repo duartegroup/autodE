@@ -98,22 +98,18 @@ def generate_unique_rdkit_confs(mol_obj, n_rdkit_confs):
 
 class Conformer(object):
 
-    def optimise(self, fixed_atoms=None, method=None):
+    def optimise(self, method=None):
         logger.info(f'Running optimisation of {self.name}')
 
         if method is None:
             method = self.method
 
         opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.conf_opt_keywords,
-                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts, cartesian_constraints=fixed_atoms, 
+                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts,
                           constraints_already_met=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
         self.xyzs = opt.get_final_xyzs()
-        try:
-            self.charges = opt.get_atomic_charges()
-        except NotImplementedError:
-            pass
 
     def __init__(self, name='conf', xyzs=None, energy=None, solvent=None, charge=0, mult=1, dist_consts=None):
         self.name = name

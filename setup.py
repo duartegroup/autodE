@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 from setuptools.extension import Extension
 
 
-extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']), Extension('csolvent', ['autode/solvent/csolvent.pyx'])]
+extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx'])]
 
 setup(
     name='autode',

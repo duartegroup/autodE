@@ -16,7 +16,7 @@ from autode.saddle_points import best_saddlepoint
 from autode.min_energy_pathway import get_mep
 
 
-def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
+def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, solvent_mol,
                     delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None, e_grid_points=40, polynomial_order=5):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
@@ -269,12 +269,12 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
 
 def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
     """Finds the closest scan point to a pair of coordinates.
-    
+
     Arguments:
         r1_saddle (float): point on the r1 axis
         r2_saddle (float): point on the r2 axis
         dists (list(tuple)): list of r1, r2 distances for points that have been scanned
-    
+
     Returns:
         tuple: the closest scan point
     """

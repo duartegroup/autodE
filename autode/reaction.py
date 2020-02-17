@@ -107,20 +107,9 @@ class Reaction:
 
         if solvent.n_atoms > 1:
             solvent.find_lowest_energy_conformer()
-        solvent.optimise(explicit_solvent=False)
-        logger.info('Saving the solvent molecule properties at the optimisation level of theory')
-        self.solvent_xyzs = solvent.xyzs
-        self.solvent_charges = solvent.charges
-        solvent_bonds = []
-        for i in range(len(solvent.xyzs)):
-            for j in range(len(solvent.xyzs)):
-                if i < j:
-                    solvent_bonds.append((i, j))
-        self.solvent_bonds = solvent_bonds
-
-        if any(solv_prop is None for solv_prop in [self.solvent_xyzs, self.solvent_charges, self.solvent_bonds]) or not Config.explicit_solvation:
-            self.explicit_solvent = False
-            logger.info('Something went wrong with the solvent molecule calculations, will not use explicit solvation')
+        solvent.optimise()
+        logger.info('Saving the solvent molecule properties')
+        self.solvent_mol = solvent
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
@@ -137,8 +126,19 @@ class Reaction:
         """
         logger.info('Calculating optimised reactants and products')
 
-        [mol.optimise(solvent_xyzs=self.solvent_xyzs, solvent_charges=self.solvent_charges, solvent_bonds=self.solvent_bonds,
-                      explicit_solvent=self.explicit_solvent) for mol in self.reacs + self.prods]
+        [mol.optimise() for mol in self.reacs + self.prods]
+
+    @work_in('tss')
+    def locate_transition_state(self):
+
+        # Clear the PES graphs, so they don't write over each other
+        file_extension = Config.image_file_extension
+        for filename in os.listdir(os.getcwd()):
+            if filename.endswith(file_extension):
+                os.remove(filename)
+
+        self.tss = find_tss(self, self.solvent_mol)
+        self.ts = self.find_lowest_energy_ts()
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
@@ -156,19 +156,6 @@ class Reaction:
 
         else:
             return self.tss[0]
-
-    @work_in('tss')
-    def locate_transition_state(self):
-
-        # Clear the PES graphs, so they don't write over each other
-        file_extension = Config.image_file_extension
-        for filename in os.listdir(os.getcwd()):
-            if filename.endswith(file_extension):
-                os.remove(filename)
-
-        self.tss = find_tss(self, solvent_xyzs=self.solvent_xyzs, solvent_charges=self.solvent_charges,
-                            solvent_bonds=self.solvent_bonds, explicit_solvent=self.explicit_solvent)
-        self.ts = self.find_lowest_energy_ts()
 
     @work_in('ts_confs')
     def ts_confs(self):
@@ -207,15 +194,16 @@ class Reaction:
     def calculate_single_points(self):
         """Perform a single point energy evaluations on all the reactants and products using the hcode"""
         molecules = self.reacs + self.prods + [self.ts]
-        [mol.single_point(solvent_xyzs=self.solvent_xyzs, explicit_solvent=self.explicit_solvent)
-         for mol in molecules if mol is not None]
+        [mol.single_point(self.solvent_mol) for mol in molecules if mol is not None]
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
+        if Config.explicit_solvation:
+            self.calc_solvent()
         self.find_lowest_energy_conformers()
         self.optimise_reacs_prods()
         self.locate_transition_state()
-        if self.ts is not None:
+        if self.ts is not None and not self.solvent_mol is None:
             self.ts_confs()
         self.calculate_single_points()
 
@@ -247,10 +235,7 @@ class Reaction:
         self.check_solvent()
         self.check_balance()
 
-        self.solvent_xyzs = None
-        self.solvent_bonds = None
-        self.solvent_charges = None
-        self.explicit_solvent = True
+        self.solvent_mol = None
 
         self.product_graph = None
 

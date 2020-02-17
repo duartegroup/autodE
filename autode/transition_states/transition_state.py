@@ -12,6 +12,8 @@ from autode.conformers.conformers import Conformer
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 import numpy as np
 
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+
 
 class TS(TSguess):
 
@@ -77,13 +79,16 @@ class TS(TSguess):
         else:
             return False
 
-    def single_point(self, method=None):
+    def single_point(self, solvent_mol, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
-                         keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
-        sp.run()
-        self.energy = sp.get_energy()
+        if solvent_mol:
+            self.energy, _, _ = do_explicit_solvent_qmmm(self, solvent_mol, method, hlevel=True, fix_qm=True)
+        else:
+            sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
+                             keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
+            sp.run()
+            self.energy = sp.get_energy()
 
     def generate_conformers(self):
 
@@ -119,7 +124,7 @@ class TS(TSguess):
 
     def opt_ts(self):
         """Run the optts calculation
-        
+
         Returns:
             ts object: the optimised transition state conformer
         """
@@ -128,7 +133,7 @@ class TS(TSguess):
         ts_conf_get_ts_output = get_ts(self)
         if ts_conf_get_ts_output is None:
             return None
-            
+
         self.converged = ts_conf_get_ts_output[1]
         self.energy = self.optts_calc.get_energy()
 

@@ -14,6 +14,8 @@ vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitri
 ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
                                  scan_keywords=Config.ORCA.scan_keywords,
                                  conf_opt_keywords=Config.ORCA.conf_opt_keywords,
+                                 gradients_keywords=Config.ORCA.gradients_keywords,
+                                 sp_grad_keywords=Config.ORCA.sp_grad_keywords,
                                  opt_keywords=Config.ORCA.opt_keywords,
                                  opt_ts_keywords=Config.ORCA.opt_ts_keywords,
                                  hess_keywords=Config.ORCA.hess_keywords,
@@ -82,6 +84,11 @@ def generate_input(calc):
         if calc.n_atoms < 33:
             print('%geom MaxIter 100 end', file=inp_file)
 
+        if calc.partial_hessian:
+            print('%freq\nPARTIAL_Hess {', file=inp_file, end='')
+            print(*calc.partial_hessian, file=inp_file, end='')
+            print('}\nend\nend')
+
         if calc.n_cores > 1:
             print('%pal nprocs ' + str(calc.n_cores) + '\nend', file=inp_file)
         print('%output \nxyzfile=True \nend ', file=inp_file)
@@ -89,6 +96,10 @@ def generate_input(calc):
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)
         [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+        if calc.charges is not None:
+            for line in calc.charges:
+                formatted_line = ['Q', line[-1]] + line[1:4]
+                print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=inp_file)
         print('*', file=inp_file)
 
     return None
@@ -137,9 +148,14 @@ def optimisation_nearly_converged(calc):
 def get_imag_freqs(calc):
     imag_freqs = None
 
+    if calc.partial_hessian:
+        n_atoms = len(calc.partial_hessian)
+    else:
+        n_atoms = calc.n_atoms
+
     for i, line in enumerate(calc.output_file_lines):
         if 'VIBRATIONAL FREQUENCIES' in line:
-            freq_lines = calc.output_file_lines[i + 5:i + 3 * calc.n_atoms + 5]
+            freq_lines = calc.output_file_lines[i + 5:i + 3 * n_atoms + 5]
             freqs = [float(l.split()[1]) for l in freq_lines]
             imag_freqs = [freq for freq in freqs if freq < 0]
 
@@ -149,6 +165,11 @@ def get_imag_freqs(calc):
 
 def get_normal_mode_displacements(calc, mode_number):
     normal_mode_section, values_sec, displacements, col = False, False, [], None
+
+    if calc.partial_hessian:
+        n_atoms = len(calc.partial_hessian)
+    else:
+        n_atoms = calc.n_atoms
 
     for j, line in enumerate(calc.output_file_lines):
         if 'NORMAL MODES' in line:
@@ -167,11 +188,11 @@ def get_normal_mode_displacements(calc, mode_number):
                 if mode_number in mode_numbers:
                     col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                     displacements = [float(disp_line.split()[col]) for disp_line in
-                                     calc.output_file_lines[j + 1:j + 3 * calc.n_atoms + 1]]
+                                     calc.output_file_lines[j + 1:j + 3 * n_atoms + 1]]
 
     displacements_xyz = [displacements[i:i + 3]
                          for i in range(0, len(displacements), 3)]
-    if len(displacements_xyz) != calc.n_atoms:
+    if len(displacements_xyz) != n_atoms:
         logger.error('Something went wrong getting the displacements n != n_atoms')
         return None
 
@@ -205,9 +226,27 @@ def get_atomic_charges(calc):
             charges_section = False
         if charges_section and len(line.split()) > 1:
             if line.split()[0].isdigit():
-                charges.append(float(line.split()[-1]))
+                if line.split()[1] != 'Q':
+                    charges.append(float(line.split()[-1]))
 
     return charges
+
+
+def get_gradients(calc):
+
+    gradients_section = False
+    gradients = []
+    for line in calc.output_file_lines:
+        if 'CARTESIAN GRADIENT' in line:
+            gradients_section = True
+        if 'Difference to translation invariance' in line:
+            gradients_section = False
+        if gradients_section and len(line.split()) == 6:
+            atom, _, _, x, y, z = line.split()
+            if atom != 'Q':
+                gradients.append([float(x), float(y), float(z)])
+
+    return gradients
 
 
 # Bind all the required functions to the class definition

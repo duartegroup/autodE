@@ -177,5 +177,9 @@ def get_atomic_charges(calc):
     raise NotImplementedError
 
 
+def get_gradients(calc):
+    raise NotImplementedError
+
+
 # Bind all the required functions to the class definition
 [setattr(MOPAC, method, globals()[method]) for method in req_methods]

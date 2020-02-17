@@ -307,5 +307,9 @@ def get_atomic_charges(calc):
     return None
 
 
+def get_gradients(calc):
+    raise NotImplementedError
+
+
 # Bind all the required functions to the class definition
 [setattr(G09, method, globals()[method]) for method in req_methods]

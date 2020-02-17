@@ -262,5 +262,9 @@ def get_atomic_charges(calc):
             charges.append(float(line.split()[2]) - float(line.split()[3]))
 
 
+def get_gradients(calc):
+    raise NotImplementedError
+
+
 # Bind all the required functions to the class definition
 [setattr(NWChem, method, globals()[method]) for method in req_methods]

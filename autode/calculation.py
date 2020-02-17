@@ -84,10 +84,21 @@ class Calculation:
         charges = self.method.get_atomic_charges(self)
 
         if len(charges) != self.n_atoms:
-            logger.error(f'Could not get atomic charges from calculation file {self.name}, estimating based on electronegativity')
-            pass  # TODO
+            logger.critical(f'Could not get atomic charges from calculation file {self.name}')
+            exit()
 
         return charges
+
+    def get_gradients(self):
+        logger.info(f'Getting gradients from calculation file {self.output_filename}')
+
+        gradients = self.method.get_gradients(self)
+
+        if len(gradients) != self.n_atoms:
+            logger.critical(f'Could not get gradients from calculation file {self.name}')
+            exit()
+
+        return gradients
 
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
@@ -150,7 +161,7 @@ class Calculation:
         for filename in os.listdir(os.getcwd()):
             name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
-                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
+                if (not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc'))) or filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
                     os.remove(filename)
 
         logger.info('Deleting non-output files')
@@ -167,7 +178,8 @@ class Calculation:
         return None
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False):
+                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False,
+                 charges=None, grad=False, partial_hessian=None):
         """
         Arguments:
             name (str): calc name
@@ -184,6 +196,9 @@ class Calculation:
             distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
             constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB force constant) (default: {False})
+            charges (list(list)): list of point charges and thier positions (default: {None})
+            grad (bool): grad calc or not (needed for XTB) (default: {False})
+            partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
         self.name = name
         self.xyzs = molecule.xyzs
@@ -194,6 +209,8 @@ class Calculation:
         self.flags = None
         self.opt = opt
         self.core_atoms = None
+        self.grad = grad
+        self.partial_hessian = partial_hessian
 
         self.solvent = molecule.solvent
 
@@ -206,6 +223,8 @@ class Calculation:
         self.distance_constraints = distance_constraints
         self.cartesian_constraints = cartesian_constraints
         self.constraints_already_met = constraints_already_met
+
+        self.charges = charges
 
         # Set in self.generate_input()
         self.input_filename = None
@@ -222,7 +241,8 @@ class Calculation:
                 logger.critical('Solvent is not available. Cannot run the calculation')
                 hmethod = get_hmethod()
                 lmethod = get_lmethod()
-                print(f'Available solvents for {hmethod.__name__} as the higher level method and {lmethod.__name__} as the lower level method are {get_available_solvents(hmethod.__name__, lmethod.__name__)}')
+                print(
+                    f'Available solvents for {hmethod.__name__} as the higher level method and {lmethod.__name__} as the lower level method are {get_available_solvents(hmethod.__name__, lmethod.__name__)}')
                 exit()
             self.solvent_keyword = getattr(molecule.solvent, method.__name__)
         else:

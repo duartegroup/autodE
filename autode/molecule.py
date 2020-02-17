@@ -19,9 +19,10 @@ from autode.conformers.conformers import rdkit_conformer_geometries_are_resonabl
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
 from autode.methods import get_hmethod
-from autode.solvent.explicit_solvent import gen_simanl_solvent_xyzs
 from autode.solvent.solvents import get_solvent
 import numpy as np
+
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class Molecule:
@@ -333,87 +334,15 @@ class Molecule:
         self.distance_matrix = calc_distance_matrix(xyzs)
 
         old_xyzs_graph = self.graph.copy()
-        self.graph = mol_graphs.make_graph(xyzs[:self.n_atoms_no_solvent], n_atoms=self.n_atoms_no_solvent)
+        self.graph = mol_graphs.make_graph(xyzs, n_atoms=self.n_atoms)
 
         if not is_isomorphic(old_xyzs_graph, self.graph):
             logger.warning('New xyzs result in a modified molecular graph')
 
         self.n_bonds = self.graph.number_of_edges()
 
-    def add_explicit_solvent(self, solvent_xyzs, solvent_charges, solvent_bonds, complex_mol=False):
-        logger.info(f'Adding explicit solvent molecules to {self.name}')
-
-        self.generate_solvent_conformers(solvent_xyzs, solvent_charges, solvent_bonds)
-        if complex_mol:
-            fixed_atoms = [i for i in range(self.n_atoms_no_solvent)]
-        else:
-            fixed_atoms = None
-        [self.conformers[i].optimise(fixed_atoms=fixed_atoms) for i in range(len(self.conformers))]
-        self.strip_non_unique_confs()
-        [self.conformers[i].optimise(fixed_atoms=fixed_atoms, method=self.method) for i in range(len(self.conformers))]
-        lowest_energy = None
-        for conformer in self.conformers:
-            if conformer.energy is None:
-                continue
-            else:
-                # set solute atoms as ghost atoms
-                solv_mol_xyzs = conformer.xyzs.copy()
-                for i in range(self.n_atoms_no_solvent):
-                    xyz = solv_mol_xyzs[i]
-                    ghost_xyz = [xyz[0] + ':'] + xyz[1:]
-                    solv_mol_xyzs[i] = ghost_xyz
-                solv_mol = Molecule(name=conformer.name + '_solvent', xyzs=solv_mol_xyzs, solvent=conformer.solvent)
-                keywords = self.method.conf_opt_keywords.copy()
-                for keyword in keywords:
-                    if 'opt' in keyword.lower():
-                        keywords.remove(keyword)
-                        keywords.append('SP')
-                solv_calc = Calculation(conformer.name + '_solvent', molecule=solv_mol, method=self.method,
-                                        keywords=keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
-                solv_calc.run()
-                solv_calc_energy = solv_calc.get_energy()
-                energy = conformer.energy - solv_calc_energy
-
-            conformer_graph = mol_graphs.make_graph(conformer.xyzs[:self.n_atoms_no_solvent], self.n_atoms_no_solvent)
-
-            if mol_graphs.is_isomorphic(self.graph, conformer_graph):
-
-                if lowest_energy is None:
-                    lowest_energy = energy
-
-                if energy <= lowest_energy:
-
-                    self.energy = energy
-                    self.set_xyzs(conformer.xyzs)
-                    lowest_energy = energy
-
-                else:
-                    pass
-            else:
-                logger.warning('Conformer had a different molecular graph. Ignoring')
-
-        logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
-
-    def remove_explicit_solvent(self):
-        self.optimised_solvent_xyzs = self.xyzs[self.n_atoms_no_solvent:]
-        self.set_xyzs(self.xyzs[:self.n_atoms_no_solvent])
-
-    def generate_solvent_conformers(self, solvent_xyzs, solvent_charges, solvent_bonds):
-        self.conformers = []
-        conf_xyzs = gen_simanl_solvent_xyzs(self.name, self.xyzs, self.charges, solvent_xyzs, solvent_charges, solvent_bonds, n_simanls=20)
-
-        for i in range(len(conf_xyzs)):
-            self.conformers.append(Conformer(name=self.name + f'_conf{i}',
-                                             xyzs=conf_xyzs[i], solvent=self.solvent, charge=self.charge, mult=self.mult))
-
-        self.n_conformers = len(self.conformers)
-
-    def optimise(self, solvent_xyzs=None, solvent_charges=None, solvent_bonds=None, method=None, explicit_solvent=True):
+    def optimise(self, method=None):
         logger.info(f'Running optimisation of {self.name}')
-
-        if explicit_solvent:
-            self.add_explicit_solvent(solvent_xyzs, solvent_charges, solvent_bonds)
-
         if method is None:
             method = self.method
 
@@ -422,31 +351,20 @@ class Molecule:
         opt.run()
         self.energy = opt.get_energy()
         self.set_xyzs(xyzs=opt.get_final_xyzs())
+        self.charges = opt.get_atomic_charges()
 
-        if explicit_solvent:
-            self.remove_explicit_solvent()
-
-    def single_point(self, solvent_xyzs=None, method=None, explicit_solvent=True):
+    def single_point(self, solvent_mol, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
-
         if method is None:
             method = self.method
 
-        if self.optimised_solvent_xyzs is not None:
-            self.set_xyzs(self.xyzs + self.optimised_solvent_xyzs)
-
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method,
-                         keywords=method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
-        sp.run()
-
-        self.energy = sp.get_energy()
-        if explicit_solvent:
-            solv_mol = Molecule(name=self.name + '_solvent', xyzs=self.xyzs[self.n_atoms_no_solvent:], solvent=self.solvent)
-            solv_calc = Calculation(name=self.name + '_solvent', molecule=solv_mol, method=self.method,
-                                    keywords=method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
-            solv_calc.run()
-            solv_calc_energy = solv_calc.get_energy()
-            self.energy -= solv_calc_energy
+        if solvent_mol:
+            self.energy, _, _ = do_explicit_solvent_qmmm(self, solvent_mol, method, hlevel=True)
+        else:
+            sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
+                             n_cores=Config.n_cores, max_core_mb=Config.max_core)
+            sp.run()
+            self.energy = sp.get_energy()
 
     def is_possible_pi_atom(self, atom_i):
         # metals may break this
@@ -477,7 +395,6 @@ class Molecule:
             exit()
 
         self.n_atoms = self.mol_obj.GetNumAtoms()
-        self.n_atoms_no_solvent = self.mol_obj.GetNumAtoms()
         self.n_bonds = len(self.mol_obj.GetBonds())
         self.charge = Chem.GetFormalCharge(self.mol_obj)
         n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
@@ -531,7 +448,6 @@ class Molecule:
                            'from a SMILES string to keep stereochemistry')
 
         self.n_atoms = len(xyzs)
-        self.n_atoms_no_solvent = len(xyzs)
         self.n_bonds = len(get_xyz_bond_list(xyzs))
         self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
         self.distance_matrix = calc_distance_matrix(xyzs)
@@ -565,7 +481,6 @@ class Molecule:
         self.mol_obj = None
         self.energy = None
         self.n_atoms = None
-        self.n_atoms_no_solvent = None
         self.n_bonds = None
         self.conformers = None
         self.n_conformers = None
@@ -576,8 +491,6 @@ class Molecule:
         self.stereocentres = None
         self.pi_bonds = None
         self.charges = None
-        self.solvent_xyzs = None
-        self.optimised_solvent_xyzs = None
 
         if smiles:
             self._init_smiles(name, smiles)

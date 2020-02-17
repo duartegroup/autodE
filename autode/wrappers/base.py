@@ -7,7 +7,7 @@ from autode.log import logger
 # List of required methods that need to be added to construct a valid electronic structure method wrapper
 req_methods = ['generate_input', 'calculation_terminated_normally',  'get_energy', 'optimisation_converged',
                'optimisation_nearly_converged', 'get_imag_freqs', 'get_normal_mode_displacements', 'get_final_xyzs',
-               'get_atomic_charges']
+               'get_atomic_charges', 'get_gradients']
 
 
 class ElectronicStructureMethod:
@@ -47,8 +47,8 @@ class ElectronicStructureMethod:
                 pass
 
     def __init__(self, name, path, req_licence=False, path_to_licence=None, scan_keywords=None,
-                 conf_opt_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None, opt_ts_block=None,
-                 sp_keywords=None, mpirun=False):
+                 conf_opt_keywords=None, gradients_keywords=None, sp_grad_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None,
+                 opt_ts_block=None, sp_keywords=None, mpirun=False):
         """
         Arguments:
             name (str): wrapper name. ALSO the name of the executable
@@ -58,7 +58,9 @@ class ElectronicStructureMethod:
             req_licence (bool): does the method require a licence file to run? (default: {False})
             path_to_licence (str): absolute path to the licence file if it is required (default: {None})
             scan_keywords (list): keywords to use if performing a relaxed PES scan (default: {None})
-            conf_opt_keywords (list): keywords to use to optimised conformers (default: {None})
+            conf_opt_keywords (list): keywords to use to optimise conformers (default: {None})
+            gradients_keywords (list): keywords to use to get the gradients (default: {None})
+            sp_grad_keywords (list): keywords to use to get the gradients at a higher level (default: {None})
             opt_keywords (list): keywords to use when performing a regular optimisation (default: {None})
             opt_ts_keywords (list): keywords to use when performing a TS search (default: {None})
             hess_keywords (list): keywords to use when just performing a hessian calculation (default: {None})
@@ -80,6 +82,8 @@ class ElectronicStructureMethod:
 
         self.scan_keywords = scan_keywords
         self.conf_opt_keywords = conf_opt_keywords
+        self.gradients_keywords = gradients_keywords
+        self.sp_grad_keywords = sp_grad_keywords
         self.opt_keywords = opt_keywords
         self.opt_ts_keywords = opt_ts_keywords
         self.hess_keywords = hess_keywords

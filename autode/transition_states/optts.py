@@ -10,7 +10,7 @@ from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 
 
-def get_ts(ts_guess, imag_freq_threshold=-100):
+def get_ts(ts_guess, n_solute_atoms=None, n_qm_atoms=None, solvent_mol=None, imag_freq_threshold=-100):
     """Get a transition state object from a set of xyzs by running an ORCA OptTS calculation
 
     Arguments:
@@ -26,6 +26,15 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
     if ts_guess is None:
         logger.warning('Cannot find a transition state; had no TS guess')
         return None
+
+    if solvent_mol:
+        point_charges_xyzs = ts_guess.xyzs[n_qm_atoms:]
+        ts_guess.xyzs = ts_guess.xyzs[:n_qm_atoms]
+        point_charges = []
+        for i in range(len(point_charges_xyzs)):
+            point_charges.append([solvent_mol.charges[i % solvent_mol.n_atoms]] + point_charges_xyzs[i])
+        ts_guess.point_charges = point_charges
+        ts_guess.n_solute_atoms = n_solute_atoms
 
     ts_guess.run_optts()
     if ts_guess.calc_failed:
@@ -100,10 +109,10 @@ def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_ma
     mode_distplacement_coords = calc.get_normal_mode_displacements(mode_number=mode_number)
 
     displaced_xyzs = deepcopy(current_xyzs)
-    for i in range(n_atoms):
+    for i in range(mode_distplacement_coords):
         for j in range(3):
             displaced_xyzs[i][j+1] += displacement_magnitude * mode_distplacement_coords[i][j]      # adding coord (nx3)
-                                                                                                    # to xyzs (nx4)
+            # to xyzs (nx4)
     return displaced_xyzs
 
 
@@ -195,8 +204,9 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     Returns:
         bool: if the imag mode is correct or not
     """
+    n_solute_atoms = len(calc.partial_hessian)
     forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=disp_mag)
-    forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs, charge=calc.charge, mult=calc.mult)
+    forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs[:n_solute_atoms], charge=calc.charge, mult=calc.mult)
     forward_coords = forward_displaced_mol.get_coords()
     forward_distance_constraints = {}
 
@@ -210,7 +220,7 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_xyzs())
 
     backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=-disp_mag)
-    backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs, charge=calc.charge, mult=calc.mult)
+    backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs[:n_solute_atoms], charge=calc.charge, mult=calc.mult)
     backward_coords = backward_displaced_mol.get_coords()
     backward_distance_constraints = {}
 

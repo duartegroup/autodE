@@ -94,7 +94,8 @@ class TSguess:
 
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
                                      keywords=self.method.hess_keywords, n_cores=Config.n_cores,
-                                     max_core_mb=Config.max_core)
+                                     max_core_mb=Config.max_core, charges=self.point_charges,
+                                     partial_hessian=[i for i in range(self.n_solute_atoms)])
 
         self.hess_calc.run()
 
@@ -106,7 +107,7 @@ class TSguess:
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
         if imag_freqs[0] > imag_freq_threshold:
-            logger.info('Imaginary modes were too small to be significat')
+            logger.info('Imaginary modes were too small to be significant')
             self.calc_failed = True
             return
 
@@ -117,6 +118,7 @@ class TSguess:
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
+                                      partial_hessian=[i for i in range(self.n_solute_atoms)],
                                       optts_block=self.method.opt_ts_block)
 
         self.optts_calc.run()
@@ -167,3 +169,6 @@ class TSguess:
         self.hess_calc = None
 
         self.calc_failed = False
+
+        self.point_charges = None
+        self.n_solute_atoms = len(self.xyzs)
