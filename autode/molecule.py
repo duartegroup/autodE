@@ -377,6 +377,10 @@ class Molecule:
 
     def set_pi_bonds(self):
         pi_bonds = []
+        if self.graph is None:
+            logger.error('Could not find pi bonds')
+            return
+
         bonds = list(self.graph.edges)
         for bond in bonds:
             if self.is_possible_pi_atom(bond[0]) and self.is_possible_pi_atom(bond[1]):

@@ -41,4 +41,4 @@ jobs:
         github_token: $token
         local_dir: doc/_build/html
         on:
-          branch: joseph
+          branch: master

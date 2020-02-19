@@ -32,30 +32,7 @@ def find_tss(reaction, solvent_mol):
 
     logger.info('Looking for a file with bond rearrangements in it')
     if os.path.exists('bond_rearrangs.txt'):
-        logger.info('Getting bond rearrangements from file')
-        bond_rearrangs = []
-        with open('bond_rearrangs.txt', 'r') as file:
-            fbonds_block = False
-            bbonds_block = True
-            fbonds = []
-            bbonds = []
-            for line in file:
-                if 'fbonds' in line:
-                    fbonds_block = True
-                    bbonds_block = False
-                if 'bbonds' in line:
-                    fbonds_block = False
-                    bbonds_block = True
-                if fbonds_block and len(line.split()) == 2:
-                    atom_id_string = line.split()
-                    fbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
-                if bbonds_block and len(line.split()) == 2:
-                    atom_id_string = line.split()
-                    bbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
-                if 'end' in line:
-                    bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds))
-                    fbonds = []
-                    bbonds = []
+        bond_rearrangs = get_bond_rearrangs_from_file()
     else:
         bond_rearrangs = get_bond_rearrangs(reactant, product)
 
@@ -63,17 +40,7 @@ def find_tss(reaction, solvent_mol):
             logger.error('Could not find a set of forming/breaking bonds')
             return None
 
-        logger.info('Saving bond rearrangements to bond_rearrangs.txt')
-        with open('bond_rearrangs.txt', 'w') as file:
-            for bond_rearrang in bond_rearrangs:
-                print('fbonds', file=file)
-                for fbond in bond_rearrang.fbonds:
-                    print(*fbond, file=file)
-                print('bbonds', file=file)
-                for bbond in bond_rearrang.bbonds:
-                    print(*bbond, file=file)
-                print('end', file=file)
-
+    save_bond_rearrangs_to_file(bond_rearrangs)
     logger.info(f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
 
     for bond_rearrangement in bond_rearrangs:
@@ -89,7 +56,52 @@ def find_tss(reaction, solvent_mol):
         return None
 
 
-def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang, solvent_mol):
+def save_bond_rearrangs_to_file(bond_rearrangs, filename='bond_rearrangs.txt'):
+    logger.info('Saving bond rearrangements to bond_rearrangs.txt')
+    with open('bond_rearrangs.txt', 'w') as file:
+        for bond_rearrang in bond_rearrangs:
+            print('fbonds', file=file)
+            for fbond in bond_rearrang.fbonds:
+                print(*fbond, file=file)
+            print('bbonds', file=file)
+            for bbond in bond_rearrang.bbonds:
+                print(*bbond, file=file)
+            print('end', file=file)
+
+    return None
+
+
+def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
+    logger.info('Getting bond rearrangements from file')
+    bond_rearrangs = []
+
+    with open(filename, 'r') as br_file:
+        fbonds_block = False
+        bbonds_block = True
+        fbonds = []
+        bbonds = []
+        for line in br_file:
+            if 'fbonds' in line:
+                fbonds_block = True
+                bbonds_block = False
+            if 'bbonds' in line:
+                fbonds_block = False
+                bbonds_block = True
+            if fbonds_block and len(line.split()) == 2:
+                atom_id_string = line.split()
+                fbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
+            if bbonds_block and len(line.split()) == 2:
+                atom_id_string = line.split()
+                bbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
+            if 'end' in line:
+                bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds))
+                fbonds = []
+                bbonds = []
+
+    return bond_rearrangs
+
+
+def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang):
 
     name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
 
@@ -108,6 +120,20 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                                                hmethod, hmethod.scan_keywords, solvent_mol, delta_bbond_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d_opt_level',
                                                reaction.type, hmethod, hmethod.opt_keywords, solvent_mol, delta_bbond_dist)))
+
+    if bond_rearrang.n_bbonds >= 1 and bond_rearrang.n_fbonds >= 1:
+        for fbond in bond_rearrang.fbonds:
+            for bbond in bond_rearrang.bbonds:
+                scanned_bonds = [fbond, bbond]
+                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
+                scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
+                delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+                delta_bbond_dist = get_bbond_dist(reaction)
+
+                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
+                                                       lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
+                                                       hmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
         bbond = bond_rearrang.bbonds[0]

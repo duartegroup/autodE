@@ -98,7 +98,9 @@ class TS(TSguess):
         conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
 
         for i in range(len(conf_xyzs)):
-            self.conformers.append(Conformer(name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent=self.solvent, charge=self.charge, mult=self.mult, dist_consts=self.dist_consts))
+
+            self.conformers.append(Conformer(name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent=self.solvent,
+                                             charge=self.charge, mult=self.mult, dist_consts=self.dist_consts))
 
         self.n_conformers = len(self.conformers)
 
@@ -106,6 +108,7 @@ class TS(TSguess):
         logger.info('Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
         # conformer.energy is in Hartrees
         d_e = energy_threshold_kj / Constants.ha2kJmol
+
         # The first conformer must be unique
         unique_conformers = [self.conformers[0]]
 
@@ -120,6 +123,10 @@ class TS(TSguess):
 
         logger.info(f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
         self.conformers = unique_conformers
+        self.n_conformers = len(self.conformers)
+
+    def strip_confs_failed(self):
+        self.conformers = [conf for conf in self.conformers if conf.xyzs is not None and conf.energy is not None]
         self.n_conformers = len(self.conformers)
 
     def opt_ts(self):
@@ -142,13 +149,14 @@ class TS(TSguess):
         return self
 
     def find_lowest_energy_conformer(self):
-        """For a transitionn state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
+        """For a transition state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
 
         Returns:
             ts object: optimised ts object
         """
         self.generate_conformers()
         [self.conformers[i].optimise() for i in range(len(self.conformers))]
+        self.strip_confs_failed()
         self.strip_non_unique_confs()
         [self.conformers[i].optimise(method=self.method)
          for i in range(len(self.conformers))]
