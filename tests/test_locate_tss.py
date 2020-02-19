@@ -32,7 +32,7 @@ def test_get_funcs_and_params():
 
     subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], subs_reaction, subs_reactant, subs_product, subs_rearrangs[0])
     assert type(subs_f_and_p) == list
-    assert len(subs_f_and_p) == 8
+    assert len(subs_f_and_p) == 7
     assert subs_f_and_p[2][1][5] == locate_tss.Substitution
 
     butadiene = molecule.Reactant(name='butadiene', smiles='C=CC=C')
