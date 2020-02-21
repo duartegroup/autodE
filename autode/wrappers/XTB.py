@@ -65,7 +65,7 @@ def generate_input(calc):
                 print('$', file=xcontrol_file)
 
             if calc.charges:
-                print(f'$embedding\ninput={calc.name}.pc\ninput=orca\n$end', file=xcontrol_file)
+                print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
         calc.flags += ['--input', xcontrol_filename]
 
@@ -161,9 +161,9 @@ def get_gradients(calc):
     else:
         with open('gradient', 'r') as grad_file:
             for line_no, line in enumerate(grad_file):
-                if line_no > 1 and len(line.split()) == 4:
-                    x, y, z, _ = line.split()
-                    gradients.append([float(x)/1.89, float(y)/1.89, float(z)/1.89])  # conversion from /angstrom to /bohr
+                if line_no > 1 and len(line.split()) == 3:
+                    x, y, z = line.split()
+                    gradients.append([float(x.replace('D', 'E')), float(y.replace('D', 'E')), float(z.replace('D', 'E'))])
         with open(f'{calc.name}_xtb.grad', 'w') as new_grad_file:
             [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=new_grad_file) for line in gradients]
         os.remove('gradient')

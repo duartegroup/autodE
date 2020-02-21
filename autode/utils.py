@@ -31,7 +31,7 @@ def work_in(dir_ext):
 
 def clear_calc_files():
     calc_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
-                  'charges', 'wbo', '.xtboptok', 'cosmo.xyz']
+                  'charges', 'wbo', '.xtboptok', 'cosmo.xyz', 'pcgrad']
     if any(file in calc_files for file in os.listdir(os.getcwd())):
         logger.info('Clearing extra calc files')
     for filename in calc_files:

@@ -10,7 +10,7 @@ from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 
 
-def get_ts(ts_guess, n_solute_atoms=None, n_qm_atoms=None, solvent_mol=None, imag_freq_threshold=-100):
+def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
     """Get a transition state object from a set of xyzs by running an ORCA OptTS calculation
 
     Arguments:
@@ -25,40 +25,38 @@ def get_ts(ts_guess, n_solute_atoms=None, n_qm_atoms=None, solvent_mol=None, ima
 
     if ts_guess is None:
         logger.warning('Cannot find a transition state; had no TS guess')
-        return None
+        return None, False
 
     if solvent_mol:
-        point_charges_xyzs = ts_guess.xyzs[n_qm_atoms:]
-        ts_guess.xyzs = ts_guess.xyzs[:n_qm_atoms]
+        point_charges_xyzs = ts_guess.xyzs_with_solvent[len(ts_guess.xyzs):]
         point_charges = []
         for i in range(len(point_charges_xyzs)):
-            point_charges.append([solvent_mol.charges[i % solvent_mol.n_atoms]] + point_charges_xyzs[i])
+            point_charges.append(point_charges_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         ts_guess.point_charges = point_charges
-        ts_guess.n_solute_atoms = n_solute_atoms
 
     ts_guess.run_optts()
     if ts_guess.calc_failed:
-        return None
+        return None, False
 
     ts_guess.check_optts_convergence()
     if ts_guess.calc_failed:
-        return None
+        return None, False
 
     imag_freqs, _, _ = ts_guess.get_imag_frequencies_xyzs_energy()
 
     if not ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
                                            active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
-        return None
+        return None, False
 
     if len(imag_freqs) > 1:
         logger.warning(f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies')
         ts_guess.do_displacements()
         if ts_guess.calc_failed:
-            return None
+            return None, False
 
     ts_guess.check_optts_convergence()
     if ts_guess.calc_failed:
-        return None
+        return None, False
 
     if ts_guess.optts_converged or ts_guess.optts_nearly_converged:
         imag_freqs, _, _ = ts_guess.get_imag_frequencies_xyzs_energy()
@@ -66,7 +64,7 @@ def get_ts(ts_guess, n_solute_atoms=None, n_qm_atoms=None, solvent_mol=None, ima
 
             if imag_freqs[0] > imag_freq_threshold:
                 logger.warning(f'Probably haven\'t found the correct TS {imag_freqs[0]} > {imag_freq_threshold} cm-1')
-                return None
+                return None, False
 
             if len(imag_freqs) == 1:
                 logger.info('Found TS with 1 imaginary frequency')
@@ -84,7 +82,7 @@ def get_ts(ts_guess, n_solute_atoms=None, n_qm_atoms=None, solvent_mol=None, ima
         else:
             logger.warning('TS has *0* imaginary frequencies')
 
-    return None
+    return None, False
 
 
 def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_magnitude=1.0):

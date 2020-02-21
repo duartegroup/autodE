@@ -5,13 +5,9 @@ from autode.config import Config
 
 import simtk.openmm.app as omapp
 import simtk.openmm.openmm as om
-from simtk.unit.unit_definitions import kelvin, angstrom, bohr, hartree, picosecond, nanometer, kilojoule_per_mole, dalton
+from simtk.unit.unit_definitions import kelvin, angstrom, bohr, hartree, picosecond, nanometer, kilojoule_per_mole, dalton, mole
 import numpy as np
 from copy import deepcopy
-
-import math
-
-from autode.wrappers.ORCA import ORCA
 
 
 class QMMM:
@@ -31,10 +27,17 @@ class QMMM:
         # system = self.forcefield.createSystem(self.topology)
         system = self.forcefield.createSystem(pdb.topology)
 
+        coords = xyz2coord(self.all_xyzs)
+        box_size = (np.max(coords, axis=0) - np.min(coords, axis=0)) / 10
+        x_vec = om.Vec3(box_size[0], 0, 0)
+        y_vec = om.Vec3(0, box_size[1], 0)
+        z_vec = om.Vec3(0, 0, box_size[2])
+        system.setDefaultPeriodicBoxVectors(x_vec, y_vec, z_vec)
+
         for xyz in self.solute_xyzs:
-            el = omapp.Element.getBySymbol(xyz[0])
-            mass = el.mass / dalton
-            system.addParticle(mass)
+            # el = omapp.Element.getBySymbol(xyz[0])
+            # mass = el.mass / dalton
+            system.addParticle(0)
 
         qmmm_force_obj = om.CustomExternalForce("-x*fx-y*fy-z*fz")
         qmmm_force_obj.addPerParticleParameter('fx')
@@ -48,68 +51,60 @@ class QMMM:
 
         for force in system.getForces():
             if type(force) is om.NonbondedForce:
-                initial_no_exceptions = force.getNumExceptions()
                 for i in range(len(self.solute_xyzs)):
-                    force.addParticle(self.solute_charges[i], 0.15, 30)
-                for i, xyz in enumerate(self.solute_xyzs):
-                    for j, other_xyz in enumerate(self.solute_xyzs):
-                        if i < j:
-                            dist = np.linalg.norm(np.array(xyz[1:]) - np.array(other_xyz[1:]))
-                            force.addException(i + self.n_solvent_atoms, j + self.n_solvent_atoms, 0, dist/10, 999999)
-        # if self.distance_constraints is not None:
-        #     for bond, distance in self.distance_constraints.items():
-        #         atom_i, atom_j = bond
-        #         system.addConstraint(atom_i + self.n_solvent_atoms, atom_j + self.n_solvent_atoms, distance)
-        # if self.fix_qm:
-        #     for i in range(len(self.qm_solvent_xyzs)):
-        #         system.setParticleMass(i, 0)
-        #     for i in range(len(self.solute_xyzs)):
-        #         system.setParticleMass(i + self.n_solvent_atoms, 0)
+                    force.addParticle(self.solute_charges[i], 0.2, 0.4)
 
         # simulation = omapp.Simulation(topology, system, self.integrator)
         simulation = omapp.Simulation(pdb.topology, system, self.integrator)
 
         coords_in_nm = xyz2coord(self.qm_solvent_xyzs + self.mm_solvent_xyzs + self.solute_xyzs) * 0.1
-
-        positions = []
-        for x, y, z in np.round_(coords_in_nm, 4):
-            positions.append(om.Vec3(x, y, z))
-        positions *= nanometer
-        simulation.context.setPositions(positions)
-        #simulation.reporters.append(omapp.PDBReporter('output.pdb', 1))
+        simulation.context.setPositions(coords_in_nm)
         simulation.minimizeEnergy()
 
         for force in system.getForces():
             if type(force) is om.NonbondedForce:
-                exception_no = 0
                 for i in range(len(self.solute_xyzs)):
                     force.setParticleParameters(i + self.n_solvent_atoms, 0, 0, 0)
-                    for j in range(len(self.solute_xyzs)):
-                        if i < j:
-                            force.setExceptionParameters(initial_no_exceptions + exception_no, i + self.n_solvent_atoms, j + self.n_solvent_atoms, 0.000000001, 0, 0)
-                            exception_no += 1
-                force.updateParametersInContext(simulation.context)
+                for i in range(len(self.qm_solvent_xyzs)):
+                    params = force.getParticleParameters(i)
+                    force.setParticleParameters(i, 0, params[1], params[2])
 
         self.system = system
         self.qmmm_force_obj = qmmm_force_obj
         self.simulation = simulation
 
     def calc_forces_and_energies(self):
-        full_mm_state = self.simulation.context.getState(getForces=True, getPositions=True, getEnergy=True)
-        # print(full_mm_state.getForces())
+        full_mm_state = self.simulation.context.getState(getPositions=True, getEnergy=True)
         full_mm_energy = full_mm_state.getPotentialEnergy() * 0.00038 / kilojoule_per_mole
         positions = full_mm_state.getPositions(asNumpy=True)
         self.print_traj_point(positions)
 
-        # qm_reg_mm_sim = self.make_sub_simulation(positions, True)
-        # qm_reg_mm_state = qm_reg_mm_sim.context.getState(getForces=True, getEnergy=True)
-        # qm_reg_mm_forces = qm_reg_mm_state.getForces(asNumpy=True) * bohr / hartree
-        # qm_reg_mm_energy = qm_reg_mm_state.getPotentialEnergy() / hartree
+        # forces = []
+        # all_params = []
+        # for force in self.system.getForces():
+        #     forces.append(deepcopy(force))
+        # for _ in range(self.system.getNumForces()):
+        #     self.system.removeForce(0)
+        # for force in forces:
+        #     if type(force) is om.NonbondedForce:
+        #         new_force = deepcopy(force)
+        #         for i in range(new_force.getNumParticles()):
+        #             all_params.append(new_force.getParticleParameters(i))
+        #             new_force.setParticleParameters(i, all_params[i][0], 0, 0)
+        #         self.system.addForce(new_force)
+        # self.simulation.context.reinitialize(preserveState=True)
+        # coulomb_only_state = self.simulation.context.getState(getForces=True, getEnergy=True)
+        # coulomb_only_energy = coulomb_only_state.getPotentialEnergy() * 0.00038 / kilojoule_per_mole
+        # coulomb_only_forces = coulomb_only_state.getForces(asNumpy=True) * 6.022 * 10**23 * nanometer / kilojoule_per_mole
+        # coulomb_only_forces = coulomb_only_forces.astype(np.float64)
 
-        # mm_coloumb_sim = self.make_sub_simulation(positions, False)
-        # mm_coloumb_state = mm_coloumb_sim.context.getState(getForces=True, getEnergy=True)
-        # mm_coloumb_forces = mm_coloumb_state.getForces(asNumpy=True) * bohr / hartree
-        # mm_coloumb_energy = mm_coloumb_state.getPotentialEnergy() / hartree
+        # for _ in range(self.system.getNumForces()):
+        #     self.system.removeForce(0)
+        # for force in forces:
+        #     self.system.addForce(force)
+        #     if type(force) is om.CustomExternalForce:
+        #         self.qmmm_force_obj = force
+        # self.simulation.context.reinitialize(preserveState=True)
 
         qm_forces, qm_energy = self.get_qm_force_energy(positions)
 
@@ -119,62 +114,16 @@ class QMMM:
                 index = self.n_solvent_atoms + i
             else:
                 index = i - len(self.solute_xyzs)
-            qmmm_forces[index] += force  # - qm_reg_mm_forces[i]
-        # for i, force in mm_coloumb_forces:
-        #     qmmm_forces[i + self.n_qm_atoms] += force
+            qmmm_forces[index] += force
+        # for i, force in enumerate(coulomb_only_forces):
+        #     if i < len(self.qm_solvent_xyzs) or i >= self.n_solvent_atoms:
+        #         qmmm_forces[i] -= force
         qmmm_forces *= hartree / bohr
-        qmmm_energy = full_mm_energy + qm_energy  # - qm_reg_mm_energy + mm_coloumb_energy + qm_energy
-        # print(qmmm_forces)
+        qmmm_energy = full_mm_energy + qm_energy  # - coulomb_only_energy
 
         self.all_qmmm_energy.append(qmmm_energy)
 
         return qmmm_forces
-
-    # def make_sub_simulation(self, positions, qm_region):
-    #     if qm_region:
-    #         atoms = [i for i in range(self.n_qm_atoms)]
-    #     else:
-    #         atoms = [i for i in range(self.n_qm_atoms, self.n_atoms)]
-    #     sub_topology = omapp.Topology()
-    #     chain = sub_topology.addChain()
-    #     residue = sub_topology.addResidue('residue', chain)
-    #     sub_atoms = []
-    #     for atom_no in atoms:
-    #         element = omapp.Element.getBySymbol(self.xyzs[atom_no][0])
-    #         sub_atoms.append(sub_topology.addAtom(str(atom_no), element, residue))
-    #     for atom_i, atom_j in self.bonds:
-    #         if atom_i in atoms:
-    #             if qm_region:
-    #                 sub_topology.addBond(sub_atoms[atom_i], atoms[atom_j])
-    #             else:
-    #                 atom_i_index = atom_i - self.n_qm_atoms
-    #                 atom_j_index = atom_j - self.n_qm_atoms
-    #                 sub_topology.addBond(sub_atoms[atom_i_index], atoms[atom_j_index])
-
-    #     sub_system = self.forcefield.createSystem(sub_topology)
-    #     if qm_region:
-    #         # only include non-bonded potential
-    #         for force in sub_system.getForces():
-    #             if type(force) is om.NonbondedForce:
-    #                 for i in range(force.getNumParticles()):
-    #                     particle_params = force.getParticleParameters(i)
-    #                     force.setParticleParameters(i, charge=0.0, sigma=particle_params[1], epsilon=particle_params[2])
-
-    #     else:
-    #         # only include coulomb force
-    #         for i in range(sub_system.getNumForces()):
-    #             if type(sub_system.getForce(i)) is not om.NonbondedForce:
-    #                 sub_system.removeForce(i)
-    #             else:
-    #                 force = sub_system.getForce(i)
-    #                 for i in range(force.getNumParticles()):
-    #                     particle_params = force.getParticleParameters(i)
-    #                     force.setParticleParameters(i, charge=particle_params[0], sigma=0.0, epsilon=0.0)
-
-    #     sub_simulation = omapp.Simulation(sub_topology, sub_system, self.integrator)
-    #     sub_simulation.context.setPositions(positions)
-
-    #     return sub_simulation
 
     def get_qm_force_energy(self, positions):
         xyzs = self.positions2xyzs(positions)
@@ -188,18 +137,15 @@ class QMMM:
             keywords = self.method.sp_grad_keywords
         else:
             keywords = self.method.gradients_keywords
-        grad_calc = Calculation(mol.name, mol, self.method, keywords, Config.n_cores,
-                                Config.max_core, charges=charges_with_coords, grad=True)
-        # keywords = ORCA.gradients_keywords
-        # grad_calc = Calculation(mol.name, mol, ORCA, keywords, Config.n_cores,
-        #                         Config.max_core, charges=charges_with_coords, grad=True)
+        grad_calc = Calculation(mol.name, mol, self.method, keywords, Config.n_cores, Config.max_core, charges=charges_with_coords, grad=True)
         grad_calc.run()
         qm_grads = grad_calc.get_gradients()  # in Eh/bohr
         qm_forces = []
         for grad in qm_grads:
-            qm_forces.append([-i for i in grad])
+            qm_forces.append([-i * 6.022*10**23 for i in grad])
 
         qm_energy = grad_calc.get_energy()
+        self.final_qm_energy = qm_energy
 
         return qm_forces, qm_energy
 
@@ -210,13 +156,11 @@ class QMMM:
 
     def take_step(self):
         self.simulation.step(1)
+        # self.simulation.minimizeEnergy(maxIterations=1)
         self.step_no += 1
 
     def run_qmmm_step(self):
         self.take_step()
-        state = self.simulation.context.getState(getPositions=True)
-        pos = state.getPositions()
-        xyzs = self.positions2xyzs(pos)
         qmmm_force = self.calc_forces_and_energies()
         self.update_forces(qmmm_force)
 
@@ -224,16 +168,16 @@ class QMMM:
         qmmm_force = self.calc_forces_and_energies()
         self.update_forces(qmmm_force)
         self.run_qmmm_step()
-        while abs(self.all_qmmm_energy[-1] - self.all_qmmm_energy[-2]) > 0.00001:
+        while abs(self.all_qmmm_energy[-1] - self.all_qmmm_energy[-2]) > 0.001:
             self.run_qmmm_step()
-        print(self.all_qmmm_energy)
+        # for _ in range(100):
+        #     self.run_qmmm_step()
         final_state = self.simulation.context.getState(getPositions=True)
         final_positions = final_state.getPositions(asNumpy=True)
         final_xyzs = self.positions2xyzs(final_positions)
 
         self.final_xyzs = final_xyzs
         self.final_energy = self.all_qmmm_energy[-1]
-        exit()
 
     def positions2xyzs(self, positions):
         coords = positions / angstrom
@@ -250,7 +194,7 @@ class QMMM:
             print(f'{self.n_qm_atoms}\n', file=traj_file)
             [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=traj_file) for line in xyzs[:self.n_qm_atoms]]
 
-    def __init__(self, solute, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs, mm_solvent_bonds, mm_charges, method, distance_constraints, hlevel, fix_qm):
+    def __init__(self, solute, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs, mm_solvent_bonds, mm_charges, method, hlevel):
         self.name = solute.name
         self.solute_xyzs = solute.xyzs
         self.solute_charge = solute.charge
@@ -261,9 +205,7 @@ class QMMM:
         self.mm_solvent_xyzs = mm_solvent_xyzs
         self.mm_solvent_bonds = mm_solvent_bonds
         self.mm_charges = mm_charges
-        self.distance_constraints = distance_constraints
         self.hlevel = hlevel
-        self.fix_qm = fix_qm
 
         self.n_solvent_atoms = len(self.qm_solvent_xyzs) + len(self.mm_solvent_xyzs)
         self.n_qm_atoms = len(self.solute_xyzs) + len(self.qm_solvent_xyzs)
@@ -279,7 +221,7 @@ class QMMM:
         self.system = None
         self.simulation = None
         self.forcefield = omapp.ForceField('tip3pfb.xml')
-        self.integrator = om.LangevinIntegrator(300*kelvin, 1/picosecond, 0.0005*picosecond)
+        self.integrator = om.LangevinIntegrator(300*kelvin, 1/picosecond, 0.002*picosecond)
         self.qmmm_force_obj = None
         self.set_up_main_simulation()
 
@@ -290,6 +232,7 @@ class QMMM:
 
         self.final_xyzs = None
         self.final_energy = None
+        self.final_qm_energy = None
 
 
 def xyzs2pdb(xyzs, filename):

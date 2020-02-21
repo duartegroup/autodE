@@ -359,7 +359,8 @@ class Molecule:
             method = self.method
 
         if solvent_mol:
-            self.energy, _, _ = do_explicit_solvent_qmmm(self, solvent_mol, method, hlevel=True)
+            qmmm_energies, _, _ = do_explicit_solvent_qmmm(self, solvent_mol, method, hlevel=True, n=1)
+            self.energy = qmmm_energies[0]
         else:
             sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
                              n_cores=Config.n_cores, max_core_mb=Config.max_core)
@@ -495,6 +496,8 @@ class Molecule:
         self.stereocentres = None
         self.pi_bonds = None
         self.charges = None
+
+        self.xyzs_with_solvent = None
 
         if smiles:
             self._init_smiles(name, smiles)

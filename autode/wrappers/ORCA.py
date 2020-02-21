@@ -41,6 +41,10 @@ def generate_input(calc):
                 keywords.remove(keyword)
         if keyword.lower() == 'sp':
             opt_or_sp = True
+        if keyword.lower() == 'freq':
+            if calc.partial_hessian:
+                keywords.remove(keyword)
+                keywords.append('NumFreq')
 
     if opt_or_sp and calc.solvent_keyword in vdw_gaussian_solvent_dict.keys():
         keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
@@ -85,9 +89,12 @@ def generate_input(calc):
             print('%geom MaxIter 100 end', file=inp_file)
 
         if calc.partial_hessian:
-            print('%freq\nPARTIAL_Hess {', file=inp_file, end='')
+            print('%freq\nPartial_Hess {', file=inp_file, end='')
             print(*calc.partial_hessian, file=inp_file, end='')
-            print('}\nend\nend')
+            print('} end\nend', file=inp_file)
+
+        if calc.charges is not None:
+            print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
         if calc.n_cores > 1:
             print('%pal nprocs ' + str(calc.n_cores) + '\nend', file=inp_file)
@@ -96,11 +103,14 @@ def generate_input(calc):
         print('% maxcore', calc.max_core_mb, file=inp_file)
         print('*xyz', calc.charge, calc.mult, file=inp_file)
         [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
-        if calc.charges is not None:
-            for line in calc.charges:
-                formatted_line = ['Q', line[-1]] + line[1:4]
-                print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=inp_file)
         print('*', file=inp_file)
+
+    if calc.charges:
+        with open(f'{calc.name}_orca.pc', 'w') as pc_file:
+            print(len(calc.charges), file=pc_file)
+            for line in calc.charges:
+                formatted_line = [line[-1]] + line[1:4]
+                print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=pc_file)
 
     return None
 

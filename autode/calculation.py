@@ -132,8 +132,7 @@ class Calculation:
         for filename in os.listdir(os.getcwd()):
             name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
-                # Currently only ORCa and G09 non-output files are deleted
-                if ((not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or
+                if ((not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad'))) or
                         filename.endswith(('.smd.out', '.drv.hess'))):
                     os.remove(filename)
 

@@ -216,22 +216,11 @@ class Reaction:
                               e_ts=conversion * self.calc_delta_e_ddagger(),
                               e_prod=conversion * self.calc_delta_e(),
                               units=units,
-                              name=(' + '.join([r.name for r in self.reacs]) + ' → ' + ' + '.join([p.name for p in self.prods])),
+                              reacs=self.reacs,
+                              prods=self.prods,
                               is_true_ts=self.ts.is_true_ts(),
-                              ts_is_converged=self.ts.converged)
-
-            conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
-            plot_reaction_profile(e_reac=0.0,
-                                  e_ts=conversion * self.calc_delta_e_ddagger(),
-                                  e_prod=conversion * self.calc_delta_e(),
-                                  units=units,
-                                  reacs=self.reacs,
-                                  prods=self.prods,
-                                  is_true_ts=self.ts.is_true_ts(),
-                                  ts_is_converged=self.ts.converged,
-                                  switched=self.switched_reacs_prods)
-
-        calc_reaction_profile()
+                              ts_is_converged=self.ts.converged,
+                              switched=self.switched_reacs_prods)
 
         return None
 

@@ -36,117 +36,48 @@ def add_solvent_molecules(solute, solvent):
     radius = (np.linalg.norm(max_solute_cart_values - min_solute_cart_values))
     if radius == 0:
         radius = 1
-    solvent_mol_area = (2*solvent_size)**2 * np.pi
+    solvent_mol_area = (0.9*solvent_size)**2 * np.pi
 
-    n_qm_mols = 20
+    n_qm_mols = 50
+    n_mm_mols = 500
     solvent_bonds = list(solvent.graph.edges())
 
+    solvent_coords_on_sphere = []
     qm_solvent_xyzs = []
     qm_solvent_bonds = []
-
-    qm_mol_radius = find_radii(0.1, solvent_mol_area, n_qm_mols, True)
-    if qm_mol_radius < radius:
-        qm_mol_add = radius - qm_mol_radius
-    else:
-        qm_mol_add = 0
-    solvent_coords_on_sphere = add_solvent_on_sphere(solvent_coords, qm_mol_radius, solvent_mol_area, qm_mol_add)
-    for i, solvent_coords in enumerate(solvent_coords_on_sphere):
-        if i == n_qm_mols:
-            break
-        solvent_xyzs = coords2xyzs(solvent_coords, solvent.xyzs)
-        for xyz in solvent_xyzs:
-            qm_solvent_xyzs.append(xyz)
-        for bond in solvent_bonds:
-            qm_solvent_bonds.append((bond[0] + i * len(solvent_xyzs), bond[1] + i * len(solvent_xyzs)))
-
-    # TODO get right number of qm solvent mols
-
-    n_mm_mols = 500
-    solvent_coords_on_sphere = []
-    radii = find_radii(qm_mol_radius + qm_mol_add, solvent_mol_area, n_mm_mols, False)
-    radii_add = []
-    for i, rad in enumerate(radii):
-        if i == 0:
-            radii_add.append(0)
-        else:
-            prev_rad = radii[i-1] + radii_add[i-1]
-            if rad - prev_rad < radius:
-                radii_add.append(radius + prev_rad - rad)
-            else:
-                radii_add.append(0)
-    for rad, rad_add in zip(radii, radii_add):
-        solvent_coords_on_sphere += add_solvent_on_sphere(solvent_coords, rad, solvent_mol_area, rad_add)
-
     mm_solvent_xyzs = []
     mm_solvent_bonds = []
     mm_charges = []
 
+    distances = []
+    for i in range(1, 7):
+        solvent_coords_on_sphere += add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, i)
     for i, solvent_coords in enumerate(solvent_coords_on_sphere):
-        if i == n_mm_mols:
+        distances.append(np.linalg.norm(solvent_coords))
+    sorted_by_dist_coords = [x for _, x in sorted(zip(distances, solvent_coords_on_sphere))]
+    for i, solvent_coords in enumerate(sorted_by_dist_coords):
+        if i == n_qm_mols + n_mm_mols:
             break
         solvent_xyzs = coords2xyzs(solvent_coords, solvent.xyzs)
-        for xyz in solvent_xyzs:
-            mm_solvent_xyzs.append(xyz)
-        for bond in solvent_bonds:
-            mm_solvent_bonds.append((bond[0] + i * len(solvent_xyzs), bond[1] + i * len(solvent_xyzs)))
-        mm_charges += solvent.charges
+        if i < n_qm_mols:
+            for xyz in solvent_xyzs:
+                qm_solvent_xyzs.append(xyz)
+            for bond in solvent_bonds:
+                qm_solvent_bonds.append((bond[0] + i * len(solvent_xyzs), bond[1] + i * len(solvent_xyzs)))
+        else:
+            for xyz in solvent_xyzs:
+                mm_solvent_xyzs.append(xyz)
+            for bond in solvent_bonds:
+                mm_solvent_bonds.append((bond[0] + (i - n_qm_mols) * len(solvent_xyzs), bond[1] + (i - n_qm_mols) * len(solvent_xyzs)))
+            mm_charges += solvent.charges
 
     return centered_solute_xyzs, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs, mm_solvent_bonds, mm_charges
 
 
-def find_radii(radius, solvent_mol_area, target, single_sphere):
-    n_solvent_mols = []
-    radii = []
-    achieved_target = False
-    radius_add = 0
-    while not achieved_target:
-        n_solvent_mols.append(floor((4 * np.pi * (radius+radius_add)**2) / solvent_mol_area))
-        radii.append(radius+radius_add)
-        if single_sphere:
-            if target <= n_solvent_mols[-1] <= target + 3:
-                return radii[-1]
-        else:
-            len_n_solvent_mols = len(n_solvent_mols)
-            if len_n_solvent_mols > 2:
-                for i in range(len_n_solvent_mols):
-                    for j in range(len_n_solvent_mols):
-                        if i < j:
-                            for k in range(len_n_solvent_mols):
-                                if j < k:
-                                    if n_solvent_mols[i] + n_solvent_mols[j] + n_solvent_mols[k] == target:
-                                        achieved_target = True
-                                        radii_to_use = [radii[i], radii[j], radii[k]]
-            if len_n_solvent_mols > 3 and not achieved_target:
-                for i in range(len_n_solvent_mols):
-                    for j in range(len_n_solvent_mols):
-                        if i < j:
-                            for k in range(len_n_solvent_mols):
-                                if j < k:
-                                    for l in range(len_n_solvent_mols):
-                                        if k < l:
-                                            if n_solvent_mols[i] + n_solvent_mols[j] + n_solvent_mols[k] + n_solvent_mols[l] == target:
-                                                achieved_target = True
-                                                radii_to_use = [radii[i], radii[j], radii[k], radii[l]]
-            if len_n_solvent_mols > 4 and not achieved_target:
-                for i in range(len_n_solvent_mols):
-                    for j in range(len_n_solvent_mols):
-                        if i < j:
-                            for k in range(len_n_solvent_mols):
-                                if j < k:
-                                    for l in range(len_n_solvent_mols):
-                                        if k < l:
-                                            for m in range(len_n_solvent_mols):
-                                                if l < m:
-                                                    if n_solvent_mols[i] + n_solvent_mols[j] + n_solvent_mols[k] + n_solvent_mols[l] + n_solvent_mols[m] == target:
-                                                        achieved_target = True
-                                                        radii_to_use = [radii[i], radii[j], radii[k], radii[l], radii[m]]
-        radius_add += 0.1*radius
-    return radii_to_use
-
-
-def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_add):
+def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult):
+    rad_to_use = (radius * radius_mult * 0.8) + 0.4
     solvent_coords_on_sphere = []
-    fit_on_sphere = ceil((4 * np.pi * radius**2) / solvent_mol_area)
+    fit_on_sphere = ceil((4 * np.pi * rad_to_use**2) / solvent_mol_area)
     d = fit_on_sphere**(4/5)
     m_theta = ceil(d/np.pi)
     total_circum = 0
@@ -162,9 +93,10 @@ def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_add):
             else:
                 phi = (2 * np.pi * (n+0.5)/n_on_ring) + 0.7*np.pi*(np.random.rand()-0.5)/(n_on_ring)
             rand_theta = theta + 0.35*np.pi*(np.random.rand()-0.5)/(m_theta-1)
-            x = 0.7*(radius + radius_add + 0.5*(np.random.rand()-0.5)) * np.sin(rand_theta) * np.cos(phi)
-            y = 0.7*(radius + radius_add + 0.5*(np.random.rand()-0.5)) * np.sin(rand_theta) * np.sin(phi)
-            z = 0.7*(radius + radius_add + 0.5*(np.random.rand()-0.5)) * np.cos(rand_theta)
+            rand_add = 0.4*radius * (np.random.rand()-0.5)
+            x = (rad_to_use + rand_add) * np.sin(rand_theta) * np.cos(phi)
+            y = (rad_to_use + rand_add) * np.sin(rand_theta) * np.sin(phi)
+            z = (rad_to_use + rand_add) * np.cos(rand_theta)
             position = [x, y, z]
             new_solvent_mol_coords = random_rot_solvent(solvent_coords.copy()) + position
             solvent_coords_on_sphere.append(new_solvent_mol_coords)
@@ -181,13 +113,46 @@ def random_rot_solvent(coords):
     return coords
 
 
-def do_explicit_solvent_qmmm(solute, solvent, method, distance_constraints=None, hlevel=False, fix_qm=False, n=4):
-    for _ in range(n):
-        solute_xyzs, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs, mm_solvent_bonds, mm_charges = add_solvent_molecules(solute, solvent)
-        solute.xyzs = solute_xyzs
-        xyzs2xyzfile(solute_xyzs + qm_solvent_xyzs, 'qm.xyz')
-        xyzs2xyzfile(solute_xyzs + qm_solvent_xyzs + mm_solvent_xyzs, 'full.xyz')
-        qmmm = QMMM(solute, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs,
-                    mm_solvent_bonds, mm_charges, method, distance_constraints, hlevel, fix_qm)
-        qmmm.simulate()
-        return qmmm.final_energy, qmmm.final_xyzs, qmmm.n_qm_atoms
+def do_explicit_solvent_qmmm(solute, solvent, method, hlevel=False, n=4):
+    qmmm_energies = []
+    qmmm_xyzs = []
+    qmmm_n_qm_atoms = []
+    for i in range(n):
+        if os.path.exists(f'{solute.name}_qmmm_{i}.out'):
+            lines = [line for line in open(f'{solute.name}_qmmm_{i}.out', 'r', encoding="utf-8")]
+            xyzs_section = False
+            xyzs = []
+            for line in lines:
+                if 'XYZS' in line:
+                    xyzs_section = True
+                if 'Energy' in line and not 'QM Energy' in line:
+                    xyzs_section = False
+                    qmmm_energies.append(float(line.split()[2]))
+                if 'N QM Atoms' in line:
+                    qmmm_n_qm_atoms.append(int(line.split()[4]))
+                if xyzs_section and len(line.split()) == 4:
+                    label, x, y, z = line.split()
+                    xyzs.append([label, float(x), float(y), float(z)])
+            qmmm_xyzs.append(xyzs)
+
+        else:
+            for filename in os.listdir(os.getcwd()):
+                if filename.startswith(f'{solute.name}_step_'):
+                    os.remove(filename)
+            solute_xyzs, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs, mm_solvent_bonds, mm_charges = add_solvent_molecules(solute, solvent)
+            solute.xyzs = solute_xyzs
+            qmmm = QMMM(solute, qm_solvent_xyzs, qm_solvent_bonds, mm_solvent_xyzs, mm_solvent_bonds, mm_charges, method, hlevel)
+            qmmm.simulate()
+            xyzs = qmmm.final_xyzs
+            qmmm_energy = qmmm.final_energy
+            n_qm_atoms = qmmm.n_qm_atoms
+            with open(f'{solute.name}_qmmm_{i}.out', 'w') as out_file:
+                print('XYZS', file=out_file)
+                [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=out_file) for line in xyzs]
+                print(f'Energy = {qmmm_energy}', file=out_file)
+                print(f'QM Energy = {qmmm.final_qm_energy}', file=out_file)
+                print(f'N QM Atoms = {n_qm_atoms}', file=out_file)
+            qmmm_energies.append(qmmm.final_qm_energy)
+            qmmm_xyzs.append(xyzs)
+            qmmm_n_qm_atoms.append(n_qm_atoms)
+        return qmmm_energies, qmmm_xyzs, qmmm_n_qm_atoms

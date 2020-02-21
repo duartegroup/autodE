@@ -37,11 +37,13 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
     logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
     mol_with_const = deepcopy(mol)
 
+    init_no_atoms = len(mol.xyzs)
+
     curr_dist = mol.calc_bond_distance(active_bond)
     # Generate a list of distances at which to constrain the optimisation
     dists = np.linspace(curr_dist, curr_dist + delta_dist, n_steps)
     # Initialise an empty dictionary containing the distance as a key and the xyzs and energy as s tuple value
-    xyzs_list, energy_list, n_qm_atoms_list = [], [], []
+    xyzs_list, energy_list, qmmm_xyzs_list = [], [], []
 
     # Run a relaxed potential energy surface scan by running sequential constrained optimisations
     for n, dist in enumerate(dists):
@@ -60,19 +62,19 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         mol_with_const.xyzs = xyzs
 
         if solvent_mol is not None:
-            qmmm_energy, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(mol_with_const, solvent_mol, method, {active_bond: dist}, n=1)
-            xyzs_list.append(qmmm_xyzs)
-            energy_list.append(qmmm_energy)
-            n_qm_atoms_list.append(n_qm_atoms)
+            mol_with_const.name = f'{name}_scan{n}'
+            mol_with_const.charges = const_opt.get_atomic_charges()
+            qmmm_energy, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(mol_with_const, solvent_mol, method, n=1)
+            qmmm_xyzs_list.append(qmmm_xyzs[0])
+            energy_list.append(qmmm_energy[0])
+            xyzs_list.append(qmmm_xyzs[0][:n_qm_atoms[0]])
         else:
-            xyzs_list.append(xyzs)
             energy_list.append(const_opt.get_energy())
-            n_qm_atoms_list.append(len(xyzs))
-
+            xyzs_list.append(xyzs)
     # check product and TSGuess product graphs are isomorphic
     expected_prod_graphs = mol_graphs.get_separate_subgraphs(product.graph)
     logger.info('Checking products were made')
-    ts_product_graphs = [mol_graphs.make_graph(xyzs, len(xyzs)) for xyzs in xyzs_list[::-1]]
+    ts_product_graphs = [mol_graphs.make_graph(xyzs[:init_no_atoms], init_no_atoms) for xyzs in xyzs_list[::-1]]
     products_made = False
     for ts_product_graph in ts_product_graphs:
         if all(mol_graphs.is_subgraph_isomorphic(ts_product_graph, graph) for graph in expected_prod_graphs):
@@ -84,7 +86,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         logger.info('Products not made')
         return None
 
-    make_reaction_animation(name, [mol.xyzs] + xyzs_list)
+    make_reaction_animation(name, xyzs_list)
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
@@ -96,13 +98,14 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         logger.warning('TS guess had no xyzs')
         return None
 
-    for i in range(n_steps):
-        if xyzs_list[i] == tsguess_mol.xyzs:
-            n_qm_atoms_at_ts = n_qm_atoms_list[i]
+    if solvent_mol is not None:
+        for i in range(n_steps):
+            if xyzs_list[i] == tsguess_mol.xyzs:
+                tsguess_mol.xyzs_with_solvent = qmmm_xyzs_list[i]
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product), n_qm_atoms_at_ts
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
 
 
 def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):

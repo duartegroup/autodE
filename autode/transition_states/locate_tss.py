@@ -101,7 +101,7 @@ def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
     return bond_rearrangs
 
 
-def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang):
+def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang, solvent_mol):
 
     name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
 
@@ -110,12 +110,24 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
+    if bond_rearrang.n_bbonds >= 1 and bond_rearrang.n_fbonds >= 1:
+        for fbond in bond_rearrang.fbonds:
+            for bbond in bond_rearrang.bbonds:
+                scanned_bonds = [fbond, bbond]
+                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
+                scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
+                delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+                delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
+
+                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
+                                                       lmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
+                                                       hmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
         bbond = bond_rearrang.bbonds[0]
         scan_name = name + f'_{bbond[0]}-{bbond[1]}'
         delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
-        funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 20, scan_name + '_ll1d', reaction.type,
-                                               lmethod, lmethod.scan_keywords, solvent_mol, delta_bbond_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d', reaction.type,
                                                hmethod, hmethod.scan_keywords, solvent_mol, delta_bbond_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d_opt_level',
@@ -128,7 +140,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                 active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
                 scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
                 delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-                delta_bbond_dist = get_bbond_dist(reaction)
+                delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
 
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
                                                        lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
@@ -157,20 +169,6 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                                                hmethod.scan_keywords, solvent_mol, delta_fbond_dist, bond_rearrang.bbonds)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, fbond, 10, scan_name + '_hl1d_opt_level_fbond', reaction.type, hmethod,
                                                hmethod.opt_keywords, solvent_mol, delta_fbond_dist, bond_rearrang.bbonds)))
-
-    if bond_rearrang.n_bbonds >= 1 and bond_rearrang.n_fbonds >= 1:
-        for fbond in bond_rearrang.fbonds:
-            for bbond in bond_rearrang.bbonds:
-                scanned_bonds = [fbond, bbond]
-                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
-                scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
-                delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-                delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
-
-                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
-                                                       lmethod.scan_keywords,  solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
-                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
-                                                       hmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
 
     if bond_rearrang.n_fbonds == 2:
         fbond1, fbond2 = bond_rearrang.fbonds
@@ -288,25 +286,23 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
 
     for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, prod_mol, reac_mol_rearrangement, solvent_mol):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
-        func_output = func(*params)
+        ts_guess = func(*params)
 
-        if func_output is None:
+        if ts_guess is None:
             continue
 
-        ts_guess, n_qm_atoms = func_output
+        ts_mol, converged = get_ts(ts_guess, solvent_mol)
 
-        get_ts_output = get_ts(ts_guess, len(reactant.xyzs), n_qm_atoms, solvent_mol)
-
-        if get_ts_output is not None:
-            ts = TS(get_ts_output[0], converged=get_ts_output[1])
+        if ts_mol is not None:
+            ts = TS(ts_mol, converged=converged)
             if ts.is_true_ts():
                 logger.info(f'Found a transition state with {func.__name__}')
                 if reac_mol.is_fragment:
                     logger.info('Finding full TS')
                     ts_guess_with_decoratation = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
-                    full_get_ts_output = get_ts(ts_guess_with_decoratation)
-                    if full_get_ts_output is not None:
-                        ts_with_decoratation = TS(full_get_ts_output[0], converged=full_get_ts_output[1])
+                    full_ts_guess, full_converged = get_ts(ts_guess_with_decoratation)
+                    if full_ts_guess is not None:
+                        ts_with_decoratation = TS(full_ts_guess, converged=full_converged)
                         if ts_with_decoratation.is_true_ts():
                             logger.info('Found full TS')
                             tss.append(ts_with_decoratation)

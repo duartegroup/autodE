@@ -15,6 +15,8 @@ from autode.saddle_points import poly2d_saddlepoints
 from autode.saddle_points import best_saddlepoint
 from autode.min_energy_pathway import get_mep
 
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+
 
 def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, solvent_mol,
                     delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None, e_grid_points=40, polynomial_order=5):
@@ -73,8 +75,13 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         except XYZsNotFound:
             mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else mol.xyzs
 
-        # Set the energy of the molecule. Can be None
-        mol_grid[0][n].energy = const_opt.get_energy()
+        if solvent_mol is not None:
+            mol_grid[0][n].name = f'{name}_scan0_{n}'
+            mol_grid[0][n].charges = const_opt.get_atomic_charges()
+            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method, n=1)
+            mol_grid[0][n].energy = qmmm_energy[0]
+        else:
+            mol_grid[0][n].energy = const_opt.get_energy()
 
     # Execute the remaining set of optimisations in parallel
     for i in range(1, n_steps):
@@ -113,8 +120,13 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             except XYZsNotFound:
                 mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
 
-            # Set the energy, this may be None
-            mol_grid[i][n].energy = calcs[n].get_energy()
+            if solvent_mol is not None:
+                mol_grid[i][n].name = f'{name}_scan{i}_{n}'
+                mol_grid[i][n].charges = calcs[n].get_atomic_charges()
+                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method, n=1)
+                mol_grid[i][n].energy = qmmm_energy[0]
+            else:
+                mol_grid[i][n].energy = const_opt.get_energy()
 
     # Populate the dictionary of distances, xyzs and energies
     # TODO make this nicer
@@ -128,8 +140,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     logger.info('Checking products were made')
     products_made = False
     for row in mol_grid[::-1]:
-        ts_product_graphs = [mol_graphs.make_graph(mol.xyzs, mol.n_atoms)
-                             for mol in row[::-1]]
+        ts_product_graphs = [mol_graphs.make_graph(mol.xyzs, len(mol.xyzs)) for mol in row[::-1]]
         for ts_product_graph in ts_product_graphs:
             if all(mol_graphs.is_subgraph_isomorphic(ts_product_graph, graph) for graph in expected_prod_graphs):
                 products_made = True
@@ -161,6 +172,10 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_xyzs())
     except XYZsNotFound:
         pass
+    if solvent_mol is not None:
+        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(tsguess_mol, solvent_mol, method, n=1)
+        tsguess_mol.xyzs = qmmm_xyzs[0][:n_qm_atoms[0]]
+        tsguess_mol.xyzs_with_solvent = qmmm_xyzs[0]
 
     active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned
 

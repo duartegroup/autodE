@@ -10,9 +10,8 @@ from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.optts import get_ts
 from autode.conformers.conformers import Conformer
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
+from autode.solvent.qmmm import QMMM
 import numpy as np
-
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class TS(TSguess):
@@ -83,7 +82,13 @@ class TS(TSguess):
         logger.info(f'Running single point energy evaluation of {self.name}')
 
         if solvent_mol:
-            self.energy, _, _ = do_explicit_solvent_qmmm(self, solvent_mol, method, hlevel=True, fix_qm=True)
+            n_solvent_mols = (len(self.xyzs_with_solvent) - len(self.xyzs)) / self.solvent.n_atoms
+            mm_charges = []
+            for _ in range(n_solvent_mols):
+                mm_charges += self.solvent.charges
+            qmmm = QMMM(self, [], [], self.xyzs_with_solvent[len(self.xyzs):], [], mm_charges, self.method if method is None else method, True)
+            qmmm.simulate()
+            self.energy = qmmm.final_energy
         else:
             sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
                              keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
@@ -206,6 +211,7 @@ class TS(TSguess):
         self.product = ts_guess.product
 
         self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
+        self.charges = ts_guess.get_charges()
         self.n_atoms = len(self.xyzs)
 
         self.active_bonds = ts_guess.active_bonds
@@ -233,3 +239,5 @@ class TS(TSguess):
         self.hess_calc = None
 
         self.calc_failed = False
+
+        self.xyzs_with_solvent = ts_guess.xyzs_with_solvent

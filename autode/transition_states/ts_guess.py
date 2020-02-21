@@ -92,10 +92,15 @@ class TSguess:
         """
         logger.info('Getting ORCA out lines from OptTS calculation')
 
+        if len(self.xyzs) != self.n_solute_atoms:
+            partial_hessian = [i for i in range(self.n_solute_atoms, len(self.xyzs))]
+        else:
+            partial_hessian = None
+
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
                                      keywords=self.method.hess_keywords, n_cores=Config.n_cores,
                                      max_core_mb=Config.max_core, charges=self.point_charges,
-                                     partial_hessian=[i for i in range(self.n_solute_atoms)])
+                                     partial_hessian=partial_hessian)
 
         self.hess_calc.run()
 
@@ -118,7 +123,7 @@ class TSguess:
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      partial_hessian=[i for i in range(self.n_solute_atoms)],
+                                      partial_hessian=partial_hessian,
                                       optts_block=self.method.opt_ts_block)
 
         self.optts_calc.run()
@@ -131,8 +136,8 @@ class TSguess:
     def get_coords(self):
         return xyz2coord(self.xyzs)
 
-    def remove_explicit_solvent(self):
-        self.xyzs = self.xyzs[:self.n_atoms_no_solvent]
+    def get_charges(self):
+        return self.optts_calc.get_atomic_charges()
 
     def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
         """
@@ -152,7 +157,6 @@ class TSguess:
 
         self.xyzs = molecule.xyzs
         self.n_atoms = len(molecule.xyzs) if molecule.xyzs is not None else None
-        self.n_atoms_no_solvent = molecule.n_atoms_no_solvent
         self.reaction_class = reaction_class
         self.solvent = molecule.solvent
         self.charge = molecule.charge
@@ -162,6 +166,9 @@ class TSguess:
         self.reactant = reactant
         self.product = product
         self.graph = make_graph(self.xyzs, self.n_atoms)
+        self.charges = None
+
+        self.n_solute_atoms = molecule.n_atoms
 
         self.optts_converged = False
         self.optts_nearly_converged = False
@@ -171,4 +178,4 @@ class TSguess:
         self.calc_failed = False
 
         self.point_charges = None
-        self.n_solute_atoms = len(self.xyzs)
+        self.xyzs_with_solvent = molecule.xyzs_with_solvent
