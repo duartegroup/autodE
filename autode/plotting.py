@@ -6,11 +6,9 @@ from matplotlib import cm
 from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.XTB import XTB
 from autode.config import Config
 import os
+
 
 def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan'):
     """For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
@@ -35,7 +33,10 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     nx, ny = 20, 20
     xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
                          np.linspace(r2.min(), r2.max(), ny))
-    # polyval2d gives matrix with element i,j = f(x,y) with f being the polynomial defined by m and x = xx[i,j] and y = yy[i,j]
+
+    # polyval2d gives matrix with element i,j = f(x,y) with f being the polynomial defined by m and
+    # x = xx[i,j] and y = yy[i,j]
+
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
     fig = plt.figure(figsize=(12, 4))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
@@ -69,18 +70,15 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
 
     file_extension = Config.image_file_extension
 
-    colour_method_dict = {'orca pbe': 'darkmagenta', 'orca pbe0': 'deeppink',
-                          'xtb': 'deepskyblue', 'mopac': 'forestgreen'}
-
     label = method.__name__
 
-    if label.lower() == 'orca':
-        label += ' PBE'
-
     if 'opt_level' in scan_name:
-        label += '0'
-
-    colour = colour_method_dict.get(label.lower(), 'black')
+        label += ' higher level'
+        colour = 'deeppink'
+    elif 'll1d' in scan_name:
+        colour = 'deepskyblue'
+    else:
+        colour = 'darkmagenta'
 
     if 'fbond' in scan_name:
         plot_name += '_fbond'
@@ -103,7 +101,7 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
     plt.savefig(plot_name + file_extension, dpi=dpi)
 
 
-def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_converged):
+def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts, ts_is_converged, switched=False):
     """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
 
     Arguments:
@@ -111,13 +109,23 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
         e_ts (float): relative ts energy
         e_prod (float): relative product energy
         units (object): an object defined in units.py
-        name (str): reaction name to annotate to the plot
+        reacs (list(Molecule)): reactants
+        prods (list(Molecule)): products
         is_true_ts (bool): flag for whether the TS is good, i.e. has a single imaginary frequency
         ts_is_converged (bool): flag for whether the TS geometry is converged or not
+        switched (bool): flag for a reaction that was initially reversed reactant/products
     """
     logger.info('Plotting reaction profile')
 
     file_extension = Config.image_file_extension
+
+    if switched:
+        # Swap the energies of reactants and products
+        e_reac, e_prod = e_prod, e_reac
+        reacs, prods = prods, reacs
+
+    # Define the plot name
+    name = ' + '.join([r.name for r in reacs]) + ' → ' + ' + '.join([p.name for p in prods])
 
     dg = e_prod - e_reac
     dgdd = e_ts - e_reac
@@ -133,12 +141,14 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
             x = dgdd/dg
         else:
             x = (dgdd)/(2*(dgdd-dg))
-    #make a cubic line from reac to TS, and another from TS to prod
-    #reac to TS
+
+    # make a cubic line from reac to TS, and another from TS to prod
+    # reac to TS
     a = np.array([[x**3, x**2], [3*x**2, 2*x]])
     b = np.array([dgdd, 0])
     reac_to_ts = np.linalg.solve(a,b)
-    #TS to prod, shift curve so TS at (0,0) to make algebra easier
+
+    # TS to prod, shift curve so TS at (0,0) to make algebra easier
     y = 1-x
     a = np.array([[y**3, y**2], [3*y**2, 2*y]])
     b = np.array([dg-dgdd, 0])
@@ -152,7 +162,8 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
         if val < x:
             a, b = reac_to_ts
             y = a*val**3 + b*val**2
-            #don't want to go up too far at before reacs
+
+            # Don't want to go up too far at before reacs
             if (val < 0) and not (-1 < y < 1):
                 begin_x = index + 1
             else:
@@ -160,7 +171,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
         else:
             a, b = ts_to_prod
             shift_val = val - x
-            y = a*shift_val**3 + b*shift_val**2 + dgdd #shift back TS
+            y = a*shift_val**3 + b*shift_val**2 + dgdd # shift back TS
             if (val > 1) and not ((dg - 1) < y < (dg + 1)):
                 end_x = index
                 break
@@ -171,10 +182,11 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     ax.plot(x_vals[begin_x: end_x], y_vals, c='k')
 
     x_label_coords = [-0.035, x-.035, 0.965]
+    y_label_shift = [-0.07*max(y_vals), 0.05*max(y_vals), -0.07*max(y_vals)]
     x_point_coords = [0, x, 1]
     energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
     for i, energy in enumerate(energies):
-        ax.annotate(energy, (x_label_coords[i], energy + 0.05*max(y_vals)), fontsize=12)
+        ax.annotate(energy, (x_label_coords[i], energy + y_label_shift[i]), fontsize=12)
         plt.plot(x_point_coords[i], energy, marker='o', markersize=3, color='b')
 
     if not is_true_ts:
@@ -192,11 +204,11 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, name, is_true_ts, ts_is_c
     if units == KcalMol:
         plt.ylabel('∆$E$/ kcal mol$^{-1}$', fontsize=12)
 
-    plt.ylim(min(y_vals) - 0.05*max(y_vals), 1.2 * max(y_vals))
+    plt.ylim(min(y_vals) - 0.1*max(y_vals), 1.2 * max(y_vals))
     if Config.high_qual_plots:
         dpi = 1000
     else:
-        dpi = 10
+        dpi = 100
     plt.savefig('reaction_profile' + file_extension, dpi=dpi)
 
 

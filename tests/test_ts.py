@@ -49,7 +49,7 @@ def test_ts_guess_class():
                                  ['H', -0.2, -0.3, -1.0],
                                  ['H', -0.2, 1.0, 0.3]]
 
-    ts_guess_obj.run_orca_optts()
+    ts_guess_obj.run_optts()
     ts_guess_obj.check_optts_convergence()
 
     assert ts_guess_obj.optts_converged == False

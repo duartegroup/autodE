@@ -28,7 +28,7 @@ class TSguess:
                 self.optts_nearly_converged = True
                 self.xyzs = self.optts_calc.get_final_xyzs()
                 self.name += '_reopt'
-                self.run_orca_optts()
+                self.run_optts()
                 return
 
             logger.warning('OptTS calculation was no where near converging')
@@ -50,7 +50,7 @@ class TSguess:
         orig_name = copy(self.name)
         self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=magnitude)
         self.name += '_dis'
-        self.run_orca_optts()
+        self.run_optts()
         if self.calc_failed:
             logger.error('Displacement lost correct imaginary mode, trying backwards displacement')
             mode_lost = True
@@ -74,7 +74,7 @@ class TSguess:
             self.name = orig_name
             self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
-            self.run_orca_optts()
+            self.run_optts()
             if self.calc_failed:
                 logger.error('Displacement lost correct imaginary mode')
                 self.calc_failed = True
@@ -87,7 +87,7 @@ class TSguess:
 
         return
 
-    def run_orca_optts(self):
+    def run_optts(self):
         """Runs the optts calc
         """
         logger.info('Getting ORCA out lines from OptTS calculation')

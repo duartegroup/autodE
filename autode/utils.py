@@ -15,25 +15,26 @@ def work_in(dir_ext):
             dir_path = os.path.join(here, dir_ext)
 
             if not os.path.isdir(dir_path):
-                logger.info(f'Creating directory to store output files at {dir_path:}')
+                logger.info(
+                    f'Creating directory to store output files at {dir_path:}')
                 os.mkdir(dir_path)
 
             os.chdir(dir_path)
             func(*args, **kwargs)
             clear_tmp_files()
-            clear_xtb_files()
+            clear_calc_files()
             os.chdir(here)
 
         return wrapped_function
     return func_decorator
 
 
-def clear_xtb_files():
-    xtb_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
-                 'charges', 'wbo', '.xtboptok']
-    if any(file in xtb_files for file in os.listdir(os.getcwd())):
-        logger.info('Clearing xtb files')
-    for filename in xtb_files:
+def clear_calc_files():
+    calc_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
+                  'charges', 'wbo', '.xtboptok', 'cosmo.xyz']
+    if any(file in calc_files for file in os.listdir(os.getcwd())):
+        logger.info('Clearing extra calc files')
+    for filename in calc_files:
         if os.path.exists(filename):
             os.remove(filename)
 

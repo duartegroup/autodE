@@ -5,6 +5,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.geom import calc_distance_matrix
 from autode.calculation import Calculation
+from autode.exceptions import XYZsNotFound
 from autode.methods import get_lmethod
 
 
@@ -105,10 +106,16 @@ class Conformer(object):
             method = self.method
 
         opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords=method.conf_opt_keywords,
-                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts, constraints_already_met=True, max_core_mb=Config.max_core)
+                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts,
+                          constraints_already_met=True, max_core_mb=Config.max_core)
         opt.run()
         self.energy = opt.get_energy()
-        self.xyzs = opt.get_final_xyzs()
+
+        try:
+            self.xyzs = opt.get_final_xyzs()
+        except XYZsNotFound:
+            logger.error(f'xyzs not found for {self.name} but not critical')
+            self.xyzs = None
 
     def __init__(self, name='conf', xyzs=None, energy=None, solvent=None, charge=0, mult=1, dist_consts=None):
         self.name = name

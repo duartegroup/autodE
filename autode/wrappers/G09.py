@@ -130,8 +130,7 @@ def calculation_terminated_normally(calc):
                     options.append('maxstep=1')
                     options.append('cartesian')
                     new_keyword = 'Opt=('
-                    sep = ', '
-                    new_keyword += sep.join(options)
+                    new_keyword += ', '.join(options)
                     new_keyword += ')'
                     cart_calc.keywords.remove(keyword)
                     cart_calc.keywords.append(new_keyword)
@@ -240,6 +239,7 @@ def get_imag_freqs(calc):
 
 
 def get_normal_mode_displacements(calc, mode_number):
+    # mode numbers start at 1, not 6
     mode_number -= 5
     normal_mode_section, displacements = False, []
 
@@ -314,8 +314,7 @@ def get_final_xyzs(calc):
                 zero_xyzs = True
 
     xyz_filename = f'{calc.name}_g09.xyz'
-    if not os.path.exists(xyz_filename):
-        xyzs2xyzfile(xyzs, xyz_filename)
+    xyzs2xyzfile(xyzs, xyz_filename)
 
     return xyzs
 

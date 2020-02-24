@@ -27,7 +27,7 @@ def get_ts(ts_guess, imag_freq_threshold=-100):
         logger.warning('Cannot find a transition state; had no TS guess')
         return None
 
-    ts_guess.run_orca_optts()
+    ts_guess.run_optts()
     if ts_guess.calc_failed:
         return None
 

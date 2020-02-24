@@ -33,9 +33,25 @@ class ElectronicStructureMethod:
         logger.info(f'{self.name} is available {self.available}')
         return None
 
+    def reset(self, Config):
+        """Reset the EST method from the Config object, which may be edited at any point"""
+
+        attributes = ['path', 'path_to_licence', 'scan_keywords', 'conf_opt_keywords', 'opt_keywords',
+                      'opt_ts_keywords', 'hess_keywords', 'opt_ts_block', 'sp_keywords']
+        esw = getattr(Config, self.__name__)
+        for attribute in attributes:
+            try:
+                new_attr_val = getattr(esw, attribute)
+                if new_attr_val is not None:
+                    setattr(self, attribute, new_attr_val)
+            except AttributeError:
+                pass
+
+        return self.set_availability()
+
     def __init__(self, name, path, req_licence=False, path_to_licence=None, aval_solvents=None, scan_keywords=None,
                  conf_opt_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None, opt_ts_block=None,
-                 sp_keywords=None):
+                 sp_keywords=None, mpirun=False):
         """
         Arguments:
             name (str): wrapper name. ALSO the name of the executable
@@ -52,6 +68,7 @@ class ElectronicStructureMethod:
             hess_keywords (list): keywords to use when just performing a hessian calculation (default: {None})
             opt_ts_block (list): additional OptTS parameters (default: {None})
             sp_keywords (list): keywords to use when performing a single point calculation (default: {None})
+            mpirun (bool): does the method need mpirun to call it? (default:{False})
         """
         self.__name__ = name
         self.name = name
@@ -73,3 +90,4 @@ class ElectronicStructureMethod:
         self.hess_keywords = hess_keywords
         self.opt_ts_block = opt_ts_block
         self.sp_keywords = sp_keywords
+        self.mpirun = mpirun
