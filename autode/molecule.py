@@ -390,6 +390,14 @@ class Molecule:
         if len(pi_bonds) > 0:
             self.pi_bonds = pi_bonds
 
+        if len(self.pi_bonds) > 0:
+            if self.stereocentres is None:
+                self.stereocentres = []
+            for bond in pi_bonds:
+                for atom in bond:
+                    if not atom in self.stereocentres:
+                        self.stereocentres.append(atom)
+
     def _init_smiles(self, name, smiles):
 
         try:

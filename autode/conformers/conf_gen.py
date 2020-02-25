@@ -24,7 +24,7 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return final_coords
 
 
-def simanl(xyzs, bonds, dist_consts, non_random_atoms, stereocentres):
+def simanl(name, xyzs, bonds, dist_consts, non_random_atoms, stereocentres, n):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
     Arguments:
@@ -33,10 +33,22 @@ def simanl(xyzs, bonds, dist_consts, non_random_atoms, stereocentres):
         dist_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
         non_random_atoms (list): atoms that must not be randomly placed, to keep stereochem
         stereocentres (list): list of stereocentres
+        n (int): number of generated conformer
 
     Returns:
         list(list): e.g. [['C', 0.0, 0.0, 0.0], ...]
     """
+
+    xyz_file_name_start = f'{name}_conf{n}'
+    for filename in os.listdir(os.getcwd()):
+        if filename.startswith(xyz_file_name_start) and filename.endswith('.xyz'):
+            xyzs = []
+            with open(filename, 'r') as file:
+                for line_no, line in enumerate(file):
+                    if line_no > 1:
+                        atom_label, x, y, z = line.split()
+                        xyzs.append([atom_label, float(x), float(y), float(z)])
+            return xyzs
 
     np.random.seed()
 
@@ -127,46 +139,15 @@ def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, stereocentres, dist_consts=
     non_random_atoms = sorted(important_stereoatoms)
 
     if n_simanls == 1:
-        conf_xyzs = simanl(xyzs=init_xyzs, bonds=bond_list, dist_consts=dist_consts,
-                           non_random_atoms=non_random_atoms, stereocentres=stereocentres)
+        conf_xyzs = simanl(name=name, xyzs=init_xyzs, bonds=bond_list, dist_consts=dist_consts, non_random_atoms=non_random_atoms, stereocentres=stereocentres, n=0)
         return [conf_xyzs]
 
-    all_conf_xyzs = []
+    logger.info(f'Generating {n_simanls} conformers')
 
-    logger.info('Looking for previously generated conformers')
+    logger.info(f'Splitting calculation into {Config.n_cores} threads')
+    with Pool(processes=Config.n_cores) as pool:
+        results = [pool.apply_async(simanl, (name, init_xyzs, bond_list, dist_consts, non_random_atoms, stereocentres, i))
+                   for i in range(n_simanls)]
+        conf_xyzs = [res.get(timeout=None) for res in results]
 
-    no_conf = []
-    for i in range(n_simanls):
-        xyz_file_name_start = f'{name}_conf{i}'
-        has_conf = False
-        for filename in os.listdir(os.getcwd()):
-            if filename.startswith(xyz_file_name_start) and filename.endswith('.xyz'):
-                xyzs = []
-                with open(filename, 'r') as file:
-                    for line_no, line in enumerate(file):
-                        if line_no > 1:
-                            atom_label, x, y, z = line.split()
-                            xyzs.append([atom_label, float(x), float(y), float(z)])
-                all_conf_xyzs.append(xyzs)
-                has_conf = True
-                break
-        if not has_conf:
-            no_conf.append(i)
-
-    logger.info(f'Found {len(all_conf_xyzs)} previously generated conformers')
-
-    simanls_left = n_simanls - len(all_conf_xyzs)
-
-    logger.info(f'Have {simanls_left} conformers left to generate')
-
-    if simanls_left > 0:
-        logger.info(f'Splitting calculation into {Config.n_cores} threads')
-        with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(simanl, (init_xyzs, bond_list, dist_consts, non_random_atoms, stereocentres))
-                       for i in range(simanls_left)]
-            conf_xyzs = [res.get(timeout=None) for res in results]
-
-        for i in range(simanls_left):
-            all_conf_xyzs.insert(no_conf[i], conf_xyzs[i])
-
-    return all_conf_xyzs
+    return conf_xyzs

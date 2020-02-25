@@ -179,14 +179,12 @@ class Calculation:
         logger.info(f'Calculation {self.output_filename} done')
 
         self.set_output_file_lines()
-        try:
+        if self.grad:
             self.method.get_gradients(self)
-        except:
-            pass
         for filename in os.listdir(os.getcwd()):
             name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
-                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'traj.xyz')):
+                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
                     shutil.move(filename, here)
             if 'xcontrol' in filename:
                 shutil.move(filename, here)
