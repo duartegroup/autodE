@@ -4,7 +4,7 @@ from functools import wraps
 
 
 def work_in(dir_ext):
-    """Execute a function in a different directory then clean up any temporary files"""
+    """Execute a function in a different directory"""
 
     def func_decorator(func):
 
@@ -21,27 +21,7 @@ def work_in(dir_ext):
 
             os.chdir(dir_path)
             func(*args, **kwargs)
-            clear_tmp_files()
-            clear_calc_files()
             os.chdir(here)
 
         return wrapped_function
     return func_decorator
-
-
-def clear_calc_files():
-    calc_files = ['xtbrestart', 'xtbopt.log', 'xtbopt.xyz',
-                  'charges', 'wbo', '.xtboptok', 'cosmo.xyz', 'pcgrad']
-    if any(file in calc_files for file in os.listdir(os.getcwd())):
-        logger.info('Clearing extra calc files')
-    for filename in calc_files:
-        if os.path.exists(filename):
-            os.remove(filename)
-
-
-def clear_tmp_files():
-    if any(file.endswith('.tmp') for file in os.listdir(os.getcwd())):
-        logger.info('Clearing tmp files')
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith('.tmp'):
-            os.remove(filename)

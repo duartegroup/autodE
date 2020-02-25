@@ -68,6 +68,7 @@ def generate_input(calc):
                 print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
         calc.flags += ['--input', xcontrol_filename]
+        calc.additional_input_files.append(xcontrol_filename)
 
     if calc.charges:
         with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
@@ -75,6 +76,7 @@ def generate_input(calc):
             for line in calc.charges:
                 formatted_line = [line[-1]] + line[1:4] + [line[0]]
                 print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f} {:<3}'.format(*formatted_line), file=pc_file)
+        calc.additional_input_files.append(f'{calc.name}_xtb.pc')
 
     return None
 

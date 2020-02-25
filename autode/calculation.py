@@ -7,7 +7,10 @@ from autode.config import Config
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 from autode.solvent.solvents import get_available_solvents
-from shutil import which
+import shutil
+from tempfile import mkdtemp
+
+import time
 
 
 class Calculation:
@@ -126,18 +129,6 @@ class Calculation:
         logger.info(f'Generating input file for {self.name}')
         return self.method.generate_input(self)
 
-    def remove_non_input_output_files(self):
-        logger.info('Deleting non-output files')
-
-        for filename in os.listdir(os.getcwd()):
-            name_string = '.'.join(self.input_filename.split('.')[:-1])
-            if name_string in filename:
-                if ((not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad'))) or
-                        filename.endswith(('.smd.out', '.drv.hess'))):
-                    os.remove(filename)
-
-        return None
-
     def execute_calculation(self):
         logger.info(f'Running calculation {self.input_filename}')
 
@@ -165,10 +156,17 @@ class Calculation:
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
+        here = os.getcwd()
+        logger.info(f'Creating tmpdir to work in')
+        tmpdir_path = mkdtemp()
+        for filename in self.additional_input_files + [self.input_filename]:
+            shutil.move(filename, tmpdir_path)
+        os.chdir(tmpdir_path)
+
         with open(self.output_filename, 'w') as output_file:
 
             if self.method.mpirun:
-                mpirun_path = which('mpirun')
+                mpirun_path = shutil.which('mpirun')
                 params = [mpirun_path, '-np', str(self.n_cores), self.method.path, self.input_filename]
             else:
                 params = [self.method.path, self.input_filename]
@@ -180,9 +178,23 @@ class Calculation:
         subprocess.wait()
         logger.info(f'Calculation {self.output_filename} done')
 
-        self.remove_non_input_output_files()
+        self.set_output_file_lines()
+        try:
+            self.method.get_gradients(self)
+        except:
+            pass
+        for filename in os.listdir(os.getcwd()):
+            name_string = '.'.join(self.input_filename.split('.')[:-1])
+            if name_string in filename:
+                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'traj.xyz')):
+                    shutil.move(filename, here)
+            if 'xcontrol' in filename:
+                shutil.move(filename, here)
 
-        return self.set_output_file_lines()
+        os.chdir(here)
+        shutil.rmtree(tmpdir_path)
+
+        return None
 
     def run(self):
         logger.info(f'Running calculation of {self.name}')
@@ -252,6 +264,8 @@ class Calculation:
         self.terminated_normally = False
         self.output_file_lines = None
         self.rev_output_file_lines = None
+
+        self.additional_input_files = []
 
         if molecule.solvent is not None:
             if getattr(molecule.solvent, method.__name__) is False:

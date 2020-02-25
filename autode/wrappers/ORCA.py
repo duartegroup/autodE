@@ -111,6 +111,7 @@ def generate_input(calc):
             for line in calc.charges:
                 formatted_line = [line[-1]] + line[1:4]
                 print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=pc_file)
+        calc.additional_input_files.append(f'{calc.name}_orca.pc')
 
     return None
 
