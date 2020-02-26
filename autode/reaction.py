@@ -208,12 +208,16 @@ class Reaction:
             self.ts_confs()
         self.calculate_single_points()
 
-        if self.ts is None:
-            return logger.error('TS is None – cannot plot a reaction profile')
-
         conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
+
+        if self.ts is None:
+            logger.error('TS is None – assuming barrierless reaction')
+            e_ts = None
+        else:
+            e_ts = conversion * self.calc_delta_e_ddagger()
+
         plot_reaction_profile(e_reac=0.0,
-                              e_ts=conversion * self.calc_delta_e_ddagger(),
+                              e_ts=e_ts,
                               e_prod=conversion * self.calc_delta_e(),
                               units=units,
                               reacs=self.reacs,

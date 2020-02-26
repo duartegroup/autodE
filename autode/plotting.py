@@ -7,6 +7,7 @@ from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
 from autode.config import Config
+from autode.constants import kcal2kj
 import os
 
 
@@ -55,7 +56,7 @@ def plot_2dpes(r1, r2, flat_rel_energy_array, coeff_mat, mep=None, name='2d_scan
     ax1.set_zlabel('∆$E$ / kcal mol$^{-1}$')
     ax2 = fig.add_subplot(1, 2, 2)
     pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())), extent=(r1.min(), r1.max(),
-                         r2.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
+                                                                                          r2.min(), r2.max()), origin='lower', cmap=plt.get_cmap('plasma'))
     ax2.set_xlabel('$r1$ / Å')
     ax2.set_ylabel('$r2$ / Å')
     plt.colorbar(pos2, ax=ax2)
@@ -119,6 +120,17 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
 
     file_extension = Config.image_file_extension
 
+    if e_ts is None:
+        barrierless = True
+        if e_reac > e_prod:
+            energy = e_reac
+        else:
+            energy = e_prod
+        if units == KcalMol:
+            e_ts = e_reac + 2
+        elif units == KjMol:
+            e_ts = e_reac + (2 * kcal2kj)
+
     if switched:
         # Swap the energies of reactants and products
         e_reac, e_prod = e_prod, e_reac
@@ -146,13 +158,13 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     # reac to TS
     a = np.array([[x**3, x**2], [3*x**2, 2*x]])
     b = np.array([dgdd, 0])
-    reac_to_ts = np.linalg.solve(a,b)
+    reac_to_ts = np.linalg.solve(a, b)
 
     # TS to prod, shift curve so TS at (0,0) to make algebra easier
     y = 1-x
     a = np.array([[y**3, y**2], [3*y**2, 2*y]])
     b = np.array([dg-dgdd, 0])
-    ts_to_prod = np.linalg.solve(a,b)
+    ts_to_prod = np.linalg.solve(a, b)
 
     x_vals = np.linspace(-0.2, 1.2, 140)
     y_vals = []
@@ -171,13 +183,13 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
         else:
             a, b = ts_to_prod
             shift_val = val - x
-            y = a*shift_val**3 + b*shift_val**2 + dgdd # shift back TS
+            y = a*shift_val**3 + b*shift_val**2 + dgdd  # shift back TS
             if (val > 1) and not ((dg - 1) < y < (dg + 1)):
                 end_x = index
                 break
             else:
                 y_vals.append(y + e_reac)
-    
+
     _, ax = plt.subplots()
     ax.plot(x_vals[begin_x: end_x], y_vals, c='k')
 
@@ -186,6 +198,8 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     x_point_coords = [0, x, 1]
     energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
     for i, energy in enumerate(energies):
+        if barrierless and i == 1:
+            continue
         ax.annotate(energy, (x_label_coords[i], energy + y_label_shift[i]), fontsize=12)
         plt.plot(x_point_coords[i], energy, marker='o', markersize=3, color='b')
 
@@ -195,6 +209,9 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     if not ts_is_converged:
         ax.annotate('TS is not fully converged',
                     (0.5, 0.2*max(y_vals)), ha='center', color='red')
+    if barrierless:
+        ax.annotate('No TS was found, barrierless reaction assumed',
+                    (0.5, 0.3*max(y_vals)), ha='center', color='red')
 
     plt.title(name, fontdict={'fontsize': 12})
     plt.xticks([])
