@@ -201,27 +201,37 @@ class Reaction:
         self.find_lowest_energy_conformers()
         self.optimise_reacs_prods()
         self.locate_transition_state()
-        if self.ts is not None and not self.solvent_mol is None:
-            self.ts_confs()
+        # if self.ts is not None:
+        #     self.ts_confs()
         self.calculate_single_points()
 
         conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
-
+        e_prod = conversion * self.calc_delta_e()
         if self.ts is None:
             logger.error('TS is None – assuming barrierless reaction')
-            e_ts = None
+            barrierless = True
+            if e_prod < 0:
+                e_ts = 0
+            else:
+                e_ts = e_prod
+            if units == KcalMol:
+                e_ts += 2
+            elif units == KjMol:
+                e_ts += (2 * Constants.kcal2kJ)
         else:
+            barrierless = False
             e_ts = conversion * self.calc_delta_e_ddagger()
 
         plot_reaction_profile(e_reac=0.0,
                               e_ts=e_ts,
-                              e_prod=conversion * self.calc_delta_e(),
+                              e_prod=e_prod,
                               units=units,
                               reacs=self.reacs,
                               prods=self.prods,
                               is_true_ts=self.ts.is_true_ts(),
                               ts_is_converged=self.ts.converged,
-                              switched=self.switched_reacs_prods)
+                              switched=self.switched_reacs_prods,
+                              barrierless=barrierless)
 
         return None
 

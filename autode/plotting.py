@@ -7,7 +7,6 @@ from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
 from autode.config import Config
-from autode.constants import kcal2kj
 import os
 
 
@@ -102,7 +101,7 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
     plt.savefig(plot_name + file_extension, dpi=dpi)
 
 
-def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts, ts_is_converged, switched=False):
+def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts, ts_is_converged, switched=False, barrierless=False):
     """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
 
     Arguments:
@@ -120,20 +119,12 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
 
     file_extension = Config.image_file_extension
 
-    if e_ts is None:
-        barrierless = True
-        if e_reac > e_prod:
-            energy = e_reac
-        else:
-            energy = e_prod
-        if units == KcalMol:
-            e_ts = e_reac + 2
-        elif units == KjMol:
-            e_ts = e_reac + (2 * kcal2kj)
-
     if switched:
         # Swap the energies of reactants and products
         e_reac, e_prod = e_prod, e_reac
+        e_ts -= e_reac
+        e_prod -= e_reac
+        e_reac = 0.0
         reacs, prods = prods, reacs
 
     # Define the plot name
@@ -193,8 +184,10 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     _, ax = plt.subplots()
     ax.plot(x_vals[begin_x: end_x], y_vals, c='k')
 
+    y_range = max(y_vals) - min(y_vals)
+
     x_label_coords = [-0.035, x-.035, 0.965]
-    y_label_shift = [-0.07*max(y_vals), 0.05*max(y_vals), -0.07*max(y_vals)]
+    y_label_shift = [0.04*y_range, -0.07*y_range, 0.04*y_range]
     x_point_coords = [0, x, 1]
     energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
     for i, energy in enumerate(energies):
