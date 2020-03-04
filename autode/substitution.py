@@ -19,6 +19,7 @@ def set_complex_xyzs_translated_rotated(reac_complex, prod_complex, reactants, b
     """
     logger.info('Translating reactant atoms into reactive complex')
     reac_complex_coords = reac_complex.get_coords()
+    prod_complex_coords = prod_complex.get_coords()
 
     attacked_atoms = get_attacked_atoms(bond_rearrangement)
 
@@ -35,33 +36,32 @@ def set_complex_xyzs_translated_rotated(reac_complex, prod_complex, reactants, b
         if [atom] in mol1_atoms or [atom] in mol2_atoms:
             continue
         bond_breaking_vector = get_normalised_bond_breaking_vector(bond_rearrangement, atom, reac_complex_coords)
-        attacking_atoms = (get_leaving_or_attacking_atoms(bond_rearrangement.fbonds, atom))
-        attack_vector = get_normalised_attack_vector(reac_complex, reac_complex_coords, attacking_atoms)
+        bond_forming_atoms = (get_leaving_or_attacking_atoms(bond_rearrangement.fbonds, atom))
+        attack_vector = get_normalised_bond_forming_vector(reac_complex, prod_complex, reac_complex_coords, prod_complex_coords, mapping, atom, bond_forming_atoms)
         if atom in atoms_to_shift:
             mol1_vectors.append(attack_vector)
             mol2_vectors.append(bond_breaking_vector)
-            mol1_atoms.append(attacking_atoms)
+            mol1_atoms.append(bond_forming_atoms)
             mol2_atoms.append([atom])
         else:
             mol1_vectors.append(bond_breaking_vector)
             mol2_vectors.append(attack_vector)
             mol1_atoms.append([atom])
-            mol2_atoms.append(attacking_atoms)
+            mol2_atoms.append(bond_forming_atoms)
 
     min_dot = 9999999.9
-    best_theta, best_phi, best_z = None, None, None
-
+    best_a, best_b, best_c = None, None, None
     for _ in range(100):
         x0 = np.random.uniform(0.0, 2*np.pi, size=3)
-        res = minimize(dot_func, x0=x0, args=(mol1_vectors, mol2_vectors), method='BFGS')
+        res = minimize(dot_product_func, x0=x0, args=(mol1_vectors, mol2_vectors), method='BFGS')
         if res.fun < min_dot:
             min_dot = res.fun
-            best_theta, best_phi, best_z = res.x
+            best_a, best_b, best_c = res.x
 
-    theta_rot_matrix = calc_rotation_matrix([1, 0, 0], best_theta)
-    phi_rot_matrix = calc_rotation_matrix([0, 1, 0], best_phi)
-    z_rot_matrix = calc_rotation_matrix([0, 0, 1], best_z)
-    rot_matrix = np.matmul(theta_rot_matrix, np.matmul(phi_rot_matrix, z_rot_matrix))
+    a_rot_matrix = calc_rotation_matrix([1, 0, 0], best_a)
+    b_rot_matrix = calc_rotation_matrix([0, 1, 0], best_b)
+    c_rot_matrix = calc_rotation_matrix([0, 0, 1], best_c)
+    rot_matrix = np.matmul(a_rot_matrix, np.matmul(b_rot_matrix, c_rot_matrix))
 
     for i in atoms_to_shift:
         reac_complex_coords[i] = np.matmul(rot_matrix, reac_complex_coords[i])
@@ -90,15 +90,15 @@ def set_complex_xyzs_translated_rotated(reac_complex, prod_complex, reactants, b
         reac_complex_coords[i] -= avg_mol2_atom_coord - shift_factor * avg_mol1_vector
 
     if len(mol1_vectors) == 1:
-        min_dist = 9999999.9
+        min_energy = 9999999.9
         best_theta = None
         mol1_coords = reac_complex_coords[[i for i in range(reac_complex.n_atoms) if not i in atoms_to_shift]]
         mol2_coords = reac_complex_coords[atoms_to_shift]
         for _ in range(100):
             x0 = np.random.uniform(0.0, 2*np.pi, size=1)
-            res = minimize(rot_func, x0=x0, args=(avg_mol1_vector, mol1_coords, mol2_coords), method='BFGS')
-            if res.fun < min_dist:
-                min_dist = res.fun
+            res = minimize(rot_mol_func, x0=x0, args=(avg_mol1_vector, mol1_coords, mol2_coords), method='BFGS')
+            if res.fun < min_energy:
+                min_energy = res.fun
                 best_theta = res.x[0]
 
         rot_matrix = calc_rotation_matrix(avg_mol1_vector, best_theta)
@@ -128,77 +128,64 @@ def get_normalised_bond_breaking_vector(bond_rearrangement, attacked_atom, reac_
     return leaving_vector / np.linalg.norm(leaving_vector)
 
 
-def get_normalised_attack_vector(reac_complex, reac_complex_coords, attacking_atoms, tolerance=0.09):
-    all_attack_vectors = []
-    for attacking_atom in attacking_atoms:
-        attacking_coords = reac_complex_coords[attacking_atom]
-        attacking_bonded_atoms = reac_complex.get_bonded_atoms_to_i(atom_i=attacking_atom)
-        attacking_bond_vectors = [attacking_coords - reac_complex_coords[i] for i in range(reac_complex.n_atoms) if i in attacking_bonded_atoms]
-        if len(attacking_bonded_atoms) == 0:
-            all_attack_vectors.append([[1, 0, 0], False])
-        elif len(attacking_bonded_atoms) < 3:
-            avg_attack = np.average(attacking_bond_vectors, axis=0)
-            normed_avg_attack = avg_attack / np.linalg.norm(avg_attack)
-            all_attack_vectors.append([normed_avg_attack, False])
-        else:
-            # check if it is flat, if so want perp vector to plane, if not can take average of the bonds
-            logger.info(f'Checking if attacking atom ({attacking_atom}) has flat geometry')
-            flat = True
-            for bonded_atom in attacking_bonded_atoms:
-                for second_bonded_atom in attacking_bonded_atoms:
-                    if bonded_atom != second_bonded_atom:
-                        for third_bonded_atom in attacking_bonded_atoms:
-                            if third_bonded_atom not in (bonded_atom, second_bonded_atom):
-                                bond_vector = attacking_coords - reac_complex_coords[bonded_atom]
-                                second_bond_vector = attacking_coords - reac_complex_coords[second_bonded_atom]
-                                third_bond_vector = attacking_coords - reac_complex_coords[third_bonded_atom]
-                                first_cross_product = np.cross(bond_vector, second_bond_vector)
-                                second_cross_product = np.cross(bond_vector, third_bond_vector)
-                                normed_first_cross_product = first_cross_product / np.linalg.norm(first_cross_product)
-                                normed_second_cross_product = second_cross_product / np.linalg.norm(second_cross_product)
-                                theta = np.arccos(np.dot(normed_first_cross_product, normed_second_cross_product))
-                                if tolerance < theta < (np.pi - tolerance):
-                                    flat = False
+def get_normalised_bond_forming_vector(reac_complex, prod_complex, reac_complex_coords, prod_complex_coords, mapping, atom, bond_forming_atoms):
+    all_bond_forming_vectors = []
+    for bond_forming_atom in bond_forming_atoms:
+        reactant_bonded_atoms = reac_complex.get_bonded_atoms_to_i(bond_forming_atom)
+        reactant_relevant_atoms = [bond_forming_atom, atom]
+        for bonded_atom in reactant_bonded_atoms:
+            if not bonded_atom in reactant_relevant_atoms:
+                reactant_relevant_atoms.append(bonded_atom)
+        product_relevant_atoms = [mapping[reac_atom] for reac_atom in reactant_relevant_atoms]
+        reac_relevant_coords = reac_complex_coords[reactant_relevant_atoms].copy()
+        reac_relevant_coords -= reac_relevant_coords[0]
+        prod_relevant_coords = prod_complex_coords[product_relevant_atoms].copy()
+        prod_relevant_coords -= prod_relevant_coords[0]
 
-            if flat:
-                logger.info(f'Attacking atom ({attacking_atom}) has flat geometry')
-                all_attack_vectors.append([normed_first_cross_product, True])
-            else:
-                logger.info('Attacking atom does not have flat geometry')
-                avg_attack = np.average(attacking_bond_vectors, axis=0)
-                normed_avg_attack = avg_attack / np.linalg.norm(avg_attack)
-                all_attack_vectors.append([normed_avg_attack, False])
-    logger.info('Getting average attack vector')
-    # since the flat atom can attack from either side, check which is best with other attacking atom
-    if len(all_attack_vectors) == 1:
-        best_avg_attack_vector = all_attack_vectors[0][0]
-    else:
-        if all_attack_vectors[0][1]:
-            theta1 = np.arccos(np.dot(all_attack_vectors[0][0], all_attack_vectors[1][0]))
-            opposite_attack = np.negative(all_attack_vectors[0][0])
-            theta2 = np.arccos(np.dot(opposite_attack, all_attack_vectors[1][0]))
-            if theta2 < theta1:
-                all_attack_vectors[0][0] = opposite_attack
-        if all_attack_vectors[1][1]:
-            theta1 = np.arccos(np.dot(all_attack_vectors[0][0], all_attack_vectors[1][0]))
-            opposite_attack = np.negative(all_attack_vectors[1][0])
-            theta2 = np.arccos(np.dot(all_attack_vectors[0][0], opposite_attack))
-            if theta2 < theta1:
-                all_attack_vectors[1][0] = opposite_attack
-        best_attack_vectors = [all_attack_vectors[0]
-                               [0], all_attack_vectors[1][0]]
-        best_avg_attack_vector = np.average(best_attack_vectors, axis=0)
-    if np.linalg.norm(best_avg_attack_vector) == 0:
-        best_avg_attack_vector = all_attack_vectors[0][0]
-    return best_avg_attack_vector / np.linalg.norm(best_avg_attack_vector)
+        min_dist = 9999999.9
+        best_a, best_b, best_c = None, None, None
+        for _ in range(100):
+            x0 = np.random.uniform(0.0, 2*np.pi, size=3)
+            res = minimize(min_dist_func, x0=x0, args=(reac_relevant_coords, prod_relevant_coords), method='BFGS')
+            if res.fun < min_dist:
+                min_dist = res.fun
+                best_a, best_b, best_c = res.x
+
+        a_rot_matrix = calc_rotation_matrix([1, 0, 0], best_a)
+        b_rot_matrix = calc_rotation_matrix([0, 1, 0], best_b)
+        c_rot_matrix = calc_rotation_matrix([0, 0, 1], best_c)
+        rot_matrix = np.matmul(a_rot_matrix, np.matmul(b_rot_matrix, c_rot_matrix))
+
+        for i in range(len(prod_relevant_coords)):
+            prod_relevant_coords[i] = np.matmul(rot_matrix, prod_relevant_coords[i])
+
+        print(reac_relevant_coords)
+        print(prod_relevant_coords)
+
+        bond_forming_vector = prod_relevant_coords[1] - prod_relevant_coords[0]
+        all_bond_forming_vectors.append(bond_forming_vector/np.linalg.norm(bond_forming_vector))
+
+    avg_bond_forming_vector = np.average(all_bond_forming_vectors, axis=0)
+
+    return avg_bond_forming_vector / np.linalg.norm(avg_bond_forming_vector)
 
 
-def dot_func(angles, mol1_vecs, mol2_vecs):
-    theta, phi, z = angles
-    theta_rot_matrix = calc_rotation_matrix([1, 0, 0], theta)
-    phi_rot_matrix = calc_rotation_matrix([0, 1, 0], phi)
-    z_rot_matrix = calc_rotation_matrix([0, 0, 1], z)
-    rot_matrix = np.matmul(theta_rot_matrix, np.matmul(phi_rot_matrix, z_rot_matrix))
+def dot_product_func(angles, mol1_vecs, mol2_vecs):
+    """Rotates mol2_vecs by the angles, the returns the sum of the dot products of mol1_vecs[i] with the rotated mol2_vecs[i]
+
+    Arguments:
+        angles (tuple) -- a,b,c angle
+        mol1_vecs (list) -- list of vectors
+        mol2_vecs (list) -- list of vectors
+
+    Returns:
+        float -- sum of the dot products
+    """
+    a, b, c = angles
+    a_rot_matrix = calc_rotation_matrix([1, 0, 0], a)
+    b_rot_matrix = calc_rotation_matrix([0, 1, 0], b)
+    c_rot_matrix = calc_rotation_matrix([0, 0, 1], c)
+    rot_matrix = np.matmul(a_rot_matrix, np.matmul(b_rot_matrix, c_rot_matrix))
     dots = 0
     for i, mol1_vec in enumerate(mol1_vecs):
         mol2_vec = mol2_vecs[i]
@@ -207,7 +194,18 @@ def dot_func(angles, mol1_vecs, mol2_vecs):
     return dots
 
 
-def rot_func(angles, vec, mol1_coords, mol2_coords):
+def rot_mol_func(angles, vec, mol1_coords, mol2_coords):
+    """Rotates mol2_coords, then returns the sum of the distances^-4 between all pairs of mol1 atoms and mol2 atoms
+
+    Arguments:
+        angles (tuple) -- (angle to be rotated)
+        vec (np.array) -- vector to be roated about
+        mol1_coords (np.array) -- coords of mol1 atoms
+        mol2_coords (np.array) -- coords of mol2 atoms
+
+    Returns:
+        float -- sum of the distances^-4 between all pairs of mol1 atoms and mol2 atoms
+    """
     theta = angles[0]
     rot_matrix = calc_rotation_matrix(vec, theta)
     new_mol2_coords = mol2_coords.copy()
@@ -216,6 +214,30 @@ def rot_func(angles, vec, mol1_coords, mol2_coords):
     dist_mat = distance_matrix(mol1_coords, new_mol2_coords)
     energy = np.sum(np.power(dist_mat, -4))
     return energy
+
+
+def min_dist_func(angles, mol1_coords, mol2_coords):
+    """Rotates mol2_coords, then returns the average distance between mol1_atom[i] and mol2_atom[i]
+
+    Arguments:
+        angles (tuple) -- a,b,c angle
+        mol1_coords (np.array) -- initial mol1_coords
+        mol2_coords (np.array) -- initial mol2_coords
+
+    Returns:
+        float -- total distance
+    """
+    a, b, c = angles
+    a_rot_matrix = calc_rotation_matrix([1, 0, 0], a)
+    b_rot_matrix = calc_rotation_matrix([0, 1, 0], b)
+    c_rot_matrix = calc_rotation_matrix([0, 0, 1], c)
+    rot_matrix = np.matmul(a_rot_matrix, np.matmul(b_rot_matrix, c_rot_matrix))
+    total_dist = 0
+    new_mol2_coords = mol2_coords.copy()
+    for i in range(1, len(mol2_coords)):
+        new_mol2_coords[i] = np.matmul(rot_matrix, mol2_coords[i])
+        total_dist += np.linalg.norm(mol1_coords[i] - new_mol2_coords[i])
+    return total_dist
 
 
 def get_attacked_atoms(bond_rearrangement):
