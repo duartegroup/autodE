@@ -176,29 +176,11 @@ class Reaction:
     @work_in('ts_confs')
     def ts_confs(self):
         """Find the lowest energy conformer of the transition state"""
-        logger.info('Finding all the stereocentres in the transition state')
-
-        stereocentres = set()
-        n_atoms = 0
-        for reac in self.reacs:
-            if reac.stereocentres is not None:
-                for stereocentre in reac.stereocentres:
-                    stereocentres.add(stereocentre + n_atoms)
-            n_atoms += reac.n_atoms
-
-        for mol in self.prods:
-            if mol.stereocentres is not None:
-                mapping = get_mapping(self.product_graph, mol.graph)[0]
-                for ts_index, mol_index in mapping.items():
-                    if mol_index in mol.stereocentres:
-                        stereocentres.add(ts_index)
-
-        self.ts.stereocentres = sorted(stereocentres)
 
         ts_copy = deepcopy(self.ts)
         logger.info('Trying to find lowest energy TS conformer')
 
-        self.ts = self.ts.find_lowest_energy_conformer()
+        self.ts = self.ts.find_lowest_energy_conformer(self.solvent_mol)
         if self.ts is None:
             logger.error('Conformer search lost the TS, using the original TS')
             self.ts = ts_copy

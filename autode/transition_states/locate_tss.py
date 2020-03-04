@@ -215,12 +215,10 @@ def get_reactant_and_product_complexes(reaction):
 
     elif reaction.type == Substitution:
         reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
-        reactant.charges = reaction.reacs[0].charges + reaction.reacs[1].charges
         product = gen_two_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1])
 
     elif reaction.type == Elimination:
         reactant = gen_two_mol_complex(name='reac_complex', mol1=reaction.reacs[0], mol2=reaction.reacs[1])
-        reactant.charges = reaction.reacs[0].charges + reaction.reacs[1].charges
         product = gen_three_mol_complex(name='prod_complex', mol1=reaction.prods[0], mol2=reaction.prods[1], mol3=reaction.prods[2])
 
     else:
@@ -231,28 +229,55 @@ def get_reactant_and_product_complexes(reaction):
 
 
 def gen_two_mol_complex(name, mol1, mol2, mol2_shift_ang=100):
-    return Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs],
-                    solvent=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
+    complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs],
+                           solvent=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
+    complex_mol.charges = mol1.charges + mol2.charges
+    complex_mol.stereocentres = get_stereoatoms([mol1, mol2])
+    complex_mol.pi_bonds = get_pi_bonds([mol1, mol2])
+    return complex_mol
 
 
 def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_ang=100, mol3_shift_ang=-100):
-    return Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs] + [xyz[:3] + [xyz[3] + mol3_shift_ang] for xyz in mol3.xyzs],
-                    solvent=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
+    complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs] + [xyz[:3] + [xyz[3] + mol3_shift_ang] for xyz in mol3.xyzs],
+                           solvent=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
+    complex_mol.charges = mol1.charges + mol2.charges + mol3.charges
+    complex_mol.stereocentres = get_stereoatoms([mol1, mol2, mol3])
+    complex_mol.pi_bonds = get_pi_bonds([mol1, mol2, mol3])
+    return complex_mol
+
+
+def get_stereoatoms(mols):
+    n_atoms = 0
+    stereocentres = []
+    for mol in mols:
+        if mol.stereocentres is not None:
+            for stereocentre in mol.stereocentres:
+                stereocentres.append(stereocentre + n_atoms)
+        n_atoms += mol.n_atoms
+    if len(stereocentres) > 0:
+        return stereocentres
+    else:
+        return None
+
+
+def get_pi_bonds(mols):
+    n_atoms = 0
+    pi_bonds = []
+    for mol in mols:
+        if mol.pi_bonds is not None:
+            for pi_bond in mol.pi_bonds:
+                pi_bonds.append((pi_bond[0] + n_atoms, pi_bond[1] + n_atoms))
+        n_atoms += mol.n_atoms
+    if len(pi_bonds) > 0:
+        return pi_bonds
+    else:
+        return None
 
 
 def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, strip_molecule=True):
     if solvent_mol is not None:
         strip_molecule = False
     tss = []
-
-    if reaction.type in [Substitution, Elimination]:
-        if any(mol.charge != 0 for mol in reaction.reacs) and solvent_mol is None:
-            shift_factor = 3
-        else:
-            shift_factor = 2
-        set_complex_xyzs_translated_rotated(reactant, reaction.reacs, bond_rearrangement, shift_factor)
-
-    reactant_core_atoms = None
 
     active_atoms = set()
     for active_atom in bond_rearrangement.active_atoms:
@@ -262,21 +287,44 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
 
     # get the product graph with the atom indices of the reactant
     full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(reactant.graph, bond_rearrangement)
-    reaction.product_graph = full_prod_graph_reac_indices.copy()
+    # mapping[product indices] = reactant indices
+    full_mapping = mol_graphs.get_mapping(product.graph, full_prod_graph_reac_indices)
+    inv_full_mapping = {v: k for k, v in full_mapping.items()}
+
+    print(inv_full_mapping)
+
+    exit()
+
+    # ensure any formed stereocentres are included in ts stereocentres
+    formed_stereocentres = []
+    if product.stereocentres is not None:
+        if reactant.stereocentres is None:
+            reactant.stereocentres = []
+        for stereocentre in product.stereocentres:
+            reac_index = full_mapping[stereocentre]
+            if not reac_index in reactant.stereocentres:
+                formed_stereocentres.append(reac_index)
+        if len(formed_stereocentres) > 0:
+            reactant.stereocentres += formed_stereocentres
+
+    if reaction.type in [Substitution, Elimination]:
+        if any(mol.charge != 0 for mol in reaction.reacs) and solvent_mol is None:
+            shift_factor = 3
+        else:
+            shift_factor = 2
+        set_complex_xyzs_translated_rotated(reactant, product, reaction.reacs, bond_rearrangement, inv_full_mapping, shift_factor)
 
     if strip_molecule:
         reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
+    else:
+        reactant_core_atoms = None
 
     reac_mol, reac_mol_rearrangement = reactant.strip_core(reactant_core_atoms, bond_rearrangement)
 
     if reac_mol.is_fragment:
-        stripped_prod_graph = mol_graphs.reac_graph_to_prods(reac_mol.graph, reac_mol_rearrangement)
-        # get the reactant core atoms in the index of the product complex
-        for i in list(stripped_prod_graph.nodes):
-            if stripped_prod_graph.nodes[i]['atom_label'] == 'H':
-                stripped_prod_graph.remove_node(i)
-            mapping_dict = mol_graphs.get_mapping(product.graph, stripped_prod_graph)[0]
-            product_core_atoms = list(mapping_dict.keys())
+        product_core_atoms = []
+        for atom in reactant_core_atoms:
+            product_core_atoms.append(inv_full_mapping[atom])
     else:
         product_core_atoms = None
 
@@ -299,13 +347,13 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
                 logger.info(f'Found a transition state with {func.__name__}')
                 if reac_mol.is_fragment:
                     logger.info('Finding full TS')
-                    ts_guess_with_decoratation = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
-                    full_ts_guess, full_converged = get_ts(ts_guess_with_decoratation)
-                    if full_ts_guess is not None:
-                        ts_with_decoratation = TS(full_ts_guess, converged=full_converged)
-                        if ts_with_decoratation.is_true_ts():
+                    full_ts_guess = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
+                    full_ts_mol, full_converged = get_ts(full_ts_guess)
+                    if full_ts_mol is not None:
+                        full_ts = TS(full_ts_mol, converged=full_converged)
+                        if full_ts.is_true_ts():
                             logger.info('Found full TS')
-                            tss.append(ts_with_decoratation)
+                            tss.append(full_ts)
                 else:
                     tss.append(ts)
                 break

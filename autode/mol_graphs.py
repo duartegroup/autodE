@@ -16,7 +16,7 @@ def make_graph(xyzs, n_atoms, bonds=None):
         bonded_atom_list = get_xyz_bond_list(xyzs)
     else:
         bonded_atom_list = bonds
-        
+
     for pair in bonded_atom_list:
         graph.add_edge(*pair)
 
@@ -36,20 +36,19 @@ def is_subgraph_isomorphic(larger_graph, smaller_graph):
 
 def get_mapping_ts_template(larger_graph, smaller_graph):
     logger.info('Getting mapping of molecule onto the TS template')
+    logger.info('Running subgraph isomorphism')
     graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
                                              node_match=isomorphism.categorical_node_match('atom_label', 'C'),
                                              edge_match=isomorphism.categorical_edge_match('active', False))
     # hopefully the first one is fine(?)
-    return get_mapping(larger_graph, smaller_graph, graph_matcher)[0]
+    return list(graph_matcher.subgraph_isomorphisms_iter())[0]
 
 
-def get_mapping(larger_graph, smaller_graph, graph_matcher=None):
-    logger.info('Running subgraph isomorphism')
-    if graph_matcher is None:
-        graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
-                                                 node_match=isomorphism.categorical_node_match('atom_label', 'C'))
+def get_mapping(larger_graph, smaller_graph):
+    logger.info('Running isomorphism')
+    graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph, node_match=isomorphism.categorical_node_match('atom_label', 'C'))
 
-    return [subgraph for subgraph in graph_matcher.subgraph_isomorphisms_iter()]
+    return list(graph_matcher.isomorphisms_iter())[0]
 
 
 def is_isomorphic(graph1, graph2):
@@ -88,7 +87,7 @@ def gm_is_isomorphic(gm, result):
     result[0] = gm.is_isomorphic()
 
 
-def find_cycle(graph):
+def find_cycles(graph):
     """Finds all the cycles in a graph
 
     Arguments:
@@ -182,11 +181,11 @@ def get_bond_type_list(graph):
 
 def get_fbonds(graph, key):
     """Get all the possible forming bonds of a certain type
-    
+
     Arguments:
         graph (nx.Graph): graph object of a molecule
         key (str): string representing the bond type to be examined
-    
+
     Returns:
         list: list of bonds that can be made of this type
     """

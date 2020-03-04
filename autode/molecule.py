@@ -60,12 +60,14 @@ class Molecule:
         else:
             self.solvent = solvent
 
-    def get_core_atoms(self, product_graph=None, depth=3):
+    def get_core_atoms(self, product_graph, depth=3):
         """Finds the 'core' of a molecule, to find atoms that should not be stripped. Core atoms are those within a certain
         number of bonds from atoms that are reacting. Also checks to ensure rings and pi bonda aren't being broken.
 
+        Arguments"
+            product_graph (nx.Graph): Graph of the product molecule (with the atom indices of the reactants) to see if a ring is being made
+
         Keyword Arguments:
-            product_graph (nx.Graph): Graph of the product molecule, to see if a ring is being made (default: {None})
             depth (int): Number of bonds from the active atoms within which atoms are 'core' (default: {3})
 
         Returns:
@@ -86,43 +88,55 @@ class Molecule:
 
         old_core_atoms = set()
 
-        cycles = mol_graphs.find_cycle(self.graph)
-        if product_graph is not None:
-            prod_cycles = cycle = mol_graphs.find_cycle(product_graph)
+        reac_cycles = mol_graphs.find_cycles(self.graph)
+        prod_cycles = mol_graphs.find_cycles(product_graph)
+
+        for prod_cycle in prod_cycles:
+            match = False
+            for reac_cycle in reac_cycles:
+                if len(prod_cycle) == len(reac_cycle):
+                    if all(prod_atom in reac_cycle for prod_atom in prod_cycle):
+                        match = True
+                        break
+            if not match:
+                for atom in prod_cycle:
+                    core_atoms.add(atom)
 
         while len(old_core_atoms) < len(core_atoms):
             old_core_atoms = core_atoms.copy()
-            ring_atoms = set()
             logger.info('Looking for rings in the reactants')
-            for atom in core_atoms:
-                for cycle in cycles:
-                    if atom in cycle:
-                        for cycle_atom in cycle:
-                            ring_atoms.add(cycle_atom)
-            core_atoms.update(ring_atoms)
-
-            logger.info('Looking for rings in the products')
-            if product_graph is None:
-                logger.warning('No product graph found, this will cause errors if rings are formed in the reaction')
-            else:
-                prod_ring_atoms = set()
+            for i, cycle in enumerate(reac_cycles):
+                atoms_in_ring = []
                 for atom in core_atoms:
-                    for cycle in prod_cycles:
-                        if atom in cycle:
-                            for cycle_atom in cycle:
-                                prod_ring_atoms.add(cycle_atom)
-                core_atoms.update(prod_ring_atoms)
+                    if atom in cycle:
+                        atoms_in_ring.append(atom)
+                add = False
+                if len(atoms_in_ring) > 0 and len(cycle) == 3:
+                    add = True
+                elif len(atoms_in_ring) == 2:
+                    already_in_ring = False
+                    for j, other_cycle in enumerate(reac_cycles):
+                        if i != j:
+                            if atoms_in_ring[0] in other_cycle and atoms_in_ring[1] in other_cycle:
+                                if all(atom in core_atoms for atom in other_cycle):
+                                    already_in_ring = True
+                                    break
+                    if not already_in_ring:
+                        add = True
+                elif len(atoms_in_ring) > 2:
+                    add = True
+                if add:
+                    for cycle_atom in cycle:
+                        core_atoms.add(cycle_atom)
 
             if self.pi_bonds is not None:
                 logger.info('Checking for pi bonds')
-                core_atoms_pi_bonds = set()
                 for atom in core_atoms:
                     for bond in self.pi_bonds:
                         if atom in bond:
                             for other_atom in bond:
-                                core_atoms_pi_bonds.add(other_atom)
+                                core_atoms.add(other_atom)
                             break
-                core_atoms.update(core_atoms_pi_bonds)
 
             # don't want to make OH, SH or NH, as these can be acidic and can mess things up
             bonded_to_heteroatoms = set()
@@ -264,10 +278,6 @@ class Molecule:
                         normed_bond_vector * avg_bond_length).tolist()
             fragment_xyzs.append(['H'] + h_coords)
 
-        if self.xyzs == fragment_xyzs:
-            logger.info('No atoms to strip')
-            return (self, bond_rearrang)
-
         if bond_rearrang is not None:
             # get the bond rearrangement in the new atom indices
             new_fbonds = []
@@ -399,14 +409,6 @@ class Molecule:
         if len(pi_bonds) > 0:
             self.pi_bonds = pi_bonds
 
-        if len(self.pi_bonds) > 0:
-            if self.stereocentres is None:
-                self.stereocentres = []
-            for bond in pi_bonds:
-                for atom in bond:
-                    if not atom in self.stereocentres:
-                        self.stereocentres.append(atom)
-
     def _init_smiles(self, name, smiles):
 
         try:
@@ -437,6 +439,17 @@ class Molecule:
                 unassigned_stereocentres = True
             else:
                 stereocentres.append(atom)
+
+        pi_bonds = []
+        for bond in rdkit_bonds:
+            if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
+                pi_bonds.append((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()))
+            if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:
+                stereocentres.append(bond.GetBeginAtomIdx())
+                stereocentres.append(bond.GetEndAtomIdx())
+
+        if len(pi_bonds) > 0:
+            self.pi_bonds = pi_bonds
 
         if len(stereocentres) > 0:
             self.stereocentres = stereocentres
@@ -476,6 +489,7 @@ class Molecule:
         self.distance_matrix = calc_distance_matrix(xyzs)
         if self.n_atoms == 1:
             self.charges = [self.charge]
+        self.set_pi_bonds()
 
     def __init__(self, name='molecule', smiles=None, xyzs=None, solvent=None, charge=0, mult=1, is_fragment=False):
         """Initialise a Molecule object.
