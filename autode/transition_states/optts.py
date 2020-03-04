@@ -197,9 +197,8 @@ def check_close_imag_contribution(calc, n_atoms, molecules, method, disp_mag=1):
     Returns:
         bool: if the imag mode is correct or not
     """
-    n_solute_atoms = len(calc.partial_hessian)
     forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=6, displacement_magnitude=disp_mag)
-    forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs[:n_solute_atoms], charge=calc.charge, mult=calc.mult)
+    forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs[:n_atoms], charge=calc.charge, mult=calc.mult)
     forward_coords = forward_displaced_mol.get_coords()
     forward_distance_constraints = {}
 
@@ -213,7 +212,7 @@ def check_close_imag_contribution(calc, n_atoms, molecules, method, disp_mag=1):
     forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_xyzs())
 
     backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=6, displacement_magnitude=-disp_mag)
-    backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs[:n_solute_atoms], charge=calc.charge, mult=calc.mult)
+    backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs[:n_atoms], charge=calc.charge, mult=calc.mult)
     backward_coords = backward_displaced_mol.get_coords()
     backward_distance_constraints = {}
 

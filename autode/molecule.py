@@ -130,13 +130,15 @@ class Molecule:
                         core_atoms.add(cycle_atom)
 
             if self.pi_bonds is not None:
+                pi_core_atoms = set()
                 logger.info('Checking for pi bonds')
                 for atom in core_atoms:
                     for bond in self.pi_bonds:
                         if atom in bond:
                             for other_atom in bond:
-                                core_atoms.add(other_atom)
+                                pi_core_atoms.add(other_atom)
                             break
+                core_atoms.update(pi_core_atoms)
 
             # don't want to make OH, SH or NH, as these can be acidic and can mess things up
             bonded_to_heteroatoms = set()

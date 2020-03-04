@@ -128,24 +128,12 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         bbond = bond_rearrang.bbonds[0]
         scan_name = name + f'_{bbond[0]}-{bbond[1]}'
         delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
+        funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_ll1d', reaction.type,
+                                               lmethod, lmethod.scan_keywords, solvent_mol, delta_bbond_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d', reaction.type,
                                                hmethod, hmethod.scan_keywords, solvent_mol, delta_bbond_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d_opt_level',
                                                reaction.type, hmethod, hmethod.opt_keywords, solvent_mol, delta_bbond_dist)))
-
-    if bond_rearrang.n_bbonds >= 1 and bond_rearrang.n_fbonds >= 1:
-        for fbond in bond_rearrang.fbonds:
-            for bbond in bond_rearrang.bbonds:
-                scanned_bonds = [fbond, bbond]
-                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
-                scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
-                delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-                delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
-
-                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
-                                                       lmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
-                funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
-                                                       hmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
         bbond = bond_rearrang.bbonds[0]
@@ -290,10 +278,6 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
     # mapping[product indices] = reactant indices
     full_mapping = mol_graphs.get_mapping(product.graph, full_prod_graph_reac_indices)
     inv_full_mapping = {v: k for k, v in full_mapping.items()}
-
-    print(inv_full_mapping)
-
-    exit()
 
     # ensure any formed stereocentres are included in ts stereocentres
     formed_stereocentres = []

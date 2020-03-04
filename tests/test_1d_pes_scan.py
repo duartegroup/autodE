@@ -20,7 +20,7 @@ def test_get_ts_guess_1dscan():
 
     ts_guess = get_ts_guess_1d(mol=mol, product=mol, active_bond=(1, 2), n_steps=5, name='h3_subst',
                                reaction_class=Substitution, method=ORCA, keywords=Config.ORCA.scan_keywords,
-                               delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)])
+                               delta_dist=-0.3, active_bonds_not_scanned=[(0, 1)], solvent_mol=None)
 
     assert len(ts_guess.active_bonds) == 2
     assert os.path.exists('h3_1_2_1dscan.png')

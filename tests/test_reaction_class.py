@@ -11,6 +11,7 @@ def test_reaction_class():
     h2 = reaction.Reactant(name='h2', xyzs=[['H', 1.0, 0.0, 0.0]])
     hh = reaction.Product(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
     hh_reac = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh, name='h2_assoc')
+    hh_reac.solvent_sphere_energy = 0
 
     h1.energy = 2
     h2.energy = 3
@@ -94,6 +95,7 @@ def test_calc_delta_e():
     p.energy = -1.0
 
     reac = reaction.Reaction(r1, r2, p)
+    reac.solvent_sphere_energy = 0
     reac.ts = ts
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
