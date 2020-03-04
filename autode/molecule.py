@@ -341,7 +341,7 @@ class Molecule:
 
         self.n_bonds = self.graph.number_of_edges()
 
-    def optimise(self, method=None):
+    def optimise(self, solvent_mol, method=None):
         logger.info(f'Running optimisation of {self.name}')
         if method is None:
             method = self.method
@@ -353,19 +353,28 @@ class Molecule:
         self.set_xyzs(xyzs=opt.get_final_xyzs())
         self.charges = opt.get_atomic_charges()
 
+        if solvent_mol is not None:
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, solvent_mol, method, n_qm_solvent_mols=30)
+            self.xyzs = qmmm_xyzs[:self.n_atoms]
+            self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
+            self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+
     def single_point(self, solvent_mol, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
         if method is None:
             method = self.method
 
         if solvent_mol:
-            qmmm_energies, _, _ = do_explicit_solvent_qmmm(self, solvent_mol, method, hlevel=True, n=1)
-            self.energy = qmmm_energies[0]
+            point_charges = []
+            for i in range(len(self.mm_solvent_xyzs)):
+                point_charges.append(self.mm_solvent_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         else:
-            sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
-                             n_cores=Config.n_cores, max_core_mb=Config.max_core)
-            sp.run()
-            self.energy = sp.get_energy()
+            point_charges = None
+
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
+                         n_cores=Config.n_cores, max_core_mb=Config.max_core, charges=point_charges)
+        sp.run()
+        self.energy = sp.get_energy()
 
     def is_possible_pi_atom(self, atom_i):
         # metals may break this
@@ -408,7 +417,8 @@ class Molecule:
             exit()
 
         self.n_atoms = self.mol_obj.GetNumAtoms()
-        self.n_bonds = len(self.mol_obj.GetBonds())
+        rdkit_bonds = self.mol_obj.GetBonds()
+        self.n_bonds = len(rdkit_bonds)
         self.charge = Chem.GetFormalCharge(self.mol_obj)
         n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
         self.mult = self._calc_multiplicity(n_radical_electrons)
@@ -505,15 +515,14 @@ class Molecule:
         self.pi_bonds = None
         self.charges = None
 
-        self.xyzs_with_solvent = None
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
 
         if smiles:
             self._init_smiles(name, smiles)
 
         if xyzs:
             self._init_xyzs(xyzs)
-
-        self.set_pi_bonds()
 
 
 class Reactant(Molecule):

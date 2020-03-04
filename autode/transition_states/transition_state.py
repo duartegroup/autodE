@@ -13,6 +13,8 @@ from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.solvent.qmmm import QMMM
 import numpy as np
 
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+
 
 class TS(TSguess):
 
@@ -80,20 +82,20 @@ class TS(TSguess):
 
     def single_point(self, solvent_mol, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
+        if method is None:
+            method = self.method
 
         if solvent_mol:
-            n_solvent_mols = (len(self.xyzs_with_solvent) - len(self.xyzs)) / self.solvent.n_atoms
-            mm_charges = []
-            for _ in range(n_solvent_mols):
-                mm_charges += self.solvent.charges
-            qmmm = QMMM(self, [], [], self.xyzs_with_solvent[len(self.xyzs):], [], mm_charges, self.method if method is None else method, True)
-            qmmm.simulate()
-            self.energy = qmmm.final_energy
+            point_charges = []
+            for i in range(len(self.mm_solvent_xyzs)):
+                point_charges.append(self.mm_solvent_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         else:
-            sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
-                             keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
-            sp.run()
-            self.energy = sp.get_energy()
+            point_charges = None
+
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=self.method.sp_keywords,
+                         n_cores=Config.n_cores, max_core_mb=Config.max_core, charges=self.point_charges)
+        sp.run()
+        self.energy = sp.get_energy()
 
     def generate_conformers(self):
 
@@ -134,7 +136,7 @@ class TS(TSguess):
         self.conformers = [conf for conf in self.conformers if conf.xyzs is not None and conf.energy is not None]
         self.n_conformers = len(self.conformers)
 
-    def opt_ts(self):
+    def opt_ts(self, solvent_mol):
         """Run the optts calculation
 
         Returns:
@@ -142,7 +144,7 @@ class TS(TSguess):
         """
         name = self.name
 
-        ts_conf_get_ts_output = get_ts(self)
+        ts_conf_get_ts_output = get_ts(self, solvent_mol)
         if ts_conf_get_ts_output is None:
             return None
 
@@ -153,7 +155,7 @@ class TS(TSguess):
 
         return self
 
-    def find_lowest_energy_conformer(self):
+    def find_lowest_energy_conformer(self, solvent_mol):
         """For a transition state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
 
         Returns:
@@ -190,7 +192,13 @@ class TS(TSguess):
 
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
-        return self.opt_ts()
+        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, self.method)
+
+        self.xyzs = qmmm_xyzs[:self.n_atoms]
+        self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
+        self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+
+        return self.opt_ts(solvent_mol)
 
     def __init__(self, ts_guess=None, name='TS', converged=True):
         logger.info(f'Generating a TS object for {name}')
@@ -206,13 +214,15 @@ class TS(TSguess):
         self.mult = ts_guess.mult
         self.converged = converged
         self.method = ts_guess.method
-
+        self.stereocentres = ts_guess.stereocentres
+        self.n_atoms = ts_guess.n_atoms
         self.reactant = ts_guess.reactant
         self.product = ts_guess.product
+        self.qm_solvent_xyzs = ts_guess.qm_solvent_xyzs
+        self.mm_solvent_xyzs = ts_guess.mm_solvent_xyzs
 
         self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
         self.charges = ts_guess.get_charges()
-        self.n_atoms = len(self.xyzs)
 
         self.active_bonds = ts_guess.active_bonds
         self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
@@ -226,7 +236,6 @@ class TS(TSguess):
         self.dist_consts = None
         self.get_dist_consts()
 
-        self.stereocentres = None
         self.conformers = None
         self.n_conformers = None
 
@@ -240,4 +249,4 @@ class TS(TSguess):
 
         self.calc_failed = False
 
-        self.xyzs_with_solvent = ts_guess.xyzs_with_solvent
+        self.point_charges = None

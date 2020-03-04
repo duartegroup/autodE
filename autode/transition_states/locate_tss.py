@@ -143,9 +143,9 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
                 delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
 
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
-                                                       lmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+                                                       lmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
-                                                       hmethod.scan_keywords, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+                                                       hmethod.scan_keywords, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
         bbond = bond_rearrang.bbonds[0]

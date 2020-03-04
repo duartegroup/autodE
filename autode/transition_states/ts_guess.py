@@ -26,7 +26,10 @@ class TSguess:
             if self.optts_calc.optimisation_nearly_converged():
                 logger.info('OptTS nearly did converge. Will try more steps')
                 self.optts_nearly_converged = True
-                self.xyzs = self.optts_calc.get_final_xyzs()
+                all_xyzs = self.optts_calc.get_final_xyzs()
+                self.xyzs = all_xyzs[:self.n_atoms]
+                if self.qm_solvent_xyzs is not None:
+                    self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
                 self.name += '_reopt'
                 self.run_optts()
                 return
@@ -48,7 +51,7 @@ class TSguess:
         imag_freqs = []
         orig_optts_calc = deepcopy(self.optts_calc)
         orig_name = copy(self.name)
-        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=magnitude)
+        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=magnitude)
         self.name += '_dis'
         self.run_optts()
         if self.calc_failed:
@@ -72,7 +75,7 @@ class TSguess:
         if len(imag_freqs) > 1 or mode_lost:
             self.optts_calc = orig_optts_calc
             self.name = orig_name
-            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=-1 * magnitude)
+            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
             self.run_optts()
             if self.calc_failed:
@@ -92,15 +95,15 @@ class TSguess:
         """
         logger.info('Getting ORCA out lines from OptTS calculation')
 
-        if len(self.xyzs) != self.n_solute_atoms:
-            partial_hessian = [i for i in range(self.n_solute_atoms, len(self.xyzs))]
+        if self.qm_solvent_xyzs is not None:
+            solvent_atoms = [i for i in range(self.n_atoms, self.n_atoms + len(self.qm_solvent_xyzs))]
         else:
-            partial_hessian = None
+            solvent_atoms = None
 
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
                                      keywords=self.method.hess_keywords, n_cores=Config.n_cores,
                                      max_core_mb=Config.max_core, charges=self.point_charges,
-                                     partial_hessian=partial_hessian)
+                                     partial_hessian=solvent_atoms)
 
         self.hess_calc.run()
 
@@ -123,11 +126,14 @@ class TSguess:
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      partial_hessian=partial_hessian,
-                                      optts_block=self.method.opt_ts_block)
+                                      partial_hessian=solvent_atoms, charges=self.point_charges,
+                                      optts_block=self.method.opt_ts_block, cartesian_constraints=solvent_atoms)
 
         self.optts_calc.run()
-        self.xyzs = self.optts_calc.get_final_xyzs()
+        all_xyzs = self.optts_calc.get_final_xyzs()
+        self.xyzs = all_xyzs[:self.n_atoms]
+        if self.qm_solvent_xyzs is not None:
+            self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
         return
 
     def get_imag_frequencies_xyzs_energy(self):
@@ -166,9 +172,10 @@ class TSguess:
         self.reactant = reactant
         self.product = product
         self.graph = make_graph(self.xyzs, self.n_atoms)
-        self.charges = None
-
-        self.n_solute_atoms = molecule.n_atoms
+        self.charges = molecule.charges
+        self.stereocentres = molecule.stereocentres
+        self.qm_solvent_xyzs = molecule.qm_solvent_xyzs
+        self.mm_solvent_xyzs = molecule.mm_solvent_xyzs
 
         self.optts_converged = False
         self.optts_nearly_converged = False
@@ -178,4 +185,3 @@ class TSguess:
         self.calc_failed = False
 
         self.point_charges = None
-        self.xyzs_with_solvent = molecule.xyzs_with_solvent

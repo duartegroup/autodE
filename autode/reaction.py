@@ -8,13 +8,12 @@ from autode.units import KcalMol
 from autode.units import KjMol
 from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
-from autode.mol_graphs import get_mapping
 from autode.utils import work_in
 from autode.config import Config
+from autode.solvent.solvents import get_solvent
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from copy import deepcopy
 import os
-
-from autode.solvent.solvents import get_solvent
 
 
 class Reaction:
@@ -75,6 +74,7 @@ class Reaction:
         if delta_n_bonds < 0:
             logger.info('Products have more bonds than the reactants, swapping reacs and prods and going in reverse')
             self.prods, self.reacs = self.reacs, self.prods
+            self.switched_reacs_prods = True
         else:
             logger.info('Does not appear to be an intramolecular addition, continuing')
 
@@ -85,7 +85,11 @@ class Reaction:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        return sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
+        e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
+        delta_n_reacs = len(self.reacs) - len(self.prods)
+        if delta_n_reacs != 0:
+            e -= delta_n_reacs * self.solvent_sphere_energy
+        return e
 
     def calc_delta_e_ddagger(self):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
@@ -95,7 +99,11 @@ class Reaction:
         """
         logger.info('Calculating ∆E‡')
         if self.ts.energy is not None:
-            return self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
+            e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
+            n_reacs = len(self.reacs)
+            if n_reacs != 1:
+                e -= (len(self.reacs) - 1) * self.solvent_sphere_energy
+            return e
         else:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
@@ -108,9 +116,16 @@ class Reaction:
 
         if solvent.n_atoms > 1:
             solvent.find_lowest_energy_conformer()
-        solvent.optimise()
+        solvent.optimise(None)
         logger.info('Saving the solvent molecule properties')
         self.solvent_mol = solvent
+        if not len(self.reacs) == len(self.prods) == 1:
+            qmmm_solvent_mol = deepcopy(solvent)
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=2, n_qm_solvent_mols=29)
+            qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
+            qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
+            qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+            self.solvent_sphere_energy = qmmm_solvent_mol.single_point(solvent)
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
@@ -127,7 +142,7 @@ class Reaction:
         """
         logger.info('Calculating optimised reactants and products')
 
-        [mol.optimise() for mol in self.reacs + self.prods]
+        [mol.optimise(self.solvent_mol) for mol in self.reacs + self.prods]
 
     @work_in('tss')
     def locate_transition_state(self):
@@ -245,10 +260,9 @@ class Reaction:
         self.check_balance()
 
         self.solvent_mol = None
+        self.solvent_sphere_energy = None
 
-        self.product_graph = None
-
-        self.switched_reacs_prods = False               #: Have the reactants and products been switched to
+        self.switched_reacs_prods = False               #: Have the reactants and products been switched
         if self.type == reactions.Addition:
             self.switch_addition()
 

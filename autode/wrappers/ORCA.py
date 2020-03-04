@@ -15,7 +15,6 @@ ORCA = ElectronicStructureMethod(name='orca', path=Config.ORCA.path,
                                  scan_keywords=Config.ORCA.scan_keywords,
                                  conf_opt_keywords=Config.ORCA.conf_opt_keywords,
                                  gradients_keywords=Config.ORCA.gradients_keywords,
-                                 sp_grad_keywords=Config.ORCA.sp_grad_keywords,
                                  opt_keywords=Config.ORCA.opt_keywords,
                                  opt_ts_keywords=Config.ORCA.opt_ts_keywords,
                                  hess_keywords=Config.ORCA.hess_keywords,
@@ -60,7 +59,7 @@ def generate_input(calc):
 
         if calc.optts_block:
             print(calc.optts_block, file=inp_file)
-            if calc.core_atoms and calc.n_atoms > 25:
+            if calc.core_atoms and calc.n_atoms > 25 and not calc.partial_hessian:
                 core_atoms_str = ' '.join(map(str, calc.core_atoms))
                 print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
             print('end', file=inp_file)
@@ -93,7 +92,7 @@ def generate_input(calc):
             print(*calc.partial_hessian, file=inp_file, end='')
             print('} end\nend', file=inp_file)
 
-        if calc.charges is not None:
+        if calc.charges:
             print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
         if calc.n_cores > 1:

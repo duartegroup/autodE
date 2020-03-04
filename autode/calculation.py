@@ -157,8 +157,8 @@ class Calculation:
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
         here = os.getcwd()
-        logger.info(f'Creating tmpdir to work in')
         tmpdir_path = mkdtemp()
+        logger.info(f'Creating tmpdir to work in {tmpdir_path}')
         for filename in self.additional_input_files + [self.input_filename]:
             shutil.move(filename, tmpdir_path)
         os.chdir(tmpdir_path)
@@ -205,7 +205,7 @@ class Calculation:
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
                  optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False,
-                 charges=None, grad=False, partial_hessian=None):
+                 charges=None, grad=False, partial_hessian=None, include_explicit_solv=True):
         """
         Arguments:
             name (str): calc name
@@ -238,6 +238,10 @@ class Calculation:
         self.core_atoms = None
         self.grad = grad
         self.partial_hessian = partial_hessian
+
+        if include_explicit_solv:
+            if molecule.qm_solvent_xyzs is not None:
+                self.xyzs += molecule.qm_solvent_xyzs
 
         self.solvent = molecule.solvent
 

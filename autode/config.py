@@ -44,7 +44,6 @@ class Config:
         scan_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
         conf_opt_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
         gradients_keywords = ['EnGrad', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
-        sp_grad_keywords = ['EnGrad', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP']
         opt_keywords = ['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         opt_ts_keywords = ['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         hess_keywords = ['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']

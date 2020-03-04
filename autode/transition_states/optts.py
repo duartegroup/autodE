@@ -28,10 +28,9 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
         return None, False
 
     if solvent_mol:
-        point_charges_xyzs = ts_guess.xyzs_with_solvent[len(ts_guess.xyzs):]
         point_charges = []
-        for i in range(len(point_charges_xyzs)):
-            point_charges.append(point_charges_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
+        for i in range(ts_guess.mm_solvent_xyzs):
+            point_charges.append(ts_guess.mm_solvent_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         ts_guess.point_charges = point_charges
 
     ts_guess.run_optts()
@@ -44,8 +43,7 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
 
     imag_freqs, _, _ = ts_guess.get_imag_frequencies_xyzs_energy()
 
-    if not ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
-                                           active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
+    if not ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=ts_guess.n_atoms, active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
         return None, False
 
     if len(imag_freqs) > 1:
@@ -69,10 +67,7 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
             if len(imag_freqs) == 1:
                 logger.info('Found TS with 1 imaginary frequency')
 
-            if ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=len(ts_guess.xyzs),
-                                               active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
-
-                ts_guess.remove_explicit_solvent()
+            if ts_has_correct_imaginary_vector(ts_guess.optts_calc, n_atoms=ts_guess.n_atoms, active_bonds=ts_guess.active_bonds, molecules=(ts_guess.reactant, ts_guess.product)):
 
                 if ts_guess.optts_converged:
                     return ts_guess, True
@@ -85,13 +80,14 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
     return None, False
 
 
-def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_magnitude=1.0):
+def get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=7, displacement_magnitude=1.0):
     """Displace the geometry along the imaginary mode with mode number iterating from 0, where 0-2 are translational
     normal modes, 3-5 are rotational modes and 6 is the largest imaginary mode. To displace along the second imaginary
     mode we have mode_number=7
 
     Arguments:
         calc (calc object): calculation object
+        n_atoms (int): number of solute atoms
 
     Keyword Arguments:
         mode_number (int): mode number to displace along (default: {7})
@@ -102,12 +98,11 @@ def get_displaced_xyzs_along_imaginary_mode(calc, mode_number=7, displacement_ma
     """
     logger.info('Displacing along imaginary mode')
 
-    current_xyzs = calc.get_final_xyzs()
-    n_atoms = len(current_xyzs)
+    current_xyzs = calc.get_final_xyzs()[:n_atoms]
     mode_distplacement_coords = calc.get_normal_mode_displacements(mode_number=mode_number)
 
     displaced_xyzs = deepcopy(current_xyzs)
-    for i in range(mode_distplacement_coords):
+    for i in range(len(mode_distplacement_coords)):
         for j in range(3):
             displaced_xyzs[i][j+1] += displacement_magnitude * mode_distplacement_coords[i][j]      # adding coord (nx3)
             # to xyzs (nx4)
@@ -144,7 +139,7 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
         logger.error('Have no imaginary normal mode displacements to analyse')
         return False
 
-    final_xyzs = calc.get_final_xyzs()
+    final_xyzs = calc.get_final_xyzs()[:n_atoms]
 
     imag_mode_magnitudes = [np.linalg.norm(np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
 
@@ -167,11 +162,11 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
             logger.info(f'Unsure if significant contribution from active atoms to imag mode '
                         f'(contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
 
-            if check_close_imag_contribution(calc, molecules, method=get_lmethod()):
+            if check_close_imag_contribution(calc, n_atoms, molecules, method=get_lmethod()):
                 logger.info('Imaginary mode links reactants and products, TS found')
                 return True
             logger.info('Lower level method didn\'t find link, trying higher level of theory')
-            if check_close_imag_contribution(calc, molecules, method=get_hmethod()):
+            if check_close_imag_contribution(calc, n_atoms, molecules, method=get_hmethod()):
                 logger.info('Imaginary mode links reactants and products, TS found')
                 return True
             logger.info('Imaginary mode doesn\'t link reactants and products, TS *not* found')
@@ -187,7 +182,7 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
     return False
 
 
-def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
+def check_close_imag_contribution(calc, n_atoms, molecules, method, disp_mag=1):
     """Displaces atoms along the imaginary mode to see if products and reactants are made
 
     Arguments:
@@ -203,7 +198,7 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
         bool: if the imag mode is correct or not
     """
     n_solute_atoms = len(calc.partial_hessian)
-    forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=disp_mag)
+    forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=6, displacement_magnitude=disp_mag)
     forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs[:n_solute_atoms], charge=calc.charge, mult=calc.mult)
     forward_coords = forward_displaced_mol.get_coords()
     forward_distance_constraints = {}
@@ -217,7 +212,7 @@ def check_close_imag_contribution(calc, molecules, method, disp_mag=1):
     forward_displaced_calc.run()
     forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_xyzs())
 
-    backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, mode_number=6, displacement_magnitude=-disp_mag)
+    backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=6, displacement_magnitude=-disp_mag)
     backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs[:n_solute_atoms], charge=calc.charge, mult=calc.mult)
     backward_coords = backward_displaced_mol.get_coords()
     backward_distance_constraints = {}

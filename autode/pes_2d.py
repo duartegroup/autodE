@@ -14,7 +14,6 @@ from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
 from autode.saddle_points import best_saddlepoint
 from autode.min_energy_pathway import get_mep
-
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
@@ -66,7 +65,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         const_opt = Calculation(name=name + f'_scan0_{n}', molecule=molecule, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
                                                                               active_bond2: dist_grid2[0][n]},
-                                keywords=keywords)
+                                keywords=keywords, include_explicit_solv=False)
         const_opt.run()
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
@@ -78,8 +77,8 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         if solvent_mol is not None:
             mol_grid[0][n].name = f'{name}_scan0_{n}'
             mol_grid[0][n].charges = const_opt.get_atomic_charges()
-            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method, n=1)
-            mol_grid[0][n].energy = qmmm_energy[0]
+            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method)
+            mol_grid[0][n].energy = qmmm_energy
         else:
             mol_grid[0][n].energy = const_opt.get_energy()
 
@@ -95,7 +94,8 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
         calcs = [Calculation(name+f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
                              keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
-                                                                      active_bond2: dist_grid2[i][n]})
+                                                                      active_bond2: dist_grid2[i][n]},
+                             include_explicit_solv=False)
                  for n in range(n_steps)]
 
         [calc.generate_input() for calc in calcs]
@@ -123,10 +123,10 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             if solvent_mol is not None:
                 mol_grid[i][n].name = f'{name}_scan{i}_{n}'
                 mol_grid[i][n].charges = calcs[n].get_atomic_charges()
-                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method, n=1)
-                mol_grid[i][n].energy = qmmm_energy[0]
+                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method)
+                mol_grid[i][n].energy = qmmm_energy
             else:
-                mol_grid[i][n].energy = const_opt.get_energy()
+                mol_grid[i][n].energy = calcs[n].get_energy()
 
     # Populate the dictionary of distances, xyzs and energies
     # TODO make this nicer
@@ -154,8 +154,9 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
-                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
+    tsguess_mol.name = name
+    saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(
+        dist_xyzs_energies, scan_name=name, plot_name=f'{mol.name}_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
     if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None
@@ -173,14 +174,13 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     except XYZsNotFound:
         pass
     if solvent_mol is not None:
-        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(tsguess_mol, solvent_mol, method, n=1)
-        tsguess_mol.xyzs = qmmm_xyzs[0][:n_qm_atoms[0]]
-        tsguess_mol.xyzs_with_solvent = qmmm_xyzs[0]
+        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(tsguess_mol, solvent_mol, method)
+        tsguess_mol.qm_solvent_xyzs = qmmm_xyzs[tsguess_mol.n_atoms:n_qm_atoms]
+        tsguess_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
 
     active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
-                   active_bonds=active_bonds, reactant=mol, product=product)
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
 
 
 def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, n_points, order):

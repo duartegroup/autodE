@@ -128,3 +128,4 @@ class Conformer(object):
         self.method = get_lmethod()
         self.charges = None
         self.dist_consts = dist_consts
+        self.qm_solvent_xyzs = None
