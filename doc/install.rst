@@ -21,7 +21,7 @@ The Python dependencies are listed in requirements.txt best satisfied using a co
 .. code-block::
 
   conda config --append channels conda-forge
-  conda create -n autode_env --file requirements.txt
+  conda config --append channels conda-forge --append channels omnia
   conda activate autode_env
 
 Installation
