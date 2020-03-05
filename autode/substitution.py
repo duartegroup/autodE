@@ -159,9 +159,6 @@ def get_normalised_bond_forming_vector(reac_complex, prod_complex, reac_complex_
         for i in range(len(prod_relevant_coords)):
             prod_relevant_coords[i] = np.matmul(rot_matrix, prod_relevant_coords[i])
 
-        print(reac_relevant_coords)
-        print(prod_relevant_coords)
-
         bond_forming_vector = prod_relevant_coords[1] - prod_relevant_coords[0]
         all_bond_forming_vectors.append(bond_forming_vector/np.linalg.norm(bond_forming_vector))
 

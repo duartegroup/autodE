@@ -29,8 +29,8 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
 
     if solvent_mol:
         point_charges = []
-        for i in range(ts_guess.mm_solvent_xyzs):
-            point_charges.append(ts_guess.mm_solvent_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
+        for i, xyz in enumerate(ts_guess.mm_solvent_xyzs):
+            point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         ts_guess.point_charges = point_charges
 
     ts_guess.run_optts()

@@ -12,6 +12,7 @@ from autode.utils import work_in
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.methods import get_hmethod
 from copy import deepcopy
 import os
 
@@ -88,7 +89,7 @@ class Reaction:
         e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
         delta_n_reacs = len(self.reacs) - len(self.prods)
         if delta_n_reacs != 0:
-            e -= delta_n_reacs * self.solvent_sphere_energy
+            e += delta_n_reacs * self.solvent_sphere_energy
         return e
 
     def calc_delta_e_ddagger(self):
@@ -102,7 +103,7 @@ class Reaction:
             e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
             n_reacs = len(self.reacs)
             if n_reacs != 1:
-                e -= (len(self.reacs) - 1) * self.solvent_sphere_energy
+                e += (len(self.reacs) - 1) * self.solvent_sphere_energy
             return e
         else:
             logger.error('TS had no energy. Setting ∆E‡ = None')
@@ -121,11 +122,12 @@ class Reaction:
         self.solvent_mol = solvent
         if not len(self.reacs) == len(self.prods) == 1:
             qmmm_solvent_mol = deepcopy(solvent)
-            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=2, n_qm_solvent_mols=29)
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_qm_solvent_mols=29)
             qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
             qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
             qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
-            self.solvent_sphere_energy = qmmm_solvent_mol.single_point(solvent)
+            qmmm_solvent_mol.single_point(solvent)
+            self.solvent_sphere_energy = qmmm_solvent_mol.energy
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):

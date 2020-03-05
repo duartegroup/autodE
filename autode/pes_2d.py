@@ -52,8 +52,10 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     dist_grid1, dist_grid2 = np.meshgrid(r1, r2)
 
     # Create a grid of molecules and associated constrained optimisation calculations
-    mol_grid = [[deepcopy(mol) for _ in range(n_steps)]
-                for _ in range(n_steps)]
+    mol_grid = [[deepcopy(mol) for _ in range(n_steps)] for _ in range(n_steps)]
+    for row in mol_grid:
+        for mol in row:
+            mol.qm_solvent_xyzs = None
 
     # Perform a 1d scan in serial
     for n in range(n_steps):
@@ -65,7 +67,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         const_opt = Calculation(name=name + f'_scan0_{n}', molecule=molecule, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
                                                                               active_bond2: dist_grid2[0][n]},
-                                keywords=keywords, include_explicit_solv=False)
+                                keywords=keywords)
         const_opt.run()
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
@@ -94,8 +96,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
         calcs = [Calculation(name+f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
                              keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
-                                                                      active_bond2: dist_grid2[i][n]},
-                             include_explicit_solv=False)
+                                                                      active_bond2: dist_grid2[i][n]})
                  for n in range(n_steps)]
 
         [calc.generate_input() for calc in calcs]

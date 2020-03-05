@@ -36,6 +36,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
     """
     logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
     mol_with_const = deepcopy(mol)
+    mol_with_const.qm_solvent_xyzs = None
 
     curr_dist = mol.calc_bond_distance(active_bond)
     # Generate a list of distances at which to constrain the optimisation
@@ -46,8 +47,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
     # Run a relaxed potential energy surface scan by running sequential constrained optimisations
     for n, dist in enumerate(dists):
         const_opt = Calculation(name=name + f'_scan{n}', molecule=mol_with_const, method=method, opt=True,
-                                n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords=keywords,
-                                include_explicit_solv=False)
+                                n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords=keywords)
         const_opt.run()
 
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found

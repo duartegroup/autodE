@@ -9,8 +9,7 @@ from autode.methods import get_lmethod
 from autode.solvent.solvents import get_available_solvents
 import shutil
 from tempfile import mkdtemp
-
-import time
+from copy import deepcopy
 
 
 class Calculation:
@@ -205,7 +204,7 @@ class Calculation:
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
                  optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False,
-                 charges=None, grad=False, partial_hessian=None, include_explicit_solv=True):
+                 charges=None, grad=False, partial_hessian=None):
         """
         Arguments:
             name (str): calc name
@@ -228,7 +227,7 @@ class Calculation:
             partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
         self.name = name
-        self.xyzs = molecule.xyzs
+        self.xyzs = deepcopy(molecule.xyzs)
         self.charge = molecule.charge
         self.mult = molecule.mult
         self.method = method
@@ -239,9 +238,8 @@ class Calculation:
         self.grad = grad
         self.partial_hessian = partial_hessian
 
-        if include_explicit_solv:
-            if molecule.qm_solvent_xyzs is not None:
-                self.xyzs += molecule.qm_solvent_xyzs
+        if molecule.qm_solvent_xyzs is not None:
+            self.xyzs += molecule.qm_solvent_xyzs
 
         self.solvent = molecule.solvent
 

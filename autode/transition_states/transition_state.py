@@ -87,8 +87,8 @@ class TS(TSguess):
 
         if solvent_mol:
             point_charges = []
-            for i in range(len(self.mm_solvent_xyzs)):
-                point_charges.append(self.mm_solvent_xyzs[i] + [solvent_mol.charges[i % solvent_mol.n_atoms]])
+        for i, xyz in enumerate(self.mm_solvent_xyzs):
+            point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         else:
             point_charges = None
 
@@ -218,11 +218,12 @@ class TS(TSguess):
         self.n_atoms = ts_guess.n_atoms
         self.reactant = ts_guess.reactant
         self.product = ts_guess.product
+        self.xyzs = ts_guess.xyzs
         self.qm_solvent_xyzs = ts_guess.qm_solvent_xyzs
         self.mm_solvent_xyzs = ts_guess.mm_solvent_xyzs
 
-        self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
-        self.charges = ts_guess.get_charges()
+        self.imag_freqs, _, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
+        self.charges = ts_guess.get_charges()[:self.n_atoms]
 
         self.active_bonds = ts_guess.active_bonds
         self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
