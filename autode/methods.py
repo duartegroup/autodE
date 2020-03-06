@@ -10,6 +10,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
 from autode.wrappers.G09 import G09
 from autode.wrappers.NWChem import NWChem
+from autode.exceptions import MethodUnavailable
 
 
 def get_hmethod():
@@ -18,7 +19,6 @@ def get_hmethod():
     Returns:
         object: ElectronicStructureMethod
     """
-    method = ORCA
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
             method = ORCA
@@ -34,7 +34,8 @@ def get_hmethod():
 
     method.set_availability()
     if not method.available:
-        logger.error('High-level method not available')
+        logger.critical('Electronic structure method is not available')
+        raise MethodUnavailable
 
     return method
 
@@ -45,7 +46,6 @@ def get_lmethod():
     Returns:
         object: ElectronicStructureMethod
     """
-    method = XTB
     if Config.lcode is not None:
         if Config.lcode.lower() == 'xtb':
             method = XTB
@@ -59,6 +59,7 @@ def get_lmethod():
 
     method.set_availability()
     if not method.available:
-        logger.error('Low-level method not available')
+        logger.critical('Electronic structure method is not available')
+        raise MethodUnavailable
 
     return method

@@ -7,12 +7,12 @@ def get_solvent(solvent_name):
     return None
 
 
-def get_available_solvents(hmethod_name, lmethod_name):
+def get_available_solvents(method):
     solvents = []
     variables = globals().copy()
     for var in variables.values():
         if isinstance(var, Solvent):
-            if getattr(var, hmethod_name) is not False and getattr(var, lmethod_name) is not False:
+            if getattr(var, method):
                 solvents.append(var.name)
     return None
 

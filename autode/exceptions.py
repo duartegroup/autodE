@@ -4,3 +4,11 @@ class XYZsNotFound(Exception):
 
 class NoInputError(Exception):
     pass
+
+
+class MethodUnavailable(Exception):
+    pass
+
+
+class SolventUnavailable(Exception):
+    pass

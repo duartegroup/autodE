@@ -63,6 +63,7 @@ class Config:
 
         scan_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
         conf_opt_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
+        gradients_keywords = ['PBEPBE/Def2SVP', 'Force(NoStep)']
         opt_keywords = ['PBE1PBE/Def2SVP', 'Opt']
         opt_ts_keywords = ['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)',
                            'Freq']
@@ -80,14 +81,13 @@ class Config:
                          'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize']
         conf_opt_keywords = ['driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\nend',
                              'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize', 'task dft property']
+        gradients_keywords = ['basis\n  *   library Def2-SVP\nend', 'dft\n  xc xpbe96 cpbe96\nend', 'task dft gradient']
         opt_keywords = ['driver\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\nend',
                         'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc pbe0\nend', 'task dft optimize', 'task dft property']
         opt_ts_keywords = ['driver\n  maxiter 100\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\nend',
                            'basis\n  *   library Def2-SVP\nend', 'dft\n  xc pbe0\nend', 'task dft saddle', 'task dft freq']
-        hess_keywords = ['basis\n  *   library Def2-SVP\nend',
-                         'dft\n  xc pbe0\nend', 'task dft freq']
-        sp_keywords = ['basis\n  *   library Def2-TZVP\nend',
-                       'dft\n  xc pbe0\nend', 'task dft energy']
+        hess_keywords = ['basis\n  *   library Def2-SVP\nend', 'dft\n  xc pbe0\nend', 'task dft freq']
+        sp_keywords = ['basis\n  *   library Def2-TZVP\nend', 'dft\n  xc pbe0\nend', 'task dft energy']
 
     class XTB:
         # ------------------------------------------------------------------------------------------

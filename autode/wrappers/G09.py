@@ -28,11 +28,40 @@ def generate_input(calc):
     if calc.distance_constraints or calc.cartesian_constraints or calc.bond_ids_to_add:
         keywords.append('Geom=ModRedun')
 
-    if calc.n_atoms == 1:
-        for keyword in keywords:
-            if 'opt' in keyword.lower():
+    for keyword in keywords.copy():
+        nosymm = False
+        opt = False
+        if 'nosymm' in keyword.lower():
+            nosymm = True
+        if 'opt' in keyword.lower():
+            if calc.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
                 keywords.remove(keyword)
+            elif calc.charges:
+                options = []
+                if '=(' in keyword:
+                    # get the individual options
+                    messy_options = keyword[5:-1].split(',')
+                    options = [option.lower().strip()
+                               for option in messy_options]
+                elif '=' in keyword:
+                    options = [keyword[4:]]
+                z_matrix = False
+                for option in options:
+                    if option.lower() == 'z-matrix':
+                        option = True
+                if not z_matrix:
+                    options.append('Z-Matrix')
+                new_keyword = 'Opt=('
+                new_keyword += ', '.join(options)
+                new_keyword += ')'
+                keywords.remove(keyword)
+                keywords.append(new_keyword)
+                opt = True
+        if opt and not nosymm:
+            keywords.append('NoSymm')
+    if calc.charges:
+        keywords.append('Charge')
 
     with open(calc.input_filename, 'w') as inp_file:
         print(f'%mem={calc.max_core_mb}MB', file=inp_file)
@@ -50,6 +79,10 @@ def generate_input(calc):
 
         print(calc.charge, calc.mult, file=inp_file)
         [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+
+        if calc.charges:
+            print('')
+            [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
 
         print('', file=inp_file)
 
@@ -81,7 +114,7 @@ def calculation_terminated_normally(calc):
         if 'Bend failed for angle' in line:
             logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
             cart_calc = deepcopy(calc)
-            for keyword in cart_calc.keywords:
+            for keyword in cart_calc.keywords.copy():
                 if keyword.lower().startswith('geom'):
                     cart_calc.keywords.remove(keyword)
                 elif keyword.lower().startswith('opt'):
@@ -308,7 +341,29 @@ def get_atomic_charges(calc):
 
 
 def get_gradients(calc):
-    raise NotImplementedError
+    gradients_section = False
+    gradients = []
+    for line in calc.output_file_lines:
+
+        if 'Axes restored to original set' in line:
+            gradients_section = True
+            dashed_line = 0
+
+        if gradients_section and '--------' in line:
+            dashed_line += 1
+            if dashed_line == 3:
+                gradients_section = False
+
+        if gradients_section and len(line.split()) == 5:
+            _, _, x, y, z = line.split()
+            try:
+                gradients.append([float(x), float(y), float(z)])
+            except ValueError:
+                pass
+    for line in gradients:
+        for i in range(3):
+            line[i] *= -1
+    return gradients
 
 
 # Bind all the required functions to the class definition

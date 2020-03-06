@@ -4,9 +4,8 @@ from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
 from autode.config import Config
-from autode.methods import get_hmethod
-from autode.methods import get_lmethod
 from autode.solvent.solvents import get_available_solvents
+from autode.exceptions import SolventUnavailable
 import shutil
 from tempfile import mkdtemp
 from copy import deepcopy
@@ -135,10 +134,6 @@ class Calculation:
             logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
 
-        if self.method.available is False:
-            logger.critical('Electronic structure method is not available')
-            exit()
-
         if not os.path.exists(self.input_filename):
             logger.error('Could not run the calculation. Input file does not exist')
             raise NoInputError
@@ -158,8 +153,9 @@ class Calculation:
         here = os.getcwd()
         tmpdir_path = mkdtemp()
         logger.info(f'Creating tmpdir to work in {tmpdir_path}')
-        for filename in self.additional_input_files + [self.input_filename]:
-            shutil.move(filename, tmpdir_path)
+        shutil.move(os.path.join(here, self.input_filename), os.path.join(tmpdir_path, self.input_filename))
+        for initial_filename, end_filename in self.additional_input_files:
+            shutil.move(os.path.join(here, initial_filename), os.path.join(tmpdir_path, end_filename))
         os.chdir(tmpdir_path)
 
         with open(self.output_filename, 'w') as output_file:
@@ -184,9 +180,9 @@ class Calculation:
             name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
                 if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
-                    shutil.move(filename, os.path.join(here, filename))
+                    shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
             if 'xcontrol' in filename:
-                shutil.move(filename, os.path.join(here, filename))
+                shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
 
         os.chdir(here)
         shutil.rmtree(tmpdir_path)
@@ -222,7 +218,7 @@ class Calculation:
                                          to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
             constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB force constant) (default: {False})
-            charges (list(list)): list of point charges and thier positions (default: {None})
+            charges (list(list)): list of point charges and thier positions [xyzs, charge] (default: {None})
             grad (bool): grad calc or not (needed for XTB) (default: {False})
             partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
@@ -270,11 +266,8 @@ class Calculation:
         if molecule.solvent is not None:
             if getattr(molecule.solvent, method.__name__) is False:
                 logger.critical('Solvent is not available. Cannot run the calculation')
-                hmethod = get_hmethod()
-                lmethod = get_lmethod()
-                print(
-                    f'Available solvents for {hmethod.__name__} as the higher level method and {lmethod.__name__} as the lower level method are {get_available_solvents(hmethod.__name__, lmethod.__name__)}')
-                exit()
+                print(f'Available solvents for {self.method.__name__} are {get_available_solvents(self.method.__name__)}')
+                raise SolventUnavailable
             self.solvent_keyword = getattr(molecule.solvent, method.__name__)
         else:
             self.solvent_keyword = None

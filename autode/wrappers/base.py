@@ -17,21 +17,27 @@ class ElectronicStructureMethod:
 
         # Config.EST.path can be set at run time so if it's not None update self.path
         for _, est_config_class in inspect.getmembers(Config, inspect.isclass):
-            if self.__name__ == est_config_class.__name__:
-                if est_config_class.path is not None:
-                    self.path = est_config_class.path
+            if self.__name__.lower() == est_config_class.__name__.lower():
+                for attribute in ['path', 'path_to_licence']:
+                    try:
+                        new_attr_val = getattr(est_config_class, attribute)
+                        if new_attr_val is not None:
+                            setattr(self, attribute, new_attr_val)
+                    except AttributeError:
+                        pass
 
         if self.req_licence:
             if self.path is not None and self.path_to_licence is not None:
                 if os.path.exists(self.path) and os.path.exists(self.path_to_licence):
                     self.available = True
+                    logger.info(f'{self.name} is available')
 
         else:
             if self.path is not None:
                 if os.path.exists(self.path):
                     self.available = True
+                    logger.info(f'{self.name} is available {self.available}')
 
-        logger.info(f'{self.name} is available {self.available}')
         return None
 
     def reset(self, Config):
@@ -77,9 +83,8 @@ class ElectronicStructureMethod:
         self.req_licence = req_licence
         self.path_to_licence = path_to_licence
 
-        # Set the availability of the method
+        # Availability is set when hlevel and llevel methods are set
         self.available = False
-        self.set_availability()
 
         self.scan_keywords = scan_keywords
         self.conf_opt_keywords = conf_opt_keywords

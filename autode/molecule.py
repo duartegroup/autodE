@@ -378,8 +378,8 @@ class Molecule:
 
         if solvent_mol:
             point_charges = []
-        for i, xyz in enumerate(self.mm_solvent_xyzs):
-            point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
+            for i, xyz in enumerate(self.mm_solvent_xyzs):
+                point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         else:
             point_charges = None
 

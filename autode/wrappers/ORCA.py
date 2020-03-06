@@ -110,7 +110,7 @@ def generate_input(calc):
             for line in calc.charges:
                 formatted_line = [line[-1]] + line[1:4]
                 print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=pc_file)
-        calc.additional_input_files.append(f'{calc.name}_orca.pc')
+        calc.additional_input_files.append((f'{calc.name}_orca.pc', f'{calc.name}_orca.pc'))
 
     return None
 
@@ -118,7 +118,7 @@ def generate_input(calc):
 def calculation_terminated_normally(calc):
 
     for n_line, line in enumerate(calc.rev_output_file_lines):
-        if any(substring in line for substring in['ORCA TERMINATED NORMALLY', 'The optimization did not converge', 'HUGE, UNRELIABLE STEP WAS ABOUT TO BE TAKEN']):
+        if any(substring in line for substring in['ORCA TERMINATED NORMALLY', 'The optimization did not converge']):
             logger.info('ORCA terminated normally')
             return True
         if n_line > 30:

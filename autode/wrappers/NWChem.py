@@ -119,6 +119,11 @@ def generate_input(calc):
                 print(*list_of_ranges, sep=' ', file=inp_file)
             print('end', file=inp_file)
 
+        if calc.charges:
+            print('bq')
+            [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
+            print('end')
+
         print(f'memory {Config.max_core} mb', file=inp_file)
 
         print('property\n  mulliken\nend', file=inp_file)
@@ -263,7 +268,20 @@ def get_atomic_charges(calc):
 
 
 def get_gradients(calc):
-    raise NotImplementedError
+
+    gradients_section = False
+    gradients = []
+    for line in calc.rev_output_file_lines:
+        if 'DFT ENERGY GRADIENTS' in line:
+            gradients_section = True
+        if '----------------------------------------' in line:
+            gradients_section = False
+
+        if gradients_section and len(line.split()) == 8:
+            _, _, _, _, _, x, y, z = line.split()
+            gradients.append([float(x), float(y), float(z)])
+
+    return gradients
 
 
 # Bind all the required functions to the class definition

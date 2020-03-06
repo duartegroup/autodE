@@ -5,6 +5,8 @@ from autode.geom import get_shifted_xyzs_linear_interp
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.base import req_methods
 
+import numpy as np
+
 
 # dielectrics from Gaussian solvent list
 solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile': 35.69, 'benzene': 2.27, '1-butanol': 17.33,
@@ -65,6 +67,12 @@ def generate_input(calc):
     if not calc.opt:
         keywords.append('1SCF')
 
+    if calc.grad:
+        keywords.append('GRAD')
+
+    if calc.charges:
+        keywords.append('QMMM')
+
     if calc.solvent_keyword is not None:
         keywords.append('EPS=' + str(solvents_and_dielectrics[calc.solvent_keyword]))
 
@@ -109,6 +117,21 @@ def generate_input(calc):
             else:
                 print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
 
+    if calc.charges:
+        potentials = []
+        for xyz in calc.xyzs:
+            potential = 0
+            coord = np.asarray(xyz[1:])
+            for charge in calc.charges:
+                charge_coords = np.asarray(charge[1:4])
+                distance = np.linalg.norm(coord - charge_coords)
+                potential += charge[4] / distance
+            potentials.append(322*potential)
+        with open(f'{calc.name}_mol.in', 'w') as pc_file:
+            print(f'\n{len(calc.xyzs)} 0', file=pc_file)
+            [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
+        calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
+
     return None
 
 
@@ -125,7 +148,7 @@ def calculation_terminated_normally(calc):
 
 
 def get_energy(calc):
-    for n_line, line in enumerate(calc.output_file_lines):
+    for line in calc.output_file_lines:
         if 'TOTAL ENERGY' in line:
             # e.g.     TOTAL ENERGY            =       -476.93072 EV
             return Constants.eV2ha * float(line.split()[-2])
@@ -178,7 +201,24 @@ def get_atomic_charges(calc):
 
 
 def get_gradients(calc):
-    raise NotImplementedError
+    gradients_section = False
+    gradients = []
+    for line in calc.output_file_lines:
+
+        if 'FINAL  POINT  AND  DERIVATIVES' in line:
+            gradients_section = True
+
+        if gradients_section and 'ATOM   CHEMICAL' in line:
+            gradients_section = False
+
+        if gradients_section and len(line.split()) == 8:
+            _, _, _, _, _, _, value, _ = line.split()
+            gradients.append(value)
+    grad_array = np.asarray(gradients)
+    grad_array *= Constants.a02ang/Constants.ha2kcalmol
+    grad_array.reshape((calc.n_atoms, 3))
+
+    return grad_array.tolist()
 
 
 # Bind all the required functions to the class definition
