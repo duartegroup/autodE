@@ -49,8 +49,7 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, product, dist_thres
                     logger.info(f'TS template has => 1 active bond distance larger than {dist_thresh}. Passing')
                     pass
                 else:
-                    return get_ts_guess_constrained_opt(mol, keywords=mol.method.opt_keywords,
-                                                        name='template_ts_guess',
+                    return get_ts_guess_constrained_opt(mol, keywords=mol.method.opt_keywords, name=name,
                                                         distance_consts=active_bonds_and_dists_ts,
                                                         reaction_class=reaction_class, product=product)
 

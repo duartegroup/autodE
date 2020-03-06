@@ -129,6 +129,20 @@ def get_normalised_bond_breaking_vector(bond_rearrangement, attacked_atom, reac_
 
 
 def get_normalised_bond_forming_vector(reac_complex, prod_complex, reac_complex_coords, prod_complex_coords, mapping, atom, bond_forming_atoms):
+    """Get the vector the new bond should be formed along, by seeing the vector of this bond in the products
+
+    Arguments:
+        reac_complex (mol obj): reactant complex object
+        prod_complex (mol obj): product complex object
+        reac_complex_coords (np.array) -- coords of the reactant
+        prod_complex_coords (np.array) -- coords of the product
+        mapping (dict): mapping[reactant indices] = product indices
+        atom (int) -- atom bonds are forming to
+        bond_forming_atoms (list) -- atom bonds are forming from
+
+    Returns:
+        np.array -- vector to form bond along
+    """
     all_bond_forming_vectors = []
     for bond_forming_atom in bond_forming_atoms:
         reactant_bonded_atoms = reac_complex.get_bonded_atoms_to_i(bond_forming_atom)
@@ -142,6 +156,7 @@ def get_normalised_bond_forming_vector(reac_complex, prod_complex, reac_complex_
         prod_relevant_coords = prod_complex_coords[product_relevant_atoms].copy()
         prod_relevant_coords -= prod_relevant_coords[0]
 
+        # orient product onto reactant
         min_dist = 9999999.9
         best_a, best_b, best_c = None, None, None
         for _ in range(100):
@@ -159,6 +174,7 @@ def get_normalised_bond_forming_vector(reac_complex, prod_complex, reac_complex_
         for i in range(len(prod_relevant_coords)):
             prod_relevant_coords[i] = np.matmul(rot_matrix, prod_relevant_coords[i])
 
+        # get bond vector from product in orientation of reactant
         bond_forming_vector = prod_relevant_coords[1] - prod_relevant_coords[0]
         all_bond_forming_vectors.append(bond_forming_vector/np.linalg.norm(bond_forming_vector))
 

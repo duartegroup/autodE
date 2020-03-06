@@ -184,9 +184,9 @@ class Calculation:
             name_string = '.'.join(self.input_filename.split('.')[:-1])
             if name_string in filename:
                 if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
-                    shutil.move(filename, here)
+                    shutil.move(filename, os.path.join(here, filename))
             if 'xcontrol' in filename:
-                shutil.move(filename, here)
+                shutil.move(filename, os.path.join(here, filename))
 
         os.chdir(here)
         shutil.rmtree(tmpdir_path)

@@ -8,6 +8,7 @@ from autode.calculation import Calculation
 from autode.mol_graphs import is_isomorphic
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
@@ -28,6 +29,9 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
         return None, False
 
     if solvent_mol:
+        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(ts_guess, solvent_mol, get_hmethod())
+        ts_guess.qm_solvent_xyzs = qmmm_xyzs[ts_guess.n_atoms:n_qm_atoms]
+        ts_guess.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
         point_charges = []
         for i, xyz in enumerate(ts_guess.mm_solvent_xyzs):
             point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])

@@ -44,6 +44,7 @@ def find_tss(reaction, solvent_mol):
     logger.info(f'Found *{len(bond_rearrangs)}* bond rearrangement(s) that lead to products')
 
     for bond_rearrangement in bond_rearrangs:
+        logger.info(f'Locating transition state using active bonds {bond_rearrangement.all}')
         rearrang_tss = get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol)
         tss += rearrang_tss
 
@@ -276,6 +277,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
     # get the product graph with the atom indices of the reactant
     full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(reactant.graph, bond_rearrangement)
     # mapping[product indices] = reactant indices
+    logger.info('Getting mapping from reactants to products')
     full_mapping = mol_graphs.get_mapping(product.graph, full_prod_graph_reac_indices)
     inv_full_mapping = {v: k for k, v in full_mapping.items()}
 

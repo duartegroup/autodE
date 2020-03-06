@@ -37,8 +37,8 @@ class ElectronicStructureMethod:
     def reset(self, Config):
         """Reset the EST method from the Config object, which may be edited at any point"""
 
-        attributes = ['path', 'path_to_licence', 'scan_keywords', 'conf_opt_keywords', 'opt_keywords',
-                      'opt_ts_keywords', 'hess_keywords', 'opt_ts_block', 'sp_keywords']
+        attributes = ['path', 'path_to_licence', 'scan_keywords', 'conf_opt_keywords', 'gradients_keywords',
+                      'opt_keywords', 'opt_ts_keywords', 'hess_keywords', 'opt_ts_block', 'sp_keywords']
         esw = getattr(Config, self.__name__)
         for attribute in attributes:
             try:
@@ -49,7 +49,7 @@ class ElectronicStructureMethod:
                 pass
 
     def __init__(self, name, path, req_licence=False, path_to_licence=None, scan_keywords=None,
-                 conf_opt_keywords=None, gradients_keywords=None, sp_grad_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None,
+                 conf_opt_keywords=None, gradients_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None,
                  opt_ts_block=None, sp_keywords=None, mpirun=False):
         """
         Arguments:
@@ -62,7 +62,6 @@ class ElectronicStructureMethod:
             scan_keywords (list): keywords to use if performing a relaxed PES scan (default: {None})
             conf_opt_keywords (list): keywords to use to optimise conformers (default: {None})
             gradients_keywords (list): keywords to use to get the gradients (default: {None})
-            sp_grad_keywords (list): keywords to use to get the gradients at a higher level (default: {None})
             opt_keywords (list): keywords to use when performing a regular optimisation (default: {None})
             opt_ts_keywords (list): keywords to use when performing a TS search (default: {None})
             hess_keywords (list): keywords to use when just performing a hessian calculation (default: {None})
@@ -85,7 +84,6 @@ class ElectronicStructureMethod:
         self.scan_keywords = scan_keywords
         self.conf_opt_keywords = conf_opt_keywords
         self.gradients_keywords = gradients_keywords
-        self.sp_grad_keywords = sp_grad_keywords
         self.opt_keywords = opt_keywords
         self.opt_ts_keywords = opt_ts_keywords
         self.hess_keywords = hess_keywords

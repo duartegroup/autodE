@@ -97,12 +97,6 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         logger.warning('TS guess had no xyzs')
         return None
 
-    if solvent_mol is not None:
-        for i in range(n_steps):
-            if xyzs_list[i] == tsguess_mol.xyzs:
-                tsguess_mol.qm_solvent_xyzs = qmmm_xyzs_list[i][tsguess_mol.n_atoms: n_qm_atoms]
-                tsguess_mol.mm_solvent_xyzs = qmmm_xyzs_list[i][n_qm_atoms:]
-
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)

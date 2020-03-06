@@ -174,8 +174,8 @@ class TSguess:
         self.graph = make_graph(self.xyzs, self.n_atoms)
         self.charges = molecule.charges
         self.stereocentres = molecule.stereocentres
-        self.qm_solvent_xyzs = molecule.qm_solvent_xyzs
-        self.mm_solvent_xyzs = molecule.mm_solvent_xyzs
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
 
         self.optts_converged = False
         self.optts_nearly_converged = False

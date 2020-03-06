@@ -174,10 +174,6 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_xyzs())
     except XYZsNotFound:
         pass
-    if solvent_mol is not None:
-        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(tsguess_mol, solvent_mol, method)
-        tsguess_mol.qm_solvent_xyzs = qmmm_xyzs[tsguess_mol.n_atoms:n_qm_atoms]
-        tsguess_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
 
     active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned
 

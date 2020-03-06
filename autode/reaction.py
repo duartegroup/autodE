@@ -88,7 +88,7 @@ class Reaction:
         logger.info('Calculating ∆Er')
         e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
         delta_n_reacs = len(self.reacs) - len(self.prods)
-        if delta_n_reacs != 0:
+        if delta_n_reacs != 0 and self.solvent_mol:
             e += delta_n_reacs * self.solvent_sphere_energy
         return e
 
@@ -102,7 +102,7 @@ class Reaction:
         if self.ts.energy is not None:
             e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
             n_reacs = len(self.reacs)
-            if n_reacs != 1:
+            if n_reacs != 1 and self.solvent_mol:
                 e += (len(self.reacs) - 1) * self.solvent_sphere_energy
             return e
         else:
