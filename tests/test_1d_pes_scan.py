@@ -7,6 +7,12 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
+Config.ORCA.path = os.path.join(here, 'test_1d_pes_scan.py')
+Config.XTB.path = os.path.join(here, 'test_1d_pes_scan.py')
+Config.MOPAC.path = os.path.join(here, 'test_1d_pes_scan.py')
+Config.MOPAC.path_to_licence = os.path.join(here, 'test_1d_pes_scan.py')
+Config.G09.path = os.path.join(here, 'test_1d_pes_scan.py')
+
 
 def test_get_ts_guess_1dscan():
     os.chdir(os.path.join(here, 'data'))
