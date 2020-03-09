@@ -11,14 +11,14 @@ class Config:
     #
     # ----------------------------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code will be used:
-    # 1. 'ORCA', 2. 'G09'
+    # 1. 'ORCA', 2. 'G09' 3. 'NWChem'
     #
-    hcode = 'ORCA'
+    hcode = None
     #
     # Semi-empirical/tight binding method to use. If set to None then the highest priority available
     # will be used:   1. 'XTB', 2. 'MOPAC'
     #
-    lcode = 'XTB'
+    lcode = None
     #
     make_ts_template = True
     #

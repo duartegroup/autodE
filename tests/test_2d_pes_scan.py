@@ -41,7 +41,7 @@ def test_closest_dist_to_saddle():
 def test_find_2dpes_saddle_xyzs():
     os.chdir(os.path.join(here, 'data'))
 
-    method = ORCA
+    method = ORCA()
     dist_dict = {}
     dist_dict[(0.75, 0.75)] = ([['H', 3, 0, 0]], 0)
     dist_dict[(0.75, 1.5)] = ([['H', 1, 0, 0]], 10)
@@ -67,13 +67,10 @@ def test_get_ts_guess_2dscan():
     h4_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.6, 0.0, 0.0],
                ['H', 0.0, -0.6, 0.0], ['H', 0.6, -0.6, 0.0]]
     mol = Molecule(name='h4', xyzs=h4_xyzs, mult=1)
-    mol.method = ORCA
-
-    # May not actually be available, but the .out files are included so this should work
-    mol.method.available = True
+    method = ORCA()
 
     ts_guess = pes_2d.get_ts_guess_2d(mol=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
-                                      reaction_class=Dissociation, method=ORCA, keywords=Config.ORCA.scan_keywords,
+                                      reaction_class=Dissociation, method=method, keywords=Config.ORCA.scan_keywords,
                                       delta_dist1=0.2, delta_dist2=0.2, e_grid_points=4, polynomial_order=1, solvent_mol=None)
 
     assert len(ts_guess.active_bonds) == 2

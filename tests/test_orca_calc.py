@@ -8,15 +8,15 @@ import pytest
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
+method = ORCA()
 
 
 def test_orca_opt_calculation():
 
     os.chdir(os.path.join(here, 'data'))
-    ORCA.available = True
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
-    calc = Calculation(name='opt', molecule=methylchloride, method=ORCA, opt=True,
+    calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
                        keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
     calc.run()
 
@@ -44,9 +44,8 @@ def test_orca_optts_calculation():
     # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
 
     os.chdir(os.path.join(here, 'data'))
-    ORCA.available = True
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=ORCA, opt=True,
+    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
                        keywords=['Opt', 'PBE0', 'RIJCOSX',
                                  'D3BJ', 'def2-SVP', 'def2/J'],
                        optts_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
@@ -64,7 +63,7 @@ def test_orca_optts_calculation():
 
 def test_bad_orca_output():
 
-    calc = Calculation(name='no_output', molecule=test_mol, method=ORCA)
+    calc = Calculation(name='no_output', molecule=test_mol, method=method)
     calc.output_file_lines = []
     calc.rev_output_file_lines = []
 
@@ -80,7 +79,7 @@ def test_subprocess_to_output():
 
     os.chdir(os.path.join(here, 'data'))
 
-    calc = Calculation(name='test', molecule=test_mol, method=ORCA)
+    calc = Calculation(name='test', molecule=test_mol, method=method)
 
     # Can't execute ORCA in the CI environment so check at least the subprocess works
     calc.input_filename = 'test_subprocess.py'

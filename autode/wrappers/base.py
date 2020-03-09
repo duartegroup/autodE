@@ -1,58 +1,99 @@
 from shutil import which
 import os
-from autode.config import Config
 import inspect
 from autode.log import logger
-
-# List of required methods that need to be added to construct a valid electronic structure method wrapper
-req_methods = ['generate_input', 'calculation_terminated_normally',  'get_energy', 'optimisation_converged',
-               'optimisation_nearly_converged', 'get_imag_freqs', 'get_normal_mode_displacements', 'get_final_xyzs',
-               'get_atomic_charges', 'get_gradients']
+from abc import ABC, abstractmethod
 
 
-class ElectronicStructureMethod:
+class ElectronicStructureMethod(ABC):
 
     def set_availability(self):
-        logger.info(f'Setting the availability of an electronic structure code: {self.name}')
-
-        # Config.EST.path can be set at run time so if it's not None update self.path
-        for _, est_config_class in inspect.getmembers(Config, inspect.isclass):
-            if self.__name__.lower() == est_config_class.__name__.lower():
-                for attribute in ['path', 'path_to_licence']:
-                    try:
-                        new_attr_val = getattr(est_config_class, attribute)
-                        if new_attr_val is not None:
-                            setattr(self, attribute, new_attr_val)
-                    except AttributeError:
-                        pass
+        logger.info(f'Setting the availability of {self.__name__}')
 
         if self.req_licence:
             if self.path is not None and self.path_to_licence is not None:
                 if os.path.exists(self.path) and os.path.exists(self.path_to_licence):
                     self.available = True
-                    logger.info(f'{self.name} is available')
+                    logger.info(f'{self.__name__} is available')
 
         else:
             if self.path is not None:
                 if os.path.exists(self.path):
                     self.available = True
-                    logger.info(f'{self.name} is available {self.available}')
+                    logger.info(f'{self.__name__} is available')
 
-        return None
+        if not self.available:
+            logger.info(f'{self.__name__} is not available')
 
-    def reset(self, Config):
-        """Reset the EST method from the Config object, which may be edited at any point"""
+    @abstractmethod
+    def generate_input(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
 
-        attributes = ['path', 'path_to_licence', 'scan_keywords', 'conf_opt_keywords', 'gradients_keywords',
-                      'opt_keywords', 'opt_ts_keywords', 'hess_keywords', 'opt_ts_block', 'sp_keywords']
-        esw = getattr(Config, self.__name__)
-        for attribute in attributes:
-            try:
-                new_attr_val = getattr(esw, attribute)
-                if new_attr_val is not None:
-                    setattr(self, attribute, new_attr_val)
-            except AttributeError:
-                pass
+    @abstractmethod
+    def calculation_terminated_normally(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def get_energy(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def optimisation_converged(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def optimisation_nearly_converged(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def get_imag_freqs(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def get_normal_mode_displacements(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def get_final_xyzs(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def get_atomic_charges(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
+
+    @abstractmethod
+    def get_gradients(self):
+        """
+        Function implemented in individual child classes
+        """
+        pass
 
     def __init__(self, name, path, req_licence=False, path_to_licence=None, scan_keywords=None,
                  conf_opt_keywords=None, gradients_keywords=None, opt_keywords=None, opt_ts_keywords=None, hess_keywords=None,
@@ -75,10 +116,10 @@ class ElectronicStructureMethod:
             sp_keywords (list): keywords to use when performing a single point calculation (default: {None})
             mpirun (bool): does the method need mpirun to call it? (default:{False})
         """
-        self.__name__ = name
         self.name = name
+        self.__name__ = self.__class__.__name__
 
-        # If the path is not set in config.py search in $PATH
+        # If the path is not set in config.py or input script search in $PATH
         self.path = path if path is not None else which(name)
         self.req_licence = req_licence
         self.path_to_licence = path_to_licence

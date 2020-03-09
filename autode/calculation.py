@@ -3,7 +3,6 @@ from subprocess import Popen
 from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
-from autode.config import Config
 from autode.solvent.solvents import get_available_solvents
 from autode.exceptions import SolventUnavailable
 import shutil
@@ -280,5 +279,3 @@ class Calculation:
             self._set_core_atoms(molecule)
 
         self.n_atoms = len(self.xyzs)
-
-        self.method.reset(Config)

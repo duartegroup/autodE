@@ -9,15 +9,15 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
+method = G09()
 
 
 def test_gauss_opt_calc():
 
     os.chdir(os.path.join(here, 'data'))
-    G09.available = True
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
-    calc = Calculation(name='opt', molecule=methylchloride, method=G09, opt=True,
+    calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
                        keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
@@ -45,9 +45,8 @@ def test_gauss_opt_calc():
 def test_gauss_optts_calc():
 
     os.chdir(os.path.join(here, 'data'))
-    G09.available = True
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=G09, opt=True,
+    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
                        keywords=['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', 'Freq'])
     calc.run()
 
@@ -63,7 +62,7 @@ def test_gauss_optts_calc():
 
 def test_bad_gauss_output():
 
-    calc = Calculation(name='no_output', molecule=test_mol, method=G09)
+    calc = Calculation(name='no_output', molecule=test_mol, method=method)
     calc.output_file_lines = []
     calc.rev_output_file_lines = []
 
@@ -81,7 +80,7 @@ def test_fix_angle_error():
 
     mol = Molecule(smiles='CC/C=C/CO')
 
-    calc = Calculation(name='angle_fail', molecule=mol, method=G09, opt=True,
+    calc = Calculation(name='angle_fail', molecule=mol, method=method, opt=True,
                        keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 

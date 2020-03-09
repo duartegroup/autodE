@@ -3,8 +3,6 @@ from autode.log import logger
 from autode.constants import Constants
 from autode.geom import get_shifted_xyzs_linear_interp
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import req_methods
-
 import numpy as np
 
 
@@ -48,178 +46,163 @@ solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile
                             'm-cresol': 12.44, 'o-cresol': 6.76, 'cyclohexanone': 15.62, 'isoquinoline': 11.00, 'quinoline': 9.16, 'argon': 1.43,
                             'krypton': 1.52, 'xenon': 1.70}
 
-MOPAC = ElectronicStructureMethod(name='mopac',
-                                  path=Config.MOPAC.path,
-                                  req_licence=True,
-                                  path_to_licence=Config.MOPAC.path_to_licence)
 
-MOPAC.__name__ = 'MOPAC'
+class MOPAC(ElectronicStructureMethod):
 
+    def generate_input(self, calc):
+        logger.info(f'Generating MOPAC input for {calc.name}')
 
-def generate_input(calc):
-    logger.info(f'Generating MOPAC input for {calc.name}')
+        calc.input_filename = calc.name + '_mopac.mop'
+        calc.output_filename = calc.input_filename.replace('.mop', '.out')
 
-    calc.input_filename = calc.name + '_mopac.mop'
-    calc.output_filename = calc.input_filename.replace('.mop', '.out')
+        keywords = Config.MOPAC.keywords.copy()
 
-    keywords = Config.MOPAC.keywords.copy()
+        if not calc.opt:
+            keywords.append('1SCF')
 
-    if not calc.opt:
-        keywords.append('1SCF')
+        if calc.grad:
+            keywords.append('GRAD')
 
-    if calc.grad:
-        keywords.append('GRAD')
+        if calc.charges:
+            keywords.append('QMMM')
 
-    if calc.charges:
-        keywords.append('QMMM')
+        if calc.solvent_keyword is not None:
+            keywords.append('EPS=' + str(solvents_and_dielectrics[calc.solvent_keyword]))
 
-    if calc.solvent_keyword is not None:
-        keywords.append('EPS=' + str(solvents_and_dielectrics[calc.solvent_keyword]))
+        keywords.append(f'CHARGE={calc.charge}')
 
-    keywords.append(f'CHARGE={calc.charge}')
-
-    if calc.mult != 1:
-        if calc.mult == 2:
-            keywords.append('DOUBLET')
-        elif calc.mult == 3:
-            keywords.append('TRIPLET')
-        elif calc.mult == 4:
-            keywords.append('QUARTET')
-        else:
-            logger.critical('Unsupported spin multiplicity')
-            exit()
-
-    with open(calc.input_filename, 'w') as input_file:
-        print(*keywords, '\n\n', file=input_file)
-
-        if calc.distance_constraints is not None:
-            # MOPAC seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
-            # interpolation to the xyzs then fix the Cartesians
-
-            xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
-                                                  bonds=list(calc.distance_constraints.keys()),
-                                                  final_distances=list(calc.distance_constraints.values()))
-
-            # Populate a flat list of atom ids to fix
-            fixed_atoms = [i for bond in calc.distance_constraints.keys()
-                           for i in bond]
-
-        else:
-            xyzs = calc.xyzs
-            fixed_atoms = []
-
-        if calc.cartesian_constraints is not None:
-            fixed_atoms += calc.cartesian_constraints
-
-        for i, xyz_line in enumerate(xyzs):
-            if i in fixed_atoms:
-                print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(*xyz_line), file=input_file)
+        if calc.mult != 1:
+            if calc.mult == 2:
+                keywords.append('DOUBLET')
+            elif calc.mult == 3:
+                keywords.append('TRIPLET')
+            elif calc.mult == 4:
+                keywords.append('QUARTET')
             else:
-                print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
+                logger.critical('Unsupported spin multiplicity')
+                exit()
 
-    if calc.charges:
-        potentials = []
-        for xyz in calc.xyzs:
-            potential = 0
-            coord = np.asarray(xyz[1:])
-            for charge in calc.charges:
-                charge_coords = np.asarray(charge[1:4])
-                distance = np.linalg.norm(coord - charge_coords)
-                potential += charge[4] / distance
-            potentials.append(322*potential)
-        with open(f'{calc.name}_mol.in', 'w') as pc_file:
-            print(f'\n{len(calc.xyzs)} 0', file=pc_file)
-            [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
-        calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
+        with open(calc.input_filename, 'w') as input_file:
+            print(*keywords, '\n\n', file=input_file)
 
-    return None
+            if calc.distance_constraints is not None:
+                # MOPAC seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
+                # interpolation to the xyzs then fix the Cartesians
 
+                xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
+                                                      bonds=list(calc.distance_constraints.keys()),
+                                                      final_distances=list(calc.distance_constraints.values()))
 
-def calculation_terminated_normally(calc):
+                # Populate a flat list of atom ids to fix
+                fixed_atoms = [i for bond in calc.distance_constraints.keys()
+                               for i in bond]
 
-    for n_line, line in enumerate(calc.rev_output_file_lines):
-        if 'JOB ENDED NORMALLY' in line:
-            return True
-        if n_line > 50:
-            # MOPAC will have a     * JOB ENDED NORMALLY *  line close to the end if terminated normally
-            return False
+            else:
+                xyzs = calc.xyzs
+                fixed_atoms = []
 
-    return False
+            if calc.cartesian_constraints is not None:
+                fixed_atoms += calc.cartesian_constraints
 
+            for i, xyz_line in enumerate(xyzs):
+                if i in fixed_atoms:
+                    print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(*xyz_line), file=input_file)
+                else:
+                    print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
 
-def get_energy(calc):
-    for line in calc.output_file_lines:
-        if 'TOTAL ENERGY' in line:
-            # e.g.     TOTAL ENERGY            =       -476.93072 EV
-            return Constants.eV2ha * float(line.split()[-2])
+        if calc.charges:
+            potentials = []
+            for xyz in calc.xyzs:
+                potential = 0
+                coord = np.asarray(xyz[1:])
+                for charge in calc.charges:
+                    charge_coords = np.asarray(charge[1:4])
+                    distance = np.linalg.norm(coord - charge_coords)
+                    potential += charge[4] / distance
+                potentials.append(322*potential)
+            with open(f'{calc.name}_mol.in', 'w') as pc_file:
+                print(f'\n{len(calc.xyzs)} 0', file=pc_file)
+                [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
+            calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
 
-    return None
+        return None
 
+    def calculation_terminated_normally(self, calc):
 
-def optimisation_converged(calc):
+        for n_line, line in enumerate(calc.rev_output_file_lines):
+            if 'JOB ENDED NORMALLY' in line:
+                return True
+            if n_line > 50:
+                # MOPAC will have a     * JOB ENDED NORMALLY *  line close to the end if terminated normally
+                return False
 
-    for line in calc.rev_output_file_lines:
-        if 'GRADIENT' in line and 'IS LESS THAN CUTOFF' in line:
-            return True
+        return False
 
-    return False
+    def get_energy(self, calc):
+        for line in calc.output_file_lines:
+            if 'TOTAL ENERGY' in line:
+                # e.g.     TOTAL ENERGY            =       -476.93072 EV
+                return Constants.eV2ha * float(line.split()[-2])
 
+        return None
 
-def optimisation_nearly_converged(calc):
-    raise NotImplementedError
+    def optimisation_converged(self, calc):
 
+        for line in calc.rev_output_file_lines:
+            if 'GRADIENT' in line and 'IS LESS THAN CUTOFF' in line:
+                return True
 
-def get_imag_freqs(calc):
-    raise NotImplementedError
+        return False
 
+    def optimisation_nearly_converged(self, calc):
+        raise NotImplementedError
 
-def get_normal_mode_displacements(calc, mode_number):
-    raise NotImplementedError
+    def get_imag_freqs(self, calc):
+        raise NotImplementedError
 
+    def get_normal_mode_displacements(self, calc, mode_number):
+        raise NotImplementedError
 
-def get_final_xyzs(calc):
+    def get_final_xyzs(self, calc):
 
-    xyzs = []
+        xyzs = []
 
-    for n_line, line in enumerate(calc.output_file_lines):
-        if 'CARTESIAN COORDINATES' in line and len(calc.output_file_lines[n_line+3].split()) == 5:
-            #                              CARTESIAN COORDINATES
-            #
-            #    1    C        1.255660629     0.020580974    -0.276235553
+        for n_line, line in enumerate(calc.output_file_lines):
+            if 'CARTESIAN COORDINATES' in line and len(calc.output_file_lines[n_line+3].split()) == 5:
+                #                              CARTESIAN COORDINATES
+                #
+                #    1    C        1.255660629     0.020580974    -0.276235553
 
-            xyzs = []
-            xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.n_atoms]
-            for xyz_line in xyz_lines:
-                atom_label, x, y, z = xyz_line.split()[1:]
-                xyzs.append([atom_label, float(x), float(y), float(z)])
+                xyzs = []
+                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.n_atoms]
+                for xyz_line in xyz_lines:
+                    atom_label, x, y, z = xyz_line.split()[1:]
+                    xyzs.append([atom_label, float(x), float(y), float(z)])
 
-    return xyzs
+        return xyzs
 
+    def get_atomic_charges(self, calc):
+        raise NotImplementedError
 
-def get_atomic_charges(calc):
-    raise NotImplementedError
+    def get_gradients(self, calc):
+        gradients_section = False
+        gradients = []
+        for line in calc.output_file_lines:
 
+            if 'FINAL  POINT  AND  DERIVATIVES' in line:
+                gradients_section = True
 
-def get_gradients(calc):
-    gradients_section = False
-    gradients = []
-    for line in calc.output_file_lines:
+            if gradients_section and 'ATOM   CHEMICAL' in line:
+                gradients_section = False
 
-        if 'FINAL  POINT  AND  DERIVATIVES' in line:
-            gradients_section = True
+            if gradients_section and len(line.split()) == 8:
+                _, _, _, _, _, _, value, _ = line.split()
+                gradients.append(value)
+        grad_array = np.asarray(gradients)
+        grad_array *= Constants.a02ang/Constants.ha2kcalmol
+        grad_array.reshape((calc.n_atoms, 3))
 
-        if gradients_section and 'ATOM   CHEMICAL' in line:
-            gradients_section = False
+        return grad_array.tolist()
 
-        if gradients_section and len(line.split()) == 8:
-            _, _, _, _, _, _, value, _ = line.split()
-            gradients.append(value)
-    grad_array = np.asarray(gradients)
-    grad_array *= Constants.a02ang/Constants.ha2kcalmol
-    grad_array.reshape((calc.n_atoms, 3))
-
-    return grad_array.tolist()
-
-
-# Bind all the required functions to the class definition
-[setattr(MOPAC, method, globals()[method]) for method in req_methods]
+    def __init__(self):
+        super().__init__(name='mopac', path=Config.MOPAC.path, req_licence=True, path_to_licence=Config.MOPAC.path_to_licence)

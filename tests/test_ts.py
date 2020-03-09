@@ -37,6 +37,8 @@ test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
 ts_guess_obj = ts_guess.TSguess(name='test_ts', molecule=test_ts_mol,
                                 active_bonds=[(0, 1), (1, 2)], reaction_class=Substitution)
 
+method = ORCA()
+
 
 def test_ts_guess_class():
     os.chdir(os.path.join(here, 'data'))
@@ -77,7 +79,7 @@ def test_ts_guess_class():
     assert optts.ts_has_correct_imaginary_vector(ts_guess_obj.optts_calc, 5, [(3, 4)]) == False
 
     # testing optts.check_close_imag_contribution
-    assert optts.check_close_imag_contribution(ts_guess_obj.optts_calc, 6, (test_ts_reac, test_ts_prod), ORCA) == True
+    assert optts.check_close_imag_contribution(ts_guess_obj.optts_calc, 6, (test_ts_reac, test_ts_prod), method) == True
 
     # testing ts_guess.do_displacements
     ts_guess_obj.do_displacements(magnitude=1)
