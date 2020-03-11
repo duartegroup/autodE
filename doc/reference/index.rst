@@ -6,6 +6,7 @@ Documentation
    :maxdepth: 1
 
    conformers/index
+   solvent/index
    transition_states/index
    wrappers/index
    atoms

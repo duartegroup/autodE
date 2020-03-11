@@ -1,8 +1,8 @@
 ********
-TS Guess
+Solvents
 ********
 
-.. automodule:: autode.transition_states.ts_guess
+.. automodule:: autode.solvent.solvents
    :members:
    :undoc-members:
    :special-members: __init__

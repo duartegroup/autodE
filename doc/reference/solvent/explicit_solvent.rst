@@ -1,8 +1,8 @@
 ****************
-Transition State
+Explicit Solvent
 ****************
 
-.. automodule:: autode.transition_states.transition_state
+.. automodule:: autode.solvent.explici_solvent
    :members:
    :undoc-members:
    :special-members: __init__
