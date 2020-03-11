@@ -121,4 +121,4 @@ def test_2b2f():
 
     reac = Molecule(xyzs=[['H', 0, 0, 0], ['C', 0.6, 0, 0], ['N', 1.2, 0, 0], ['C', 10, 0, 0]])
     prod = Molecule(xyzs=[['H', 0, 0, 0], ['C', 10, 0, 0], ['N', 1.2, 0, 0], ['C', 0.6, 0, 0]])
-    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [], [], [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]], [], []) == 2  # [rearr.BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
+    assert rearr.get_fbonds_bbonds_2b2f(reac, prod, [], [], [], [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]], [], []) == [rearr.BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
