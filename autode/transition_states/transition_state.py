@@ -192,11 +192,12 @@ class TS(TSguess):
 
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
-        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, self.method)
+        if solvent_mol is not None:
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, self.method)
 
-        self.xyzs = qmmm_xyzs[:self.n_atoms]
-        self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
-        self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+            self.xyzs = qmmm_xyzs[:self.n_atoms]
+            self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
+            self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
 
         return self.opt_ts(solvent_mol)
 

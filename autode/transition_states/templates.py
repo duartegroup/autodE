@@ -31,7 +31,13 @@ def get_ts_templates(reaction_class, folder_path=None):
 def template_matches(mol, ts_template, mol_graph):
 
     if mol.charge == ts_template.charge and mol.mult == ts_template.mult:
-        if mol.solvent == ts_template.solvent:
+        solvent_match = False
+        if mol.solvent is None:
+            if ts_template.solvent is None:
+                solvent_match = True
+        elif mol.solvent.name == ts_template.solvent:
+            solvent_match = True
+        if solvent_match:
             if is_subgraph_isomorphic(larger_graph=mol_graph, smaller_graph=ts_template.graph):
                 logger.info('Found matching TS template')
                 return True
@@ -84,13 +90,12 @@ class TStemplate:
             reaction_class (object): Reaction class (reactions.py)
 
         Keyword Arguments:
-            solvent (str): solvent (default: {None})
+            solvent (solvent obj): solvent (default: {None})
             charge (int): charge (default: {0})
             mult (int): multiplicity of the molecule (default: {1})
         """
-
         self.graph = graph
         self.reaction_class = reaction_class
-        self.solvent = solvent
+        self.solvent = solvent.name if solvent is not None else None
         self.charge = charge
         self.mult = mult

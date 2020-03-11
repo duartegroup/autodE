@@ -3,6 +3,7 @@ from autode.log import logger
 from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.input_output import xyzs2xyzfile
+from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
 import os
 
@@ -35,7 +36,7 @@ class NWChem(ElectronicStructureMethod):
             elif keyword.lower().startswith('scf'):
                 if calc.solvent_keyword:
                     logger.critical('NWChem only supports solvent for DFT calculations')
-                    exit()
+                    raise UnsuppportedCalculationInput
                 scf_block = True
                 lines = keyword.split('\n')
                 lines.insert(1, f'  nopen {calc.mult - 1}')
@@ -44,7 +45,7 @@ class NWChem(ElectronicStructureMethod):
             elif any(string in keyword.lower() for string in ['ccsd', 'mp2']) and not scf_block:
                 if calc.solvent_keyword:
                     logger.critical('NWChem only supports solvent for DFT calculations')
-                    exit()
+                    raise UnsuppportedCalculationInput
                 new_keywords.append(f'scf\n  nopen {calc.mult - 1}\nend')
                 new_keywords.append(keyword)
             else:

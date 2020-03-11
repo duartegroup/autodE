@@ -276,10 +276,6 @@ class G09(ElectronicStructureMethod):
                 if dashed_line == 3:
                     xyz_section = False
 
-                    if atom_index != calc.n_atoms - 1:
-                        logger.critical('Calc changed the number of atoms')
-                        exit()
-
             if xyz_section and len(line.split()) == 6:
                 atom_index, _, _, x, y, z = line.split()
                 try:

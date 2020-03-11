@@ -48,7 +48,7 @@ class Molecule:
         try:
             assert self.n_bonds == self.graph.number_of_edges()
         except AssertionError:
-            logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
+            logger.critical('Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
     def set_solvent(self, solvent):
@@ -366,7 +366,7 @@ class Molecule:
         self.charges = opt.get_atomic_charges()
 
         if solvent_mol is not None:
-            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, solvent_mol, method, n_qm_solvent_mols=30)
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, solvent_mol, method, n_confs=96, n_qm_solvent_mols=30)
             self.xyzs = qmmm_xyzs[:self.n_atoms]
             self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
             self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]

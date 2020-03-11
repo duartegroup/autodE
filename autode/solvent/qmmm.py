@@ -3,10 +3,11 @@ from autode.calculation import Calculation
 from autode.geom import xyz2coord, coords2xyzs
 from autode.config import Config
 from autode.constants import Constants
-from autode.methods import get_lmethod
-
+from autode.atoms import get_vdw_radius
+from autode.log import logger
 import simtk.openmm.app as omapp
 import simtk.openmm.openmm as om
+import os
 from simtk.unit.unit_definitions import kelvin, angstrom, bohr, hartree, picosecond, nanometer, kilojoule_per_mole, dalton, mole
 import numpy as np
 from copy import deepcopy
@@ -55,19 +56,21 @@ class QMMM:
         for force in system.getForces():
             if type(force) is om.NonbondedForce:
                 for i in range(len(self.solute_xyzs)):
-                    force.addParticle(self.solute_charges[i], 0, 0)
+                    atom_label = self.solute_xyzs[i][0]
+                    force.addParticle(self.solute_charges[i], 0.2 * get_vdw_radius(atom_label), 0.2)
 
         # simulation = omapp.Simulation(topology, system, self.integrator)
         simulation = omapp.Simulation(pdb.topology, system, self.integrator)
 
         coords_in_nm = xyz2coord(self.solvent_xyzs + self.solute_xyzs) * 0.1
         simulation.context.setPositions(coords_in_nm)
-        # simulation.minimizeEnergy()
+        logger.info('Minimizing solvent energy')
+        simulation.minimizeEnergy()
 
-        # for force in system.getForces():
-        #     if type(force) is om.NonbondedForce:
-        #         for i in range(len(self.solute_xyzs)):
-        #             force.setParticleParameters(i + self.n_solvent_atoms, self.solute_charges[i], 0, 0)
+        for force in system.getForces():
+            if type(force) is om.NonbondedForce:
+                for i in range(len(self.solute_xyzs)):
+                    force.setParticleParameters(i + self.n_solvent_atoms, self.solute_charges[i], 0, 0)
         # for i in range(len(self.qm_solvent_xyzs)):
         #     params = force.getParticleParameters(i)
         #     force.setParticleParameters(i, 0, params[1], params[2])
@@ -250,8 +253,7 @@ class QMMM:
         self.solvent_bonds = solvent_bonds
         self.solvent_charges = solvent_charges
         self.n_qm_solvent_mols = n_qm_solvent_mols
-        #self.method = method
-        self.method = get_lmethod()
+        self.method = method
 
         self.qm_energy = None
 
@@ -271,7 +273,7 @@ class QMMM:
         self.system = None
         self.simulation = None
         self.forcefield = omapp.ForceField('tip3pfb.xml')
-        self.integrator = GradientDescentMinimizationIntegrator(initial_step_size=0.75*angstrom)
+        self.integrator = GradientDescentMinimizationIntegrator(initial_step_size=0.5*angstrom)
         self.qmmm_force_obj = None
         self.set_up_main_simulation()
 
