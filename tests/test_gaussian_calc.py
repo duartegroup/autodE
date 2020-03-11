@@ -9,15 +9,15 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
+method = G09()
 
 
 def test_gauss_opt_calc():
 
     os.chdir(os.path.join(here, 'data'))
-    G09.available = True
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
-    calc = Calculation(name='opt', molecule=methylchloride, method=G09, opt=True,
+    calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
                        keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
@@ -25,7 +25,7 @@ def test_gauss_opt_calc():
     assert os.path.exists('opt_g09.log') is True
     assert len(calc.get_final_xyzs()) == 5
     assert os.path.exists('opt_g09.xyz') is True
-    assert calc.get_energy() ==  -499.729222331
+    assert calc.get_energy() == -499.729222331
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
@@ -45,9 +45,8 @@ def test_gauss_opt_calc():
 def test_gauss_optts_calc():
 
     os.chdir(os.path.join(here, 'data'))
-    G09.available = True
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=G09, opt=True,
+    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
                        keywords=['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', 'Freq'])
     calc.run()
 
@@ -63,7 +62,7 @@ def test_gauss_optts_calc():
 
 def test_bad_gauss_output():
 
-    calc = Calculation(name='no_output', molecule=test_mol, method=G09)
+    calc = Calculation(name='no_output', molecule=test_mol, method=method)
     calc.output_file_lines = []
     calc.rev_output_file_lines = []
 
@@ -81,8 +80,8 @@ def test_fix_angle_error():
 
     mol = Molecule(smiles='CC/C=C/CO')
 
-    calc = Calculation(name='angle_fail', molecule=mol, method=G09, opt=True,
-                    keywords=['PBE1PBE/Def2SVP', 'Opt'])
+    calc = Calculation(name='angle_fail', molecule=mol, method=method, opt=True,
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
     assert os.path.exists('angle_fail_cartesian_g09.com') is True
@@ -98,12 +97,3 @@ def test_fix_angle_error():
             os.remove(filename)
 
     os.chdir(here)
-
-
-def test_gauss_no_solvent():
-
-    test_mol.solvent = 'not_a_real_solvent'
-
-    # The calculation object will fail to build and call sys.exit() as the solvent doesn't exist in the library
-    with pytest.raises(SystemExit):
-        _ = Calculation(name='tmp', molecule=test_mol, method=G09)

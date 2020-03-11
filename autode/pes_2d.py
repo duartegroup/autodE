@@ -14,9 +14,10 @@ from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
 from autode.saddle_points import best_saddlepoint
 from autode.min_energy_pathway import get_mep
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
-def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords,
+def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, solvent_mol,
                     delta_dist1=1.5, delta_dist2=1.5, active_bonds_not_scanned=None, e_grid_points=40, polynomial_order=5):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
@@ -51,8 +52,10 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     dist_grid1, dist_grid2 = np.meshgrid(r1, r2)
 
     # Create a grid of molecules and associated constrained optimisation calculations
-    mol_grid = [[deepcopy(mol) for _ in range(n_steps)]
-                for _ in range(n_steps)]
+    mol_grid = [[deepcopy(mol) for _ in range(n_steps)] for _ in range(n_steps)]
+    for row in mol_grid:
+        for mol in row:
+            mol.qm_solvent_xyzs = None
 
     # Perform a 1d scan in serial
     for n in range(n_steps):
@@ -73,8 +76,13 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         except XYZsNotFound:
             mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else mol.xyzs
 
-        # Set the energy of the molecule. Can be None
-        mol_grid[0][n].energy = const_opt.get_energy()
+        if solvent_mol is not None:
+            mol_grid[0][n].name = f'{name}_scan0_{n}'
+            mol_grid[0][n].charges = const_opt.get_atomic_charges()
+            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method)
+            mol_grid[0][n].energy = qmmm_energy
+        else:
+            mol_grid[0][n].energy = const_opt.get_energy()
 
     # Execute the remaining set of optimisations in parallel
     for i in range(1, n_steps):
@@ -113,8 +121,13 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             except XYZsNotFound:
                 mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
 
-            # Set the energy, this may be None
-            mol_grid[i][n].energy = calcs[n].get_energy()
+            if solvent_mol is not None:
+                mol_grid[i][n].name = f'{name}_scan{i}_{n}'
+                mol_grid[i][n].charges = calcs[n].get_atomic_charges()
+                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method)
+                mol_grid[i][n].energy = qmmm_energy
+            else:
+                mol_grid[i][n].energy = calcs[n].get_energy()
 
     # Populate the dictionary of distances, xyzs and energies
     # TODO make this nicer
@@ -128,8 +141,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     logger.info('Checking products were made')
     products_made = False
     for row in mol_grid[::-1]:
-        ts_product_graphs = [mol_graphs.make_graph(mol.xyzs, mol.n_atoms)
-                             for mol in row[::-1]]
+        ts_product_graphs = [mol_graphs.make_graph(mol.xyzs, len(mol.xyzs)) for mol in row[::-1]]
         for ts_product_graph in ts_product_graphs:
             if all(mol_graphs.is_subgraph_isomorphic(ts_product_graph, graph) for graph in expected_prod_graphs):
                 products_made = True
@@ -143,8 +155,9 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
-    saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(dist_xyzs_energies, scan_name=name, plot_name=mol.name +
-                                                           f'_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
+    tsguess_mol.name = name
+    saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(
+        dist_xyzs_energies, scan_name=name, plot_name=f'{mol.name}_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
     if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None
@@ -164,8 +177,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
 
     active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol,
-                   active_bonds=active_bonds, reactant=mol, product=product)
+    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
 
 
 def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, n_points, order):
@@ -269,12 +281,12 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
 
 def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
     """Finds the closest scan point to a pair of coordinates.
-    
+
     Arguments:
         r1_saddle (float): point on the r1 axis
         r2_saddle (float): point on the r2 axis
         dists (list(tuple)): list of r1, r2 distances for points that have been scanned
-    
+
     Returns:
         tuple: the closest scan point
     """

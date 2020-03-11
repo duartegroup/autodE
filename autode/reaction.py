@@ -1,15 +1,18 @@
 from autode.log import logger
 from autode import reactions
 from autode.transition_states.locate_tss import find_tss
+from autode.molecule import Molecule
 from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.units import KcalMol
 from autode.units import KjMol
 from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
-from autode.mol_graphs import get_mapping
 from autode.utils import work_in
 from autode.config import Config
+from autode.solvent.solvents import get_solvent
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.methods import get_hmethod
 from copy import deepcopy
 import os
 
@@ -37,14 +40,21 @@ class Reaction:
         if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
             logger.critical('Solvents in reactants and products don\'t match')
             exit()
+        self.solvent = self.reacs[0].solvent
 
     def set_solvent(self, solvent):
         if solvent is not None:
             logger.info(f'Setting solvent as {solvent}')
 
-            assert type(solvent) == str
+            solvent_obj = get_solvent(solvent)
+            if solvent_obj is None:
+                logger.critical('Could not find the solvent specified')
+                exit()
             for mol in self.reacs + self.prods:
-                mol.solvent = solvent
+                mol.solvent = solvent_obj
+            self.solvent = solvent_obj
+        else:
+            self.solvent = None
 
     def switch_addition(self):
         """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
@@ -65,6 +75,7 @@ class Reaction:
         if delta_n_bonds < 0:
             logger.info('Products have more bonds than the reactants, swapping reacs and prods and going in reverse')
             self.prods, self.reacs = self.reacs, self.prods
+            self.switched_reacs_prods = True
         else:
             logger.info('Does not appear to be an intramolecular addition, continuing')
 
@@ -75,7 +86,11 @@ class Reaction:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        return sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
+        e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
+        delta_n_reacs = len(self.reacs) - len(self.prods)
+        if delta_n_reacs != 0 and self.solvent_mol:
+            e += delta_n_reacs * self.solvent_sphere_energy
+        return e
 
     def calc_delta_e_ddagger(self):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
@@ -85,10 +100,34 @@ class Reaction:
         """
         logger.info('Calculating ∆E‡')
         if self.ts.energy is not None:
-            return self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
+            e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
+            n_reacs = len(self.reacs)
+            if n_reacs != 1 and self.solvent_mol:
+                e += (len(self.reacs) - 1) * self.solvent_sphere_energy
+            return e
         else:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
+
+    @work_in('solvent')
+    def calc_solvent(self):
+        logger.info('Optimising the solvent molecule')
+        solvent_smiles = self.solvent.smiles
+        solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent=self.solvent)
+
+        if solvent.n_atoms > 1:
+            solvent.find_lowest_energy_conformer()
+        solvent.optimise(None)
+        logger.info('Saving the solvent molecule properties')
+        self.solvent_mol = solvent
+        if not len(self.reacs) == len(self.prods) == 1:
+            qmmm_solvent_mol = deepcopy(solvent)
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_qm_solvent_mols=29)
+            qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
+            qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
+            qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+            qmmm_solvent_mol.single_point(solvent)
+            self.solvent_sphere_energy = qmmm_solvent_mol.energy
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
@@ -104,7 +143,20 @@ class Reaction:
         """Perform a geometry optimisation on all the reactants and products using the hcode
         """
         logger.info('Calculating optimised reactants and products')
-        [mol.optimise() for mol in self.reacs + self.prods]
+
+        [mol.optimise(self.solvent_mol) for mol in self.reacs + self.prods]
+
+    @work_in('tss')
+    def locate_transition_state(self):
+
+        # Clear the PES graphs, so they don't write over each other
+        file_extension = Config.image_file_extension
+        for filename in os.listdir(os.getcwd()):
+            if filename.endswith(file_extension):
+                os.remove(filename)
+
+        self.tss = find_tss(self, self.solvent_mol)
+        self.ts = self.find_lowest_energy_ts()
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
@@ -123,44 +175,14 @@ class Reaction:
         else:
             return self.tss[0]
 
-    @work_in('tss')
-    def locate_transition_state(self):
-
-        # Clear the PES graphs, so they don't write over each other
-        file_extension = Config.image_file_extension
-        for filename in os.listdir(os.getcwd()):
-            if filename.endswith(file_extension):
-                os.remove(filename)
-
-        self.tss = find_tss(self)
-        self.ts = self.find_lowest_energy_ts()
-
     @work_in('ts_confs')
     def ts_confs(self):
         """Find the lowest energy conformer of the transition state"""
-        logger.info('Finding all the stereocentres in the transition state')
-
-        stereocentres = set()
-        n_atoms = 0
-        for reac in self.reacs:
-            if reac.stereocentres is not None:
-                for stereocentre in reac.stereocentres:
-                    stereocentres.add(stereocentre + n_atoms)
-            n_atoms += reac.n_atoms
-
-        for mol in self.prods:
-            if mol.stereocentres is not None:
-                mapping = get_mapping(self.product_graph, mol.graph)[0]
-                for ts_index, mol_index in mapping.items():
-                    if mol_index in mol.stereocentres:
-                        stereocentres.add(ts_index)
-
-        self.ts.stereocentres = sorted(stereocentres)
 
         ts_copy = deepcopy(self.ts)
         logger.info('Trying to find lowest energy TS conformer')
 
-        self.ts = self.ts.find_lowest_energy_conformer()
+        self.ts = self.ts.find_lowest_energy_conformer(self.solvent_mol)
         if self.ts is None:
             logger.error('Conformer search lost the TS, using the original TS')
             self.ts = ts_copy
@@ -172,35 +194,46 @@ class Reaction:
     def calculate_single_points(self):
         """Perform a single point energy evaluations on all the reactants and products using the hcode"""
         molecules = self.reacs + self.prods + [self.ts]
-        [mol.single_point() for mol in molecules if mol is not None]
+        [mol.single_point(self.solvent_mol) for mol in molecules if mol is not None]
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
+        if Config.explicit_solvation:
+            self.calc_solvent()
+        self.find_lowest_energy_conformers()
+        self.optimise_reacs_prods()
+        self.locate_transition_state()
+        # if self.ts is not None:
+        #     self.ts_confs()
+        self.calculate_single_points()
 
-        @work_in(self.name)
-        def calc_reaction_profile():
-            self.find_lowest_energy_conformers()
-            self.optimise_reacs_prods()
-            self.locate_transition_state()
-            if self.ts is not None:
-                self.ts_confs()
-            self.calculate_single_points()
+        conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
+        e_prod = conversion * self.calc_delta_e()
+        if self.ts is None:
+            logger.error('TS is None – assuming barrierless reaction')
+            barrierless = True
+            if e_prod < 0:
+                e_ts = 0
+            else:
+                e_ts = e_prod
+            if units == KcalMol:
+                e_ts += 2
+            elif units == KjMol:
+                e_ts += (2 * Constants.kcal2kJ)
+        else:
+            barrierless = False
+            e_ts = conversion * self.calc_delta_e_ddagger()
 
-            if self.ts is None:
-                return logger.error('TS is None – cannot plot a reaction profile')
-
-            conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
-            plot_reaction_profile(e_reac=0.0,
-                                  e_ts=conversion * self.calc_delta_e_ddagger(),
-                                  e_prod=conversion * self.calc_delta_e(),
-                                  units=units,
-                                  reacs=self.reacs,
-                                  prods=self.prods,
-                                  is_true_ts=self.ts.is_true_ts(),
-                                  ts_is_converged=self.ts.converged,
-                                  switched=self.switched_reacs_prods)
-
-        calc_reaction_profile()
+        plot_reaction_profile(e_reac=0.0,
+                              e_ts=e_ts,
+                              e_prod=e_prod,
+                              units=units,
+                              reacs=self.reacs,
+                              prods=self.prods,
+                              is_true_ts=self.ts.is_true_ts(),
+                              ts_is_converged=self.ts.converged,
+                              switched=self.switched_reacs_prods,
+                              barrierless=barrierless)
 
         return None
 
@@ -220,9 +253,10 @@ class Reaction:
         self.check_solvent()
         self.check_balance()
 
-        self.product_graph = None                       #: Full graph of the products
+        self.solvent_mol = None
+        self.solvent_sphere_energy = None
 
-        self.switched_reacs_prods = False               #: Have the reactants and products been switched to
+        self.switched_reacs_prods = False               #: Have the reactants and products been switched
         if self.type == reactions.Addition:
             self.switch_addition()
 

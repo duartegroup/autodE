@@ -26,7 +26,10 @@ class TSguess:
             if self.optts_calc.optimisation_nearly_converged():
                 logger.info('OptTS nearly did converge. Will try more steps')
                 self.optts_nearly_converged = True
-                self.xyzs = self.optts_calc.get_final_xyzs()
+                all_xyzs = self.optts_calc.get_final_xyzs()
+                self.xyzs = all_xyzs[:self.n_atoms]
+                if self.qm_solvent_xyzs is not None:
+                    self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
                 self.name += '_reopt'
                 self.run_optts()
                 return
@@ -48,7 +51,7 @@ class TSguess:
         imag_freqs = []
         orig_optts_calc = deepcopy(self.optts_calc)
         orig_name = copy(self.name)
-        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=magnitude)
+        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=magnitude)
         self.name += '_dis'
         self.run_optts()
         if self.calc_failed:
@@ -72,7 +75,7 @@ class TSguess:
         if len(imag_freqs) > 1 or mode_lost:
             self.optts_calc = orig_optts_calc
             self.name = orig_name
-            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, displacement_magnitude=-1 * magnitude)
+            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=-1 * magnitude)
             self.name += '_dis2'
             self.run_optts()
             if self.calc_failed:
@@ -87,14 +90,20 @@ class TSguess:
 
         return
 
-    def run_optts(self):
+    def run_optts(self, imag_freq_threshold=-50):
         """Runs the optts calc
         """
         logger.info('Getting ORCA out lines from OptTS calculation')
 
+        if self.qm_solvent_xyzs is not None:
+            solvent_atoms = [i for i in range(self.n_atoms, self.n_atoms + len(self.qm_solvent_xyzs))]
+        else:
+            solvent_atoms = None
+
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
                                      keywords=self.method.hess_keywords, n_cores=Config.n_cores,
-                                     max_core_mb=Config.max_core)
+                                     max_core_mb=Config.max_core, charges=self.point_charges,
+                                     partial_hessian=solvent_atoms)
 
         self.hess_calc.run()
 
@@ -105,6 +114,10 @@ class TSguess:
             return
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
+        if imag_freqs[0] > imag_freq_threshold:
+            logger.info('Imaginary modes were too small to be significant')
+            self.calc_failed = True
+            return
 
         if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds, threshold_contribution=0.1):
             self.calc_failed = True
@@ -113,10 +126,14 @@ class TSguess:
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      optts_block=self.method.opt_ts_block)
+                                      partial_hessian=solvent_atoms, charges=self.point_charges,
+                                      optts_block=self.method.opt_ts_block, cartesian_constraints=solvent_atoms)
 
         self.optts_calc.run()
-        self.xyzs = self.optts_calc.get_final_xyzs()
+        all_xyzs = self.optts_calc.get_final_xyzs()
+        self.xyzs = all_xyzs[:self.n_atoms]
+        if self.qm_solvent_xyzs is not None:
+            self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
         return
 
     def get_imag_frequencies_xyzs_energy(self):
@@ -124,6 +141,9 @@ class TSguess:
 
     def get_coords(self):
         return xyz2coord(self.xyzs)
+
+    def get_charges(self):
+        return self.optts_calc.get_atomic_charges()
 
     def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
         """
@@ -152,6 +172,10 @@ class TSguess:
         self.reactant = reactant
         self.product = product
         self.graph = make_graph(self.xyzs, self.n_atoms)
+        self.charges = molecule.charges
+        self.stereocentres = molecule.stereocentres
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
 
         self.optts_converged = False
         self.optts_nearly_converged = False
@@ -159,3 +183,5 @@ class TSguess:
         self.hess_calc = None
 
         self.calc_failed = False
+
+        self.point_charges = None

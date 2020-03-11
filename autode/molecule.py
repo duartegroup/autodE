@@ -19,7 +19,10 @@ from autode.conformers.conformers import rdkit_conformer_geometries_are_resonabl
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
 from autode.calculation import Calculation
 from autode.methods import get_hmethod
+from autode.solvent.solvents import get_solvent
 import numpy as np
+
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class Molecule:
@@ -48,14 +51,25 @@ class Molecule:
             logger.error('Number of rdkit bonds doesn\'t match the the molecular graph')
             exit()
 
-    def get_core_atoms(self, product_graph=None, depth=3):
+    def set_solvent(self, solvent):
+        if isinstance(solvent, str):
+            self.solvent = get_solvent(solvent)
+            if self.solvent is None:
+                logger.critical('Could not find the solvent specified')
+                exit()
+        else:
+            self.solvent = solvent
+
+    def get_core_atoms(self, product_graph, depth=3):
         """Finds the 'core' of a molecule, to find atoms that should not be stripped. Core atoms are those within a certain
         number of bonds from atoms that are reacting. Also checks to ensure rings and pi bonda aren't being broken.
-        
+
+        Arguments"
+            product_graph (nx.Graph): Graph of the product molecule (with the atom indices of the reactants) to see if a ring is being made
+
         Keyword Arguments:
-            product_graph (nx.Graph): Graph of the product molecule, to see if a ring is being made (default: {None})
             depth (int): Number of bonds from the active atoms within which atoms are 'core' (default: {3})
-        
+
         Returns:
             list: list of core atoms
         """
@@ -74,43 +88,57 @@ class Molecule:
 
         old_core_atoms = set()
 
-        cycles = mol_graphs.find_cycle(self.graph)
-        if product_graph is not None:
-            prod_cycles = cycle = mol_graphs.find_cycle(product_graph)
+        reac_cycles = mol_graphs.find_cycles(self.graph)
+        prod_cycles = mol_graphs.find_cycles(product_graph)
+
+        for prod_cycle in prod_cycles:
+            match = False
+            for reac_cycle in reac_cycles:
+                if len(prod_cycle) == len(reac_cycle):
+                    if all(prod_atom in reac_cycle for prod_atom in prod_cycle):
+                        match = True
+                        break
+            if not match:
+                for atom in prod_cycle:
+                    core_atoms.add(atom)
 
         while len(old_core_atoms) < len(core_atoms):
             old_core_atoms = core_atoms.copy()
-            ring_atoms = set()
             logger.info('Looking for rings in the reactants')
-            for atom in core_atoms:
-                for cycle in cycles:
-                    if atom in cycle:
-                        for cycle_atom in cycle:
-                            ring_atoms.add(cycle_atom)
-            core_atoms.update(ring_atoms)
-
-            logger.info('Looking for rings in the products')
-            if product_graph is None:
-                logger.warning('No product graph found, this will cause errors if rings are formed in the reaction')
-            else:
-                prod_ring_atoms = set()
+            for i, cycle in enumerate(reac_cycles):
+                atoms_in_ring = []
                 for atom in core_atoms:
-                    for cycle in prod_cycles:
-                        if atom in cycle:
-                            for cycle_atom in cycle:
-                                prod_ring_atoms.add(cycle_atom)
-                core_atoms.update(prod_ring_atoms)
+                    if atom in cycle:
+                        atoms_in_ring.append(atom)
+                add = False
+                if len(atoms_in_ring) > 0 and len(cycle) == 3:
+                    add = True
+                elif len(atoms_in_ring) == 2:
+                    already_in_ring = False
+                    for j, other_cycle in enumerate(reac_cycles):
+                        if i != j:
+                            if atoms_in_ring[0] in other_cycle and atoms_in_ring[1] in other_cycle:
+                                if all(atom in core_atoms for atom in other_cycle):
+                                    already_in_ring = True
+                                    break
+                    if not already_in_ring:
+                        add = True
+                elif len(atoms_in_ring) > 2:
+                    add = True
+                if add:
+                    for cycle_atom in cycle:
+                        core_atoms.add(cycle_atom)
 
             if self.pi_bonds is not None:
+                pi_core_atoms = set()
                 logger.info('Checking for pi bonds')
-                core_atoms_pi_bonds = set()
                 for atom in core_atoms:
                     for bond in self.pi_bonds:
                         if atom in bond:
                             for other_atom in bond:
-                                core_atoms_pi_bonds.add(other_atom)
+                                pi_core_atoms.add(other_atom)
                             break
-                core_atoms.update(core_atoms_pi_bonds)
+                core_atoms.update(pi_core_atoms)
 
             # don't want to make OH, SH or NH, as these can be acidic and can mess things up
             bonded_to_heteroatoms = set()
@@ -209,13 +237,13 @@ class Molecule:
     def strip_core(self, core_atoms, bond_rearrang=None):
         """Removes extraneous atoms from the core, to hasten the TS search calculations. If given, it will also find the bond
         rearrangement in the new indices of the molecule. If there are too few atoms to strip it will return the original molecule.
-        
+
         Arguments:
             core_atoms (list): list of core atoms, which must be kept
-        
+
         Keyword Arguments:
             bond_rearrang (bond rearrang object): the bond rearrangement of the reaction (default: {None})
-        
+
         Returns:
             tuple: (stripped molecule, new bond rearrangement)
         """
@@ -252,10 +280,6 @@ class Molecule:
                         normed_bond_vector * avg_bond_length).tolist()
             fragment_xyzs.append(['H'] + h_coords)
 
-        if self.xyzs == fragment_xyzs:
-            logger.info('No atoms to strip')
-            return (self, bond_rearrang)
-
         if bond_rearrang is not None:
             # get the bond rearrangement in the new atom indices
             new_fbonds = []
@@ -283,8 +307,7 @@ class Molecule:
         self.generate_conformers()
         [self.conformers[i].optimise() for i in range(len(self.conformers))]
         self.strip_non_unique_confs()
-        [self.conformers[i].optimise(method=self.method)
-         for i in range(len(self.conformers))]
+        [self.conformers[i].optimise(method=self.method) for i in range(len(self.conformers))]
 
         lowest_energy = None
         for conformer in self.conformers:
@@ -298,9 +321,10 @@ class Molecule:
                 if lowest_energy is None:
                     lowest_energy = conformer.energy
 
-                elif conformer.energy <= lowest_energy:
+                if conformer.energy <= lowest_energy:
                     self.energy = conformer.energy
                     self.set_xyzs(conformer.xyzs)
+                    self.charges = conformer.charges
                     lowest_energy = conformer.energy
 
                 else:
@@ -329,7 +353,7 @@ class Molecule:
 
         self.n_bonds = self.graph.number_of_edges()
 
-    def optimise(self, method=None):
+    def optimise(self, solvent_mol, method=None):
         logger.info(f'Running optimisation of {self.name}')
         if method is None:
             method = self.method
@@ -339,20 +363,34 @@ class Molecule:
         opt.run()
         self.energy = opt.get_energy()
         self.set_xyzs(xyzs=opt.get_final_xyzs())
+        self.charges = opt.get_atomic_charges()
 
-    def single_point(self, method=None):
+        if solvent_mol is not None:
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, solvent_mol, method, n_qm_solvent_mols=30)
+            self.xyzs = qmmm_xyzs[:self.n_atoms]
+            self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
+            self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+
+    def single_point(self, solvent_mol, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
         if method is None:
             method = self.method
 
+        if solvent_mol:
+            point_charges = []
+            for i, xyz in enumerate(self.mm_solvent_xyzs):
+                point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
+        else:
+            point_charges = None
+
         sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=method.sp_keywords,
-                         n_cores=Config.n_cores, max_core_mb=Config.max_core)
+                         n_cores=Config.n_cores, max_core_mb=Config.max_core, charges=point_charges)
         sp.run()
         self.energy = sp.get_energy()
 
     def is_possible_pi_atom(self, atom_i):
-        #metals may break this
-        pi_valencies = {'B': [1,2], 'N': [1,2], 'O': [1], 'C': [1,2,3], 'P': [1,2,3,4], 'S': [1,3,4,5], 'Si': [1,2,3]}
+        # metals may break this
+        pi_valencies = {'B': [1, 2], 'N': [1, 2], 'O': [1], 'C': [1, 2, 3], 'P': [1, 2, 3, 4], 'S': [1, 3, 4, 5], 'Si': [1, 2, 3]}
         atom_label = self.get_atom_label(atom_i)
         if atom_label in pi_valencies.keys():
             if len(self.get_bonded_atoms_to_i(atom_i)) in pi_valencies[self.get_atom_label(atom_i)]:
@@ -383,10 +421,14 @@ class Molecule:
             exit()
 
         self.n_atoms = self.mol_obj.GetNumAtoms()
-        self.n_bonds = len(self.mol_obj.GetBonds())
+        rdkit_bonds = self.mol_obj.GetBonds()
+        self.n_bonds = len(rdkit_bonds)
         self.charge = Chem.GetFormalCharge(self.mol_obj)
         n_radical_electrons = rdkit.Chem.Descriptors.NumRadicalElectrons(self.mol_obj)
         self.mult = self._calc_multiplicity(n_radical_electrons)
+
+        if self.n_atoms == 1:
+            self.charges = [self.charge]
 
         AllChem.EmbedMultipleConfs(self.mol_obj, numConfs=1, params=AllChem.ETKDG())
         self.xyzs = extract_xyzs_from_rdkit_mol_object(self, conf_ids=[0])[0]
@@ -399,6 +441,17 @@ class Molecule:
                 unassigned_stereocentres = True
             else:
                 stereocentres.append(atom)
+
+        pi_bonds = []
+        for bond in rdkit_bonds:
+            if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
+                pi_bonds.append((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()))
+            if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:
+                stereocentres.append(bond.GetBeginAtomIdx())
+                stereocentres.append(bond.GetEndAtomIdx())
+
+        if len(pi_bonds) > 0:
+            self.pi_bonds = pi_bonds
 
         if len(stereocentres) > 0:
             self.stereocentres = stereocentres
@@ -436,6 +489,9 @@ class Molecule:
         self.n_bonds = len(get_xyz_bond_list(xyzs))
         self.graph = mol_graphs.make_graph(self.xyzs, self.n_atoms)
         self.distance_matrix = calc_distance_matrix(xyzs)
+        if self.n_atoms == 1:
+            self.charges = [self.charge]
+        self.set_pi_bonds()
 
     def __init__(self, name='molecule', smiles=None, xyzs=None, solvent=None, charge=0, mult=1, is_fragment=False):
         """Initialise a Molecule object.
@@ -455,7 +511,7 @@ class Molecule:
 
         self.name = name
         self.smiles = smiles
-        self.solvent = solvent
+        self.set_solvent(solvent)
         self.charge = charge
         self.mult = mult
         self.xyzs = xyzs
@@ -473,14 +529,16 @@ class Molecule:
         self.active_atoms = None
         self.stereocentres = None
         self.pi_bonds = None
+        self.charges = None
+
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
 
         if smiles:
             self._init_smiles(name, smiles)
 
         if xyzs:
             self._init_xyzs(xyzs)
-
-        self.set_pi_bonds()
 
 
 class Reactant(Molecule):

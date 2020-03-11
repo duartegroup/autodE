@@ -6,6 +6,7 @@ from autode import molecule
 from autode.transition_states import optts
 from autode.config import Config
 from autode.wrappers.ORCA import ORCA
+from autode.solvent.solvents import Solvent
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,6 +37,8 @@ test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
 ts_guess_obj = ts_guess.TSguess(name='test_ts', molecule=test_ts_mol,
                                 active_bonds=[(0, 1), (1, 2)], reaction_class=Substitution)
 
+method = ORCA()
+
 
 def test_ts_guess_class():
     os.chdir(os.path.join(here, 'data'))
@@ -64,7 +67,7 @@ def test_ts_guess_class():
     assert ts_guess_obj.optts_converged == True
 
     # testing optts.get_displaced_xyzs_along_imaginary_mode
-    displaced_xyzs = optts.get_displaced_xyzs_along_imaginary_mode(ts_guess_obj.optts_calc, 6)
+    displaced_xyzs = optts.get_displaced_xyzs_along_imaginary_mode(ts_guess_obj.optts_calc, 6, 6)
 
     assert displaced_xyzs[0][1] == ts_xyzs[0][1] + 0.268035
     assert displaced_xyzs[3][2] == ts_xyzs[3][2] - 0.020503
@@ -76,7 +79,7 @@ def test_ts_guess_class():
     assert optts.ts_has_correct_imaginary_vector(ts_guess_obj.optts_calc, 5, [(3, 4)]) == False
 
     # testing optts.check_close_imag_contribution
-    assert optts.check_close_imag_contribution(ts_guess_obj.optts_calc, (test_ts_reac, test_ts_prod), ORCA) == True
+    assert optts.check_close_imag_contribution(ts_guess_obj.optts_calc, 6, (test_ts_reac, test_ts_prod), method) == True
 
     # testing ts_guess.do_displacements
     ts_guess_obj.do_displacements(magnitude=1)
@@ -92,13 +95,14 @@ def test_ts_guess_class():
 def test_get_ts():
     os.chdir(os.path.join(here, 'data'))
 
-    assert optts.get_ts(None) is None
+    assert optts.get_ts(None)[0] is None
 
     get_ts_output = optts.get_ts(ts_guess_obj)
     ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 
     assert ts_obj.get_atom_label(0) == 'F'
-    assert ts_obj.solvent == 'water'
+    assert type(ts_obj.solvent) == Solvent
+    assert ts_obj.solvent.name == 'water'
     assert ts_obj.converged == True
     assert ts_obj.active_atoms == [0, 1, 2]
     assert ts_obj.graph.number_of_nodes() == 6

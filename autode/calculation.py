@@ -3,8 +3,11 @@ from subprocess import Popen
 from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
-from autode.config import Config
-from shutil import which
+from autode.solvent.solvents import get_available_solvents
+from autode.exceptions import SolventUnavailable
+import shutil
+from tempfile import mkdtemp
+from copy import deepcopy
 
 
 class Calculation:
@@ -84,6 +87,27 @@ class Calculation:
 
         return xyzs
 
+    def get_atomic_charges(self):
+        logger.info(f'Getting atomic charges from calculation file {self.output_filename}')
+        charges = self.method.get_atomic_charges(self)
+
+        if len(charges) != self.n_atoms:
+            logger.critical(f'Could not get atomic charges from calculation file {self.name}')
+            exit()
+
+        return charges
+
+    def get_gradients(self):
+        logger.info(f'Getting gradients from calculation file {self.output_filename}')
+
+        gradients = self.method.get_gradients(self)
+
+        if len(gradients) != self.n_atoms:
+            logger.critical(f'Could not get gradients from calculation file {self.name}')
+            exit()
+
+        return gradients
+
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
         if self.output_file_lines is None:
@@ -102,29 +126,12 @@ class Calculation:
         logger.info(f'Generating input file for {self.name}')
         return self.method.generate_input(self)
 
-    def remove_non_input_output_files(self):
-        logger.info('Deleting non-output files')
-
-        for filename in os.listdir(os.getcwd()):
-            name_string = '.'.join(self.input_filename.split('.')[:-1])
-            if name_string in filename:
-                # Currently only ORCa and G09 non-output files are deleted
-                if ((not filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw'))) or
-                        filename.endswith(('.smd.out', '.drv.hess'))):
-                    os.remove(filename)
-
-        return None
-
     def execute_calculation(self):
         logger.info(f'Running calculation {self.input_filename}')
 
         if self.input_filename is None:
             logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
-
-        if self.method.available is False:
-            logger.critical('Electronic structure method is not available')
-            exit()
 
         if not os.path.exists(self.input_filename):
             logger.error('Could not run the calculation. Input file does not exist')
@@ -142,10 +149,18 @@ class Calculation:
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
+        here = os.getcwd()
+        tmpdir_path = mkdtemp()
+        logger.info(f'Creating tmpdir to work in {tmpdir_path}')
+        shutil.move(os.path.join(here, self.input_filename), os.path.join(tmpdir_path, self.input_filename))
+        for initial_filename, end_filename in self.additional_input_files:
+            shutil.move(os.path.join(here, initial_filename), os.path.join(tmpdir_path, end_filename))
+        os.chdir(tmpdir_path)
+
         with open(self.output_filename, 'w') as output_file:
 
             if self.method.mpirun:
-                mpirun_path = which('mpirun')
+                mpirun_path = shutil.which('mpirun')
                 params = [mpirun_path, '-np', str(self.n_cores), self.method.path, self.input_filename]
             else:
                 params = [self.method.path, self.input_filename]
@@ -157,9 +172,21 @@ class Calculation:
         subprocess.wait()
         logger.info(f'Calculation {self.output_filename} done')
 
-        self.remove_non_input_output_files()
+        self.set_output_file_lines()
+        if self.grad:
+            self.method.get_gradients(self)
+        for filename in os.listdir(os.getcwd()):
+            name_string = '.'.join(self.input_filename.split('.')[:-1])
+            if name_string in filename:
+                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
+                    shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
+            if 'xcontrol' in filename:
+                shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
 
-        return self.set_output_file_lines()
+        os.chdir(here)
+        shutil.rmtree(tmpdir_path)
+
+        return None
 
     def run(self):
         logger.info(f'Running calculation of {self.name}')
@@ -171,8 +198,8 @@ class Calculation:
         return None
 
     def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
-                 constraints_already_met=False):
+                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False,
+                 charges=None, grad=False, partial_hessian=None):
         """
         Arguments:
             name (str): calc name
@@ -189,11 +216,13 @@ class Calculation:
             distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length
                                          to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
-            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB
-                                            force constant) (default: {False})
+            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB force constant) (default: {False})
+            charges (list(list)): list of point charges and thier positions [xyzs, charge] (default: {None})
+            grad (bool): grad calc or not (needed for XTB) (default: {False})
+            partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
         self.name = name
-        self.xyzs = molecule.xyzs
+        self.xyzs = deepcopy(molecule.xyzs)
         self.charge = molecule.charge
         self.mult = molecule.mult
         self.method = method
@@ -201,6 +230,11 @@ class Calculation:
         self.flags = None
         self.opt = opt
         self.core_atoms = None
+        self.grad = grad
+        self.partial_hessian = partial_hessian
+
+        if molecule.qm_solvent_xyzs is not None:
+            self.xyzs += molecule.qm_solvent_xyzs
 
         self.solvent = molecule.solvent
 
@@ -214,6 +248,8 @@ class Calculation:
         self.cartesian_constraints = cartesian_constraints
         self.constraints_already_met = constraints_already_met
 
+        self.charges = charges
+
         # Set in self.generate_input()
         self.input_filename = None
         # Set in self.generate_input()
@@ -224,10 +260,16 @@ class Calculation:
         self.output_file_lines = None
         self.rev_output_file_lines = None
 
+        self.additional_input_files = []
+
         if molecule.solvent is not None:
-            if molecule.solvent.lower() not in method.aval_solvents:                    # Lowercase everything
+            if getattr(molecule.solvent, method.__name__) is False:
                 logger.critical('Solvent is not available. Cannot run the calculation')
-                exit(f'Available solvents are {method.aval_solvents}')
+                print(f'Available solvents for {self.method.__name__} are {get_available_solvents(self.method.__name__)}')
+                raise SolventUnavailable
+            self.solvent_keyword = getattr(molecule.solvent, method.__name__)
+        else:
+            self.solvent_keyword = None
 
         if self.xyzs is None:
             logger.error('Have no xyzs. Can\'t make a calculation')
@@ -237,5 +279,3 @@ class Calculation:
             self._set_core_atoms(molecule)
 
         self.n_atoms = len(self.xyzs)
-
-        self.method.reset(Config)

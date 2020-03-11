@@ -1,6 +1,7 @@
 from autode import reaction
 from autode.transition_states.transition_state import TS
 from autode.transition_states.ts_guess import TSguess
+from autode.solvent.solvents import water_solv
 import pytest
 
 
@@ -10,6 +11,7 @@ def test_reaction_class():
     h2 = reaction.Reactant(name='h2', xyzs=[['H', 1.0, 0.0, 0.0]])
     hh = reaction.Product(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
     hh_reac = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh, name='h2_assoc')
+    hh_reac.solvent_sphere_energy = 0
 
     h1.energy = 2
     h2.energy = 3
@@ -30,15 +32,15 @@ def test_reaction_class():
 
     assert h_sub.type == reaction.reactions.Substitution
     assert h_sub.name == 'reaction'
-    assert h1.solvent == 'water'
+    assert h1.solvent == water_solv
 
 
 def test_check_rearrangement():
 
     # Linear H3 -> Trigonal H3
     lin_h3 = reaction.Reactant(name='h3_linear', xyzs=[['H', -1.76172,        0.79084,       -0.00832],
-                                                       ['H', -2.13052 ,       0.18085,        0.00494],
-                                                       ['H', -1.39867 ,       1.39880,       -0.00676]])
+                                                       ['H', -2.13052,       0.18085,        0.00494],
+                                                       ['H', -1.39867,       1.39880,       -0.00676]])
 
     trig_h3 = reaction.Product(name='h3_trigonal', xyzs=[['H', -1.76172,       0.79084,       -0.00832],
                                                          ['H', -1.65980,       1.15506,       0.61469],
@@ -93,11 +95,8 @@ def test_calc_delta_e():
     p.energy = -1.0
 
     reac = reaction.Reaction(r1, r2, p)
+    reac.solvent_sphere_energy = 0
     reac.ts = ts
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
     assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
-
-
-
-

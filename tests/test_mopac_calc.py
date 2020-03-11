@@ -6,16 +6,16 @@ import os
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
+method = MOPAC()
 
 
 def test_mopac_opt_calculation():
 
     os.chdir(os.path.join(here, 'data'))
-    MOPAC.available = True
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
     calc = Calculation(name='opt', molecule=methylchloride,
-                       method=MOPAC, opt=True)
+                       method=method, opt=True)
     calc.run()
 
     assert os.path.exists('opt_mopac.mop') is True

@@ -10,7 +10,10 @@ from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.optts import get_ts
 from autode.conformers.conformers import Conformer
 from autode.conformers.conf_gen import gen_simanl_conf_xyzs
+from autode.solvent.qmmm import QMMM
 import numpy as np
+
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class TS(TSguess):
@@ -77,11 +80,20 @@ class TS(TSguess):
         else:
             return False
 
-    def single_point(self, method=None):
+    def single_point(self, solvent_mol, method=None):
         logger.info(f'Running single point energy evaluation of {self.name}')
+        if method is None:
+            method = self.method
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=self.method if method is None else method,
-                         keywords=self.method.sp_keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core)
+        if solvent_mol:
+            point_charges = []
+            for i, xyz in enumerate(self.mm_solvent_xyzs):
+                point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
+        else:
+            point_charges = None
+
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=self.method.sp_keywords,
+                         n_cores=Config.n_cores, max_core_mb=Config.max_core, charges=self.point_charges)
         sp.run()
         self.energy = sp.get_energy()
 
@@ -124,18 +136,18 @@ class TS(TSguess):
         self.conformers = [conf for conf in self.conformers if conf.xyzs is not None and conf.energy is not None]
         self.n_conformers = len(self.conformers)
 
-    def opt_ts(self):
+    def opt_ts(self, solvent_mol):
         """Run the optts calculation
-        
+
         Returns:
             ts object: the optimised transition state conformer
         """
         name = self.name
 
-        ts_conf_get_ts_output = get_ts(self)
+        ts_conf_get_ts_output = get_ts(self, solvent_mol)
         if ts_conf_get_ts_output is None:
             return None
-            
+
         self.converged = ts_conf_get_ts_output[1]
         self.energy = self.optts_calc.get_energy()
 
@@ -143,7 +155,7 @@ class TS(TSguess):
 
         return self
 
-    def find_lowest_energy_conformer(self):
+    def find_lowest_energy_conformer(self, solvent_mol):
         """For a transition state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
 
         Returns:
@@ -180,7 +192,13 @@ class TS(TSguess):
 
         logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
 
-        return self.opt_ts()
+        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, self.method)
+
+        self.xyzs = qmmm_xyzs[:self.n_atoms]
+        self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
+        self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+
+        return self.opt_ts(solvent_mol)
 
     def __init__(self, ts_guess=None, name='TS', converged=True):
         logger.info(f'Generating a TS object for {name}')
@@ -196,12 +214,16 @@ class TS(TSguess):
         self.mult = ts_guess.mult
         self.converged = converged
         self.method = ts_guess.method
-
+        self.stereocentres = ts_guess.stereocentres
+        self.n_atoms = ts_guess.n_atoms
         self.reactant = ts_guess.reactant
         self.product = ts_guess.product
+        self.xyzs = ts_guess.xyzs
+        self.qm_solvent_xyzs = ts_guess.qm_solvent_xyzs
+        self.mm_solvent_xyzs = ts_guess.mm_solvent_xyzs
 
-        self.imag_freqs, self.xyzs, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
-        self.n_atoms = len(self.xyzs)
+        self.imag_freqs, _, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
+        self.charges = ts_guess.get_charges()[:self.n_atoms]
 
         self.active_bonds = ts_guess.active_bonds
         self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
@@ -215,7 +237,6 @@ class TS(TSguess):
         self.dist_consts = None
         self.get_dist_consts()
 
-        self.stereocentres = None
         self.conformers = None
         self.n_conformers = None
 
@@ -228,3 +249,5 @@ class TS(TSguess):
         self.hess_calc = None
 
         self.calc_failed = False
+
+        self.point_charges = None

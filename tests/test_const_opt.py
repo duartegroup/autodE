@@ -13,7 +13,7 @@ def test_constrained_opt():
 
     h3_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0], ['H', 1.7, 0.0, 0.0]]
     mol = Molecule(name='h3', xyzs=h3_xyzs, mult=2)
-    mol.method = ORCA
+    mol.method = ORCA()
 
     ts_guess = get_ts_guess_constrained_opt(mol=mol, distance_consts={(0, 1): 1.0}, reaction_class=Substitution,
                                             keywords=Config.ORCA.scan_keywords, name='template_ts_guess', product=mol)

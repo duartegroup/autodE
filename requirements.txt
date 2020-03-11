@@ -7,3 +7,5 @@ scipy
 pytest
 pytest-cov
 codecov
+openmm
+openmmtools

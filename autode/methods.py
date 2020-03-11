@@ -10,6 +10,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.XTB import XTB
 from autode.wrappers.G09 import G09
 from autode.wrappers.NWChem import NWChem
+from autode.exceptions import MethodUnavailable
 
 
 def get_hmethod():
@@ -18,25 +19,32 @@ def get_hmethod():
     Returns:
         object: ElectronicStructureMethod
     """
-    method = ORCA
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
-            method = ORCA
+            method = ORCA()
         elif Config.hcode.lower() == 'g09':
-            method = G09
+            method = G09()
         elif Config.hcode.lower() == 'nwchem':
-            method = NWChem
+            method = NWChem()
         else:
-            logger.critical('Electronic structure code doesn\'t exist')
-            exit()
+            logger.critical('Requested electronic structure code doesn\'t exist')
+            raise MethodUnavailable
+
+        method.set_availability()
+        if not method.available:
+            logger.critical('Requested electronic structure method is not available')
+            raise MethodUnavailable
+
+        return method
     else:
-        method = ORCA
+        # see if ORCA availaible, then Gaussian, then NWChem
+        for method in [ORCA(), G09(), NWChem()]:
+            method.set_availability()
+            if method.available:
+                return method
 
-    method.set_availability()
-    if not method.available:
-        logger.error('High-level method not available')
-
-    return method
+        logger.critical('No electronic structure methods available')
+        raise MethodUnavailable
 
 
 def get_lmethod():
@@ -45,20 +53,27 @@ def get_lmethod():
     Returns:
         object: ElectronicStructureMethod
     """
-    method = XTB
     if Config.lcode is not None:
         if Config.lcode.lower() == 'xtb':
-            method = XTB
+            method = XTB()
         elif Config.lcode.lower() == 'mopac':
-            method = MOPAC
+            method = MOPAC()
         else:
-            logger.critical('Electronic structure code doesn\'t exist')
-            exit()
+            logger.critical('Requested electronic structure code doesn\'t exist')
+            raise MethodUnavailable
+
+        method.set_availability()
+        if not method.available:
+            logger.critical('Requested electronic structure method is not available')
+            raise MethodUnavailable
+
+        return method
     else:
-        method = XTB
+        # see if XTB availaible, then MOPAC
+        for method in [XTB(), MOPAC()]:
+            method.set_availability()
+            if method.available:
+                return method
 
-    method.set_availability()
-    if not method.available:
-        logger.error('Low-level method not available')
-
-    return method
+        logger.critical('No electronic structure methods available')
+        raise MethodUnavailable

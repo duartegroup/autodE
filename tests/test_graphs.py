@@ -40,9 +40,9 @@ for edge in edges:
     graph.add_edge(*edge)
 
 
-def test_find_cycle():
+def test_find_cycles():
 
-    assert mol_graphs.find_cycle(graph) == [[1, 2, 0]]
+    assert mol_graphs.find_cycles(graph) == [[1, 2, 0]]
 
 
 def test_reac_to_prods():

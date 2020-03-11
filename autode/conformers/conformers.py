@@ -126,4 +126,6 @@ class Conformer(object):
         self.charge = charge
         self.mult = mult
         self.method = get_lmethod()
+        self.charges = None
         self.dist_consts = dist_consts
+        self.qm_solvent_xyzs = None

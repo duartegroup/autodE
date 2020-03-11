@@ -11,14 +11,14 @@ class Config:
     #
     # ----------------------------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code will be used:
-    # 1. 'ORCA', 2. 'G09'
+    # 1. 'ORCA', 2. 'G09' 3. 'NWChem'
     #
-    hcode = 'ORCA'
+    hcode = None
     #
     # Semi-empirical/tight binding method to use. If set to None then the highest priority available
     # will be used:   1. 'XTB', 2. 'MOPAC'
     #
-    lcode = 'XTB'
+    lcode = None
     #
     make_ts_template = True
     #
@@ -27,6 +27,10 @@ class Config:
     # File extension to use for the images made
     #
     image_file_extension = '.png'
+    #
+    # Whether to do explicit solvation or not
+    #
+    explicit_solvation = True
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:
@@ -39,6 +43,7 @@ class Config:
 
         scan_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
         conf_opt_keywords = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
+        gradients_keywords = ['EnGrad', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
         opt_keywords = ['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         opt_ts_keywords = ['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
         hess_keywords = ['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
@@ -58,6 +63,7 @@ class Config:
 
         scan_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
         conf_opt_keywords = ['PBEPBE/Def2SVP', 'Opt=Loose']
+        gradients_keywords = ['PBEPBE/Def2SVP', 'Force(NoStep)']
         opt_keywords = ['PBE1PBE/Def2SVP', 'Opt']
         opt_ts_keywords = ['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)',
                            'Freq']
@@ -74,15 +80,14 @@ class Config:
         scan_keywords = ['driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\nend',
                          'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize']
         conf_opt_keywords = ['driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\nend',
-                             'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize']
+                             'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend', 'task dft optimize', 'task dft property']
+        gradients_keywords = ['basis\n  *   library Def2-SVP\nend', 'dft\n  xc xpbe96 cpbe96\nend', 'task dft gradient']
         opt_keywords = ['driver\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\nend',
-                        'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc pbe0\nend', 'task dft optimize']
+                        'basis\n  *   library Def2-SVP\nend', 'dft\n  maxiter 100\n  xc pbe0\nend', 'task dft optimize', 'task dft property']
         opt_ts_keywords = ['driver\n  maxiter 100\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\nend',
                            'basis\n  *   library Def2-SVP\nend', 'dft\n  xc pbe0\nend', 'task dft saddle', 'task dft freq']
-        hess_keywords = ['basis\n  *   library Def2-SVP\nend',
-                         'dft\n  xc pbe0\nend', 'task dft freq']
-        sp_keywords = ['basis\n  *   library Def2-TZVP\nend',
-                       'dft\n  xc pbe0\nend', 'task dft energy']
+        hess_keywords = ['basis\n  *   library Def2-SVP\nend', 'dft\n  xc pbe0\nend', 'task dft freq']
+        sp_keywords = ['basis\n  *   library Def2-TZVP\nend', 'dft\n  xc pbe0\nend', 'task dft energy']
 
     class XTB:
         # ------------------------------------------------------------------------------------------

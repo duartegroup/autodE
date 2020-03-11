@@ -354,7 +354,7 @@ def get_fbonds_bbonds_2b2f(reactant, product, possible_bond_rearrangs, all_possi
                 for j in range(len(possible_fbonds)):
                     if i > j:
                         for bbond2 in fbond_atom_type_bbonds:
-                            possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[possible_bbonds[i], possible_bbonds[j]], bbonds=[bbond1, bbond2])
+                            possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[possible_fbonds[i], possible_fbonds[j]], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 0 and len(all_possible_fbonds) == 0:
         logger.info('Have lots of isomorphisms to do')

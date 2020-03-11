@@ -1,9 +1,11 @@
+import pytest
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.molecule import Molecule
 import os
 here = os.path.dirname(os.path.abspath(__file__))
-import pytest
+
+method = XTB()
 
 
 def test_xtb_calculation():
@@ -12,7 +14,7 @@ def test_xtb_calculation():
     XTB.available = True
 
     test_mol = Molecule(name='test_mol', smiles='O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O')
-    calc = Calculation(name='opt', molecule=test_mol, method=XTB, opt=True)
+    calc = Calculation(name='opt', molecule=test_mol, method=method, opt=True)
     calc.run()
 
     assert os.path.exists('opt_xtb.xyz') is True
@@ -32,7 +34,7 @@ def test_xtb_calculation():
         _ = calc.get_normal_mode_displacements(4)
 
     const_opt = Calculation(name='opt', molecule=test_mol,
-                            method=XTB, opt=True, distance_constraints={(0, 1): 1.2539792})
+                            method=method, opt=True, distance_constraints={(0, 1): 1.2539792})
     const_opt.generate_input()
     assert os.path.exists('xcontrol_opt')
     assert const_opt.flags == ['--chrg', '0',

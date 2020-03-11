@@ -8,6 +8,7 @@ from rdkit.Chem import Mol
 import numpy as np
 import pytest
 from autode.transition_states.locate_tss import get_reactant_and_product_complexes
+from autode.mol_graphs import reac_graph_to_prods
 
 
 h2 = Molecule(name='h2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
@@ -88,7 +89,7 @@ def test_set_pi_bonds():
     assert mol.pi_bonds == [(0, 1)]
 
     mol2 = Molecule(smiles='C=CC=C')
-    assert mol2.pi_bonds == [(0, 1), (1, 2), (2, 3)]
+    assert mol2.pi_bonds == [(0, 1), (2, 3)]
 
 
 def test_stripping_core():
@@ -97,24 +98,26 @@ def test_stripping_core():
     prod1 = Product(smiles='OC(CC(C)C)C1CC1CC')
     prod2 = Product(xyzs=[['Br', 0.0, 0.0, 0.0]], charge=-1)
     reaction = Reaction(reac1, reac2, prod1, prod2)
+    for mol in reaction.reacs + reaction.prods:
+        mol.charges = []
     reactant, _ = get_reactant_and_product_complexes(reaction)
     bond_rearrang = BondRearrangement(forming_bonds=[(1, 30)], breaking_bonds=[(0, 1)])
-
+    product_graph = reac_graph_to_prods(reactant.graph, bond_rearrang)
     # test get core atoms
-    assert reactant.get_core_atoms() is None
+    assert reactant.get_core_atoms(product_graph) is None
 
     reactant.active_atoms = [0, 1, 30]
-    core1 = reactant.get_core_atoms(depth=2)
+    core1 = reactant.get_core_atoms(product_graph, depth=2)
     assert len(core1) == 15
 
-    core2 = reactant.get_core_atoms(depth=3)
+    core2 = reactant.get_core_atoms(product_graph, depth=3)
     assert len(core2) == 17
 
-    core3 = reactant.get_core_atoms(depth=5)
+    core3 = reactant.get_core_atoms(product_graph, depth=5)
     assert len(core3) == 32
 
     reactant.pi_bonds = [[2, 3]]
-    core4 = reactant.get_core_atoms(depth=2)
+    core4 = reactant.get_core_atoms(product_graph, depth=2)
     assert len(core4) == 17
 
     # test strip core
