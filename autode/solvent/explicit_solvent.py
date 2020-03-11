@@ -1,9 +1,6 @@
 import os
 import numpy as np
 from autode.log import logger
-from autode.geom import xyz2coord
-from autode.geom import coords2xyzs
-from autode.geom import calc_rotation_matrix
 from autode.config import Config
 from autode.solvent.qmmm import QMMM
 from multiprocessing import Pool
@@ -11,21 +8,21 @@ from math import ceil, floor
 
 
 def add_solvent_molecules(solute, solvent, n_solvent_mols):
-    """Add a specific number of solvent molecules around a solute
+    """Add a specific number of solvent_name molecules around a solute
 
     Arguments:
         solute (mol obj) -- solute molecule
-        solvent (mol obj) -- solvent molecule
-        n_solvent_mols (int) -- number of solvent molecules desired
+        solvent (mol obj) -- solvent_name molecule
+        n_solvent_mols (int) -- number of solvent_name molecules desired
 
     Returns:
         list, list, list, list -- solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges
     """
     np.random.seed()
 
-    logger.info(f'Adding solvent molecules around {solute.name}')
+    logger.info(f'Adding solvent_name molecules around {solute.name}')
 
-    # centre solvent
+    # centre solvent_name
     solvent_coords = xyz2coord(solvent.xyzs)
     solvent_centre = np.average(solvent_coords, axis=0)
     solvent_coords -= solvent_centre
@@ -61,7 +58,7 @@ def add_solvent_molecules(solute, solvent, n_solvent_mols):
         i += 1
     for i, solvent_coords in enumerate(solvent_coords_on_sphere):
         distances.append(np.linalg.norm(solvent_coords))
-    # only take closest solvent molecules
+    # only take closest solvent_name molecules
     sorted_by_dist_coords = [x for _, x in sorted(zip(distances, solvent_coords_on_sphere))]
     for i, solvent_coords in enumerate(sorted_by_dist_coords):
         if i == n_solvent_mols:
@@ -77,16 +74,16 @@ def add_solvent_molecules(solute, solvent, n_solvent_mols):
 
 
 def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult):
-    """Packs solvent molecules semi-evenly on a sphere around the solvent molecule
+    """Packs solvent_name molecules semi-evenly on a sphere around the solvent_name molecule
 
     Arguments:
-        solvent_coords (np.array) -- solvent molecule coords
+        solvent_coords (np.array) -- solvent_name molecule coords
         radius (float) -- radius of the solute molecule
         solvent_mol_area (float) -- rough top down area of the molecule
-        radius_mult (int) -- multiplier to use on the radius to get the radius of this sphere of solvent
+        radius_mult (int) -- multiplier to use on the radius to get the radius of this sphere of solvent_name
 
     Returns:
-        np.array -- coords of the solvent molecules on the sphere
+        np.array -- coords of the solvent_name molecules on the sphere
     """
     rad_to_use = (radius * radius_mult * 0.8) + 0.4
     solvent_coords_on_sphere = []
@@ -118,13 +115,13 @@ def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult)
 
 
 def random_rot_solvent(coords):
-    """rotate the solvent molecule randomly
+    """rotate the solvent_name molecule randomly
 
     Arguments:
-        coords (np.array) -- coords of solvent molecule
+        coords (np.array) -- coords of solvent_name molecule
 
     Returns:
-        np.array -- rotated coords of solvent molecule
+        np.array -- rotated coords of solvent_name molecule
     """
     axis = np.random.rand(3)
     theta = np.random.rand() * np.pi * 2
@@ -180,7 +177,7 @@ def run(solute, solvent, n_qm_solvent_mols, method, i):
 
 
 def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=192, n_qm_solvent_mols=50):
-    """Run explicit solvent qmmm calculations to find the lowest energy of the solvated molecule
+    """Run explicit solvent_name qmmm calculations to find the lowest energy of the solvated molecule
 
     Arguments:
         solute (mol obj) -- molecule to be solvated, all coords will be fixed
@@ -188,8 +185,8 @@ def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=192, n_qm_solvent_
         method (ESW method) -- method to use for QM calculations
 
     Keyword Arguments:
-        n_confs (int) -- number of differenct solvent configurations to calculate (default: {192})
-        n_qm_solvent_mols (int) -- number of solvent molecules to place around the solute (default: {30})
+        n_confs (int) -- number of differenct solvent_name configurations to calculate (default: {192})
+        n_qm_solvent_mols (int) -- number of solvent_name molecules to place around the solute (default: {30})
 
     Returns:
         float, list, int -- energy, xyzs, n_qm_atoms

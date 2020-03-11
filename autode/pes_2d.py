@@ -30,7 +30,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         name (str): name of reaction
         reaction_class (object): class of the reaction (reactions.py)
         method (object): electronic structure wrapper to use for the calcs
-        keywords (list): keywords to use in the calcs
+        keywords (list): keywords_list to use in the calcs
 
     Keyword Arguments:
         delta_dist1 (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
@@ -67,12 +67,12 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         const_opt = Calculation(name=name + f'_scan0_{n}', molecule=molecule, method=method, opt=True,
                                 n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
                                                                               active_bond2: dist_grid2[0][n]},
-                                keywords=keywords)
+                                keywords_list=keywords)
         const_opt.run()
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
             # Set the new xyzs of the molecule
-            mol_grid[0][n].xyzs = const_opt.get_final_xyzs()
+            mol_grid[0][n].xyzs = const_opt.get_final_atoms()
         except XYZsNotFound:
             mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else mol.xyzs
 
@@ -94,9 +94,9 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             if Config.n_cores % n_steps != 0:
                 logger.warning(f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a multiple of {n_steps} cores')
 
-        calcs = [Calculation(name+f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
-                             keywords=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
-                                                                      active_bond2: dist_grid2[i][n]})
+        calcs = [Calculation(name +f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
+                             keywords_list=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
+                                                                           active_bond2: dist_grid2[i][n]})
                  for n in range(n_steps)]
 
         [calc.generate_input() for calc in calcs]
@@ -117,7 +117,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             calcs[n].terminated_normally = calcs[n].calculation_terminated_normally()
             # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
             try:
-                mol_grid[i][n].xyzs = calcs[n].get_final_xyzs()
+                mol_grid[i][n].xyzs = calcs[n].get_final_atoms()
             except XYZsNotFound:
                 mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
 
@@ -166,12 +166,12 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     tsguess_mol.set_xyzs(xyzs=saddle_point_xyzs)
 
     logger.info('Running a constrain optimisation for the analytic saddlepoint distances')
-    ts_const_opt = Calculation(name+'_saddlepoint_opt', tsguess_mol, method, n_cores=Config.n_cores, opt=True,
-                               keywords=keywords, distance_constraints={active_bond1: saddlepoint[0],
-                                                                        active_bond2: saddlepoint[1]})
+    ts_const_opt = Calculation(name +'_saddlepoint_opt', tsguess_mol, method, n_cores=Config.n_cores, opt=True,
+                               keywords_list=keywords, distance_constraints={active_bond1: saddlepoint[0],
+                                                                             active_bond2: saddlepoint[1]})
     ts_const_opt.run()
     try:
-        tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_xyzs())
+        tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_atoms())
     except XYZsNotFound:
         pass
 

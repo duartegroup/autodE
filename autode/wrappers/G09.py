@@ -1,12 +1,8 @@
 from autode.config import Config
 from autode.log import logger
-from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.geom import coords2xyzs
-from autode.input_output import xyzs2xyzfile
 from copy import deepcopy
 import numpy as np
-import os
 
 
 class G09(ElectronicStructureMethod):
@@ -14,7 +10,7 @@ class G09(ElectronicStructureMethod):
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_g09.com'
         calc.output_filename = calc.name + '_g09.log'
-        keywords = calc.keywords.copy()
+        keywords = calc.keywords_list.copy()
 
         if calc.distance_constraints or calc.cartesian_constraints or calc.bond_ids_to_add:
             keywords.append('Geom=ModRedun')
@@ -62,7 +58,7 @@ class G09(ElectronicStructureMethod):
             print('#', *keywords, file=inp_file, end=' ')
 
             if calc.solvent_keyword:
-                print(f'scrf=(smd,solvent={calc.solvent_keyword})', file=inp_file)
+                print(f'scrf=(smd,solvent_name={calc.solvent_keyword})', file=inp_file)
             else:
                 print('', file=inp_file)
 
@@ -104,9 +100,9 @@ class G09(ElectronicStructureMethod):
             if 'Bend failed for angle' in line:
                 logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
                 cart_calc = deepcopy(calc)
-                for keyword in cart_calc.keywords.copy():
+                for keyword in cart_calc.keywords_list.copy():
                     if keyword.lower().startswith('geom'):
-                        cart_calc.keywords.remove(keyword)
+                        cart_calc.keywords_list.remove(keyword)
                     elif keyword.lower().startswith('opt'):
                         options = []
                         if '=(' in keyword:
@@ -125,11 +121,11 @@ class G09(ElectronicStructureMethod):
                         new_keyword = 'Opt=('
                         new_keyword += ', '.join(options)
                         new_keyword += ')'
-                        cart_calc.keywords.remove(keyword)
-                        cart_calc.keywords.append(new_keyword)
+                        cart_calc.keywords_list.remove(keyword)
+                        cart_calc.keywords_list.append(new_keyword)
 
                 cart_calc.name += '_cartesian'
-                cart_calc.xyzs = calc.get_final_xyzs()
+                cart_calc.xyzs = calc.get_final_atoms()
                 cart_calc.distance_constraints = None
                 cart_calc.cartesian_constraints = None
                 cart_calc.bond_ids_to_add = None
@@ -152,7 +148,7 @@ class G09(ElectronicStructureMethod):
 
                 fixed_angle_calc = deepcopy(calc)
                 fixed_angle_calc.name += '_internal'
-                fixed_angle_calc.xyzs = cart_calc.get_final_xyzs()
+                fixed_angle_calc.xyzs = cart_calc.get_final_atoms()
                 fixed_angle_calc.input_filename = None
                 fixed_angle_calc.output_filename = None
                 fixed_angle_calc.output_file_exists = False
@@ -286,7 +282,6 @@ class G09(ElectronicStructureMethod):
                 except ValueError:
                     pass
 
-        xyzs = coords2xyzs(coords, calc.xyzs)
 
         zero_xyzs = False
         for xyz in xyzs:
@@ -296,8 +291,6 @@ class G09(ElectronicStructureMethod):
                 else:
                     zero_xyzs = True
 
-        xyz_filename = f'{calc.name}_g09.xyz'
-        xyzs2xyzfile(xyzs, xyz_filename)
 
         return xyzs
 
@@ -344,10 +337,7 @@ class G09(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='g09', path=Config.G09.path,
-                         scan_keywords=Config.G09.scan_keywords,
-                         conf_opt_keywords=Config.G09.conf_opt_keywords,
-                         opt_keywords=Config.G09.opt_keywords,
-                         opt_ts_keywords=Config.G09.opt_ts_keywords,
-                         hess_keywords=Config.G09.hess_keywords,
-                         sp_keywords=Config.G09.sp_keywords)
+        super().__init__(name='g09', path=Config.G09.path, keywords=Config.G09.keywords)
+
+
+g09 = G09()

@@ -1,4 +1,43 @@
 from autode.log import logger
+import numpy as np
+
+
+class Atom:
+
+    def __repr__(self):
+        return f'[{self.label}, {self.coord[0]:.4f}, {self.coord[1]:.4f}, {self.coord[2]:.4f}]'
+
+    def translate(self, vec):
+        """Translate this atom by a vector (np.ndarray, length 3)"""
+        self.coord += vec
+        return None
+
+    def rotate(self, axis, theta):
+        """Rotate this atom by theta radians (float) in an axis (np.ndarray, length 3)"""
+
+        # Normalise the axis
+        axis = np.asarray(axis)
+        axis = axis / np.linalg.norm(axis)
+
+        # Compute the 3D rotation matrix using https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
+        a = np.cos(theta / 2.0)
+        b, c, d = -axis * np.sin(theta / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                               [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                               [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+        # Apply the rotation
+        self.coord = np.matmul(rot_matrix, self.coord)
+
+        return None
+
+    def __init__(self, atomic_symbol, x, y, z):
+
+        self.label = atomic_symbol
+        self.coord = np.array([x, y, z])
+
 
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],
@@ -86,3 +125,6 @@ def get_vdw_radius(atom_label):
     else:
         logger.error(f'Couldn\'t find the VdV radii for {atom_label}. Guessing at 2.3')
         return 2.3
+
+
+

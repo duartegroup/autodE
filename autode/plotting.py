@@ -85,7 +85,7 @@ def plot_1dpes(rs, rel_energies, method, scan_name, plot_name='1d_scan'):
     elif 'bbond' in scan_name:
         plot_name += '_bbond'
 
-    # close the plot so different scan types don't get drawn on top of each other
+    # close the plot so different scan types don't get drawn on top of each optts_block
     if not os.path.exists(plot_name + file_extension):
         plt.close()
 

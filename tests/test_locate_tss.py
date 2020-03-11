@@ -5,7 +5,7 @@ from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.template_ts_guess import get_template_ts_guess
 import autode.bond_rearrangement as bond_rearrangement
 
-# h + h > h2 dissociation
+# h + h > mol dissociation
 h_product_1 = molecule.Product(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
 h_product_2 = molecule.Product(name='H', xyzs=[['H', 1.0, 0.0, 0.0]])
 hh_reactant = molecule.Reactant(name='H2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
@@ -15,7 +15,7 @@ for mol in dissoc_reaction.reacs + dissoc_reaction.prods:
 dissoc_reactant, dissoc_product = locate_tss.get_reactant_and_product_complexes(dissoc_reaction)
 dissoc_rearrangs = locate_tss.get_bond_rearrangs(dissoc_reactant, dissoc_product)
 
-# h2 + h > h + h2 substitution
+# mol + h > h + mol substitution
 h_reactant = molecule.Reactant(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
 hh_product = molecule.Product(name='H2', xyzs=[['H', 0.7, 0.0, 0.0], ['H', 1.4, 0.0, 0.0]])
 subs_reaction = reaction.Reaction(name='subs', mol1=h_reactant, mol2=hh_reactant, mol3=hh_product, mol4=h_product_2)
@@ -81,7 +81,7 @@ def test_get_reac_and_prod_complexes():
     assert len(rearrang_reactant.xyzs) == 7
     assert len(rearrang_product.xyzs) == 7
 
-    # h + ch3ch2cl > h2 + ch2ch2 + Cl
+    # h + ch3ch2cl > mol + ch2ch2 + Cl
     propyl_chloride = molecule.Reactant(smiles='CCCl')
     chlorine = molecule.Product(xyzs=[['Cl', 0.0, 0.0, 0.0]])
     ethene = molecule.Product(smiles='C=C')

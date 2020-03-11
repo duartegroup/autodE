@@ -14,9 +14,10 @@ vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitri
 class ORCA(ElectronicStructureMethod):
 
     def generate_input(self, calc):
+
         calc.input_filename = calc.name + '_orca.inp'
         calc.output_filename = calc.name + '_orca.out'
-        keywords = calc.keywords.copy()
+        keywords = calc.keywords_list.copy()
 
         opt_or_sp = False
 
@@ -46,8 +47,8 @@ class ORCA(ElectronicStructureMethod):
                 else:
                     print('%cpcm\nsmd true\nSMDsolvent \"' + calc.solvent_keyword + '\"\nend', file=inp_file)
 
-            if calc.optts_block:
-                print(calc.optts_block, file=inp_file)
+            if calc.other_input_block:
+                print(calc.other_input_block, file=inp_file)
                 if calc.core_atoms and calc.n_atoms > 25 and not calc.partial_hessian:
                     core_atoms_str = ' '.join(map(str, calc.core_atoms))
                     print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
@@ -106,8 +107,8 @@ class ORCA(ElectronicStructureMethod):
     def calculation_terminated_normally(self, calc):
 
         for n_line, line in enumerate(calc.rev_output_file_lines):
-            if any(substring in line for substring in['ORCA TERMINATED NORMALLY', 'The optimization did not converge']):
-                logger.info('ORCA terminated normally')
+            if any(substring in line for substring in['orca TERMINATED NORMALLY', 'The optimization did not converge']):
+                logger.info('orca terminated normally')
                 return True
             if n_line > 30:
                 # The above lines are pretty close to the end of the file – there's no point parsing it all
@@ -239,12 +240,7 @@ class ORCA(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='orca', path=Config.ORCA.path,
-                         scan_keywords=Config.ORCA.scan_keywords,
-                         conf_opt_keywords=Config.ORCA.conf_opt_keywords,
-                         gradients_keywords=Config.ORCA.gradients_keywords,
-                         opt_keywords=Config.ORCA.opt_keywords,
-                         opt_ts_keywords=Config.ORCA.opt_ts_keywords,
-                         hess_keywords=Config.ORCA.hess_keywords,
-                         opt_ts_block=Config.ORCA.opt_ts_block,
-                         sp_keywords=Config.ORCA.sp_keywords)
+        super().__init__(name='orca', path=Config.ORCA.path, keywords=Config.ORCA.keywords)
+
+
+orca = ORCA()

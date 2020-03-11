@@ -111,7 +111,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         reactant (mol obj): reactant complex
         product (mol obj): product complex
         bond_rearrang (bond rearrang obj): bond rearrangement being scanned
-        solvent_mol (mol obj): solvent mol, if this is not None explicit qmmm will be done
+        solvent_mol (mol obj): solvent_name mol, if this is not None explicit qmmm will be done
 
     Returns:
         list: updated funcs and params list
@@ -243,7 +243,7 @@ def gen_two_mol_complex(name, mol1, mol2, mol2_shift_dist=100):
         mol obj: combined molecule object
     """
     complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_dist] for xyz in mol2.xyzs],
-                           solvent=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
+                           solvent_name=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
     complex_mol.charges = mol1.charges + mol2.charges
     complex_mol.stereocentres = get_stereoatoms([mol1, mol2])
     complex_mol.pi_bonds = get_pi_bonds([mol1, mol2])
@@ -265,7 +265,7 @@ def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_dist=100, mol3_shif
         mol obj: combined molecule object
     """
     complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_dist] for xyz in mol2.xyzs] + [xyz[:3] + [xyz[3] + mol3_shift_dist] for xyz in mol3.xyzs],
-                           solvent=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
+                           solvent_name=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
     complex_mol.charges = mol1.charges + mol2.charges + mol3.charges
     complex_mol.stereocentres = get_stereoatoms([mol1, mol2, mol3])
     complex_mol.pi_bonds = get_pi_bonds([mol1, mol2, mol3])
@@ -324,7 +324,7 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
         reactant (mol obj): reactant complex
         product (mol obj): product complex
         bond_rearrangement (bond rearrang boj): bond rearrangement being used
-        solvent_mol (mol obj): solvent mol, can be none to not do qmmm
+        solvent_mol (mol obj): solvent_name mol, can be none to not do qmmm
         strip_molecule (bool, optional): If true then the molecule will try and be stripped to make the scan calculations faster. The whole TS can the be found from the template made. Defaults to True.
 
     Returns:

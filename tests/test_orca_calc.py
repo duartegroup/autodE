@@ -15,14 +15,14 @@ def test_orca_opt_calculation():
 
     os.chdir(os.path.join(here, 'data'))
 
-    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
+    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent_name='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
+                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
     calc.run()
 
     assert os.path.exists('opt_orca.inp') is True
     assert os.path.exists('opt_orca.out') is True
-    assert len(calc.get_final_xyzs()) == 5
+    assert len(calc.get_final_atoms()) == 5
     assert calc.get_energy() == -499.730559818596
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
@@ -46,9 +46,9 @@ def test_orca_optts_calculation():
     os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
-                       keywords=['Opt', 'PBE0', 'RIJCOSX',
+                       keywords_list=['Opt', 'PBE0', 'RIJCOSX',
                                  'D3BJ', 'def2-SVP', 'def2/J'],
-                       optts_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
+                       other_input_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
     calc.run()
 
     assert calc.get_normal_mode_displacements(mode_number=6) is not None
@@ -69,7 +69,7 @@ def test_bad_orca_output():
 
     assert calc.get_energy() is None
     with pytest.raises(XYZsNotFound):
-        calc.get_final_xyzs()
+        calc.get_final_atoms()
 
     with pytest.raises(NoInputError):
         calc.execute_calculation()
@@ -81,13 +81,13 @@ def test_subprocess_to_output():
 
     calc = Calculation(name='test', molecule=test_mol, method=method)
 
-    # Can't execute ORCA in the CI environment so check at least the subprocess works
+    # Can't execute orca in the CI environment so check at least the subprocess works
     calc.input_filename = 'test_subprocess.py'
     with open(calc.input_filename, 'w') as test_file:
         print("print('hello world')", file=test_file)
     calc.output_filename = 'test_subprocess.out'
 
-    # Overwrite the ORCA path
+    # Overwrite the orca path
     calc.method.path = 'python'
     calc.execute_calculation()
 

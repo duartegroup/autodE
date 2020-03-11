@@ -1,40 +1,37 @@
 import numpy as np
+from scipy.spatial import distance_matrix
+from autode.log import logger
 
 
-def xyz2coord(xyzs):
+def are_coords_reasonable(coords):
     """
-    For a set of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] convert to a np array of coordinates, containing just
-    just the x, y, z coordinates
+    Determine if a set of coords are reasonable. No distances can be < 0.7 Å and if there are more than 4 atoms ensure
+    they do not all lie in the same plane. The latter possibility arises from RDKit's conformer generation algorithm
+    breaking
+
 
     Arguments:
-        xyzs (list(list)): List of xyzs
+        coords (np.ndarray): Species coordinates as a n_atoms x 3 array
 
     Returns:
-        np.array: array of coords
+        bool:
     """
-    if isinstance(xyzs[0], list):
-        return np.array([np.array(line[1:4]) for line in xyzs])
-    else:
-        return np.array(xyzs[1:4])
 
+    n_atoms = len(coords)
 
-def coords2xyzs(coords, old_xyzs):
-    """Insert a set of coordinates into a set of xyzs to a new list of xyzs
+    # Generate a n_atoms x n_atoms matrix
+    distance_matrix_unity_diag = distance_matrix(coords, coords) + np.identity(n_atoms)
 
-    Arguments:
-        coords (np.array): array of coordinates
-        old_xyzs (list(lists)): list of old xyzs
+    if np.min(distance_matrix_unity_diag) < 0.7:
+        logger.warning('There is a distance < 0.7 Å. Structure is *not* sensible')
+        return False
 
-    Returns:
-        list(list): coords in xyz form
-    """
-    if isinstance(old_xyzs[0], list):
-        assert len(old_xyzs) == len(coords)
-        return [[old_xyzs[n][0]] + coords[n].tolist() for n in range(len(old_xyzs))]
-    else:
-        assert len(old_xyzs) == 4
-        assert len(coords) == 3
-        return [old_xyzs[0]] + coords.tolist()
+    if n_atoms > 4:
+        if all([coord[2] == 0.0 for coord in coords]):
+            logger.warning('RDKit likely generated a wrong geometry. Structure is *not* sensible')
+            return False
+
+    return True
 
 
 def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
@@ -72,28 +69,6 @@ def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
     return new_xyzs
 
 
-def calc_distance_matrix(xyzs):
-    """Calculate a distance matrix
-
-    Arguments:
-        xyzs (list(list)): list of xyzs
-
-    Returns:
-        np.array: array of distances between all the atoms
-    """
-
-    n_atoms = len(xyzs)
-    coords = xyz2coord(xyzs)
-    distance_matrix = np.zeros([n_atoms, n_atoms])
-
-    for atom_i in range(n_atoms):
-        for atom_j in range(n_atoms):
-            dist = np.linalg.norm(coords[atom_i] - coords[atom_j])
-            distance_matrix[atom_i, atom_j] = dist
-
-    return distance_matrix
-
-
 def get_neighbour_list(atom_i, mol):
     """Calculate a neighbour list from atom i as a list of atom labels
 
@@ -116,26 +91,6 @@ def get_neighbour_list(atom_i, mol):
     return atom_label_neighbour_list
 
 
-def calc_rotation_matrix(axis, theta):
-    """Return the rotation matrix associated with counterclockwise rotation about
-    the given axis by theta radians.
-
-    Arguments:
-        axis (np.array}: axis to be rotated about
-        theta (float): angle in radians to be rotated
-
-    Returns:
-        np.array: rotation matrix
-    """
-    axis = np.asarray(axis)
-    axis = axis/np.linalg.norm(axis)
-    a = np.cos(theta/2.0)
-    b, c, d = -axis*np.sin(theta/2.0)
-    aa, bb, cc, dd = a*a, b*b, c*c, d*d
-    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
 
 i = np.array([1.0, 0.0, 0.0])

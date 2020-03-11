@@ -1,6 +1,6 @@
 """
 Functions to get the high and low level electronic structure methods to use for example high-level methods would be
-ORCA and Gaussian09 which can perform DFT/WF theory calculations, low level methods are for example XTB and MOPAC which
+orca and Gaussian09 which can perform DFT/WF theory calculations, low level methods are for example xtb and mopac which
 are non ab-initio methods and are therefore considerably faster
 """
 from autode.config import Config
@@ -37,7 +37,7 @@ def get_hmethod():
 
         return method
     else:
-        # see if ORCA availaible, then Gaussian, then NWChem
+        # see if orca availaible, then Gaussian, then nwchem
         for method in [ORCA(), G09(), NWChem()]:
             method.set_availability()
             if method.available:
@@ -69,7 +69,7 @@ def get_lmethod():
 
         return method
     else:
-        # see if XTB availaible, then MOPAC
+        # see if xtb availaible, then mopac
         for method in [XTB(), MOPAC()]:
             method.set_availability()
             if method.available:

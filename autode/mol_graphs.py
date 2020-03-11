@@ -2,25 +2,42 @@ from autode.log import logger
 import networkx as nx
 import multiprocessing as mp
 from networkx.algorithms import isomorphism
-from autode.bond_lengths import get_xyz_bond_list
+from scipy.spatial import distance_matrix
+from autode.bond_lengths import get_avg_bond_length
 
 
-def make_graph(xyzs, n_atoms, bonds=None):
+def make_graph(species, rel_tolerance=0.2):
+    """
+    Make the molecular graph from the 'bonds' determined on a distance criteria. No distinction is made between
+    single, double etc. bond types
+
+    Keyword Arguments:
+        rel_tolerance (float):
+    :return: None
+    """
     logger.info('Generating molecular graph with networkx')
 
     graph = nx.Graph()
-    for i in range(n_atoms):
-        graph.add_node(i, atom_label=xyzs[i][0])
+    for i in range(species.n_atoms):
+        graph.add_node(i, atom_label=species.atoms[i].label)
 
-    if bonds is None:
-        bonded_atom_list = get_xyz_bond_list(xyzs)
-    else:
-        bonded_atom_list = bonds
+    coordinates = species.get_coordinates()
+    dist_mat = distance_matrix(coordinates, coordinates)
 
-    for pair in bonded_atom_list:
-        graph.add_edge(*pair)
+    # Loop over the unique pairs of atoms and add 'bonds'
+    for i in range(species.n_atoms):
+        for j in range(i + 1, species.n_atoms):
 
-    return graph
+            avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
+                                                  atom_j_label=species.atoms[j].label)
+
+            # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
+            if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance):
+                graph.add_edge(i, j)
+
+    species.graph = graph
+
+    return None
 
 
 def is_subgraph_isomorphic(larger_graph, smaller_graph):

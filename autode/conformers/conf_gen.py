@@ -3,11 +3,9 @@ import numpy as np
 import networkx as nx
 from scipy.optimize import minimize
 from autode.bond_lengths import get_ideal_bond_length_matrix
+from autode.input_output import xyz_file_to_atoms
 from autode.log import logger
 from autode.config import Config
-from autode.geom import xyz2coord
-from autode.geom import coords2xyzs
-from autode.geom import calc_rotation_matrix
 from autode.mol_graphs import split_mol_across_bond
 from multiprocessing import Pool
 from cconf_gen import do_md
@@ -24,32 +22,26 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return final_coords
 
 
-def simanl(name, xyzs, bonds, dist_consts, non_random_atoms, stereocentres, n):
+def get_simanl_atoms(species, bond_list, dist_consts=None, non_random_atoms=None, conf_n=0):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
     Arguments:
-        name (str): name of the molecule to run, needed to check for existing confs
-        xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
-        bonds (list(tuples)): defining which atoms are bonded together
-        dist_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
-        non_random_atoms (list): atoms that must not be randomly placed, to keep stereochem
-        stereocentres (list): list of stereocentres
-        n (int): number of generated conformer
+        species (autode.species.Species): Species, Molecule, TSguess, TS
+        bond_list (list(tuple(int))): List of atom indexes to consider as bonds in the conformer generation algorithm
+        dist_consts (dict): Key = tuple of atom indexes, Value = distance
+        non_random_atoms (list(int)): List of atom indexes that won't be randomised in the conformer generation
+        conf_n (int): Number of this conformer generated
 
     Returns:
-        list(list): e.g. [['C', 0.0, 0.0, 0.0], ...]
+        (np.ndarray): Coordinates of the generated conformer
     """
 
-    xyz_file_name_start = f'{name}_conf{n}'
+    xyz_filename = f'{species.name}_conf{conf_n}.xyz'
+
     for filename in os.listdir(os.getcwd()):
-        if filename.startswith(xyz_file_name_start) and filename.endswith('.xyz'):
-            xyzs = []
-            with open(filename, 'r') as file:
-                for line_no, line in enumerate(file):
-                    if line_no > 1:
-                        atom_label, x, y, z = line.split()
-                        xyzs.append([atom_label, float(x), float(y), float(z)])
-            return xyzs
+        if filename == xyz_filename:
+            logger.info('Conformer has already been generated')
+            return xyz_file_to_atoms(filename=filename)
 
     np.random.seed()
 
@@ -57,7 +49,7 @@ def simanl(name, xyzs, bonds, dist_consts, non_random_atoms, stereocentres, n):
     temp = 10
     dt = 0.001
     k = 10000
-    d0 = get_ideal_bond_length_matrix(xyzs, bonds)
+    d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=bond_list)
     c = 100
     fixed_bonds = []
     if dist_consts is not None:
@@ -72,7 +64,7 @@ def simanl(name, xyzs, bonds, dist_consts, non_random_atoms, stereocentres, n):
 
     coords = xyz2coord(xyzs)
 
-    # if two stereocentres are bonded, rotate them randomly wrt each other
+    # if two stereocentres are bonded, rotate them randomly wrt each optts_block
     if stereocentres is not None:
         for atom1 in stereocentres:
             for atom2 in stereocentres:
@@ -102,7 +94,7 @@ def simanl(name, xyzs, bonds, dist_consts, non_random_atoms, stereocentres, n):
     return xyzs
 
 
-def gen_simanl_conf_xyzs(name, init_xyzs, bond_list, stereocentres, dist_consts={}, n_simanls=40):
+def get_simanl_conformers(name, init_xyzs, bond_list, stereocentres, dist_consts={}, n_simanls=40):
     """Generate conformer xyzs using the cconf_gen Cython code, which is compiled when setup.py install is run.
 
     Arguments:

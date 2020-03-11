@@ -10,7 +10,7 @@ def get_ts_guess_constrained_opt(mol, keywords, name, distance_consts, reaction_
 
     Arguments:
         mol (molecule object): molecule to opt
-        keywords (list): keywords to use in the calc
+        keywords (list): keywords_list to use in the calc
         name (name): ts guess name
         distance_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at
         reaction_class (object): reaction type (reactions.py)
@@ -24,10 +24,10 @@ def get_ts_guess_constrained_opt(mol, keywords, name, distance_consts, reaction_
 
     opt_mol_with_const = deepcopy(mol)
     const_opt = Calculation(name=name + '_constrained_opt', molecule=opt_mol_with_const, method=mol.method,
-                            keywords=keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core,
+                            keywords_list=keywords, n_cores=Config.n_cores, max_core_mb=Config.max_core,
                             distance_constraints=distance_consts)
     const_opt.run()
-    opt_mol_with_const.xyzs = const_opt.get_final_xyzs()
+    opt_mol_with_const.xyzs = const_opt.get_final_atoms()
     opt_mol_with_const.energy = const_opt.get_energy()
 
     return TSguess(name=name, reaction_class=reaction_class, molecule=opt_mol_with_const,

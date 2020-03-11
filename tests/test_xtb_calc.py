@@ -19,7 +19,7 @@ def test_xtb_calculation():
 
     assert os.path.exists('opt_xtb.xyz') is True
     assert os.path.exists('opt_xtb.out') is True
-    assert len(calc.get_final_xyzs()) == 22
+    assert len(calc.get_final_atoms()) == 22
     assert calc.get_energy() == -36.962231783045
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None

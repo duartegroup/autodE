@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=joseph)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/joseph/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/joseph) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=equiv_atoms)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/equiv_atoms/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/joseph) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ![alt text](autode/common/llogo.png)
 ***
@@ -9,12 +9,6 @@ profiles from just SMILES strings of reactant(s) and product(s).
 
 ***
 
-## Installation
-
-If the requirements are already satisfied to install **autodE** as a module
-```
-python setup.py install
-```
 
 ### Dependencies
 * [Python](https://www.python.org/) > v. 3.5
@@ -30,10 +24,17 @@ The Python dependencies are listed in requirements.txt best satisfied using a co
 ```
 conda config --append channels conda-forge
 conda config --append channels conda-forge --append channels omnia
-conda activate autode_env
+conda install --file requirements.txt
 ```
 
 ***
+
+## Installation
+
+Once the requirements are satisfied to install **autodE** as a module
+```
+python setup.py install
+```
 
 ## Usage
 

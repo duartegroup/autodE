@@ -3,8 +3,6 @@ from autode.config import Config
 from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mode
 from autode.transition_states.optts import ts_has_correct_imaginary_vector
 from autode.calculation import Calculation
-from autode.geom import xyz2coord
-from autode.mol_graphs import make_graph
 from copy import deepcopy
 from copy import copy
 
@@ -26,7 +24,7 @@ class TSguess:
             if self.optts_calc.optimisation_nearly_converged():
                 logger.info('OptTS nearly did converge. Will try more steps')
                 self.optts_nearly_converged = True
-                all_xyzs = self.optts_calc.get_final_xyzs()
+                all_xyzs = self.optts_calc.get_final_atoms()
                 self.xyzs = all_xyzs[:self.n_atoms]
                 if self.qm_solvent_xyzs is not None:
                     self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
@@ -41,17 +39,17 @@ class TSguess:
 
         return
 
-    def do_displacements(self, magnitude=0.75):
+    def do_displacements(self, size=0.75):
         """Attempts to remove second imaginary mode by displacing either way along it
 
         Keyword Arguments:
-            magnitude (float): magnitude to displace along (default: {0.75})
+            size (float): magnitude to displace along (default: {0.75})
         """
         mode_lost = False
         imag_freqs = []
         orig_optts_calc = deepcopy(self.optts_calc)
         orig_name = copy(self.name)
-        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=magnitude)
+        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=size)
         self.name += '_dis'
         self.run_optts()
         if self.calc_failed:
@@ -64,7 +62,8 @@ class TSguess:
             if not self.calc_failed:
                 imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
                 if len(imag_freqs) > 1:
-                    logger.warning(f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, trying displacement backwards')
+                    logger.warning(f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, '
+                                   f'trying displacement backwards')
                 if len(imag_freqs) == 1:
                     logger.info('Displacement fixed multiple imaginary modes')
                     return
@@ -75,7 +74,8 @@ class TSguess:
         if len(imag_freqs) > 1 or mode_lost:
             self.optts_calc = orig_optts_calc
             self.name = orig_name
-            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=-1 * magnitude)
+            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms,
+                                                                displacement_magnitude=-size)
             self.name += '_dis2'
             self.run_optts()
             if self.calc_failed:
@@ -86,7 +86,7 @@ class TSguess:
             imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
 
             if len(imag_freqs) > 1:
-                logger.error('Couldn\'t remove other imaginary frequencies by displacement')
+                logger.error('Couldn\'t remove optts_block imaginary frequencies by displacement')
 
         return
 
@@ -96,7 +96,7 @@ class TSguess:
         Args:
             imag_freq_threshold (int, optional): If the imaginary mode has a higher (less negative) frequency than this it will not count as the right mode. Defaults to -50.
         """
-        logger.info('Getting ORCA out lines from OptTS calculation')
+        logger.info('Getting orca out lines from OptTS calculation')
 
         if self.qm_solvent_xyzs is not None:
             solvent_atoms = [i for i in range(self.n_atoms, self.n_atoms + len(self.qm_solvent_xyzs))]
@@ -104,7 +104,7 @@ class TSguess:
             solvent_atoms = None
 
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
-                                     keywords=self.method.hess_keywords, n_cores=Config.n_cores,
+                                     keywords_list=self.method.keywords.hess, n_cores=Config.n_cores,
                                      max_core_mb=Config.max_core, charges=self.point_charges,
                                      partial_hessian=solvent_atoms)
 
@@ -122,25 +122,27 @@ class TSguess:
             self.calc_failed = True
             return
 
-        if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds, threshold_contribution=0.1):
+        if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds,
+                                               threshold_contribution=0.1):
             self.calc_failed = True
             return
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
-                                      keywords=self.method.opt_ts_keywords, n_cores=Config.n_cores,
+                                      keywords_list=self.method.keywords.opt_ts, n_cores=Config.n_cores,
                                       max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
                                       partial_hessian=solvent_atoms, charges=self.point_charges,
-                                      optts_block=self.method.opt_ts_block, cartesian_constraints=solvent_atoms)
+                                      other_input_block=self.method.keywords.optts_block,
+                                      cartesian_constraints=solvent_atoms)
 
         self.optts_calc.run()
-        all_xyzs = self.optts_calc.get_final_xyzs()
+        all_xyzs = self.optts_calc.get_final_atoms()
         self.xyzs = all_xyzs[:self.n_atoms]
         if self.qm_solvent_xyzs is not None:
             self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
         return
 
     def get_imag_frequencies_xyzs_energy(self):
-        return self.optts_calc.get_imag_freqs(), self.optts_calc.get_final_xyzs(), self.optts_calc.get_energy()
+        return self.optts_calc.get_imag_freqs(), self.optts_calc.get_final_atoms(), self.optts_calc.get_energy()
 
     def get_coords(self):
         return xyz2coord(self.xyzs)

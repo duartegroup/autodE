@@ -1,7 +1,5 @@
 import numpy as np
 from autode.log import logger
-from autode.geom import coords2xyzs
-from autode.geom import calc_rotation_matrix
 from scipy.optimize import minimize
 from scipy.spatial import distance_matrix
 
@@ -18,8 +16,8 @@ def set_complex_xyzs_translated_rotated(reac_complex, prod_complex, reactants, b
         shift_factor (int): distance the reacting atoms should be apart
     """
     logger.info('Translating reactant atoms into reactive complex')
-    reac_complex_coords = reac_complex.get_coords()
-    prod_complex_coords = prod_complex.get_coords()
+    reac_complex_coords = reac_complex.get_coordinates()
+    prod_complex_coords = prod_complex.get_coordinates()
 
     attacked_atoms = get_attacked_atoms(bond_rearrangement)
 

@@ -1,7 +1,5 @@
 from autode.config import Config
-from autode.log import logger
 from autode.constants import Constants
-from autode.input_output import xyzs2xyzfile
 from autode.wrappers.base import ElectronicStructureMethod
 import numpy as np
 import os
@@ -12,7 +10,7 @@ class XTB(ElectronicStructureMethod):
     def generate_input(self, calc):
 
         calc.input_filename = calc.name + '_xtb.xyz'
-        xyzs2xyzfile(calc.xyzs, filename=calc.input_filename)
+        calc.molecule.print_xyz_file()
         calc.output_filename = calc.name + '_xtb.out'
 
         # Add
@@ -34,7 +32,7 @@ class XTB(ElectronicStructureMethod):
             xcontrol_filename = 'xcontrol_' + calc.name
             with open(xcontrol_filename, 'w') as xcontrol_file:
                 if calc.distance_constraints:
-                    for atom_ids in calc.distance_constraints.keys():  # XTB counts from 1 so increment atom ids by 1
+                    for atom_ids in calc.distance_constraints.keys():  # xtb counts from 1 so increment atom ids by 1
                         print(f'$constrain\nforce constant={force_constant}\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
                             atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
                             file=xcontrol_file)
@@ -82,7 +80,7 @@ class XTB(ElectronicStructureMethod):
             if 'ERROR' in line:
                 return False
             if n_line > 20:
-                # With XTB we will search for there being no '#ERROR!' in the last few lines
+                # With xtb we will search for there being no '#ERROR!' in the last few lines
                 return True
 
     def get_energy(self, calc):
@@ -159,4 +157,7 @@ class XTB(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='xtb', path=Config.XTB.path)
+        super().__init__(name='xtb', path=Config.XTB.path, keywords=Config.XTB.keywords)
+
+
+xtb = XTB()

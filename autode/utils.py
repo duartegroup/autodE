@@ -1,5 +1,6 @@
 import os
 from autode.log import logger
+from autode.exceptions import NoAtomsInMolecule
 from functools import wraps
 
 
@@ -25,3 +26,17 @@ def work_in(dir_ext):
 
         return wrapped_function
     return func_decorator
+
+
+def requires_atoms(func):
+    """A function requiring a number of atoms to run"""
+
+    @wraps(func)
+    def wrapped_function(species, *args, **kwargs):
+
+        if species.n_atoms == 0:
+            raise NoAtomsInMolecule
+
+        func(species, *args, **kwargs)
+
+    return wrapped_function

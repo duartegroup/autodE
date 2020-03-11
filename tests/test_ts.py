@@ -32,7 +32,7 @@ test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
                                       ['H', 0.0, -0.8, 0.7],
                                       ['H', -0.2, -0.3, -1.0],
                                       ['H', -0.2, 1.0, 0.3]],
-                                solvent='water', charge=-1)
+                                solvent_name='water', charge=-1)
 
 ts_guess_obj = ts_guess.TSguess(name='test_ts', molecule=test_ts_mol,
                                 active_bonds=[(0, 1), (1, 2)], reaction_class=Substitution)
@@ -82,7 +82,7 @@ def test_ts_guess_class():
     assert optts.check_close_imag_contribution(ts_guess_obj.optts_calc, 6, (test_ts_reac, test_ts_prod), method) == True
 
     # testing ts_guess.do_displacements
-    ts_guess_obj.do_displacements(magnitude=1)
+    ts_guess_obj.do_displacements(size=1)
     assert ts_guess_obj.xyzs[0] == ['F', -2, 0, 0]
 
     for filename in os.listdir(os.getcwd()):

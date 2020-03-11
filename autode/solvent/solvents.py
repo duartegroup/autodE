@@ -1,224 +1,216 @@
+from autode.exceptions import SolventNotFound
+
+
 def get_solvent(solvent_name):
-    variables = globals().copy()
-    for var in variables.values():
-        if isinstance(var, Solvent):
-            if solvent_name.lower() in var.aliases:
-                return var
-    return None
+    """For a named solvent_name return the autode.solvent_name.solvents.Solvent that is one of the aliases """
+
+    for solvent in solvents:
+        if solvent_name.lower() in solvent.aliases:
+            return solvent
+
+    raise SolventNotFound
 
 
-def get_available_solvents(method):
-    solvents = []
-    variables = globals().copy()
-    for var in variables.values():
-        if isinstance(var, Solvent):
-            if getattr(var, method):
-                solvents.append(var.name)
-    return None
+def get_available_solvent_names(method):
+    """For an autode.wrappers.base.ElectronicStructureMethod return those solvents that are available"""
+    return [solvent.name for solvent in solvents if getattr(solvent, method.name) is not None]
 
 
 class Solvent:
 
-    def __init__(self, name, smiles, aliases, ORCA=False, G09=False, NWChem=False, XTB=False, MOPAC=False):
+    def __init__(self, name, smiles, aliases, orca=None, g09=None, nwchem=None, xtb=None, mopac=None):
 
         self.name = name
         self.smiles = smiles
         self.aliases = aliases
-        self.ORCA = ORCA
-        self.G09 = G09
-        self.NWChem = NWChem
-        self.XTB = XTB
-        self.MOPAC = MOPAC
+        self.orca = orca
+        self.g09 = g09
+        self.nwchem = nwchem
+        self.xtb = xtb
+        self.mopac = mopac
 
 
-water_solv = Solvent(name='water', smiles='O', aliases=['water', 'h2o'], ORCA='water', G09='Water', NWChem='water', XTB='Water', MOPAC='water')
-dcm_solv = Solvent(name='dichloromethane', smiles='ClCCl', aliases=['dichloromethane', 'methyl dichloride', 'dcm'], ORCA='dichloromethane', G09='Dichloromethane', NWChem='dcm', XTB='CH2Cl2', MOPAC='dichloromethane')
-acetone_solv = Solvent(name='acetone', smiles='CC(C)=O', aliases=['acetone', 'propanone'], ORCA='acetone', G09='Acetone', NWChem='acetone', XTB='Acetone', MOPAC='acetone')
-acetonitrile_solv = Solvent(name='acetonitrile', smiles='CC#N', aliases=['acetonitrile', 'mecn', 'ch3cn'], ORCA='acetonitrile', G09='Acetonitrile', NWChem='acetntrl', XTB='Acetonitrile', MOPAC='acetonitrile')
-benzene_solv = Solvent(name='benzene', smiles='C1=CC=CC=C1', aliases=['benzene', 'cyclohexatriene'], ORCA='benzene', G09='Benzene', NWChem='benzene', XTB='Benzene', MOPAC='benzene')
-chloroform_solv = Solvent(name='trichloromethane', smiles='ClC(Cl)Cl', aliases=['chloroform', 'trichloromethane', 'chcl3', 'methyl trichloride'], ORCA='chloroform', G09='Chloroform', NWChem='chcl3', XTB='CHCl3', MOPAC='chloroform')
-cs2_solv = Solvent(name='cs2', smiles='S=C=S', aliases=['cs2', 'methanedithione', 'carbon bisulfide'], ORCA='carbon disulfide', G09='CarbonDiSulfide', NWChem='cs2', XTB='CS2', MOPAC='cs2')
-dmf_solv = Solvent(name='dmf', smiles='O=CN(C)C', aliases=['dmf', 'dimethylformamide', 'n,n-dimethylformamide'], ORCA='n,n-dimethylformamide', G09='n,n-DiMethylFormamide', NWChem='dmf', XTB='DMF', MOPAC='n,n-dimethylformamide')
-dmso_solv = Solvent(name='dmso', smiles='O=S(C)C', aliases=['dmso', 'dimethylsulfoxide'], ORCA='dimethylsulfoxide', G09='DiMethylSulfoxide', NWChem='dmso', XTB='DMSO', MOPAC='dmso')
-ether_solv = Solvent(name='diethyl ether', smiles='CCOCC', aliases=['diethyl ether', 'ether', 'Ethoxyethane'], ORCA='diethyl ether', G09='DiethylEther', NWChem='ether', XTB='Ether', MOPAC='ether')
-methanol_solv = Solvent(name='methanol', smiles='CO', aliases=['methanol', 'meoh'], ORCA='methanol', G09='Methanol', NWChem='methanol', XTB='Methanol', MOPAC='methanol')
-hexane_solv = Solvent(name='hexane', smiles='CCCCCC', aliases=['hexane', 'n-hexane'], ORCA='n-hexane', G09='n-Hexane', NWChem='hexane', XTB='n-Hexane', MOPAC='hexane')
-thf_solv = Solvent(name='thf', smiles='C1CCOC1', aliases=['thf', 'tetrahydrofuran', 'oxolane'], ORCA='tetrahydrofuran', G09='TetraHydroFuran', NWChem='thf', XTB='THF', MOPAC='tetrahydrofuran')
-toluene_solv = Solvent(name='toluene', smiles='CC1=CC=CC=C1', aliases=['toluene', 'methylbenzene', 'phenyl methane'], ORCA='toluene', G09='Toluene', NWChem='toluene', XTB='Toluene', MOPAC='toluene')
-acetacid_solv = Solvent(name='acetic acid', smiles='CC(O)=O', aliases=['acetic acid', 'ethanoic acid'], ORCA='acetic acid', G09='AceticAcid', NWChem='acetacid', MOPAC='acetic acid')
-butanol_solv = Solvent(name='1-butanol', smiles='CCCCO', aliases=['1-butanol', 'butanol', 'n-butanol', 'butan-1-ol'], ORCA='1-butanol', G09='1-Butanol', NWChem='butanol', MOPAC='1-butanol')
-butan2ol_solv = Solvent(name='2-butanol', smiles='CC(O)CC', aliases=['2-butanol', 'sec-butanol', 'butan-2-ol'], ORCA='2-butanol', G09='2-Butanol', NWChem='butanol2', MOPAC='2-butanol')
-acetphen_solv = Solvent(name='acetophenone', smiles='CC(C1=CC=CC=C1)=O', aliases=['acetophenone', 'phenylacetone', 'phenylethanone'], ORCA='acetophenone', G09='AcetoPhenone', NWChem='acetphen', MOPAC='acetophenone')
-aniline_solv = Solvent(name='aniline', smiles='NC1=CC=CC=C1', aliases=['aniline', 'benzenamine', 'phenylamine'], ORCA='aniline', G09='Aniline', NWChem='aniline', MOPAC='aniline')
-anisole_solv = Solvent(name='anisole', smiles='COC1=CC=CC=C1', aliases=['anisole', 'methoxybenzene', 'phenoxymethane'], ORCA='anisole', G09='Anisole', NWChem='anisole', MOPAC='anisole')
-benzaldh_solv = Solvent(name='benzaldehyde', smiles='O=CC1=CC=CC=C1', aliases=['benzaldehyde', 'phenylmethanal'], ORCA='benzaldehyde', G09='Benzaldehyde', NWChem='benzaldh', MOPAC='benzaldehyde')
-benzntrl_solv = Solvent(name='benzonitrile', smiles='N#CC1=CC=CC=C1', aliases=['benzonitrile', 'cyanobenzene', 'phenyl cyanide'], ORCA='benzonitrile', G09='BenzoNitrile', NWChem='benzntrl', MOPAC='benzonitrile')
-benzylcl_solv = Solvent(name='benzyl chloride', smiles='ClCC1=CC=CC=C1', aliases=['benzyl chloride', '(chloromethyl)benzene', 'Chloromethyl benzene',
-                                                                                  'a-chlorotoluene'], ORCA='a-chlorotoluene', G09='a-ChloroToluene', NWChem='benzylcl', MOPAC='benzyl chloride')
-brisobut_solv = Solvent(name='1-bromo-2-methylpropane', smiles='CC(C)CBr', aliases=['1-bromo-2-methylpropane', 'isobutyl bromide'], ORCA='1-bromo-2-methylpropane', G09='1-Bromo-2-MethylPropane', NWChem='brisobut', MOPAC='isobutyl bromide')
-brbenzen_solv = Solvent(name='bromobenzene', smiles='BrC1=CC=CC=C1', aliases=['bromobenzene', 'phenyl bromide'], ORCA='bromobenzene', G09='BromoBenzene', NWChem='brbenzen', MOPAC='bromobenzene')
-brethane_solv = Solvent(name='bromoethane', smiles='CCBr', aliases=['bromoethane', 'ethyl bromide', 'etbr'], ORCA='bromoethane', G09='BromoEthane', NWChem='brethane', MOPAC='bromoethane')
-bromoform_solv = Solvent(name='bromoform', smiles='BrC(Br)Br', aliases=['bromoform', 'tribromomethane', 'methyl tribromide', 'chbr3'], ORCA='bromoform', G09='Bromoform', NWChem='bromform', MOPAC='bromoform')
-broctane_solv = Solvent(name='1-bromooctane', smiles='CCCCCCCCBr', aliases=['1-bromooctane', 'bromooctane', 'octyl bromide', '1-octyl bromide'], ORCA='1-bromooctane', G09='1-BromoOctane', NWChem='broctane', MOPAC='bromooctane')
-brpentan_solv = Solvent(name='1-bromopentane', smiles='CCCCCBr', aliases=['1-bromopentane', 'bromopentane', 'pentyl bromide'], ORCA='1-bromopentane', G09='1-BromoPentane', NWChem='brpentan', MOPAC='bromopentane')
-butanal_solv = Solvent(name='butantal', smiles='CCCC=O', aliases=['butanal', 'butyraldehyde'], ORCA='butanal', G09='Butanal', NWChem='butanal', MOPAC='butanal')
-butanone_solv = Solvent(name='butanone', smiles='CC(CC)=O', aliases=['butanone', '2-butanone', 'butan-2-one', 'methyl ethyl ketone', 'ethyl methyl ketone'], ORCA='butanone', G09='Butanone', NWChem='butanone', MOPAC='2-butanone')
-ccl4_solv = Solvent(name='carbon tetrachloride', smiles='ClC(Cl)(Cl)Cl', aliases=['carbon tetrachloride', 'ccl4', 'tetrachloromethane'], ORCA='carbon tetrachloride', G09='CarbonTetraChloride', NWChem='carbntet', MOPAC='carbon tetrachloride')
-clbenzen_solv = Solvent(name='chlorobenzene', smiles='ClC1=CC=CC=C1', aliases=['chlorobenzene', 'benzene chloride', 'phenyl chloride'], ORCA='chlorobenzene', G09='ChloroBenzene', NWChem='clbenzen', MOPAC='chlorobenzene')
-cyclohexane_solv = Solvent(name='cyclohexane', smiles='C1CCCCC1', aliases=['cyclohexane'], ORCA='cyclohexane', G09='CycloHexane', NWChem='cychexan', MOPAC='cyclohexane')
-odiclbnz_solv = Solvent(name='1,2-dichlorobenzene', smiles='ClC1=CC=CC=C1Cl', aliases=['1,2-dichlorobenzene', 'o-dichlorobenzene', 'ortho-dichlorobenzene'],
-                        ORCA='o-dichlorobenzene', G09='o-DiChloroBenzene', NWChem='odiclbnz', MOPAC='1,2-dichlorobenzene')
-dma_solv = Solvent(name='n,n-dimethylacetamide', smiles='CC(N(C)C)=O', aliases=['n,n-dimethylacetamide', 'dmac', 'dma', 'dimethylacetamide'], ORCA='n,n-dimethylacetamide', G09='n,n-DiMethylAcetamide', NWChem='dma', MOPAC='n,n-dimethylacetamide')
-dioxane_solv = Solvent(name='dioxane', smiles='O1CCOCC1', aliases=['dioxane', '1,4-dioxane', 'p-dioxane'], ORCA='1,4-dioxane', G09='1,4-Dioxane', NWChem='dioxane', MOPAC='1,4-dioxane')
-etoac_solv = Solvent(name='ethyl acetate', smiles='CC(OCC)=O', aliases=['ethyl acetate', 'etoac', 'ethyl ethanoate'], ORCA='ethyl ethanoate', G09='EthylEthanoate', NWChem='etoac', MOPAC='ethyl acetate')
-ethanol_solv = Solvent(name='ethanol', smiles='CCO', aliases=['ethanol', 'ethyl alcohol', 'etoh'], ORCA='ethanol', G09='Ethanol', NWChem='ethanol', MOPAC='ethyl alcohol')
-heptane_solv = Solvent(name='heptane', smiles='CCCCCCC', aliases=['heptane', 'n-heptane'], ORCA='n-heptane', G09='Heptane', NWChem='heptane', MOPAC='heptane')
-pentane_solv = Solvent(name='pentane', smiles='CCCCC', aliases=['pentane', 'n-pentane'], ORCA='n-pentane', G09='n-Pentane', NWChem='npentane', MOPAC='pentane')
-propanol_solv = Solvent(name='1-propanol', smiles='CCCO', aliases=['1-propanol', 'propanol', 'n-propaol', 'n-proh'], ORCA='1-propanol', G09='1-Propanol', NWChem='propanol', MOPAC='1-propanol')
-pyridine_solv = Solvent(name='pyridine', smiles='C1=NC=CC=C1', aliases=['pyridine'], ORCA='pyridine', G09='Pyridine', NWChem='pyridine', MOPAC='pyridine')
-tca111_solv = Solvent(name='1,1,1-trichloroethane', smiles='CC(Cl)(Cl)Cl', aliases=['1,1,1-trichloroethane', 'methyl chloroform', '1,1,1-tca'], ORCA='1,1,1-trichloroethane', G09='1,1,1-TriChloroEthane', NWChem='tca111', MOPAC='1,1,1-trichloroethane')
-cycpentn_solv = Solvent(name='cyclopentane', smiles='C1CCCC1', aliases=['cyclopentane'], ORCA='cyclopentane', G09='CycloPentane', NWChem='cycpentn', MOPAC='cyclopentane')
-tca112_solv = Solvent(name='1,1,2-trichloroethane', smiles='ClCC(Cl)Cl', aliases=['1,1,2-trichloroethane', 'vinyl trichloride', '1,1,2-tca'], ORCA='1,1,2-trichloroethane', G09='1,1,2-TriChloroEthane', NWChem='tca112', MOPAC='1,1,2-trichloroethane')
-cycpntol_solv = Solvent(name='cyclopentanol', smiles='OC1CCCC1', aliases=['cyclopentanol'], ORCA='cyclopentanol', G09='CycloPentanol', NWChem='cycpntol', MOPAC='cyclopentanol')
-tmben124_solv = Solvent(name='1,2,4-trimethylbenzene', smiles='CC1=CC=C(C)C(C)=C1', aliases=['1,2,4-trimethylbenzene', 'pseudocumene'], ORCA='1,2,4-trimethylbenzene', G09='1,2,4-TriMethylBenzene', NWChem='tmben124', MOPAC='1,2,4-trimethylbenzene')
-cycpnton_solv = Solvent(name='cyclopentanone', smiles='O=C1CCCC1', aliases=['cyclopentanone'], ORCA='cyclopentanone', G09='CycloPentanone', NWChem='cycpnton', MOPAC='cyclopentanone')
-edb12_solv = Solvent(name='1,2-dibromoethane', smiles='BrCCBr', aliases=['1,2-dibromoethane', 'ethylene dibromide', 'edb'], ORCA='1,2-dibromoethane', G09='1,2-DiBromoEthane', NWChem='edb12', MOPAC='1,2-dibromoethane')
-edc12_solv = Solvent(name='1,2-dichloroethane', smiles='ClCCCl', aliases=['1,2-dichloroethane', 'ethylene dichloride', 'dce', 'dichloroethane'], ORCA='1,2-dichloroethane', G09='DiChloroEthane', NWChem='edc12', MOPAC='1,2-dichloroethane')
-declncis_solv = Solvent(name='cis-decalin', smiles='[H][C@@]12CCCC[C@]1([H])CCCC2', aliases=['cis-decalin', 'cis decalin'], ORCA='cis-decalin', G09='Cis-Decalin', NWChem='declncis', MOPAC='cis-decalin')
-declntra_solv = Solvent(name='trans-decalin', smiles='[H][C@@]12CCCC[C@@]1([H])CCCC2', aliases=['trans-decalin', 'trans decalin'], ORCA='trans-decalin', G09='trans-Decalin', NWChem='declntra', MOPAC='trans-decalin')
-decalin_solv = Solvent(name='decalin mix', smiles='C12CCCCC1CCCC2', aliases=['decalin mix', 'decalin', 'decalin mixture'], ORCA='decalin', G09='Decalin-mixture', NWChem='declnmix', MOPAC='decalin')
-ethdiol_solv = Solvent(name='1,2-ethanediol', smiles='OCCO', aliases=['1,2-ethanediol', 'ethylene glycol', 'ethane-1,2-diol', 'monoethylene glycol'], ORCA='1,2-ethanediol', G09='1,2-EthaneDiol', NWChem='meg', MOPAC='1,2-ethanediol')
-decane_solv = Solvent(name='decane', smiles='CCCCCCCCCC', aliases=['decane', 'n-decane'], ORCA='n-decane', G09='n-Decane', NWChem='decane', MOPAC='decane')
-dibrometh_solv = Solvent(name='dibromomethane', smiles='BrCBr', aliases=['dibromomethane', 'methyl dibromide'], ORCA='dibromomethane', G09='DiBromomEthane', NWChem='dibrmetn', MOPAC='dibromomethane')
-butyleth_solv = Solvent(name='dibutylether', smiles='CCCCOCCCC', aliases=['dibutylether', 'butyl ether'], ORCA='dibutylether', G09='DiButylEther', NWChem='butyleth', MOPAC='dibutylether')
-c12dce_solv = Solvent(name='cis-1,2-dichloroethene', smiles='Cl/C=C\\Cl', aliases=['cis-1,2-dichloroethene', 'cis-1,2-dichloroethylene', 'z-1,2-dichloroethene',
-                                                                                   'z-1,2-dichloroethylene'], ORCA='z-1,2-dichloroethene', G09='z-1,2-DiChloroEthene', NWChem='c12dce', MOPAC='z-1,2-dichloroethene')
-t12dce_solv = Solvent(name='trans-1,2-dichloroethen', smiles='Cl/C=C/Cl', aliases=['trans-1,2-dichloroethene', 'trans-1,2-dichloroethylene', 'e-1,2-dichloroethene',
-                                                                                   'e-1,2-dichloroethylene'], ORCA='e-1,2-dichloroethene', G09='e-1,2-DiChloroEthene', NWChem='t12dce', MOPAC='z-1,2-dichloroethene')
-brpropan_solv = Solvent(name='1-bromopropane', smiles='CCCBr', aliases=['1-bromopropane', 'bromopropane'], ORCA='1-bromopropane', G09='1-BromoPropane', NWChem='brpropan', MOPAC='1-bromopropane')
-
-brpropa2_solv = Solvent(name='2-bromopropane', smiles='CC(Br)C', aliases=['2-bromopropane', 'isopropyl bromide'], ORCA='2-bromopropane', G09='2-BromoPropane', NWChem='brpropa2', MOPAC='2-bromopropane')
-clhexane_solv = Solvent(name='1-chlorohexane', smiles='CCCCCCCl', aliases=['1-chlorohexane', 'chlorohexane'], ORCA='1-chlorohexane', G09='1-ChloroHexane', NWChem='clhexane', MOPAC='1-chlorohexane')
-clpentane_solv = Solvent(name='1-chloropentane', smiles='CCCCCCl', aliases=['1-chloropentane', 'chloropentane'], ORCA='1-chloropentane', G09='1-ChloroPentane', NWChem='clpentan', MOPAC='1-chloropentane')
-clpropane_solv = Solvent(name='1-chloropropane', smiles='CCCCl', aliases=['1-chloropropane', 'chloropropane'], ORCA='1-chloropropane', G09='1-ChloroPropane', NWChem='clpropan', MOPAC='1-chloropropane')
-dietamin_solv = Solvent(name='diethylamine', smiles='CCNCC', aliases=['diethylamine', 'n-ethylethanamine'], ORCA='diethylamine', G09='DiEthylAmine', NWChem='dietamin', MOPAC='diethylamine')
-decanol_solv = Solvent(name='1-decanol', smiles='CCCCCCCCCCO', aliases=['1-decanol', 'decanol', 'decan-1-ol'], ORCA='1-decanol', G09='1-Decanol', NWChem='decanol', MOPAC='decanol')
-diiodometh_solv = Solvent(name='diiodomethane', smiles='ICI', aliases=['diiodomethane', 'methylene iodide'], ORCA='diiodomethane', G09='DiIodoMethane', NWChem='mi', MOPAC='diiodomethane')
-foctane_solv = Solvent(name='1-fluorooctane', smiles='CCCCCCCCF', aliases=['1-fluorooctane', 'fluorooctane', 'octyl fluoride'], ORCA='1-fluorooctane', G09='1-FluoroOctane', NWChem='foctane', MOPAC='1-fluorooctane')
-heptanol_solv = Solvent(name='1-heptanol', smiles='CCCCCCCO', aliases=['1-helptanol', 'heptanol', 'heptan-1-ol'], ORCA='1-helptanol', G09='1-Heptanol', NWChem='heptanol', MOPAC='heptanol')
-cisdmchx_solv = Solvent(name='cis-1,2-dimethylcyclohexane', smiles='C[C@@H]1[C@H](C)CCCC1', aliases=['cis-1,2-dimethylcyclohexane'], ORCA='cis-1,2-dimethylcyclohexane', G09='Cis-1,2-DiMethylCycloHexane', NWChem='cisdmchx', MOPAC='cisdmchx')
-et2s_solv = Solvent(name='diethyl sulfide', smiles='CCSCC', aliases=['diethyl sulfide', 'et2s', 'thioethyl ether'], ORCA='diethyl sulfide', G09='DiEthylSulfide', NWChem='et2s', MOPAC='diethyl sulfide')
-dipe_solv = Solvent(name='diisopropyl ether', smiles='CC(OC(C)C)C', aliases=['diisopropyl ether', 'dipe'], ORCA='diisopropyl ether', G09='DiIsoPropylEther', NWChem='dipe', MOPAC='diisopropyl ether')
-hexanol_solv = Solvent(name='1-hexanol', smiles='CCCCCCO', aliases=['1-hexanol', 'hexanol', 'haxan-1-ol'], ORCA='1-hexanol', G09='1-Hexanol', NWChem='hexanol', MOPAC='hexanol')
-hexene_solv = Solvent(name='1-hexene', smiles='C=CCCCC', aliases=['1-hexene', 'hexene', 'hex-1-ene'], ORCA='1-hexene', G09='1-Hexene', NWChem='hexene', MOPAC='hexene')
-hexyne_solv = Solvent(name='1-hexyne', smiles='C#CCCCC', aliases=['1-hexyne', 'hexyne', 'hex-1-yne'], ORCA='1-hexyne', G09='1-Hexyne', NWChem='hexyne', MOPAC='hexyne')
-iobutane_solv = Solvent(name='1-iodobutane', smiles='CCCCI', aliases=['1-iodobutane', 'iodobutane'], ORCA='1-iodobutane', G09='1-IodoButane', NWChem='iobutane', MOPAC='iodobutane')
-iohexdec_solv = Solvent(name='1-iodohexadecane', smiles='CCCCCCCCCCCCCCCCI', aliases=['1-iodohexadecane', 'iodohexadecane'], ORCA='1-iodohexadecane', G09='1-IodoHexaDecane', NWChem='iohexdec', MOPAC='1-iodohexadecane')
-dipheneth_solv = Solvent(name='diphenylether', smiles='C1(OC2=CC=CC=C2)=CC=CC=C1', aliases=['diphenylether', 'phenoxybenzene'], ORCA='diphenylether', G09='DiPhenylEther', NWChem='phoph', MOPAC='diphenylether')
-iopentan_solv = Solvent(name='1-iodopentane', smiles='CCCCCI', aliases=['1-iodopentane', 'iodopentane'], ORCA='1-iodopentane', G09='1-IodoPentane', NWChem='iopentan', MOPAC='1-iodopentane')
-iopropan_solv = Solvent(name='1-iodopropane', smiles='CCCI', aliases=['1-iodopropane', 'iodopropane'], ORCA='1-iodopropane', G09='1-IodoPropane', NWChem='iopropan', MOPAC='1-iodopropane')
-dipropam_solv = Solvent(name='dipropylamine', smiles='CCCNCCC', aliases=['dipropylamine'], ORCA='dipropylamine', G09='DiPropylAmine', NWChem='dproamin', MOPAC='dipropylamine')
-dodecane_solv = Solvent(name='n-dodecane', smiles='CCCCCCCCCCCC', aliases=['n-dodecane', 'dodecane'], ORCA='n-dodecane', G09='n-Dodecane', NWChem='dodecan', MOPAC='dodecane')
-ntrprop1_solv = Solvent(name='1-nitropropane', smiles='CCC[N+]([O-])=O', aliases=['1-nitropropane'], ORCA='1-nitropropane', G09='1-NitroPropane', NWChem='ntrprop1', MOPAC='1-nitropropane')
-ethanthiol_solv = Solvent(name='ethanethiol', smiles='CCS', aliases=['ethanethiol', 'ethane thiol', 'etsh'], ORCA='ethanethiol', G09='EthaneThiol', NWChem='etsh', MOPAC='ethanethiol')
-nonanol_solv = Solvent(name='1-nonanol', smiles='CCCCCCCCCO', aliases=['1-nonanol', 'nonanol', 'nonan-1-ol'], ORCA='1-nonanol', G09='1-Nonanol', NWChem='nonanol', MOPAC='nonanol')
-octanol_solv = Solvent(name='1-octanol', smiles='CCCCCCCCO', aliases=['1-octanol', 'octanol', 'octan-1-ol'], ORCA='1-octanol', G09='n-Octanol', NWChem='octanol', MOPAC='octanol')
-pentanol_solv = Solvent(name='1-pentanol', smiles='CCCCCO', aliases=['1-pentanol', 'pentanol', 'pentan-1-ol'], ORCA='1-pentanol', G09='1-Pentanol', NWChem='pentanol', MOPAC='pentanol')
-pentene_solv = Solvent(name='1-pentene', smiles='C=CCCC', aliases=['1-pentene', 'pentene', 'pent-1-ene'], ORCA='1-pentene', G09='1-Pentene', NWChem='pentene', MOPAC='pentene')
-ethbenz_solv = Solvent(name='ethyl benzene', smiles='CCC1=CC=CC=C1', aliases=['ethyl benzene', 'ethylbenzene', 'phenylethane'], ORCA='ethylbenzene', G09='EthylBenzene', NWChem='eb', MOPAC='ethylbenzene')
-tfe222_solv = Solvent(name='2,2,2-trifluoroethanol', smiles='FC(F)(F)CO', aliases=['2,2,2-trifluoroethanol'], ORCA='2,2,2-trifluoroethanol', G09='2,2,2-TriFluoroEthanol', NWChem='tfe222', MOPAC='2,2,2-trifluoroethanol')
-fluorbenz_solv = Solvent(name='fluorobenzene', smiles='FC1=CC=CC=C1', aliases=['fluorobenzene', 'phenyl fluoride', 'c6h5f'], ORCA='fluorobenzene', G09='FluoroBenzene', NWChem='c6h5f', MOPAC='fluorobenzene')
-tmp224_solv = Solvent(name='2,2,4-trimethylpentane', smiles='CC(C)(C)CC(C)C', aliases=['2,2,4-trimethylpentane', 'isooctane'], ORCA='2,2,4-trimethylpentane', G09='2,2,4-TriMethylPentane', NWChem='isoctane', MOPAC='2,2,4-trimethylpentane')
-formamide_solv = Solvent(name='formamide', smiles='O=CN', aliases=['formamide'], ORCA='formamide', G09='Formamide', NWChem='formamid', MOPAC='formamide')
-dimepen24_solv = Solvent(name='2,4-dimethylpentane', smiles='CC(C)CC(C)C', aliases=['2,4-dimethylpentane', 'diisopropylmethane'], ORCA='2,4-dimethylpentane', G09='2,4-DiMethylPentane', NWChem='dmepen24', MOPAC='2,4-dimethylpentane')
-dimepyr24_solv = Solvent(name='2,4-dimethylpyridine', smiles='CC1=CC(C)=NC=C1', aliases=['2,4-dimethylpyridine', '2,4-lutidine'], ORCA='2,4-dimethylpyridine', G09='2,4-DiMethylPyridine', NWChem='dmepyr24', MOPAC='2,4-dimethylpyridine')
-dimepyr26_solv = Solvent(name='2,6-dimethylpyridine', smiles='CC1=CC=CC(C)=N1', aliases=['2,6-dimethylpyridine', '2,6-lutidine', 'lutidine'], ORCA='2,6-dimethylpyridine', G09='2,6-DiMethylPyridine', NWChem='dmepyr26', MOPAC='2,6-dimethylpyridine')
-hexadecane_solv = Solvent(name='n-hexadecane', smiles='CCCCCCCCCCCCCCCC', aliases=['n-hexadecane', 'hexadecane'], ORCA='n-hexadecane', G09='n-Hexadecane', NWChem='hexadecn', MOPAC='hexadecane')
-dmds_solv = Solvent(name='dimethyl disulfide', smiles='CSSC', aliases=['dimethyl disulfide', 'dmds', 'methyl disulfide'], ORCA='dimethyl disulfide', G09='DiMethylDiSulfide', NWChem='dmds', MOPAC='dimethyl disulfide')
-ethmethan_solv = Solvent(name='ethyl methanoate', smiles='O=COCC', aliases=['ethyl methanoate', 'ethyl formate', 'etome'], ORCA='ethyl methanoate', G09='EthylMethanoate', NWChem='etome', MOPAC='ethyl methanoate')
-phentol_solv = Solvent(name='ethyl phenyl ether', smiles='CCOC1=CC=CC=C1', aliases=['ethyl phenyl ether', 'phenetole', 'ethoxybenzene'], ORCA='ethyl phenyl ether', G09='EthylPhenylEther', NWChem='phentol', MOPAC='phenetole')
-formacid_solv = Solvent(name='formic acid', smiles='O=CO', aliases=['formic acid', 'methanoic acid'], ORCA='formic acid', G09='FormicAcid', NWChem='formacid', MOPAC='formic acid')
-hexanacid_solv = Solvent(name='hexanoic acid', smiles='CCCCCC(O)=O', aliases=['hexanoic acid', 'caproic acid'], ORCA='hexanoic acid', G09='HexanoicAcid', NWChem='hexnacid', MOPAC='hexanoic acid')
-chlorbut_solv = Solvent(name='2-chlorobutane', smiles='CC(Cl)CC', aliases=['2-chlorobutane', 'sec-butyl chloride'], ORCA='2-chlorobutane', G09='2-ChloroButane', NWChem='secbutcl', MOPAC='2-chlorobutane')
-heptnon2_solv = Solvent(name='2-heptanone', smiles='CC(CCCCC)=O', aliases=['2-heptanone', 'heptan-2-one'], ORCA='2-heptanone', G09='2-Heptanone', NWChem='heptnon2', MOPAC='2-heptanone')
-hexnon2_solv = Solvent(name='2-hexanone', smiles='CC(CCCC)=O', aliases=['2-hexanone', 'hexan-2-one'], ORCA='2-hexanone', G09='2-Hexanone', NWChem='hexanon2', MOPAC='2-hexanone')
-egme_solv = Solvent(name='2-methoxyethanol', smiles='COCCO', aliases=['2-methoxyethanol', 'egme'], ORCA='2-methoxyethanol', G09='2-MethoxyEthanol', NWChem='egme', MOPAC='2-methoxyethanol')
-isobutol_solv = Solvent(name='2-methyl-1-propanol', smiles='CC(C)CO', aliases=['2-methyl-1-propanol', 'isobutanol'], ORCA='2-methyl-1-propanol', G09='2-Methyl-1-Propanol', NWChem='isobutol', MOPAC='isobutanol')
-tertbutol_solv = Solvent(name='2-methyl-2-propanol', smiles='CC(O)(C)C', aliases=['2-methyl-2-propanol', 'tert-butanol'], ORCA='2-methyl-2-propanol', G09='2-Methyl-2-Propanol', NWChem='terbutol', MOPAC='tertbutanol')
-isohexane_solv = Solvent(name='2-methylpentane', smiles='CC(C)CCC', aliases=['2-methylpentane', 'isohexane'], ORCA='2-methylpentane', G09='2-MethylPentane', NWChem='isohexan', MOPAC='2-methylpentane')
-mepyrid2_solv = Solvent(name='2-methylpyridine', smiles='CC1=NC=CC=C1', aliases=['2-methylpyridine', '2-picoline'], ORCA='2-methylpyridine', G09='2-MethylPyridine', NWChem='mepyrid2', MOPAC='2-methylpyridine')
-ntrprop2_solv = Solvent(name='2-nitropropane', smiles='CC([N+]([O-])=O)C', aliases=['2-nitropropane'], ORCA='2-nitropropane', G09='2-NitroPropane', NWChem='ntrprop2', MOPAC='2-nitropropane')
-octanone2_solv = Solvent(name='2-octanone', smiles='CC(CCCCCC)=O', aliases=['2-octanone', 'octan-2-one'], ORCA='2-octanone', G09='2-Octanone', NWChem='octanon2', MOPAC='2-octanone')
-pentanone2_solv = Solvent(name='2-pentanone', smiles='CC(CCC)=O', aliases=['2-pentanone', 'pentan-2-one'], ORCA='2-pentanone', G09='2-Pentanone', NWChem='pentnon2', MOPAC='2-pentanone')
-iobenz_solv = Solvent(name='iodobenzene', smiles='IC1=CC=CC=C1', aliases=['iodobenzene', 'phenyl iodide'], ORCA='iodobenzene', G09='IodoBenzene', NWChem='c6h5i', MOPAC='iodobenzene')
-ioeth_solv = Solvent(name='iodoethane', smiles='CCI', aliases=['iodoethane', 'ethyl iodide'], ORCA='iodoethane', G09='IodoEthane', NWChem='c2h5i', MOPAC='iodoethane')
-iometh_solv = Solvent(name='iodomethane', smiles='CI', aliases=['iodomethane', 'methyl iodide', 'mei', 'ch3i'], ORCA='iodomethane', G09='IodoMethane', NWChem='ch3i', MOPAC='iodomethane')
-cumene_solv = Solvent(name='isopropylbenzene', smiles='CC(C1=CC=CC=C1)C', aliases=['isopropylbenzene', 'cumene'], ORCA='isopropylbenzene', G09='IsoPropylBenzene', NWChem='cumene', MOPAC='isopropylbenzene')
-pcymene_solv = Solvent(name='p-isopropyltoluene', smiles='CC1=CC=C(C(C)C)C=C1', aliases=['p-isopropyltoluene', 'para-isopropyltoluene', 'p-cymene'], ORCA='p-isopropyltoluene', G09='p-IsoPropylToluene', NWChem='p-cymene', MOPAC='p-cymene')
-mesityln_solv = Solvent(name='mesitylene', smiles='CC1=CC(C)=CC(C)=C1', aliases=['mesitylene'], ORCA='mesitylene', G09='Mesitylene', NWChem='mesityln', MOPAC='mesitylene')
-mebenzate_solv = Solvent(name='methyl benzoate', smiles='O=C(OC)C1=CC=CC=C1', aliases=['methyl benzoate'], ORCA='methyl benzoate', G09='MethylBenzoate', NWChem='mebnzate', MOPAC='methyl benzoate')
-mebutate_solv = Solvent(name='methyl butanoate', smiles='CCCC(OC)=O', aliases=['methyl butanoate', 'methyl butyrate'], ORCA='methyl butanoate', G09='MethylButanoate', NWChem='mebutate', MOPAC='methyl butanoate')
-meacetate_solv = Solvent(name='methyl ethanoate', smiles='CC(OC)=O', aliases=['methyl ethanoate', 'methyl acetate'], ORCA='methyl ethanoate', G09='MethylEthanoate', NWChem='meacetat', MOPAC='methyl acetate')
-memethate_solv = Solvent(name='methyl methanoate', smiles='O=COC', aliases=['methyl methanoate', 'methyl formate'], ORCA='methyl methanoate', G09='MethylMethanoate', NWChem='meformat', MOPAC='methyl formate')
-mepropate_solv = Solvent(name='methyl propanoate', smiles='CCC(OC)=O', aliases=['methyl propanoate', 'methyl propionate'], ORCA='methyl propanoate', G09='MethylPropanoate', NWChem='mepropyl', MOPAC='methyl propanoate')
-nmeaniln_solv = Solvent(name='n-methylaniline', smiles='CNC1=CC=CC=C1', aliases=['n-methylaniline', 'nma'], ORCA='n-methylaniline', G09='n-MethylAniline', NWChem='nmeaniln', MOPAC='n-methylaniline')
-mecychex_solv = Solvent(name='methylcyclohexane', smiles='CC1CCCCC1', aliases=['methylcyclohexane'], ORCA='methylcyclohexane', G09='MethylCycloHexane', NWChem='mecychex', MOPAC='methylcyclohexane')
-nmfmixtr_solv = Solvent(name='n-methylformamide (e/z mixture)', smiles='O=CNC', aliases=['n-methylformamide', 'n-methylformamide (e/z mixture)',
-                                                                                         'n-methylformamide mixture', 'n-methylformamide mix'], ORCA='n-methylformamide (e/z mixture)', G09='n-MethylFormamide-mixture', NWChem='nmfmixtr', MOPAC='nmfmixtr')
-nitbenz_solv = Solvent(name='nitrobenzene', smiles='O=[N+](C1=CC=CC=C1)[O-]', aliases=['nitrobenzene', 'phno2'], ORCA='nitrobenzene', G09='NitroBenzene', NWChem='c6h5no2', MOPAC='nitrobenzene')
-niteth_solv = Solvent(name='nitroethane', smiles='CC[N+]([O-])=O', aliases=['nitroethane', 'etno2'], ORCA='nitroethane', G09='NitroEthane', NWChem='c2h5no2', MOPAC='nitroethane')
-nitmeth_solv = Solvent(name='nitromethane', smiles='C[N+]([O-])=O', aliases=['nitromethane', 'meno2', 'ch3no2'], ORCA='nitromethane', G09='NitroMethane', NWChem='ch3no2', MOPAC='nitromethane')
-onittol_solv = Solvent(name='o-nitrotoluene', smiles='CC1=CC=CC=C1[N+]([O-])=O', aliases=['o-nitrotoluene', 'ortho-nitrotoluene'], ORCA='o-nitrotoluene', G09='o-NitroToluene', NWChem='ontrtolu', MOPAC='o-nitrotoluene')
-nnonane_solv = Solvent(name='n-nonane', smiles='CCCCCCCCC', aliases=['n-nonane', 'nonane'], ORCA='n-nonane', G09='n-Nonane', NWChem='nonane', MOPAC='n-nonane')
-noctane_solv = Solvent(name='n-octane', smiles='CCCCCCCC', aliases=['n-octane', 'octane'], ORCA='n-octane', G09='n-Octane', NWChem='octane', MOPAC='n-octane')
-npentdecane_solv = Solvent(name='n-pentadecane', smiles='CCCCCCCCCCCCCCC', aliases=['n-pentadecane', 'pentadecane'], ORCA='n-pentadecane', G09='n-Pentadecane', NWChem='pentdecn', MOPAC='n-pentadecane')
-pentanal_solv = Solvent(name='pentanal', smiles='CCCCC=O', aliases=['pentanal'], ORCA='pentanal', G09='Pentanal', NWChem='pentanal', MOPAC='pentanal')
-penanacid_solv = Solvent(name='pentanoic acid', smiles='CCCCC(O)=O', aliases=['pentanoic acid', 'valeric acid'], ORCA='pentanoic acid', G09='PentanoicAcid', NWChem='pentacid', MOPAC='pentanoic acid')
-penethate_solv = Solvent(name='pentyl ethanoate', smiles='CC(OCCCCC)=O', aliases=['pentyl ethanoate', 'pentyl acetate'], ORCA='pentyl ethanoate', G09='PentylEthanoate', NWChem='pentacet', MOPAC='pentyl acetate')
-pentylamin_solv = Solvent(name='pentyl amine', smiles='NCCCCC', aliases=['pentyl amine', 'pentylamine', '1-aminopentane'], ORCA='pentylamine', G09='PentylAmine', NWChem='pentamin', MOPAC='pentylamine')
-pfb_solv = Solvent(name='perfluorobenzene', smiles='FC1=C(F)C(F)=C(F)C(F)=C1F', aliases=['perfluorobenzene', 'pfb', 'c6f6', 'hexafluorobenzene'], ORCA='perfluorobenzene', G09='PerFluoroBenzene', NWChem='pfb', MOPAC='perfluorobenzene')
-propanal_solv = Solvent(name='propanal', smiles='CCC=O', aliases=['propanal'], ORCA='propanal', G09='Propanal', NWChem='propanal', MOPAC='propanal')
-propacid_solv = Solvent(name='propanoic acid', smiles='CCC(O)=O', aliases=['propanoic acid', 'propionic acid'], ORCA='propanoic acid', G09='PropanoicAcid', NWChem='propacid', MOPAC='propanoic acid')
-propntrl_solv = Solvent(name='propanenitrile', smiles='CCC#N', aliases=['propanenitrile', 'cyanoethane', 'ethyl cyanide', 'propanonitrile'], ORCA='propanonitrile', G09='PropanoNitrile', NWChem='propntrl', MOPAC='cyanoethane')
-propethate_solv = Solvent(name='propyl ethanoate', smiles='CC(OCCC)=O', aliases=['propyl ethanoate', 'propyl acetate'], ORCA='propyl ethanoate', G09='PropylEthanoate', NWChem='propacet', MOPAC='propyl acetate')
-propamin_solv = Solvent(name='propyl amine', smiles='NCCC', aliases=['propyl amine', 'propylamine', '1-aminopropane'], ORCA='propylamine', G09='PropylAmine', NWChem='propamin', MOPAC='propylamine')
-tetchlethen_sol = Solvent(name='tetrachloroethene', smiles='Cl/C(Cl)=C(Cl)/Cl', aliases=['tetrachloroethene', 'perchloroethene', 'pce', 'c2cl4'], ORCA='tetrachloroethene', G09='TetraChloroEthene', NWChem='c2cl4', MOPAC='tetrachloroethene')
-sulfolan_solv = Solvent(name='tetrahydrothiophene-s,s-dioxide', smiles='O=S1(CCCC1)=O', aliases=['tetrahydrothiophene-s,s-dioxide', 'sulfolane'],
-                        ORCA='tetrahydrothiophene-s,s-dioxide', G09='TetraHydroThiophene-s,s-dioxide', NWChem='sulfolan', MOPAC='sulfolane')
-tetralin_solv = Solvent(name='tetralin', smiles='C12=C(CCCC2)C=CC=C1', aliases=['tetralin', '1,2,3,4-tetrahydronaphthalene', 'tetrahydronaphthalene'], ORCA='tetralin', G09='Tetralin', NWChem='tetralin', MOPAC='tetralin')
-thiophene_solv = Solvent(name='thiophene', smiles='C1=CC=CS1', aliases=['thiophene'], ORCA='thiophene', G09='Thiophene', NWChem='thiophen', MOPAC='thiophene')
-thiophenol_solv = Solvent(name='thiophenol', smiles='SC1=CC=CC=C1', aliases=['thiophenol', 'phsh', 'benzenethiol'], ORCA='thiophenol', G09='Thiophenol', NWChem='phsh', MOPAC='thiophenol')
-tributphos_solv = Solvent(name='tributylphosphate', smiles='O=P(OCCCC)(OCCCC)OCCCC', aliases=['tributylphopshate', 'tbp', 'tributyl phopshate'], ORCA='tributylphopshate', G09='TriButylPhosphate', NWChem='tbp', MOPAC='tbp')
-trichlethene_solv = Solvent(name='trichloroethene', smiles='Cl/C(Cl)=C/Cl', aliases=['trichloroethene', 'tce'], ORCA='trichloroethene', G09='TriChloroEthene', NWChem='tce', MOPAC='tce')
-triethamin_solv = Solvent(name='triethylamine', smiles='CCN(CC)CC', aliases=['triethylamine', 'et3n'], ORCA='triethylamine', G09='TriEthylAmine', NWChem='et3n', MOPAC='triethylamine')
-nundecane_solv = Solvent(name='n-undecane', smiles='CCCCCCCCCCC', aliases=['n-undecane', 'undecane'], ORCA='n-undecane', G09='n-Undecane', NWChem='undecane', MOPAC='n-undecane')
-xylenemix_solv = Solvent(name='xylene mixture', smiles='CC1=CC=C(C)C=C1', aliases=['xylene mix', 'xylene (mix)', 'xylene mixture', 'xylene (mixture)', 'xylene'], ORCA='xyzlene (mixture)', G09='Xylene-mixture', NWChem='xylenemx', MOPAC='xylene mix')
-mxylene_solv = Solvent(name='m-xylene', smiles='CC1=CC=CC(C)=C1', aliases=['m-xylene', 'meta-xylene', '1,3-xylene'], ORCA='m-xylene', G09='m-Xylene', NWChem='m-xylene', MOPAC='m-xylene')
-oxylene_solv = Solvent(name='o-xylene', smiles='CC1=CC=CC=C1C', aliases=['o-xylene', 'ortho-xylene', '1,2-xylene'], ORCA='o-xylene', G09='o-Xylene', NWChem='o-xylene', MOPAC='o-xylene')
-pxylene_solv = Solvent(name='p-xylene', smiles='CC1=CC=C(C)C=C1', aliases=['p-xylene', 'para-xylene', '1,4-xylene'], ORCA='p-xylene', G09='p-Xylene', NWChem='p-xylene', MOPAC='p-xylene')
-propanol2_solv = Solvent(name='2-propanol', smiles='CC(O)C', aliases=['2-propanol', 'propan-2-ol', 'isopropanol', 'isopropyl alcohol'], ORCA='2-propanol', G09='2-Propanol', NWChem='propnol2', MOPAC='2-propanol')
-propenol_solv = Solvent(name='2-propen-1-ol', smiles='C=CCO', aliases=['2-propen-1-ol', 'allyl alcohol'], ORCA='2-propen-1-ol', G09='2-Propen-1-ol', NWChem='propenol', MOPAC='2-propen-1-ol')
-epenene2_solv = Solvent(name='e-2-pentene', smiles='C/C=C/CC', aliases=['e-2-pentene', 'e-pent-2-ene'], ORCA='e-2-pentene', G09='e-2-Pentene', NWChem='e2penten', MOPAC='e-2-pentene')
-methpyr3_solv = Solvent(name='3-methylpyridine', smiles='CC1=CC=CN=C1', aliases=['3-methylpyridine', '3-picoline'], ORCA='3-methylpyridine', G09='3-MethylPyridine', NWChem='mepyrid3', MOPAC='3-methylpyridine')
-pentanone3_solv = Solvent(name='3-pentanone', smiles='CCC(CC)=O', aliases=['3-pentanone', 'pentan-3-one'], ORCA='3-pentanone', G09='3-Pentanone', NWChem='pentnon3', MOPAC='3-pentanone')
-heptanone4_solv = Solvent(name='4-heptanone', smiles='CCCC(CCC)=O', aliases=['4-heptanone', 'heptan-4-one'], ORCA='4-heptanone', G09='4-Heptanone', NWChem='heptnon4', MOPAC='4-heptanone')
-meth4penton2_solv = Solvent(name='4-methyl-2-pentanone', smiles='CC(CC(C)C)=O', aliases=['4-methyl-2-pentanone', 'methyl isobutyl ketone'], ORCA='4-methyl-2-pentanone', G09='4-Methyl-2-Pentanone', NWChem='mibk', MOPAC='mibk')
-methypyr4_solv = Solvent(name='4=methylpyridine', smiles='CC1=CC=NC=C1', aliases=['4-methylpyridine', '4-picoline'], ORCA='4-methylpyridine', G09='4-MethylPyridine', NWChem='mepyrid4', MOPAC='4-methylpyridine')
-nonanone5_solv = Solvent(name='5-nonanone', smiles='CCCCC(CCCC)=O', aliases=['5-nonanone', 'nonan-5-one'], ORCA='5-nonanone', G09='5-Nonanone', NWChem='nonanone', MOPAC='5-nonanone')
-benzol_solv = Solvent(name='benzyl alcohol', smiles='OCC1=CC=CC=C1', aliases=['benzyl alcohol', 'phenylmethanol', 'bnoh'], ORCA='benzyl alcohol', G09='BenzylAlcohol', NWChem='benzalcl', MOPAC='benzyl alcohol')
-butanacid_solv = Solvent(name='butanoic acid', smiles='CCCC(O)=O', aliases=['butanoic acid', 'butyric acid'], ORCA='butanoic acid', G09='ButanoicAcid', NWChem='butacid', MOPAC='butanoic acid')
-butntrl_solv = Solvent(name='butanenitrile', smiles='CCCC#N', aliases=['butanenitrile', 'butyronitrile', 'butanonitrile'], ORCA='butanonitrile', G09='ButanoNitrile', NWChem='butantrl', MOPAC='butanenitrile')
-butethoate_solv = Solvent(name='butyl ethanoate', smiles='CC(OCCCC)=O', aliases=['butyl ethanoate', 'butyl acetate'], ORCA='butyl ethanoate', G09='ButylEthanoate', NWChem='butile', MOPAC='butyl acetate')
-butamin_solv = Solvent(name='butylamine', smiles='NCCCC', aliases=['butylamine', 'butan-1-amine'], ORCA='butylamine', G09='ButylAmine', NWChem='nba', MOPAC='butylamine')
-nbutbenz_solv = Solvent(name='n-butylbenzene', smiles='CCCCC1=CC=CC=C1', aliases=['n-butylbenzene', 'butylbenzene', 'phenylbutane'], ORCA='n-butylbenzene', G09='n-ButylBenzene', NWChem='nbutbenz', MOPAC='n-butylbenzene')
-sbutbenz_solv = Solvent(name='sec-butylbenzene', smiles='CCC(C1=CC=CC=C1)C', aliases=['sec-butylbenzene', 's-butylbenzene'], ORCA='sec-butylbenzene', G09='sec-ButylBenzene', NWChem='sbutbenz', MOPAC='s-butylbenzene')
-tbutbenz_solv = Solvent(name='tert-butylbenzene', smiles='CC(C1=CC=CC=C1)(C)C', aliases=['tert-butylbenzene', 't-butylbenzene'], ORCA='tert-butylbenzene', G09='tert-ButylBenzene', NWChem='tbutbenz', MOPAC='t-butylbenzene')
-ochlrtol_solv = Solvent(name='o-chlorotoluene', smiles='CC1=CC=CC=C1Cl', aliases=['o-chlorotoluene', 'ortho-chlorotoluene', '2-chlorotoluene'], ORCA='o-chlorotoluene', G09='o-ChloroToluene', NWChem='ocltolue', MOPAC='o-chlorotoluene')
-mcresol_solv = Solvent(name='m-cresol', smiles='CC1=CC(O)=CC=C1', aliases=['m-cresol', 'meta-cresol', '3-methylphenol'], ORCA='m-cresol', G09='m-Cresol', NWChem='m-cresol', MOPAC='m-cresol')
-ocresol_solv = Solvent(name='o-cresol', smiles='CC1=CC=CC=C1O', aliases=['o-cresol', 'ortho-cresol', '2-methylphenol'], ORCA='o-cresol', G09='o-Cresol', NWChem='o-cresol', MOPAC='o-cresol')
-cyclhexone_solv = Solvent(name='cyclohexanone', smiles='O=C1CCCCC1', aliases=['cyclohexanone'], ORCA='cyclohexanone', G09='CycloHexanone', NWChem='cychexon', MOPAC='cyclohexanone')
-isoquin_solv = Solvent(name='isoquinoline', smiles='C12=C(C=NC=C2)C=CC=C1', aliases=['isoquinoline'], G09='IsoQuinoline', MOPAC='isoquinoline')
-quinolin_solv = Solvent(name='quinoline', smiles='C12=CC=CC=C1N=CC=C2', aliases=['quinoline'], G09='Quinoline', MOPAC='quinoline')
-argon_solv = Solvent(name='argon', smiles='[Ar]', aliases=['argon'], G09='Argon', MOPAC='argon')
-krypton_solv = Solvent(name='krypton', smiles='[Kr]', aliases=['krypton'], G09='Krypton', MOPAC='krypton')
-xenon_solv = Solvent(name='xenon', smiles=['Xe'], aliases=['xenon'], G09='Xenon', MOPAC='xenon')
+solvents = [Solvent(name='water', smiles='O', aliases=['water', 'h2o'], orca='water', g09='Water', nwchem='water', xtb='Water', mopac='water'),
+            Solvent(name='dichloromethane', smiles='ClCCl', aliases=['dichloromethane', 'methyl dichloride', 'dcm'], orca='dichloromethane', g09='Dichloromethane', nwchem='dcm', xtb='CH2Cl2', mopac='dichloromethane'),
+            Solvent(name='acetone', smiles='CC(C)=O', aliases=['acetone', 'propanone'], orca='acetone', g09='Acetone', nwchem='acetone', xtb='Acetone', mopac='acetone'),
+            Solvent(name='acetonitrile', smiles='CC#N', aliases=['acetonitrile', 'mecn', 'ch3cn'], orca='acetonitrile', g09='Acetonitrile', nwchem='acetntrl', xtb='Acetonitrile', mopac='acetonitrile'),
+            Solvent(name='benzene', smiles='C1=CC=CC=C1', aliases=['benzene', 'cyclohexatriene'], orca='benzene', g09='Benzene', nwchem='benzene', xtb='Benzene', mopac='benzene'),
+            Solvent(name='trichloromethane', smiles='ClC(Cl)Cl', aliases=['chloroform', 'trichloromethane', 'chcl3', 'methyl trichloride'], orca='chloroform', g09='Chloroform', nwchem='chcl3', xtb='CHCl3', mopac='chloroform'),
+            Solvent(name='cs2', smiles='S=C=S', aliases=['cs2', 'methanedithione', 'carbon bisulfide'], orca='carbon disulfide', g09='CarbonDiSulfide', nwchem='cs2', xtb='CS2', mopac='cs2'),
+            Solvent(name='dmf', smiles='O=CN(C)C', aliases=['dmf', 'dimethylformamide', 'n,n-dimethylformamide'], orca='n,n-dimethylformamide', g09='n,n-DiMethylFormamide', nwchem='dmf', xtb='DMF', mopac='n,n-dimethylformamide'),
+            Solvent(name='dmso', smiles='O=S(C)C', aliases=['dmso', 'dimethylsulfoxide'], orca='dimethylsulfoxide', g09='DiMethylSulfoxide', nwchem='dmso', xtb='DMSO', mopac='dmso'),
+            Solvent(name='diethyl ether', smiles='CCOCC', aliases=['diethyl ether', 'ether', 'Ethoxyethane'], orca='diethyl ether', g09='DiethylEther', nwchem='ether', xtb='Ether', mopac='ether'),
+            Solvent(name='methanol', smiles='CO', aliases=['methanol', 'meoh'], orca='methanol', g09='Methanol', nwchem='methanol', xtb='Methanol', mopac='methanol'),
+            Solvent(name='hexane', smiles='CCCCCC', aliases=['hexane', 'n-hexane'], orca='n-hexane', g09='n-Hexane', nwchem='hexane', xtb='n-Hexane', mopac='hexane'),
+            Solvent(name='thf', smiles='C1CCOC1', aliases=['thf', 'tetrahydrofuran', 'oxolane'], orca='tetrahydrofuran', g09='TetraHydroFuran', nwchem='thf', xtb='THF', mopac='tetrahydrofuran'),
+            Solvent(name='toluene', smiles='CC1=CC=CC=C1', aliases=['toluene', 'methylbenzene', 'phenyl methane'], orca='toluene', g09='Toluene', nwchem='toluene', xtb='Toluene', mopac='toluene'),
+            Solvent(name='acetic acid', smiles='CC(O)=O', aliases=['acetic acid', 'ethanoic acid'], orca='acetic acid', g09='AceticAcid', nwchem='acetacid', mopac='acetic acid'),
+            Solvent(name='1-butanol', smiles='CCCCO', aliases=['1-butanol', 'butanol', 'n-butanol', 'butan-1-ol'], orca='1-butanol', g09='1-Butanol', nwchem='butanol', mopac='1-butanol'),
+            Solvent(name='2-butanol', smiles='CC(O)CC', aliases=['2-butanol', 'sec-butanol', 'butan-2-ol'], orca='2-butanol', g09='2-Butanol', nwchem='butanol2', mopac='2-butanol'),
+            Solvent(name='acetophenone', smiles='CC(C1=CC=CC=C1)=O', aliases=['acetophenone', 'phenylacetone', 'phenylethanone'], orca='acetophenone', g09='AcetoPhenone', nwchem='acetphen', mopac='acetophenone'),
+            Solvent(name='aniline', smiles='NC1=CC=CC=C1', aliases=['aniline', 'benzenamine', 'phenylamine'], orca='aniline', g09='Aniline', nwchem='aniline', mopac='aniline'),
+            Solvent(name='anisole', smiles='COC1=CC=CC=C1', aliases=['anisole', 'methoxybenzene', 'phenoxymethane'], orca='anisole', g09='Anisole', nwchem='anisole', mopac='anisole'),
+            Solvent(name='benzaldehyde', smiles='O=CC1=CC=CC=C1', aliases=['benzaldehyde', 'phenylmethanal'], orca='benzaldehyde', g09='Benzaldehyde', nwchem='benzaldh', mopac='benzaldehyde'),
+            Solvent(name='benzonitrile', smiles='N#CC1=CC=CC=C1', aliases=['benzonitrile', 'cyanobenzene', 'phenyl cyanide'], orca='benzonitrile', g09='BenzoNitrile', nwchem='benzntrl', mopac='benzonitrile'),
+            Solvent(name='benzyl chloride', smiles='ClCC1=CC=CC=C1', aliases=['benzyl chloride', '(chloromethyl)benzene', 'Chloromethyl benzene', 'a-chlorotoluene'], orca='a-chlorotoluene', g09='a-ChloroToluene', nwchem='benzylcl', mopac='benzyl chloride'),
+            Solvent(name='1-bromo-2-methylpropane', smiles='CC(C)CBr', aliases=['1-bromo-2-methylpropane', 'isobutyl bromide'], orca='1-bromo-2-methylpropane', g09='1-Bromo-2-MethylPropane', nwchem='brisobut', mopac='isobutyl bromide'),
+            Solvent(name='bromobenzene', smiles='BrC1=CC=CC=C1', aliases=['bromobenzene', 'phenyl bromide'], orca='bromobenzene', g09='BromoBenzene', nwchem='brbenzen', mopac='bromobenzene'),
+            Solvent(name='bromoethane', smiles='CCBr', aliases=['bromoethane', 'ethyl bromide', 'etbr'], orca='bromoethane', g09='BromoEthane', nwchem='brethane', mopac='bromoethane'),
+            Solvent(name='bromoform', smiles='BrC(Br)Br', aliases=['bromoform', 'tribromomethane', 'methyl tribromide', 'chbr3'], orca='bromoform', g09='Bromoform', nwchem='bromform', mopac='bromoform'),
+            Solvent(name='1-bromooctane', smiles='CCCCCCCCBr', aliases=['1-bromooctane', 'bromooctane', 'octyl bromide', '1-octyl bromide'], orca='1-bromooctane', g09='1-BromoOctane', nwchem='broctane', mopac='bromooctane'),
+            Solvent(name='1-bromopentane', smiles='CCCCCBr', aliases=['1-bromopentane', 'bromopentane', 'pentyl bromide'], orca='1-bromopentane', g09='1-BromoPentane', nwchem='brpentan', mopac='bromopentane'),
+            Solvent(name='butantal', smiles='CCCC=O', aliases=['butanal', 'butyraldehyde'], orca='butanal', g09='Butanal', nwchem='butanal', mopac='butanal'),
+            Solvent(name='butanone', smiles='CC(CC)=O', aliases=['butanone', '2-butanone', 'butan-2-one', 'methyl ethyl ketone', 'ethyl methyl ketone'], orca='butanone', g09='Butanone', nwchem='butanone', mopac='2-butanone'),
+            Solvent(name='carbon tetrachloride', smiles='ClC(Cl)(Cl)Cl', aliases=['carbon tetrachloride', 'ccl4', 'tetrachloromethane'], orca='carbon tetrachloride', g09='CarbonTetraChloride', nwchem='carbntet', mopac='carbon tetrachloride'),
+            Solvent(name='chlorobenzene', smiles='ClC1=CC=CC=C1', aliases=['chlorobenzene', 'benzene chloride', 'phenyl chloride'], orca='chlorobenzene', g09='ChloroBenzene', nwchem='clbenzen', mopac='chlorobenzene'),
+            Solvent(name='cyclohexane', smiles='C1CCCCC1', aliases=['cyclohexane'], orca='cyclohexane', g09='CycloHexane', nwchem='cychexan', mopac='cyclohexane'),
+            Solvent(name='1,2-dichlorobenzene', smiles='ClC1=CC=CC=C1Cl', aliases=['1,2-dichlorobenzene', 'o-dichlorobenzene', 'ortho-dichlorobenzene'], orca='o-dichlorobenzene', g09='o-DiChloroBenzene', nwchem='odiclbnz', mopac='1,2-dichlorobenzene'),
+            Solvent(name='n,n-dimethylacetamide', smiles='CC(N(C)C)=O', aliases=['n,n-dimethylacetamide', 'dmac', 'dma', 'dimethylacetamide'], orca='n,n-dimethylacetamide', g09='n,n-DiMethylAcetamide', nwchem='dma', mopac='n,n-dimethylacetamide'),
+            Solvent(name='dioxane', smiles='O1CCOCC1', aliases=['dioxane', '1,4-dioxane', 'p-dioxane'], orca='1,4-dioxane', g09='1,4-Dioxane', nwchem='dioxane', mopac='1,4-dioxane'),
+            Solvent(name='ethyl acetate', smiles='CC(OCC)=O', aliases=['ethyl acetate', 'etoac', 'ethyl ethanoate'], orca='ethyl ethanoate', g09='EthylEthanoate', nwchem='etoac', mopac='ethyl acetate'),
+            Solvent(name='ethanol', smiles='CCO', aliases=['ethanol', 'ethyl alcohol', 'etoh'], orca='ethanol', g09='Ethanol', nwchem='ethanol', mopac='ethyl alcohol'),
+            Solvent(name='heptane', smiles='CCCCCCC', aliases=['heptane', 'n-heptane'], orca='n-heptane', g09='Heptane', nwchem='heptane', mopac='heptane'),
+            Solvent(name='pentane', smiles='CCCCC', aliases=['pentane', 'n-pentane'], orca='n-pentane', g09='n-Pentane', nwchem='npentane', mopac='pentane'),
+            Solvent(name='1-propanol', smiles='CCCO', aliases=['1-propanol', 'propanol', 'n-propaol', 'n-proh'], orca='1-propanol', g09='1-Propanol', nwchem='propanol', mopac='1-propanol'),
+            Solvent(name='pyridine', smiles='C1=NC=CC=C1', aliases=['pyridine'], orca='pyridine', g09='Pyridine', nwchem='pyridine', mopac='pyridine'),
+            Solvent(name='1,1,1-trichloroethane', smiles='CC(Cl)(Cl)Cl', aliases=['1,1,1-trichloroethane', 'methyl chloroform', '1,1,1-tca'], orca='1,1,1-trichloroethane', g09='1,1,1-TriChloroEthane', nwchem='tca111', mopac='1,1,1-trichloroethane'),
+            Solvent(name='cyclopentane', smiles='C1CCCC1', aliases=['cyclopentane'], orca='cyclopentane', g09='CycloPentane', nwchem='cycpentn', mopac='cyclopentane'),
+            Solvent(name='1,1,2-trichloroethane', smiles='ClCC(Cl)Cl', aliases=['1,1,2-trichloroethane', 'vinyl trichloride', '1,1,2-tca'], orca='1,1,2-trichloroethane', g09='1,1,2-TriChloroEthane', nwchem='tca112', mopac='1,1,2-trichloroethane'),
+            Solvent(name='cyclopentanol', smiles='OC1CCCC1', aliases=['cyclopentanol'], orca='cyclopentanol', g09='CycloPentanol', nwchem='cycpntol', mopac='cyclopentanol'),
+            Solvent(name='1,2,4-trimethylbenzene', smiles='CC1=CC=C(C)C(C)=C1', aliases=['1,2,4-trimethylbenzene', 'pseudocumene'], orca='1,2,4-trimethylbenzene', g09='1,2,4-TriMethylBenzene', nwchem='tmben124', mopac='1,2,4-trimethylbenzene'),
+            Solvent(name='cyclopentanone', smiles='O=C1CCCC1', aliases=['cyclopentanone'], orca='cyclopentanone', g09='CycloPentanone', nwchem='cycpnton', mopac='cyclopentanone'),
+            Solvent(name='1,2-dibromoethane', smiles='BrCCBr', aliases=['1,2-dibromoethane', 'ethylene dibromide', 'edb'], orca='1,2-dibromoethane', g09='1,2-DiBromoEthane', nwchem='edb12', mopac='1,2-dibromoethane'),
+            Solvent(name='1,2-dichloroethane', smiles='ClCCCl', aliases=['1,2-dichloroethane', 'ethylene dichloride', 'dce', 'dichloroethane'], orca='1,2-dichloroethane', g09='DiChloroEthane', nwchem='edc12', mopac='1,2-dichloroethane'),
+            Solvent(name='cis-decalin', smiles='[H][C@@]12CCCC[C@]1([H])CCCC2', aliases=['cis-decalin', 'cis decalin'], orca='cis-decalin', g09='Cis-Decalin', nwchem='declncis', mopac='cis-decalin'),
+            Solvent(name='trans-decalin', smiles='[H][C@@]12CCCC[C@@]1([H])CCCC2', aliases=['trans-decalin', 'trans decalin'], orca='trans-decalin', g09='trans-Decalin', nwchem='declntra', mopac='trans-decalin'),
+            Solvent(name='decalin mix', smiles='C12CCCCC1CCCC2', aliases=['decalin mix', 'decalin', 'decalin mixture'], orca='decalin', g09='Decalin-mixture', nwchem='declnmix', mopac='decalin'),
+            Solvent(name='1,2-ethanediol', smiles='OCCO', aliases=['1,2-ethanediol', 'ethylene glycol', 'ethane-1,2-diol', 'monoethylene glycol'], orca='1,2-ethanediol', g09='1,2-EthaneDiol', nwchem='meg', mopac='1,2-ethanediol'),
+            Solvent(name='decane', smiles='CCCCCCCCCC', aliases=['decane', 'n-decane'], orca='n-decane', g09='n-Decane', nwchem='decane', mopac='decane'),
+            Solvent(name='dibromomethane', smiles='BrCBr', aliases=['dibromomethane', 'methyl dibromide'], orca='dibromomethane', g09='DiBromomEthane', nwchem='dibrmetn', mopac='dibromomethane'),
+            Solvent(name='dibutylether', smiles='CCCCOCCCC', aliases=['dibutylether', 'butyl ether'], orca='dibutylether', g09='DiButylEther', nwchem='butyleth', mopac='dibutylether'),
+            Solvent(name='cis-1,2-dichloroethene', smiles='Cl/C=C\\Cl', aliases=['cis-1,2-dichloroethene', 'cis-1,2-dichloroethylene', 'z-1,2-dichloroethene','z-1,2-dichloroethylene'], orca='z-1,2-dichloroethene', g09='z-1,2-DiChloroEthene', nwchem='c12dce', mopac='z-1,2-dichloroethene'),
+            Solvent(name='trans-1,2-dichloroethen', smiles='Cl/C=C/Cl', aliases=['trans-1,2-dichloroethene', 'trans-1,2-dichloroethylene', 'e-1,2-dichloroethene', 'e-1,2-dichloroethylene'], orca='e-1,2-dichloroethene', g09='e-1,2-DiChloroEthene', nwchem='t12dce', mopac='z-1,2-dichloroethene'),
+            Solvent(name='1-bromopropane', smiles='CCCBr', aliases=['1-bromopropane', 'bromopropane'], orca='1-bromopropane', g09='1-BromoPropane', nwchem='brpropan', mopac='1-bromopropane'),
+            Solvent(name='2-bromopropane', smiles='CC(Br)C', aliases=['2-bromopropane', 'isopropyl bromide'], orca='2-bromopropane', g09='2-BromoPropane', nwchem='brpropa2', mopac='2-bromopropane'),
+            Solvent(name='1-chlorohexane', smiles='CCCCCCCl', aliases=['1-chlorohexane', 'chlorohexane'], orca='1-chlorohexane', g09='1-ChloroHexane', nwchem='clhexane', mopac='1-chlorohexane'),
+            Solvent(name='1-chloropentane', smiles='CCCCCCl', aliases=['1-chloropentane', 'chloropentane'], orca='1-chloropentane', g09='1-ChloroPentane', nwchem='clpentan', mopac='1-chloropentane'),
+            Solvent(name='1-chloropropane', smiles='CCCCl', aliases=['1-chloropropane', 'chloropropane'], orca='1-chloropropane', g09='1-ChloroPropane', nwchem='clpropan', mopac='1-chloropropane'),
+            Solvent(name='diethylamine', smiles='CCNCC', aliases=['diethylamine', 'n-ethylethanamine'], orca='diethylamine', g09='DiEthylAmine', nwchem='dietamin', mopac='diethylamine'),
+            Solvent(name='1-decanol', smiles='CCCCCCCCCCO', aliases=['1-decanol', 'decanol', 'decan-1-ol'], orca='1-decanol', g09='1-Decanol', nwchem='decanol', mopac='decanol'),
+            Solvent(name='diiodomethane', smiles='ICI', aliases=['diiodomethane', 'methylene iodide'], orca='diiodomethane', g09='DiIodoMethane', nwchem='mi', mopac='diiodomethane'),
+            Solvent(name='1-fluorooctane', smiles='CCCCCCCCF', aliases=['1-fluorooctane', 'fluorooctane', 'octyl fluoride'], orca='1-fluorooctane', g09='1-FluoroOctane', nwchem='foctane', mopac='1-fluorooctane'),
+            Solvent(name='1-heptanol', smiles='CCCCCCCO', aliases=['1-helptanol', 'heptanol', 'heptan-1-ol'], orca='1-helptanol', g09='1-Heptanol', nwchem='heptanol', mopac='heptanol'),
+            Solvent(name='cis-1,2-dimethylcyclohexane', smiles='C[C@@H]1[C@H](C)CCCC1', aliases=['cis-1,2-dimethylcyclohexane'], orca='cis-1,2-dimethylcyclohexane', g09='Cis-1,2-DiMethylCycloHexane', nwchem='cisdmchx', mopac='cisdmchx'),
+            Solvent(name='diethyl sulfide', smiles='CCSCC', aliases=['diethyl sulfide', 'et2s', 'thioethyl ether'], orca='diethyl sulfide', g09='DiEthylSulfide', nwchem='et2s', mopac='diethyl sulfide'),
+            Solvent(name='diisopropyl ether', smiles='CC(OC(C)C)C', aliases=['diisopropyl ether', 'dipe'], orca='diisopropyl ether', g09='DiIsoPropylEther', nwchem='dipe', mopac='diisopropyl ether'),
+            Solvent(name='1-hexanol', smiles='CCCCCCO', aliases=['1-hexanol', 'hexanol', 'haxan-1-ol'], orca='1-hexanol', g09='1-Hexanol', nwchem='hexanol', mopac='hexanol'),
+            Solvent(name='1-hexene', smiles='C=CCCCC', aliases=['1-hexene', 'hexene', 'hex-1-ene'], orca='1-hexene', g09='1-Hexene', nwchem='hexene', mopac='hexene'),
+            Solvent(name='1-hexyne', smiles='C#CCCCC', aliases=['1-hexyne', 'hexyne', 'hex-1-yne'], orca='1-hexyne', g09='1-Hexyne', nwchem='hexyne', mopac='hexyne'),
+            Solvent(name='1-iodobutane', smiles='CCCCI', aliases=['1-iodobutane', 'iodobutane'], orca='1-iodobutane', g09='1-IodoButane', nwchem='iobutane', mopac='iodobutane'),
+            Solvent(name='1-iodohexadecane', smiles='CCCCCCCCCCCCCCCCI', aliases=['1-iodohexadecane', 'iodohexadecane'], orca='1-iodohexadecane', g09='1-IodoHexaDecane', nwchem='iohexdec', mopac='1-iodohexadecane'),
+            Solvent(name='diphenylether', smiles='C1(OC2=CC=CC=C2)=CC=CC=C1', aliases=['diphenylether', 'phenoxybenzene'], orca='diphenylether', g09='DiPhenylEther', nwchem='phoph', mopac='diphenylether'),
+            Solvent(name='1-iodopentane', smiles='CCCCCI', aliases=['1-iodopentane', 'iodopentane'], orca='1-iodopentane', g09='1-IodoPentane', nwchem='iopentan', mopac='1-iodopentane'),
+            Solvent(name='1-iodopropane', smiles='CCCI', aliases=['1-iodopropane', 'iodopropane'], orca='1-iodopropane', g09='1-IodoPropane', nwchem='iopropan', mopac='1-iodopropane'),
+            Solvent(name='dipropylamine', smiles='CCCNCCC', aliases=['dipropylamine'], orca='dipropylamine', g09='DiPropylAmine', nwchem='dproamin', mopac='dipropylamine'),
+            Solvent(name='n-dodecane', smiles='CCCCCCCCCCCC', aliases=['n-dodecane', 'dodecane'], orca='n-dodecane', g09='n-Dodecane', nwchem='dodecan', mopac='dodecane'),
+            Solvent(name='1-nitropropane', smiles='CCC[N+]([O-])=O', aliases=['1-nitropropane'], orca='1-nitropropane', g09='1-NitroPropane', nwchem='ntrprop1', mopac='1-nitropropane'),
+            Solvent(name='ethanethiol', smiles='CCS', aliases=['ethanethiol', 'ethane thiol', 'etsh'], orca='ethanethiol', g09='EthaneThiol', nwchem='etsh', mopac='ethanethiol'),
+            Solvent(name='1-nonanol', smiles='CCCCCCCCCO', aliases=['1-nonanol', 'nonanol', 'nonan-1-ol'], orca='1-nonanol', g09='1-Nonanol', nwchem='nonanol', mopac='nonanol'),
+            Solvent(name='1-octanol', smiles='CCCCCCCCO', aliases=['1-octanol', 'octanol', 'octan-1-ol'], orca='1-octanol', g09='n-Octanol', nwchem='octanol', mopac='octanol'),
+            Solvent(name='1-pentanol', smiles='CCCCCO', aliases=['1-pentanol', 'pentanol', 'pentan-1-ol'], orca='1-pentanol', g09='1-Pentanol', nwchem='pentanol', mopac='pentanol'),
+            Solvent(name='1-pentene', smiles='C=CCCC', aliases=['1-pentene', 'pentene', 'pent-1-ene'], orca='1-pentene', g09='1-Pentene', nwchem='pentene', mopac='pentene'),
+            Solvent(name='ethyl benzene', smiles='CCC1=CC=CC=C1', aliases=['ethyl benzene', 'ethylbenzene', 'phenylethane'], orca='ethylbenzene', g09='EthylBenzene', nwchem='eb', mopac='ethylbenzene'),
+            Solvent(name='2,2,2-trifluoroethanol', smiles='FC(F)(F)CO', aliases=['2,2,2-trifluoroethanol'], orca='2,2,2-trifluoroethanol', g09='2,2,2-TriFluoroEthanol', nwchem='tfe222', mopac='2,2,2-trifluoroethanol'),
+            Solvent(name='fluorobenzene', smiles='FC1=CC=CC=C1', aliases=['fluorobenzene', 'phenyl fluoride', 'c6h5f'], orca='fluorobenzene', g09='FluoroBenzene', nwchem='c6h5f', mopac='fluorobenzene'),
+            Solvent(name='2,2,4-trimethylpentane', smiles='CC(C)(C)CC(C)C', aliases=['2,2,4-trimethylpentane', 'isooctane'], orca='2,2,4-trimethylpentane', g09='2,2,4-TriMethylPentane', nwchem='isoctane', mopac='2,2,4-trimethylpentane'),
+            Solvent(name='formamide', smiles='O=CN', aliases=['formamide'], orca='formamide', g09='Formamide', nwchem='formamid', mopac='formamide'),
+            Solvent(name='2,4-dimethylpentane', smiles='CC(C)CC(C)C', aliases=['2,4-dimethylpentane', 'diisopropylmethane'], orca='2,4-dimethylpentane', g09='2,4-DiMethylPentane', nwchem='dmepen24', mopac='2,4-dimethylpentane'),
+            Solvent(name='2,4-dimethylpyridine', smiles='CC1=CC(C)=NC=C1', aliases=['2,4-dimethylpyridine', '2,4-lutidine'], orca='2,4-dimethylpyridine', g09='2,4-DiMethylPyridine', nwchem='dmepyr24', mopac='2,4-dimethylpyridine'),
+            Solvent(name='2,6-dimethylpyridine', smiles='CC1=CC=CC(C)=N1', aliases=['2,6-dimethylpyridine', '2,6-lutidine', 'lutidine'], orca='2,6-dimethylpyridine', g09='2,6-DiMethylPyridine', nwchem='dmepyr26', mopac='2,6-dimethylpyridine'),
+            Solvent(name='n-hexadecane', smiles='CCCCCCCCCCCCCCCC', aliases=['n-hexadecane', 'hexadecane'], orca='n-hexadecane', g09='n-Hexadecane', nwchem='hexadecn', mopac='hexadecane'),
+            Solvent(name='dimethyl disulfide', smiles='CSSC', aliases=['dimethyl disulfide', 'dmds', 'methyl disulfide'], orca='dimethyl disulfide', g09='DiMethylDiSulfide', nwchem='dmds', mopac='dimethyl disulfide'),
+            Solvent(name='ethyl methanoate', smiles='O=COCC', aliases=['ethyl methanoate', 'ethyl formate', 'etome'], orca='ethyl methanoate', g09='EthylMethanoate', nwchem='etome', mopac='ethyl methanoate'),
+            Solvent(name='ethyl phenyl ether', smiles='CCOC1=CC=CC=C1', aliases=['ethyl phenyl ether', 'phenetole', 'ethoxybenzene'], orca='ethyl phenyl ether', g09='EthylPhenylEther', nwchem='phentol', mopac='phenetole'),
+            Solvent(name='formic acid', smiles='O=CO', aliases=['formic acid', 'methanoic acid'], orca='formic acid', g09='FormicAcid', nwchem='formacid', mopac='formic acid'),
+            Solvent(name='hexanoic acid', smiles='CCCCCC(O)=O', aliases=['hexanoic acid', 'caproic acid'], orca='hexanoic acid', g09='HexanoicAcid', nwchem='hexnacid', mopac='hexanoic acid'),
+            Solvent(name='2-chlorobutane', smiles='CC(Cl)CC', aliases=['2-chlorobutane', 'sec-butyl chloride'], orca='2-chlorobutane', g09='2-ChloroButane', nwchem='secbutcl', mopac='2-chlorobutane'),
+            Solvent(name='2-heptanone', smiles='CC(CCCCC)=O', aliases=['2-heptanone', 'heptan-2-one'], orca='2-heptanone', g09='2-Heptanone', nwchem='heptnon2', mopac='2-heptanone'),
+            Solvent(name='2-hexanone', smiles='CC(CCCC)=O', aliases=['2-hexanone', 'hexan-2-one'], orca='2-hexanone', g09='2-Hexanone', nwchem='hexanon2', mopac='2-hexanone'),
+            Solvent(name='2-methoxyethanol', smiles='COCCO', aliases=['2-methoxyethanol', 'egme'], orca='2-methoxyethanol', g09='2-MethoxyEthanol', nwchem='egme', mopac='2-methoxyethanol'),
+            Solvent(name='2-methyl-1-propanol', smiles='CC(C)CO', aliases=['2-methyl-1-propanol', 'isobutanol'], orca='2-methyl-1-propanol', g09='2-Methyl-1-Propanol', nwchem='isobutol', mopac='isobutanol'),
+            Solvent(name='2-methyl-2-propanol', smiles='CC(O)(C)C', aliases=['2-methyl-2-propanol', 'tert-butanol'], orca='2-methyl-2-propanol', g09='2-Methyl-2-Propanol', nwchem='terbutol', mopac='tertbutanol'),
+            Solvent(name='2-methylpentane', smiles='CC(C)CCC', aliases=['2-methylpentane', 'isohexane'], orca='2-methylpentane', g09='2-MethylPentane', nwchem='isohexan', mopac='2-methylpentane'),
+            Solvent(name='2-methylpyridine', smiles='CC1=NC=CC=C1', aliases=['2-methylpyridine', '2-picoline'], orca='2-methylpyridine', g09='2-MethylPyridine', nwchem='mepyrid2', mopac='2-methylpyridine'),
+            Solvent(name='2-nitropropane', smiles='CC([N+]([O-])=O)C', aliases=['2-nitropropane'], orca='2-nitropropane', g09='2-NitroPropane', nwchem='ntrprop2', mopac='2-nitropropane'),
+            Solvent(name='2-octanone', smiles='CC(CCCCCC)=O', aliases=['2-octanone', 'octan-2-one'], orca='2-octanone', g09='2-Octanone', nwchem='octanon2', mopac='2-octanone'),
+            Solvent(name='2-pentanone', smiles='CC(CCC)=O', aliases=['2-pentanone', 'pentan-2-one'], orca='2-pentanone', g09='2-Pentanone', nwchem='pentnon2', mopac='2-pentanone'),
+            Solvent(name='iodobenzene', smiles='IC1=CC=CC=C1', aliases=['iodobenzene', 'phenyl iodide'], orca='iodobenzene', g09='IodoBenzene', nwchem='c6h5i', mopac='iodobenzene'),
+            Solvent(name='iodoethane', smiles='CCI', aliases=['iodoethane', 'ethyl iodide'], orca='iodoethane', g09='IodoEthane', nwchem='c2h5i', mopac='iodoethane'),
+            Solvent(name='iodomethane', smiles='CI', aliases=['iodomethane', 'methyl iodide', 'mei', 'ch3i'], orca='iodomethane', g09='IodoMethane', nwchem='ch3i', mopac='iodomethane'),
+            Solvent(name='isopropylbenzene', smiles='CC(C1=CC=CC=C1)C', aliases=['isopropylbenzene', 'cumene'], orca='isopropylbenzene', g09='IsoPropylBenzene', nwchem='cumene', mopac='isopropylbenzene'),
+            Solvent(name='p-isopropyltoluene', smiles='CC1=CC=C(C(C)C)C=C1', aliases=['p-isopropyltoluene', 'para-isopropyltoluene', 'p-cymene'], orca='p-isopropyltoluene', g09='p-IsoPropylToluene', nwchem='p-cymene', mopac='p-cymene'),
+            Solvent(name='mesitylene', smiles='CC1=CC(C)=CC(C)=C1', aliases=['mesitylene'], orca='mesitylene', g09='Mesitylene', nwchem='mesityln', mopac='mesitylene'),
+            Solvent(name='methyl benzoate', smiles='O=C(OC)C1=CC=CC=C1', aliases=['methyl benzoate'], orca='methyl benzoate', g09='MethylBenzoate', nwchem='mebnzate', mopac='methyl benzoate'),
+            Solvent(name='methyl butanoate', smiles='CCCC(OC)=O', aliases=['methyl butanoate', 'methyl butyrate'], orca='methyl butanoate', g09='MethylButanoate', nwchem='mebutate', mopac='methyl butanoate'),
+            Solvent(name='methyl ethanoate', smiles='CC(OC)=O', aliases=['methyl ethanoate', 'methyl acetate'], orca='methyl ethanoate', g09='MethylEthanoate', nwchem='meacetat', mopac='methyl acetate'),
+            Solvent(name='methyl methanoate', smiles='O=COC', aliases=['methyl methanoate', 'methyl formate'], orca='methyl methanoate', g09='MethylMethanoate', nwchem='meformat', mopac='methyl formate'),
+            Solvent(name='methyl propanoate', smiles='CCC(OC)=O', aliases=['methyl propanoate', 'methyl propionate'], orca='methyl propanoate', g09='MethylPropanoate', nwchem='mepropyl', mopac='methyl propanoate'),
+            Solvent(name='n-methylaniline', smiles='CNC1=CC=CC=C1', aliases=['n-methylaniline', 'nma'], orca='n-methylaniline', g09='n-MethylAniline', nwchem='nmeaniln', mopac='n-methylaniline'),
+            Solvent(name='methylcyclohexane', smiles='CC1CCCCC1', aliases=['methylcyclohexane'], orca='methylcyclohexane', g09='MethylCycloHexane', nwchem='mecychex', mopac='methylcyclohexane'),
+            Solvent(name='n-methylformamide (e/z mixture)', smiles='O=CNC', aliases=['n-methylformamide', 'n-methylformamide (e/z mixture)', 'n-methylformamide mixture', 'n-methylformamide mix'], orca='n-methylformamide (e/z mixture)', g09='n-MethylFormamide-mixture', nwchem='nmfmixtr', mopac='nmfmixtr'),
+            Solvent(name='nitrobenzene', smiles='O=[N+](C1=CC=CC=C1)[O-]', aliases=['nitrobenzene', 'phno2'], orca='nitrobenzene', g09='NitroBenzene', nwchem='c6h5no2', mopac='nitrobenzene'),
+            Solvent(name='nitroethane', smiles='CC[N+]([O-])=O', aliases=['nitroethane', 'etno2'], orca='nitroethane', g09='NitroEthane', nwchem='c2h5no2', mopac='nitroethane'),
+            Solvent(name='nitromethane', smiles='C[N+]([O-])=O', aliases=['nitromethane', 'meno2', 'ch3no2'], orca='nitromethane', g09='NitroMethane', nwchem='ch3no2', mopac='nitromethane'),
+            Solvent(name='o-nitrotoluene', smiles='CC1=CC=CC=C1[N+]([O-])=O', aliases=['o-nitrotoluene', 'ortho-nitrotoluene'], orca='o-nitrotoluene', g09='o-NitroToluene', nwchem='ontrtolu', mopac='o-nitrotoluene'),
+            Solvent(name='n-nonane', smiles='CCCCCCCCC', aliases=['n-nonane', 'nonane'], orca='n-nonane', g09='n-Nonane', nwchem='nonane', mopac='n-nonane'),
+            Solvent(name='n-octane', smiles='CCCCCCCC', aliases=['n-octane', 'octane'], orca='n-octane', g09='n-Octane', nwchem='octane', mopac='n-octane'),
+            Solvent(name='n-pentadecane', smiles='CCCCCCCCCCCCCCC', aliases=['n-pentadecane', 'pentadecane'], orca='n-pentadecane', g09='n-Pentadecane', nwchem='pentdecn', mopac='n-pentadecane'),
+            Solvent(name='pentanal', smiles='CCCCC=O', aliases=['pentanal'], orca='pentanal', g09='Pentanal', nwchem='pentanal', mopac='pentanal'),
+            Solvent(name='pentanoic acid', smiles='CCCCC(O)=O', aliases=['pentanoic acid', 'valeric acid'], orca='pentanoic acid', g09='PentanoicAcid', nwchem='pentacid', mopac='pentanoic acid'),
+            Solvent(name='pentyl ethanoate', smiles='CC(OCCCCC)=O', aliases=['pentyl ethanoate', 'pentyl acetate'], orca='pentyl ethanoate', g09='PentylEthanoate', nwchem='pentacet', mopac='pentyl acetate'),
+            Solvent(name='pentyl amine', smiles='NCCCCC', aliases=['pentyl amine', 'pentylamine', '1-aminopentane'], orca='pentylamine', g09='PentylAmine', nwchem='pentamin', mopac='pentylamine'),
+            Solvent(name='perfluorobenzene', smiles='FC1=C(F)C(F)=C(F)C(F)=C1F', aliases=['perfluorobenzene', 'pfb', 'c6f6', 'hexafluorobenzene'], orca='perfluorobenzene', g09='PerFluoroBenzene', nwchem='pfb', mopac='perfluorobenzene'),
+            Solvent(name='propanal', smiles='CCC=O', aliases=['propanal'], orca='propanal', g09='Propanal', nwchem='propanal', mopac='propanal'),
+            Solvent(name='propanoic acid', smiles='CCC(O)=O', aliases=['propanoic acid', 'propionic acid'], orca='propanoic acid', g09='PropanoicAcid', nwchem='propacid', mopac='propanoic acid'),
+            Solvent(name='propanenitrile', smiles='CCC#N', aliases=['propanenitrile', 'cyanoethane', 'ethyl cyanide', 'propanonitrile'], orca='propanonitrile', g09='PropanoNitrile', nwchem='propntrl', mopac='cyanoethane'),
+            Solvent(name='propyl ethanoate', smiles='CC(OCCC)=O', aliases=['propyl ethanoate', 'propyl acetate'], orca='propyl ethanoate', g09='PropylEthanoate', nwchem='propacet', mopac='propyl acetate'),
+            Solvent(name='propyl amine', smiles='NCCC', aliases=['propyl amine', 'propylamine', '1-aminopropane'], orca='propylamine', g09='PropylAmine', nwchem='propamin', mopac='propylamine'),
+            Solvent(name='tetrachloroethene', smiles='Cl/C(Cl)=C(Cl)/Cl', aliases=['tetrachloroethene', 'perchloroethene', 'pce', 'c2cl4'], orca='tetrachloroethene', g09='TetraChloroEthene', nwchem='c2cl4', mopac='tetrachloroethene'),
+            Solvent(name='tetrahydrothiophene-s,s-dioxide', smiles='O=S1(CCCC1)=O', aliases=['tetrahydrothiophene-s,s-dioxide', 'sulfolane'], orca='tetrahydrothiophene-s,s-dioxide', g09='TetraHydroThiophene-s,s-dioxide', nwchem='sulfolan', mopac='sulfolane'),
+            Solvent(name='tetralin', smiles='C12=C(CCCC2)C=CC=C1', aliases=['tetralin', '1,2,3,4-tetrahydronaphthalene', 'tetrahydronaphthalene'], orca='tetralin', g09='Tetralin', nwchem='tetralin', mopac='tetralin'),
+            Solvent(name='thiophene', smiles='C1=CC=CS1', aliases=['thiophene'], orca='thiophene', g09='Thiophene', nwchem='thiophen', mopac='thiophene'),
+            Solvent(name='thiophenol', smiles='SC1=CC=CC=C1', aliases=['thiophenol', 'phsh', 'benzenethiol'], orca='thiophenol', g09='Thiophenol', nwchem='phsh', mopac='thiophenol'),
+            Solvent(name='tributylphosphate', smiles='O=P(OCCCC)(OCCCC)OCCCC', aliases=['tributylphopshate', 'tbp', 'tributyl phopshate'], orca='tributylphopshate', g09='TriButylPhosphate', nwchem='tbp', mopac='tbp'),
+            Solvent(name='trichloroethene', smiles='Cl/C(Cl)=C/Cl', aliases=['trichloroethene', 'tce'], orca='trichloroethene', g09='TriChloroEthene', nwchem='tce', mopac='tce'),
+            Solvent(name='triethylamine', smiles='CCN(CC)CC', aliases=['triethylamine', 'et3n'], orca='triethylamine', g09='TriEthylAmine', nwchem='et3n', mopac='triethylamine'),
+            Solvent(name='n-undecane', smiles='CCCCCCCCCCC', aliases=['n-undecane', 'undecane'], orca='n-undecane', g09='n-Undecane', nwchem='undecane', mopac='n-undecane'),
+            Solvent(name='xylene mixture', smiles='CC1=CC=C(C)C=C1', aliases=['xylene mix', 'xylene (mix)', 'xylene mixture', 'xylene (mixture)', 'xylene'], orca='xyzlene (mixture)', g09='Xylene-mixture', nwchem='xylenemx', mopac='xylene mix'),
+            Solvent(name='m-xylene', smiles='CC1=CC=CC(C)=C1', aliases=['m-xylene', 'meta-xylene', '1,3-xylene'], orca='m-xylene', g09='m-Xylene', nwchem='m-xylene', mopac='m-xylene'),
+            Solvent(name='o-xylene', smiles='CC1=CC=CC=C1C', aliases=['o-xylene', 'ortho-xylene', '1,2-xylene'], orca='o-xylene', g09='o-Xylene', nwchem='o-xylene', mopac='o-xylene'),
+            Solvent(name='p-xylene', smiles='CC1=CC=C(C)C=C1', aliases=['p-xylene', 'para-xylene', '1,4-xylene'], orca='p-xylene', g09='p-Xylene', nwchem='p-xylene', mopac='p-xylene'),
+            Solvent(name='2-propanol', smiles='CC(O)C', aliases=['2-propanol', 'propan-2-ol', 'isopropanol', 'isopropyl alcohol'], orca='2-propanol', g09='2-Propanol', nwchem='propnol2', mopac='2-propanol'),
+            Solvent(name='2-propen-1-ol', smiles='C=CCO', aliases=['2-propen-1-ol', 'allyl alcohol'], orca='2-propen-1-ol', g09='2-Propen-1-ol', nwchem='propenol', mopac='2-propen-1-ol'),
+            Solvent(name='e-2-pentene', smiles='C/C=C/CC', aliases=['e-2-pentene', 'e-pent-2-ene'], orca='e-2-pentene', g09='e-2-Pentene', nwchem='e2penten', mopac='e-2-pentene'),
+            Solvent(name='3-methylpyridine', smiles='CC1=CC=CN=C1', aliases=['3-methylpyridine', '3-picoline'], orca='3-methylpyridine', g09='3-MethylPyridine', nwchem='mepyrid3', mopac='3-methylpyridine'),
+            Solvent(name='3-pentanone', smiles='CCC(CC)=O', aliases=['3-pentanone', 'pentan-3-one'], orca='3-pentanone', g09='3-Pentanone', nwchem='pentnon3', mopac='3-pentanone'),
+            Solvent(name='4-heptanone', smiles='CCCC(CCC)=O', aliases=['4-heptanone', 'heptan-4-one'], orca='4-heptanone', g09='4-Heptanone', nwchem='heptnon4', mopac='4-heptanone'),
+            Solvent(name='4-methyl-2-pentanone', smiles='CC(CC(C)C)=O', aliases=['4-methyl-2-pentanone', 'methyl isobutyl ketone'], orca='4-methyl-2-pentanone', g09='4-Methyl-2-Pentanone', nwchem='mibk', mopac='mibk'),
+            Solvent(name='4=methylpyridine', smiles='CC1=CC=NC=C1', aliases=['4-methylpyridine', '4-picoline'], orca='4-methylpyridine', g09='4-MethylPyridine', nwchem='mepyrid4', mopac='4-methylpyridine'),
+            Solvent(name='5-nonanone', smiles='CCCCC(CCCC)=O', aliases=['5-nonanone', 'nonan-5-one'], orca='5-nonanone', g09='5-Nonanone', nwchem='nonanone', mopac='5-nonanone'),
+            Solvent(name='benzyl alcohol', smiles='OCC1=CC=CC=C1', aliases=['benzyl alcohol', 'phenylmethanol', 'bnoh'], orca='benzyl alcohol', g09='BenzylAlcohol', nwchem='benzalcl', mopac='benzyl alcohol'),
+            Solvent(name='butanoic acid', smiles='CCCC(O)=O', aliases=['butanoic acid', 'butyric acid'], orca='butanoic acid', g09='ButanoicAcid', nwchem='butacid', mopac='butanoic acid'),
+            Solvent(name='butanenitrile', smiles='CCCC#N', aliases=['butanenitrile', 'butyronitrile', 'butanonitrile'], orca='butanonitrile', g09='ButanoNitrile', nwchem='butantrl', mopac='butanenitrile'),
+            Solvent(name='butyl ethanoate', smiles='CC(OCCCC)=O', aliases=['butyl ethanoate', 'butyl acetate'], orca='butyl ethanoate', g09='ButylEthanoate', nwchem='butile', mopac='butyl acetate'),
+            Solvent(name='butylamine', smiles='NCCCC', aliases=['butylamine', 'butan-1-amine'], orca='butylamine', g09='ButylAmine', nwchem='nba', mopac='butylamine'),
+            Solvent(name='n-butylbenzene', smiles='CCCCC1=CC=CC=C1', aliases=['n-butylbenzene', 'butylbenzene', 'phenylbutane'], orca='n-butylbenzene', g09='n-ButylBenzene', nwchem='nbutbenz', mopac='n-butylbenzene'),
+            Solvent(name='sec-butylbenzene', smiles='CCC(C1=CC=CC=C1)C', aliases=['sec-butylbenzene', 's-butylbenzene'], orca='sec-butylbenzene', g09='sec-ButylBenzene', nwchem='sbutbenz', mopac='s-butylbenzene'),
+            Solvent(name='tert-butylbenzene', smiles='CC(C1=CC=CC=C1)(C)C', aliases=['tert-butylbenzene', 't-butylbenzene'], orca='tert-butylbenzene', g09='tert-ButylBenzene', nwchem='tbutbenz', mopac='t-butylbenzene'),
+            Solvent(name='o-chlorotoluene', smiles='CC1=CC=CC=C1Cl', aliases=['o-chlorotoluene', 'ortho-chlorotoluene', '2-chlorotoluene'], orca='o-chlorotoluene', g09='o-ChloroToluene', nwchem='ocltolue', mopac='o-chlorotoluene'),
+            Solvent(name='m-cresol', smiles='CC1=CC(O)=CC=C1', aliases=['m-cresol', 'meta-cresol', '3-methylphenol'], orca='m-cresol', g09='m-Cresol', nwchem='m-cresol', mopac='m-cresol'),
+            Solvent(name='o-cresol', smiles='CC1=CC=CC=C1O', aliases=['o-cresol', 'ortho-cresol', '2-methylphenol'], orca='o-cresol', g09='o-Cresol', nwchem='o-cresol', mopac='o-cresol'),
+            Solvent(name='cyclohexanone', smiles='O=C1CCCCC1', aliases=['cyclohexanone'], orca='cyclohexanone', g09='CycloHexanone', nwchem='cychexon', mopac='cyclohexanone'),
+            Solvent(name='isoquinoline', smiles='C12=C(C=NC=C2)C=CC=C1', aliases=['isoquinoline'], g09='IsoQuinoline', mopac='isoquinoline'),
+            Solvent(name='quinoline', smiles='C12=CC=CC=C1N=CC=C2', aliases=['quinoline'], g09='Quinoline', mopac='quinoline'),
+            Solvent(name='argon', smiles='[Ar]', aliases=['argon'], g09='Argon', mopac='argon'),
+            Solvent(name='krypton', smiles='[Kr]', aliases=['krypton'], g09='Krypton', mopac='krypton'),
+            Solvent(name='xenon', smiles=['Xe'], aliases=['xenon'], g09='Xenon', mopac='xenon')]

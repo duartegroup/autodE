@@ -3,7 +3,8 @@ from subprocess import Popen
 from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
-from autode.solvent.solvents import get_available_solvents
+from autode.config import Config
+from autode.solvent.solvents import get_available_solvent_names
 from autode.exceptions import SolventUnavailable
 import shutil
 from tempfile import mkdtemp
@@ -65,21 +66,21 @@ class Calculation:
         n_atoms each with 3 components (x, y, z)
 
         Arguments:
-            mode_number (int): normal mode number. 6 will be the first vibrational mode (indexed from 0 in ORCA)
+            mode_number (int): normal mode number. 6 will be the first vibrational mode (indexed from 0 in orca)
 
         Returns:
             list(list): list of displacement distances for each xyz
         """
         return self.method.get_normal_mode_displacements(self, mode_number)
 
-    def get_final_xyzs(self):
+    def get_final_atoms(self):
         logger.info(f'Getting final xyzs from {self.output_filename}')
 
         if self.output_file_lines is None:
             logger.error('Could not get the final xyzs. The output file lines were not set')
             return None
 
-        xyzs = self.method.get_final_xyzs(self)
+        xyzs = self.method.get_final_atoms(self)
 
         if len(xyzs) == 0:
             logger.error(f'Could not get xyzs from calculation file {self.name}')
@@ -197,9 +198,9 @@ class Calculation:
 
         return None
 
-    def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False,
-                 charges=None, grad=False, partial_hessian=None):
+    def __init__(self, name, molecule, method, keywords_list=None, n_cores=1, bond_ids_to_add=None,
+                 other_input_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
+                 constraints_already_met=False, grad=False, partial_hessian=None):
         """
         Arguments:
             name (str): calc name
@@ -207,48 +208,41 @@ class Calculation:
             method (method object): which electronic structure wrapper to use
 
         Keyword Arguments:
-            keywords (calc keywords): keywords to use in the calc (default: {None})
+            keywords_list (list(str)): keywords_list to use in the calc (default: {None})
             n_cores (int): number of cores available (default: {1})
-            max_core_mb (int): max mb per core (default: {1000})
             bond_ids_to_add (list(tuples)): list of active bonds (default: {None})
-            optts_block (list): keywords to use when performing a TS search (default: {None})
-            opt (bool): opt calc or not (needed for XTB) (default: {False})
+            other_input_block (list): keywords_list to use when performing a TS search (default: {None})
+            opt (bool): opt calc or not (needed for xtb) (default: {False})
             distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length
                                          to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
-            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB force constant) (default: {False})
-            charges (list(list)): list of point charges and thier positions [xyzs, charge] (default: {None})
-            grad (bool): grad calc or not (needed for XTB) (default: {False})
+            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for xtb force constant) (default: {False})
+            grad (bool): grad calc or not (needed for xtb) (default: {False})
             partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
         self.name = name
-        self.xyzs = deepcopy(molecule.xyzs)
-        self.charge = molecule.charge
-        self.mult = molecule.mult
+        self.molecule = deepcopy(molecule)
+
         self.method = method
-        self.keywords = keywords
+        self.keywords_list = keywords_list
         self.flags = None
         self.opt = opt
         self.core_atoms = None
         self.grad = grad
         self.partial_hessian = partial_hessian
 
-        if molecule.qm_solvent_xyzs is not None:
-            self.xyzs += molecule.qm_solvent_xyzs
-
-        self.solvent = molecule.solvent
+        # TODO reimplement this
+        # if molecule.qm_solvent_xyzs is not None:
+        #    self.xyzs += molecule.qm_solvent_xyzs
 
         self.n_cores = n_cores
-        # Maximum memory per core to use
-        self.max_core_mb = max_core_mb
+        self.max_core_mb = Config.max_core        # Maximum memory per core to use
 
         self.bond_ids_to_add = bond_ids_to_add
-        self.optts_block = optts_block
+        self.other_input_block = other_input_block
         self.distance_constraints = distance_constraints
         self.cartesian_constraints = cartesian_constraints
         self.constraints_already_met = constraints_already_met
-
-        self.charges = charges
 
         # Set in self.generate_input()
         self.input_filename = None
@@ -263,19 +257,19 @@ class Calculation:
         self.additional_input_files = []
 
         if molecule.solvent is not None:
-            if getattr(molecule.solvent, method.__name__) is False:
+            if getattr(molecule.solvent, method.__name__) is None:
                 logger.critical('Solvent is not available. Cannot run the calculation')
-                print(f'Available solvents for {self.method.__name__} are {get_available_solvents(self.method.__name__)}')
+                print(
+                    f'Available solvents for {self.method.__name__} are {get_available_solvent_names(self.method.__name__)}')
                 raise SolventUnavailable
             self.solvent_keyword = getattr(molecule.solvent, method.__name__)
+
         else:
             self.solvent_keyword = None
 
-        if self.xyzs is None:
+        if self.molecule.atoms is None:
             logger.error('Have no xyzs. Can\'t make a calculation')
             return
 
         if self.bond_ids_to_add:
             self._set_core_atoms(molecule)
-
-        self.n_atoms = len(self.xyzs)

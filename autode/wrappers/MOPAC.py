@@ -7,7 +7,7 @@ from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
 
 
-# dielectrics from Gaussian solvent list
+# dielectrics from Gaussian solvent_name list
 solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile': 35.69, 'benzene': 2.27, '1-butanol': 17.33,
                             '2-butanone': 18.25, 'carbon tetrachloride': 2.23, 'chlorobenzene': 5.70, 'chloroform': 4.71,
                             'cyclohexane': 2.02, '1,2-dichlorobenzene': 9.99, 'dichloromethane': 8.93, 'n,n-dimethylacetamide': 37.78,
@@ -51,7 +51,7 @@ solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile
 class MOPAC(ElectronicStructureMethod):
 
     def generate_input(self, calc):
-        logger.info(f'Generating MOPAC input for {calc.name}')
+        logger.info(f'Generating mopac input for {calc.name}')
 
         calc.input_filename = calc.name + '_mopac.mop'
         calc.output_filename = calc.input_filename.replace('.mop', '.out')
@@ -87,7 +87,7 @@ class MOPAC(ElectronicStructureMethod):
             print(*keywords, '\n\n', file=input_file)
 
             if calc.distance_constraints is not None:
-                # MOPAC seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
+                # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
                 xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
@@ -134,7 +134,7 @@ class MOPAC(ElectronicStructureMethod):
             if 'JOB ENDED NORMALLY' in line:
                 return True
             if n_line > 50:
-                # MOPAC will have a     * JOB ENDED NORMALLY *  line close to the end if terminated normally
+                # mopac will have a     * JOB ENDED NORMALLY *  line close to the end if terminated normally
                 return False
 
         return False
@@ -206,4 +206,7 @@ class MOPAC(ElectronicStructureMethod):
         return grad_array.tolist()
 
     def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path, req_licence=True, path_to_licence=Config.MOPAC.path_to_licence)
+        super().__init__(name='mopac', path=Config.MOPAC.path, keywords=Config.MOPAC.keywords)
+
+
+mopac = MOPAC()

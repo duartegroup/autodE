@@ -25,7 +25,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         name (str): name of reaction
         reaction_class (object): class of the reaction (reactions.py)
         method (object): electronic structure wrapper to use for the calcs
-        keywords (list): keywords to use in the calcs
+        keywords (list): keywords_list to use in the calcs
 
     Keyword Arguments:
         delta_dist (float): distance to add onto the current distance (Å) in n_steps (default: {1.5})
@@ -47,12 +47,12 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
     # Run a relaxed potential energy surface scan by running sequential constrained optimisations
     for n, dist in enumerate(dists):
         const_opt = Calculation(name=name + f'_scan{n}', molecule=mol_with_const, method=method, opt=True,
-                                n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords=keywords)
+                                n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords_list=keywords)
         const_opt.run()
 
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
-            xyzs = const_opt.get_final_xyzs()
+            xyzs = const_opt.get_final_atoms()
         except XYZsNotFound:
             logger.error('Could not find XYZs, setting as previous')
             xyzs = deepcopy(const_opt.xyzs)

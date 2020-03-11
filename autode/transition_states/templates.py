@@ -90,7 +90,7 @@ class TStemplate:
             reaction_class (object): Reaction class (reactions.py)
 
         Keyword Arguments:
-            solvent (solvent obj): solvent (default: {None})
+            solvent (solvent_name obj): solvent_name (default: {None})
             charge (int): charge (default: {0})
             mult (int): multiplicity of the molecule (default: {1})
         """

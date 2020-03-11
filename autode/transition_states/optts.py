@@ -12,7 +12,7 @@ from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
-    """Get a transition state object from a set of xyzs by running an ORCA OptTS calculation
+    """Get a transition state object from a set of xyzs by running an orca OptTS calculation
 
     Arguments:
         ts_guess (ts guess object): object to be optimised to a TS
@@ -103,7 +103,7 @@ def get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=7, displa
     """
     logger.info('Displacing along imaginary mode')
 
-    current_xyzs = calc.get_final_xyzs()[:n_atoms]
+    current_xyzs = calc.get_final_atoms()[:n_atoms]
     mode_distplacement_coords = calc.get_normal_mode_displacements(mode_number=mode_number)
 
     displaced_xyzs = deepcopy(current_xyzs)
@@ -143,7 +143,7 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
         logger.error('Have no imaginary normal mode displacements to analyse')
         return False
 
-    final_xyzs = calc.get_final_xyzs()[:n_atoms]
+    final_xyzs = calc.get_final_atoms()[:n_atoms]
 
     imag_mode_magnitudes = [np.linalg.norm(np.array(dis_xyz)) for dis_xyz in imag_normal_mode_displacements_xyz]
 
@@ -204,21 +204,21 @@ def check_close_imag_contribution(calc, n_atoms, molecules, method, disp_mag=1):
     """
     forward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=6, displacement_magnitude=disp_mag)
     forward_displaced_mol = Molecule(xyzs=forward_displaced_xyzs[:n_atoms], charge=calc.charge, mult=calc.mult)
-    forward_coords = forward_displaced_mol.get_coords()
+    forward_coords = forward_displaced_mol.get_coordinates()
     forward_distance_constraints = {}
 
     for active_bond in calc.bond_ids_to_add:
         distance = np.linalg.norm(forward_coords[active_bond[0]] - forward_coords[active_bond[1]])
         forward_distance_constraints[active_bond] = distance
     forward_displaced_calc = Calculation(name=calc.name + '_forwards_displacement', molecule=forward_displaced_mol, method=method,
-                                         keywords=method.opt_keywords, n_cores=Config.n_cores,
+                                         keywords_list=method.keywords.opt, n_cores=Config.n_cores,
                                          max_core_mb=Config.max_core, opt=True, distance_constraints=forward_distance_constraints, constraints_already_met=True)
     forward_displaced_calc.run()
-    forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_xyzs())
+    forward_displaced_mol.set_xyzs(forward_displaced_calc.get_final_atoms())
 
     backward_displaced_xyzs = get_displaced_xyzs_along_imaginary_mode(calc, n_atoms, mode_number=6, displacement_magnitude=-disp_mag)
     backward_displaced_mol = Molecule(xyzs=backward_displaced_xyzs[:n_atoms], charge=calc.charge, mult=calc.mult)
-    backward_coords = backward_displaced_mol.get_coords()
+    backward_coords = backward_displaced_mol.get_coordinates()
     backward_distance_constraints = {}
 
     for active_bond in calc.bond_ids_to_add:
@@ -226,10 +226,10 @@ def check_close_imag_contribution(calc, n_atoms, molecules, method, disp_mag=1):
         backward_distance_constraints[active_bond] = distance
 
     backward_displaced_calc = Calculation(name=calc.name + '_backwards_displacement', molecule=backward_displaced_mol, method=method,
-                                          keywords=method.opt_keywords, n_cores=Config.n_cores,
+                                          keywords_list=method.keywords.opt, n_cores=Config.n_cores,
                                           max_core_mb=Config.max_core, opt=True, distance_constraints=backward_distance_constraints, constraints_already_met=True)
     backward_displaced_calc.run()
-    backward_displaced_mol.set_xyzs(backward_displaced_calc.get_final_xyzs())
+    backward_displaced_mol.set_xyzs(backward_displaced_calc.get_final_atoms())
 
     if is_isomorphic(forward_displaced_mol.graph, molecules[0].graph):
         if is_isomorphic(backward_displaced_mol.graph, molecules[1].graph):

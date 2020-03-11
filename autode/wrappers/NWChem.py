@@ -1,8 +1,6 @@
 from autode.config import Config
 from autode.log import logger
-from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.input_output import xyzs2xyzfile
 from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
 import os
@@ -13,12 +11,12 @@ class NWChem(ElectronicStructureMethod):
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_nwchem.nw'
         calc.output_filename = calc.name + '_nwchem.out'
-        keywords = calc.keywords.copy()
+        keywords = calc.keywords_list.copy()
 
         new_keywords = []
         scf_block = False
         for keyword in keywords:
-            if 'opt' in keyword.lower() and calc.n_atoms == 1:
+            if 'opt' in keyword.lower() and calc.molecule.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
                 old_key = keyword.split()
                 new_keyword = ' '
@@ -35,7 +33,7 @@ class NWChem(ElectronicStructureMethod):
                 new_keywords.append(new_keyword)
             elif keyword.lower().startswith('scf'):
                 if calc.solvent_keyword:
-                    logger.critical('NWChem only supports solvent for DFT calculations')
+                    logger.critical('nwchem only supports solvent_name for DFT calculations')
                     raise UnsuppportedCalculationInput
                 scf_block = True
                 lines = keyword.split('\n')
@@ -44,7 +42,7 @@ class NWChem(ElectronicStructureMethod):
                 new_keywords.append(new_keyword)
             elif any(string in keyword.lower() for string in ['ccsd', 'mp2']) and not scf_block:
                 if calc.solvent_keyword:
-                    logger.critical('NWChem only supports solvent for DFT calculations')
+                    logger.critical('nwchem only supports solvent_name for DFT calculations')
                     raise UnsuppportedCalculationInput
                 new_keywords.append(f'scf\n  nopen {calc.mult - 1}\nend')
                 new_keywords.append(keyword)
@@ -57,7 +55,7 @@ class NWChem(ElectronicStructureMethod):
             print(f'start {calc.name}_nwchem\necho', file=inp_file)
 
             if calc.solvent_keyword:
-                print(f'cosmo\n do_cosmo_smd true\n solvent {calc.solvent_keyword}\nend', file=inp_file)
+                print(f'cosmo\n do_cosmo_smd true\n solvent_name {calc.solvent_keyword}\nend', file=inp_file)
 
             print('geometry', end=' ', file=inp_file)
             if calc.distance_constraints or calc.cartesian_constraints:
@@ -86,7 +84,7 @@ class NWChem(ElectronicStructureMethod):
                     force_constant += 90
                 print('constraints', file=inp_file)
                 if calc.distance_constraints:
-                    for atom_ids in calc.distance_constraints.keys():  # NWChem counts from 1 so increment atom ids by 1
+                    for atom_ids in calc.distance_constraints.keys():  # nwchem counts from 1 so increment atom ids by 1
                         print(f'  spring bond {atom_ids[0] + 1} {atom_ids[1] + 1} {force_constant} {np.round(calc.distance_constraints[atom_ids], 3)}' + str(
                             atom_ids[0] + 1), file=inp_file)
 
@@ -127,7 +125,7 @@ class NWChem(ElectronicStructureMethod):
 
         for n_line, line in enumerate(calc.rev_output_file_lines):
             if any(substring in line for substring in['CITATION', 'Failed to converge in maximum number of steps or available time']):
-                logger.info('NWChem terminated normally')
+                logger.info('nwchem terminated normally')
                 return True
             if n_line > 500:
                 return False
@@ -230,8 +228,7 @@ class NWChem(ElectronicStructureMethod):
                     _, atom_label, _, x, y, z = line.split()
                     xyzs.append([atom_label, float(x), float(y), float(z)])
 
-        xyz_filename = f'{calc.name}_nwchem.xyz'
-        xyzs2xyzfile(xyzs, xyz_filename)
+        # TODO print xyz file of final mol
 
         return xyzs
 
@@ -266,11 +263,7 @@ class NWChem(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__('nwchem', path=Config.NWChem.path,
-                         scan_keywords=Config.NWChem.scan_keywords,
-                         conf_opt_keywords=Config.NWChem.conf_opt_keywords,
-                         opt_keywords=Config.NWChem.opt_keywords,
-                         opt_ts_keywords=Config.NWChem.opt_ts_keywords,
-                         hess_keywords=Config.NWChem.hess_keywords,
-                         sp_keywords=Config.NWChem.sp_keywords,
-                         mpirun=True)
+        super().__init__('nwchem', path=Config.NWChem.path, keywords=Config.NWChem.keywords, mpirun=True)
+
+
+nwchem = NWChem()

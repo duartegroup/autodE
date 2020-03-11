@@ -39,21 +39,21 @@ class Reaction:
     def check_solvent(self):
         """Check that all the solvents are the same for reactants and products
         """
-        if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
+        if not all([mol.solvent_name == self.reacs[0].solvent_name for mol in self.reacs + self.prods]):
             logger.critical('Solvents in reactants and products don\'t match')
             raise UnbalancedReaction
-        self.solvent = self.reacs[0].solvent
+        self.solvent = self.reacs[0].solvent_name
 
     def set_solvent(self, solvent):
         if solvent is not None:
-            logger.info(f'Setting solvent as {solvent}')
+            logger.info(f'Setting solvent_name as {solvent_name}')
 
             solvent_obj = get_solvent(solvent)
             if solvent_obj is None:
-                logger.critical('Could not find the solvent specified')
+                logger.critical('Could not find the solvent_name specified')
                 raise SolventUnavailable
             for mol in self.reacs + self.prods:
-                mol.solvent = solvent_obj
+                mol.solvent_name = solvent_obj
             self.solvent = solvent_obj
         else:
             self.solvent = None
@@ -111,16 +111,16 @@ class Reaction:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
 
-    @work_in('solvent')
+    @work_in('solvent_name')
     def calc_solvent(self):
-        logger.info('Optimising the solvent molecule')
+        logger.info('Optimising the solvent_name molecule')
         solvent_smiles = self.solvent.smiles
-        solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent=self.solvent)
+        solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent_name=self.solvent)
 
         if solvent.n_atoms > 1:
             solvent.find_lowest_energy_conformer()
         solvent.optimise(None)
-        logger.info('Saving the solvent molecule properties')
+        logger.info('Saving the solvent_name molecule properties')
         self.solvent_mol = solvent
         if not len(self.reacs) == len(self.prods) == 1:
             qmmm_solvent_mol = deepcopy(solvent)
@@ -133,7 +133,7 @@ class Reaction:
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
-        """Try and locate the lowest energy conformation using RDKit, then optimise them with XTB, then
+        """Try and locate the lowest energy conformation using RDKit, then optimise them with xtb, then
         optimise the unique (defined by an energy cut-off) conformers with an electronic structure method"""
 
         for mol in self.reacs + self.prods:
@@ -151,7 +151,7 @@ class Reaction:
     @work_in('tss')
     def locate_transition_state(self):
 
-        # Clear the PES graphs, so they don't write over each other
+        # Clear the PES graphs, so they don't write over each optts_block
         file_extension = Config.image_file_extension
         for filename in os.listdir(os.getcwd()):
             if filename.endswith(file_extension):

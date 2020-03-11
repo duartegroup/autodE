@@ -1,16 +1,13 @@
 from autode.log import logger
 from autode.constants import Constants
 from autode.config import Config
-from autode.geom import calc_distance_matrix
-from autode.mol_graphs import make_graph
 from autode.mol_graphs import is_isomorphic
 from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
 from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.optts import get_ts
 from autode.conformers.conformers import Conformer
-from autode.conformers.conf_gen import gen_simanl_conf_xyzs
-from autode.solvent.qmmm import QMMM
+from autode.conformers.conf_gen import get_simanl_atoms
 import numpy as np
 
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
@@ -47,7 +44,7 @@ class TS(TSguess):
         self.truncated_graph = truncated_graph
 
     def save_ts_template(self, folder_path=None):
-        """Save a transition state template containing the active bond lengths, solvent and charge in folder_path
+        """Save a transition state template containing the active bond lengths, solvent_name and charge in folder_path
 
         Keyword Arguments:
             folder_path (str): folder to save the TS template to (default: {None})
@@ -92,7 +89,7 @@ class TS(TSguess):
         else:
             point_charges = None
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=self.method.sp_keywords,
+        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords_list=self.method.sp_keywords,
                          n_cores=Config.n_cores, max_core_mb=Config.max_core, charges=self.point_charges)
         sp.run()
         self.energy = sp.get_energy()
@@ -102,11 +99,11 @@ class TS(TSguess):
         self.conformers = []
 
         bond_list = list(self.graph.edges)
-        conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
+        conf_xyzs = get_simanl_atoms(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
 
         for i in range(len(conf_xyzs)):
 
-            self.conformers.append(Conformer(name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent=self.solvent,
+            self.conformers.append(Conformer(name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent_name=self.solvent,
                                              charge=self.charge, mult=self.mult, dist_consts=self.dist_consts))
 
         self.n_conformers = len(self.conformers)

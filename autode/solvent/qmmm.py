@@ -1,6 +1,5 @@
 from autode.methods import get_hmethod
 from autode.calculation import Calculation
-from autode.geom import xyz2coord, coords2xyzs
 from autode.config import Config
 from autode.constants import Constants
 from autode.atoms import get_vdw_radius
@@ -64,7 +63,7 @@ class QMMM:
 
         coords_in_nm = xyz2coord(self.solvent_xyzs + self.solute_xyzs) * 0.1
         simulation.context.setPositions(coords_in_nm)
-        logger.info('Minimizing solvent energy')
+        logger.info('Minimizing solvent_name energy')
         simulation.minimizeEnergy()
 
         for force in system.getForces():
@@ -181,7 +180,7 @@ class QMMM:
 
         qmmm_forces = np.zeros((self.n_atoms, 3))
         for i, force in enumerate(qm_forces):
-            # force for solute, then solvent atoms
+            # force for solute, then solvent_name atoms
             if i < len(self.solute_xyzs):
                 index = self.n_solvent_atoms + i
             else:
