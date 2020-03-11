@@ -28,15 +28,18 @@ def work_in(dir_ext):
     return func_decorator
 
 
-def requires_atoms(func):
+def requires_atoms():
     """A function requiring a number of atoms to run"""
 
-    @wraps(func)
-    def wrapped_function(species, *args, **kwargs):
+    def func_decorator(func):
+        @wraps(func)
+        def wrapped_function(*args, **kwargs):
 
-        if species.n_atoms == 0:
-            raise NoAtomsInMolecule
+            # Species must be the first argument
+            if args[0].n_atoms == 0:
+                raise NoAtomsInMolecule
 
-        func(species, *args, **kwargs)
+            return func(*args, **kwargs)
 
-    return wrapped_function
+        return wrapped_function
+    return func_decorator

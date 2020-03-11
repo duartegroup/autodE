@@ -111,7 +111,7 @@ class Reaction:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
 
-    @work_in('solvent_name')
+    @work_in('solvent')
     def calc_solvent(self):
         logger.info('Optimising the solvent_name molecule')
         solvent_smiles = self.solvent.smiles
@@ -249,7 +249,7 @@ class Reaction:
         self.ts, self.tss = None, []
         self.charge = None
 
-        self.type = reactions.classify(reacs=self.reacs, prods=self.prods)
+        self.type = reactions.classify(reactants=self.reacs, products=self.prods)
 
         self.set_solvent(solvent)
         self.check_solvent()

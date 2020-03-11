@@ -64,7 +64,7 @@ class MOPAC(ElectronicStructureMethod):
         if calc.grad:
             keywords.append('GRAD')
 
-        if calc.charges:
+        if calc.molecule.charges:
             keywords.append('QMMM')
 
         if calc.solvent_keyword is not None:
@@ -72,12 +72,12 @@ class MOPAC(ElectronicStructureMethod):
 
         keywords.append(f'CHARGE={calc.charge}')
 
-        if calc.mult != 1:
-            if calc.mult == 2:
+        if calc.molecule.mult != 1:
+            if calc.molecule.mult == 2:
                 keywords.append('DOUBLET')
-            elif calc.mult == 3:
+            elif calc.molecule.mult == 3:
                 keywords.append('TRIPLET')
-            elif calc.mult == 4:
+            elif calc.molecule.mult == 4:
                 keywords.append('QUARTET')
             else:
                 logger.critical('Unsupported spin multiplicity')
@@ -90,7 +90,7 @@ class MOPAC(ElectronicStructureMethod):
                 # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
-                xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
+                xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.molecule.atoms,
                                                       bonds=list(calc.distance_constraints.keys()),
                                                       final_distances=list(calc.distance_constraints.values()))
 
@@ -99,7 +99,7 @@ class MOPAC(ElectronicStructureMethod):
                                for i in bond]
 
             else:
-                xyzs = calc.xyzs
+                xyzs = calc.molecule.xyzs
                 fixed_atoms = []
 
             if calc.cartesian_constraints is not None:
@@ -111,18 +111,18 @@ class MOPAC(ElectronicStructureMethod):
                 else:
                     print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
 
-        if calc.charges:
+        if calc.molecule.charges:
             potentials = []
-            for xyz in calc.xyzs:
+            for xyz in calc.molecule.xyzs:
                 potential = 0
                 coord = np.asarray(xyz[1:])
-                for charge in calc.charges:
+                for charge in calc.molecule.charges:
                     charge_coords = np.asarray(charge[1:4])
                     distance = np.linalg.norm(coord - charge_coords)
                     potential += charge[4] / distance
                 potentials.append(322*potential)
             with open(f'{calc.name}_mol.in', 'w') as pc_file:
-                print(f'\n{len(calc.xyzs)} 0', file=pc_file)
+                print(f'\n{calc.molecule.n_atoms} 0', file=pc_file)
                 [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
             calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
 
@@ -175,7 +175,7 @@ class MOPAC(ElectronicStructureMethod):
                 #    1    C        1.255660629     0.020580974    -0.276235553
 
                 xyzs = []
-                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.n_atoms]
+                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.molecule.n_atoms]
                 for xyz_line in xyz_lines:
                     atom_label, x, y, z = xyz_line.split()[1:]
                     xyzs.append([atom_label, float(x), float(y), float(z)])
@@ -201,7 +201,7 @@ class MOPAC(ElectronicStructureMethod):
                 gradients.append(value)
         grad_array = np.asarray(gradients)
         grad_array *= Constants.a02ang/Constants.ha2kcalmol
-        grad_array.reshape((calc.n_atoms, 3))
+        grad_array.reshape((calc.molecule.n_atoms, 3))
 
         return grad_array.tolist()
 

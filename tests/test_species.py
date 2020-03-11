@@ -1,11 +1,14 @@
 from autode.species import Species
+from autode.wrappers.ORCA import orca
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
-from autode.exceptions import NoAtomsToPrint
+from autode.exceptions import NoAtomsInMolecule
 from copy import deepcopy
 import numpy as np
 import pytest
 import os
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 h1 = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)
 h2 = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.0)
@@ -40,7 +43,7 @@ def test_species_xyz_file():
     mol_copy = deepcopy(mol)
     mol_copy.atoms = mol_copy.set_atoms(atoms=None)
 
-    with pytest.raises(NoAtomsToPrint):
+    with pytest.raises(NoAtomsInMolecule):
         mol_copy.print_xyz_file()
 
 
@@ -93,3 +96,13 @@ def test_species_solvent():
 
     solvated_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1, solvent_name='water')
     assert type(solvated_mol.solvent) == Solvent
+
+
+def test_species_single_point():
+
+    os.chdir(os.path.join(here, 'data'))
+
+    mol.single_point(method=orca)
+    assert mol.energy == -1.138965730007
+
+    os.chdir(here)

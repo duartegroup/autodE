@@ -68,12 +68,12 @@ class Molecule(Species):
 
         return self.mult
 
-    @requires_atoms
+    @requires_atoms()
     def _find_stereocentres(self):
         # TODO... write this
         pass
 
-    @requires_atoms
+    @requires_atoms()
     def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=50):
         """
         Use either RDKit or a simulated annealing approach to generate conformers for this molecule. RDKit is preferred,
@@ -111,7 +111,7 @@ class Molecule(Species):
 
         return None
 
-    @requires_atoms
+    @requires_atoms()
     def optimise(self, method):
         logger.info(f'Running optimisation of {self.name}')
 
@@ -195,7 +195,7 @@ class Molecule(Species):
         if smiles:
             self._init_smiles(smiles)
 
-        if self.atoms is None or self.n_atoms == 0:
+        if self.n_atoms == 0:
             raise NoAtomsInMolecule
 
         self._find_stereocentres()

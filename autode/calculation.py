@@ -3,6 +3,7 @@ from subprocess import Popen
 from autode.log import logger
 from autode.exceptions import XYZsNotFound
 from autode.exceptions import NoInputError
+from autode.exceptions import CouldNotGetProperty
 from autode.config import Config
 from autode.solvent.solvents import get_available_solvent_names
 from autode.exceptions import SolventUnavailable
@@ -78,34 +79,31 @@ class Calculation:
 
         if self.output_file_lines is None:
             logger.error('Could not get the final xyzs. The output file lines were not set')
-            return None
+            raise XYZsNotFound
 
-        xyzs = self.method.get_final_atoms(self)
+        atoms = self.method.get_final_atoms(self)
 
-        if len(xyzs) == 0:
+        if len(atoms) == 0:
             logger.error(f'Could not get xyzs from calculation file {self.name}')
             raise XYZsNotFound
 
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self):
         logger.info(f'Getting atomic charges from calculation file {self.output_filename}')
         charges = self.method.get_atomic_charges(self)
 
-        if len(charges) != self.n_atoms:
-            logger.critical(f'Could not get atomic charges from calculation file {self.name}')
-            exit()
+        if len(charges) != self.molecule.n_atoms:
+            raise  CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
 
         return charges
 
     def get_gradients(self):
         logger.info(f'Getting gradients from calculation file {self.output_filename}')
-
         gradients = self.method.get_gradients(self)
 
-        if len(gradients) != self.n_atoms:
-            logger.critical(f'Could not get gradients from calculation file {self.name}')
-            exit()
+        if len(gradients) != self.molecule.n_atoms:
+            raise CouldNotGetProperty(f'Could not get gradients from calculation output file {self.name}')
 
         return gradients
 
@@ -126,6 +124,20 @@ class Calculation:
     def generate_input(self):
         logger.info(f'Generating input file for {self.name}')
         return self.method.generate_input(self)
+
+    def clean_files(self, tmpdir_path, curr_dir_path):
+        """Move all of the required output files into from the temporary directory"""
+
+        for filename in os.listdir(os.getcwd()):
+            name_string = '.'.join(self.input_filename.split('.')[:-1])
+            if name_string in filename:
+                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) \
+                        and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
+                    shutil.move(os.path.join(tmpdir_path, filename), os.path.join(curr_dir_path, filename))
+            if 'xcontrol' in filename:
+                shutil.move(os.path.join(tmpdir_path, filename), os.path.join(curr_dir_path, filename))
+
+        return None
 
     def execute_calculation(self):
         logger.info(f'Running calculation {self.input_filename}')
@@ -176,14 +188,8 @@ class Calculation:
         self.set_output_file_lines()
         if self.grad:
             self.method.get_gradients(self)
-        for filename in os.listdir(os.getcwd()):
-            name_string = '.'.join(self.input_filename.split('.')[:-1])
-            if name_string in filename:
-                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
-                    shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
-            if 'xcontrol' in filename:
-                shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
 
+        self.clean_files(tmpdir_path=tmpdir_path, curr_dir_path=here)
         os.chdir(here)
         shutil.rmtree(tmpdir_path)
 

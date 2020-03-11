@@ -6,10 +6,6 @@ class NoAtomsInMolecule(Exception):
     pass
 
 
-class NoAtomsToPrint(Exception):
-    pass
-
-
 class NoInputError(Exception):
     pass
 
@@ -48,3 +44,13 @@ class XYZfileDidNotExist(Exception):
 
 class XYZfileWrongFormat(Exception):
     pass
+
+
+class ReactionFormationFalied(Exception):
+    pass
+
+
+class CouldNotGetProperty(Exception):
+
+    def __init__(self, message):
+        super().__init__(message)

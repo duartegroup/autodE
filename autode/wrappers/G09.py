@@ -21,10 +21,10 @@ class G09(ElectronicStructureMethod):
             if 'nosymm' in keyword.lower():
                 nosymm = True
             if 'opt' in keyword.lower():
-                if calc.n_atoms == 1:
+                if calc.molecule.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
-                elif calc.charges:
+                elif calc.molecule.charges:
                     options = []
                     if '=(' in keyword:
                         # get the individual options
@@ -47,7 +47,7 @@ class G09(ElectronicStructureMethod):
                     opt = True
             if opt and not nosymm:
                 keywords.append('NoSymm')
-        if calc.charges:
+        if calc.moleculecharges:
             keywords.append('Charge')
 
         with open(calc.input_filename, 'w') as inp_file:
@@ -67,7 +67,7 @@ class G09(ElectronicStructureMethod):
             print(calc.charge, calc.mult, file=inp_file)
             [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
 
-            if calc.charges:
+            if calc.molecule.charges:
                 print('')
                 [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
 
@@ -241,7 +241,7 @@ class G09(ElectronicStructureMethod):
                         mode_numbers = [int(val) for val in line.split()]
                         if mode_number in mode_numbers:
                             start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
-                            for i in range(calc.n_atoms):
+                            for i in range(calc.molecule.n_atoms):
                                 disp_line = calc.output_file_lines[j + 7 + i]
                                 xyz_disp = [float(disp_line.split()[k])
                                             for k in range(start_col, start_col + 3)]
@@ -249,7 +249,7 @@ class G09(ElectronicStructureMethod):
                     except ValueError:
                         pass
 
-        if len(displacements) != calc.n_atoms:
+        if len(displacements) != calc.molecule.n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')
             return None
 
@@ -257,7 +257,7 @@ class G09(ElectronicStructureMethod):
 
     def get_final_xyzs(self, calc):
 
-        coords = np.zeros((calc.n_atoms, 3))
+        coords = np.zeros((calc.molecule.n_atoms, 3))
         xyz_section = False
         dashed_line = 0
 
@@ -282,7 +282,6 @@ class G09(ElectronicStructureMethod):
                 except ValueError:
                     pass
 
-
         zero_xyzs = False
         for xyz in xyzs:
             if all(xyz[i] == 0.0 for i in range(1, 4)):
@@ -290,7 +289,6 @@ class G09(ElectronicStructureMethod):
                     return []
                 else:
                     zero_xyzs = True
-
 
         return xyzs
 

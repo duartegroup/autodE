@@ -28,7 +28,7 @@ class NWChem(ElectronicStructureMethod):
                 new_keywords.append(new_keyword)
             elif keyword.lower().startswith('dft'):
                 lines = keyword.split('\n')
-                lines.insert(1, f'  mult {calc.mult}')
+                lines.insert(1, f'  mult {calc.molecule.mult}')
                 new_keyword = '\n'.join(lines)
                 new_keywords.append(new_keyword)
             elif keyword.lower().startswith('scf'):
@@ -37,7 +37,7 @@ class NWChem(ElectronicStructureMethod):
                     raise UnsuppportedCalculationInput
                 scf_block = True
                 lines = keyword.split('\n')
-                lines.insert(1, f'  nopen {calc.mult - 1}')
+                lines.insert(1, f'  nopen {calc.molecule.mult - 1}')
                 new_keyword = '\n'.join(lines)
                 new_keywords.append(new_keyword)
             elif any(string in keyword.lower() for string in ['ccsd', 'mp2']) and not scf_block:
@@ -76,7 +76,7 @@ class NWChem(ElectronicStructureMethod):
                 print('  end', file=inp_file)
             print('end', file=inp_file)
 
-            print(f'charge {calc.charge}', file=inp_file)
+            print(f'charge {calc.molecule.charge}', file=inp_file)
 
             if calc.distance_constraints or calc.cartesian_constraints:
                 force_constant = 10
@@ -108,9 +108,10 @@ class NWChem(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=' ', file=inp_file)
                 print('end', file=inp_file)
 
-            if calc.charges:
+            if calc.molecule.charges:
                 print('bq')
-                [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
+                [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file)
+                 for line in calc.molecule.charges]
                 print('end')
 
             print(f'memory {Config.max_core} mb', file=inp_file)
@@ -203,7 +204,7 @@ class NWChem(ElectronicStructureMethod):
 
         displacements_xyz = [displacements[i:i + 3]
                              for i in range(0, len(displacements), 3)]
-        if len(displacements_xyz) != calc.n_atoms:
+        if len(displacements_xyz) != calc.molecule.n_atoms:
             logger.error(
                 'Something went wrong getting the displacements n != n_atoms')
             return None

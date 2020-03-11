@@ -25,7 +25,7 @@ class XTB(ElectronicStructureMethod):
         if calc.solvent_keyword:
             calc.flags += ['--gbsa', calc.solvent_keyword]
 
-        if calc.distance_constraints or calc.cartesian_constraints or calc.charges:
+        if calc.distance_constraints or calc.cartesian_constraints or calc.molecule.charges:
             force_constant = 10
             if calc.constraints_already_met:
                 force_constant += 90
@@ -58,16 +58,16 @@ class XTB(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=',', file=xcontrol_file)
                     print('$', file=xcontrol_file)
 
-                if calc.charges:
+                if calc.molecule.charges:
                     print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
             calc.flags += ['--input', xcontrol_filename]
             calc.additional_input_files.append((xcontrol_filename, xcontrol_filename))
 
-        if calc.charges:
+        if calc.molecule.charges is not None:
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
-                print(len(calc.charges), file=pc_file)
-                for line in calc.charges:
+                print(len(calc.molecule.charges), file=pc_file)
+                for line in calc.molecule.charges:
                     formatted_line = [line[-1]] + line[1:4] + [line[0]]
                     print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f} {:<3}'.format(*formatted_line), file=pc_file)
             calc.additional_input_files.append((f'{calc.name}_xtb.pc', f'{calc.name}_xtb.pc'))

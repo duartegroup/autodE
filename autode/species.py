@@ -1,7 +1,6 @@
 import numpy as np
 from autode.log import logger
 from autode.solvent.solvents import get_solvent
-from autode.exceptions import NoAtomsToPrint
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.utils import requires_atoms
@@ -9,14 +8,14 @@ from autode.utils import requires_atoms
 
 class Species:
 
-    @requires_atoms
+    @requires_atoms()
     def translate(self, vec):
         """Translate the molecule by vector (np.ndarray, length 3)"""
         for atom in self.atoms:
             atom.translate(vec)
         return None
 
-    @requires_atoms
+    @requires_atoms()
     def rotate(self, axis, theta, origin=None):
         """Rotate the molecule by around an axis (np.ndarray, length 3) an theta radians"""
         for atom in self.atoms:
@@ -32,12 +31,9 @@ class Species:
 
         return None
 
-    @requires_atoms
+    @requires_atoms()
     def print_xyz_file(self, title_line=''):
         """Print a standard xyz file from the Molecule's atoms"""
-
-        if self.atoms is None or len(self.atoms) == 0:
-            raise NoAtomsToPrint
 
         with open(f'{self.name}.xyz', 'w') as xyz_file:
             print(self.n_atoms, title_line, file=xyz_file)
@@ -47,18 +43,18 @@ class Species:
 
         return None
 
-    @requires_atoms
+    @requires_atoms()
     def get_coordinates(self):
         """Return a np.ndarray of size n_atoms x 3 containing the xyz coordinates of the molecule"""
         return np.array([atom.coord for atom in self.atoms])
 
-    @requires_atoms
+    @requires_atoms()
     def single_point(self, method):
         """Calculate the single point energy of the species with a autode.wrappers.base.ElectronicStructureMethod"""
         logger.info(f'Running single point energy evaluation of {self.name}')
 
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords_list=method.keywords.sp,
-                         n_cores=Config.n_cores)
+        sp = Calculation(name=f'{self.name}_sp', molecule=self, method=method,
+                         keywords_list=method.keywords.sp, n_cores=Config.n_cores)
         sp.run()
         self.energy = sp.get_energy()
 

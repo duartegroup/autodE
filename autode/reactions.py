@@ -1,4 +1,5 @@
 from autode.log import logger
+from autode.exceptions import ReactionFormationFalied
 
 
 class Addition:
@@ -21,28 +22,36 @@ class Rearrangement:
     name = 'rearrangement'
 
 
-def classify(reacs, prods):
+def classify(reactants, products):
 
-    if len(reacs) == 2 and len(prods) == 1:
+    if len(reactants) == 2 and len(products) == 1:
         logger.info('Classifying reaction as addition')
         return Addition
 
-    elif len(reacs) == 1 and len(prods) == 2:
+    elif len(reactants) == 1 and len(products) == 2:
         logger.info('Classifying reaction as dissociation')
         return Dissociation
 
-    elif len(reacs) == 2 and len(prods) == 2:
+    elif len(reactants) == 2 and len(products) == 2:
         logger.info('Classifying reaction as substitution')
         return Substitution
 
-    elif len(reacs) == 2 and len(prods) == 3:
+    elif len(reactants) == 2 and len(products) == 3:
         logger.info('Classifying reaction as elimination')
         return Elimination
 
-    elif len(reacs) == 1 and len(prods) == 1:
+    elif len(reactants) == 1 and len(products) == 1:
         logger.info('Classifying reaction as rearrangement')
         return Rearrangement
 
+    elif len(reactants) == 0:
+        logger.critical('Reaction had no reactants – cannot form a reaction')
+        raise ReactionFormationFalied
+
+    elif len(products) == 0:
+        logger.critical('Reaction had no products – cannot form a reaction')
+        raise ReactionFormationFalied
+
     else:
         logger.critical('Unsupported reaction type')
-        exit()
+        raise NotImplementedError
