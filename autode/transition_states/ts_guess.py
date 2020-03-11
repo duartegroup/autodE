@@ -91,7 +91,10 @@ class TSguess:
         return
 
     def run_optts(self, imag_freq_threshold=-50):
-        """Runs the optts calc
+        """Runs the optts calc. Calculates a hessian first to the ts guess has the right imaginary mode
+
+        Args:
+            imag_freq_threshold (int, optional): If the imaginary mode has a higher (less negative) frequency than this it will not count as the right mode. Defaults to -50.
         """
         logger.info('Getting ORCA out lines from OptTS calculation')
 

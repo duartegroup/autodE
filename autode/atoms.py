@@ -64,7 +64,7 @@ def get_atomic_weight(atom_label):
         atom_label (str): atom label e.g. C or Pd
 
     Returns:
-        int: atomic weight of the atom
+        float: atomic weight of the atom
     """
 
     if atom_label in atomic_weights.keys():
