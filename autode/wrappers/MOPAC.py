@@ -3,6 +3,7 @@ from autode.log import logger
 from autode.constants import Constants
 from autode.geom import get_shifted_xyzs_linear_interp
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
 
 
@@ -80,7 +81,7 @@ class MOPAC(ElectronicStructureMethod):
                 keywords.append('QUARTET')
             else:
                 logger.critical('Unsupported spin multiplicity')
-                exit()
+                raise UnsuppportedCalculationInput
 
         with open(calc.input_filename, 'w') as input_file:
             print(*keywords, '\n\n', file=input_file)

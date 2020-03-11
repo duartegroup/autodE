@@ -11,8 +11,19 @@ from math import ceil, floor
 
 
 def add_solvent_molecules(solute, solvent, n_solvent_mols):
+    """Add a specific number of solvent molecules around a solute
 
+    Arguments:
+        solute (mol obj) -- solute molecule
+        solvent (mol obj) -- solvent molecule
+        n_solvent_mols (int) -- number of solvent molecules desired
+
+    Returns:
+        list, list, list, list -- solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges
+    """
     np.random.seed()
+
+    logger.info(f'Adding solvent molecules around {solute.name}')
 
     # centre solvent
     solvent_coords = xyz2coord(solvent.xyzs)
@@ -50,6 +61,7 @@ def add_solvent_molecules(solute, solvent, n_solvent_mols):
         i += 1
     for i, solvent_coords in enumerate(solvent_coords_on_sphere):
         distances.append(np.linalg.norm(solvent_coords))
+    # only take closest solvent molecules
     sorted_by_dist_coords = [x for _, x in sorted(zip(distances, solvent_coords_on_sphere))]
     for i, solvent_coords in enumerate(sorted_by_dist_coords):
         if i == n_solvent_mols:
@@ -65,6 +77,17 @@ def add_solvent_molecules(solute, solvent, n_solvent_mols):
 
 
 def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult):
+    """Packs solvent molecules semi-evenly on a sphere around the solvent molecule
+
+    Arguments:
+        solvent_coords (np.array) -- solvent molecule coords
+        radius (float) -- radius of the solute molecule
+        solvent_mol_area (float) -- rough top down area of the molecule
+        radius_mult (int) -- multiplier to use on the radius to get the radius of this sphere of solvent
+
+    Returns:
+        np.array -- coords of the solvent molecules on the sphere
+    """
     rad_to_use = (radius * radius_mult * 0.8) + 0.4
     solvent_coords_on_sphere = []
     fit_on_sphere = ceil((4 * np.pi * rad_to_use**2) / solvent_mol_area)
@@ -82,6 +105,7 @@ def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult)
                 phi = (2 * np.pi * n/n_on_ring) + 0.7*np.pi*(np.random.rand()-0.5)/(n_on_ring)
             else:
                 phi = (2 * np.pi * (n+0.5)/n_on_ring) + 0.7*np.pi*(np.random.rand()-0.5)/(n_on_ring)
+            # add a little bit of randomness to the positioning
             rand_theta = theta + 0.35*np.pi*(np.random.rand()-0.5)/(m_theta-1)
             rand_add = 0.4*radius * (np.random.rand()-0.5)
             x = (rad_to_use + rand_add) * np.sin(rand_theta) * np.cos(phi)
@@ -94,6 +118,14 @@ def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult)
 
 
 def random_rot_solvent(coords):
+    """rotate the solvent molecule randomly
+
+    Arguments:
+        coords (np.array) -- coords of solvent molecule
+
+    Returns:
+        np.array -- rotated coords of solvent molecule
+    """
     axis = np.random.rand(3)
     theta = np.random.rand() * np.pi * 2
     rot_matrix = calc_rotation_matrix(axis, theta)
@@ -118,17 +150,24 @@ def run(solute, solvent, n_qm_solvent_mols, method, i):
                 label, x, y, z = line.split()
                 xyzs.append([label, float(x), float(y), float(z)])
     else:
-        for filename in os.listdir(os.getcwd()):
-            if f'{solute.name}_qmmm_{i}_step_' in filename:
-                os.remove(filename)
-        n_solvent_mols = 600
-        solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges = add_solvent_molecules(solute, solvent, n_solvent_mols)
-        solute.xyzs = solute_xyzs
-        os.environ['OMP_NUM_THREADS'] = str(1)
-        qmmm = QMMM(solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, i, method)
-        qmmm.simulate()
-        xyzs = qmmm.final_xyzs
-        qmmm_energy = qmmm.final_energy
+        completed_qmmm = False
+        while not completed_qmmm:
+            try:
+                for filename in os.listdir(os.getcwd()):
+                    if f'{solute.name}_qmmm_{i}_step_' in filename:
+                        os.remove(filename)
+                n_solvent_mols = 700
+                solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges = add_solvent_molecules(solute, solvent, n_solvent_mols)
+                solute.xyzs = solute_xyzs
+                os.environ['OPENMM_CPU_THREADS'] = str(1)
+                os.environ['OMP_NUM_THREADS '] = str(1)
+                qmmm = QMMM(solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, i, method)
+                qmmm.simulate()
+                xyzs = qmmm.final_xyzs
+                qmmm_energy = qmmm.final_energy
+                completed_qmmm = True
+            except:
+                pass
         for filename in os.listdir(os.getcwd()):
             if f'{solute.name}_qmmm_{i}_step_' in filename:
                 os.remove(filename)
@@ -140,7 +179,21 @@ def run(solute, solvent, n_qm_solvent_mols, method, i):
     return xyzs, qmmm_energy
 
 
-def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=96, n_qm_solvent_mols=30):
+def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=192, n_qm_solvent_mols=50):
+    """Run explicit solvent qmmm calculations to find the lowest energy of the solvated molecule
+
+    Arguments:
+        solute (mol obj) -- molecule to be solvated, all coords will be fixed
+        solvent (mol obj) -- solvating molecule, will be randomly placed around the solute the optimized with qmmm calculations
+        method (ESW method) -- method to use for QM calculations
+
+    Keyword Arguments:
+        n_confs (int) -- number of differenct solvent configurations to calculate (default: {192})
+        n_qm_solvent_mols (int) -- number of solvent molecules to place around the solute (default: {30})
+
+    Returns:
+        float, list, int -- energy, xyzs, n_qm_atoms
+    """
     qmmm_energies = []
     qmmm_xyzs = []
 
@@ -159,6 +212,8 @@ def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=96, n_qm_solvent_m
     qmmm_n_qm_atoms = (n_qm_solvent_mols * len(solvent.xyzs)) + len(solute.xyzs)
 
     q = 0
+
+    # get a bolztmann weighting of the energy
     boltzmann_qmmm_energy = 0
     for e in qmmm_energies:
         energy = e - min_e

@@ -18,6 +18,7 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
         ts_guess (ts guess object): object to be optimised to a TS
 
     Keyword Arguments:
+        solvent_mol (mol obj): Solvent molecule object, if none qmmm has not been done, will not include point charges in optts
         imag_freq_threshold (float): Imaginary frequency threshold for a *true* TS, given as as a negative i.e. non-complex value (default: {-100})
 
     Returns:
@@ -120,13 +121,12 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
 
     Arguments:
         calc (calc object): calculation object
-        n_atoms (int): number of atoms
+        n_atoms (int): number of solute atoms
         active_bonds (list(tuples)): bonds being made/broken
 
     Keyword Arguments:
         molecules (list): list of reactant and product molecule objects (default: {None})
         threshold_contribution (float): threshold contribution to the imaginary mode from the atoms in
-        bond_ids_to_add (default: (0.25})
 
     Returns:
         bool: if the imaginary mode is correct or not
@@ -191,6 +191,7 @@ def check_close_imag_contribution(calc, n_atoms, molecules, method, disp_mag=1):
 
     Arguments:
         calc (calculation obj): calculation oobject
+        n_atoms (int): number of solute atoms
         molecules (tuple): tuple containing the reactant and product objects
         method (electronic structure method): electronic structure method to use
 

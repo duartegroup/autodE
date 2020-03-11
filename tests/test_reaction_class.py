@@ -2,6 +2,7 @@ from autode import reaction
 from autode.transition_states.transition_state import TS
 from autode.transition_states.ts_guess import TSguess
 from autode.solvent.solvents import water_solv
+from autode.exceptions import UnbalancedReaction
 import pytest
 
 
@@ -65,18 +66,18 @@ def test_reaction_identical_reac_prods():
 def test_bad_balance():
     h1 = reaction.Reactant(name='h1', xyzs=[['H', 0.0, 0.0, 0.0]])
     hh = reaction.Product(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
-    with pytest.raises(SystemExit):
+    with pytest.raises(UnbalancedReaction):
         _ = reaction.Reaction(mol1=h1, mol2=hh)
 
     h1 = reaction.Reactant(name='h1', xyzs=[['H', 0.0, 0.0, 0.0]], charge=-1)
     h2 = reaction.Product(name='h2', xyzs=[['H', 1.0, 0.0, 0.0]])
-    with pytest.raises(SystemExit):
+    with pytest.raises(UnbalancedReaction):
         _ = reaction.Reaction(mol1=h1, mol2=h2)
 
     h1 = reaction.Reactant(name='h1', xyzs=[['H', 0.0, 0.0, 0.0]], solvent='water')
     h2 = reaction.Reactant(name='h2', xyzs=[['H', 1.0, 0.0, 0.0]], solvent='water')
     hh = reaction.Product(name='hh', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]], solvent='thf')
-    with pytest.raises(SystemExit):
+    with pytest.raises(UnbalancedReaction):
         _ = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh)
 
 

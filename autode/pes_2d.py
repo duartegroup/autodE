@@ -210,6 +210,19 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
     r1_flat = np.array([dists[0] for dists in dists_xyzs_energies_dict.keys()])
     r2_flat = np.array([dists[1] for dists in dists_xyzs_energies_dict.keys()])
 
+    if r1_flat[0] < r1_flat[-1]:
+        low_r1 = r1_flat[1]
+        high_r1 = r1_flat[-2]
+    else:
+        low_r1 = r1_flat[-2]
+        high_r1 = r1_flat[1]
+    if r2_flat[0] < r2_flat[-1]:
+        low_r2 = r2_flat[1]
+        high_r2 = r2_flat[-2]
+    else:
+        low_r2 = r2_flat[-2]
+        high_r2 = r2_flat[1]
+
     method_name = method.__name__
     if 'fbond' in scan_name:
         name = plot_name + f'_{method_name}_fbonds'
@@ -230,26 +243,23 @@ def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, 
 
     saddle_points_in_range = []
     for point in saddle_points:
-        if (min(r1_flat) < point[0] < max(r1_flat)) and (min(r2_flat) < point[1] < max(r2_flat)):
+        if (low_r1 < point[0] < high_r1) and (low_r2 < point[1] < high_r2):
             saddle_points_in_range.append(point)
     if len(saddle_points_in_range) == 0:
         logger.error('No saddle points were found')
-        plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
-                   coeff_mat, name=name)
+        plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
         return None
     elif len(saddle_points_in_range) == 1:
         min_energy_pathway = get_mep(r1, r2, energy_grid, saddle_points_in_range[0])
         if min_energy_pathway is None:
-            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
-                       coeff_mat, name=name)
+            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
             return None
         r1_saddle, r2_saddle = saddle_points_in_range[0]
     else:
         logger.info(f'Found {len(saddle_points_in_range)} saddle points, finding the minimum energy pathway from each to reacs and prods')
         best_saddlepoint_output = best_saddlepoint(saddle_points_in_range, r1, r2, energy_grid)
         if best_saddlepoint_output is None:
-            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array,
-                       coeff_mat, name=name)
+            plot_2dpes(r1_flat, r2_flat, flat_rel_energy_array, coeff_mat, name=name)
             return None
         r1_saddle, r2_saddle, min_energy_pathway = best_saddlepoint_output
 

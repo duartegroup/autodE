@@ -103,6 +103,19 @@ def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
 
 
 def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang, solvent_mol):
+    """Get the functions (1dscan or 2dscan) and parameters required for the function for a TS scan
+
+    Args:
+        funcs_params (list): current funcs and params
+        reaction (reaction object): reaction being examined
+        reactant (mol obj): reactant complex
+        product (mol obj): product complex
+        bond_rearrang (bond rearrang obj): bond rearrangement being scanned
+        solvent_mol (mol obj): solvent mol, if this is not None explicit qmmm will be done
+
+    Returns:
+        list: updated funcs and params list
+    """
 
     name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
 
@@ -217,8 +230,19 @@ def get_reactant_and_product_complexes(reaction):
     return reactant, product
 
 
-def gen_two_mol_complex(name, mol1, mol2, mol2_shift_ang=100):
-    complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs],
+def gen_two_mol_complex(name, mol1, mol2, mol2_shift_dist=100):
+    """Make two molecules into a single molecule object
+
+    Args:
+        name (str): name of the single resultant molecule
+        mol1 (mol obj): one molecule being combined
+        mol2 (mol obj): one molecule being combined
+        mol2_shift_dist (int, optional): distance the molecules are placed apart (in Å). Defaults to 100.
+
+    Returns:
+        mol obj: combined molecule object
+    """
+    complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_dist] for xyz in mol2.xyzs],
                            solvent=mol1.solvent, charge=(mol1.charge + mol2.charge), mult=(mol1.mult + mol2.mult - 1))
     complex_mol.charges = mol1.charges + mol2.charges
     complex_mol.stereocentres = get_stereoatoms([mol1, mol2])
@@ -226,8 +250,21 @@ def gen_two_mol_complex(name, mol1, mol2, mol2_shift_ang=100):
     return complex_mol
 
 
-def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_ang=100, mol3_shift_ang=-100):
-    complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_ang] for xyz in mol2.xyzs] + [xyz[:3] + [xyz[3] + mol3_shift_ang] for xyz in mol3.xyzs],
+def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_dist=100, mol3_shift_dist=-100):
+    """Make two molecules into a single molecule object
+
+    Args:
+        name (str): name of the single resultant molecule
+        mol1 (mol obj): one molecule being combined
+        mol2 (mol obj): one molecule being combined
+        mol3 (mol obj): one molecule being combined
+        mol2_shift_dist (int, optional): distance the molecules are placed apart (in Å). Defaults to 100.
+        mol3_shift_dist (int, optional): distance the molecules are placed apart (in Å). Defaults to -100.
+
+    Returns:
+        mol obj: combined molecule object
+    """
+    complex_mol = Molecule(name=name, xyzs=mol1.xyzs + [xyz[:3] + [xyz[3] + mol2_shift_dist] for xyz in mol2.xyzs] + [xyz[:3] + [xyz[3] + mol3_shift_dist] for xyz in mol3.xyzs],
                            solvent=mol1.solvent, charge=(mol1.charge + mol2.charge + mol3.charge), mult=(mol1.mult + mol2.mult + mol3.mult - 2))
     complex_mol.charges = mol1.charges + mol2.charges + mol3.charges
     complex_mol.stereocentres = get_stereoatoms([mol1, mol2, mol3])
@@ -236,6 +273,14 @@ def gen_three_mol_complex(name, mol1, mol2, mol3, mol2_shift_ang=100, mol3_shift
 
 
 def get_stereoatoms(mols):
+    """Get the list of stereocentres for a reactant/product complex with the correct atom indexes
+
+    Args:
+        mols (list(mol obj)): list of mols being combined
+
+    Returns:
+        list: list of stereocentres
+    """
     n_atoms = 0
     stereocentres = []
     for mol in mols:
@@ -250,6 +295,14 @@ def get_stereoatoms(mols):
 
 
 def get_pi_bonds(mols):
+    """Get the list of pi bonds for a reactant/product complex with the correct atom indexes
+
+    Args:
+        mols (list(mol obj)): list of mols being combined
+
+    Returns:
+        list: list of pi bonds
+    """
     n_atoms = 0
     pi_bonds = []
     for mol in mols:
@@ -264,6 +317,19 @@ def get_pi_bonds(mols):
 
 
 def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, strip_molecule=True):
+    """For a bond rearrangement, run 1d and 2d scans to find a TS
+
+    Args:
+        reaction (reaction object): reaction being examined
+        reactant (mol obj): reactant complex
+        product (mol obj): product complex
+        bond_rearrangement (bond rearrang boj): bond rearrangement being used
+        solvent_mol (mol obj): solvent mol, can be none to not do qmmm
+        strip_molecule (bool, optional): If true then the molecule will try and be stripped to make the scan calculations faster. The whole TS can the be found from the template made. Defaults to True.
+
+    Returns:
+        ts obj: the TS of the reaction
+    """
     if solvent_mol is not None:
         strip_molecule = False
     tss = []
@@ -352,6 +418,17 @@ def get_ts_obj(reaction, reactant, product, bond_rearrangement, solvent_mol, str
 
 
 def get_bbond_dist(reaction, solvent_mol):
+    """Get the bond length a breaking bond should increase by
+
+    Args:
+        reaction (reaction object): reaction being scanned
+        solvent_mol (mol object): solvating molecule (can be none for no explicit solvation)
+
+    Returns:
+        float: distance the bond should increase by
+    """
+    # if there are charged molecules and implicit solvation, the bond length may need to increase by more to get a saddle point,
+    # as implicit solvation does not fully stabilise the charged molecule
     if any(mol.charge != 0 for mol in reaction.prods) and solvent_mol is None:
         return 2.5
     else:

@@ -1,8 +1,8 @@
-******
-Config
-******
+****
+QMMM
+****
 
-.. automodule:: autode.config
+.. automodule:: autode.solvent.qmmm
    :members:
    :undoc-members:
    :special-members: __init__

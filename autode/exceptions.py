@@ -12,3 +12,11 @@ class MethodUnavailable(Exception):
 
 class SolventUnavailable(Exception):
     pass
+
+
+class UnbalancedReaction(Exception):
+    pass
+
+
+class UnsuppportedCalculationInput(Exception):
+    pass

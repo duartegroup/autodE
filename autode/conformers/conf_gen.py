@@ -28,6 +28,7 @@ def simanl(name, xyzs, bonds, dist_consts, non_random_atoms, stereocentres, n):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
     Arguments:
+        name (str): name of the molecule to run, needed to check for existing confs
         xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
         bonds (list(tuples)): defining which atoms are bonded together
         dist_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at

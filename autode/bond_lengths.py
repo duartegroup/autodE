@@ -77,7 +77,7 @@ def get_ideal_bond_length_matrix(xyzs, bonds):
         bonds (list(tuple)): list of bonds defined by tuples of atom ids
     
     Returns:
-        np.ndarray: matrix of idea bond lengths
+        np.array: matrix of idea bond lengths
     """
 
     logger.info('Getting ideal bond length matrix')

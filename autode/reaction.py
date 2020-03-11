@@ -13,6 +13,8 @@ from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.methods import get_hmethod
+from autode.exceptions import UnbalancedReaction
+from autode.exceptions import SolventUnavailable
 from copy import deepcopy
 import os
 
@@ -28,10 +30,10 @@ class Reaction:
         reac_charges, prod_charges = [r.charge for r in self.reacs], [p.charge for p in self.prods]
         if sum(n_reac_atoms) != sum(n_prod_atoms):
             logger.critical('Number of atoms doesn\'t balance')
-            exit()
+            raise UnbalancedReaction
         if sum(reac_charges) != sum(prod_charges):
             logger.critical('Charge doesn\'t balance')
-            exit()
+            raise UnbalancedReaction
         self.charge = sum(reac_charges)
 
     def check_solvent(self):
@@ -39,7 +41,7 @@ class Reaction:
         """
         if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
             logger.critical('Solvents in reactants and products don\'t match')
-            exit()
+            raise UnbalancedReaction
         self.solvent = self.reacs[0].solvent
 
     def set_solvent(self, solvent):
@@ -49,7 +51,7 @@ class Reaction:
             solvent_obj = get_solvent(solvent)
             if solvent_obj is None:
                 logger.critical('Could not find the solvent specified')
-                exit()
+                raise SolventUnavailable
             for mol in self.reacs + self.prods:
                 mol.solvent = solvent_obj
             self.solvent = solvent_obj
@@ -122,7 +124,7 @@ class Reaction:
         self.solvent_mol = solvent
         if not len(self.reacs) == len(self.prods) == 1:
             qmmm_solvent_mol = deepcopy(solvent)
-            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_qm_solvent_mols=29)
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_confs=96, n_qm_solvent_mols=49)
             qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
             qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
             qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
@@ -203,8 +205,8 @@ class Reaction:
         self.find_lowest_energy_conformers()
         self.optimise_reacs_prods()
         self.locate_transition_state()
-        # if self.ts is not None:
-        #     self.ts_confs()
+        if self.ts is not None:
+            self.ts_confs()
         self.calculate_single_points()
 
         conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol

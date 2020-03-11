@@ -27,7 +27,7 @@ def get_template_ts_guess(mol, active_bonds, reaction_class, product, dist_thres
     mol_graph = mol.get_active_mol_graph(active_bonds)
     ts_guess_templates = get_ts_templates(reaction_class)
 
-    name = 'template_ts_guess'
+    name = mol.name + '_template'
     for bond in active_bonds:
         name += f'_{bond[0]}-{bond[1]}'
 
