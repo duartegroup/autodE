@@ -290,7 +290,7 @@ class SolvatedReaction(Reaction):
             e += delta_n_reacs * self.solvent_sphere_energy
         return e
 
-    def __int__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
+    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
                 solvent_name=None):
         super().__init__(mol1, mol2, mol3, mol4, mol5, mol6, name, solvent_name)
 

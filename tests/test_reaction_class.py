@@ -68,8 +68,8 @@ def test_reaction_identical_reac_prods():
 
     h2_reaction = reaction.Reaction(hh_reactant, hh_product)
 
-    # h2_reaction.locate_transition_state()
-    # assert h2_reaction.ts is None
+    h2_reaction.locate_transition_state()
+    assert h2_reaction.ts is None
 
 
 def test_bad_balance():

@@ -219,7 +219,7 @@ class SolvatedMolecule(Molecule):
         self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
         self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
 
-    def __int__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
+    def __init__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
         super().__init__(name, smiles, atoms, solvent_name, charge, mult)
 
         self.qm_solvent_xyzs = None
