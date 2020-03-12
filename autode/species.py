@@ -32,11 +32,14 @@ class Species:
         return None
 
     @requires_atoms()
-    def print_xyz_file(self, title_line=''):
+    def print_xyz_file(self, title_line='', filename=None):
         """Print a standard xyz file from the Molecule's atoms"""
 
-        with open(f'{self.name}.xyz', 'w') as xyz_file:
-            print(self.n_atoms, title_line, file=xyz_file)
+        if filename is None:
+            filename = f'{self.name}.xyz'
+
+        with open(filename, 'w') as xyz_file:
+            print(self.n_atoms, title_line, sep='\n', file=xyz_file)
             for atom in self.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=xyz_file)
@@ -104,6 +107,8 @@ class Species:
 
         self.charges = None                                              # List of partial atomic charges (list(float))
         self.stereocentres = None                                        # List of sterocenters in the species
+
+        self.graph = None                                                # NetworkX.Graph object with atoms and bonds
 
 
 class SolvatedSpecies(Species):

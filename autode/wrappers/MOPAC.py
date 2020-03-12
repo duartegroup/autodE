@@ -1,6 +1,7 @@
 from autode.config import Config
 from autode.log import logger
 from autode.constants import Constants
+from autode.atoms import Atom
 from autode.geom import get_shifted_xyzs_linear_interp
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.exceptions import UnsuppportedCalculationInput
@@ -164,9 +165,9 @@ class MOPAC(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         raise NotImplementedError
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
-        xyzs = []
+        atoms = []
 
         for n_line, line in enumerate(calc.output_file_lines):
             if 'CARTESIAN COORDINATES' in line and len(calc.output_file_lines[n_line+3].split()) == 5:
@@ -174,13 +175,13 @@ class MOPAC(ElectronicStructureMethod):
                 #
                 #    1    C        1.255660629     0.020580974    -0.276235553
 
-                xyzs = []
+                atoms = []
                 xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.molecule.n_atoms]
                 for xyz_line in xyz_lines:
                     atom_label, x, y, z = xyz_line.split()[1:]
-                    xyzs.append([atom_label, float(x), float(y), float(z)])
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
 
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
         raise NotImplementedError

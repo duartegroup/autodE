@@ -2,8 +2,8 @@ from autode.config import Config
 from autode.log import logger
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.exceptions import UnsuppportedCalculationInput
+from autode.atoms import Atom
 import numpy as np
-import os
 
 
 class NWChem(ElectronicStructureMethod):
@@ -211,15 +211,15 @@ class NWChem(ElectronicStructureMethod):
 
         return displacements_xyz
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
         xyzs_section = False
-        xyzs = []
+        atoms = []
 
         for line in calc.output_file_lines:
             if 'Output coordinates in angstroms' in line:
                 xyzs_section = True
-                xyzs = []
+                atoms = []
 
             if 'Atomic Mass' in line:
                 xyzs_section = False
@@ -227,11 +227,9 @@ class NWChem(ElectronicStructureMethod):
             if xyzs_section and len(line.split()) == 6:
                 if line.split()[0].isdigit():
                     _, atom_label, _, x, y, z = line.split()
-                    xyzs.append([atom_label, float(x), float(y), float(z)])
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
 
-        # TODO print xyz file of final mol
-
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
 

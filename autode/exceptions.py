@@ -1,4 +1,4 @@
-class XYZsNotFound(Exception):
+class AtomsNotFound(Exception):
     pass
 
 
@@ -30,6 +30,10 @@ class SolventNotFound(Exception):
     pass
 
 
+class SolventsDontMatch(Exception):
+    pass
+
+
 class RDKitFailed(Exception):
     pass
 
@@ -47,6 +51,14 @@ class XYZfileWrongFormat(Exception):
 
 
 class ReactionFormationFalied(Exception):
+    pass
+
+
+class NoMolecularGraph(Exception):
+    pass
+
+
+class NoCalculationOutput(Exception):
     pass
 
 

@@ -1,8 +1,8 @@
 from shutil import which
 import os
-import inspect
 from autode.log import logger
 from abc import ABC, abstractmethod
+from autode.utils import requires_output
 
 
 class ElectronicStructureMethod(ABC):
@@ -29,6 +29,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def calculation_terminated_normally(self, calc):
         """
         Function implemented in individual child classes
@@ -39,6 +40,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def get_energy(self, calc):
         """
         Function implemented in individual child classes
@@ -49,6 +51,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def optimisation_converged(self, calc):
         """
         Function implemented in individual child classes
@@ -59,6 +62,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def optimisation_nearly_converged(self, calc):
         """
         Function implemented in individual child classes
@@ -69,6 +73,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def get_imag_freqs(self, calc):
         """
         Function implemented in individual child classes
@@ -79,6 +84,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def get_normal_mode_displacements(self, calc, mode_number):
         """
         Function implemented in individual child classes
@@ -90,7 +96,8 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
-    def get_final_xyzs(self, calc):
+    @requires_output()
+    def get_final_atoms(self, calc):
         """
         Function implemented in individual child classes
 
@@ -100,6 +107,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def get_atomic_charges(self, calc):
         """
         Function implemented in individual child classes
@@ -110,6 +118,7 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    @requires_output()
     def get_gradients(self, calc):
         """
         Function implemented in individual child classes

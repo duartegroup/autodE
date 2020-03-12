@@ -1,6 +1,8 @@
 from autode.config import Config
 from autode.log import logger
+from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.exceptions import NoCalculationOutput
 import os
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
@@ -192,19 +194,21 @@ class ORCA(ElectronicStructureMethod):
 
         return displacements_xyz
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
-        xyzs = []
-        if calc.output_filename:
-            xyz_file_name = calc.output_filename[:-4] + '.xyz'
-            if os.path.exists(xyz_file_name):
-                with open(xyz_file_name, 'r') as file:
-                    for line_no, line in enumerate(file):
-                        if line_no > 1:
-                            atom_label, x, y, z = line.split()
-                            xyzs.append([atom_label, float(x), float(y), float(z)])
+        atoms = []
+        xyz_file_name = calc.output_filename.replace('.out', '.xyz')
 
-        return xyzs
+        if not os.path.exists(xyz_file_name):
+            raise NoCalculationOutput
+
+        with open(xyz_file_name, 'r') as xyz_file:
+            for line_no, line in enumerate(xyz_file):
+                if line_no > 1:
+                    atom_label, x, y, z = line.split()
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+
+        return atoms
 
     def get_atomic_charges(self, calc):
 

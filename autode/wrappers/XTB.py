@@ -1,6 +1,7 @@
 from autode.config import Config
 from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
 import numpy as np
 import os
 
@@ -107,8 +108,8 @@ class XTB(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         raise NotImplementedError
 
-    def get_final_xyzs(self, calc):
-        xyzs = []
+    def get_final_atoms(self, calc):
+        atoms = []
 
         geom_section = False
         for line in calc.output_file_lines:
@@ -120,10 +121,10 @@ class XTB(ElectronicStructureMethod):
 
             if len(line.split()) == 4 and geom_section:
                 x, y, z, atom_label = line.split()
-                xyzs.append([atom_label, float(x) * Constants.a02ang,
-                             float(y) * Constants.a02ang, float(z) * Constants.a02ang])
+                atoms.append(Atom(atom_label, x=float(x) * Constants.a02ang, y=float(y) * Constants.a02ang,
+                                  z=float(z) * Constants.a02ang))
 
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
         charges_sect = False

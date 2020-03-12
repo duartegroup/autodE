@@ -9,7 +9,7 @@ from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
 from autode.plotting import make_reaction_animation
 from autode.transition_states.ts_guess import TSguess
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
 from autode.saddle_points import best_saddlepoint
@@ -73,7 +73,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         try:
             # Set the new xyzs of the molecule
             mol_grid[0][n].xyzs = const_opt.get_final_atoms()
-        except XYZsNotFound:
+        except AtomsNotFound:
             mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else mol.xyzs
 
         if solvent_mol is not None:
@@ -118,7 +118,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
             # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
             try:
                 mol_grid[i][n].xyzs = calcs[n].get_final_atoms()
-            except XYZsNotFound:
+            except AtomsNotFound:
                 mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
 
             if solvent_mol is not None:
@@ -172,7 +172,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     ts_const_opt.run()
     try:
         tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_atoms())
-    except XYZsNotFound:
+    except AtomsNotFound:
         pass
 
     active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned

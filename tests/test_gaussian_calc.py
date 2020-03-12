@@ -1,7 +1,7 @@
 from autode.wrappers.G09 import G09
 from autode.calculation import Calculation
 from autode.molecule import Molecule
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 import pytest
 import os
@@ -67,7 +67,7 @@ def test_bad_gauss_output():
     calc.rev_output_file_lines = []
 
     assert calc.get_energy() is None
-    with pytest.raises(XYZsNotFound):
+    with pytest.raises(AtomsNotFound):
         calc.get_final_atoms()
 
     with pytest.raises(NoInputError):

@@ -1,41 +1,72 @@
 import os
 import numpy as np
-import networkx as nx
+from numpy.random import RandomState
+from copy import deepcopy
+from itertools import combinations
 from scipy.optimize import minimize
+from autode.utils import requires_graph
 from autode.bond_lengths import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms
 from autode.log import logger
 from autode.config import Config
 from autode.mol_graphs import split_mol_across_bond
 from multiprocessing import Pool
-from cconf_gen import do_md
 from cconf_gen import v
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
+    # TODO rewrite in Cython for speeed
+
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
     init_coords = coords.reshape(3 * n_atoms, 1)
     res = minimize(v, x0=init_coords, args=(bonds, k, d0, c, fixed_bonds), method='BFGS', tol=tol)
-    final_coords = res.x.reshape(n_atoms, 3)
 
-    return final_coords
+    return res.x.reshape(n_atoms, 3)
 
 
-def get_simanl_atoms(species, bond_list, dist_consts=None, non_random_atoms=None, conf_n=0):
+def get_atoms_rotated_stereocentres(species, atoms, theta):
+    """If two stereocentres are bonded, rotate them randomly wrt each other
+
+    Arguments:
+        species (autode.species.Species):
+        atoms (list(autode.atoms.Atom)):
+        theta (float): Rotation angle in radians
+    """
+
+    if species.stereocentres is not None:
+        for (atom1, atom2) in combinations(species.stereocentres, 2):
+            if (atom1, atom2) in species.graph.edges or (atom2, atom1) in species.graph.edges:
+                left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom1, atom2))
+
+                # Rotate the left hand side randomly
+                rot_axis = atoms[atom1].coord - atoms[atom2].coord
+                [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom1].coord) for i in left_idxs]
+
+    return atoms
+
+
+def get_non_random_atoms(species):
+    """Get the atoms that won't be randomised in the conformer generation. Stereocentres and nearest neighbours"""
+
+    non_rand_atoms = [i for (i, j) in species.graph.edges if i in species.stereocentres or j in species.stereocentres]
+    non_rand_atoms += [j for (i, j) in species.graph.edges if i in species.stereocentres or j in species.stereocentres]
+
+    return set(non_rand_atoms)
+
+
+@requires_graph()
+def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
     Arguments:
         species (autode.species.Species): Species, Molecule, TSguess, TS
-        bond_list (list(tuple(int))): List of atom indexes to consider as bonds in the conformer generation algorithm
         dist_consts (dict): Key = tuple of atom indexes, Value = distance
-        non_random_atoms (list(int)): List of atom indexes that won't be randomised in the conformer generation
         conf_n (int): Number of this conformer generated
 
     Returns:
         (np.ndarray): Coordinates of the generated conformer
     """
-
     xyz_filename = f'{species.name}_conf{conf_n}.xyz'
 
     for filename in os.listdir(os.getcwd()):
@@ -43,14 +74,13 @@ def get_simanl_atoms(species, bond_list, dist_consts=None, non_random_atoms=None
             logger.info('Conformer has already been generated')
             return xyz_file_to_atoms(filename=filename)
 
-    np.random.seed()
+    # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
+    rand = RandomState()
+    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), theta=2*np.pi*rand.random())
 
-    n_steps = 100000
-    temp = 10
-    dt = 0.001
-    k = 10000
-    d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=bond_list)
-    c = 100
+    # Add the distance constraints as fixed bonds
+    d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
+
     fixed_bonds = []
     if dist_consts is not None:
         for bond, length in dist_consts.items():
@@ -58,40 +88,18 @@ def get_simanl_atoms(species, bond_list, dist_consts=None, non_random_atoms=None
             d0[bond[1], bond[0]] = length
             fixed_bonds.append(bond)
 
-    graph = nx.Graph()
-    for bond in bonds:
-        graph.add_edge(*bond)
-
-    coords = xyz2coord(xyzs)
-
-    # if two stereocentres are bonded, rotate them randomly wrt each optts_block
-    if stereocentres is not None:
-        for atom1 in stereocentres:
-            for atom2 in stereocentres:
-                if atom1 < atom2:
-                    if (atom1, atom2) in bonds or (atom2, atom1) in bonds:
-                        theta = np.random.random_sample() * np.pi * 2
-                        split_atoms = split_mol_across_bond(graph, [(atom1, atom2)])
-                        if atom1 in split_atoms[0]:
-                            atoms_to_rot = split_atoms[0]
-                        else:
-                            atoms_to_rot = split_atoms[1]
-                        coords = coords - coords[atom1]
-                        rot_axis = coords[atom1] - coords[atom2]
-                        rot_matrix = calc_rotation_matrix(rot_axis, theta)
-                        for atom in atoms_to_rot:
-                            coords[atom] = np.matmul(rot_matrix, coords[atom])
-
-        xyzs = coords2xyzs(coords, xyzs)
-
-    logger.info('Running high temp MD')
-    coords = do_md(xyzs, bonds, n_steps, temp, dt, k, d0, c, fixed_bonds, non_random_atoms)
+    # Randomise coordinates
+    [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for atom in atoms]
 
     logger.info('Minimising with BFGS')
-    coords = get_coords_minimised_v(coords, bonds, k, c, d0, len(xyzs)/5, fixed_bonds)
-    xyzs = [[xyzs[i][0]] + coords[i].tolist() for i in range(len(xyzs))]
+    coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
+                                    k=10000, c=100, d0=d0, tol=species.n_atoms/5, fixed_bonds=fixed_bonds)
 
-    return xyzs
+    # Set the coordinates of the new atoms
+    for i, atom in enumerate(atoms):
+        atom.coord = coords[i]
+
+    return atoms
 
 
 def get_simanl_conformers(name, init_xyzs, bond_list, stereocentres, dist_consts={}, n_simanls=40):

@@ -5,7 +5,7 @@ from autode.constants import Constants
 from autode.atoms import Atom
 from autode.species import Species
 from autode.calculation import Calculation
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 
 
 def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
@@ -71,16 +71,16 @@ class Conformer(Species):
     def optimise(self, method=None):
         logger.info(f'Running optimisation of {self.name}')
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords_list=method.keywords.low_opt,
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method, keywords_list=method.keywords.low_opt,
                           n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts)
         opt.run()
         self.energy = opt.get_energy()
 
         try:
-            # TODO xyzs -> atoms
-            self.xyzs = opt.get_final_atoms()
-        except XYZsNotFound:
-            logger.error(f'xyzs not found for {self.name} but not critical')
+            self.atoms = opt.get_final_atoms()
+
+        except AtomsNotFound:
+            logger.error(f'Atoms not found for {self.name} but not critical')
             self.set_atoms(atoms=None)
 
     def __init__(self, name='conf', atoms=None, solvent_name=None, charge=0, mult=1, dist_consts=None):

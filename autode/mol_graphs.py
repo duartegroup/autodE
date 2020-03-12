@@ -6,25 +6,36 @@ from scipy.spatial import distance_matrix
 from autode.bond_lengths import get_avg_bond_length
 
 
-def make_graph(species, rel_tolerance=0.2):
+def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
     """
-    Make the molecular graph from the 'bonds' determined on a distance criteria. No distinction is made between
-    single, double etc. bond types
+    Make the molecular graph from the 'bonds' determined on a distance criteria or a list of RDKit bonds .
+    No distinction is made between single, double etc. bond types.
+
+    Arguments:
+        species (autode.species.Species):
 
     Keyword Arguments:
         rel_tolerance (float):
-    :return: None
+        rdkit_bonds (RDKit.Chem.Bond):
     """
-    logger.info('Generating molecular graph with networkx')
+    logger.info('Generating molecular graph with NetworkX')
 
     graph = nx.Graph()
+
+    # Add the atoms to the graph
     for i in range(species.n_atoms):
         graph.add_node(i, atom_label=species.atoms[i].label)
 
+    # If rdkit bonds object is specified then add edges to the graph and return
+    if rdkit_bonds is not None:
+        [graph.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in rdkit_bonds]
+        species.graph = graph
+        return None
+
+    # Loop over the unique pairs of atoms and add 'bonds'
     coordinates = species.get_coordinates()
     dist_mat = distance_matrix(coordinates, coordinates)
 
-    # Loop over the unique pairs of atoms and add 'bonds'
     for i in range(species.n_atoms):
         for j in range(i + 1, species.n_atoms):
 
@@ -146,18 +157,19 @@ def get_separate_subgraphs(graph):
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
 
-def split_mol_across_bond(graph, bonds):
-    """gets a list of atoms on either side of a bond
+def split_mol_across_bond(graph, bond):
+    """Gets a list of atoms on either side of a bond
 
     Arguments:
         graph (nx.graph): molecular graph
-        bond (ist): list of bonds to be split across
+        bond (tuple): list of bonds to be split across
 
     """
     graph_copy = graph.copy()
-    for bond in bonds:
-        graph_copy.remove_edge(*bond)
+
+    graph_copy.remove_edge(*bond)
     split_subgraphs = get_separate_subgraphs(graph_copy)
+
     return [list(graph.nodes) for graph in split_subgraphs]
 
 

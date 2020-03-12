@@ -16,7 +16,7 @@ from autode.transition_states.transition_state import TS
 import os
 
 
-def find_tss(reaction, solvent_mol):
+def find_tss(reaction):
     """Finds the transition states of a reaction
 
     Arguments:

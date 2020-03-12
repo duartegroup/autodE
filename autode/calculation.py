@@ -1,7 +1,7 @@
 import os
 from subprocess import Popen
 from autode.log import logger
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 from autode.exceptions import CouldNotGetProperty
 from autode.config import Config
@@ -79,13 +79,13 @@ class Calculation:
 
         if self.output_file_lines is None:
             logger.error('Could not get the final xyzs. The output file lines were not set')
-            raise XYZsNotFound
+            raise AtomsNotFound
 
         atoms = self.method.get_final_atoms(self)
 
         if len(atoms) == 0:
             logger.error(f'Could not get xyzs from calculation file {self.name}')
-            raise XYZsNotFound
+            raise AtomsNotFound
 
         return atoms
 

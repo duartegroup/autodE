@@ -13,15 +13,16 @@ from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.methods import get_hmethod
+from autode.methods import get_lmethod
 from autode.exceptions import UnbalancedReaction
-from autode.exceptions import SolventUnavailable
+from autode.exceptions import SolventsDontMatch
 from copy import deepcopy
 import os
 
 
 class Reaction:
 
-    def check_balance(self):
+    def _check_balance(self):
         """Check that the number of atoms and charge balances between reactants and products. If they don't exit
         immediately
         """
@@ -36,42 +37,31 @@ class Reaction:
             raise UnbalancedReaction
         self.charge = sum(reac_charges)
 
-    def check_solvent(self):
+    def _check_solvent(self):
         """Check that all the solvents are the same for reactants and products
         """
-        if not all([mol.solvent_name == self.reacs[0].solvent_name for mol in self.reacs + self.prods]):
-            logger.critical('Solvents in reactants and products don\'t match')
-            raise UnbalancedReaction
-        self.solvent = self.reacs[0].solvent_name
+        if self.solvent is None:
+            if all([mol.solvent is None for mol in self.reacs + self.prods]):
+                logger.info('Reaction is in the gas phase')
+                return
 
-    def set_solvent(self, solvent):
-        if solvent is not None:
-            logger.info(f'Setting solvent_name as {solvent_name}')
+            elif all([mol.solvent is not None for mol in self.reacs + self.prods]):
+                if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
+                    logger.critical('Solvents in reactants and products don\'t match')
+                    raise SolventsDontMatch
 
-            solvent_obj = get_solvent(solvent)
-            if solvent_obj is None:
-                logger.critical('Could not find the solvent_name specified')
-                raise SolventUnavailable
+        if self.solvent is not None:
+            logger.info(f'Setting solvent to {self.solvent.name} for all molecules in the reaction')
+
             for mol in self.reacs + self.prods:
-                mol.solvent_name = solvent_obj
-            self.solvent = solvent_obj
-        else:
-            self.solvent = None
+                mol.solvent = self.solvent
 
-    def switch_addition(self):
-        """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
-        """
-        logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
-        self.type = reactions.Dissociation
-        self.prods, self.reacs = self.reacs, self.prods
-        self.switched_reacs_prods = True
-
-    def check_rearrangement(self):
+    def _check_rearrangement(self):
         """Could be an intramolecular addition, so will swap reactants and products if this is the case"""
 
         logger.info('Reaction classified as rearrangement, checking if it is an intramolecular addition')
-        reac_bonds_list = [mol.n_bonds for mol in self.reacs]
-        prod_bonds_list = [mol.n_bonds for mol in self.prods]
+        reac_bonds_list = [mol.graph.number_of_edges() for mol in self.reacs]
+        prod_bonds_list = [mol.graph.number_of_edges() for mol in self.prods]
         delta_n_bonds = sum(reac_bonds_list) - sum(prod_bonds_list)
 
         if delta_n_bonds < 0:
@@ -81,6 +71,14 @@ class Reaction:
         else:
             logger.info('Does not appear to be an intramolecular addition, continuing')
 
+    def switch_addition(self):
+        """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
+        """
+        logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
+        self.type = reactions.Dissociation
+        self.prods, self.reacs = self.reacs, self.prods
+        self.switched_reacs_prods = True
+
     def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
 
@@ -88,11 +86,7 @@ class Reaction:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
-        delta_n_reacs = len(self.reacs) - len(self.prods)
-        if delta_n_reacs != 0 and self.solvent_mol:
-            e += delta_n_reacs * self.solvent_sphere_energy
-        return e
+        return sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
 
     def calc_delta_e_ddagger(self):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
@@ -101,15 +95,14 @@ class Reaction:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆E‡')
-        if self.ts.energy is not None:
-            e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
-            n_reacs = len(self.reacs)
-            if n_reacs != 1 and self.solvent_mol:
-                e += (len(self.reacs) - 1) * self.solvent_sphere_energy
-            return e
-        else:
+        if self.ts is None:
+            return None
+
+        if self.ts.energy is None:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
+
+        return self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
 
     @work_in('solvent')
     def calc_solvent(self):
@@ -118,7 +111,7 @@ class Reaction:
         solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent_name=self.solvent)
 
         if solvent.n_atoms > 1:
-            solvent.find_lowest_energy_conformer()
+            solvent.find_lowest_energy_conformer(low_level_method=get_lmethod())
         solvent.optimise(None)
         logger.info('Saving the solvent_name molecule properties')
         self.solvent_mol = solvent
@@ -138,7 +131,7 @@ class Reaction:
 
         for mol in self.reacs + self.prods:
             if mol.n_atoms > 1:
-                mol.find_lowest_energy_conformer()
+                mol.find_lowest_energy_conformer(low_level_method=get_lmethod(), high_level_method=get_hmethod())
 
     @work_in('optimise_reactants_and_products')
     def optimise_reacs_prods(self):
@@ -157,7 +150,7 @@ class Reaction:
             if filename.endswith(file_extension):
                 os.remove(filename)
 
-        self.tss = find_tss(self, self.solvent_mol)
+        self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
 
     def find_lowest_energy_ts(self):
@@ -239,28 +232,66 @@ class Reaction:
 
         return None
 
-    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction', solvent=None):
+    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
+                 solvent_name=None):
         logger.info(f'Generating a Reaction object for {name}')
 
         self.name = name
         molecules = [mol1, mol2, mol3, mol4, mol5, mol6]
         self.reacs = [mol for mol in molecules if isinstance(mol, Reactant) and mol is not None]
         self.prods = [mol for mol in molecules if isinstance(mol, Product) and mol is not None]
+
         self.ts, self.tss = None, []
-        self.charge = None
 
         self.type = reactions.classify(reactants=self.reacs, products=self.prods)
 
-        self.set_solvent(solvent)
-        self.check_solvent()
-        self.check_balance()
+        self.solvent = get_solvent(solvent_name=solvent_name) if solvent_name is not None else None
 
-        self.solvent_mol = None
-        self.solvent_sphere_energy = None
+        self._check_solvent()
+        self._check_balance()
 
         self.switched_reacs_prods = False               #: Have the reactants and products been switched
         if self.type == reactions.Addition:
             self.switch_addition()
 
         if self.type == reactions.Rearrangement:
-            self.check_rearrangement()
+            self._check_rearrangement()
+
+
+class SolvatedReaction(Reaction):
+
+    def calc_delta_e_ddagger(self):
+        """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
+
+        Returns:
+            float: energy difference in Hartrees
+        """
+        logger.info('Calculating ∆E‡')
+        if self.ts.energy is not None:
+            e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
+            n_reacs = len(self.reacs)
+            if n_reacs != 1 and self.solvent_mol:
+                e += (len(self.reacs) - 1) * self.solvent_sphere_energy
+            return e
+        else:
+            logger.error('TS had no energy. Setting ∆E‡ = None')
+            return None
+
+    def calc_delta_e(self):
+        """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
+
+        Returns:
+            float: energy difference in Hartrees
+        """
+        logger.info('Calculating ∆Er')
+        e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
+        delta_n_reacs = len(self.reacs) - len(self.prods)
+        if delta_n_reacs != 0 and self.solvent_mol:
+            e += delta_n_reacs * self.solvent_sphere_energy
+        return e
+
+    def __int__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
+                solvent_name=None):
+        super().__init__(mol1, mol2, mol3, mol4, mol5, mol6, name, solvent_name)
+
+        self.solvent_sphere_energy = None

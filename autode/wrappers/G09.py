@@ -1,5 +1,6 @@
 from autode.config import Config
 from autode.log import logger
+from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
 from copy import deepcopy
 import numpy as np
@@ -255,9 +256,9 @@ class G09(ElectronicStructureMethod):
 
         return displacements
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
-        coords = np.zeros((calc.molecule.n_atoms, 3))
+        atoms = []
         xyz_section = False
         dashed_line = 0
 
@@ -276,21 +277,12 @@ class G09(ElectronicStructureMethod):
                 atom_index, _, _, x, y, z = line.split()
                 try:
                     atom_index = int(atom_index) - 1
-                    coords[atom_index][0] = float(x)
-                    coords[atom_index][1] = float(y)
-                    coords[atom_index][2] = float(z)
+                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=float(x), y=float(y), z=float(z)))
+
                 except ValueError:
                     pass
 
-        zero_xyzs = False
-        for xyz in xyzs:
-            if all(xyz[i] == 0.0 for i in range(1, 4)):
-                if zero_xyzs:
-                    return []
-                else:
-                    zero_xyzs = True
-
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
 

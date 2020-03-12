@@ -5,7 +5,6 @@ from rdkit import Chem
 import rdkit.Chem.Descriptors
 from autode import mol_graphs
 from autode.species import Species
-from autode.species import SolvatedSpecies
 from autode.geom import are_coords_reasonable
 from autode.mol_graphs import make_graph
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
@@ -21,6 +20,7 @@ from autode.utils import requires_atoms
 class Molecule(Species):
 
     def _init_smiles(self, smiles):
+        """Initialise a molecule from a SMILES string using RDKit"""
 
         try:
             self.rdkit_mol_obj = Chem.MolFromSmiles(smiles)
@@ -36,9 +36,11 @@ class Molecule(Species):
         self.set_atoms(atoms=get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id=0))
 
         if not are_coords_reasonable(coords=self.get_coordinates()):
-            logger.info('RDKit conformer was not reasonable')
+            logger.warning('RDKit conformer was not reasonable')
             self.rdkit_conf_gen_is_fine = False
-            self.set_atoms(atoms=get_simanl_atoms(species=self, bond_list=self.graph.edges))
+
+            make_graph(self, rdkit_bonds=self.rdkit_mol_obj.GetBonds())
+            self.set_atoms(atoms=get_simanl_atoms(self))
 
         # Ensure the SMILES string and the 3D structure have the same bonds
         make_graph(self)
@@ -47,7 +49,7 @@ class Molecule(Species):
             raise BondsInSMILESAndGraphDontMatch
 
         logger.info(f'Initialisation with SMILES successful. Charge={self.charge}, Multiplicity={self.mult}, '
-                    f'Num. Atom={self.n_atoms}')
+                    f'Num. Atoms={self.n_atoms}')
 
         return None
 
@@ -116,11 +118,12 @@ class Molecule(Species):
         logger.info(f'Running optimisation of {self.name}')
 
         opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
-                          keywords_list=method.opt_keywords, n_cores=Config.n_cores, opt=True)
+                          keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
         opt.run()
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
         self.charges = opt.get_atomic_charges()
+        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
 
         return None
 
@@ -130,8 +133,6 @@ class Molecule(Species):
 
         Arguments:
             low_level_method (autode.wrappers.ElectronicStructureMethod):
-
-        Keyword Arguments:
             high_level_method (autode.wrappers.ElectronicStructureMethod):
         """
         logger.info('Finding lowest energy conformer')
@@ -182,15 +183,13 @@ class Molecule(Species):
             mult (int): Spin multiplicity on the molecule (default: {1})
         """
         logger.info(f'Generating a Molecule object for {name}')
-        super(Molecule, self).__init__(name, atoms, charge, mult, solvent_name)
+        super().__init__(name, atoms, charge, mult, solvent_name)
 
         self.smiles = smiles
         self.rdkit_conf_gen_is_fine = True
         self.rdkit_mol_obj = None
 
         self.conformers = None
-
-        self.graph = None
 
         if smiles:
             self._init_smiles(smiles)
@@ -202,7 +201,7 @@ class Molecule(Species):
         make_graph(self)
 
 
-class SolvatedMolecule(SolvatedSpecies):
+class SolvatedMolecule(Molecule):
 
     def optimise(self, method):
         logger.info(f'Running optimisation of {self.name}')
@@ -221,7 +220,10 @@ class SolvatedMolecule(SolvatedSpecies):
         self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
 
     def __int__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
-        super(SolvatedMolecule, self).__init__(name, atoms, charge, mult, solvent_name)
+        super().__init__(name, smiles, atoms, solvent_name, charge, mult)
+
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
 
 
 class Reactant(Molecule):

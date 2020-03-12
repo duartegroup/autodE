@@ -5,11 +5,11 @@ are non ab-initio methods and are therefore considerably faster
 """
 from autode.config import Config
 from autode.log import logger
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.XTB import XTB
-from autode.wrappers.G09 import G09
-from autode.wrappers.NWChem import NWChem
+from autode.wrappers.ORCA import orca
+from autode.wrappers.MOPAC import mopac
+from autode.wrappers.XTB import xtb
+from autode.wrappers.G09 import g09
+from autode.wrappers.NWChem import nwchem
 from autode.exceptions import MethodUnavailable
 
 
@@ -21,11 +21,11 @@ def get_hmethod():
     """
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
-            method = ORCA()
+            method = orca
         elif Config.hcode.lower() == 'g09':
-            method = G09()
+            method = g09
         elif Config.hcode.lower() == 'nwchem':
-            method = NWChem()
+            method = nwchem
         else:
             logger.critical('Requested electronic structure code doesn\'t exist')
             raise MethodUnavailable
@@ -38,7 +38,7 @@ def get_hmethod():
         return method
     else:
         # see if orca availaible, then Gaussian, then nwchem
-        for method in [ORCA(), G09(), NWChem()]:
+        for method in [orca, g09, nwchem]:
             method.set_availability()
             if method.available:
                 return method
@@ -55,9 +55,9 @@ def get_lmethod():
     """
     if Config.lcode is not None:
         if Config.lcode.lower() == 'xtb':
-            method = XTB()
+            method = xtb
         elif Config.lcode.lower() == 'mopac':
-            method = MOPAC()
+            method = mopac
         else:
             logger.critical('Requested electronic structure code doesn\'t exist')
             raise MethodUnavailable
@@ -70,7 +70,7 @@ def get_lmethod():
         return method
     else:
         # see if xtb availaible, then mopac
-        for method in [XTB(), MOPAC()]:
+        for method in [xtb, mopac]:
             method.set_availability()
             if method.available:
                 return method

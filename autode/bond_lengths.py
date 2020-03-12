@@ -21,8 +21,8 @@ def get_ideal_bond_length_matrix(atoms, bonds):
     for i in range(n_atoms):
         for j in range(n_atoms):
             if (i, j) in bonds or (j, i) in bonds:
-                ideal_bond_length_matrix[i, j] = get_avg_bond_length(atom_i_label=atoms[i].atom_label,
-                                                                     atom_j_label=atoms[j].atom_label)
+                ideal_bond_length_matrix[i, j] = get_avg_bond_length(atom_i_label=atoms[i].label,
+                                                                     atom_j_label=atoms[j].label)
     return ideal_bond_length_matrix
 
 

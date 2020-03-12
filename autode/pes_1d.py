@@ -7,7 +7,7 @@ from autode.plotting import plot_1dpes
 from autode.plotting import make_reaction_animation
 from autode.constants import Constants
 from autode.calculation import Calculation
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 from autode import mol_graphs
 from autode.pes_2d import replace_none
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
@@ -53,7 +53,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
             xyzs = const_opt.get_final_atoms()
-        except XYZsNotFound:
+        except AtomsNotFound:
             logger.error('Could not find XYZs, setting as previous')
             xyzs = deepcopy(const_opt.xyzs)
 

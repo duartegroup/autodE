@@ -1,7 +1,7 @@
 from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.molecule import Molecule
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 import pytest
 
@@ -68,7 +68,7 @@ def test_bad_orca_output():
     calc.rev_output_file_lines = []
 
     assert calc.get_energy() is None
-    with pytest.raises(XYZsNotFound):
+    with pytest.raises(AtomsNotFound):
         calc.get_final_atoms()
 
     with pytest.raises(NoInputError):

@@ -1,6 +1,8 @@
 from autode.molecule import Molecule
 from autode.conformers.conformers import Conformer
 from autode.exceptions import NoAtomsInMolecule
+from autode.geom import are_coords_reasonable
+from autode.wrappers.ORCA import orca
 from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.reaction import Reaction
@@ -9,8 +11,10 @@ from autode.bond_rearrangement import BondRearrangement
 from rdkit.Chem import Mol
 import numpy as np
 import pytest
+import os
 from autode.transition_states.locate_tss import get_reactant_and_product_complexes
 from autode.mol_graphs import reac_graph_to_prods
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_basic_attributes():
@@ -50,6 +54,29 @@ def test_gen_conformers():
         mol = Molecule()
         mol._generate_conformers()
 
+
+def test_siman_conf_gen():
+
+    rh_complex = Molecule(name='[RhH(CO)3(ethene)]', smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
+    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+    assert rh_complex.n_atoms == 14
+    assert rh_complex.graph.number_of_edges() == 14
+
+
+def test_molecule_opt():
+
+    os.chdir(os.path.join(here, 'data'))
+
+    mol = Molecule(name='H2', smiles='[H][H]')
+
+    mol.optimise(method=orca)
+    assert mol.energy == -1.160687049941
+    assert mol.n_atoms == 2
+
+    opt_coords = mol.get_coordinates()
+    assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768      # H2 bond length ~ 0.767 Å at PBE/def2-SVP
+
+    os.chdir(here)
 
 
 """
