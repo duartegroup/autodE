@@ -3,10 +3,9 @@ from autode.log import logger
 from rdkit.Chem import AllChem
 from rdkit import Chem
 import rdkit.Chem.Descriptors
-from autode import mol_graphs
 from autode.species import Species
 from autode.geom import are_coords_reasonable
-from autode.mol_graphs import make_graph
+from autode.mol_graphs import make_graph, is_isomorphic
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.conformers.conformers import get_unique_confs
 from autode.conformers.conformers import Conformer
@@ -50,7 +49,6 @@ class Molecule(Species):
 
         logger.info(f'Initialisation with SMILES successful. Charge={self.charge}, Multiplicity={self.mult}, '
                     f'Num. Atoms={self.n_atoms}')
-
         return None
 
     def _calc_multiplicity(self, n_radical_electrons):
@@ -149,10 +147,10 @@ class Molecule(Species):
             if conformer.energy is None:
                 continue
 
-            conformer_graph = mol_graphs.make_graph(conformer.xyzs, self.n_atoms)
+            make_graph(conformer)
 
             # If the conformer retains the same connectivity
-            if mol_graphs.is_isomorphic(self.graph, conformer_graph):
+            if is_isomorphic(self.graph, conformer.graph):
 
                 if lowest_energy is None:
                     lowest_energy = conformer.energy

@@ -1,4 +1,5 @@
 from autode.transition_states import ts_guess
+from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.transition_state import TS
 from autode.reactions import Substitution
@@ -12,26 +13,26 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 Config.make_ts_template = False
 
-test_ts_reac = molecule.Molecule(xyzs=[['F', -2.0, 0.0, 0.0],
-                                       ['C', 0.0, 0.0, 0.0],
-                                       ['Cl', 1.8, 0.0, 0.0],
-                                       ['H', -0.4, -0.5, -0.9],
-                                       ['H', -0.4, -0.5, 0.9],
-                                       ['H', -0.5, 1.0, 0.0]])
+test_ts_reac = molecule.Molecule(atoms=[Atom('F', -2.0, 0.0, 0.0),
+                                        Atom('C', 0.0, 0.0, 0.0),
+                                        Atom('Cl', 1.8, 0.0, 0.0),
+                                        Atom('H', -0.4, -0.5, -0.9),
+                                        Atom('H', -0.4, -0.5, 0.9),
+                                        Atom('H', -0.5, 1.0, 0.0)])
 
-test_ts_prod = molecule.Molecule(xyzs=[['F', -1.0, 0.0, 0.0],
-                                       ['C', 0.0, 0.0, 0.0],
-                                       ['Cl', 3.0, 0.0, 0.0],
-                                       ['H', -0.4, -0.5, -0.9],
-                                       ['H', -0.4, -0.5, 0.9],
-                                       ['H', -0.5, 1.0, 0.0]])
+test_ts_prod = molecule.Molecule(atoms=[Atom('F', -1.0, 0.0, 0.0),
+                                        Atom('C', 0.0, 0.0, 0.0),
+                                        Atom('Cl', 3.0, 0.0, 0.0),
+                                        Atom('H', -0.4, -0.5, -0.9),
+                                        Atom('H', -0.4, -0.5, 0.9),
+                                        Atom('H', -0.5, 1.0, 0.0)])
 
-test_ts_mol = molecule.Molecule(xyzs=[['F', -3.0, -0.1, 0.1],
-                                      ['C', 0.0, 0.0, 0.0],
-                                      ['Cl', 2.2, 0.1, -0.1],
-                                      ['H', 0.0, -0.8, 0.7],
-                                      ['H', -0.2, -0.3, -1.0],
-                                      ['H', -0.2, 1.0, 0.3]],
+test_ts_mol = molecule.Molecule(atoms=[Atom('F', -3.0, -0.1, 0.1),
+                                       Atom('C', 0.0, 0.0, 0.0),
+                                       Atom('Cl', 2.2, 0.1, -0.1),
+                                       Atom('H', 0.0, -0.8, 0.7),
+                                       Atom('H', -0.2, -0.3, -1.0),
+                                       Atom('H', -0.2, 1.0, 0.3)],
                                 solvent_name='water', charge=-1)
 
 ts_guess_obj = ts_guess.TSguess(name='test_ts', molecule=test_ts_mol,

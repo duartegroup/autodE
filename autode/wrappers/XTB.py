@@ -11,11 +11,11 @@ class XTB(ElectronicStructureMethod):
     def generate_input(self, calc):
 
         calc.input_filename = calc.name + '_xtb.xyz'
-        calc.molecule.print_xyz_file()
+        calc.molecule.print_xyz_file(filename=calc.input_filename)
+
         calc.output_filename = calc.name + '_xtb.out'
 
-        # Add
-        calc.flags = ['--chrg', str(calc.charge)]
+        calc.flags = ['--chrg', str(calc.molecule.charge)]
 
         if calc.opt:
             calc.flags.append('--opt')
@@ -28,8 +28,10 @@ class XTB(ElectronicStructureMethod):
 
         if calc.distance_constraints or calc.cartesian_constraints or calc.molecule.charges:
             force_constant = 10
+
             if calc.constraints_already_met:
                 force_constant += 90
+
             xcontrol_filename = 'xcontrol_' + calc.name
             with open(xcontrol_filename, 'w') as xcontrol_file:
                 if calc.distance_constraints:

@@ -2,14 +2,15 @@ import os
 from subprocess import Popen
 from autode.log import logger
 from autode.exceptions import AtomsNotFound
-from autode.exceptions import NoInputError
 from autode.exceptions import CouldNotGetProperty
+from autode.exceptions import NoInputError
+from autode.utils import work_in_tmp_dir
 from autode.config import Config
 from autode.solvent.solvents import get_available_solvent_names
 from autode.exceptions import SolventUnavailable
-import shutil
-from tempfile import mkdtemp
 from copy import deepcopy
+
+output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
 
 
 class Calculation:
@@ -109,7 +110,9 @@ class Calculation:
 
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
+
         if self.output_file_lines is None:
+            logger.warning('Calculation did not generate any output')
             return False
 
         return self.method.calculation_terminated_normally(self)
@@ -125,29 +128,13 @@ class Calculation:
         logger.info(f'Generating input file for {self.name}')
         return self.method.generate_input(self)
 
-    def clean_files(self, tmpdir_path, curr_dir_path):
-        """Move all of the required output files into from the temporary directory"""
-
-        for filename in os.listdir(os.getcwd()):
-            name_string = '.'.join(self.input_filename.split('.')[:-1])
-            if name_string in filename:
-                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) \
-                        and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
-                    shutil.move(os.path.join(tmpdir_path, filename), os.path.join(curr_dir_path, filename))
-            if 'xcontrol' in filename:
-                shutil.move(os.path.join(tmpdir_path, filename), os.path.join(curr_dir_path, filename))
-
-        return None
-
     def execute_calculation(self):
-        logger.info(f'Running calculation {self.input_filename}')
+        logger.info(f'Running calculation {self.input_filename} using {self.method.name}')
 
         if self.input_filename is None:
-            logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
 
         if not os.path.exists(self.input_filename):
-            logger.error('Could not run the calculation. Input file does not exist')
             raise NoInputError
 
         if os.path.exists(self.output_filename):
@@ -157,43 +144,29 @@ class Calculation:
         if self.output_file_exists:
             if self.calculation_terminated_normally():
                 logger.info('Calculation already terminated successfully. Skipping')
-                return self.set_output_file_lines()
+                return
 
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
-        here = os.getcwd()
-        tmpdir_path = mkdtemp()
-        logger.info(f'Creating tmpdir to work in {tmpdir_path}')
-        shutil.move(os.path.join(here, self.input_filename), os.path.join(tmpdir_path, self.input_filename))
-        for initial_filename, end_filename in self.additional_input_files:
-            shutil.move(os.path.join(here, initial_filename), os.path.join(tmpdir_path, end_filename))
-        os.chdir(tmpdir_path)
+        @work_in_tmp_dir(filenames_to_copy=[self.input_filename]+self.additional_input_files, kept_file_exts=output_exts)
+        def execute_est_method():
 
-        with open(self.output_filename, 'w') as output_file:
+            with open(self.output_filename, 'w') as output_file:
 
-            if self.method.mpirun:
-                mpirun_path = shutil.which('mpirun')
-                params = [mpirun_path, '-np', str(self.n_cores), self.method.path, self.input_filename]
-            else:
-                params = [self.method.path, self.input_filename]
-            if self.flags is not None:
-                params += self.flags
+                if self.method.mpirun:
+                    params = ['mpirun', '-np', str(self.n_cores), self.method.path, self.input_filename]
+                else:
+                    params = [self.method.path, self.input_filename]
+                if self.flags is not None:
+                    params += self.flags
 
-            subprocess = Popen(params, stdout=output_file,
-                               stderr=open(os.devnull, 'w'))
-        subprocess.wait()
-        logger.info(f'Calculation {self.output_filename} done')
+                subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
+            subprocess.wait()
+            logger.info(f'Calculation {self.output_filename} done')
 
-        self.set_output_file_lines()
-        if self.grad:
-            self.method.get_gradients(self)
-
-        self.clean_files(tmpdir_path=tmpdir_path, curr_dir_path=here)
-        os.chdir(here)
-        shutil.rmtree(tmpdir_path)
-
-        return None
+        execute_est_method()
+        return self.set_output_file_lines()
 
     def run(self):
         logger.info(f'Running calculation of {self.name}')
@@ -226,6 +199,8 @@ class Calculation:
             grad (bool): grad calc or not (needed for xtb) (default: {False})
             partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
+
+        # TODO Purge some of these attributes
         self.name = name
         self.molecule = deepcopy(molecule)
 
@@ -262,16 +237,13 @@ class Calculation:
 
         self.additional_input_files = []
 
+        self.solvent_keyword = None
         if molecule.solvent is not None:
-            if getattr(molecule.solvent, method.__name__) is None:
-                logger.critical('Solvent is not available. Cannot run the calculation')
-                print(
-                    f'Available solvents for {self.method.__name__} are {get_available_solvent_names(self.method.__name__)}')
+            if getattr(molecule.solvent, method.name) is None:
+                print(f'Available solvents for {self.method.__name__} are {get_available_solvent_names(self.method)}')
                 raise SolventUnavailable
-            self.solvent_keyword = getattr(molecule.solvent, method.__name__)
 
-        else:
-            self.solvent_keyword = None
+            self.solvent_keyword = getattr(molecule.solvent, method.name)
 
         if self.molecule.atoms is None:
             logger.error('Have no xyzs. Can\'t make a calculation')

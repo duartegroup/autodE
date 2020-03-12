@@ -1,4 +1,5 @@
 from autode.transition_states import locate_tss
+from autode.atoms import Atom
 from autode import molecule
 from autode import reaction
 from autode.bond_rearrangement import BondRearrangement
@@ -6,9 +7,10 @@ from autode.transition_states.template_ts_guess import get_template_ts_guess
 import autode.bond_rearrangement as bond_rearrangement
 
 # h + h > mol dissociation
-h_product_1 = molecule.Product(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
-h_product_2 = molecule.Product(name='H', xyzs=[['H', 1.0, 0.0, 0.0]])
-hh_reactant = molecule.Reactant(name='H2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
+h_product_1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+h_product_2 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+
+hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
 dissoc_reaction = reaction.Reaction(name='dissoc', mol1=h_product_1, mol2=h_product_2, mol3=hh_reactant)
 for mol in dissoc_reaction.reacs + dissoc_reaction.prods:
     mol.charges = []
@@ -16,8 +18,8 @@ dissoc_reactant, dissoc_product = locate_tss.get_reactant_and_product_complexes(
 dissoc_rearrangs = locate_tss.get_bond_rearrangs(dissoc_reactant, dissoc_product)
 
 # mol + h > h + mol substitution
-h_reactant = molecule.Reactant(name='H', xyzs=[['H', 0.0, 0.0, 0.0]])
-hh_product = molecule.Product(name='H2', xyzs=[['H', 0.7, 0.0, 0.0], ['H', 1.4, 0.0, 0.0]])
+h_reactant = molecule.Reactant(name='H', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+hh_product = molecule.Product(name='H2', atoms=[Atom('H', 0.7, 0.0, 0.0), Atom('H', 1.4, 0.0, 0.0)])
 subs_reaction = reaction.Reaction(name='subs', mol1=h_reactant, mol2=hh_reactant, mol3=hh_product, mol4=h_product_2)
 for mol in subs_reaction.reacs + subs_reaction.prods:
     mol.charges = []

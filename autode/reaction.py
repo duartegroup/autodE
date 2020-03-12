@@ -104,25 +104,7 @@ class Reaction:
 
         return self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
 
-    @work_in('solvent')
-    def calc_solvent(self):
-        logger.info('Optimising the solvent_name molecule')
-        solvent_smiles = self.solvent.smiles
-        solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent_name=self.solvent)
 
-        if solvent.n_atoms > 1:
-            solvent.find_lowest_energy_conformer(low_level_method=get_lmethod())
-        solvent.optimise(None)
-        logger.info('Saving the solvent_name molecule properties')
-        self.solvent_mol = solvent
-        if not len(self.reacs) == len(self.prods) == 1:
-            qmmm_solvent_mol = deepcopy(solvent)
-            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_confs=96, n_qm_solvent_mols=49)
-            qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
-            qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
-            qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
-            qmmm_solvent_mol.single_point(solvent)
-            self.solvent_sphere_energy = qmmm_solvent_mol.energy
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
@@ -133,15 +115,15 @@ class Reaction:
             if mol.n_atoms > 1:
                 mol.find_lowest_energy_conformer(low_level_method=get_lmethod(), high_level_method=get_hmethod())
 
-    @work_in('optimise_reactants_and_products')
+    @work_in('reactants_and_products')
     def optimise_reacs_prods(self):
         """Perform a geometry optimisation on all the reactants and products using the hcode
         """
-        logger.info('Calculating optimised reactants and products')
+        h_method = get_hmethod()
+        logger.info('Calculating optimised reactants and products with {h_method.name}')
+        [mol.optimise(method=h_method) for mol in self.reacs + self.prods]
 
-        [mol.optimise(self.solvent_mol) for mol in self.reacs + self.prods]
-
-    @work_in('tss')
+    @work_in('transition_states')
     def locate_transition_state(self):
 
         # Clear the PES graphs, so they don't write over each optts_block
@@ -195,11 +177,14 @@ class Reaction:
         logger.info('Calculating reaction profile')
         if Config.explicit_solvation:
             self.calc_solvent()
+
         self.find_lowest_energy_conformers()
         self.optimise_reacs_prods()
         self.locate_transition_state()
+
         if self.ts is not None:
             self.ts_confs()
+
         self.calculate_single_points()
 
         conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
@@ -289,6 +274,26 @@ class SolvatedReaction(Reaction):
         if delta_n_reacs != 0 and self.solvent_mol:
             e += delta_n_reacs * self.solvent_sphere_energy
         return e
+
+    @work_in('solvent')
+    def calc_solvent(self):
+        logger.info('Optimising the solvent_name molecule')
+        solvent_smiles = self.solvent.smiles
+        solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent_name=self.solvent)
+
+        if solvent.n_atoms > 1:
+            solvent.find_lowest_energy_conformer(low_level_method=get_lmethod())
+        solvent.optimise(None)
+        logger.info('Saving the solvent_name molecule properties')
+        self.solvent_mol = solvent
+        if not len(self.reacs) == len(self.prods) == 1:
+            qmmm_solvent_mol = deepcopy(solvent)
+            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_confs=96, n_qm_solvent_mols=49)
+            qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
+            qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
+            qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+            qmmm_solvent_mol.single_point(solvent)
+            self.solvent_sphere_energy = qmmm_solvent_mol.energy
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
                 solvent_name=None):

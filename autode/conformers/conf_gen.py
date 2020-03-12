@@ -33,6 +33,7 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
         atoms (list(autode.atoms.Atom)):
         theta (float): Rotation angle in radians
     """
+    # TODO check on π bonds and don't rotate
 
     if species.stereocentres is not None:
         for (atom1, atom2) in combinations(species.stereocentres, 2):
