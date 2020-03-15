@@ -25,6 +25,7 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return res.x.reshape(n_atoms, 3)
 
 
+@requires_graph()
 def get_atoms_rotated_stereocentres(species, atoms, theta):
     """If two stereocentres are bonded, rotate them randomly wrt each other
 
@@ -33,16 +34,21 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
         atoms (list(autode.atoms.Atom)):
         theta (float): Rotation angle in radians
     """
-    # TODO check on π bonds and don't rotate
+    stereocentres = [node for node in species.graph.nodes if node['stereo'] is True]
 
-    if species.stereocentres is not None:
-        for (atom1, atom2) in combinations(species.stereocentres, 2):
-            if (atom1, atom2) in species.graph.edges or (atom2, atom1) in species.graph.edges:
-                left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom1, atom2))
+    # Check on every pair of stereocenters
+    for (atom_i, atom_j) in combinations(stereocentres, 2):
+        if (atom_i, atom_j) in species.graph.edges:
 
-                # Rotate the left hand side randomly
-                rot_axis = atoms[atom1].coord - atoms[atom2].coord
-                [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom1].coord) for i in left_idxs]
+            # Don't rotate if the bond connecting the centers is a π-bond
+            if species.graph.edges[atom_i, atom_j]['pi'] is True:
+                continue
+
+            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+
+            # Rotate the left hand side randomly
+            rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
+            [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for i in left_idxs]
 
     return atoms
 
@@ -120,6 +126,8 @@ def get_simanl_conformers(name, init_xyzs, bond_list, stereocentres, dist_consts
         list(list(list)): list of n_simanls xyzs
     """
     logger.info('Doing simulated annealing with a harmonic + repulsion force field')
+
+    # TODO rewrite this function
 
     important_stereoatoms = set()
     if stereocentres is not None:

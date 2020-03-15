@@ -2,24 +2,21 @@ from autode.log import logger
 from autode.exceptions import ReactionFormationFalied
 
 
-class Addition:
-    name = 'addition'
+class ReactionType:
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __init__(self, name):
+
+        self.name = name
 
 
-class Dissociation:
-    name = 'dissociation'
-
-
-class Substitution:
-    name = 'substitution'
-
-
-class Elimination:
-    name = 'elimination'
-
-
-class Rearrangement:
-    name = 'rearrangement'
+Addition = ReactionType(name='addition')
+Dissociation = ReactionType(name='dissociation')
+Substitution = ReactionType(name='substitution')
+Elimination = ReactionType(name='elimination')
+Rearrangement = ReactionType(name='rearrangement')
 
 
 def classify(reactants, products):

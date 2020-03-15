@@ -71,6 +71,8 @@ class Molecule(Species):
     @requires_atoms()
     def _find_stereocentres(self):
         # TODO... write this
+
+        # Set self.graph.node['stereo'] = True
         pass
 
     @requires_atoms()

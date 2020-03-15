@@ -18,6 +18,9 @@ def get_available_solvent_names(method):
 
 class Solvent:
 
+    def __str__(self):
+        return self.name
+
     def __eq__(self, other):
         return self.name == other.name and self.smiles == other.smiles
 

@@ -23,7 +23,7 @@ profiles from just SMILES strings of reactant(s) and product(s).
 The Python dependencies are listed in requirements.txt best satisfied using a conda install (Miniconda or Anaconda) i.e.
 ```
 conda config --append channels conda-forge
-conda config --append channels conda-forge --append channels omnia
+conda config --append channels omnia
 conda install --file requirements.txt
 ```
 

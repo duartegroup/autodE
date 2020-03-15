@@ -78,6 +78,9 @@ vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, '
              'Au': 2.14, 'Hg': 2.23, 'Tl': 1.96, 'Pb': 2.02, 'Bi': 2.07, 'Po': 1.97, 'At': 2.02, 'Rn': 2.2, 'Fr': 3.48, 'Ra': 2.83, 'Ac': 2.47, 'Th': 2.45, 'Pa': 2.43,
              'U': 2.41, 'Np': 2.39, 'Pu': 2.43, 'Am': 2.44, 'Cm': 2.45, 'Bk': 2.44, 'Cf': 2.45, 'Es': 2.45, 'Fm': 2.45, 'Md': 2.46, 'No': 2.46, 'Lr': 2.46}
 
+pi_valencies = {'B': [1, 2], 'N': [1, 2], 'O': [1], 'C': [1, 2, 3], 'P': [1, 2, 3, 4], 'S': [1, 3, 4, 5],
+                'Si': [1, 2, 3]}
+
 
 def get_maximal_valance(atom_label):
     """Get the maximum valance of an atom
@@ -127,4 +130,22 @@ def get_vdw_radius(atom_label):
         return 2.3
 
 
+def is_pi_atom(atom_label, valency):
+    """
+    Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or second row element
 
+    Arguments;
+        atom_label (str):
+        valency (int):
+
+    Returns:
+        (bool)
+    """
+
+    if atom_label not in pi_valencies.keys():
+        return False
+
+    if valency in pi_valencies[atom_label]:
+        return True
+
+    return False

@@ -106,7 +106,6 @@ class Species:
         self.energy = None                                               # Total electronic energy in Hartrees (float)
 
         self.charges = None                                              # List of partial atomic charges (list(float))
-        self.stereocentres = None                                        # List of sterocenters in the species
 
         self.graph = None                                                # NetworkX.Graph object with atoms and bonds
 

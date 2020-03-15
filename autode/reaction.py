@@ -6,7 +6,6 @@ from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.units import KcalMol
 from autode.units import KjMol
-from autode.constants import Constants
 from autode.plotting import plot_reaction_profile
 from autode.utils import work_in
 from autode.config import Config
@@ -18,6 +17,39 @@ from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from copy import deepcopy
 import os
+
+
+def calculate_reaction_profile(reaction, units):
+    logger.info('Calculating reaction profile')
+    if Config.explicit_solvation:
+        reaction.calc_solvent()
+
+    reaction.find_lowest_energy_conformers()
+    reaction.optimise_reacs_prods()
+    reaction.locate_transition_state()
+    reaction.ts_confs()
+    reaction.calculate_single_points()
+
+    e_prod = reaction.calc_delta_e(units=units)
+    e_ts = reaction.calc_delta_e_ddagger(units=units)
+    barrierless = False
+
+    if e_ts is None:
+        logger.error('TS is None – assuming barrierless reaction. ∆E‡ = 2 kcal mol-1 above the maximum energy')
+        barrierless = True
+        e_ts = 0.0032 * units.conversion + max(0.0, e_prod)
+
+    plot_reaction_profile(e_reac=0.0,
+                          e_ts=e_ts,
+                          e_prod=e_prod,
+                          units=units,
+                          reacs=reaction.reacs,
+                          prods=reaction.prods,
+                          is_true_ts=reaction.ts.is_true_ts(),
+                          ts_is_converged=reaction.ts.converged,
+                          switched=reaction.switched_reacs_prods,
+                          barrierless=barrierless)
+    return None
 
 
 class Reaction:
@@ -50,11 +82,18 @@ class Reaction:
                     logger.critical('Solvents in reactants and products don\'t match')
                     raise SolventsDontMatch
 
+                else:
+                    logger.info(f'Setting the reaction solvent to {self.reacs[0].solvent}')
+                    self.solvent = self.reacs[0].solvent
+
         if self.solvent is not None:
             logger.info(f'Setting solvent to {self.solvent.name} for all molecules in the reaction')
 
             for mol in self.reacs + self.prods:
                 mol.solvent = self.solvent
+
+        logger.info(f'Set the solvent of all species in the reaction to {self.solvent.name}')
+        return None
 
     def _check_rearrangement(self):
         """Could be an intramolecular addition, so will swap reactants and products if this is the case"""
@@ -79,16 +118,19 @@ class Reaction:
         self.prods, self.reacs = self.reacs, self.prods
         self.switched_reacs_prods = True
 
-    def calc_delta_e(self):
+    def calc_delta_e(self, units=KcalMol):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
 
         Returns:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        return sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
+        products_energy = sum(filter(None, [p.energy for p in self.prods]))
+        reactants_energy = sum(filter(None, [r.energy for r in self.reacs]))
 
-    def calc_delta_e_ddagger(self):
+        return units.conversion * (products_energy - reactants_energy)
+
+    def calc_delta_e_ddagger(self, units=KjMol):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
 
         Returns:
@@ -102,9 +144,24 @@ class Reaction:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
 
-        return self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
+        return units.conversion * (self.ts.energy - sum(filter(None, [r.energy for r in self.reacs])))
 
+    def find_lowest_energy_ts(self):
+        """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
+        otherwise return the single transtion state or None if there no TS objects.
+        """
 
+        if self.tss is None:
+            logger.error('Could not find a transition state')
+            return None
+
+        elif len(self.tss) > 1:
+            logger.info('Found more than 1 TS. Choosing the lowest energy')
+            min_ts_energy = min([ts.energy for ts in self.tss])
+            return [ts for ts in self.tss if ts.energy == min_ts_energy][0]
+
+        else:
+            return self.tss[0]
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
@@ -126,6 +183,7 @@ class Reaction:
     @work_in('transition_states')
     def locate_transition_state(self):
 
+        # TODO why is this here/!
         # Clear the PES graphs, so they don't write over each optts_block
         file_extension = Config.image_file_extension
         for filename in os.listdir(os.getcwd()):
@@ -135,87 +193,37 @@ class Reaction:
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
 
-    def find_lowest_energy_ts(self):
-        """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
-        otherwise return the single transtion state or None if there no TS objects.
-        """
-
-        if self.tss is None:
-            logger.error('Could not find a transition state')
-            return None
-
-        elif len(self.tss) > 1:
-            logger.info('Found more than 1 TS. Choosing the lowest energy')
-            min_ts_energy = min([ts.energy for ts in self.tss])
-            return [ts for ts in self.tss if ts.energy == min_ts_energy][0]
-
-        else:
-            return self.tss[0]
-
     @work_in('ts_confs')
     def ts_confs(self):
         """Find the lowest energy conformer of the transition state"""
-
-        ts_copy = deepcopy(self.ts)
         logger.info('Trying to find lowest energy TS conformer')
 
-        self.ts = self.ts.find_lowest_energy_conformer(self.solvent_mol)
+        if self.ts is None:
+            logger.error('Cannot find the TS conformers with TS is None')
+            return
+
+        ts = deepcopy(self.ts)
+        self.ts = self.ts.find_lowest_energy_conformer(method=get_hmethod())
+
         if self.ts is None:
             logger.error('Conformer search lost the TS, using the original TS')
-            self.ts = ts_copy
-        elif self.ts.energy > ts_copy.energy:
-            logger.error(f'Conformer search increased the TS energy by {(self.ts.energy - ts_copy.energy):.3g} Hartree')
-            self.ts = ts_copy
+            self.ts = ts
+        elif self.ts.energy > ts.energy:
+            logger.error(f'Conformer search increased the TS energy by {(self.ts.energy - ts.energy):.3g} Hartree')
+            self.ts = ts
+
+        return None
 
     @work_in('single_points')
     def calculate_single_points(self):
         """Perform a single point energy evaluations on all the reactants and products using the hcode"""
         molecules = self.reacs + self.prods + [self.ts]
-        [mol.single_point(self.solvent_mol) for mol in molecules if mol is not None]
-
-    def calculate_reaction_profile(self, units=KcalMol):
-        logger.info('Calculating reaction profile')
-        if Config.explicit_solvation:
-            self.calc_solvent()
-
-        self.find_lowest_energy_conformers()
-        self.optimise_reacs_prods()
-        self.locate_transition_state()
-
-        if self.ts is not None:
-            self.ts_confs()
-
-        self.calculate_single_points()
-
-        conversion = Constants.ha2kJmol if units == KjMol else Constants.ha2kcalmol
-        e_prod = conversion * self.calc_delta_e()
-        if self.ts is None:
-            logger.error('TS is None – assuming barrierless reaction')
-            barrierless = True
-            if e_prod < 0:
-                e_ts = 0
-            else:
-                e_ts = e_prod
-            if units == KcalMol:
-                e_ts += 2
-            elif units == KjMol:
-                e_ts += (2 * Constants.kcal2kJ)
-        else:
-            barrierless = False
-            e_ts = conversion * self.calc_delta_e_ddagger()
-
-        plot_reaction_profile(e_reac=0.0,
-                              e_ts=e_ts,
-                              e_prod=e_prod,
-                              units=units,
-                              reacs=self.reacs,
-                              prods=self.prods,
-                              is_true_ts=self.ts.is_true_ts(),
-                              ts_is_converged=self.ts.converged,
-                              switched=self.switched_reacs_prods,
-                              barrierless=barrierless)
+        [mol.single_point(method=get_hmethod()) for mol in molecules if mol is not None]
 
         return None
+
+    def calculate_reaction_profile(self):
+        return calculate_reaction_profile(self, units=KcalMol)
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
                  solvent_name=None):
@@ -226,7 +234,7 @@ class Reaction:
         self.reacs = [mol for mol in molecules if isinstance(mol, Reactant) and mol is not None]
         self.prods = [mol for mol in molecules if isinstance(mol, Product) and mol is not None]
 
-        self.ts, self.tss = None, []
+        self.ts, self.tss = None, None
 
         self.type = reactions.classify(reactants=self.reacs, products=self.prods)
 
@@ -245,7 +253,7 @@ class Reaction:
 
 class SolvatedReaction(Reaction):
 
-    def calc_delta_e_ddagger(self):
+    def calc_delta_e_ddagger(self, units=KcalMol):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
 
         Returns:
@@ -262,7 +270,7 @@ class SolvatedReaction(Reaction):
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
 
-    def calc_delta_e(self):
+    def calc_delta_e(self, units=KcalMol):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
 
         Returns:

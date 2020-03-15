@@ -4,6 +4,7 @@ import multiprocessing as mp
 from networkx.algorithms import isomorphism
 from scipy.spatial import distance_matrix
 from autode.bond_lengths import get_avg_bond_length
+from autode.atoms import is_pi_atom
 
 
 def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
@@ -22,13 +23,13 @@ def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
 
     graph = nx.Graph()
 
-    # Add the atoms to the graph
+    # Add the atoms to the graph all are initially assumed not to be stereocenters
     for i in range(species.n_atoms):
-        graph.add_node(i, atom_label=species.atoms[i].label)
+        graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
 
     # If rdkit bonds object is specified then add edges to the graph and return
     if rdkit_bonds is not None:
-        [graph.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in rdkit_bonds]
+        [graph.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), pi=False) for bond in rdkit_bonds]
         species.graph = graph
         return None
 
@@ -44,11 +45,35 @@ def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
 
             # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
             if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance):
-                graph.add_edge(i, j)
+                graph.add_edge(i, j, pi=False)
 
     species.graph = graph
+    set_pi_bonds(species)
 
     return None
+
+
+def set_pi_bonds(species):
+    """
+    For a molecular species set the π bonds in the molecular graph.
+
+    Arguments:
+        species (autode.species.Species):
+    """
+    logger.info('Setting the π bonds in a species')
+
+    for bond in species.graph.edges:
+        atom_i, atom_j = bond
+
+        if all([is_pi_atom(atom_label=species.atoms[atom].label, valency=species.graph.degree[atom]) for atom in bond]):
+            species.graph.edges[atom_i, atom_j]['pi'] = True
+
+    return None
+
+
+def union(graphs):
+    """Return the union of two graphs. The disjoint union is returned"""
+    return nx.disjoint_union_all(graphs)
 
 
 def is_subgraph_isomorphic(larger_graph, smaller_graph):
