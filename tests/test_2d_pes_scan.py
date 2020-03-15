@@ -69,9 +69,9 @@ def test_get_ts_guess_2dscan():
     mol = Molecule(name='h4', xyzs=h4_xyzs, mult=1)
     method = ORCA()
 
-    ts_guess = pes_2d.get_ts_guess_2d(mol=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
+    ts_guess = pes_2d.get_ts_guess_2d(reactant=mol, product=mol, active_bond1=(0, 2), active_bond2=(1, 3), n_steps=2, name='h4',
                                       reaction_class=Dissociation, method=method, keywords=Config.ORCA.keywords.low_opt,
-                                      delta_dist1=0.2, delta_dist2=0.2, e_grid_points=4, polynomial_order=1, solvent_mol=None)
+                                      final_dist1=0.2, final_dist2=0.2, e_grid_points=4, polynomial_order=1, solvent_mol=None)
 
     assert len(ts_guess.active_bonds) == 2
     assert os.path.exists('h4_0_2_1_3_2dscan_ORCA.png')

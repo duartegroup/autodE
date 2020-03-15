@@ -99,9 +99,10 @@ def get_mapping_ts_template(larger_graph, smaller_graph):
 
 def get_mapping(larger_graph, smaller_graph):
     logger.info('Running isomorphism')
-    graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph, node_match=isomorphism.categorical_node_match('atom_label', 'C'))
+    gm = isomorphism.GraphMatcher(larger_graph, smaller_graph,
+                                  node_match=isomorphism.categorical_node_match('atom_label', 'C'))
 
-    return list(graph_matcher.isomorphisms_iter())[0]
+    return next(gm.match())
 
 
 def is_isomorphic(graph1, graph2):

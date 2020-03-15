@@ -370,7 +370,7 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
     return unique_bond_rearrangements
 
 
-class BondRearrangement(object):
+class BondRearrangement:
 
     def get_active_atom_neighbour_lists(self, mol, depth):
 
@@ -393,3 +393,6 @@ class BondRearrangement(object):
         self.all = self.fbonds + self.bbonds
         self.active_atoms = [atom_id for bond in self.all for atom_id in bond]
         self.active_atom_nl = None
+
+        self.fatoms = [atom_id for bond in self.fbonds for atom_id in bond]
+        self.batoms = [atom_id for bond in self.bbonds for atom_id in bond]

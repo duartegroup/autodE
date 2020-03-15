@@ -63,6 +63,10 @@ class Species:
 
         return None
 
+    def get_distance(self, atom_i, atom_j):
+        """Get the distance between two atoms in the species"""
+        return np.linalg.norm(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
+
     def set_atoms(self, atoms):
         """Set the atoms of this species and from those the number of atoms"""
 

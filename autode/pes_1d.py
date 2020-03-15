@@ -13,7 +13,7 @@ from autode.pes_2d import replace_none
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
-def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, solvent_mol, delta_dist=1.5,
+def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, solvent_mol, final_dist=1.5,
                     active_bonds_not_scanned=None):
     """Scan the distance between two atoms and return a guess for the TS
 
@@ -28,7 +28,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         keywords (list): keywords_list to use in the calcs
 
     Keyword Arguments:
-        delta_dist (float): distance to add onto the current distance (Å) in n_steps (default: {1.5})
+        final_dist (float): Final distance (Å) will be generated in n_steps (default: {1.5})
         active_bonds_not_scanned (list(tuple)): pairs of atoms that are active, but will not be scanned in the 1D PES (default: {None})
 
     Returns:
@@ -40,7 +40,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
     curr_dist = mol.calc_bond_distance(active_bond)
     # Generate a list of distances at which to constrain the optimisation
-    dists = np.linspace(curr_dist, curr_dist + delta_dist, n_steps)
+    dists = np.linspace(curr_dist, final_dist, n_steps)
     # Initialise an empty dictionary containing the distance as a key and the xyzs and energy as s tuple value
     xyzs_list, energy_list, qmmm_xyzs_list = [], [], []
 

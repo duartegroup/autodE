@@ -1,4 +1,5 @@
 from autode.log import logger
+import numpy as np
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.substitution import set_complex_xyzs_translated_rotated
 from autode.reactions import Substitution, Elimination
@@ -45,7 +46,7 @@ def find_tss(reaction):
     return None
 
 
-def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang, solvent_mol):
+def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrang):
     """Get the functions (1dscan or 2dscan) and parameters required for the function for a TS scan
 
     Args:
@@ -71,70 +72,125 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
         for fbond in bond_rearrang.fbonds:
             for bbond in bond_rearrang.bbonds:
                 scanned_bonds = [fbond, bbond]
-                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if not bond in scanned_bonds]
+                active_bonds_not_scanned = [bond for bond in bond_rearrang.all if bond not in scanned_bonds]
                 scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
-                delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
-                delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
+                fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label, atom_j_label=reactant.atoms[fbond[1]].label)
+                bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
 
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', reaction.type, lmethod,
-                                                       lmethod.keywords.low_opt, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+                                                       lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist, active_bonds_not_scanned)))
                 funcs_params.append((get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', reaction.type, hmethod,
-                                                       lmethod.keywords.low_opt, solvent_mol, delta_fbond_dist, delta_bbond_dist, active_bonds_not_scanned)))
+                                                       lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist, active_bonds_not_scanned)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 0:
         bbond = bond_rearrang.bbonds[0]
         scan_name = name + f'_{bbond[0]}-{bbond[1]}'
-        delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
+        bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_ll1d', reaction.type,
-                                               lmethod, lmethod.keywords.low_opt, solvent_mol, delta_bbond_dist)))
+                                               lmethod, lmethod.keywords.low_opt, bbond_final_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d', reaction.type,
-                                               hmethod, hmethod.keywords.low_opt, solvent_mol, delta_bbond_dist)))
+                                               hmethod, hmethod.keywords.low_opt, bbond_final_dist)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d_opt_level',
-                                               reaction.type, hmethod, hmethod.keywords.opt, solvent_mol, delta_bbond_dist)))
+                                               reaction.type, hmethod, hmethod.keywords.opt, bbond_final_dist)))
 
     if bond_rearrang.n_bbonds == 1 and bond_rearrang.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
         bbond = bond_rearrang.bbonds[0]
         scan_name = name + f'_{bbond[0]}-{bbond[1]}'
-        delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
+        bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 20, scan_name + '_ll1d_bbond', reaction.type, lmethod,
-                                               lmethod.keywords.low_opt, solvent_mol, delta_bbond_dist, [bond_rearrang.fbonds[0]])))
+                                               lmethod.keywords.low_opt, bbond_final_dist, [bond_rearrang.fbonds[0]])))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d_bbond', reaction.type, hmethod,
-                                               hmethod.keywords.low_opt, solvent_mol, delta_bbond_dist, [bond_rearrang.fbonds[0]])))
+                                               hmethod.keywords.low_opt, bbond_final_dist, [bond_rearrang.fbonds[0]])))
         funcs_params.append((get_ts_guess_1d, (reactant, product, bbond, 10, scan_name + '_hl1d_opt_level_bbond', reaction.type, hmethod,
-                                               hmethod.keywords.opt, solvent_mol, delta_bbond_dist, [bond_rearrang.fbonds[0]])))
+                                               hmethod.keywords.opt, bbond_final_dist, [bond_rearrang.fbonds[0]])))
 
     if bond_rearrang.n_bbonds > 0 and bond_rearrang.n_fbonds == 1:
         fbond = bond_rearrang.fbonds[0]
         scan_name = name + f'_{fbond[0]}-{fbond[1]}'
-        delta_fbond_dist = get_avg_bond_length(mol=reactant, bond=fbond) - reactant.calc_bond_distance(fbond)
+        fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label, atom_j_label=reactant.atoms[fbond[1]].label)
 
         funcs_params.append((get_ts_guess_1d, (reactant, product, fbond, 20, scan_name + '_ll1d_fbond', reaction.type, lmethod,
-                                               lmethod.keywords.low_opt,  solvent_mol, delta_fbond_dist, bond_rearrang.bbonds)))
+                                               lmethod.keywords.low_opt, fbond_final_dist, bond_rearrang.bbonds)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, fbond, 10, scan_name + '_hl1d_fbond', reaction.type, hmethod,
-                                               hmethod.keywords.low_opt, solvent_mol, delta_fbond_dist, bond_rearrang.bbonds)))
+                                               hmethod.keywords.low_opt, fbond_final_dist, bond_rearrang.bbonds)))
         funcs_params.append((get_ts_guess_1d, (reactant, product, fbond, 10, scan_name + '_hl1d_opt_level_fbond', reaction.type, hmethod,
-                                               hmethod.keywords.opt, solvent_mol, delta_fbond_dist, bond_rearrang.bbonds)))
+                                               hmethod.keywords.opt, fbond_final_dist, bond_rearrang.bbonds)))
 
     if bond_rearrang.n_fbonds == 2:
         fbond1, fbond2 = bond_rearrang.fbonds
         scan_name = name + f'_{fbond1[0]}-{fbond1[1]}_{fbond2[0]}-{fbond2[1]}'
-        delta_fbond_dist1 = get_avg_bond_length(mol=reactant, bond=fbond1) - reactant.calc_bond_distance(fbond1)
-        delta_fbond_dist2 = get_avg_bond_length(mol=reactant, bond=fbond2) - reactant.calc_bond_distance(fbond2)
+        delta_fbond_dist1 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond1[0]].label, atom_j_label=reactant.atoms[fbond1[1]].label)
+        delta_fbond_dist2 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond2[0]].label, atom_j_label=reactant.atoms[fbond2[1]].label)
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 16, scan_name + '_ll2d_fbonds', reaction.type, lmethod,
-                                               lmethod.keywords.low_opt, solvent_mol, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
+                                               lmethod.keywords.low_opt, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
         funcs_params.append((get_ts_guess_2d, (reactant, product, fbond1, fbond2, 8, scan_name + '_hl2d_fbonds', reaction.type, hmethod,
-                                               hmethod.keywords.low_opt, solvent_mol, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
+                                               hmethod.keywords.low_opt, delta_fbond_dist1, delta_fbond_dist2, bond_rearrang.bbonds)))
 
     if bond_rearrang.n_bbonds == 2:
         bbond1, bbond2 = bond_rearrang.bbonds
-        delta_bbond_dist = get_bbond_dist(reaction, solvent_mol)
+        bbond1_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction)
+        bbond2_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction)
+
         scan_name = name + f'_{bbond1[0]}-{bbond1[1]}_{bbond2[0]}-{bbond2[1]}'
         funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 16, scan_name + '_ll2d_bbonds', reaction.type, lmethod,
-                                               lmethod.keywords.low_opt, solvent_mol, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
+                                               lmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist, bond_rearrang.fbonds)))
         funcs_params.append((get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, scan_name + '_hl2d_bbonds', reaction.type, hmethod,
-                                               hmethod.keywords.low_opt, solvent_mol, delta_bbond_dist, delta_bbond_dist, bond_rearrang.fbonds)))
+                                               hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist, bond_rearrang.fbonds)))
 
     return funcs_params
+
+
+def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor):
+    """
+    Shift a molecule in the reactant complex so that the attacking atoms (a_atoms) are pointing towards the
+    attacked atoms (l_atoms)
+
+    Arguments:
+        reactant (autode.complex.Complex):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        shift_factor (float):
+    """
+    if len(reactant.molecules) < 2:
+        logger.info('Reactant molecule does not need to be translated or rotated')
+        return
+
+    attacked_atoms, attacking_atoms = set(), set()
+    for atom_index in bond_rearrangement.active_atoms:
+        # Attacked atoms are atoms that have a bond made and simultaneously a bond broken
+        if atom_index in bond_rearrangement.fatoms and atom_index in bond_rearrangement.batoms:
+            attacked_atoms.add(atom_index)
+
+        # Attacking atoms are atoms in the first molecule of the reactant complex
+        if atom_index < reactant.molecules[0].n_atoms:
+
+            # Attacking atoms also make a bond but don't break any bonds
+            if atom_index in bond_rearrangement.fatoms and atom_index not in bond_rearrangement.batoms:
+                attacking_atoms.add(atom_index)
+
+    attack_vectors = []
+    for atom_index in attacking_atoms:
+        nn_atom_indexes = [nn for nn in reactant.graph.neighbors(atom_index)]
+
+        if len(nn_atom_indexes) == 0:
+            vec = np.array([1.0, 0.0, 0.0])
+
+        else:
+            nn_vecs = np.array([reactant.atoms[atom_index].coord - reactant.atoms[nn].coord for nn in nn_atom_indexes])
+            vec = np.average(nn_vecs, axis=0)
+
+        attack_vectors.append(vec / np.linalg.norm(vec))
+
+    print(attack_vectors)
+
+    print(attacked_atoms)
+    print(attacking_atoms)
+    print(reactant.atoms)
+
+    attacking_atoms = []
+
+
+
+    return None
 
 
 def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
@@ -153,25 +209,14 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
     """
     tss = []
 
-    active_atoms = set()
-    for active_atom in bond_rearrangement.active_atoms:
-        active_atoms.add(active_atom)
-
+    active_atoms = set([active_atom for active_atom in bond_rearrangement.active_atoms])
     reactant.active_atoms = sorted(active_atoms)
 
-    # get the product graph with the atom indices of the reactant
-    full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(reactant.graph, bond_rearrangement)
-    # mapping[product indices] = reactant indices
-    logger.info('Getting mapping from reactants to products')
-    full_mapping = mol_graphs.get_mapping(product.graph, full_prod_graph_reac_indices)
-    inv_full_mapping = {v: k for k, v in full_mapping.items()}
+    # If the reaction is a substitution or elimination then the reactants must be orientated correctly
+    translate_rotate_reactant(reactant, bond_rearrangement,
+                              shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 2)
 
-    if reaction.type in [Substitution, Elimination]:
-        if any(mol.charge != 0 for mol in reaction.reacs):
-            shift_factor = 3
-        else:
-            shift_factor = 2
-        set_complex_xyzs_translated_rotated(reactant, product, reaction.reacs, bond_rearrangement, inv_full_mapping, shift_factor)
+    exit()
 
     if strip_molecule:
         reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
@@ -191,14 +236,14 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
 
     funcs_params = [(get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type, product))]
 
-    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, prod_mol, reac_mol_rearrangement, solvent_mol):
+    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, prod_mol, reac_mol_rearrangement):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)
 
         if ts_guess is None:
             continue
 
-        ts_mol, converged = get_ts(ts_guess, solvent_mol)
+        ts_mol, converged = get_ts(ts_guess)
 
         if ts_mol is not None:
             ts = TS(ts_mol, converged=converged)
@@ -219,12 +264,12 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
 
     if len(tss) == 0 and reac_mol.is_fragment:
         logger.info('Found no transition states using the fragment, will try with the whole molecule')
-        tss = get_ts(reaction, reactant, product, bond_rearrangement, solvent_mol, strip_molecule=False)
+        tss = get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=False)
 
     return tss
 
 
-def get_bbond_dist(reaction, solvent_mol):
+def get_added_bbond_dist(reaction):
     """Get the bond length a breaking bond should increase by
 
     Args:
@@ -236,7 +281,10 @@ def get_bbond_dist(reaction, solvent_mol):
     """
     # if there are charged molecules and implicit solvation, the bond length may need to increase by more to get a saddle point,
     # as implicit solvation does not fully stabilise the charged molecule
-    if any(mol.charge != 0 for mol in reaction.prods) and solvent_mol is None:
+
+    # TODO reimplement with explicit solvent like:   if reaction is SolvatedReaction
+
+    if any(mol.charge != 0 for mol in reaction.prods):
         return 2.5
     else:
         return 1.5
