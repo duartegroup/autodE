@@ -2,7 +2,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.constants import Constants
 from autode.atoms import Atom
-from autode.geom import get_shifted_xyzs_linear_interp
+from autode.geom import get_shifted_atoms_linear_interp
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
@@ -91,9 +91,9 @@ class MOPAC(ElectronicStructureMethod):
                 # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
-                xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.molecule.atoms,
-                                                      bonds=list(calc.distance_constraints.keys()),
-                                                      final_distances=list(calc.distance_constraints.values()))
+                xyzs = get_shifted_atoms_linear_interp(xyzs=calc.molecule.atoms,
+                                                       bonds=list(calc.distance_constraints.keys()),
+                                                       final_distances=list(calc.distance_constraints.values()))
 
                 # Populate a flat list of atom ids to fix
                 fixed_atoms = [i for bond in calc.distance_constraints.keys()

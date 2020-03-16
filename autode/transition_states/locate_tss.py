@@ -2,6 +2,8 @@ from autode.log import logger
 import numpy as np
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.substitution import set_complex_xyzs_translated_rotated
+from autode.geom import get_kfitted_coords
+from autode.bond_lengths import get_avg_bond_length
 from autode.reactions import Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
 from autode.complex import ReactantComplex, ProductComplex
@@ -27,7 +29,7 @@ def find_tss(reaction):
     logger.info('Finding possible transition states')
 
     reactant, product = ReactantComplex(*reaction.reacs), ProductComplex(*reaction.prods)
-    bond_rearrangs = get_bond_rearrangs(reactant, product)
+    bond_rearrangs = get_bond_rearrangs(reactant, product, name=reaction.name)
 
     if bond_rearrangs is None:
         logger.error('Could not find a set of forming/breaking bonds')
@@ -140,56 +142,60 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     return funcs_params
 
 
-def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor):
-    """
-    Shift a molecule in the reactant complex so that the attacking atoms (a_atoms) are pointing towards the
-    attacked atoms (l_atoms)
+def get_nn_coords(species, atom_index, exclued_atoms):
+    """Get the nearest neighbour coordinates to """
+    return [species.atoms[nn].coord for nn in list(species.graph.neighbors(atom_index)) if nn not in exclued_atoms]
 
-    Arguments:
-        reactant (autode.complex.Complex):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
-        shift_factor (float):
-    """
+
+def translate_rotate_reactant(reactant, product, bond_rearrangement, shift_factor):
+    """Find the optimum translation/rotation of the reactant that minimises attacking atom nearest neighbour distance"""
     if len(reactant.molecules) < 2:
-        logger.info('Reactant molecule does not need to be translated or rotated')
+        logger.info('No translation/rotation is required')
         return
 
-    attacked_atoms, attacking_atoms = set(), set()
+    # Get the attacked atoms
+    attacked_atoms = set()
     for atom_index in bond_rearrangement.active_atoms:
         # Attacked atoms are atoms that have a bond made and simultaneously a bond broken
         if atom_index in bond_rearrangement.fatoms and atom_index in bond_rearrangement.batoms:
             attacked_atoms.add(atom_index)
 
-        # Attacking atoms are atoms in the first molecule of the reactant complex
-        if atom_index < reactant.molecules[0].n_atoms:
+    # Get the coordinates of the nearest neighbours to the attacked atoms in reactant and products
+    nn_coords_reactant, nn_coords_product = [], []
+    for atom_index in attacked_atoms:
+        nn_coords_reactant += get_nn_coords(reactant, atom_index, exclued_atoms=bond_rearrangement.active_atoms)
+        nn_coords_product += get_nn_coords(product, atom_index, exclued_atoms=bond_rearrangement.active_atoms)
 
-            # Attacking atoms also make a bond but don't break any bonds
-            if atom_index in bond_rearrangement.fatoms and atom_index not in bond_rearrangement.batoms:
-                attacking_atoms.add(atom_index)
+    assert len(nn_coords_product) == len(nn_coords_reactant)
 
-    attack_vectors = []
-    for atom_index in attacking_atoms:
-        nn_atom_indexes = [nn for nn in reactant.graph.neighbors(atom_index)]
+    # Apply the rotation to the attacking molecule
+    attacking_mol_index = 1 if all([i < reactant.molecules[0].n_atoms for i in attacked_atoms]) else 0
+    attacking_mol_indexes = reactant.get_atom_indexes(mol_index=attacking_mol_index)
 
-        if len(nn_atom_indexes) == 0:
-            vec = np.array([1.0, 0.0, 0.0])
+    # Get the optimum rotation matrix and translation using the Kabash algorithm
+    rot_mat, p_trans, q_trans = get_kfitted_coords(template_coords=nn_coords_product, coords_to_fit=nn_coords_reactant)
 
-        else:
-            nn_vecs = np.array([reactant.atoms[atom_index].coord - reactant.atoms[nn].coord for nn in nn_atom_indexes])
-            vec = np.average(nn_vecs, axis=0)
+    # Get all the coordinates of the product
+    reac_coords = reactant.get_coordinates()
+    prod_coords = product.get_coordinates()
 
-        attack_vectors.append(vec / np.linalg.norm(vec))
+    for atom_index in reactant.get_atom_indexes(mol_index=1 if attacking_mol_index == 0 else 0):
+        reac_coords[atom_index] = np.matmul(rot_mat, reac_coords[atom_index] - p_trans) + q_trans
 
-    print(attack_vectors)
+    for atom_index in attacking_mol_indexes:
+        reac_coords[atom_index] = prod_coords[atom_index]
 
-    print(attacked_atoms)
-    print(attacking_atoms)
-    print(reactant.atoms)
+    # Shift the attacked mol by the average fbond vector
+    fbond_vectors = [product.atoms[fbond[0]].coord - product.atoms[fbond[1]].coord for fbond in bond_rearrangement.bbonds]
+    avg_fbond_vector = np.average(np.array(fbond_vectors), axis=0)
 
-    attacking_atoms = []
+    for atom_index in attacking_mol_indexes:
+        reac_coords[atom_index] += shift_factor * (avg_fbond_vector / np.linalg.norm(avg_fbond_vector))
 
+    reactant.set_coordinates(reac_coords)
+    reactant.print_xyz_file(filename='reactant.xyz')
 
-
+    exit()
     return None
 
 
@@ -209,34 +215,39 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
     """
     tss = []
 
-    active_atoms = set([active_atom for active_atom in bond_rearrangement.active_atoms])
-    reactant.active_atoms = sorted(active_atoms)
+    reactant.active_atoms = sorted(set([active_atom for active_atom in bond_rearrangement.active_atoms]))
+
+    # Reorder atoms in product to match reactant
+    full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(reactant.graph, bond_rearrangement)
+    full_mapping = mol_graphs.get_mapping(full_prod_graph_reac_indices, product.graph)
+
+    product.atoms = [product.atoms[i] for i in full_mapping.values()]
+    product.graph = mol_graphs.reorder_nodes(graph=product.graph, mapping=full_mapping)
 
     # If the reaction is a substitution or elimination then the reactants must be orientated correctly
-    translate_rotate_reactant(reactant, bond_rearrangement,
+    translate_rotate_reactant(reactant, product, bond_rearrangement,
                               shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 2)
 
     exit()
-
-    if strip_molecule:
-        reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
-    else:
-        reactant_core_atoms = None
-
-    reac_mol, reac_mol_rearrangement = reactant.strip_core(reactant_core_atoms, bond_rearrangement)
-
-    if reac_mol.is_fragment:
-        product_core_atoms = []
-        for atom in reactant_core_atoms:
-            product_core_atoms.append(inv_full_mapping[atom])
-    else:
-        product_core_atoms = None
-
-    prod_mol, _ = product.strip_core(product_core_atoms)
+    # if strip_molecule:
+    #     reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
+    # else:
+    #     reactant_core_atoms = None
+#
+    # reac_mol, reac_mol_rearrangement = reactant.strip_core(reactant_core_atoms, bond_rearrangement)
+#
+    # if reac_mol.is_fragment:
+    #     product_core_atoms = []
+    #     for atom in reactant_core_atoms:
+    #         product_core_atoms.append(inv_full_mapping[atom])
+    # else:
+    #     product_core_atoms = None
+#
+    # prod_mol, _ = product.strip_core(product_core_atoms)
 
     funcs_params = [(get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type, product))]
 
-    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reac_mol, prod_mol, reac_mol_rearrangement):
+    for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrangement):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)
 
@@ -249,22 +260,24 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
             ts = TS(ts_mol, converged=converged)
             if ts.is_true_ts():
                 logger.info(f'Found a transition state with {func.__name__}')
-                if reac_mol.is_fragment:
-                    logger.info('Finding full TS')
-                    full_ts_guess = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
-                    full_ts_mol, full_converged = get_ts(full_ts_guess)
-                    if full_ts_mol is not None:
-                        full_ts = TS(full_ts_mol, converged=full_converged)
-                        if full_ts.is_true_ts():
-                            logger.info('Found full TS')
-                            tss.append(full_ts)
-                else:
-                    tss.append(ts)
+
+                # if reac_mol.is_fragment:
+                #     logger.info('Finding full TS')
+                #     full_ts_guess = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
+                #     full_ts_mol, full_converged = get_ts(full_ts_guess)
+                #     if full_ts_mol is not None:
+                #         full_ts = TS(full_ts_mol, converged=full_converged)
+                #         if full_ts.is_true_ts():
+                #             logger.info('Found full TS')
+                #             tss.append(full_ts)
+                # else:
+
+                tss.append(ts)
                 break
 
-    if len(tss) == 0 and reac_mol.is_fragment:
-        logger.info('Found no transition states using the fragment, will try with the whole molecule')
-        tss = get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=False)
+    # if len(tss) == 0 and reac_mol.is_fragment:
+    #     logger.info('Found no transition states using the fragment, will try with the whole molecule')
+    #     tss = get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=False)
 
     return tss
 

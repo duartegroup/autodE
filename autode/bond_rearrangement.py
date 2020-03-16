@@ -7,22 +7,23 @@ import itertools
 import os
 
 
-def get_bond_rearrangs(reactant, product):
+def get_bond_rearrangs(reactant, product, name):
     """For a reactant and product (complex) find the set of breaking and forming bonds that will turn reactants into
     products. This works by determining the types of bonds that have been made/broken (i.e CH) and then only considering
     rearrangements involving those bonds. 
 
     Arguments:
-        reactant (molecule object): reactant complex
-        product (molecule object): product complex
+        reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
+        name (str): Name of the reaction
 
     Returns:
         list: list of bond rearrang objects linking reacs and prods
     """
     logger.info('Finding the possible forming and breaking bonds')
 
-    if os.path.exists('bond_rearrangs.txt'):
-        return get_bond_rearrangs_from_file()
+    if os.path.exists(f'{name}_bond_rearrangs.txt'):
+        return get_bond_rearrangs_from_file(filename=f'{name}_bond_rearrangs.txt')
 
     if is_isomorphic(reactant.graph, product.graph) and product.n_atoms > 3:
         logger.error('Reactant (complex) is isomorphic to product (complex). Bond rearrangement '
@@ -83,7 +84,7 @@ def get_bond_rearrangs(reactant, product):
                 logger.info(f'Multiple *{n_bond_rearrangs}* possible bond breaking/makings are possible')
                 possible_bond_rearrangements = strip_equivalent_bond_rearrangs(reactant, possible_bond_rearrangements)
 
-            save_bond_rearrangs_to_file(possible_bond_rearrangements)
+            save_bond_rearrangs_to_file(possible_bond_rearrangements, filename=f'{name}_bond_rearrangs.txt')
 
             logger.info(f'Found *{len(possible_bond_rearrangements)}* bond rearrangement(s) that lead to products')
             return possible_bond_rearrangements
@@ -375,7 +376,7 @@ class BondRearrangement:
     def get_active_atom_neighbour_lists(self, mol, depth):
 
         if self.active_atom_nl is None:
-            self.active_atom_nl = [get_neighbour_list(atom_i=atom, mol=mol)[:depth] for atom in self.active_atoms]
+            self.active_atom_nl = [get_neighbour_list(species=mol, atom_i=atom)[:depth] for atom in self.active_atoms]
 
         return self.active_atom_nl
 

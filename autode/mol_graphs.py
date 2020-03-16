@@ -93,16 +93,23 @@ def get_mapping_ts_template(larger_graph, smaller_graph):
     graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
                                              node_match=isomorphism.categorical_node_match('atom_label', 'C'),
                                              edge_match=isomorphism.categorical_edge_match('active', False))
-    # hopefully the first one is fine(?)
-    return list(graph_matcher.subgraph_isomorphisms_iter())[0]
+    return next(graph_matcher.match())
 
 
 def get_mapping(larger_graph, smaller_graph):
+    """Return a sorted mapping"""
+
     logger.info('Running isomorphism')
     gm = isomorphism.GraphMatcher(larger_graph, smaller_graph,
                                   node_match=isomorphism.categorical_node_match('atom_label', 'C'))
 
-    return next(gm.match())
+    mapping = next(gm.match())
+    return {i: mapping[i] for i in sorted(mapping)}
+
+
+def reorder_nodes(graph, mapping):
+    # NetworkX is stupid
+    return nx.relabel_nodes(graph, mapping={u: v for v, u in mapping.items()})
 
 
 def is_isomorphic(graph1, graph2):
