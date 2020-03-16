@@ -36,6 +36,11 @@ def are_coords_reasonable(coords):
     return True
 
 
+def length(vec):
+    """Return the length of a vector"""
+    return np.linalg.norm(vec)
+
+
 def get_shifted_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
 

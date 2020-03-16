@@ -1,13 +1,13 @@
 from autode.log import logger
 import numpy as np
+from copy import deepcopy
+from scipy.optimize import minimize
+from autode.geom import length
 from autode.bond_rearrangement import get_bond_rearrangs
-from autode.substitution import set_complex_xyzs_translated_rotated
-from autode.geom import get_kfitted_coords
-from autode.bond_lengths import get_avg_bond_length
+from autode.substitution import get_substitution_centres
 from autode.reactions import Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
 from autode.complex import ReactantComplex, ProductComplex
-from autode import mol_graphs
 from autode.transition_states.optts import get_ts
 from autode.transition_states.template_ts_guess import get_template_ts_guess
 from autode.pes_1d import get_ts_guess_1d
@@ -142,60 +142,104 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     return funcs_params
 
 
-def get_nn_coords(species, atom_index, exclued_atoms):
-    """Get the nearest neighbour coordinates to """
-    return [species.atoms[nn].coord for nn in list(species.graph.neighbors(atom_index)) if nn not in exclued_atoms]
+def attack_cost(reactant, subst_centres, attacking_mol_idx, a=1.0, b=1.0, c=0.5, d=10.0):
+    """
+    Calculate the 'attack cost' for a molecule attacking in e.g. a substitution or elimination reaction.
+
+    C = Σ_ac a * (r_ac - r^0_ac)^2  +  Σ_acx b * (1 - cos(θ))  +  Σ_acx c*(1 + cos(φ))  +  Σ_ij d/r_ij^4
+
+    where cos(θ) = (v_ann • v_cx / |v_ann||v_cx|)
+          cos(φ) = (v_ca • v_cx / |v_ca||v_cx|)
 
 
-def translate_rotate_reactant(reactant, product, bond_rearrangement, shift_factor):
-    """Find the optimum translation/rotation of the reactant that minimises attacking atom nearest neighbour distance"""
+    """
+    coords = reactant.get_coordinates()
+    cost = 0
+
+    for subst_centre in subst_centres:
+
+        r_ac = reactant.get_distance(atom_i=subst_centre.a_atom, atom_j=subst_centre.c_atom)
+        cost += a * (r_ac - subst_centre.r0_ac)**2
+
+        # Attack vector is the average of all the nearest neighbour atoms, unless it is flat
+        a_nn_coords = [coords[atom_index] - coords[subst_centre.a_atom] for atom_index in subst_centre.a_atom_nn]
+        v_ann = -np.average(np.array(a_nn_coords), axis=0)
+
+        # TODO is this a reasonable length?
+        if length(v_ann) < 1E-4:
+            logger.info('Attacking atom is planar. Computing the perpendicular from two nearest neighbours')
+            assert len(subst_centre.a_atom_nn) > 1
+            v_ann = np.cross(coords[subst_centre.a_atom] - coords[subst_centre.a_atom_nn[0]],
+                             coords[subst_centre.a_atom] - coords[subst_centre.a_atom_nn[1]])
+
+        v_cx = coords[subst_centre.x_atom] - coords[subst_centre.c_atom]
+        cost += b * (1 - np.dot(v_ann, v_cx) / (length(v_ann) * length(v_cx)))      # b(1 - cos(θ))
+
+        v_ca = coords[subst_centre.c_atom] - coords[subst_centre.a_atom]
+        cost += c * (1 + np.dot(v_ca, v_cx) / (length(v_ca) * length(v_cx)))        # b(1 - cos(φ))
+
+        repulsion = reactant.calc_repulsion(mol_index=attacking_mol_idx)
+        cost += d * repulsion
+
+    return cost
+
+
+def get_cost_rotate_translate(x, reactant, subst_centres, attacking_mol_idx):
+    """
+    Get the cost for placing an attacking mol given a specified rotation and translation
+
+    Arguments:
+        x (np.ndarray): Length 11
+        reactant (autode.complex.ReactantComplex):
+        subst_centres (list(autode.substitution.SubstitutionCentre)):
+        attacking_mol_idx (int): Index of the attacking molecule
+
+    """
+
+    moved_reactant = deepcopy(reactant)
+    moved_reactant.rotate_mol(axis=x[:3], theta=x[3], mol_index=attacking_mol_idx)
+    moved_reactant.translate_mol(vec=x[4:7], mol_index=attacking_mol_idx)
+    moved_reactant.rotate_mol(axis=x[7:10], theta=x[10], mol_index=attacking_mol_idx)
+
+    return attack_cost(moved_reactant, subst_centres, attacking_mol_idx)
+
+
+def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor):
+    """
+    Shift a molecule in the reactant complex so that the attacking atoms (a_atoms) are pointing towards the
+    attacked atoms (l_atoms)
+
+    Arguments:
+        reactant (autode.complex.Complex):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        shift_factor (float):
+    """
     if len(reactant.molecules) < 2:
-        logger.info('No translation/rotation is required')
+        logger.info('Reactant molecule does not need to be translated or rotated')
         return
 
-    # Get the attacked atoms
-    attacked_atoms = set()
-    for atom_index in bond_rearrangement.active_atoms:
-        # Attacked atoms are atoms that have a bond made and simultaneously a bond broken
-        if atom_index in bond_rearrangement.fatoms and atom_index in bond_rearrangement.batoms:
-            attacked_atoms.add(atom_index)
+    logger.info('Rotating/translating the attacking molecule into a reactive conformation')
 
-    # Get the coordinates of the nearest neighbours to the attacked atoms in reactant and products
-    nn_coords_reactant, nn_coords_product = [], []
-    for atom_index in attacked_atoms:
-        nn_coords_reactant += get_nn_coords(reactant, atom_index, exclued_atoms=bond_rearrangement.active_atoms)
-        nn_coords_product += get_nn_coords(product, atom_index, exclued_atoms=bond_rearrangement.active_atoms)
+    subst_centres = get_substitution_centres(reactant, bond_rearrangement, shift_factor=shift_factor)
+    attacking_mol = 0 if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0) for sc in subst_centres) else 1
 
-    assert len(nn_coords_product) == len(nn_coords_reactant)
+    logger.disabled = True
+    res = minimize(get_cost_rotate_translate, x0=np.random.random(11), method='BFGS', tol=0.1,
+                   args=(reactant, subst_centres, attacking_mol))
+    logger.disabled = False
 
-    # Apply the rotation to the attacking molecule
-    attacking_mol_index = 1 if all([i < reactant.molecules[0].n_atoms for i in attacked_atoms]) else 0
-    attacking_mol_indexes = reactant.get_atom_indexes(mol_index=attacking_mol_index)
+    reactant.translate_mol(vec=res.x[:3], mol_index=attacking_mol)
+    reactant.rotate_mol(axis=res.x[3:6], theta=res.x[6], mol_index=attacking_mol)
 
-    # Get the optimum rotation matrix and translation using the Kabash algorithm
-    rot_mat, p_trans, q_trans = get_kfitted_coords(template_coords=nn_coords_product, coords_to_fit=nn_coords_reactant)
-
-    # Get all the coordinates of the product
-    reac_coords = reactant.get_coordinates()
-    prod_coords = product.get_coordinates()
-
-    for atom_index in reactant.get_atom_indexes(mol_index=1 if attacking_mol_index == 0 else 0):
-        reac_coords[atom_index] = np.matmul(rot_mat, reac_coords[atom_index] - p_trans) + q_trans
-
-    for atom_index in attacking_mol_indexes:
-        reac_coords[atom_index] = prod_coords[atom_index]
-
-    # Shift the attacked mol by the average fbond vector
-    fbond_vectors = [product.atoms[fbond[0]].coord - product.atoms[fbond[1]].coord for fbond in bond_rearrangement.bbonds]
-    avg_fbond_vector = np.average(np.array(fbond_vectors), axis=0)
-
-    for atom_index in attacking_mol_indexes:
-        reac_coords[atom_index] += shift_factor * (avg_fbond_vector / np.linalg.norm(avg_fbond_vector))
-
-    reactant.set_coordinates(reac_coords)
     reactant.print_xyz_file(filename='reactant.xyz')
 
-    exit()
+    print(res.fun)
+    # cost = attack_cost(reactant, subst_centres=subst_centres, attacking_mol_idx=attacking_mol)
+    # print(cost)
+
+
+
+
     return None
 
 
@@ -215,20 +259,15 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
     """
     tss = []
 
-    reactant.active_atoms = sorted(set([active_atom for active_atom in bond_rearrangement.active_atoms]))
-
-    # Reorder atoms in product to match reactant
-    full_prod_graph_reac_indices = mol_graphs.reac_graph_to_prods(reactant.graph, bond_rearrangement)
-    full_mapping = mol_graphs.get_mapping(full_prod_graph_reac_indices, product.graph)
-
-    product.atoms = [product.atoms[i] for i in full_mapping.values()]
-    product.graph = mol_graphs.reorder_nodes(graph=product.graph, mapping=full_mapping)
+    active_atoms = set([active_atom for active_atom in bond_rearrangement.active_atoms])
+    reactant.active_atoms = sorted(active_atoms)
 
     # If the reaction is a substitution or elimination then the reactants must be orientated correctly
-    translate_rotate_reactant(reactant, product, bond_rearrangement,
+    translate_rotate_reactant(reactant, bond_rearrangement,
                               shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 2)
 
     exit()
+
     # if strip_molecule:
     #     reactant_core_atoms = reactant.get_core_atoms(full_prod_graph_reac_indices)
     # else:
@@ -244,7 +283,7 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
     #     product_core_atoms = None
 #
     # prod_mol, _ = product.strip_core(product_core_atoms)
-
+#
     funcs_params = [(get_template_ts_guess, (reactant, bond_rearrangement.all, reaction.type, product))]
 
     for func, params in get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bond_rearrangement):
@@ -260,7 +299,6 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
             ts = TS(ts_mol, converged=converged)
             if ts.is_true_ts():
                 logger.info(f'Found a transition state with {func.__name__}')
-
                 # if reac_mol.is_fragment:
                 #     logger.info('Finding full TS')
                 #     full_ts_guess = get_template_ts_guess(reactant, bond_rearrangement.all, reaction.type, product)
@@ -271,7 +309,6 @@ def get_tss(reaction, reactant, product, bond_rearrangement, strip_molecule=True
                 #             logger.info('Found full TS')
                 #             tss.append(full_ts)
                 # else:
-
                 tss.append(ts)
                 break
 

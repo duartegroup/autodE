@@ -2,6 +2,77 @@ import numpy as np
 from autode.log import logger
 from scipy.optimize import minimize
 from scipy.spatial import distance_matrix
+from autode.bond_lengths import get_avg_bond_length
+
+
+class SubstitutionCentre:
+
+    def __str__(self):
+        return f'a_atom = {self.a_atom}, c_atom = {self.c_atom} x_atom = {self.x_atom}, a_atom_nns = {self.a_atom_nn}'
+
+    def set_attack_r0(self, species, shift_factor):
+        self.r0_ac = shift_factor * get_avg_bond_length(atom_i_label=species.atoms[self.a_atom].label,
+                                                        atom_j_label=species.atoms[self.c_atom].label)
+
+
+    def __init__(self, a_atom_idx, c_atom_idx, x_atom_idx, a_atom_nn_idxs):
+        """
+        Substitution centre has the following structure
+
+        H            H  H
+         \            \/
+          N-- H       C -- Cl
+         /           /
+        H           H
+
+
+        where a_atom = N
+              c_atom = C
+              x_atom = Cl
+              a_atom_nn = H, H, H (bonded to N)
+
+        all given as their atom indexes in a ReactantComplex
+        """
+
+        self.a_atom = a_atom_idx
+        self.c_atom = c_atom_idx
+        self.x_atom = x_atom_idx
+        self.a_atom_nn = a_atom_nn_idxs
+
+        self.r0_ac = None
+
+
+def get_substitution_centres(reactant, bond_rearrangement, shift_factor):
+    """Get all the substitution centers in a molecule"""
+
+    subst_centers = []
+
+    for fbond in bond_rearrangement.fbonds:
+        for bbond in bond_rearrangement.bbonds:
+
+            if len(set(fbond).intersection(bbond)) == 0:
+                # If there are no common atoms between the forming and breaking bonds continue
+                continue
+
+            # The attacked (c) atom is the intersection between the breaking and forming bonds
+            c_atom = list(set(fbond).intersection(bbond))[0]
+
+            # The leaving group atom is the other atom in the breaking bond
+            x_atom = [atom_index for atom_index in bbond if atom_index != c_atom][0]
+
+            # The attacked atom is the other atom in the forming bond
+            a_atom = [atom_index for atom_index in fbond if atom_index != c_atom][0]
+
+            subst_center = SubstitutionCentre(a_atom_idx=a_atom, c_atom_idx=c_atom, x_atom_idx=x_atom,
+                                              a_atom_nn_idxs=[nn for nn in reactant.graph.neighbors(a_atom)])
+            subst_center.set_attack_r0(species=reactant, shift_factor=shift_factor)
+
+            subst_centers.append(subst_center)
+
+    return subst_centers
+
+
+
 
 
 def set_complex_xyzs_translated_rotated(reac_complex, prod_complex, reactants, bond_rearrangement, mapping, shift_factor):
