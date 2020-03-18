@@ -89,18 +89,18 @@ def is_subgraph_isomorphic(larger_graph, smaller_graph):
 
 def get_mapping_ts_template(larger_graph, smaller_graph):
     logger.info('Getting mapping of molecule onto the TS template')
-    logger.info('Running subgraph isomorphism')
+    logger.info('Running isomorphism')
     graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
                                              node_match=isomorphism.categorical_node_match('atom_label', 'C'),
                                              edge_match=isomorphism.categorical_edge_match('active', False))
     return next(graph_matcher.match())
 
 
-def get_mapping(larger_graph, smaller_graph):
+def get_mapping(graph, other_graph):
     """Return a sorted mapping"""
 
     logger.info('Running isomorphism')
-    gm = isomorphism.GraphMatcher(larger_graph, smaller_graph,
+    gm = isomorphism.GraphMatcher(graph, other_graph,
                                   node_match=isomorphism.categorical_node_match('atom_label', 'C'))
 
     mapping = next(gm.match())
@@ -108,8 +108,25 @@ def get_mapping(larger_graph, smaller_graph):
 
 
 def reorder_nodes(graph, mapping):
-    # NetworkX is stupid
-    return nx.relabel_nodes(graph, mapping={u: v for v, u in mapping.items()})
+    # NetworkX uses the inverse mapping so the dict is swapped before the nodes are relabeled
+    return nx.relabel_nodes(graph, mapping={u: v for v, u in mapping.items()}, copy=True)
+
+
+def get_active_mol_graph(species, active_bonds):
+    logger.info('Getting molecular graph with active edges')
+    active_graph = species.graph.copy()
+
+    for bond in active_bonds:
+        has_edge = False
+        for edge in active_graph.edges():
+            if edge == bond or edge == tuple(reversed(bond)):
+                has_edge = True
+                active_graph.edges[edge[0], edge[1]]['active'] = True
+
+        if not has_edge:
+            active_graph.add_edge(*bond, active=True)
+
+    return active_graph
 
 
 def is_isomorphic(graph1, graph2):
@@ -164,11 +181,11 @@ def reac_graph_to_prods(reac_graph, bond_rearrang):
     """Makes the graph of the product from the reactant and the bond rearrang, so it has the indices of the reactant
 
     Arguments:
-        reac_graph (nx.graph): graph of the reactant
+        reac_graph (nx.Graph): graph of the reactant
         bond_rearrang (bond rearrang object): the bond rearrang linking reacs and prods
 
     Returns:
-        nx.graph: graph of the product with each atom indexed as in the reactants
+        nx.Graph: graph of the product with each atom indexed as in the reactants
     """
     prod_graph = reac_graph.copy()
     for fbond in bond_rearrang.fbonds:

@@ -89,7 +89,7 @@ class Molecule(Species):
         self.conformers = []
 
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
-            logger.info('Using RDKit to generate conformers')
+            logger.info(f'Using RDKit to generate conformers. {n_rdkit_confs} requested')
 
             method = AllChem.ETKDGv2()
             method.pruneRmsThresh = 0.5
@@ -111,6 +111,7 @@ class Molecule(Species):
             conf.solvent = self.solvent
             self.conformers.append(conf)
 
+        logger.info(f'Generated {len(self.conformers)} unique conformers')
         return None
 
     @requires_atoms()

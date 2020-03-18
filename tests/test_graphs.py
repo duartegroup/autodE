@@ -34,9 +34,14 @@ def test_subgraph_isomorphism():
 
     assert mol_graphs.is_subgraph_isomorphic(larger_graph=h4.graph, smaller_graph=h2.graph) is True
 
-    h2_h4_mapping = mol_graphs.get_mapping_ts_template(larger_graph=h4.graph, smaller_graph=h2.graph)
-    assert type(h2_h4_mapping) == dict
-    assert len(h2_h4_mapping) == 2
+
+def test_not_isomorphic():
+
+    c = Atom(atomic_symbol='C', x=0.0, y=0.0, z=0.7)
+    ch = Species(name='ch', atoms=[h_a, c], charge=0, mult=2)
+    mol_graphs.make_graph(ch)
+
+    assert mol_graphs.is_isomorphic(h2.graph, ch.graph) is False
 
 
 g = nx.Graph()

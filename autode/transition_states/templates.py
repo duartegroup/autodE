@@ -16,15 +16,18 @@ from autode.log import logger
 from autode.mol_graphs import is_subgraph_isomorphic
 
 
-def get_ts_templates(reaction_class, folder_path=None):
-    logger.info(f'Getting TS templates from lib/{reaction_class.__name__}')
+def get_ts_templates(folder_path=None):
+    """Get all the transition state templates from a folder, or the default"""
 
     if folder_path is None:
-        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', reaction_class.__name__)
+        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
+
+    logger.info(f'Getting TS templates from {folder_path}')
 
     if os.path.exists(folder_path):
         obj_files = [filename for filename in os.listdir(folder_path) if filename.endswith('.obj')]
         return [pickle.load(open(os.path.join(folder_path, filename), 'rb')) for filename in obj_files]
+
     return []
 
 
@@ -63,9 +66,7 @@ class TStemplate:
                 logger.info(f'Making base directory {base_path}')
                 os.mkdir(base_path)
 
-            folder_path = os.path.join(base_path, self.reaction_class.__name__)
-            if not os.path.exists(folder_path):
-                os.mkdir(folder_path)
+            folder_path = base_path
 
         # Iterate i until the i.obj file doesn't exist
         name, i = basename + '0', 0
@@ -82,12 +83,12 @@ class TStemplate:
 
         return None
 
-    def __init__(self, graph, reaction_class, solvent=None, charge=0, mult=1):
+    def __init__(self, graph, solvent=None, charge=0, mult=1):
         """Construct a TS template object
 
         Arguments:
-            graph (nx.Graph): Active bonds in the TS are represented by the edges with attribute active=True, going out to nearest bonded neighbours
-            reaction_class (object): Reaction class (reactions.py)
+            graph (nx.Graph): Active bonds in the TS are represented by the edges with attribute active=True, going out
+                              to nearest bonded neighbours
 
         Keyword Arguments:
             solvent (solvent_name obj): solvent_name (default: {None})
@@ -95,7 +96,6 @@ class TStemplate:
             mult (int): multiplicity of the molecule (default: {1})
         """
         self.graph = graph
-        self.reaction_class = reaction_class
         self.solvent = solvent.name if solvent is not None else None
         self.charge = charge
         self.mult = mult

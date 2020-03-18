@@ -36,7 +36,7 @@ test_ts_mol = molecule.Molecule(atoms=[Atom('F', -3.0, -0.1, 0.1),
                                 solvent_name='water', charge=-1)
 
 ts_guess_obj = ts_guess.TSguess(name='test_ts', molecule=test_ts_mol,
-                                active_bonds=[(0, 1), (1, 2)], reaction_class=Substitution)
+                                active_bonds=[(0, 1), (1, 2)], reaction_type=Substitution)
 
 method = ORCA()
 
@@ -126,7 +126,7 @@ def test_ts_template():
     ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
 
     ts_obj.save_ts_template(folder_path=here)
-    assert len(get_ts_templates(reaction_class=ts_obj.reaction_class, folder_path=here)) >= 1
+    assert len(get_ts_templates(reaction_type=ts_obj.reaction_class, folder_path=here)) >= 1
     assert os.path.exists(os.path.join(here, 'template0.obj'))
     os.remove(os.path.join(here, 'template0.obj'))
     for filename in os.listdir(os.getcwd()):

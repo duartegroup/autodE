@@ -373,6 +373,9 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
 
 class BondRearrangement:
 
+    def __str__(self):
+        return '_'.join(f'{bond[0]}-{bond[1]}' for bond in self.all)
+
     def get_active_atom_neighbour_lists(self, mol, depth):
 
         if self.active_atom_nl is None:

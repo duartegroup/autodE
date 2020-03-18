@@ -65,7 +65,7 @@ class XTB(ElectronicStructureMethod):
                     print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
             calc.flags += ['--input', xcontrol_filename]
-            calc.additional_input_files.append((xcontrol_filename, xcontrol_filename))
+            calc.additional_input_files.append(xcontrol_filename)
 
         if calc.molecule.charges is not None:
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:

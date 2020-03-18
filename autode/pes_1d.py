@@ -99,7 +99,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
     active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
 
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
+    return TSguess(name=name, reaction_type=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
 
 
 def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):

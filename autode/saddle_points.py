@@ -1,5 +1,6 @@
 from scipy import optimize
 from autode.log import logger
+import numpy as np
 from autode.min_energy_pathway import get_mep
 from autode.min_energy_pathway import get_point_on_grid
 
@@ -19,7 +20,7 @@ def poly2d_saddlepoints(coeff_mat):
     # start in every place on the surface to ensure all relevant stationary points are found
     for i in [n/10 for n in range(15, 35)]:
         for j in [m/10 for m in range(15, 35)]:
-            sol = optimize.root(root_finder, [i, j], args=(coeff_mat))
+            sol = optimize.root(root_finder, np.array([i, j]), args=(coeff_mat,))
             stationary_points.append(sol.x.tolist())
 
     # sometimes finds extra stationary points, so remove them now
@@ -132,7 +133,7 @@ def best_saddlepoint(saddle_points, r1, r2, energy_grid):
     elif len(saddle_points_on_mep) == 1:
         min_energy_pathway = min_energy_pathways[0]
         r1_saddle, r2_saddle = saddle_points_on_mep[0]
-    elif len(saddle_points_on_mep) > 1:
+    else:
         logger.info('Multiple saddlepoints remain, choosing the highest peak on the lowest minimum energy pathway')
 
         peak_of_meps = []

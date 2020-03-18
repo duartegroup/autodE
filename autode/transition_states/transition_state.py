@@ -51,7 +51,7 @@ class TS(TSguess):
         """
         logger.info('Saving TS template')
         try:
-            ts_template = TStemplate(self.truncated_graph, reaction_class=self.reaction_class, solvent=self.solvent,
+            ts_template = TStemplate(self.truncated_graph, reaction_type=self.reaction_class, solvent=self.solvent,
                                      charge=self.charge, mult=self.mult)
             ts_template.save_object(folder_path=folder_path)
             logger.info('Saved TS template')

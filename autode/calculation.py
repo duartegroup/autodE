@@ -13,6 +13,11 @@ from copy import deepcopy
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
 
 
+# Top level function that can be hashed
+def execute_calc(calc):
+    return calc.execute_calculation()
+
+
 class Calculation:
 
     def _set_core_atoms(self, molecule):

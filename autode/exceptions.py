@@ -54,6 +54,10 @@ class ReactionFormationFalied(Exception):
     pass
 
 
+class NoClosestSpecies(Exception):
+    pass
+
+
 class NoMolecularGraph(Exception):
     pass
 

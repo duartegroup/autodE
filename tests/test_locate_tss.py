@@ -28,7 +28,7 @@ subs_rearrangs = locate_tss.get_bond_rearrangs(subs_reactant, subs_product)
 
 
 def test_get_funcs_and_params():
-    dissoc_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0], None)
+    dissoc_f_and_p = locate_tss.update_funcs_and_params([], dissoc_reaction, dissoc_reactant, dissoc_product, dissoc_rearrangs[0], None)
     assert type(dissoc_f_and_p) == list
     assert len(dissoc_f_and_p) == 3
     assert type(dissoc_f_and_p[0][1][0]) == molecule.Reactant
@@ -36,7 +36,7 @@ def test_get_funcs_and_params():
     assert dissoc_f_and_p[0][1][4] == 'H2--H+H_0-1_ll1d'
     assert dissoc_f_and_p[2][1][5] == locate_tss.Dissociation
 
-    subs_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], subs_reaction, subs_reactant, subs_product, subs_rearrangs[0], None)
+    subs_f_and_p = locate_tss.update_funcs_and_params([], subs_reaction, subs_reactant, subs_product, subs_rearrangs[0], None)
     assert type(subs_f_and_p) == list
     assert len(subs_f_and_p) == 8
     assert subs_f_and_p[2][1][5] == locate_tss.Substitution
@@ -51,7 +51,7 @@ def test_get_funcs_and_params():
     print(d_a_reactant.graph.edges)
     print(d_a_product.graph.edges)
     d_a_rearrangs = locate_tss.get_bond_rearrangs(d_a_reactant, d_a_product)
-    d_a_f_and_p = locate_tss.get_ts_guess_funcs_and_params([], d_a, d_a_reactant, d_a_product, d_a_rearrangs[0], None)
+    d_a_f_and_p = locate_tss.update_funcs_and_params([], d_a, d_a_reactant, d_a_product, d_a_rearrangs[0], None)
     assert type(d_a_f_and_p) == list
     assert len(d_a_f_and_p) == 2
     assert d_a_f_and_p[0][0] == locate_tss.get_ts_guess_2d

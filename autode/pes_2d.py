@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.polynomial import polynomial
 from copy import deepcopy
-from multiprocessing.pool import Pool
+from multiprocessing import Pool
+from multiprocessing.managers import BaseManager
 from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
@@ -9,16 +10,138 @@ from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
 from autode.plotting import make_reaction_animation
 from autode.transition_states.ts_guess import TSguess
-from autode.exceptions import AtomsNotFound
+from autode.exceptions import AtomsNotFound, NoClosestSpecies
 from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
 from autode.saddle_points import best_saddlepoint
 from autode.min_energy_pathway import get_mep
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.pes import PES
+from autode.pes import get_closest_species
 
 
-def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name, reaction_class, method, keywords, solvent_mol,
-                    final_dist1=1.5, final_dist2=1.5, active_bonds_not_scanned=None, e_grid_points=40, polynomial_order=5):
+def get_point_atoms_energy(point, pes, name, method, keywords, n_cores):
+    """On a 2d PES calculate the energy and the structure using a constrained optimisation"""
+    logger.info(f'Calculating point {point} on PES surface')
+    i, j = point
+
+    species = get_closest_species(pes=pes, indexes=(i, j))
+
+    # Set up and runc the calculation
+    const_opt = Calculation(name=f'{name}_scan_{i}-{j}', molecule=species, method=method, opt=True, n_cores=n_cores,
+                            keywords_list=keywords, distance_constraints={pes.r1_idxs: pes.rs[i, j][0],
+                                                                          pes.r2_idxs: pes.rs[i, j][1]})
+    const_opt.run()
+
+    # Attempt to set the atoms and the energy from the calculation, if failed then leave as the closest
+    try:
+        species.set_atoms(atoms=const_opt.get_final_atoms())
+        species.energy = const_opt.get_energy()
+
+    except AtomsNotFound:
+        logger.error(f'Optimisation failed for r1={pes.rs[i, j][0]:.3f}, r2={pes.rs[i, j][1]:.3f}')
+
+    return species
+
+
+class PES2d(PES):
+
+    def _get_saddle_point_index(self):
+        return None
+
+    def get_atoms_saddle_point(self):
+        return None
+
+    def get_energy_saddle_point(self):
+        return None
+
+    def calculate(self, name, method, keywords):
+        """Calculations on the surface with a method using the a decomposition similar to the following
+
+        4 5 6 7
+        3 4 5 6
+        2 3 4 5
+        1 2 3 4
+
+        where the first Config.n_cores are performed in serial
+        """
+        logger.info(f'Running a 2D PES scan with {method.name}. {self.n_points_r1*self.n_points_r2} total points')
+
+        for sum_indexes in range(self.n_points_r1 + self.n_points_r2 - 1):
+
+            # Calculate the list of points on this diagonal
+            all_points = [(i, j) for i in range(self.n_points_r1) for j in range(self.n_points_r2)]
+
+            # Strip those that are along the current diagonal – the sum of indices is constant
+            diagonal_points = [point for point in all_points if sum(point) == sum_indexes]
+
+            # Strip the indices that are not in the array. This applies if n_points_r1 != n_points_r2
+            points = [(i, j) for (i, j) in diagonal_points if i < self.n_points_r1 and j < self.n_points_r2]
+
+            # The cores for this diagonal are the floored number of total cores divided by the number of calculations
+            cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
+
+            with Pool(processes=len(points)) as pool:
+                for (i, j) in points:
+                    result = pool.apply_async(func=get_point_atoms_energy, args=((i, j), self, name, method,
+                                                                                 keywords, cores_per_process))
+                    self.species[i, j] = result.get(timeout=None)
+
+        logger.info('2D PES scan done')
+        return None
+
+    def _init_tensors(self, reactant, r1s, r2s):
+        """Initialise the matrices of Species and distances"""
+        logger.info(f'Initialising the {len(r1s)}x{len(r2s)} PES matrices')
+
+        assert self.rs.shape == self.species.shape
+
+        for i in range(len(self.rs)):
+            for j in range(len(self.rs[i])):
+                # Tuple of distances
+                self.rs[i, j] = (r1s[i], r2s[j])
+
+        # Copy of the reactant complex, whose atoms/energy will be set in the scan
+        self.species[0, 0] = deepcopy(reactant)
+
+        return None
+
+    def __init__(self, reactant, r1s, r1_idxs, r2s, r2_idxs):
+        """
+        A two dimensional potential energy surface
+
+           |
+        r2 |
+           |
+           |___________
+                r1
+
+        Arguments:
+            reactant (autode.complex.ReactantComplex): Species at r1s[0] and r2s[0]
+            r1s (np.ndarray): Bond length array in r1
+            r1_idxs (tuple): Atom indexes that the PES will be calculated over in r1
+            r2s (np.ndarray): Bond length array in r2
+            r2_idxs (tuple): Atom indexes that the PES will be calculated over in r2
+        """
+        self.n_points_r1, self.n_points_r2 = len(r1s), len(r2s)
+
+        # Matrices to store the species and r1, r2 values at a point i, j
+        self.species = np.empty(shape=(self.n_points_r1, self.n_points_r2), dtype=object)
+        self.rs = np.empty(shape=(self.n_points_r1, self.n_points_r2), dtype=tuple)
+
+        self.r1_idxs, self.r2_idxs = r1_idxs, r2_idxs
+        self._init_tensors(reactant=reactant, r1s=r1s, r2s=r2s)
+
+
+
+
+
+
+
+
+
+def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name, method, keywords,
+                    final_dist1, final_dist2, e_grid_points=40, polynomial_order=5):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:
@@ -28,15 +151,14 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
         active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
         n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
         name (str): name of reaction
-        reaction_class (object): class of the reaction (reactions.py)
         method (object): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
-
-    Keyword Arguments:
         final_dist1 (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
         final_dist2 (float): distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
-        active_bonds_not_scanned (list(tuple)): pairs of atoms that are active, but will not be scanned in the 2D PES (default: {None})
-        n_points (int): number of points along each axis of the energy grid in the saddlepoint finding (default: {40})
+
+    Keyword Arguments:
+        e_grid_points (int): number of points along each axis of the energy grid in the saddlepoint finding
+                             (default: {40})
         polynomial_order (int): order of polynomial to fit the data to (default: {5})
 
     Returns:
@@ -45,11 +167,18 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
     logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds '
                 f'{active_bond1} and {active_bond2}')
 
-    curr_dist1 = reactant.distance_matrix[active_bond1[0], active_bond1[1]]
-    curr_dist2 = reactant.distance_matrix[active_bond2[0], active_bond2[1]]
+    curr_dist1 = reactant.get_distance(atom_i=active_bond1[0], atom_j=active_bond1[1])
+    curr_dist2 = reactant.get_distance(atom_i=active_bond2[0], atom_j=active_bond2[1])
 
-    r1 = np.linspace(curr_dist1, final_dist1, n_steps)
-    r2 = np.linspace(curr_dist2, final_dist2, n_steps)
+    # Create a potential energy surface in the two active bonds
+    pes = PES2d(reactant=reactant,
+                r1s=np.linspace(curr_dist1, final_dist1, n_steps), r1_idxs=active_bond1,
+                r2s=np.linspace(curr_dist2, final_dist2, n_steps), r2_idxs=active_bond2)
+
+    pes.calculate(name=name, method=method, keywords=keywords)
+    exit()
+
+
     dist_grid1, dist_grid2 = np.meshgrid(r1, r2)
 
     # Create a grid of molecules and associated constrained optimisation calculations
@@ -65,24 +194,14 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
         else:
             molecule = mol_grid[0][n-1]
 
-        const_opt = Calculation(name=name + f'_scan0_{n}', molecule=molecule, method=method, opt=True,
-                                n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
-                                                                              active_bond2: dist_grid2[0][n]},
-                                keywords_list=keywords)
-        const_opt.run()
+
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
             # Set the new xyzs of the molecule
-            mol_grid[0][n].xyzs = const_opt.get_final_atoms()
+            mol_grid[0][n].set_atoms(atoms=const_opt.get_final_atoms())
         except AtomsNotFound:
-            mol_grid[0][n].xyzs = mol_grid[0][n-1].xyzs if n != 0 else reactant.xyzs
+            mol_grid[0][n].set_atoms(atoms=deepcopy(mol_grid[0][n-1].atoms) if n != 0 else deepcopy(reactant.atoms))
 
-        if solvent_mol is not None:
-            mol_grid[0][n].name = f'{name}_scan0_{n}'
-            mol_grid[0][n].charges = const_opt.get_atomic_charges()
-            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method)
-            mol_grid[0][n].energy = qmmm_energy
-        else:
             mol_grid[0][n].energy = const_opt.get_energy()
 
     # Execute the remaining set of optimisations in parallel
@@ -93,7 +212,8 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
         else:
             cores_per_process = Config.n_cores//n_steps
             if Config.n_cores % n_steps != 0:
-                logger.warning(f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a multiple of {n_steps} cores')
+                logger.warning(f'Not all cores will be used in the multiprocessing stage, for optimal core usage use a '
+                               f'multiple of {n_steps} cores')
 
         calcs = [Calculation(name +f'_scan{i}_{n}', mol_grid[i-1][n], method, n_cores=cores_per_process, opt=True,
                              keywords_list=keywords, distance_constraints={active_bond1: dist_grid1[i][n],
@@ -101,16 +221,10 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
                  for n in range(n_steps)]
 
         [calc.generate_input() for calc in calcs]
-        if Config.n_cores <= n_steps:
-            with Pool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(execute_calc, (calc,))
-                           for calc in calcs]
-                [res.get(timeout=None) for res in results]
-        else:
-            with Pool(processes=n_steps) as pool:
-                results = [pool.apply_async(execute_calc, (calc,))
-                           for calc in calcs]
-                [res.get(timeout=None) for res in results]
+        with Pool(processes=Config.n_cores) as pool:
+            results = [pool.apply_async(execute_calc, (calc,)) for calc in calcs]
+            [res.get(timeout=None) for res in results]
+
         [calc.set_output_file_lines() for calc in calcs]
 
         # Add attributes for molecules in the mol_grid
@@ -122,13 +236,6 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
             except AtomsNotFound:
                 mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
 
-            if solvent_mol is not None:
-                mol_grid[i][n].name = f'{name}_scan{i}_{n}'
-                mol_grid[i][n].charges = calcs[n].get_atomic_charges()
-                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method)
-                mol_grid[i][n].energy = qmmm_energy
-            else:
-                mol_grid[i][n].energy = calcs[n].get_energy()
 
     # Populate the dictionary of distances, xyzs and energies
     # TODO make this nicer
@@ -158,7 +265,10 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
     tsguess_mol = deepcopy(reactant)
     tsguess_mol.name = name
     saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(
-        dist_xyzs_energies, scan_name=name, plot_name=f'{reactant.name}_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
+        dist_xyzs_energies, scan_name=name, plot_name=f'{reactant.name}_{active_bond1[0]}_{active_bond1[1]}_'
+                                                      f'{active_bond2[0]}_{active_bond2[1]}_2dscan',
+        method=method, n_points=e_grid_points, order=polynomial_order)
+
     if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None
@@ -167,18 +277,16 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
     tsguess_mol.set_xyzs(xyzs=saddle_point_xyzs)
 
     logger.info('Running a constrain optimisation for the analytic saddlepoint distances')
-    ts_const_opt = Calculation(name +'_saddlepoint_opt', tsguess_mol, method, n_cores=Config.n_cores, opt=True,
-                               keywords_list=keywords, distance_constraints={active_bond1: saddlepoint[0],
-                                                                             active_bond2: saddlepoint[1]})
+    ts_const_opt = Calculation(name=f'{name}_saddlepoint_opt', molecule=tsguess_mol, method=method,
+                               n_cores=Config.n_cores, opt=True, keywords_list=keywords,
+                               distance_constraints={active_bond1: saddlepoint[0], active_bond2: saddlepoint[1]})
     ts_const_opt.run()
     try:
         tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_atoms())
     except AtomsNotFound:
         pass
 
-    active_bonds = [active_bond1, active_bond2] if active_bonds_not_scanned is None else [active_bond1, active_bond2] + active_bonds_not_scanned
-
-    return TSguess(name=name, reaction_class=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=reactant, product=product)
+    return TSguess(atoms=tsguess_mol.atoms, reactant=reactant, product=product)
 
 
 def find_2dpes_saddlepoint_xyzs(dists_xyzs_energies_dict, scan_name, plot_name, method, n_points, order):
@@ -300,8 +408,7 @@ def get_closest_point_dists_to_saddle(r1_saddle, r2_saddle, dists):
     return scan_dists_tuple
 
 
-def execute_calc(calc):
-    return calc.execute_calculation()
+
 
 
 def replace_none(lst):

@@ -1,22 +1,92 @@
 from autode.log import logger
+from copy import deepcopy
 from autode.config import Config
+from autode.mol_graphs import get_active_mol_graph
 from autode.transition_states.optts import get_displaced_xyzs_along_imaginary_mode
 from autode.transition_states.optts import ts_has_correct_imaginary_vector
+from autode.species import Species
 from autode.calculation import Calculation
-from copy import deepcopy
-from copy import copy
+from autode.mol_graphs import get_mapping_ts_template
+from autode.transition_states.templates import get_ts_templates
+from autode.transition_states.templates import template_matches
 
 
-class TSguess:
+def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_consts, product):
+    """Get a TS guess from a constrained optimisation with the active atoms fixed at values defined in distance_consts
 
-    def get_bonded_atoms_to_i(self, atom_i):
-        bonded_atoms = []
-        for edge in self.graph.edges():
-            if edge[0] == atom_i:
-                bonded_atoms.append(edge[1])
-            if edge[1] == atom_i:
-                bonded_atoms.append(edge[0])
-        return bonded_atoms
+    Arguments:
+
+
+    Returns:
+       (autode.ts_guess.TSguess):
+    """
+    logger.info('Getting TS guess from constrained optimisation')
+
+    opt_mol_with_const = deepcopy(reactant)
+    const_opt = Calculation(name=f'{name}_constrained_opt', molecule=opt_mol_with_const, method=method,
+                            keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts)
+    const_opt.run()
+
+    # Form a transition state guess from the optimised atoms and set the corrisponding energy
+    ts_guess = TSguess(atoms=const_opt.get_final_atoms(), reactant=reactant, product=product)
+    ts_guess.energy = const_opt.get_energy()
+
+    return ts_guess
+
+
+def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywords, dist_thresh=4.0):
+    """Get a transition state guess object by searching though the stored TS templates
+
+    Arguments:
+        reactant (mol object): reactant object
+        bond_rearrangement (list(tuple)):
+        product (mol object): product object
+        method (autode.wrappers.base.ElectronicStructureMethod):
+        keywords (list(str)): Keywords to use for the ElectronicStructureMethod
+
+    Keyword Arguments:
+        dist_thresh (float): distance above which a constrained optimisation probably won't work due to the inital
+                             geometry being too far away from the ideal (default: {4.0})
+
+    Returns:
+        TSGuess object: ts guess object
+    """
+    logger.info('Getting TS guess from stored TS template')
+    active_bonds_and_dists_ts = {}
+
+    # This will add edges so don't modify in place
+    mol_graph = get_active_mol_graph(species=reactant, active_bonds=bond_rearrangement.all)
+    ts_guess_templates = get_ts_templates()
+
+    name = f'{reactant.name}_template_{bond_rearrangement}'
+
+    for ts_template in ts_guess_templates:
+
+        if template_matches(mol=reactant, ts_template=ts_template, mol_graph=mol_graph):
+            mapping = get_mapping_ts_template(larger_graph=mol_graph, smaller_graph=ts_template.graph)
+            for active_bond in bond_rearrangement.all:
+                i, j = active_bond
+                try:
+                    active_bonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[i],
+                                                                                     mapping[j]]['weight']
+                except KeyError:
+                    logger.warning(f'Couldn\'t find a mapping for bond {i}-{j}')
+
+            if len(active_bonds_and_dists_ts) == len(bond_rearrangement.all):
+                logger.info('Found a TS guess from a template')
+
+                if any([reactant.distance_matrix[bond[0], bond[1]] > dist_thresh for bond in bond_rearrangement.all]):
+                    logger.info(f'TS template has => 1 active bond distance larger than {dist_thresh}. Passing')
+                    pass
+                else:
+                    return get_ts_guess_constrained_opt(reactant, method=method, keywords=keywords, name=name,
+                                                        distance_consts=active_bonds_and_dists_ts, product=product)
+
+    logger.info('Could not find a TS guess from a template')
+    return None
+
+
+class TSguess(Species):
 
     def check_optts_convergence(self):
 
@@ -105,7 +175,6 @@ class TSguess:
 
         self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
                                      keywords_list=self.method.keywords.hess, n_cores=Config.n_cores,
-                                     max_core_mb=Config.max_core, charges=self.point_charges,
                                      partial_hessian=solvent_atoms)
 
         self.hess_calc.run()
@@ -129,9 +198,8 @@ class TSguess:
 
         self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
                                       keywords_list=self.method.keywords.opt_ts, n_cores=Config.n_cores,
-                                      max_core_mb=Config.max_core, bond_ids_to_add=self.active_bonds,
-                                      partial_hessian=solvent_atoms, charges=self.point_charges,
-                                      other_input_block=self.method.keywords.optts_block,
+                                      bond_ids_to_add=self.active_bonds,
+                                      partial_hessian=solvent_atoms, other_input_block=self.method.keywords.optts_block,
                                       cartesian_constraints=solvent_atoms)
 
         self.optts_calc.run()
@@ -144,49 +212,39 @@ class TSguess:
     def get_imag_frequencies_xyzs_energy(self):
         return self.optts_calc.get_imag_freqs(), self.optts_calc.get_final_atoms(), self.optts_calc.get_energy()
 
-    def get_coords(self):
-        return xyz2coord(self.xyzs)
-
     def get_charges(self):
         return self.optts_calc.get_atomic_charges()
 
-    def __init__(self, name='ts_guess', molecule=None, reaction_class=None, active_bonds=None, reactant=None, product=None):
+    def __init__(self, atoms, reactant, product, name='ts_guess'):
         """
+        Transition state guess
+
+        Arguments:
+            atoms (list(autode.atoms.Atom)):
+            reactant (autode.complex.ReactantComplex):
+            product (autode.complex.ProductComplex):
+
         Keyword Arguments:
             name (str): name of ts guess (default: {'ts_guess'})
-            molecule (molecule object): molecule to base ts guess off (default: {None})
-            reaction_class (object): reaction type (reactions.py) (default: {None})
-            active_bonds (list(tuples)): list of bonds being made/broken (default: {None})
-            reactant (molecule object): reactant object (default: {None})
-            product (molecule object): product object (default: {None})
         """
-        self.name = name
+        super().__init__(name=name, atoms=None, charge=reactant.charge, mult=product.mult)
+        self.solvent = reactant.solvent
+        self.atoms = atoms
 
-        if molecule is None:
-            logger.error('A TSguess needs a molecule object to initialise')
-            return
-
-        self.xyzs = molecule.xyzs
-        self.n_atoms = len(molecule.xyzs) if molecule.xyzs is not None else None
-        self.reaction_class = reaction_class
-        self.solvent = molecule.solvent
-        self.charge = molecule.charge
-        self.mult = molecule.mult
-        self.active_bonds = active_bonds
-        self.method = molecule.method
         self.reactant = reactant
         self.product = product
-        self.graph = make_graph(self.xyzs, self.n_atoms)
-        self.charges = molecule.charges
-        self.stereocentres = molecule.stereocentres
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None
 
-        self.optts_converged = False
-        self.optts_nearly_converged = False
         self.optts_calc = None
         self.hess_calc = None
 
         self.calc_failed = False
 
-        self.point_charges = None
+
+class SolvatedTSguess(TSguess):
+
+    def __init__(self, reactant, product, reaction_type, bond_rearrangment, name='ts_guess'):
+        super().__init__(reactant, product, reaction_type, bond_rearrangment, name)
+
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
+
