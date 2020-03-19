@@ -4,16 +4,16 @@ from autode.config import Config
 from autode.mol_graphs import is_isomorphic
 from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
-from autode.transition_states.ts_guess import TSguess
+from autode.species import Species
 from autode.transition_states.optts import get_ts
 from autode.conformers.conformers import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
 import numpy as np
-
+from autode.transition_states.base import TSbase
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
-class TS(TSguess):
+class TransitionState(TSbase):
 
     def make_graph(self):
         logger.info('Making TS graph with \'active\' edges')
@@ -43,6 +43,27 @@ class TS(TSguess):
         [truncated_graph.remove_node(node) for node in nodes_list if node not in nodes_to_keep]
         self.truncated_graph = truncated_graph
 
+    def check_optts_convergence(self):
+
+        if not self.optts_calc.optimisation_converged():
+            if self.optts_calc.optimisation_nearly_converged():
+                logger.info('OptTS nearly did converge. Will try more steps')
+                self.optts_nearly_converged = True
+                all_xyzs = self.optts_calc.get_final_atoms()
+                self.xyzs = all_xyzs[:self.n_atoms]
+                if self.qm_solvent_xyzs is not None:
+                    self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
+                self.name += '_reopt'
+                self.run_optts()
+                return
+
+            logger.warning('OptTS calculation was no where near converging')
+
+        else:
+            self.optts_converged = True
+
+        return
+
     def save_ts_template(self, folder_path=None):
         """Save a transition state template containing the active bond lengths, solvent_name and charge in folder_path
 
@@ -59,8 +80,105 @@ class TS(TSguess):
         except (ValueError, AttributeError):
             logger.error('Could not save TS template')
 
-    def get_atom_label(self, atom_i):
-        return self.xyzs[atom_i][0]
+    def do_displacements(self, size=0.75):
+        """Attempts to remove second imaginary mode by displacing either way along it
+
+        Keyword Arguments:
+            size (float): magnitude to displace along (default: {0.75})
+        """
+        mode_lost = False
+        imag_freqs = []
+        orig_optts_calc = deepcopy(self.optts_calc)
+        orig_name = copy(self.name)
+        self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms, displacement_magnitude=size)
+        self.name += '_dis'
+        self.run_optts()
+        if self.calc_failed:
+            logger.error('Displacement lost correct imaginary mode, trying backwards displacement')
+            mode_lost = True
+            self.calc_failed = False
+
+        if not mode_lost:
+            self.check_optts_convergence()
+            if not self.calc_failed:
+                imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
+                if len(imag_freqs) > 1:
+                    logger.warning(f'OptTS calculation returned {len(imag_freqs)} imaginary frequencies, '
+                                   f'trying displacement backwards')
+                if len(imag_freqs) == 1:
+                    logger.info('Displacement fixed multiple imaginary modes')
+                    return
+            else:
+                logger.error('Displacement lost correct imaginary mode, trying backwards displacement')
+                mode_lost = True
+
+        if len(imag_freqs) > 1 or mode_lost:
+            self.optts_calc = orig_optts_calc
+            self.name = orig_name
+            self.xyzs = get_displaced_xyzs_along_imaginary_mode(self.optts_calc, self.n_atoms,
+                                                                displacement_magnitude=-size)
+            self.name += '_dis2'
+            self.run_optts()
+            if self.calc_failed:
+                logger.error('Displacement lost correct imaginary mode')
+                self.calc_failed = True
+                return
+
+            imag_freqs, _, _ = self.get_imag_frequencies_xyzs_energy()
+
+            if len(imag_freqs) > 1:
+                logger.error('Couldn\'t remove optts_block imaginary frequencies by displacement')
+
+        return
+
+    def run_optts(self, imag_freq_threshold=-50):
+        """Runs the optts calc. Calculates a hessian first to the ts guess has the right imaginary mode
+
+        Args:
+            imag_freq_threshold (int, optional): If the imaginary mode has a higher (less negative) frequency than this it will not count as the right mode. Defaults to -50.
+        """
+        logger.info('Getting orca out lines from OptTS calculation')
+
+        if self.qm_solvent_xyzs is not None:
+            solvent_atoms = [i for i in range(self.n_atoms, self.n_atoms + len(self.qm_solvent_xyzs))]
+        else:
+            solvent_atoms = None
+
+        self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=self.method,
+                                     keywords_list=self.method.keywords.hess, n_cores=Config.n_cores,
+                                     partial_hessian=solvent_atoms)
+
+        self.hess_calc.run()
+
+        imag_freqs = self.hess_calc.get_imag_freqs()
+        if len(imag_freqs) == 0:
+            logger.info('Hessian showed no imaginary modes')
+            self.calc_failed = True
+            return
+        if len(imag_freqs) > 1:
+            logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
+        if imag_freqs[0] > imag_freq_threshold:
+            logger.info('Imaginary modes were too small to be significant')
+            self.calc_failed = True
+            return
+
+        if not ts_has_correct_imaginary_vector(self.hess_calc, n_atoms=self.n_atoms, active_bonds=self.active_bonds,
+                                               threshold_contribution=0.1):
+            self.calc_failed = True
+            return
+
+        self.optts_calc = Calculation(name=self.name + '_optts', molecule=self, method=self.method,
+                                      keywords_list=self.method.keywords.opt_ts, n_cores=Config.n_cores,
+                                      bond_ids_to_add=self.active_bonds,
+                                      partial_hessian=solvent_atoms, other_input_block=self.method.keywords.optts_block,
+                                      cartesian_constraints=solvent_atoms)
+
+        self.optts_calc.run()
+        all_xyzs = self.optts_calc.get_final_atoms()
+        self.xyzs = all_xyzs[:self.n_atoms]
+        if self.qm_solvent_xyzs is not None:
+            self.qm_solvent_xyzs = all_xyzs[self.n_atoms:]
+        return
 
     def get_dist_consts(self):
         dist_const_dict = {}

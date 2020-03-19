@@ -1,7 +1,7 @@
 from autode.transition_states import ts_guess
 from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
-from autode.transition_states.transition_state import TS
+from autode.transition_states.transition_state import TransitionState
 from autode.reactions import Substitution
 from autode import molecule
 from autode.transition_states import optts
@@ -99,7 +99,7 @@ def test_get_ts():
     assert optts.get_ts(None)[0] is None
 
     get_ts_output = optts.get_ts(ts_guess_obj)
-    ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
+    ts_obj = TransitionState(get_ts_output[0], converged=get_ts_output[1])
 
     assert ts_obj.get_atom_label(0) == 'F'
     assert type(ts_obj.solvent) == Solvent
@@ -123,7 +123,7 @@ def test_ts_template():
     os.chdir(os.path.join(here, 'data'))
 
     get_ts_output = optts.get_ts(ts_guess_obj)
-    ts_obj = TS(get_ts_output[0], converged=get_ts_output[1])
+    ts_obj = TransitionState(get_ts_output[0], converged=get_ts_output[1])
 
     ts_obj.save_ts_template(folder_path=here)
     assert len(get_ts_templates(reaction_type=ts_obj.reaction_class, folder_path=here)) >= 1

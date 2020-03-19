@@ -42,7 +42,16 @@ def poly2d_saddlepoints(coeff_mat, xs, ys):
     saddle_points = [point for point in stationary_points if is_saddle_point(point, coeff_mat)]
     logger.info(f'Found {len(saddle_points)} saddle points')
 
+    saddle_points = get_sorted_saddlepoints(saddle_points=saddle_points, xs=xs, ys=ys)
     return saddle_points
+
+
+def get_sorted_saddlepoints(saddle_points, xs, ys):
+    """Get the list of saddle points ordered by their distance from the (x, y) mid-point"""
+
+    mid_x, mid_y = np.average(xs), np.average(ys)
+
+    return sorted(saddle_points, key=lambda point: np.abs(point[0] - mid_x) + np.abs(point[1] - mid_y))
 
 
 def get_unique_stationary_points(stationary_points, dist_threshold=0.1):
@@ -119,7 +128,7 @@ def is_saddle_point(xy_point, coeff_mat):
                 dxdy += coeff_mat[i, j] * i * x**(i - 1) * j * y**(j - 1)
 
     if dx2 * dy2 - dxdy**2 < 0:
-        logger.info(f'Found saddle point at r1 = {x:.3f} Å r2 = {y:.3f} Å')
+        logger.info(f'Found saddle point at r1 = {x:.3f}, r2 = {y:.3f} Å')
         return True
 
     else:

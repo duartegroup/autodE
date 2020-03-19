@@ -19,11 +19,34 @@ from autode.pes import get_point_species
 
 class PES2d(PES):
 
-    def get_species_saddle_point(self):
-
+    def get_species_saddle_point(self, name, method, keywords):
+        """Get the species at the true saddle point on the surface"""
         saddle_points = poly2d_saddlepoints(coeff_mat=self.coeff_mat, xs=self.r1s, ys=self.r2s)
 
-        return None
+        for saddle_point in saddle_points:
+            r1, r2 = saddle_point
+
+            # Determine the indicies of the point closest to the analytic saddle point to use as a guess
+            close_point = (np.argmin(np.abs(self.r1s - r1)), np.argmin(np.abs(self.r2s - r2)))
+            logger.info(f'Closest point is {close_point} with r1 = {self.rs[close_point][0]:.3f}, '
+                        f'r2 = {self.rs[close_point][1]:.3f} Å')
+
+            # Perform a constrained optimisation using the analytic saddle point r1, r2 values
+            species = deepcopy(self.species[close_point])
+            const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
+                                    opt=True, n_cores=Config.n_cores, keywords_list=keywords,
+                                    distance_constraints={self.rs_idxs[0]: r1, self.rs_idxs[1]: r2})
+            const_opt.run()
+
+            try:
+                species.set_atoms(atoms=const_opt.get_final_atoms())
+                species.energy = const_opt.get_energy()
+
+            except AtomsNotFound:
+                logger.error('Constrained optimisation at the saddle point failed')
+                pass
+
+            yield species
 
     def fit(self, polynomial_order):
         """Fit an analytic 2d surface"""
@@ -193,27 +216,16 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
         logger.error('Products were not made on the whole PES')
         return None
 
+    # Fit an analytic 2D PES to the surface and plot using matplotlib
     pes.fit(polynomial_order=polynomial_order)
     pes.print_plot(name=name)
 
-    pes.get_species_saddle_point()
+    # Yield a TSGuess for every saddle point on the surface
+    for species in pes.get_species_saddle_point(name=name, method=method, keywords=keywords):
+        return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
 
-    exit()
-
-
-
-
-    logger.info('Running a constrain optimisation for the analytic saddlepoint distances')
-    ts_const_opt = Calculation(name=f'{name}_saddlepoint_opt', molecule=tsguess_mol, method=method,
-                               n_cores=Config.n_cores, opt=True, keywords_list=keywords,
-                               distance_constraints={active_bond1: saddlepoint[0], active_bond2: saddlepoint[1]})
-    ts_const_opt.run()
-    try:
-        tsguess_mol.set_xyzs(xyzs=ts_const_opt.get_final_atoms())
-    except AtomsNotFound:
-        pass
-
-    return TSguess(atoms=tsguess_mol.atoms, reactant=reactant, product=product)
+    logger.error('No possible TSs found on the 2D surface')
+    return None
 
 
 def polyfit2d(x, y, z, order):

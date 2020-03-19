@@ -58,6 +58,10 @@ class NoClosestSpecies(Exception):
     pass
 
 
+class NoNormalModesFound(Exception):
+    pass
+
+
 class NoMolecularGraph(Exception):
     pass
 

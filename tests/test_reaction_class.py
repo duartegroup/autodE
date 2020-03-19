@@ -1,5 +1,5 @@
 from autode import reaction
-from autode.transition_states.transition_state import TS
+from autode.transition_states.transition_state import TransitionState
 from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
@@ -97,7 +97,7 @@ def test_calc_delta_e():
     r2 = reaction.Reactant(name='h', atoms=[Atom('H', 0.0, 0.0, 0.0)])
     r2.energy = -0.5
 
-    ts = TS()
+    ts = TransitionState()
     ts.energy = -0.8
 
     p = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])

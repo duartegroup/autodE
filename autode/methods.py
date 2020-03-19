@@ -17,7 +17,7 @@ def get_hmethod():
     """Get the high-level electronic structure theory method to use
 
     Returns:
-        object: ElectronicStructureMethod
+        (autode.wrappers.base.ElectronicStructureMethod):
     """
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
@@ -37,7 +37,7 @@ def get_hmethod():
 
         return method
     else:
-        # see if orca availaible, then Gaussian, then nwchem
+        # See if orca availaible, then Gaussian, then nwchem
         for method in [orca, g09, nwchem]:
             method.set_availability()
             if method.available:
@@ -51,7 +51,7 @@ def get_lmethod():
     """Get the low-level electronic structure theory method to use
 
     Returns:
-        object: ElectronicStructureMethod
+        (autode.wrappers.base.ElectronicStructureMethod):
     """
     if Config.lcode is not None:
         if Config.lcode.lower() == 'xtb':
@@ -69,7 +69,7 @@ def get_lmethod():
 
         return method
     else:
-        # see if xtb availaible, then mopac
+        # See if xtb available, then mopac
         for method in [xtb, mopac]:
             method.set_availability()
             if method.available:

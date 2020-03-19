@@ -2,7 +2,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import NoCalculationOutput
+from autode.exceptions import NoCalculationOutput, NoNormalModesFound
 import os
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
@@ -186,11 +186,11 @@ class ORCA(ElectronicStructureMethod):
                         displacements = [float(disp_line.split()[col]) for disp_line in
                                          calc.output_file_lines[j + 1:j + 3 * n_atoms + 1]]
 
-        displacements_xyz = [displacements[i:i + 3]
-                             for i in range(0, len(displacements), 3)]
+        displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
+
         if len(displacements_xyz) != n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')
-            return None
+            raise NoNormalModesFound
 
         return displacements_xyz
 

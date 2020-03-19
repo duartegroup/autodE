@@ -174,21 +174,13 @@ class Reaction:
 
     @work_in('reactants_and_products')
     def optimise_reacs_prods(self):
-        """Perform a geometry optimisation on all the reactants and products using the hcode
-        """
+        """Perform a geometry optimisation on all the reactants and products using the hcode"""
         h_method = get_hmethod()
         logger.info('Calculating optimised reactants and products with {h_method.name}')
         [mol.optimise(method=h_method) for mol in self.reacs + self.prods]
 
     @work_in('transition_states')
     def locate_transition_state(self):
-
-        # TODO why is this here/!
-        # Clear the PES graphs, so they don't write over each optts_block
-        file_extension = Config.image_file_extension
-        for filename in os.listdir(os.getcwd()):
-            if filename.endswith(file_extension):
-                os.remove(filename)
 
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
