@@ -21,13 +21,14 @@ import os
 
 def calculate_reaction_profile(reaction, units):
     logger.info('Calculating reaction profile')
+
     if Config.explicit_solvation:
         reaction.calc_solvent()
 
     reaction.find_lowest_energy_conformers()
     reaction.optimise_reacs_prods()
     reaction.locate_transition_state()
-    reaction.ts_confs()
+    reaction.find_lowest_energy_ts_conformer()
     reaction.calculate_single_points()
 
     e_prod = reaction.calc_delta_e(units=units)
@@ -46,7 +47,7 @@ def calculate_reaction_profile(reaction, units):
                           reacs=reaction.reacs,
                           prods=reaction.prods,
                           is_true_ts=reaction.ts.is_true_ts(),
-                          ts_is_converged=reaction.ts.converged,
+                          ts_is_converged=reaction.ts.optts_calc.optimisation_converged(),
                           switched=reaction.switched_reacs_prods,
                           barrierless=barrierless)
     return None
@@ -186,25 +187,10 @@ class Reaction:
         self.ts = self.find_lowest_energy_ts()
 
     @work_in('ts_confs')
-    def ts_confs(self):
+    def find_lowest_energy_ts_conformer(self):
         """Find the lowest energy conformer of the transition state"""
         logger.info('Trying to find lowest energy TS conformer')
-
-        if self.ts is None:
-            logger.error('Cannot find the TS conformers with TS is None')
-            return
-
-        ts = deepcopy(self.ts)
-        self.ts = self.ts.find_lowest_energy_conformer(method=get_hmethod())
-
-        if self.ts is None:
-            logger.error('Conformer search lost the TS, using the original TS')
-            self.ts = ts
-        elif self.ts.energy > ts.energy:
-            logger.error(f'Conformer search increased the TS energy by {(self.ts.energy - ts.energy):.3g} Hartree')
-            self.ts = ts
-
-        return None
+        return self.ts.find_lowest_energy_conformer()
 
     @work_in('single_points')
     def calculate_single_points(self):
@@ -214,8 +200,8 @@ class Reaction:
 
         return None
 
-    def calculate_reaction_profile(self):
-        return calculate_reaction_profile(self, units=KcalMol)
+    def calculate_reaction_profile(self, units=KcalMol):
+        return calculate_reaction_profile(self, units=units)
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
                  solvent_name=None):

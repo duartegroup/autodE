@@ -8,4 +8,4 @@ class KjMol:
 
 class KcalMol:
     name = 'kcal mol-1'
-    conversion = Constants.ha2kJmol
+    conversion = Constants.ha2kcalmol

@@ -61,7 +61,7 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
             unique_conformers.append(conformers[i])
 
     n_unique_conformers = len(unique_conformers)
-    logger.info(f'Stripped {n_conformers - n_unique_conformers} conformers from a total of {n_conformers}')
+    logger.info(f'Stripped {n_conformers - n_unique_conformers} conformer(s) from a total of {n_conformers}')
 
     return unique_conformers
 

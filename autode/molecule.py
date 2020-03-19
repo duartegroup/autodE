@@ -111,7 +111,7 @@ class Molecule(Species):
             conf.solvent = self.solvent
             self.conformers.append(conf)
 
-        logger.info(f'Generated {len(self.conformers)} unique conformers')
+        logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
         return None
 
     @requires_atoms()
@@ -123,7 +123,6 @@ class Molecule(Species):
         opt.run()
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
-        self.charges = opt.get_atomic_charges()
         self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
 
         return None

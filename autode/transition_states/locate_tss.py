@@ -7,7 +7,6 @@ from autode.substitution import get_substitution_centres
 from autode.reactions import Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
 from autode.complex import ReactantComplex, ProductComplex
-from autode.transition_states.optts import get_ts
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
@@ -37,7 +36,10 @@ def find_tss(reaction):
     tss = []
     for bond_rearrangement in bond_rearrangs:
         logger.info(f'Locating transition state using active bonds {bond_rearrangement.all}')
-        tss += get_ts(reaction, reactant, product, bond_rearrangement)
+        ts = get_ts(reaction, reactant, product, bond_rearrangement)
+
+        if ts is not None:
+            tss.append(ts)
 
     if len(tss) > 0:
         logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
@@ -235,10 +237,10 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
             continue
 
         # Form a transition state object and run an OptTS calculation
-        ts = TransitionState(ts_guess, active_bonds=bond_rearrangement.all)
+        ts = TransitionState(ts_guess, bond_rearrangement=bond_rearrangement)
         ts.opt_ts()
 
-        if ts.is_true_ts:
+        if ts.is_true_ts():
             logger.info(f'Found a transition state with {func.__name__}')
             return ts
 

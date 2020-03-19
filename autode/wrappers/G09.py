@@ -48,7 +48,7 @@ class G09(ElectronicStructureMethod):
                     opt = True
             if opt and not nosymm:
                 keywords.append('NoSymm')
-        if calc.moleculecharges:
+        if calc.molecule.charges:
             keywords.append('Charge')
 
         with open(calc.input_filename, 'w') as inp_file:
@@ -65,12 +65,15 @@ class G09(ElectronicStructureMethod):
 
             print(f'\n {calc.name}\n', file=inp_file)
 
-            print(calc.charge, calc.mult, file=inp_file)
-            [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+            print(calc.molecule.charge, calc.molecule.mult, file=inp_file)
+
+            for atom in atoms:
+                print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
+                      file=inp_file)
 
             if calc.molecule.charges:
                 print('')
-                [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
+                [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.molecule.charges]
 
             print('', file=inp_file)
 

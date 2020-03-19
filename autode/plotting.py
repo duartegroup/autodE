@@ -101,8 +101,6 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     """
     logger.info('Plotting reaction profile')
 
-    file_extension = Config.image_file_extension
-
     if switched:
         # Swap the energies of reactants and products
         e_reac, e_prod = e_prod, e_reac
@@ -174,6 +172,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     y_label_shift = [0.04*y_range, -0.07*y_range, 0.04*y_range]
     x_point_coords = [0, x, 1]
     energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
+
     for i, energy in enumerate(energies):
         if barrierless and i == 1:
             continue
@@ -199,9 +198,5 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
         plt.ylabel('∆$E$/ kcal mol$^{-1}$', fontsize=12)
 
     plt.ylim(min(y_vals) - 0.1*max(y_vals), 1.2 * max(y_vals))
-    if Config.high_qual_plots:
-        dpi = 1000
-    else:
-        dpi = 100
-    plt.savefig('reaction_profile' + file_extension, dpi=dpi)
-    return None
+
+    return save_plot(plt, filename='reaction_profile.png')

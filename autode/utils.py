@@ -54,7 +54,10 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
 
             # Move directories and execute
             os.chdir(tmpdir_path)
+
+            logger.info('Function   ...running')
             func(*args, **kwargs)
+            logger.info('           ...done')
 
             for filename in os.listdir(tmpdir_path):
                 if any([filename.endswith(ext) for ext in kept_file_exts]):
