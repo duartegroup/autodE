@@ -34,11 +34,6 @@ class Config:
     high_qual_plots = True
     #
     # ----------------------------------------------------------------------------------------------
-    # File extension to use for the images made
-    #
-    image_file_extension = '.png'
-    #
-    # ----------------------------------------------------------------------------------------------
     # Whether to do explicit solvation or not
     #
     explicit_solvation = False

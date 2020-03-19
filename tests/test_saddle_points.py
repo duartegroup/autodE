@@ -7,7 +7,7 @@ def test_root_finder():
     # 3x^2 + 2y^2
     coeff_mat = np.array([[0, 0, 2], [0, 0, 0], [3, 0, 0]])
     # grads at (2,3)
-    dx, dy = saddle_points.root_finder((2, 3), coeff_mat)
+    dx, dy = saddle_points.sum_squared_xy_derivative((2, 3), coeff_mat)
     assert dx == 12
     assert dy == 12
 
@@ -15,7 +15,7 @@ def test_root_finder():
 def test_calc_delta():
     # 3x^3 + 2y^3 + x^2y^2
     coeff_mat = np.array([[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 1, 0], [3, 0, 0, 0]])
-    assert saddle_points.calc_delta(coeff_mat, (2, 3)) == 1800
+    assert saddle_points.is_saddle_point(coeff_mat, (2, 3)) == 1800
 
 
 def test_poly2d_saddlepoints():

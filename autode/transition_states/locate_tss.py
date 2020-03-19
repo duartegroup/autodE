@@ -72,7 +72,6 @@ def get_ts_gess_function_and_params(reaction, reactant, product, bond_rearrang):
     if bond_rearrang.n_bbonds >= 1 and bond_rearrang.n_fbonds >= 1:
         for fbond in bond_rearrang.fbonds:
             for bbond in bond_rearrang.bbonds:
-                scanned_bonds = [fbond, bbond]
                 scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
 
                 fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label,
@@ -199,6 +198,8 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
     reactant.rotate_mol(axis=opt_x[7:10], theta=opt_x[10], mol_index=attacking_mol)
 
     logger.info('                                                                        ... done')
+    reactant.print_xyz_file()
+
     return None
 
 

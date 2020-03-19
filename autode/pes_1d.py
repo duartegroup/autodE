@@ -4,12 +4,10 @@ from autode.config import Config
 from autode.log import logger
 from autode.transition_states.ts_guess import TSguess
 from autode.plotting import plot_1dpes
-from autode.plotting import make_reaction_animation
 from autode.constants import Constants
 from autode.calculation import Calculation
 from autode.exceptions import AtomsNotFound
 from autode import mol_graphs
-from autode.pes_2d import replace_none
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
@@ -135,7 +133,7 @@ def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name,
             xyzs_peak_energy = xyzs_list[i]
 
     plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
-                           for e in energies_not_none], scan_name=scan_name, plot_name=plot_name, method=method)
+                           for e in energies_not_none], scan_name=scan_name, name=plot_name, method=method)
 
     if peak_e != min_e:
         logger.info(f'Energy at peak in PES at ∆E = {Constants.ha2kcalmol * (peak_e - min_e)} kcal/mol')
