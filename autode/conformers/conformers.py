@@ -1,11 +1,7 @@
 from rdkit import Chem
-from autode.config import Config
 from autode.log import logger
 from autode.constants import Constants
 from autode.atoms import Atom
-from autode.species import Species
-from autode.calculation import Calculation
-from autode.exceptions import AtomsNotFound
 
 
 def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
@@ -49,14 +45,21 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     delta_e = energy_threshold_kj / Constants.ha2kJmol   # Conformer.energy is in Hartrees
 
     # The first conformer must be unique
-    unique_conformers = [conformers[0]]
+    unique_conformers = conformers[:1]
 
     for i in range(1, n_conformers):
+
+        if conformers[i].energy is None:
+            logger.error('Conformer had no energy. Stripping')
+            continue
+
+        # Iterate through all the unique conformers already found and check that the energy is not similar
         unique = True
         for j in range(len(unique_conformers)):
             if conformers[i].energy - delta_e < conformers[j].energy < conformers[i].energy + delta_e:
                 unique = False
                 break
+
         if unique:
             unique_conformers.append(conformers[i])
 
@@ -66,24 +69,3 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     return unique_conformers
 
 
-class Conformer(Species):
-
-    def optimise(self, method=None):
-        logger.info(f'Running optimisation of {self.name}')
-
-        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method, keywords_list=method.keywords.low_opt,
-                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts)
-        opt.run()
-        self.energy = opt.get_energy()
-
-        try:
-            self.atoms = opt.get_final_atoms()
-
-        except AtomsNotFound:
-            logger.error(f'Atoms not found for {self.name} but not critical')
-            self.set_atoms(atoms=None)
-
-    def __init__(self, name='conf', atoms=None, solvent_name=None, charge=0, mult=1, dist_consts=None):
-        super(Conformer, self).__init__(name, atoms, charge, mult, solvent_name=solvent_name)
-
-        self.dist_consts = dist_consts

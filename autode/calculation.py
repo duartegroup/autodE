@@ -34,7 +34,10 @@ class Calculation:
             active_atoms.add(bond[1])
 
         # Will set molecule.graph to a NetworkX Graph to find the nearest neighbours
-        mol_graphs.make_graph(molecule)
+        if hasattr(molecule, 'graph') and molecule.graph is not None:
+            logger.warning('Molecular graph was set. Not regenerating')
+        else:
+            mol_graphs.make_graph(molecule)
 
         core_atoms = set()
         for active_atom in active_atoms:

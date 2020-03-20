@@ -146,3 +146,20 @@ def get_neighbour_list(species, atom_i):
         atom_label_neighbour_list.append(atom_label)
 
     return atom_label_neighbour_list
+
+
+def get_distance_constraints(species):
+    """Set all the distance constraints required in an optimisation as the active bonds"""
+    distance_constraints = {}
+
+    if species.graph is None:
+        logger.warning('Molecular graph was not set cannot find any distance constraints')
+        return None
+
+    # Add the active edges(/bonds) in the molecular graph to the dict, value being the current distance
+    for edge in species.graph.edges:
+
+        if species.graph.edges[edge]['active']:
+            distance_constraints[edge] = species.get_distance(*edge)
+
+    return distance_constraints

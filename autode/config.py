@@ -25,9 +25,11 @@ class Config:
     lcode = None
     #
     # ----------------------------------------------------------------------------------------------
-    # When a transition state is found save it it autode/transition_states/lib/
+    # When a transition state is found save it it /path_to_autode_install/transition_states/lib/
+    # if ts_template_folder_path is not set to override it
     #
     make_ts_template = True
+    ts_template_folder_path = None
     #
     # ----------------------------------------------------------------------------------------------
     # Save plots with dpi = 1000

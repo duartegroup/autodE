@@ -6,6 +6,10 @@ class NoAtomsInMolecule(Exception):
     pass
 
 
+class NoConformers(Exception):
+    pass
+
+
 class NoInputError(Exception):
     pass
 

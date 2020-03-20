@@ -1,10 +1,10 @@
 from autode.log import logger
 from copy import deepcopy
 from autode.config import Config
-from autode.mol_graphs import get_active_mol_graph
 from autode.transition_states.base import TSbase
 from autode.calculation import Calculation
 from autode.mol_graphs import get_mapping_ts_template
+from autode.mol_graphs import get_active_mol_graph
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 
@@ -53,7 +53,7 @@ def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywor
     active_bonds_and_dists_ts = {}
 
     # This will add edges so don't modify in place
-    mol_graph = get_active_mol_graph(species=reactant, active_bonds=bond_rearrangement.all)
+    mol_graph = get_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
 
     name = f'{reactant.name}_template_{bond_rearrangement}'

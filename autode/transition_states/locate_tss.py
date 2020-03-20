@@ -1,6 +1,7 @@
 from autode.log import logger
 import numpy as np
 from scipy.optimize import minimize
+from autode.config import Config
 from autode.substitution import get_cost_rotate_translate
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.substitution import get_substitution_centres
@@ -219,8 +220,6 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
     Returns:
         (autode.: the TS of the reaction
     """
-    tss = []
-
     # If the reaction is a substitution or elimination then the reactants must be orientated correctly
     translate_rotate_reactant(reactant, bond_rearrangement,
                               shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 2)
@@ -240,9 +239,15 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
         ts = TransitionState(ts_guess, bond_rearrangement=bond_rearrangement)
         ts.opt_ts()
 
-        if ts.is_true_ts():
-            logger.info(f'Found a transition state with {func.__name__}')
-            return ts
+        if not ts.is_true_ts():
+            continue
+
+        # Save a transition state template if specified in the config
+        if Config.make_ts_template:
+            ts.save_ts_template(folder_path=Config.ts_template_folder_path)
+
+        logger.info(f'Found a transition state with {func.__name__}')
+        return ts
 
     return None
 
@@ -252,12 +257,12 @@ def get_added_bbond_dist(reaction):
 
     Args:
         reaction (reaction object): reaction being scanned
-        solvent_mol (mol object): solvating molecule (can be none for no explicit solvation)
 
     Returns:
         float: distance the bond should increase by
     """
-    # if there are charged molecules and implicit solvation, the bond length may need to increase by more to get a saddle point,
+    # if there are charged molecules and implicit solvation, the bond length may need to increase by more to get a
+    # saddle point,
     # as implicit solvation does not fully stabilise the charged molecule
 
     # TODO reimplement with explicit solvent like:   if reaction is SolvatedReaction

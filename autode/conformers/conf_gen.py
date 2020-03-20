@@ -25,16 +25,16 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return res.x.reshape(n_atoms, 3)
 
 
-@requires_graph()
 def get_atoms_rotated_stereocentres(species, atoms, theta):
-    """If two stereocentres are bonded, rotate them randomly wrt each other
+    """If two stereocentres are bonded, rotate them randomly with respect to each other
 
     Arguments:
         species (autode.species.Species):
         atoms (list(autode.atoms.Atom)):
         theta (float): Rotation angle in radians
     """
-    stereocentres = [node for node in species.graph.nodes if node['stereo'] is True]
+
+    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
     # Check on every pair of stereocenters
     for (atom_i, atom_j) in combinations(stereocentres, 2):
@@ -62,7 +62,6 @@ def get_non_random_atoms(species):
     return set(non_rand_atoms)
 
 
-@requires_graph()
 def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
@@ -83,7 +82,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
 
     # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
     rand = RandomState()
-    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), theta=2*np.pi*rand.random())
+    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), theta=2*np.pi*rand.rand())
 
     # Add the distance constraints as fixed bonds
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
@@ -107,57 +106,3 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
         atom.coord = coords[i]
 
     return atoms
-
-
-def get_simanl_conformers(name, init_xyzs, bond_list, stereocentres, dist_consts={}, n_simanls=40):
-    """Generate conformer xyzs using the cconf_gen Cython code, which is compiled when setup.py install is run.
-
-    Arguments:
-        name (str): name of the molecule to run, needed to check for existing confs
-        init_xyzs (list(list)): e.g. [['C', 0.0, 0.0, 0.0], ...]
-        bond_list (list(tuple)): defining which atoms are bonded together
-        stereocentres (list): list of stereocentres
-
-    Keyword Arguments:
-        dist_consts (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length to be fixed at (default: {{}})
-        n_simanls (int): number of simulated anneling steps to do (default: {40})
-
-    Returns:
-        list(list(list)): list of n_simanls xyzs
-    """
-    logger.info('Doing simulated annealing with a harmonic + repulsion force field')
-
-    # TODO rewrite this function
-
-    important_stereoatoms = set()
-    if stereocentres is not None:
-        for stereocentre in stereocentres:
-            important_atoms = set()
-            for bond in bond_list:
-                if stereocentre in bond:
-                    important_atoms.add(bond[0])
-                    important_atoms.add(bond[1])
-            for atom1 in important_atoms:
-                for atom2 in important_atoms:
-                    if atom1 > atom2:
-                        coord1 = np.asarray(init_xyzs[atom1][1:])
-                        coord2 = np.asarray(init_xyzs[atom2][1:])
-                        bond_length = np.linalg.norm(coord1 - coord2)
-                        dist_consts[(atom1, atom2)] = bond_length
-            important_stereoatoms.update(important_atoms)
-
-    non_random_atoms = sorted(important_stereoatoms)
-
-    if n_simanls == 1:
-        conf_xyzs = simanl(name=name, xyzs=init_xyzs, bonds=bond_list, dist_consts=dist_consts, non_random_atoms=non_random_atoms, stereocentres=stereocentres, n=0)
-        return [conf_xyzs]
-
-    logger.info(f'Generating {n_simanls} conformers')
-
-    logger.info(f'Splitting calculation into {Config.n_cores} threads')
-    with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(simanl, (name, init_xyzs, bond_list, dist_consts, non_random_atoms, stereocentres, i))
-                   for i in range(n_simanls)]
-        conf_xyzs = [res.get(timeout=None) for res in results]
-
-    return conf_xyzs

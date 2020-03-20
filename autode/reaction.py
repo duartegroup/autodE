@@ -31,25 +31,14 @@ def calculate_reaction_profile(reaction, units):
     reaction.find_lowest_energy_ts_conformer()
     reaction.calculate_single_points()
 
-    e_prod = reaction.calc_delta_e(units=units)
-    e_ts = reaction.calc_delta_e_ddagger(units=units)
-    barrierless = False
-
-    if e_ts is None:
-        logger.error('TS is None – assuming barrierless reaction. ∆E‡ = 2 kcal mol-1 above the maximum energy')
-        barrierless = True
-        e_ts = 0.0032 * units.conversion + max(0.0, e_prod)
-
     plot_reaction_profile(e_reac=0.0,
-                          e_ts=e_ts,
-                          e_prod=e_prod,
+                          e_ts=reaction.calc_delta_e_ddagger(units=units),
+                          e_prod=reaction.calc_delta_e(units=units),
                           units=units,
                           reacs=reaction.reacs,
                           prods=reaction.prods,
-                          is_true_ts=reaction.ts.is_true_ts(),
-                          ts_is_converged=reaction.ts.optts_calc.optimisation_converged(),
-                          switched=reaction.switched_reacs_prods,
-                          barrierless=barrierless)
+                          ts=reaction.ts,
+                          switched=reaction.switched_reacs_prods)
     return None
 
 
@@ -65,9 +54,11 @@ class Reaction:
         if sum(n_reac_atoms) != sum(n_prod_atoms):
             logger.critical('Number of atoms doesn\'t balance')
             raise UnbalancedReaction
+
         if sum(reac_charges) != sum(prod_charges):
             logger.critical('Charge doesn\'t balance')
             raise UnbalancedReaction
+
         self.charge = sum(reac_charges)
 
     def _check_solvent(self):
@@ -186,19 +177,17 @@ class Reaction:
         self.tss = find_tss(self)
         self.ts = self.find_lowest_energy_ts()
 
-    @work_in('ts_confs')
+    @work_in('transition_states')
     def find_lowest_energy_ts_conformer(self):
         """Find the lowest energy conformer of the transition state"""
         logger.info('Trying to find lowest energy TS conformer')
-        return self.ts.find_lowest_energy_conformer()
+        return self.ts.find_lowest_energy_ts_conformer()
 
     @work_in('single_points')
     def calculate_single_points(self):
         """Perform a single point energy evaluations on all the reactants and products using the hcode"""
         molecules = self.reacs + self.prods + [self.ts]
         [mol.single_point(method=get_hmethod()) for mol in molecules if mol is not None]
-
-        return None
 
     def calculate_reaction_profile(self, units=KcalMol):
         return calculate_reaction_profile(self, units=units)

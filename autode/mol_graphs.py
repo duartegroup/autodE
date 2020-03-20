@@ -9,8 +9,15 @@ from autode.atoms import is_pi_atom
 
 def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
     """
-    Make the molecular graph from the 'bonds' determined on a distance criteria or a list of RDKit bonds .
-    No distinction is made between single, double etc. bond types.
+    Make the molecular graph from the 'bonds' determined on a distance criteria or a list of RDKit bonds. All attributes
+    default to false
+
+    Nodes attributes:
+        (1) stereo: Is this atom part of some stereochemistry e.g. R/S or E/Z
+
+    Edge attributes:
+        (1) pi: Is this bond a pi bond. If it is then there should be no rotation the bond axis in conformer generation
+        (2) active: Is this bond being made/broken (applies only to TransitionState objects)
 
     Arguments:
         species (autode.species.Species):
@@ -29,7 +36,7 @@ def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
 
     # If rdkit bonds object is specified then add edges to the graph and return
     if rdkit_bonds is not None:
-        [graph.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), pi=False) for bond in rdkit_bonds]
+        [graph.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), pi=False, active=False) for bond in rdkit_bonds]
         species.graph = graph
         return None
 
@@ -45,7 +52,7 @@ def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
 
             # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
             if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance):
-                graph.add_edge(i, j, pi=False)
+                graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
     set_pi_bonds(species)
@@ -112,34 +119,41 @@ def reorder_nodes(graph, mapping):
     return nx.relabel_nodes(graph, mapping={u: v for v, u in mapping.items()}, copy=True)
 
 
-def get_active_mol_graph(species, active_bonds):
-    logger.info('Getting molecular graph with active edges')
-    active_graph = species.graph.copy()
+def get_graph_no_active_edges(graph):
+    """
+    Get a molecular graph without the active edges
 
-    for bond in active_bonds:
-        has_edge = False
-        for edge in active_graph.edges():
-            if edge == bond or edge == tuple(reversed(bond)):
-                has_edge = True
-                active_graph.edges[edge[0], edge[1]]['active'] = True
+    Arguments:
+        graph (np.Graph):
+    """
 
-        if not has_edge:
-            active_graph.add_edge(*bond, active=True)
+    graph_no_ae = graph.copy()
+    active_edges = [edge for edge in graph.edges if graph.edges[edge]['active'] is True]
 
-    return active_graph
+    for (atom_i, atom_j) in active_edges:
+        graph_no_ae.remove_edge(atom_i, atom_j)
+
+    return graph_no_ae
 
 
-def is_isomorphic(graph1, graph2):
-    """Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method is found
-    to ocassionaly get stuck
+def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
+    """Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method
+    occasionally gets stuck
 
     Arguments:
         graph1 (nx.Graph): graph 1
         graph2 (nx.Graph): graph 2
 
+    Keywords Arguments:
+        ignore_active_bonds (bool):
+        timeout (float): Timeout in seconds
+
     Returns:
-        bool: if the graphs are isomorphic
+        (bool): if the graphs are isomorphic
     """
+
+    if ignore_active_bonds:
+        graph1, graph2 = get_graph_no_active_edges(graph1), get_graph_no_active_edges(graph2)
 
     if isomorphism.faster_could_be_isomorphic(graph1, graph2):
         graph_matcher = isomorphism.GraphMatcher(graph1, graph2,
@@ -148,8 +162,8 @@ def is_isomorphic(graph1, graph2):
         manager = mp.Manager()
         res = manager.dict()
         p = mp.Process(target=gm_is_isomorphic, args=(graph_matcher, res))
-        p.start()
-        p.join(5)
+        p.start()             # Start the process
+        p.join(timeout)       # Wait until the timeout
 
         if p.is_alive():
             p.terminate()
@@ -182,7 +196,7 @@ def reac_graph_to_prods(reac_graph, bond_rearrang):
 
     Arguments:
         reac_graph (nx.Graph): graph of the reactant
-        bond_rearrang (bond rearrang object): the bond rearrang linking reacs and prods
+        bond_rearrang (autode.bond_rearrangement.BondRearrangement): the bond rearrang linking reacs and prods
 
     Returns:
         nx.Graph: graph of the product with each atom indexed as in the reactants
@@ -199,7 +213,7 @@ def get_separate_subgraphs(graph):
     """Find all the unconnected graphs in a graph
 
     Arguments:
-        graph (nx.graph): graph
+        graph (nx.Graph): graph
 
     Returns:
         list: list of graphs separate graphs
@@ -211,7 +225,7 @@ def split_mol_across_bond(graph, bond):
     """Gets a list of atoms on either side of a bond
 
     Arguments:
-        graph (nx.graph): molecular graph
+        graph (nx.Graph): molecular graph
         bond (tuple): list of bonds to be split across
 
     """
@@ -282,3 +296,22 @@ def get_fbonds(graph, key):
                         possible_fbonds.append(bond)
 
     return possible_fbonds
+
+
+def get_active_mol_graph(graph, active_bonds):
+    logger.info('Getting molecular graph with active edges')
+    active_graph = graph.copy()
+
+    for bond in active_bonds:
+        atom_i, atom_j = bond       # The graph has both (i, j) and (j, i) edges such that the order is not important
+
+        if bond in graph.edges:
+            graph.edges[atom_i, atom_j]['active'] = True
+
+        else:
+            graph.add_edge(atom_i, atom_j, pi=False, active=True)
+
+    return active_graph
+
+
+

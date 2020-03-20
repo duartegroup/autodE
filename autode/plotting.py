@@ -85,21 +85,24 @@ def plot_1dpes(rs, rel_energies, method, name='1d_scan'):
     return save_plot(plot=plt, filename=f'{name}.png')
 
 
-def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts, ts_is_converged, switched=False, barrierless=False):
+def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, switched=False):
     """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
 
     Arguments:
-        e_reac (float): relative reactant energy, usually 0.0
-        e_ts (float): relative ts energy
-        e_prod (float): relative product energy
-        units (object): an object defined in units.py
-        reacs (list(Molecule)): reactants
-        prods (list(Molecule)): products
-        is_true_ts (bool): flag for whether the TS is good, i.e. has a single imaginary frequency
-        ts_is_converged (bool): flag for whether the TS geometry is converged or not
+        e_reac (float): Relative reactant energy, usually 0.0
+        e_ts (float): Relative ts energy or None
+        e_prod (float): Relative product energy
+        units (autode.units.Units):
+        reacs (list(autode.molecule.Reactant)):
+        prods (list(autode.molecule.Product)):
+        ts (autode.transtion_states.transtion_state.TranstionState):
         switched (bool): flag for a reaction that was initially reversed reactant/products
     """
     logger.info('Plotting reaction profile')
+
+    if e_ts is None:
+        logger.error('TS is None – assuming barrierless reaction. ∆E‡ = 2 kcal mol-1 above the maximum energy')
+        e_ts = 0.0032 * units.conversion + max(0.0, e_prod)
 
     if switched:
         # Swap the energies of reactants and products
@@ -174,20 +177,21 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, is_true_ts,
     energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
 
     for i, energy in enumerate(energies):
-        if barrierless and i == 1:
+        if ts is None and i == 1:
             continue
         ax.annotate(energy, (x_label_coords[i], energy + y_label_shift[i]), fontsize=12)
         plt.plot(x_point_coords[i], energy, marker='o', markersize=3, color='b')
 
-    if not is_true_ts:
-        ax.annotate('TS has >1 imaginary frequency',
-                    (0.5, 0.1*max(y_vals)), ha='center', color='red')
-    if not ts_is_converged:
-        ax.annotate('TS is not fully converged',
-                    (0.5, 0.2*max(y_vals)), ha='center', color='red')
-    if barrierless:
-        ax.annotate('No TS was found, barrierless reaction assumed',
-                    (0.5, 0.3*max(y_vals)), ha='center', color='red')
+    if ts is not None:
+        if len(ts.imaginary_frequencies) != 1:
+            ax.annotate(f'TS has {len(ts.imaginary_frequencies)} imaginary frequency',
+                        (0.5, 0.1*max(y_vals)), ha='center', color='red')
+
+        if ts.calc is not None and not ts.calc.optimisation_converged():
+            ax.annotate('TS is not fully converged',
+                        (0.5, 0.2*max(y_vals)), ha='center', color='red')
+    else:
+        ax.annotate('No TS was found, barrierless reaction assumed', (0.5, 0.3*max(y_vals)), ha='center', color='red')
 
     plt.title(name, fontdict={'fontsize': 12})
     plt.xticks([])

@@ -2,11 +2,46 @@ import numpy as np
 from autode.log import logger
 from autode.solvent.solvents import get_solvent
 from autode.calculation import Calculation
+from autode import mol_graphs
+from autode.methods import get_lmethod
+from autode.conformers.conformers import get_unique_confs
 from autode.config import Config
 from autode.utils import requires_atoms
+from autode.utils import requires_conformers
 
 
 class Species:
+
+    def _generate_conformers(self, *args, **kwargs):
+        raise NotImplemented
+
+    @requires_conformers()
+    def _set_lowest_energy_conformer(self):
+        """Set the species energy and atoms as those of the lowest energy conformer"""
+
+        lowest_energy = None
+        for conformer in self.conformers:
+            if conformer.energy is None:
+                continue
+
+            # Conformers don't have a molecular graph, so make it
+            mol_graphs.make_graph(conformer)
+
+            if not mol_graphs.is_isomorphic(self.graph, conformer.graph, ignore_active_bonds=True):
+                logger.warning('Conformer had a different molecular graph. Ignoring')
+                continue
+
+            # If the conformer retains the same connectivity, up the the active atoms in the species graph
+
+            if lowest_energy is None:
+                lowest_energy = conformer.energy
+
+            if conformer.energy <= lowest_energy:
+                self.energy = conformer.energy
+                self.set_atoms(atoms=conformer.atoms)
+                lowest_energy = conformer.energy
+
+        return None
 
     @requires_atoms()
     def translate(self, vec):
@@ -68,6 +103,38 @@ class Species:
         """Get the distance between two atoms in the species"""
         return np.linalg.norm(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
 
+    def find_lowest_energy_conformer(self, low_level_method=get_lmethod(), high_level_method=None):
+        """
+        For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy
+
+        Arguments:
+            low_level_method (autode.wrappers.ElectronicStructureMethod):
+            high_level_method (autode.wrappers.ElectronicStructureMethod):
+        """
+        logger.info('Finding lowest energy conformer')
+
+        try:
+            self._generate_conformers()
+        except NotImplementedError:
+            logger.error('Could not generate conformers. _generate_conformers() not implemented')
+            return None
+
+        # For all the generated conformers optimise with the low level of theory
+        for i in range(len(self.conformers)):
+            self.conformers[i].optimise(low_level_method)
+
+        # Strip conformers that are similar based on an energy criteria or don't have an energy
+        self.conformers = get_unique_confs(conformers=self.conformers)
+
+        if high_level_method is not None:
+            # Re-optimise all the conformers with the higher level of theory to get more accurate energies
+            [self.conformers[i].optimise(high_level_method) for i in range(len(self.conformers))]
+
+        self._set_lowest_energy_conformer()
+
+        logger.info(f'Lowest energy conformer found. E = {self.energy}')
+        return None
+
     def set_atoms(self, atoms):
         """Set the atoms of this species and from those the number of atoms"""
 
@@ -108,11 +175,13 @@ class Species:
 
         self.solvent = get_solvent(solvent_name=solvent_name) if solvent_name is not None else None
 
-        self.energy = None                                               # Total electronic energy in Hartrees (float)
+        self.energy = None                                              # Total electronic energy in Hartrees (float)
 
-        self.charges = None                                              # List of partial atomic charges (list(float))
+        self.charges = None                                             # List of partial atomic charges (list(float))
 
-        self.graph = None                                                # NetworkX.Graph object with atoms and bonds
+        self.graph = None                                               # NetworkX.Graph object with atoms and bonds
+
+        self.conformers = None                                          # List of autode.conformers.conformers.Conformer
 
 
 class SolvatedSpecies(Species):

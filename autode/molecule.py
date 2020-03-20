@@ -5,10 +5,9 @@ from rdkit import Chem
 import rdkit.Chem.Descriptors
 from autode.species import Species
 from autode.geom import are_coords_reasonable
-from autode.mol_graphs import make_graph, is_isomorphic
+from autode.mol_graphs import make_graph
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
-from autode.conformers.conformers import get_unique_confs
-from autode.conformers.conformers import Conformer
+from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.calculation import Calculation
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
@@ -125,48 +124,6 @@ class Molecule(Species):
         self.set_atoms(atoms=opt.get_final_atoms())
         self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
 
-        return None
-
-    def find_lowest_energy_conformer(self, low_level_method, high_level_method=None):
-        """
-        For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy
-
-        Arguments:
-            low_level_method (autode.wrappers.ElectronicStructureMethod):
-            high_level_method (autode.wrappers.ElectronicStructureMethod):
-        """
-        logger.info('Finding lowest energy conformer')
-
-        self._generate_conformers()
-        [self.conformers[i].optimise(low_level_method) for i in range(len(self.conformers))]
-        self.conformers = get_unique_confs(conformers=self.conformers)
-
-        if high_level_method is not None:
-            [self.conformers[i].optimise(high_level_method) for i in range(len(self.conformers))]
-
-        lowest_energy = None
-        for conformer in self.conformers:
-            if conformer.energy is None:
-                continue
-
-            make_graph(conformer)
-
-            # If the conformer retains the same connectivity
-            if is_isomorphic(self.graph, conformer.graph):
-
-                if lowest_energy is None:
-                    lowest_energy = conformer.energy
-
-                if conformer.energy <= lowest_energy:
-                    self.energy = conformer.energy
-                    self.set_atoms(atoms=conformer.atoms)
-                    self.charges = conformer.charges
-                    lowest_energy = conformer.energy
-
-            else:
-                logger.warning('Conformer had a different molecular graph. Ignoring')
-
-        logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
 
     def __init__(self, name='molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):

@@ -12,7 +12,7 @@ def test_plot_reaction_profile():
     r = Molecule(name='reactant')
     p = Molecule(name='product')
 
-    plotting.plot_reaction_profile(0.0, 10.0, -10.0, KjMol, reacs=[r], prods=[p], is_true_ts=True, ts_is_converged=True)
+    plotting.plot_reaction_profile(0.0, 10.0, -10.0, KjMol, reacs=[r], prods=[p], n_imag_modes=True, ts_is_converged=True)
 
     assert os.path.exists('reaction_profile.png')
 

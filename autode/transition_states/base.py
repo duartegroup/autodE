@@ -6,14 +6,23 @@ from autode.geom import length
 from autode.config import Config
 from autode import mol_graphs
 from autode.calculation import Calculation
-from autode.exceptions import NoNormalModesFound, AtomsNotFound
+from autode.exceptions import NoNormalModesFound
+from autode.exceptions import AtomsNotFound
+from autode.exceptions import NoCalculationOutput
 from autode.log import logger
 from autode.atoms import get_atomic_weight
 
 
 class TSbase(Species):
 
-    def could_have_correct_imag_mode(self, method, threshold=-50):
+    def _init_graph(self):
+        """Set the molecular graph for this TS object from the reactant"""
+        logger.warning(f'Setting the graph of {self.name} from reactants')
+
+        self.graph = self.reactant.graph.copy()
+        return None
+
+    def could_have_correct_imag_mode(self, method=None, threshold=-50):
         """
         Determine if a point on the PES could have the correct imaginary mode. This must have
 
@@ -21,17 +30,18 @@ class TSbase(Species):
         (1) The most negative(/imaginary) is more negative that a threshold
 
         Keywords Arguments:
+            calc (autode.calculation.Calculation):
             method (autode.wrappers.base.ElectronicStructureMethod):
             threshold (float):
         """
 
-        if self.hess_calc is None:
+        if self.calc is None:
             logger.info('Calculating the hessian ')
-            self.hess_calc = Calculation(name=self.name + '_hess', molecule=self, method=method,
-                                         keywords_list=method.keywords.hess, n_cores=Config.n_cores)
-            self.hess_calc.run()
+            self.calc = Calculation(name=self.name + '_hess', molecule=self, method=method,
+                                    keywords_list=method.keywords.hess, n_cores=Config.n_cores)
+            self.calc.run()
 
-        imag_freqs = self.hess_calc.get_imag_freqs()
+        imag_freqs = self.calc.get_imag_freqs()
 
         if len(imag_freqs) == 0:
             logger.warning('Hessian had no imaginary modes')
@@ -46,15 +56,16 @@ class TSbase(Species):
 
         return True
 
-    def has_correct_imag_mode(self, active_atoms, method=get_hmethod()):
-        """Check that the imaginary mode is 'correct'"""
+    def has_correct_imag_mode(self, active_atoms, calc=None, method=get_hmethod()):
+        """Check that the imaginary mode is 'correct' set the calculation (hessian or optts)"""
+        self.calc = calc
 
         if not self.could_have_correct_imag_mode(method=method):
             return False
 
         logger.info('Species could have the correct imaginary mode')
 
-        if ts_has_correct_imaginary_vector(self.hess_calc, active_atoms, self.reactant.graph, self.product.graph, method):
+        if ts_has_correct_imaginary_vector(self.calc, active_atoms, self.reactant.graph, self.product.graph, method):
             logger.info('Species does have the correct imaginary mode')
             return True
 
@@ -70,7 +81,9 @@ class TSbase(Species):
         self.reactant = reactant
         self.product = product
 
-        self.hess_calc = None
+        self.calc = None
+
+        self._init_graph()
 
 
 def ts_has_correct_imaginary_vector(calc, active_atoms, reactant_graph, product_graph, method, threshold=0.25):
@@ -96,7 +109,7 @@ def ts_has_correct_imaginary_vector(calc, active_atoms, reactant_graph, product_
     try:
         imag_normal_mode_displacements_xyz = calc.get_normal_mode_displacements(mode_number=6)
 
-    except NoNormalModesFound:
+    except (NoNormalModesFound, NoCalculationOutput):
         logger.error('Have no imaginary normal mode displacements to analyse')
         return False
 

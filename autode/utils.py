@@ -3,6 +3,7 @@ from autode.log import logger
 from autode.exceptions import NoAtomsInMolecule
 from autode.exceptions import NoMolecularGraph
 from autode.exceptions import NoCalculationOutput
+from autode.exceptions import NoConformers
 from functools import wraps
 from tempfile import mkdtemp
 import shutil
@@ -104,6 +105,25 @@ def requires_graph():
 
             if args[0].graph is None:
                 raise NoMolecularGraph
+
+            return func(*args, **kwargs)
+
+        return wrapped_function
+    return func_decorator
+
+
+def requires_conformers():
+    """A function requiring a list of"""
+
+    def func_decorator(func):
+        @wraps(func)
+        def wrapped_function(*args, **kwargs):
+
+            # Species must be the first argument
+            assert hasattr(args[0], 'conformers')
+
+            if args[0].conformers is None:
+                raise NoConformers
 
             return func(*args, **kwargs)
 

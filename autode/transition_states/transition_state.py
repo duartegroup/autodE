@@ -1,27 +1,39 @@
 from autode.log import logger
+from copy import deepcopy
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.config import Config
 from autode.transition_states.templates import TStemplate
-from autode.utils import requires_atoms
+from autode.utils import requires_atoms, requires_graph
 from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.calculation import Calculation
+from autode.mol_graphs import get_active_mol_graph
 from autode.methods import get_hmethod
-from autode.conformers.conformers import Conformer
+from autode.geom import get_distance_constraints
+from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.transition_states.base import TSbase
 
 
 class TransitionState(TSbase):
 
-    def _run_opt_ts_calc(self, method):
+    @requires_graph()
+    def _update_graph(self):
+        """Update the molecular graph to include all the bonds that are being made/broken"""
+        self.graph = get_active_mol_graph(graph=self.graph, active_bonds=self.bond_rearrangement.all)
 
-        self.optts_calc = Calculation(name=f'{self.name}_optts', molecule=self, method=method, n_cores=Config.n_cores,
+        logger.info(f'Molecular graph updated with {len(self.bond_rearrangement.all)} active bonds')
+        return None
+
+    def _run_opt_ts_calc(self, method, name_ext):
+        """Run an optts calculation and attempt to set the geometry, energy and normal modes"""
+
+        self.optts_calc = Calculation(name=f'{self.name}_{name_ext}', molecule=self, method=method,
+                                      n_cores=Config.n_cores,
                                       keywords_list=method.keywords.opt_ts,
                                       bond_ids_to_add=self.bond_rearrangement.all,
                                       other_input_block=method.keywords.optts_block)
         self.optts_calc.run()
 
-        # Attempt to set the frequencies, atoms and energy from the calculation
         try:
             self.imaginary_frequencies = self.optts_calc.get_imag_freqs()
             self.set_atoms(atoms=self.optts_calc.get_final_atoms())
@@ -32,11 +44,30 @@ class TransitionState(TSbase):
 
         return
 
-    @requires_atoms()
-    def opt_ts(self):
-        """Optimise this TS to a true TS """
+    def _generate_conformers(self, n_confs=50):
+        """Generate conformers at the TS """
 
-        self._run_opt_ts_calc(method=get_hmethod())
+        self.conformers = []
+
+        for i in range(n_confs):
+
+            distance_consts = get_distance_constraints(self)
+            atoms = get_simanl_atoms(self, dist_consts=distance_consts, conf_n=i)
+            conf = Conformer(name=f'{self.name}_conf{i}', atoms=atoms, dist_consts=distance_consts,
+                             charge=self.charge, mult=self.mult)
+
+            conf.solvent = self.solvent
+            self.conformers.append(conf)
+
+        logger.info(f'Generated {len(self.conformers)} conformer(s)')
+        return None
+
+    @requires_atoms()
+    def opt_ts(self, name_ext='optts'):
+        """Optimise this TS to a true TS """
+        logger.info(f'Optimising {self.name} to a transition state')
+
+        self._run_opt_ts_calc(method=get_hmethod(), name_ext=name_ext)
 
         # A transition state is a first order saddle point i.e. has a single imaginary frequency
         if len(self.imaginary_frequencies) == 1:
@@ -48,10 +79,9 @@ class TransitionState(TSbase):
             return None
 
         # There is more than one imaginary frequency. Will assume that the most negative is the correct mode..
-
         for disp_magnitude in [1, -1]:
             self.atoms = get_displaced_atoms_along_mode(self.optts_calc, mode_number=7, disp_magnitude=disp_magnitude)
-            self._run_opt_ts_calc(method=get_hmethod())
+            self._run_opt_ts_calc(method=get_hmethod(), name_ext=name_ext)
 
             if len(self.imaginary_frequencies) == 1:
                 logger.info('Displacement along second imaginary mode successful. Now have 1 imaginary mode')
@@ -59,9 +89,33 @@ class TransitionState(TSbase):
 
         return None
 
+    def find_lowest_energy_ts_conformer(self):
+        """Find the lowest energy transition state conformer by performing constrained optimisations"""
+
+        atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
+
+        self.find_lowest_energy_conformer()
+        self.opt_ts(name_ext='optts_conf')
+
+        if self.is_true_ts() and self.energy < energy:
+            logger.info('Conformer search successful')
+
+        else:
+            logger.warning('Transition state conformer search failed. Reverting')
+            self.set_atoms(atoms=atoms)
+            self.energy = energy
+
+        return None
+
     def is_true_ts(self):
-        """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian"""
-        return True if len(self.imaginary_frequencies) > 0 else False
+        """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
+
+        if len(self.imaginary_frequencies) > 0:
+            if self.has_correct_imag_mode(active_atoms=self.bond_rearrangement.active_atoms, calc=self.optts_calc):
+                logger.info('Found a transition state with the correct imaginary mode')
+                return True
+
+        return False
 
     def save_ts_template(self, folder_path=None):
         """Save a transition state template containing the active bond lengths, solvent_name and charge in folder_path
@@ -69,26 +123,15 @@ class TransitionState(TSbase):
         Keyword Arguments:
             folder_path (str): folder to save the TS template to (default: {None})
         """
-        logger.info('Saving TS template')
-
-        # TODO fix this
+        logger.info(f'Saving TS template for {self.name}')
 
         try:
-            ts_template = TStemplate(self.truncated_graph, solvent=self.solvent,  charge=self.charge, mult=self.mult)
+            ts_template = TStemplate(self.graph, solvent=self.solvent,  charge=self.charge, mult=self.mult)
             ts_template.save_object(folder_path=folder_path)
             logger.info('Saved TS template')
 
         except (ValueError, AttributeError):
             logger.error('Could not save TS template')
-
-    def find_lowest_energy_conformer(self):
-        """For a transition state object find the lowest energy conformer"""
-
-        # TODO check isomorphism
-
-        # TODO check that energy doesn't rise
-
-        # TODO set the final optts calc
 
         return None
 
@@ -99,7 +142,6 @@ class TransitionState(TSbase):
         Arguments:
             ts_guess (autode.transition_states.ts_guess.TSguess)
             bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
-            name (str):
         """
         super().__init__(atoms=ts_guess.atoms, reactant=ts_guess.reactant,
                          product=ts_guess.product, name=f'TS_{ts_guess.name}')
@@ -109,6 +151,8 @@ class TransitionState(TSbase):
 
         self.optts_calc = None
         self.imaginary_frequencies = []
+
+        self._update_graph()
 
 
 class SolvatedTransitionState(TransitionState):
