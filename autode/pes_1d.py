@@ -2,142 +2,114 @@ import numpy as np
 from copy import deepcopy
 from autode.config import Config
 from autode.log import logger
+from autode.pes import PES
+from autode.pes import get_point_species
 from autode.transition_states.ts_guess import TSguess
 from autode.plotting import plot_1dpes
-from autode.constants import Constants
-from autode.calculation import Calculation
-from autode.exceptions import AtomsNotFound
+from autode.units import KcalMol
 from autode import mol_graphs
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
-def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, method, keywords, solvent_mol, final_dist=1.5,
-                    active_bonds_not_scanned=None):
+class PES1d(PES):
+
+    def get_species_saddle_point(self):
+        """Get the possible first order saddle points, which are just the peaks in the PES"""
+
+        energies = [self.species[i].energy for i in range(self.n_points)]
+
+        # Peaks have lower energies both sides of them
+        peaks = [i for i in range(1, self.n_points - 1) if energies[i-1] < energies[i] and energies[i+1] < energies[i]]
+
+        # Yield the peak with the highest energy first
+        for peak in sorted(peaks, key=lambda p: -self.species[p].energy):
+            yield self.species[peak]
+
+        return None
+
+    def print_plot(self, method_name, name='PES1d'):
+        """Print a 1D surface using matplotlib"""
+        min_energy = min([species.energy for species in self.species])
+        rel_energies = [KcalMol.conversion * (species.energy - min_energy) for species in self.species]
+
+        return plot_1dpes(self.rs, rel_energies, name=name, method_name=method_name)
+
+    def products_made(self, product):
+        logger.info('Checking that somewhere on the surface product(s) are made')
+
+        for i in range(self.n_points):
+            mol_graphs.make_graph(self.species[i])
+
+            if mol_graphs.is_isomorphic(graph1=self.species[i].graph, graph2=product.graph):
+                logger.info(f'Products made at point {i} in the 1D surface')
+                return True
+
+        return False
+
+    def calculate(self, name, method, keywords):
+        """Calculate all the points on the surface in serial using the maximum number of cores available"""
+
+        for i in range(self.n_points):
+            self.species[i] = get_point_species((i,), self, name, method, keywords, Config.n_cores)
+
+        return None
+
+    def __init__(self, reactant, rs, r_idxs):
+        """
+        A one dimensional potential energy surface
+
+        Arguments:
+            reactant (autode.complex.ReactantComplex): Species at rs[0]
+            rs (np.ndarray): Bond length array
+            r_idxs (tuple): Atom indexes that the PES will be calculated over
+        """
+        self.n_points = len(rs)
+        self.rs = np.array([(r, ) for r in rs])
+
+        # Vector to store the species
+        self.species = np.empty(shape=(self.n_points,), dtype=object)
+        self.species[0] = deepcopy(reactant)
+
+        # Tuple of the atom indices scanned in coordinate r
+        self.rs_idxs = [r_idxs]
+
+
+def get_ts_guess_1d(reactant, product, active_bond, n_steps, name, method, keywords, final_dist):
     """Scan the distance between two atoms and return a guess for the TS
 
     Arguments:
-        mol (molcule object): reactant complex
-        product (molecule object): product complex
-        active_bond (tuple): tuple of atom ids showing the bond being scanned
-        n_steps (int): number of steps to take in the scan
+       reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
+        active_bond1 (tuple): tuple of atom ids showing the first bond being scanned
+        active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
+        n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
         name (str): name of reaction
-        reaction_class (object): class of the reaction (reactions.py)
-        method (object): electronic structure wrapper to use for the calcs
+        method (autode.): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
-
-    Keyword Arguments:
-        final_dist (float): Final distance (Å) will be generated in n_steps (default: {1.5})
-        active_bonds_not_scanned (list(tuple)): pairs of atoms that are active, but will not be scanned in the 1D PES (default: {None})
+        final_dist (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
 
     Returns:
-        ts guess object: ts guess
+        (autode.transition_states.ts_guess.TSguess)
     """
     logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
-    mol_with_const = deepcopy(mol)
-    mol_with_const.qm_solvent_xyzs = None
+    curr_dist = reactant.get_distance(atom_i=active_bond[0], atom_j=active_bond[1])
 
-    curr_dist = mol.calc_bond_distance(active_bond)
-    # Generate a list of distances at which to constrain the optimisation
-    dists = np.linspace(curr_dist, final_dist, n_steps)
-    # Initialise an empty dictionary containing the distance as a key and the xyzs and energy as s tuple value
-    xyzs_list, energy_list, qmmm_xyzs_list = [], [], []
+    # Create a potential energy surface in the active bonds and calculate
+    pes = PES1d(reactant=reactant,
+                rs=np.linspace(curr_dist, final_dist, n_steps), r_idxs=active_bond)
 
-    # Run a relaxed potential energy surface scan by running sequential constrained optimisations
-    for n, dist in enumerate(dists):
-        const_opt = Calculation(name=name + f'_scan{n}', molecule=mol_with_const, method=method, opt=True,
-                                n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords_list=keywords)
-        const_opt.run()
+    pes.calculate(name=name, method=method, keywords=keywords)
 
-        # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
-        try:
-            xyzs = const_opt.get_final_atoms()
-        except AtomsNotFound:
-            logger.error('Could not find XYZs, setting as previous')
-            xyzs = deepcopy(const_opt.xyzs)
-
-        # Update the molecule with constraints xyzs such that the next optimisation is as fast as possible
-        mol_with_const.xyzs = xyzs
-
-        if solvent_mol is not None:
-            mol_with_const.name = f'{name}_scan{n}'
-            mol_with_const.charges = const_opt.get_atomic_charges()
-            qmmm_energy, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(mol_with_const, solvent_mol, method)
-            qmmm_xyzs_list.append(qmmm_xyzs)
-            energy_list.append(qmmm_energy)
-            xyzs_list.append(qmmm_xyzs[:mol_with_const.n_atoms])
-        else:
-            energy_list.append(const_opt.get_energy())
-            xyzs_list.append(xyzs)
-    # check product and TSGuess product graphs are isomorphic
-    expected_prod_graphs = mol_graphs.get_separate_subgraphs(product.graph)
-    logger.info('Checking products were made')
-    ts_product_graphs = [mol_graphs.make_graph(xyzs, len(xyzs)) for xyzs in xyzs_list[::-1]]
-    products_made = False
-    for ts_product_graph in ts_product_graphs:
-        if all(mol_graphs.is_subgraph_isomorphic(ts_product_graph, graph) for graph in expected_prod_graphs):
-            products_made = True
-            logger.info('Products made')
-            break
-
-    if not products_made:
-        logger.info('Products not made')
+    if not pes.products_made(product):
+        logger.error('Products were not made on the whole PES')
         return None
 
-    make_reaction_animation(name, xyzs_list)
+    # Fit an analytic 2D PES to the surface and plot using matplotlib
+    pes.print_plot(name=name, method_name=method.name)
 
-    # Make a new molecule that will form the basis of the TS guess object
-    tsguess_mol = deepcopy(mol)
-    tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, scan_name=name,
-                                                             plot_name=f'{mol.name}_{active_bond[0]}_{active_bond[1]}_1dscan',
-                                                             method=method))
+    # Yield a TSGuess for every saddle point on the surface
+    for species in pes.get_species_saddle_point():
+        return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
 
-    if tsguess_mol.xyzs is None:
-        logger.warning('TS guess had no xyzs')
-        return None
-
-    active_bonds = [active_bond] if active_bonds_not_scanned is None else [active_bond] + active_bonds_not_scanned
-
-    return TSguess(name=name, reaction_type=reaction_class, molecule=tsguess_mol, active_bonds=active_bonds, reactant=mol, product=product)
-
-
-def find_1dpes_maximum_energy_xyzs(dist_list, xyzs_list, energy_list, scan_name, plot_name, method):
-    """Given a 1D list of energies find the maximum that lies between the end points
-
-    Arguments:
-        dist_list (np.ndarray): list of distances the scan points are at
-        xyzs_list (list(list(list))): list of the xyzs at the scan point
-        energy_list (list(float)): list of energies at the scan points
-        scan_name (str): name of the reaction
-        plot_name (str): name of the plot made
-        method (object): electronic structure wrapper used for the calcs
-
-    Returns:
-        list(list): xyzs at the peak of the PES
-    """
-
-    logger.info('Finding peak in 1D PES')
-
-    xyzs_peak_energy = None
-
-    energies_not_none = list(replace_none(energy_list))
-
-    if len(xyzs_list) == 0 or len(energy_list) == 0:
-        logger.error('Had no distances, xyzs and energies')
-        return None
-
-    peak_e, min_e = min(energies_not_none), min(energies_not_none)
-
-    for i in range(1, len(dist_list) - 1):
-        if energies_not_none[i] > peak_e and energies_not_none[i-1] <= energies_not_none[i] >= energies_not_none[i+1]:
-            peak_e = energy_list[i]
-            xyzs_peak_energy = xyzs_list[i]
-
-    plot_1dpes(dist_list, [Constants.ha2kcalmol * (e - min_e)
-                           for e in energies_not_none], scan_name=scan_name, name=plot_name, method=method)
-
-    if peak_e != min_e:
-        logger.info(f'Energy at peak in PES at ∆E = {Constants.ha2kcalmol * (peak_e - min_e)} kcal/mol')
-    else:
-        logger.warning('Couldn\'t find a peak in the PES')
-
-    return xyzs_peak_energy
+    logger.error('No possible TSs found on the 1D surface')
+    return None

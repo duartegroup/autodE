@@ -102,8 +102,7 @@ class Molecule(Species):
 
         else:
             logger.info('Using simulated annealing to generate conformers')
-            conf_atoms_list = [get_simanl_atoms(species=self, bond_list=self.graph.edges, conf_n=i)
-                               for i in range(n_siman_confs)]
+            conf_atoms_list = [get_simanl_atoms(species=self, conf_n=i) for i in range(n_siman_confs)]
 
         for i, atoms in enumerate(conf_atoms_list):
             conf = Conformer(name=f'{self.name}_conf{i}', atoms=atoms,  charge=self.charge, mult=self.mult)

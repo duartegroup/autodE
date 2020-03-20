@@ -205,7 +205,7 @@ class G09(ElectronicStructureMethod):
         return False
 
     def get_imag_freqs(self, calc):
-        imag_freqs = None
+        imag_freqs = []
         normal_mode_section = False
 
         for line in calc.output_file_lines:
@@ -257,7 +257,7 @@ class G09(ElectronicStructureMethod):
             logger.error('Something went wrong getting the displacements n != n_atoms')
             return None
 
-        return displacements
+        return np.array(displacements)
 
     def get_final_atoms(self, calc):
 

@@ -91,8 +91,7 @@ class TransitionState(TSbase):
 
     def find_lowest_energy_ts_conformer(self):
         """Find the lowest energy transition state conformer by performing constrained optimisations"""
-
-        atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
+        atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.calc)
 
         self.find_lowest_energy_conformer()
         self.opt_ts(name_ext='optts_conf')
@@ -104,6 +103,7 @@ class TransitionState(TSbase):
             logger.warning('Transition state conformer search failed. Reverting')
             self.set_atoms(atoms=atoms)
             self.energy = energy
+            self.calc = calc
 
         return None
 

@@ -158,7 +158,7 @@ class NWChem(ElectronicStructureMethod):
 
     def get_imag_freqs(self, calc):
 
-        imag_freqs = None
+        imag_freqs = []
         normal_mode_section = False
 
         for line in calc.output_file_lines:
@@ -209,7 +209,7 @@ class NWChem(ElectronicStructureMethod):
                 'Something went wrong getting the displacements n != n_atoms')
             return None
 
-        return displacements_xyz
+        return np.array(displacements_xyz)
 
     def get_final_atoms(self, calc):
 

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from autode.log import logger
-from autode.exceptions import NoClosestSpecies, AtomsNotFound
+from autode.exceptions import NoClosestSpecies
+from autode.exceptions import AtomsNotFound
 from autode.calculation import Calculation
 from copy import deepcopy
 import numpy as np
@@ -89,9 +90,10 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
 
     # If the energy difference is > 1 Hartree then likley something has gone wrong with the EST method
     # we need to be not on the first point to compute an energy difference..
-    if not all(p == 0 for p in point) and np.abs(energy - species.energy) > energy_threshold:
-        logger.error(f'PES point had a relative energy > {energy_threshold} Ha. Using the closest')
-        return species
+    if not all(p == 0 for p in point):
+        if energy is None or np.abs(energy - species.energy) > energy_threshold:
+            logger.error(f'PES point had a relative energy > {energy_threshold} Ha. Using the closest')
+            return species
 
     species.energy = energy
     species.set_atoms(atoms=atoms)

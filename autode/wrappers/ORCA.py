@@ -3,6 +3,7 @@ from autode.log import logger
 from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.exceptions import NoCalculationOutput, NoNormalModesFound
+import numpy as np
 import os
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
@@ -143,7 +144,7 @@ class ORCA(ElectronicStructureMethod):
         return False
 
     def get_imag_freqs(self, calc):
-        imag_freqs = None
+        imag_freqs = []
 
         if calc.partial_hessian:
             n_atoms = len(calc.partial_hessian)
@@ -192,7 +193,7 @@ class ORCA(ElectronicStructureMethod):
             logger.error('Something went wrong getting the displacements n != n_atoms')
             raise NoNormalModesFound
 
-        return displacements_xyz
+        return np.array(displacements_xyz)
 
     def get_final_atoms(self, calc):
 

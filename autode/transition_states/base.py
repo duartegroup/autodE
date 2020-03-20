@@ -51,7 +51,7 @@ class TSbase(Species):
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
 
         if imag_freqs[0] > threshold:
-            logger.info('Imaginary modes were too small to be significant')
+            logger.warning('Imaginary modes were too small to be significant')
             return False
 
         return True
@@ -170,7 +170,7 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
     assert len(atoms) == len(mode_disp_coords)
 
     for i in range(len(atoms)):
-        atoms[i] = atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
+        atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
 
     return atoms
 

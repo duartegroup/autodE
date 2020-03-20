@@ -62,16 +62,14 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
     Returns:
         (list): updated funcs and params list
     """
-
     name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
-
-    # if reactant.is_fragment:
-    #     name += 'fragment_'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
+    # Ideally use a transition state template, then only a single constrained optimisation need to be run..
     yield get_template_ts_guess, (reactant, product, bond_rearr, hmethod, hmethod.keywords.low_opt)
 
+    # Otherwise run 1D or 2D potential energy surface scans to generate a transition state guess
     if bond_rearr.n_bbonds >= 1 and bond_rearr.n_fbonds >= 1:
         for fbond in bond_rearr.fbonds:
             for bbond in bond_rearr.bbonds:
@@ -121,38 +119,38 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label, atom_j_label=reactant.atoms[fbond[1]].label)
 
         yield get_ts_guess_1d, (reactant, product, fbond, 20, scan_name + '_ll1d_fbond', lmethod,
-                                lmethod.keywords.low_opt, fbond_final_dist, bond_rearr.bbonds)
+                                lmethod.keywords.low_opt, fbond_final_dist)
 
         yield get_ts_guess_1d, (reactant, product, fbond, 10, scan_name + '_hl1d_fbond', hmethod,
-                                hmethod.keywords.low_opt, fbond_final_dist, bond_rearr.bbonds)
+                                hmethod.keywords.low_opt, fbond_final_dist)
 
         yield get_ts_guess_1d, (reactant, product, fbond, 10, scan_name + '_hl1d_opt_level_fbond', hmethod,
-                                hmethod.keywords.opt, fbond_final_dist, bond_rearr.bbonds)
+                                hmethod.keywords.opt, fbond_final_dist)
 
     if bond_rearr.n_fbonds == 2:
         fbond1, fbond2 = bond_rearr.fbonds
         scan_name = name + f'_{fbond1[0]}-{fbond1[1]}_{fbond2[0]}-{fbond2[1]}'
 
-        delta_fbond_dist1 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond1[0]].label, atom_j_label=reactant.atoms[fbond1[1]].label)
-        delta_fbond_dist2 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond2[0]].label, atom_j_label=reactant.atoms[fbond2[1]].label)
+        fbond_final_dist1 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond1[0]].label, atom_j_label=reactant.atoms[fbond1[1]].label)
+        fbond_final_dist2 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond2[0]].label, atom_j_label=reactant.atoms[fbond2[1]].label)
 
         yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 16, scan_name + '_ll2d_fbonds', lmethod,
-                                lmethod.keywords.low_opt, delta_fbond_dist1, delta_fbond_dist2, bond_rearr.bbonds)
+                                lmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
         yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 8, scan_name + '_hl2d_fbonds', hmethod,
-                                hmethod.keywords.low_opt, delta_fbond_dist1, delta_fbond_dist2, bond_rearr.bbonds)
+                                hmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
 
     if bond_rearr.n_bbonds == 2:
         bbond1, bbond2 = bond_rearr.bbonds
         scan_name = name + f'_{bbond1[0]}-{bbond1[1]}_{bbond2[0]}-{bbond2[1]}'
 
-        bbond1_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction)
-        bbond2_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction)
+        bbond1_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction) + get_added_bbond_dist(reaction)
+        bbond2_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction) + get_added_bbond_dist(reaction)
 
         yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 16, scan_name + '_ll2d_bbonds', lmethod,
-                                lmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist, bond_rearr.fbonds)
+                                lmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
 
         yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, scan_name + '_hl2d_bbonds', hmethod,
-                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist, bond_rearr.fbonds)
+                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
 
     return None
 

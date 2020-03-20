@@ -18,6 +18,7 @@ def save_plot(plot, filename):
         os.remove(filename)
 
     plot.savefig(filename, dpi=800 if Config.high_qual_plots else 100)
+    plot.close()
 
     return None
 
@@ -74,10 +75,10 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     return save_plot(plot=plt, filename=f'{name}.png')
 
 
-def plot_1dpes(rs, rel_energies, method, name='1d_scan'):
+def plot_1dpes(rs, rel_energies, method_name, name='1d_scan'):
     logger.info(f'Plotting 1D scan and saving to {name}.png')
 
-    plt.plot(rs, rel_energies, marker='o', color='k', label=method.name)
+    plt.plot(rs, rel_energies, marker='o', color='k', label=method_name)
     plt.legend()
     plt.xlabel('$r$ / Å')
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')

@@ -11,7 +11,7 @@ from autode.transition_states.ts_guess import TSguess
 from autode.exceptions import AtomsNotFound
 from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
-from autode.min_energy_pathway import get_mep
+from autode.min_energy_pathway import get_sum_energy_mep
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.pes import PES
 from autode.pes import get_point_species
@@ -22,6 +22,9 @@ class PES2d(PES):
     def get_species_saddle_point(self, name, method, keywords):
         """Get the species at the true saddle point on the surface"""
         saddle_points = poly2d_saddlepoints(coeff_mat=self.coeff_mat, xs=self.r1s, ys=self.r2s)
+
+        logger.info('Sorting the saddle points by their minimum energy path to reactants and products')
+        saddle_points = sorted(saddle_points, key=lambda s: get_sum_energy_mep(s, self))
 
         for saddle_point in saddle_points:
             r1, r2 = saddle_point
@@ -65,7 +68,7 @@ class PES2d(PES):
         """Print the fitted 2D surface using matplotlib"""
         return plot_2dpes(coeff_mat=self.coeff_mat, r1=self.r1s, r2=self.r2s, name=name)
 
-    def products_made(self, product):
+    def products_made(self):
         """
         Check that somewhere on the surface the molecular graph is isomorphic to the product
 
@@ -78,7 +81,7 @@ class PES2d(PES):
             for j in range(self.n_points_r2):
                 mol_graphs.make_graph(self.species[i, j])
 
-                if mol_graphs.is_isomorphic(graph1=self.species[i, j].graph, graph2=product.graph):
+                if mol_graphs.is_isomorphic(graph1=self.species[i, j].graph, graph2=self.product_graph):
                     logger.info(f'Products made at ({i}, {j})')
                     return True
 
@@ -99,6 +102,10 @@ class PES2d(PES):
                                 ↖       ↖         ↖
                             sum = 0   sum = 1    sum = 2
 
+        Arguments:
+            name (str):
+            method (autode.wrappers.ElectronicStructureMethod):
+            keywords (list(str)):
         """
         logger.info(f'Running a 2D PES scan with {method.name}. {self.n_points_r1*self.n_points_r2} total points')
 
@@ -140,7 +147,7 @@ class PES2d(PES):
 
         return None
 
-    def __init__(self, reactant, r1s, r1_idxs, r2s, r2_idxs):
+    def __init__(self, reactant, product, r1s, r1_idxs, r2s, r2_idxs):
         """
         A two dimensional potential energy surface
 
@@ -173,28 +180,31 @@ class PES2d(PES):
         # Coefficients of the fitted surface
         self.coeff_mat = None
 
+        # Molecular graph of the product. Used to check that the products have been made & find the MEP
+        self.product_graph = product.graph
+
 
 def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name, method, keywords,
                     final_dist1, final_dist2, polynomial_order=3):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:
-        reactant (molcule object): reactant complex
-        product (molecule object): product complex
+        reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
         active_bond1 (tuple): tuple of atom ids showing the first bond being scanned
         active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
         n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
         name (str): name of reaction
-        method (object): electronic structure wrapper to use for the calcs
+        method (autode.): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
         final_dist1 (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
         final_dist2 (float): distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
 
-    Keyword Arguments:)
+    Keyword Arguments:
         polynomial_order (int): order of polynomial to fit the data to (default: {5})
 
     Returns:
-        ts guess object: ts guess
+        (autode.transition_states.ts_guess.TSguess)
     """
     logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds '
                 f'{active_bond1} and {active_bond2}')
@@ -202,17 +212,14 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
     curr_dist1 = reactant.get_distance(atom_i=active_bond1[0], atom_j=active_bond1[1])
     curr_dist2 = reactant.get_distance(atom_i=active_bond2[0], atom_j=active_bond2[1])
 
-    # TODO remove testing override
-    n_steps = 8
-
     # Create a potential energy surface in the two active bonds and calculate
-    pes = PES2d(reactant=reactant,
+    pes = PES2d(reactant=reactant, product=product,
                 r1s=np.linspace(curr_dist1, final_dist1, n_steps), r1_idxs=active_bond1,
                 r2s=np.linspace(curr_dist2, final_dist2, n_steps), r2_idxs=active_bond2)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 
-    if not pes.products_made(product):
+    if not pes.products_made():
         logger.error('Products were not made on the whole PES')
         return None
 
@@ -242,7 +249,7 @@ def polyfit2d(x, y, z, order):
         np.array: matrix of polynomial coefficients
     """
     logger.info('Fitting 2D surface to polynomial in x and y')
-    deg = np.array([order, order])
+    deg = np.array([int(order), int(order)])
     vander = polynomial.polyvander2d(x, y, deg)
     # vander matrix is matrix where each row i deals with x=x[i] and y=y[i], and each item in the
     # row has value x ** m * y ** n with (m,n) = (0,0), (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
