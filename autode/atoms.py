@@ -12,8 +12,12 @@ class Atom:
         self.coord += vec
         return None
 
-    def rotate(self, axis, theta):
+    def rotate(self, axis, theta, origin=None):
         """Rotate this atom by theta radians (float) in an axis (np.ndarray, length 3)"""
+
+        # If specified shift so that the origin is at (0, 0, 0), apply the rotation, and shift back
+        if origin is not None:
+            self.translate(vec=-origin)
 
         # Normalise the axis
         axis = np.asarray(axis)
@@ -30,6 +34,9 @@ class Atom:
 
         # Apply the rotation
         self.coord = np.matmul(rot_matrix, self.coord)
+
+        if origin is not None:
+            self.translate(vec=origin)
 
         return None
 

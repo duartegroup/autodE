@@ -4,7 +4,6 @@ from numpy.random import RandomState
 from copy import deepcopy
 from itertools import combinations
 from scipy.optimize import minimize
-from autode.utils import requires_graph
 from autode.bond_lengths import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms
 from autode.log import logger
@@ -42,6 +41,7 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
 
             # Don't rotate if the bond connecting the centers is a π-bond
             if species.graph.edges[atom_i, atom_j]['pi'] is True:
+                logger.info('Stereocenters were π bonded – not rotating')
                 continue
 
             left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
@@ -55,9 +55,10 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
 
 def get_non_random_atoms(species):
     """Get the atoms that won't be randomised in the conformer generation. Stereocentres and nearest neighbours"""
+    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
-    non_rand_atoms = [i for (i, j) in species.graph.edges if i in species.stereocentres or j in species.stereocentres]
-    non_rand_atoms += [j for (i, j) in species.graph.edges if i in species.stereocentres or j in species.stereocentres]
+    non_rand_atoms = [i for (i, j) in species.graph.edges if i in stereocentres or j in stereocentres]
+    non_rand_atoms += [j for (i, j) in species.graph.edges if i in stereocentres or j in stereocentres]
 
     return set(non_rand_atoms)
 
@@ -95,7 +96,8 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
             fixed_bonds.append(bond)
 
     # Randomise coordinates
-    [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for atom in atoms]
+    non_rand_atom_indexes = get_non_random_atoms(species=species)
+    [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for i, atom in enumerate(atoms) if i not in non_rand_atom_indexes]
 
     logger.info('Minimising with BFGS')
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,

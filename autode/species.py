@@ -55,10 +55,9 @@ class Species:
         """Rotate the molecule by around an axis (np.ndarray, length 3) an theta radians"""
         for atom in self.atoms:
 
-            # Shift so that the origin is at (0, 0, 0), apply the rotation, and shift back
             if origin is not None:
                 atom.translate(vec=-origin)
-                atom.rotate(axis, theta)
+                atom.rotate(axis, theta, origin=origin)
                 atom.translate(vec=origin)
 
             else:

@@ -96,7 +96,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     return rot_matrix
 
 
-def get_kfitted_coords(template_coords, coords_to_fit):
+def get_krot_p_q(template_coords, coords_to_fit):
     """Get the optimum rotation matrix and pre & post translations """
     # Construct the P matrix in the Kabsch algorithm
     p_mat = deepcopy(coords_to_fit)
@@ -112,8 +112,8 @@ def get_kfitted_coords(template_coords, coords_to_fit):
     rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
 
     # Apply to get the new set of coordinates
-    # new_linker_coords = np.array([np.matmul(rot_mat, coord - p_centroid) + q_centroid
-    #                              for coord in xyz2coord(linker.xyzs)])
+    # new_coords = np.array([np.matmul(rot_mat, coord - p_centroid) + q_centroid
+    #                              for coord in coords])
 
     return rot_mat, p_centroid, q_centroid
 
