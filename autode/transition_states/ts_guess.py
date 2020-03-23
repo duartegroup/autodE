@@ -53,7 +53,7 @@ def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywor
     active_bonds_and_dists_ts = {}
 
     # This will add edges so don't modify in place
-    mol_graph = get_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
+    mol_graph = get_active_mol_graph(graph=reactant.graph.copy(), active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
 
     name = f'{reactant.name}_template_{bond_rearrangement}'

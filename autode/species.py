@@ -103,7 +103,7 @@ class Species:
         """Get the distance between two atoms in the species"""
         return np.linalg.norm(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
 
-    def find_lowest_energy_conformer(self, low_level_method=get_lmethod(), high_level_method=None):
+    def find_lowest_energy_conformer(self, low_level_method=None, high_level_method=None):
         """
         For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy
 
@@ -112,6 +112,10 @@ class Species:
             high_level_method (autode.wrappers.ElectronicStructureMethod):
         """
         logger.info('Finding lowest energy conformer')
+
+        if low_level_method is None:
+            logger.info('Getting the default low level method')
+            low_level_method = get_lmethod()
 
         try:
             self._generate_conformers()

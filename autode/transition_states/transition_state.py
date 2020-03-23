@@ -111,8 +111,9 @@ class TransitionState(TSbase):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
 
         if len(self.imaginary_frequencies) > 0:
-            if self.has_correct_imag_mode(active_atoms=self.bond_rearrangement.active_atoms, calc=self.optts_calc):
-                logger.info('Found a transition state with the correct imaginary mode')
+            if self.has_correct_imag_mode(active_atoms=self.bond_rearrangement.active_atoms,
+                                          calc=self.optts_calc, ensure_links=True):
+                logger.info('Found a transition state with the correct imaginary mode & links reactants and products')
                 return True
 
         return False

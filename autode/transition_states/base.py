@@ -5,6 +5,7 @@ from autode.methods import get_hmethod
 from autode.geom import length
 from autode.config import Config
 from autode import mol_graphs
+from autode.mol_graphs import is_isomorphic
 from autode.calculation import Calculation
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import AtomsNotFound
@@ -54,23 +55,38 @@ class TSbase(Species):
             logger.warning('Imaginary modes were too small to be significant')
             return False
 
+        logger.info('Species could have the correct imaginary mode')
         return True
 
-    def has_correct_imag_mode(self, active_atoms, calc=None, method=get_hmethod()):
+    def has_correct_imag_mode(self, active_atoms, calc=None, method=None, ensure_links=False):
         """Check that the imaginary mode is 'correct' set the calculation (hessian or optts)"""
         self.calc = calc
 
+        # By default the high level method is used to check imaginary modes
+        if method is None:
+            method = get_hmethod()
+
+        # Run a fast check on  whether it's likely the mode is correct
         if not self.could_have_correct_imag_mode(method=method):
             return False
 
-        logger.info('Species could have the correct imaginary mode')
+        if not ts_has_contribution_from_active_atoms(calc=self.calc, active_atoms=active_atoms):
+            logger.info('Species does not have the correct imaginary mode')
+            return False
 
-        if ts_has_correct_imaginary_vector(self.calc, active_atoms, self.reactant.graph, self.product.graph, method):
-            logger.info('Species does have the correct imaginary mode')
-            return True
+        # If requested, perform displacements over the imaginary mode to ensure the mode connects reactants and products
+        if ensure_links:
 
-        logger.warning('Species does *not* have the correct imaginary mode')
-        return False
+            if imag_mode_links_reactant_products(calc, self.reactant.graph, self.product.graph, method=method):
+                logger.info('Imaginary mode links reactants and products, TS found')
+                return True
+
+            else:
+                logger.warning('Imaginary mode does not link reactants and products, TS *not* found')
+                return False
+
+        logger.warning('Species may have the correct imaginary mode')
+        return True
 
     def __init__(self, atoms, reactant, product, name='ts_guess'):
 
@@ -86,7 +102,7 @@ class TSbase(Species):
         self._init_graph()
 
 
-def ts_has_correct_imaginary_vector(calc, active_atoms, reactant_graph, product_graph, method, threshold=0.25):
+def ts_has_contribution_from_active_atoms(calc, active_atoms, threshold=0.15):
     """For a hessian calculation check that the first imaginary mode (number 6) in the final frequency calculation
     contains the correct motion, i.e. contributes more than threshold_contribution in relative terms to the
     magnitude of the sum of the forces
@@ -94,9 +110,6 @@ def ts_has_correct_imaginary_vector(calc, active_atoms, reactant_graph, product_
     Arguments:
         calc (autode.calculation.Calculation): calculation object
         active_atoms (list(int)):
-        reactant_graph (networkx.Graph):
-        product_graph (networkx.Graph):
-        method (autode.wrappers.base.ElectronicStructureMethod):
 
     Keyword Arguments:
         threshold (float): threshold contribution to the imaginary mode from the atoms in
@@ -124,27 +137,16 @@ def ts_has_correct_imaginary_vector(calc, active_atoms, reactant_graph, product_
     # Calculate the sum of the weighted magnitudes on the active atoms
     sum_active_atom_magnitudes = sum([weighted_imag_mode_magnitudes[atom_index] for atom_index in active_atoms])
 
-    relative_contribution = sum_active_atom_magnitudes / np.sum(np.array(weighted_imag_mode_magnitudes))
+    rel_contribution = sum_active_atom_magnitudes / np.sum(np.array(weighted_imag_mode_magnitudes))
 
-    if relative_contribution > threshold:
-        logger.info(f'TS has significant contribution from the active atoms to the imag mode '
-                    f'(contribution = {relative_contribution:.3f})')
+    if rel_contribution > threshold:
+        logger.info(f'Significant contribution from active atoms to imag mode. (contribution = {rel_contribution:.3f})')
         return True
 
-    if relative_contribution > threshold - 0.1:
-        logger.info(f'Unsure if significant contribution from active atoms to imag mode '
-                    f'(contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
-
-        if imag_mode_links_reactant_products(calc, reactant_graph, product_graph, method=method):
-            logger.info('Imaginary mode links reactants and products, TS found')
-            return True
-
-        logger.info('Imaginary mode doesn\'t link reactants and products, TS *not* found')
+    else:
+        logger.warning(f'TS has *no* significant contribution from the active atoms to the imag mode '
+                       f'(contribution = {rel_contribution:.3f})')
         return False
-
-    logger.info(f'TS has *no* significant contribution from the active atoms to the imag mode '
-                f'(contribution = {relative_contribution:.3f})')
-    return False
 
 
 def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
@@ -191,27 +193,31 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
     Returns:
         bool: if the imag mode is correct or not
     """
+    logger.info('Displacing along imag modes to check that the TS links reactants and products')
+
     # Get the species that is optimised by displacing forwards along the imaginary mode
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=disp_mag)
     f_displaced_mol = get_optimised_species(calc, method, direction='forwards', atoms=f_displaced_atoms)
 
-    # Get the species that is optimised by displacing forwards along the imaginary mode
+    if not is_isomorphic(f_displaced_mol.graph, reactant_graph) and not is_isomorphic(f_displaced_mol.graph, product_graph):
+        logger.warning('Forward displacement does not afford reactants or products')
+        return False
+
+    # Get the species that is optimised by displacing backwards along the imaginary mode
     b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=-disp_mag)
     b_displaced_mol = get_optimised_species(calc, method, direction='backwards', atoms=b_displaced_atoms)
 
-    if not any(mol.atoms is None for mol in (f_displaced_mol, b_displaced_mol)):
-        logger.warning('Atoms set in the output. Cannot calculate isomorphisms')
+    if any(mol.atoms is None for mol in (f_displaced_mol, b_displaced_mol)):
+        logger.warning('Atoms not set in the output. Cannot calculate isomorphisms')
         return False
 
-    if mol_graphs.is_isomorphic(b_displaced_mol.graph, reactant_graph):
-        if mol_graphs.is_isomorphic(f_displaced_mol.graph, product_graph):
-            logger.info('Forwards displacement lead to products and backwards')
-            return True
+    if is_isomorphic(b_displaced_mol.graph, reactant_graph) and is_isomorphic(f_displaced_mol.graph, product_graph):
+        logger.info('Forwards displacement lead to products and backwards')
+        return True
 
-    if mol_graphs.is_isomorphic(f_displaced_mol.graph, reactant_graph):
-        if mol_graphs.is_isomorphic(b_displaced_mol.graph, product_graph):
-            logger.info('Backwards displacement lead to products and forwards to reactants')
-            return True
+    if is_isomorphic(f_displaced_mol.graph, reactant_graph) and is_isomorphic(b_displaced_mol.graph, product_graph):
+        logger.info('Backwards displacement lead to products and forwards to reactants')
+        return True
 
     return False
 
@@ -222,13 +228,13 @@ def get_optimised_species(calc, method, direction, atoms):
     species = Species(name=f'{calc.name}_{direction}', atoms=atoms, charge=calc.molecule.charge, mult=calc.molecule.mult)
 
     # Note that for the surface to be the same the keywords.opt and keywords.hess need to match in the level of theory
-    fcalc = Calculation(name=f'{calc.name}_{direction}', molecule=species, method=method,
-                        keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
-    fcalc.run()
+    calc = Calculation(name=f'{calc.name}_{direction}', molecule=species, method=method,
+                       keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
+    calc.run()
 
     try:
-        species.set_atoms(atoms=fcalc.get_final_atoms())
-        species.energy = fcalc.get_energy()
+        species.set_atoms(atoms=calc.get_final_atoms())
+        species.energy = calc.get_energy()
         mol_graphs.make_graph(species)
 
     except AtomsNotFound:

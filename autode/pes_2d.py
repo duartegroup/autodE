@@ -69,12 +69,7 @@ class PES2d(PES):
         return plot_2dpes(coeff_mat=self.coeff_mat, r1=self.r1s, r2=self.r2s, name=name)
 
     def products_made(self):
-        """
-        Check that somewhere on the surface the molecular graph is isomorphic to the product
-
-        Arguments:
-            product (autode.compelx.ProductComplex):
-        """
+        """Check that somewhere on the surface the molecular graph is isomorphic to the product"""
         logger.info('Checking that somewhere on the surface product(s) are made')
 
         for i in range(self.n_points_r1):
@@ -122,11 +117,11 @@ class PES2d(PES):
             # The cores for this diagonal are the floored number of total cores divided by the number of calculations
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
-            with Pool(processes=len(points)) as pool:
-                for point in points:
-                    result = pool.apply_async(func=get_point_species, args=(point, self, name, method,
-                                                                            keywords, cores_per_process))
-                    self.species[point] = result.get(timeout=None)
+            with Pool(processes=Config.n_cores) as pool:
+                    results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
+                                                                              cores_per_process)) for p in points]
+                    for i, point in enumerate(points):
+                        self.species[point] = results[i].get(timeout=None)
 
         logger.info('2D PES scan done')
         return None

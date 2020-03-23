@@ -19,7 +19,7 @@ def poly2d_saddlepoints(coeff_mat, xs, ys):
 
     stationary_points = []
 
-    # Calculate the derivatives over a uniform grid in x, y. 10x10 should find all the unique saddle points
+    # Optimise the derivatives over a uniform grid in x, y. 10x10 should find all the unique stationary points
     for x in np.linspace(min_x, max_x, num=10):
         for y in np.linspace(min_y, max_y, num=10):
 

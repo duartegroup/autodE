@@ -3,6 +3,7 @@ from autode.log import logger
 from autode.exceptions import NoClosestSpecies
 from autode.exceptions import AtomsNotFound
 from autode.calculation import Calculation
+from autode import mol_graphs
 from copy import deepcopy
 import numpy as np
 import itertools
@@ -88,15 +89,17 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
         logger.error(f'Optimisation failed for {point}')
         return species
 
-    # If the energy difference is > 1 Hartree then likley something has gone wrong with the EST method
+    # If the energy difference is > 1 Hartree then likely something has gone wrong with the EST method
     # we need to be not on the first point to compute an energy difference..
     if not all(p == 0 for p in point):
         if energy is None or np.abs(energy - species.energy) > energy_threshold:
             logger.error(f'PES point had a relative energy > {energy_threshold} Ha. Using the closest')
             return species
 
+    # Set the energy, new set of atoms then make the molecular graph
     species.energy = energy
     species.set_atoms(atoms=atoms)
+    mol_graphs.make_graph(species=species)
 
     return species
 
@@ -108,7 +111,7 @@ class PES(ABC):
         pass
 
     @abstractmethod
-    def products_made(self, product):
+    def products_made(self):
         pass
 
     @abstractmethod

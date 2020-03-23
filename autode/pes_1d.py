@@ -34,13 +34,13 @@ class PES1d(PES):
 
         return plot_1dpes(self.rs, rel_energies, name=name, method_name=method_name)
 
-    def products_made(self, product):
+    def products_made(self):
         logger.info('Checking that somewhere on the surface product(s) are made')
 
         for i in range(self.n_points):
             mol_graphs.make_graph(self.species[i])
 
-            if mol_graphs.is_isomorphic(graph1=self.species[i].graph, graph2=product.graph):
+            if mol_graphs.is_isomorphic(graph1=self.species[i].graph, graph2=self.product_graph):
                 logger.info(f'Products made at point {i} in the 1D surface')
                 return True
 
@@ -54,12 +54,13 @@ class PES1d(PES):
 
         return None
 
-    def __init__(self, reactant, rs, r_idxs):
+    def __init__(self, reactant, product, rs, r_idxs):
         """
         A one dimensional potential energy surface
 
         Arguments:
             reactant (autode.complex.ReactantComplex): Species at rs[0]
+            product (autode.complex.ProductComplex):
             rs (np.ndarray): Bond length array
             r_idxs (tuple): Atom indexes that the PES will be calculated over
         """
@@ -73,15 +74,17 @@ class PES1d(PES):
         # Tuple of the atom indices scanned in coordinate r
         self.rs_idxs = [r_idxs]
 
+        # Molecular graph of the product. Used to check that the products have been made & find the MEP
+        self.product_graph = product.graph
+
 
 def get_ts_guess_1d(reactant, product, active_bond, n_steps, name, method, keywords, final_dist):
     """Scan the distance between two atoms and return a guess for the TS
 
     Arguments:
-       reactant (autode.complex.ReactantComplex):
+        reactant (autode.complex.ReactantComplex):
         product (autode.complex.ProductComplex):
-        active_bond1 (tuple): tuple of atom ids showing the first bond being scanned
-        active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
+        active_bond (tuple): tuple of atom ids showing the first bond being scanned
         n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
         name (str): name of reaction
         method (autode.): electronic structure wrapper to use for the calcs
@@ -95,19 +98,18 @@ def get_ts_guess_1d(reactant, product, active_bond, n_steps, name, method, keywo
     curr_dist = reactant.get_distance(atom_i=active_bond[0], atom_j=active_bond[1])
 
     # Create a potential energy surface in the active bonds and calculate
-    pes = PES1d(reactant=reactant,
+    pes = PES1d(reactant=reactant, product=product,
                 rs=np.linspace(curr_dist, final_dist, n_steps), r_idxs=active_bond)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 
-    if not pes.products_made(product):
+    if not pes.products_made():
         logger.error('Products were not made on the whole PES')
         return None
 
-    # Fit an analytic 2D PES to the surface and plot using matplotlib
+    # Plot the line using matplotlib
     pes.print_plot(name=name, method_name=method.name)
 
-    # Yield a TSGuess for every saddle point on the surface
     for species in pes.get_species_saddle_point():
         return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
 

@@ -139,7 +139,7 @@ class Reaction:
         return units.conversion * (self.ts.energy - sum(filter(None, [r.energy for r in self.reacs])))
 
     def find_lowest_energy_ts(self):
-        """From all the transition state objects in Reaction.tss choose the lowest energy if there is more than one
+        """From all the transition state objects in Reaction.pes1d choose the lowest energy if there is more than one
         otherwise return the single transtion state or None if there no TS objects.
         """
 
