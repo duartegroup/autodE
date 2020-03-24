@@ -303,15 +303,12 @@ def get_active_mol_graph(graph, active_bonds):
     active_graph = graph.copy()
 
     for bond in active_bonds:
-        atom_i, atom_j = bond       # The graph has both (i, j) and (j, i) edges such that the order is not important
 
+        # The graph has both (i, j) and (j, i) edges such that the order is not important
         if bond in graph.edges:
-            graph.edges[atom_i, atom_j]['active'] = True
+            active_graph.edges[bond]['active'] = True
 
         else:
-            graph.add_edge(atom_i, atom_j, pi=False, active=True)
+            active_graph.add_edge(*bond, pi=False, active=True)
 
     return active_graph
-
-
-

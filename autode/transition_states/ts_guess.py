@@ -103,8 +103,8 @@ class TSguess(TSbase):
 
 class SolvatedTSguess(TSguess):
 
-    def __init__(self, reactant, product, reaction_type, bond_rearrangment, name='ts_guess'):
-        super().__init__(reactant, product, reaction_type, bond_rearrangment, name)
+    def __init__(self, atoms, reactant, product,  name='ts_guess'):
+        super().__init__(atoms, reactant, product, name)
 
         self.qm_solvent_xyzs = None
         self.mm_solvent_xyzs = None

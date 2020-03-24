@@ -1,14 +1,19 @@
 from autode.atoms import Atom
-from autode.mol_graphs import make_graph
 from autode.conformers import conf_gen
 from autode.molecule import Molecule
+from autode.molecule import Reactant, Product
+from autode.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.geom import get_krot_p_q
-from scipy.spatial import distance_matrix
+from autode.transition_states.ts_guess import TSguess
+from autode.transition_states.transition_state import TransitionState
+from autode.bond_rearrangement import BondRearrangement
+from autode.geom import get_distance_constraints
 import numpy as np
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.n_cores = 1
 
 butane = Molecule(name='butane', charge=0, mult=1, atoms=[Atom('C', -0.63938, -0.83117,  0.06651),
                                                           Atom('C',  0.89658, -0.77770,  0.06222),
@@ -78,6 +83,8 @@ def test_chiral_rotation():
     atoms = conf_gen.get_simanl_atoms(chiral_ethane)
     regen = Molecule(name='regenerated_ethane', charge=0, mult=1, atoms=atoms)
 
+    regen.print_xyz_file()
+
     regen_coords = regen.get_coordinates()
     coords = chiral_ethane.get_coordinates()
 
@@ -119,5 +126,50 @@ def test_butene():
     atoms = conf_gen.get_simanl_atoms(species=butene)
     regen = Molecule(name='regenerated_butene', atoms=atoms, charge=0, mult=1)
 
-    # TODO finish this
     # regen.print_xyz_file()
+    regen_coords = regen.get_coordinates()
+
+    # The Z-butene isomer has a r(C_1 C_2) < 3.2 Å where C_1C=CC_2
+    assert np.linalg.norm(regen_coords[6] - regen_coords[2]) < 3.2
+
+
+def test_ts_conformer():
+
+    ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl',  1.63664,  0.02010, -0.05829),
+                                              Atom('C', -0.14524, -0.00136,  0.00498),
+                                              Atom('H', -0.52169, -0.54637, -0.86809),
+                                              Atom('H', -0.45804, -0.50420,  0.92747),
+                                              Atom('H', -0.51166,  1.03181, -0.00597)])
+    f = Reactant(charge=-1, mult=1, atoms=[Atom('F', 4.0, 0.0, 0.0)])
+
+    ch3f = Product(charge=0, mult=1, atoms=[Atom('C', -0.05250,  0.00047, -0.00636),
+                                            Atom('F',  1.31229, -0.01702,  0.16350),
+                                            Atom('H', -0.54993, -0.04452,  0.97526),
+                                            Atom('H', -0.34815,  0.92748, -0.52199),
+                                            Atom('H', -0.36172, -0.86651, -0.61030)])
+    cl = Reactant(charge=-1, mult=1, atoms=[Atom('Cl', 4.0, 0.0, 0.0)])
+
+    f_ch3cl_tsguess = TSguess(reactant=ReactantComplex(f, ch3cl),
+                              product=ProductComplex(ch3f, cl),
+                              atoms=[Atom('F', -2.66092, -0.01426, 0.09700),
+                                     Atom('Cl', 1.46795, 0.05788, -0.06166),
+                                     Atom('C', -0.66317, -0.01826, 0.02488),
+                                     Atom('H', -0.78315, -0.58679, -0.88975),
+                                     Atom('H', -0.70611, -0.54149, 0.97313),
+                                     Atom('H', -0.80305, 1.05409, 0.00503)])
+
+    f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess,
+                                 bond_rearrangement=BondRearrangement(breaking_bonds=[(2, 1)],
+                                                                      forming_bonds=[(0, 2)]))
+
+    atoms = conf_gen.get_simanl_atoms(species=f_ch3cl_ts,
+                                      dist_consts=get_distance_constraints(f_ch3cl_ts))
+
+    regen = Molecule(name='regenerated_ts', charge=-1, mult=1, atoms=atoms)
+    regen.print_xyz_file()
+
+    # Ensure the making/breaking bonds retain their length
+    regen_coords = regen.get_coordinates()
+
+    assert 1.9 < np.linalg.norm(regen_coords[0] - regen_coords[2]) < 2.1
+    assert 2.0 < np.linalg.norm(regen_coords[1] - regen_coords[2]) < 2.2

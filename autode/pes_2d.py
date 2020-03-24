@@ -180,7 +180,7 @@ class PES2d(PES):
 
 
 def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name, method, keywords,
-                    final_dist1, final_dist2, polynomial_order=3):
+                    final_dist1, final_dist2, polynomial_order=5):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:

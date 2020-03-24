@@ -14,7 +14,7 @@ from cconf_gen import v
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
-    # TODO rewrite in Cython for speeed
+    # TODO rewrite in Cython for speeed also divide and conquer
 
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
@@ -53,12 +53,47 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
     return atoms
 
 
+def add_dist_consts_across_stereocentres(species, dist_consts):
+    """
+    Add distances constraints across two bonded stereocentres, for example for a Z alkene ensure this will ensure
+    that in the conformer generation this will retain the stereochemistry
+
+    Arguments:
+        species (autode.species.Species):
+        dist_consts (dict): keyed with tuple of atom indexes and valued with the distance (Å), or None
+    """
+    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+
+    if dist_consts is None:
+        dist_consts = {}
+
+    # Check on every pair of stereocenters
+    for (atom_i, atom_j) in combinations(stereocentres, 2):
+
+        # If they are bonded
+        if (atom_i, atom_j) in species.graph.edges:
+
+            # Add a single distance constraint between the nearest neighbours of each stereocentre
+            atom_i_neighbour = [atom_index for atom_index in species.graph.neighbors(atom_i) if atom_index != atom_j][0]
+            atom_j_neighbour = [atom_index for atom_index in species.graph.neighbors(atom_j) if atom_index != atom_i][0]
+
+            # Fix the distance to the current value
+            dist_consts[(atom_i_neighbour, atom_j_neighbour)] = species.get_distance(atom_i_neighbour, atom_j_neighbour)
+
+    logger.info(f'Have {len(dist_consts)} distance constraint(s)')
+    return dist_consts
+
+
 def get_non_random_atoms(species):
     """Get the atoms that won't be randomised in the conformer generation. Stereocentres and nearest neighbours"""
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
-    non_rand_atoms = [i for (i, j) in species.graph.edges if i in stereocentres or j in stereocentres]
-    non_rand_atoms += [j for (i, j) in species.graph.edges if i in stereocentres or j in stereocentres]
+    non_rand_atoms = deepcopy(stereocentres)
+    for stereocentre in stereocentres:
+        non_rand_atoms += list(species.graph.neighbors(stereocentre))
+
+    if len(non_rand_atoms) > 0:
+        logger.info(f'Not randomising atom index(es) {set(non_rand_atoms)}')
 
     return set(non_rand_atoms)
 
@@ -88,12 +123,14 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     # Add the distance constraints as fixed bonds
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
 
+    # Add distance constraints across stereocentres e.g. for a Z double bond then modify d0 appropriately
+    dist_consts = add_dist_consts_across_stereocentres(species=species, dist_consts=dist_consts)
+
     fixed_bonds = []
-    if dist_consts is not None:
-        for bond, length in dist_consts.items():
-            d0[bond[0], bond[1]] = length
-            d0[bond[1], bond[0]] = length
-            fixed_bonds.append(bond)
+    for bond, length in dist_consts.items():
+        d0[bond[0], bond[1]] = length
+        d0[bond[1], bond[0]] = length
+        fixed_bonds.append(bond)
 
     # Randomise coordinates
     non_rand_atom_indexes = get_non_random_atoms(species=species)

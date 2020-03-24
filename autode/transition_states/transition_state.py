@@ -161,7 +161,7 @@ class SolvatedTransitionState(TransitionState):
     def __init__(self, ts_guess, bond_rearrangement, name='TS'):
 
         super().__init__(ts_guess=ts_guess, bond_rearrangement=bond_rearrangement, name=name)
-        self.qm_solvent_xyzs = ts_guess.qm_solvent_xyzs
-        self.mm_solvent_xyzs = ts_guess.mm_solvent_xyzs
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
 
         # self.charges = ts_guess.get_charges()[:self.n_atoms]
