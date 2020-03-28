@@ -55,7 +55,7 @@ class NWChem(ElectronicStructureMethod):
             print(f'start {calc.name}_nwchem\necho', file=inp_file)
 
             if calc.solvent_keyword:
-                print(f'cosmo\n do_cosmo_smd true\n solvent {calc.solvent_keyword}\nend', file=inp_file)
+                print(f'cosmo\n do_cosmo_smd true\n solvent_name {calc.solvent_keyword}\nend', file=inp_file)
 
             print('geometry', end=' ', file=inp_file)
             if calc.distance_constraints or calc.cartesian_constraints:

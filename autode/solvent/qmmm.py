@@ -175,7 +175,7 @@ class QMMM:
 
         qmmm_forces = np.zeros((self.n_atoms, 3))
         for i, force in enumerate(qm_forces):
-            # force for solute, then solvent atoms
+            # force for solute, then solvent_name atoms
             if i < len(self.solute_xyzs):
                 index = self.n_solvent_atoms + i
             else:
