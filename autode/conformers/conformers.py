@@ -38,8 +38,7 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     Returns:
         (list(autode.conformers.conformers.Conformer)):
     """
-
-    logger.info('Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
+    logger.info(f'Stripping conformers with energy ∆E < {energy_threshold_kj} kJ mol-1 to others')
 
     n_conformers = len(conformers)
     delta_e = energy_threshold_kj / Constants.ha2kJmol   # Conformer.energy is in Hartrees

@@ -4,7 +4,7 @@ from autode.config import Config
 from autode.transition_states.base import TSbase
 from autode.calculation import Calculation
 from autode.mol_graphs import get_mapping_ts_template
-from autode.mol_graphs import get_active_mol_graph
+from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 
@@ -26,7 +26,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     const_opt.run()
 
     # Form a transition state guess from the optimised atoms and set the corresponding energy
-    ts_guess = TSguess(atoms=const_opt.get_final_atoms(), reactant=reactant, product=product, name='ts_gess_const_opt')
+    ts_guess = TSguess(atoms=const_opt.get_final_atoms(), reactant=reactant, product=product, name='ts_guess_const_opt')
     ts_guess.energy = const_opt.get_energy()
 
     return ts_guess
@@ -53,27 +53,27 @@ def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywor
     active_bonds_and_dists_ts = {}
 
     # This will add edges so don't modify in place
-    mol_graph = get_active_mol_graph(graph=reactant.graph.copy(), active_bonds=bond_rearrangement.all)
+    mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
 
     name = f'{reactant.name}_template_{bond_rearrangement}'
 
     for ts_template in ts_guess_templates:
 
-        if template_matches(mol=reactant, ts_template=ts_template, mol_graph=mol_graph):
+        if template_matches(reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph):
             mapping = get_mapping_ts_template(larger_graph=mol_graph, smaller_graph=ts_template.graph)
             for active_bond in bond_rearrangement.all:
                 i, j = active_bond
                 try:
                     active_bonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[i],
-                                                                                     mapping[j]]['weight']
+                                                                                     mapping[j]]['distance']
                 except KeyError:
                     logger.warning(f'Couldn\'t find a mapping for bond {i}-{j}')
 
             if len(active_bonds_and_dists_ts) == len(bond_rearrangement.all):
                 logger.info('Found a TS guess from a template')
 
-                if any([reactant.distance_matrix[bond[0], bond[1]] > dist_thresh for bond in bond_rearrangement.all]):
+                if any([reactant.get_distance(*bond) > dist_thresh for bond in bond_rearrangement.all]):
                     logger.info(f'TS template has => 1 active bond distance larger than {dist_thresh}. Passing')
                     pass
                 else:

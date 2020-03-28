@@ -131,8 +131,9 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
 
     fixed_bonds = []
     for bond, length in dist_consts.items():
-        d0[bond[0], bond[1]] = length
-        d0[bond[1], bond[0]] = length
+        i, j = bond
+        d0[i, j] = length
+        d0[j, i] = length
         fixed_bonds.append(bond)
 
     # Randomise coordinates

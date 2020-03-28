@@ -9,6 +9,9 @@ from autode.reactions import Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
 from autode.complex import ReactantComplex, ProductComplex
 from autode.transition_states.ts_guess import get_template_ts_guess
+from autode.transition_states.truncation import is_worth_truncating
+from autode.transition_states.truncation import get_truncated_rcomplex
+from autode.transition_states.truncation import get_truncated_pcomplex
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
 from autode.methods import get_hmethod
@@ -79,11 +82,11 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
                                                        atom_j_label=reactant.atoms[fbond[1]].label)
                 bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
 
-                yield get_ts_guess_2d, (reactant, product, fbond, bbond, 16, scan_name + '_ll2d', lmethod,
+                yield get_ts_guess_2d, (reactant, product, fbond, bbond, 12, scan_name + '_ll2d', lmethod,
                                         lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
 
                 yield get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', hmethod,
-                                        hmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
+                                        hmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist, 3)
 
     if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 0:
         bbond = bond_rearr.bbonds[0]
@@ -134,10 +137,10 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         fbond_final_dist1 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond1[0]].label, atom_j_label=reactant.atoms[fbond1[1]].label)
         fbond_final_dist2 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond2[0]].label, atom_j_label=reactant.atoms[fbond2[1]].label)
 
-        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 16, scan_name + '_ll2d_fbonds', lmethod,
+        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 12, scan_name + '_ll2d_fbonds', lmethod,
                                 lmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
         yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 8, scan_name + '_hl2d_fbonds', hmethod,
-                                hmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
+                                hmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2, 3)
 
     if bond_rearr.n_bbonds == 2:
         bbond1, bbond2 = bond_rearr.bbonds
@@ -146,11 +149,11 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         bbond1_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction) + get_added_bbond_dist(reaction)
         bbond2_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction) + get_added_bbond_dist(reaction)
 
-        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 16, scan_name + '_ll2d_bbonds', lmethod,
+        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 12, scan_name + '_ll2d_bbonds', lmethod,
                                 lmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
 
         yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, scan_name + '_hl2d_bbonds', hmethod,
-                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
+                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist, 3)
 
     return None
 
@@ -204,8 +207,18 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
     return None
 
 
+def get_truncated_ts(reaction, reactant, product, bond_rearr):
+    """Get the TS of a truncated reactant and product complex"""
+
+    # Truncate the reactant and product complex to the core atoms so the full TS can be template-d
+    truncated_reactant = get_truncated_rcomplex(reactant, bond_rearrangement=bond_rearr)
+    truncated_product = get_truncated_pcomplex(product, bond_rearrangement=bond_rearr)
+
+    return get_ts(reaction, truncated_reactant, truncated_product, bond_rearrangement=bond_rearr, strip_molecule=False)
+
+
 def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
-    """For a bond rearrangement, run 1d and 2d scans to find a TS
+    """For a bond rearrangement run 1d and 2d scans to find a TS
 
     Args:
         reaction (autode.reaction.Reaction):
@@ -216,11 +229,15 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
                                          calculations faster. The whole TS can the be found from the template made.
                                          Defaults to True.
     Returns:
-        (autode.: the TS of the reaction
+        (autode.transition_states.transition_state.TransitionState):
     """
+    # If specified then strip non-core atoms from the structure
+    if strip_molecule and is_worth_truncating(reactant, bond_rearrangement):
+        get_truncated_ts(reaction, reactant, product, bond_rearrangement)
+
     # If the reaction is a substitution or elimination then the reactants must be orientated correctly
     translate_rotate_reactant(reactant, bond_rearrangement,
-                              shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 2)
+                              shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 1.5)
 
     # There are multiple methods of finding a transtion state. Iterate through from the cheapest -> most expensive
     for func, params in get_ts_guess_function_and_params(reaction, reactant, product, bond_rearrangement):

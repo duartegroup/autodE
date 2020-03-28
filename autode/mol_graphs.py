@@ -1,5 +1,6 @@
 from autode.log import logger
 import networkx as nx
+from copy import deepcopy
 import multiprocessing as mp
 from networkx.algorithms import isomorphism
 from scipy.spatial import distance_matrix
@@ -299,6 +300,14 @@ def get_fbonds(graph, key):
 
 
 def get_active_mol_graph(graph, active_bonds):
+    """
+    Get a molecular graph that includes 'active edges' i.e. bonds that are either made or broken in the reaction
+
+    Arguments:
+        graph (nx.Graph):
+        active_bonds: (list(tuple(int)))
+
+    """
     logger.info('Getting molecular graph with active edges')
     active_graph = graph.copy()
 
@@ -311,4 +320,41 @@ def get_active_mol_graph(graph, active_bonds):
         else:
             active_graph.add_edge(*bond, pi=False, active=True)
 
+    logger.info(f'Modified and added a total of {len(active_bonds)} bonds to the molecular graph')
     return active_graph
+
+
+def get_truncated_active_mol_graph(graph, active_bonds):
+    """
+    Generate a truncated graph of a graph that only contains the active bond atoms and their nearest neighbours
+
+    Arguments:
+        graph (nx.Graph):
+        active_bonds (list(tuple(int)):
+    """
+
+    t_graph = nx.Graph()
+
+    # Add all nodes that connect active bonds
+    for bond in active_bonds:
+
+        for atom_index in bond:
+            if atom_index not in t_graph.nodes:
+                t_graph.add_node(atom_index)
+
+        t_graph.add_edge(*bond, active=True)
+
+    # For every active atom add the nearest neighbours
+    for atom_index in deepcopy(t_graph.nodes):
+        neighbours = graph.neighbors(atom_index)
+
+        # Add nodes and edges for all atoms and bonds to the neighbours that don't already exist in the graph
+        for n_atom_index in neighbours:
+            if n_atom_index not in t_graph.nodes:
+                t_graph.add_node(n_atom_index)
+
+            if (atom_index, n_atom_index) not in t_graph.edges:
+                t_graph.add_edge(atom_index, n_atom_index)
+
+    logger.info(f'Truncated graph generated. {t_graph.number_of_nodes()} nodes and {t_graph.number_of_edges()} edges')
+    return t_graph
