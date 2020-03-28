@@ -120,7 +120,7 @@ def get_ts_guess_funcs_and_params(funcs_params, reaction, reactant, product, bon
     name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
 
     if reactant.is_fragment:
-        name += 'fragment_'
+        name += '_fragment'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
