@@ -64,10 +64,11 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         else:
             molecule = mol_grid[0][n-1]
 
+        dist_consts = {active_bond1: dist_grid1[0][n],
+                       active_bond2: dist_grid2[0][n]}
+
         const_opt = Calculation(name=name + f'_scan0_{n}', molecule=molecule, method=method, opt=True,
-                                n_cores=Config.n_cores, distance_constraints={active_bond1: dist_grid1[0][n],
-                                                                              active_bond2: dist_grid2[0][n]},
-                                keywords=keywords)
+                                n_cores=Config.n_cores, distance_constraints=dist_consts, keywords=keywords)
         const_opt.run()
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
         try:
@@ -79,7 +80,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         if solvent_mol is not None:
             mol_grid[0][n].name = f'{name}_scan0_{n}'
             mol_grid[0][n].charges = const_opt.get_atomic_charges()
-            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method)
+            qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[0][n], solvent_mol, method, dist_consts)
             mol_grid[0][n].energy = qmmm_energy
         else:
             mol_grid[0][n].energy = const_opt.get_energy()
@@ -102,13 +103,11 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
         [calc.generate_input() for calc in calcs]
         if Config.n_cores <= n_steps:
             with Pool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(execute_calc, (calc,))
-                           for calc in calcs]
+                results = [pool.apply_async(execute_calc, (calc,)) for calc in calcs]
                 [res.get(timeout=None) for res in results]
         else:
             with Pool(processes=n_steps) as pool:
-                results = [pool.apply_async(execute_calc, (calc,))
-                           for calc in calcs]
+                results = [pool.apply_async(execute_calc, (calc,)) for calc in calcs]
                 [res.get(timeout=None) for res in results]
         [calc.set_output_file_lines() for calc in calcs]
 
@@ -122,9 +121,11 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
                 mol_grid[i][n].xyzs = deepcopy(mol_grid[i-1][n].xyzs)
 
             if solvent_mol is not None:
+                dist_consts = {active_bond1: dist_grid1[i][n],
+                               active_bond2: dist_grid2[i][n]}
                 mol_grid[i][n].name = f'{name}_scan{i}_{n}'
                 mol_grid[i][n].charges = calcs[n].get_atomic_charges()
-                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method)
+                qmmm_energy, _, _ = do_explicit_solvent_qmmm(mol_grid[i][n], solvent_mol, method, dist_consts)
                 mol_grid[i][n].energy = qmmm_energy
             else:
                 mol_grid[i][n].energy = calcs[n].get_energy()
@@ -157,7 +158,7 @@ def get_ts_guess_2d(mol, product, active_bond1, active_bond2, n_steps, name, rea
     tsguess_mol = deepcopy(mol)
     tsguess_mol.name = name
     saddle_point_xyzs_output = find_2dpes_saddlepoint_xyzs(
-        dist_xyzs_energies, scan_name=name, plot_name=f'{mol.name}_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
+        dist_xyzs_energies, scan_name=name, plot_name=f'{name}_{active_bond1[0]}_{active_bond1[1]}_{active_bond2[0]}_{active_bond2[1]}_2dscan', method=method, n_points=e_grid_points, order=polynomial_order)
     if saddle_point_xyzs_output is None:
         logger.error('No xyzs found for the saddle point')
         return None

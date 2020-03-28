@@ -9,6 +9,7 @@ from autode.mol_graphs import is_isomorphic
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.calculation import Calculation
 
 
 def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
@@ -30,13 +31,27 @@ def get_ts(ts_guess, solvent_mol=None, imag_freq_threshold=-100):
         return None, False
 
     if solvent_mol:
-        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(ts_guess, solvent_mol, get_hmethod())
+        method = get_hmethod()
+        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(ts_guess, solvent_mol, method, fix_solute=True, n_confs=96)
         ts_guess.qm_solvent_xyzs = qmmm_xyzs[ts_guess.n_atoms:n_qm_atoms]
         ts_guess.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
         point_charges = []
         for i, xyz in enumerate(ts_guess.mm_solvent_xyzs):
             point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
         ts_guess.point_charges = point_charges
+        solvent_atoms = [i for i in range(ts_guess.n_atoms, ts_guess.n_atoms + len(ts_guess.qm_solvent_xyzs))]
+        dist_consts = {}
+        for bond in ts_guess.active_bonds:
+            coord1 = np.asarray(ts_guess.xyzs[bond[0]][1:])
+            coord2 = np.asarray(ts_guess.xyzs[bond[1]][1:])
+            dist = np.linalg.norm(coord1 - coord2)
+            dist_consts[bond] = dist
+        opt_calc = Calculation(name=ts_guess.name + '_solvent_opt', molecule=ts_guess, method=method,
+                               keywords=method.opt_keywords, n_cores=Config.n_cores,
+                               max_core_mb=Config.max_core, charges=point_charges,
+                               cartesian_constraints=solvent_atoms, distance_constraints=dist_consts)
+        opt_calc.run()
+        ts_guess.xyzs = opt_calc.get_final_xyzs()[:ts_guess.n_atoms]
 
     ts_guess.run_optts()
     if ts_guess.calc_failed:
@@ -165,7 +180,6 @@ def ts_has_correct_imaginary_vector(calc, n_atoms, active_bonds, molecules=None,
         if threshold_contribution - 0.1 < relative_contribution < threshold_contribution + 0.1:
             logger.info(f'Unsure if significant contribution from active atoms to imag mode '
                         f'(contribution = {relative_contribution:.3f}). Displacing along imag modes to check')
-
             if check_close_imag_contribution(calc, n_atoms, molecules, method=get_lmethod()):
                 logger.info('Imaginary mode links reactants and products, TS found')
                 return True

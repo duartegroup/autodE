@@ -46,8 +46,9 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
 
     # Run a relaxed potential energy surface scan by running sequential constrained optimisations
     for n, dist in enumerate(dists):
+        dist_consts = {active_bond: dist}
         const_opt = Calculation(name=name + f'_scan{n}', molecule=mol_with_const, method=method, opt=True,
-                                n_cores=Config.n_cores, distance_constraints={active_bond: dist}, keywords=keywords)
+                                n_cores=Config.n_cores, distance_constraints=dist_consts, keywords=keywords)
         const_opt.run()
 
         # Set the new xyzs as those output from the calculation, and the previous if no xyzs could be found
@@ -63,7 +64,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
         if solvent_mol is not None:
             mol_with_const.name = f'{name}_scan{n}'
             mol_with_const.charges = const_opt.get_atomic_charges()
-            qmmm_energy, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(mol_with_const, solvent_mol, method)
+            qmmm_energy, qmmm_xyzs, _ = do_explicit_solvent_qmmm(mol_with_const, solvent_mol, method, dist_consts)
             qmmm_xyzs_list.append(qmmm_xyzs)
             energy_list.append(qmmm_energy)
             xyzs_list.append(qmmm_xyzs[:mol_with_const.n_atoms])
@@ -90,7 +91,7 @@ def get_ts_guess_1d(mol, product, active_bond, n_steps, name, reaction_class, me
     # Make a new molecule that will form the basis of the TS guess object
     tsguess_mol = deepcopy(mol)
     tsguess_mol.set_xyzs(xyzs=find_1dpes_maximum_energy_xyzs(dists, xyzs_list, energy_list, scan_name=name,
-                                                             plot_name=f'{mol.name}_{active_bond[0]}_{active_bond[1]}_1dscan',
+                                                             plot_name=f'{name}_{active_bond[0]}_{active_bond[1]}_1dscan',
                                                              method=method))
 
     if tsguess_mol.xyzs is None:

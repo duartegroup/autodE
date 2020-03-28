@@ -135,7 +135,7 @@ def random_rot_solvent(coords):
     return coords
 
 
-def run(solute, solvent, n_qm_solvent_mols, method, i):
+def run(solute, solvent, n_qm_solvent_mols, dist_consts, fix_solute, method, i):
     if os.path.exists(f'{solute.name}_qmmm_{i}.out'):
         lines = [line for line in open(f'{solute.name}_qmmm_{i}.out', 'r', encoding="utf-8")]
         xyzs_section = False
@@ -159,9 +159,7 @@ def run(solute, solvent, n_qm_solvent_mols, method, i):
                 n_solvent_mols = 700
                 solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges = add_solvent_molecules(solute, solvent, n_solvent_mols)
                 solute.xyzs = solute_xyzs
-                os.environ['OPENMM_CPU_THREADS'] = str(1)
-                os.environ['OMP_NUM_THREADS '] = str(1)
-                qmmm = QMMM(solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, i, method)
+                qmmm = QMMM(solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, dist_consts, i, method, fix_solute)
                 qmmm.simulate()
                 xyzs = qmmm.final_xyzs
                 qmmm_energy = qmmm.final_energy
@@ -179,7 +177,7 @@ def run(solute, solvent, n_qm_solvent_mols, method, i):
     return xyzs, qmmm_energy
 
 
-def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=192, n_qm_solvent_mols=50):
+def do_explicit_solvent_qmmm(solute, solvent, method, dist_consts=None, fix_solute=False, n_confs=192, n_qm_solvent_mols=50):
     """Run explicit solvent qmmm calculations to find the lowest energy of the solvated molecule
 
     Arguments:
@@ -188,6 +186,8 @@ def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=192, n_qm_solvent_
         method (ESW method) -- method to use for QM calculations
 
     Keyword Arguments:
+        dist_consts (dict) -- bond distance constraints, key=bond ids, value=distance (default: {None})
+        fix_solute (bool) -- if the solute should be fixed (default: {False})
         n_confs (int) -- number of differenct solvent configurations to calculate (default: {192})
         n_qm_solvent_mols (int) -- number of solvent molecules to place around the solute (default: {30})
 
@@ -199,7 +199,7 @@ def do_explicit_solvent_qmmm(solute, solvent, method, n_confs=192, n_qm_solvent_
 
     logger.info(f'Splitting calculation into {Config.n_cores} threads')
     with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(run, (solute, solvent, n_qm_solvent_mols, method, i)) for i in range(n_confs)]
+        results = [pool.apply_async(run, (solute, solvent, n_qm_solvent_mols, dist_consts, fix_solute, method, i)) for i in range(n_confs)]
         xyzs_and_energies = [res.get(timeout=None) for res in results]
 
     for xyzs, qmmm_energy in xyzs_and_energies:

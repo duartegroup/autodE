@@ -16,19 +16,8 @@ from openmmtools.integrators import GradientDescentMinimizationIntegrator
 
 class QMMM:
 
-    def set_up_main_simulation(self):
-        # topology = omapp.Topology()
-        # chain = topology.addChain()
-        # residue = topology.addResidue('residue', chain)
-        # atoms = []
-        # for i, xyz in enumerate(self.xyzs):
-        #     element = omapp.Element.getBySymbol(xyz[0])
-        #     atoms.append(topology.addAtom(str(i), element, residue))
-        # for atom_i, atom_j in self.bonds:
-        #     topology.addBond(atoms[atom_i], atoms[atom_j])
-        # self.topology = topology
+    def set_up_main_simulation(self, fix_solute):
         pdb = omapp.PDBFile(self.pdb_filename)
-        # system = self.forcefield.createSystem(self.topology)
         system = self.forcefield.createSystem(pdb.topology)
 
         coords = xyz2coord(self.all_xyzs)
@@ -38,9 +27,7 @@ class QMMM:
         z_vec = om.Vec3(0, 0, box_size[2])
         system.setDefaultPeriodicBoxVectors(x_vec, y_vec, z_vec)
 
-        for xyz in self.solute_xyzs:
-            # el = omapp.Element.getBySymbol(xyz[0])
-            # mass = el.mass / dalton
+        for _ in range(len(self.solute_xyzs)):
             system.addParticle(0)
 
         qmmm_force_obj = om.CustomExternalForce("-x*fx-y*fy-z*fz")
@@ -59,11 +46,15 @@ class QMMM:
                     atom_label = self.solute_xyzs[i][0]
                     force.addParticle(self.solute_charges[i], 0.2 * get_vdw_radius(atom_label), 0.2)
 
-        # simulation = omapp.Simulation(topology, system, self.integrator)
         simulation = omapp.Simulation(pdb.topology, system, self.integrator)
+
+        # prevent openmm multithreading combined with python multithreading overloading the CPU
+        simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
+        simulation.context.reinitialize(preserveState=True)
 
         coords_in_nm = xyz2coord(self.solvent_xyzs + self.solute_xyzs) * 0.1
         simulation.context.setPositions(coords_in_nm)
+
         logger.info('Minimizing solvent energy')
         simulation.minimizeEnergy()
 
@@ -71,9 +62,15 @@ class QMMM:
             if type(force) is om.NonbondedForce:
                 for i in range(len(self.solute_xyzs)):
                     force.setParticleParameters(i + self.n_solvent_atoms, self.solute_charges[i], 0, 0)
-        # for i in range(len(self.qm_solvent_xyzs)):
-        #     params = force.getParticleParameters(i)
-        #     force.setParticleParameters(i, 0, params[1], params[2])
+
+        if not fix_solute:
+            for i, xyz in enumerate(self.solute_xyzs):
+                el = omapp.Element.getBySymbol(xyz[0])
+                mass = el.mass / dalton
+                system.setParticleMass(i + self.n_solvent_atoms, mass)
+
+            for (atom1, atom2), distance in self.dist_consts.items():
+                system.addConstraint(atom1 + self.n_solvent_atoms, atom2 + self.n_solvent_atoms, distance/10)
 
         self.system = system
         self.qmmm_force_obj = qmmm_force_obj
@@ -105,8 +102,6 @@ class QMMM:
         self.run_qmmm_step()
         while abs(self.all_qmmm_energy[-1] - self.all_qmmm_energy[-2]) > 0.000001:
             self.run_qmmm_step()
-        # for _ in range(500):
-        #     self.run_qmmm_step()
         final_state = self.simulation.context.getState(getPositions=True)
         final_positions = final_state.getPositions(asNumpy=True)
 
@@ -242,7 +237,7 @@ class QMMM:
             print(f'{self.n_qm_atoms}\n', file=traj_file)
             [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=traj_file) for line in xyzs[:self.n_qm_atoms]]
 
-    def __init__(self, solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, number, method):
+    def __init__(self, solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, dist_consts, number, method, fix_solute):
         self.name = f'{solute.name}_qmmm_{number}'
         self.solute_xyzs = solute.xyzs
         self.solute_charge = solute.charge
@@ -253,6 +248,7 @@ class QMMM:
         self.solvent_bonds = solvent_bonds
         self.solvent_charges = solvent_charges
         self.n_qm_solvent_mols = n_qm_solvent_mols
+        self.dist_consts = [] if dist_consts is None else dist_consts
         self.method = method
 
         self.qm_energy = None
@@ -273,9 +269,9 @@ class QMMM:
         self.system = None
         self.simulation = None
         self.forcefield = omapp.ForceField('tip3pfb.xml')
-        self.integrator = GradientDescentMinimizationIntegrator(initial_step_size=0.5*angstrom)
+        self.integrator = GradientDescentMinimizationIntegrator(initial_step_size=1*angstrom)
         self.qmmm_force_obj = None
-        self.set_up_main_simulation()
+        self.set_up_main_simulation(fix_solute)
 
         self.qm_solvent_atoms = None
         self.set_qm_atoms()
