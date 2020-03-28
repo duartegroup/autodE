@@ -57,6 +57,7 @@ class TransitionState(TSbase):
                              charge=self.charge, mult=self.mult)
 
             conf.solvent = self.solvent
+            conf.graph = deepcopy(self.graph)
             self.conformers.append(conf)
 
         logger.info(f'Generated {len(self.conformers)} conformer(s)')
@@ -94,6 +95,11 @@ class TransitionState(TSbase):
         atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.calc)
 
         self.find_lowest_energy_conformer()
+
+        if len(self.conformers) == 1:
+            logger.warning('Only found a single conformer. Not rerunning TS optimisation')
+            return None
+
         self.opt_ts(name_ext='optts_conf')
 
         if self.is_true_ts() and self.energy < energy:

@@ -7,7 +7,7 @@ from autode.config import Config
 
 class Conformer(Species):
 
-    def optimise(self, method=None):
+    def optimise(self, method):
         logger.info(f'Running optimisation of {self.name}')
 
         opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method, keywords_list=method.keywords.low_opt,

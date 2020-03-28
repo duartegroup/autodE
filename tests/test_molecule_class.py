@@ -12,7 +12,6 @@ from rdkit.Chem import Mol
 import numpy as np
 import pytest
 import os
-from autode.transition_states.locate_tss import get_reactant_and_product_complexes
 from autode.mol_graphs import reac_graph_to_prods
 here = os.path.dirname(os.path.abspath(__file__))
 

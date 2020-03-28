@@ -1,4 +1,4 @@
-from autode.opt import get_ts_guess_constrained_opt
+from autode.transition_states.ts_guess import get_ts_guess_constrained_opt
 from autode.molecule import Molecule
 from autode.config import Config
 from autode.reactions import Substitution

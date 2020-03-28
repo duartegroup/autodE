@@ -10,16 +10,19 @@ from autode.log import logger
 from autode.config import Config
 from autode.mol_graphs import split_mol_across_bond
 from multiprocessing import Pool
+import time
 from cconf_gen import v
+from cconf_gen import dvdr
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
-    # TODO rewrite in Cython for speeed also divide and conquer
+    # TODO divide and conquer?
 
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
-    init_coords = coords.reshape(3 * n_atoms, 1)
-    res = minimize(v, x0=init_coords, args=(bonds, k, d0, c, fixed_bonds), method='BFGS', tol=tol)
+
+    init_coords = coords.reshape(3 * n_atoms)
+    res = minimize(v, x0=init_coords, args=(bonds, k, d0, c, fixed_bonds), method='CG', tol=tol, jac=dvdr)
 
     return res.x.reshape(n_atoms, 3)
 
@@ -136,9 +139,11 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     non_rand_atom_indexes = get_non_random_atoms(species=species)
     [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for i, atom in enumerate(atoms) if i not in non_rand_atom_indexes]
 
-    logger.info('Minimising with BFGS')
+    logger.info('Minimising with BFGS...')
+    st = time.time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=10000, c=100, d0=d0, tol=species.n_atoms/5, fixed_bonds=fixed_bonds)
+                                    k=1, c=0.01, d0=d0, tol=species.n_atoms/1E4, fixed_bonds=fixed_bonds)
+    logger.info(f'                    ... ({time.time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms
     for i, atom in enumerate(atoms):

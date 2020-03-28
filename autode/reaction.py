@@ -180,8 +180,12 @@ class Reaction:
     @work_in('transition_states')
     def find_lowest_energy_ts_conformer(self):
         """Find the lowest energy conformer of the transition state"""
-        logger.info('Trying to find lowest energy TS conformer')
-        return self.ts.find_lowest_energy_ts_conformer()
+        if self.ts is None:
+            logger.error('No transition state to evaluate the conformer of')
+            return None
+
+        else:
+            return self.ts.find_lowest_energy_ts_conformer()
 
     @work_in('single_points')
     def calculate_single_points(self):

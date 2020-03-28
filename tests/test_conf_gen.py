@@ -83,7 +83,7 @@ def test_chiral_rotation():
     atoms = conf_gen.get_simanl_atoms(chiral_ethane)
     regen = Molecule(name='regenerated_ethane', charge=0, mult=1, atoms=atoms)
 
-    regen.print_xyz_file()
+    # regen.print_xyz_file()
 
     regen_coords = regen.get_coordinates()
     coords = chiral_ethane.get_coordinates()
@@ -99,8 +99,8 @@ def test_chiral_rotation():
         rot_mat, p, q = get_krot_p_q(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs])
         fitted_centre1 = np.array([np.matmul(rot_mat, coord - p) + q for coord in regen_coords[centre_idxs]])
 
-        # RMSD on the 5 atoms should be < 0.1 Å
-        assert np.sqrt(np.average(np.square(fitted_centre1 - coords[centre_idxs]))) < 1E-1
+        # RMSD on the 5 atoms should be < 0.5 Å
+        assert np.sqrt(np.average(np.square(fitted_centre1 - coords[centre_idxs]))) < 5E-1
 
 
 def test_butene():
@@ -166,7 +166,7 @@ def test_ts_conformer():
                                       dist_consts=get_distance_constraints(f_ch3cl_ts))
 
     regen = Molecule(name='regenerated_ts', charge=-1, mult=1, atoms=atoms)
-    regen.print_xyz_file()
+    # regen.print_xyz_file()
 
     # Ensure the making/breaking bonds retain their length
     regen_coords = regen.get_coordinates()
