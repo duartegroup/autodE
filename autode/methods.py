@@ -1,15 +1,15 @@
 """
 Functions to get the high and low level electronic structure methods to use for example high-level methods would be
-ORCA and Gaussian09 which can perform DFT/WF theory calculations, low level methods are for example XTB and MOPAC which
+orca and Gaussian09 which can perform DFT/WF theory calculations, low level methods are for example xtb and mopac which
 are non ab-initio methods and are therefore considerably faster
 """
 from autode.config import Config
 from autode.log import logger
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.XTB import XTB
-from autode.wrappers.G09 import G09
-from autode.wrappers.NWChem import NWChem
+from autode.wrappers.ORCA import orca
+from autode.wrappers.MOPAC import mopac
+from autode.wrappers.XTB import xtb
+from autode.wrappers.G09 import g09
+from autode.wrappers.NWChem import nwchem
 from autode.exceptions import MethodUnavailable
 
 
@@ -17,15 +17,15 @@ def get_hmethod():
     """Get the high-level electronic structure theory method to use
 
     Returns:
-        object: ElectronicStructureMethod
+        (autode.wrappers.base.ElectronicStructureMethod):
     """
     if Config.hcode is not None:
         if Config.hcode.lower() == 'orca':
-            method = ORCA()
+            method = orca
         elif Config.hcode.lower() == 'g09':
-            method = G09()
+            method = g09
         elif Config.hcode.lower() == 'nwchem':
-            method = NWChem()
+            method = nwchem
         else:
             logger.critical('Requested electronic structure code doesn\'t exist')
             raise MethodUnavailable
@@ -37,8 +37,8 @@ def get_hmethod():
 
         return method
     else:
-        # see if ORCA availaible, then Gaussian, then NWChem
-        for method in [ORCA(), G09(), NWChem()]:
+        # See if orca availaible, then Gaussian, then nwchem
+        for method in [orca, g09, nwchem]:
             method.set_availability()
             if method.available:
                 return method
@@ -51,13 +51,13 @@ def get_lmethod():
     """Get the low-level electronic structure theory method to use
 
     Returns:
-        object: ElectronicStructureMethod
+        (autode.wrappers.base.ElectronicStructureMethod):
     """
     if Config.lcode is not None:
         if Config.lcode.lower() == 'xtb':
-            method = XTB()
+            method = xtb
         elif Config.lcode.lower() == 'mopac':
-            method = MOPAC()
+            method = mopac
         else:
             logger.critical('Requested electronic structure code doesn\'t exist')
             raise MethodUnavailable
@@ -69,8 +69,8 @@ def get_lmethod():
 
         return method
     else:
-        # see if XTB availaible, then MOPAC
-        for method in [XTB(), MOPAC()]:
+        # See if xtb available, then mopac
+        for method in [xtb, mopac]:
             method.set_availability()
             if method.available:
                 return method

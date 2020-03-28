@@ -1,9 +1,6 @@
 import os
 import numpy as np
 from autode.log import logger
-from autode.geom import xyz2coord
-from autode.geom import coords2xyzs
-from autode.geom import calc_rotation_matrix
 from autode.config import Config
 from autode.solvent.qmmm import QMMM
 from multiprocessing import Pool
@@ -159,6 +156,8 @@ def run(solute, solvent, n_qm_solvent_mols, dist_consts, fix_solute, method, i):
                 n_solvent_mols = 700
                 solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges = add_solvent_molecules(solute, solvent, n_solvent_mols)
                 solute.xyzs = solute_xyzs
+                os.environ['OPENMM_CPU_THREADS'] = str(1)
+                os.environ['OMP_NUM_THREADS '] = str(1)
                 qmmm = QMMM(solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, dist_consts, i, method, fix_solute)
                 qmmm.simulate()
                 xyzs = qmmm.final_xyzs

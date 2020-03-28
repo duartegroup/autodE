@@ -4,30 +4,35 @@ from autode import mol_graphs
 from autode.atoms import get_maximal_valance
 from autode.mol_graphs import is_isomorphic
 import itertools
+import os
 
 
-def get_bond_rearrangs(mol, product):
+def get_bond_rearrangs(reactant, product, name):
     """For a reactant and product (complex) find the set of breaking and forming bonds that will turn reactants into
     products. This works by determining the types of bonds that have been made/broken (i.e CH) and then only considering
     rearrangements involving those bonds. 
 
     Arguments:
-        mol (molecule object): reactant complex
-        product (molecule object): product complex
+        reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
+        name (str): Name of the reaction
 
     Returns:
         list: list of bond rearrang objects linking reacs and prods
     """
     logger.info('Finding the possible forming and breaking bonds')
 
-    if is_isomorphic(mol.graph, product.graph) and product.n_atoms > 3:
+    if os.path.exists(f'{name}_bond_rearrangs.txt'):
+        return get_bond_rearrangs_from_file(filename=f'{name}_bond_rearrangs.txt')
+
+    if is_isomorphic(reactant.graph, product.graph) and product.n_atoms > 3:
         logger.error('Reactant (complex) is isomorphic to product (complex). Bond rearrangement '
                      'cannot be determined unless the substrates are limited in size')
         return None
 
     possible_bond_rearrangements = []
 
-    reac_bond_dict = mol_graphs.get_bond_type_list(mol.graph)
+    reac_bond_dict = mol_graphs.get_bond_type_list(reactant.graph)
     prod_bond_dict = mol_graphs.get_bond_type_list(product.graph)
 
     # list of lists, shallow level separates by type of bond, deeper level is bonds of those type that can break
@@ -43,7 +48,7 @@ def get_bond_rearrangs(mol, product):
 
     for reac_key, reac_bonds in reac_bond_dict.items():
         prod_bonds = prod_bond_dict[reac_key]
-        possible_fbonds = mol_graphs.get_fbonds(mol.graph, reac_key)
+        possible_fbonds = mol_graphs.get_fbonds(reactant.graph, reac_key)
         if len(prod_bonds) < len(reac_bonds):
             all_possible_bbonds.append(reac_bonds)
             bbond_atom_type_fbonds = possible_fbonds
@@ -54,7 +59,7 @@ def get_bond_rearrangs(mol, product):
             if len(reac_bonds) != 0:
                 possible_bbond_and_fbonds.append([reac_bonds, possible_fbonds])
 
-    delta_n_bonds = mol.n_bonds - product.n_bonds
+    delta_n_bonds = reactant.graph.number_of_edges() - product.graph.number_of_edges()
     if delta_n_bonds == 0:
         funcs = [get_fbonds_bbonds_1b1f, get_fbonds_bbonds_2b2f]
     elif delta_n_bonds == 1:
@@ -68,7 +73,7 @@ def get_bond_rearrangs(mol, product):
         return None
 
     for func in funcs:
-        possible_bond_rearrangements = func(mol, product, possible_bond_rearrangements, all_possible_bbonds, all_possible_fbonds,
+        possible_bond_rearrangements = func(reactant, product, possible_bond_rearrangements, all_possible_bbonds, all_possible_fbonds,
                                             possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds)
         if len(possible_bond_rearrangements) > 0:
             logger.info(f'Found a molecular graph rearrangement to products with {func.__name__}')
@@ -77,11 +82,64 @@ def get_bond_rearrangs(mol, product):
             n_bond_rearrangs = len(possible_bond_rearrangements)
             if n_bond_rearrangs > 1:
                 logger.info(f'Multiple *{n_bond_rearrangs}* possible bond breaking/makings are possible')
-                possible_bond_rearrangements = strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangements)
+                possible_bond_rearrangements = strip_equivalent_bond_rearrangs(reactant, possible_bond_rearrangements)
 
+            save_bond_rearrangs_to_file(possible_bond_rearrangements, filename=f'{name}_bond_rearrangs.txt')
+
+            logger.info(f'Found *{len(possible_bond_rearrangements)}* bond rearrangement(s) that lead to products')
             return possible_bond_rearrangements
 
     return None
+
+
+def save_bond_rearrangs_to_file(bond_rearrangs, filename='bond_rearrangs.txt'):
+    logger.info(f'Saving bond rearrangements to {filename}')
+    with open(filename, 'w') as file:
+        for bond_rearrang in bond_rearrangs:
+            print('fbonds', file=file)
+            for fbond in bond_rearrang.fbonds:
+                print(*fbond, file=file)
+            print('bbonds', file=file)
+            for bbond in bond_rearrang.bbonds:
+                print(*bbond, file=file)
+            print('end', file=file)
+
+    return None
+
+
+def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
+    logger.info('Getting bond rearrangements from file')
+
+    if not os.path.exists(filename):
+        logger.error('No bond rearrangments file')
+        return None
+
+    bond_rearrangs = []
+
+    with open(filename, 'r') as br_file:
+        fbonds_block = False
+        bbonds_block = True
+        fbonds = []
+        bbonds = []
+        for line in br_file:
+            if 'fbonds' in line:
+                fbonds_block = True
+                bbonds_block = False
+            if 'bbonds' in line:
+                fbonds_block = False
+                bbonds_block = True
+            if fbonds_block and len(line.split()) == 2:
+                atom_id_string = line.split()
+                fbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
+            if bbonds_block and len(line.split()) == 2:
+                atom_id_string = line.split()
+                bbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
+            if 'end' in line:
+                bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds))
+                fbonds = []
+                bbonds = []
+
+    return bond_rearrangs
 
 
 def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
@@ -102,7 +160,7 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     bbond_atoms = [atom for bbond in bbonds for atom in bbond]
     for fbond in fbonds:
         for atom in fbond:
-            atom_label = reactant.get_atom_label(atom)
+            atom_label = reactant.atoms[atom].label
             if reactant.graph.degree(atom) == get_maximal_valance(atom_label) and atom not in bbond_atoms:
                 # If we are here then there is at least one atom that will exceed it's maximal valance, therefore
                 # we don't need to run isomorphism
@@ -300,12 +358,15 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
     return unique_bond_rearrangements
 
 
-class BondRearrangement(object):
+class BondRearrangement:
+
+    def __str__(self):
+        return '_'.join(f'{bond[0]}-{bond[1]}' for bond in self.all)
 
     def get_active_atom_neighbour_lists(self, mol, depth):
 
         if self.active_atom_nl is None:
-            self.active_atom_nl = [get_neighbour_list(atom_i=atom, mol=mol)[:depth] for atom in self.active_atoms]
+            self.active_atom_nl = [get_neighbour_list(species=mol, atom_i=atom)[:depth] for atom in self.active_atoms]
 
         return self.active_atom_nl
 
@@ -323,3 +384,6 @@ class BondRearrangement(object):
         self.all = self.fbonds + self.bbonds
         self.active_atoms = [atom_id for bond in self.all for atom_id in bond]
         self.active_atom_nl = None
+
+        self.fatoms = [atom_id for bond in self.fbonds for atom_id in bond]
+        self.batoms = [atom_id for bond in self.bbonds for atom_id in bond]

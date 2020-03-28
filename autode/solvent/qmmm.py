@@ -1,6 +1,5 @@
 from autode.methods import get_hmethod
 from autode.calculation import Calculation
-from autode.geom import xyz2coord, coords2xyzs
 from autode.config import Config
 from autode.constants import Constants
 from autode.atoms import get_vdw_radius

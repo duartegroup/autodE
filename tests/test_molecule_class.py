@@ -1,4 +1,8 @@
 from autode.molecule import Molecule
+from autode.conformers.conformer import Conformer
+from autode.exceptions import NoAtomsInMolecule
+from autode.geom import are_coords_reasonable
+from autode.wrappers.ORCA import orca
 from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.reaction import Reaction
@@ -7,17 +11,16 @@ from autode.bond_rearrangement import BondRearrangement
 from rdkit.Chem import Mol
 import numpy as np
 import pytest
-from autode.transition_states.locate_tss import get_reactant_and_product_complexes
+import os
 from autode.mol_graphs import reac_graph_to_prods
-
-
-h2 = Molecule(name='h2', xyzs=[['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0]])
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_basic_attributes():
 
-    with pytest.raises(SystemExit):
-        bad_mol = Molecule(xyzs=[[]])
+    with pytest.raises(NoAtomsInMolecule):
+        Molecule(atoms=[])
+        Molecule()
 
     methane = Molecule(name='methane', smiles='C')
 
@@ -26,28 +29,61 @@ def test_basic_attributes():
     assert methane.smiles == 'C'
     assert methane.energy is None
     assert methane.n_atoms == 5
-    assert methane.n_bonds == 4
     assert methane.graph.number_of_edges() == 4
     assert methane.graph.number_of_nodes() == methane.n_atoms
     assert methane.conformers is None
     assert methane.charge == 0
     assert methane.mult == 1
-    assert methane.distance_matrix.shape == (5, 5)
-    assert -0.001 < np.trace(methane.distance_matrix) < 0.001
-    assert isinstance(methane.mol_obj, Mol)
-
-    assert h2.n_atoms == 2
-    assert h2.distance_matrix.shape == (2, 2)
-    assert h2.smiles is None
-    assert h2.graph.number_of_edges() == 1
-    assert h2.graph.number_of_nodes() == h2.n_atoms
+    assert isinstance(methane.rdkit_mol_obj, Mol)
 
 
+def test_gen_conformers():
+
+    ethane = Molecule(name='ethane', smiles='CC')
+    ethane._generate_conformers(n_rdkit_confs=2)
+
+    assert ethane.rdkit_conf_gen_is_fine
+    assert type(ethane.conformers) == list
+    assert len(ethane.conformers) >= 1          # Even though two conformers have been requested they are pruned on RMSD
+    assert type(ethane.conformers[0]) == Conformer
+    assert ethane.conformers[0].energy is None
+    assert ethane.conformers[0].n_atoms == 8
+
+    with pytest.raises(NoAtomsInMolecule):
+        mol = Molecule()
+        mol._generate_conformers()
+
+
+def test_siman_conf_gen():
+
+    rh_complex = Molecule(name='[RhH(CO)3(ethene)]', smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
+    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+    assert rh_complex.n_atoms == 14
+    assert rh_complex.graph.number_of_edges() == 14
+
+
+def test_molecule_opt():
+
+    os.chdir(os.path.join(here, 'data'))
+
+    mol = Molecule(name='H2', smiles='[H][H]')
+
+    mol.optimise(method=orca)
+    assert mol.energy == -1.160687049941
+    assert mol.n_atoms == 2
+
+    opt_coords = mol.get_coordinates()
+    assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768      # H2 bond length ~ 0.767 Å at PBE/def2-SVP
+
+    os.chdir(here)
+
+
+"""
 def test_rdkit_conf_generation():
 
-    h2 = Molecule(name='h2', smiles='[H][H]')
+    h2 = Molecule(name='mol', smiles='[H][H]')
 
-    h2.generate_conformers(n_rdkit_confs=1)
+    h2._generate_conformers(n_rdkit_confs=1)
     assert isinstance(h2.conformers[0], conformers.Conformer)
     assert len(h2.conformers) == 1
     assert h2.n_conformers == 1
@@ -59,7 +95,7 @@ def test_attributes_methods():
     assert h_atom.mult == 2
     assert h2._calc_multiplicity(n_radical_electrons=2) == 1
 
-    h2_rdkit = Molecule(name='h2', smiles='[H][H]')
+    h2_rdkit = Molecule(name='mol', smiles='[H][H]')
     h2_rdkit.graph.remove_edge(0, 1)
 
     assert 0.69 < h2.calc_bond_distance(bond=(0, 1)) < 0.71
@@ -135,3 +171,4 @@ def test_stripping_core():
     fragment_3, bond_rearrang_3 = reactant.strip_core(core_atoms=core3, bond_rearrang=bond_rearrang)
     assert reactant == fragment_3
     assert bond_rearrang_3 == bond_rearrang
+"""

@@ -1,11 +1,9 @@
 from autode.config import Config
 from autode.log import logger
-from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.input_output import xyzs2xyzfile
 from autode.exceptions import UnsuppportedCalculationInput
+from autode.atoms import Atom
 import numpy as np
-import os
 
 
 class NWChem(ElectronicStructureMethod):
@@ -13,12 +11,12 @@ class NWChem(ElectronicStructureMethod):
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_nwchem.nw'
         calc.output_filename = calc.name + '_nwchem.out'
-        keywords = calc.keywords.copy()
+        keywords = calc.keywords_list.copy()
 
         new_keywords = []
         scf_block = False
         for keyword in keywords:
-            if 'opt' in keyword.lower() and calc.n_atoms == 1:
+            if 'opt' in keyword.lower() and calc.molecule.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
                 old_key = keyword.split()
                 new_keyword = ' '
@@ -30,21 +28,21 @@ class NWChem(ElectronicStructureMethod):
                 new_keywords.append(new_keyword)
             elif keyword.lower().startswith('dft'):
                 lines = keyword.split('\n')
-                lines.insert(1, f'  mult {calc.mult}')
+                lines.insert(1, f'  mult {calc.molecule.mult}')
                 new_keyword = '\n'.join(lines)
                 new_keywords.append(new_keyword)
             elif keyword.lower().startswith('scf'):
                 if calc.solvent_keyword:
-                    logger.critical('NWChem only supports solvent for DFT calculations')
+                    logger.critical('nwchem only supports solvent for DFT calculations')
                     raise UnsuppportedCalculationInput
                 scf_block = True
                 lines = keyword.split('\n')
-                lines.insert(1, f'  nopen {calc.mult - 1}')
+                lines.insert(1, f'  nopen {calc.molecule.mult - 1}')
                 new_keyword = '\n'.join(lines)
                 new_keywords.append(new_keyword)
             elif any(string in keyword.lower() for string in ['ccsd', 'mp2']) and not scf_block:
                 if calc.solvent_keyword:
-                    logger.critical('NWChem only supports solvent for DFT calculations')
+                    logger.critical('nwchem only supports solvent for DFT calculations')
                     raise UnsuppportedCalculationInput
                 new_keywords.append(f'scf\n  nopen {calc.mult - 1}\nend')
                 new_keywords.append(keyword)
@@ -78,7 +76,7 @@ class NWChem(ElectronicStructureMethod):
                 print('  end', file=inp_file)
             print('end', file=inp_file)
 
-            print(f'charge {calc.charge}', file=inp_file)
+            print(f'charge {calc.molecule.charge}', file=inp_file)
 
             if calc.distance_constraints or calc.cartesian_constraints:
                 force_constant = 10
@@ -86,7 +84,7 @@ class NWChem(ElectronicStructureMethod):
                     force_constant += 90
                 print('constraints', file=inp_file)
                 if calc.distance_constraints:
-                    for atom_ids in calc.distance_constraints.keys():  # NWChem counts from 1 so increment atom ids by 1
+                    for atom_ids in calc.distance_constraints.keys():  # nwchem counts from 1 so increment atom ids by 1
                         print(f'  spring bond {atom_ids[0] + 1} {atom_ids[1] + 1} {force_constant} {np.round(calc.distance_constraints[atom_ids], 3)}' + str(
                             atom_ids[0] + 1), file=inp_file)
 
@@ -110,9 +108,10 @@ class NWChem(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=' ', file=inp_file)
                 print('end', file=inp_file)
 
-            if calc.charges:
+            if calc.molecule.charges:
                 print('bq')
-                [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
+                [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file)
+                 for line in calc.molecule.charges]
                 print('end')
 
             print(f'memory {Config.max_core} mb', file=inp_file)
@@ -127,7 +126,7 @@ class NWChem(ElectronicStructureMethod):
 
         for n_line, line in enumerate(calc.rev_output_file_lines):
             if any(substring in line for substring in['CITATION', 'Failed to converge in maximum number of steps or available time']):
-                logger.info('NWChem terminated normally')
+                logger.info('nwchem terminated normally')
                 return True
             if n_line > 500:
                 return False
@@ -159,7 +158,7 @@ class NWChem(ElectronicStructureMethod):
 
     def get_imag_freqs(self, calc):
 
-        imag_freqs = None
+        imag_freqs = []
         normal_mode_section = False
 
         for line in calc.output_file_lines:
@@ -205,22 +204,22 @@ class NWChem(ElectronicStructureMethod):
 
         displacements_xyz = [displacements[i:i + 3]
                              for i in range(0, len(displacements), 3)]
-        if len(displacements_xyz) != calc.n_atoms:
+        if len(displacements_xyz) != calc.molecule.n_atoms:
             logger.error(
                 'Something went wrong getting the displacements n != n_atoms')
             return None
 
-        return displacements_xyz
+        return np.array(displacements_xyz)
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
         xyzs_section = False
-        xyzs = []
+        atoms = []
 
         for line in calc.output_file_lines:
             if 'Output coordinates in angstroms' in line:
                 xyzs_section = True
-                xyzs = []
+                atoms = []
 
             if 'Atomic Mass' in line:
                 xyzs_section = False
@@ -228,12 +227,9 @@ class NWChem(ElectronicStructureMethod):
             if xyzs_section and len(line.split()) == 6:
                 if line.split()[0].isdigit():
                     _, atom_label, _, x, y, z = line.split()
-                    xyzs.append([atom_label, float(x), float(y), float(z)])
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
 
-        xyz_filename = f'{calc.name}_nwchem.xyz'
-        xyzs2xyzfile(xyzs, xyz_filename)
-
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
 
@@ -265,11 +261,7 @@ class NWChem(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__('nwchem', path=Config.NWChem.path,
-                         scan_keywords=Config.NWChem.scan_keywords,
-                         conf_opt_keywords=Config.NWChem.conf_opt_keywords,
-                         opt_keywords=Config.NWChem.opt_keywords,
-                         opt_ts_keywords=Config.NWChem.opt_ts_keywords,
-                         hess_keywords=Config.NWChem.hess_keywords,
-                         sp_keywords=Config.NWChem.sp_keywords,
-                         mpirun=True)
+        super().__init__('nwchem', path=Config.NWChem.path, keywords=Config.NWChem.keywords, mpirun=True)
+
+
+nwchem = NWChem()

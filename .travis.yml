@@ -1,7 +1,6 @@
 branches:
   only:
     - master
-    - equiv_atoms
     - joseph
 dist: xenial
 language: python

@@ -1,7 +1,8 @@
 from autode.config import Config
 from autode.log import logger
-from autode.constants import Constants
+from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.exceptions import NoCalculationOutput, NoNormalModesFound
 import numpy as np
 import os
 
@@ -14,9 +15,10 @@ vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitri
 class ORCA(ElectronicStructureMethod):
 
     def generate_input(self, calc):
+
         calc.input_filename = calc.name + '_orca.inp'
         calc.output_filename = calc.name + '_orca.out'
-        keywords = calc.keywords.copy()
+        keywords = calc.keywords_list.copy()
 
         opt_or_sp = False
 
@@ -24,7 +26,7 @@ class ORCA(ElectronicStructureMethod):
             if 'opt' in keyword.lower():
                 if keyword.lower() != 'optts':
                     opt_or_sp = True
-                if calc.n_atoms == 1:
+                if calc.molecule.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
             if keyword.lower() == 'sp':
@@ -47,11 +49,11 @@ class ORCA(ElectronicStructureMethod):
                     print('%cpcm\nsmd true\nSMDsolvent \"' + calc.solvent_keyword + '\"\nend', file=inp_file)
 
             max_iter_done = False
-            if calc.optts_block:
-                if 'maxiter' in calc.optts_block.lower():
+            if calc.other_input_block:
+                if 'maxiter' in calc.other_input_block.lower():
                     max_iter_done = True
-                print(calc.optts_block, file=inp_file)
-                if calc.core_atoms and calc.n_atoms > 25 and not calc.partial_hessian:
+                print(calc.other_input_block, file=inp_file)
+                if calc.core_atoms and calc.molecule.n_atoms > 25 and not calc.partial_hessian:
                     core_atoms_str = ' '.join(map(str, calc.core_atoms))
                     print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
                 print('end', file=inp_file)
@@ -76,7 +78,7 @@ class ORCA(ElectronicStructureMethod):
                  for atom_id in calc.cartesian_constraints]
                 print('    end\nend', file=inp_file)
 
-            if calc.n_atoms < 33 and not max_iter_done:
+            if calc.molecule.n_atoms < 33 and not max_iter_done:
                 print('%geom MaxIter 100 end', file=inp_file)
 
             if calc.partial_hessian:
@@ -84,7 +86,7 @@ class ORCA(ElectronicStructureMethod):
                 print(*calc.partial_hessian, file=inp_file, end='')
                 print('} end\nend', file=inp_file)
 
-            if calc.charges:
+            if calc.molecule.charges:
                 print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
             if calc.n_cores > 1:
@@ -92,14 +94,16 @@ class ORCA(ElectronicStructureMethod):
             print('%output \nxyzfile=True \nend ', file=inp_file)
             print('%scf \nmaxiter 250 \nend', file=inp_file)
             print('% maxcore', calc.max_core_mb, file=inp_file)
-            print('*xyz', calc.charge, calc.mult, file=inp_file)
-            [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+            print('*xyz', calc.molecule.charge, calc.molecule.mult, file=inp_file)
+            for atom in calc.molecule.atoms:
+                x, y, z = atom.coord
+                print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             print('*', file=inp_file)
 
-        if calc.charges:
+        if calc.molecule.charges:
             with open(f'{calc.name}_orca.pc', 'w') as pc_file:
-                print(len(calc.charges), file=pc_file)
-                for line in calc.charges:
+                print(len(calc.molecule.charges), file=pc_file)
+                for line in calc.molecule.charges:
                     formatted_line = [line[-1]] + line[1:4]
                     print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=pc_file)
             calc.additional_input_files.append((f'{calc.name}_orca.pc', f'{calc.name}_orca.pc'))
@@ -110,7 +114,7 @@ class ORCA(ElectronicStructureMethod):
 
         for n_line, line in enumerate(calc.rev_output_file_lines):
             if any(substring in line for substring in['ORCA TERMINATED NORMALLY', 'The optimization did not converge']):
-                logger.info('ORCA terminated normally')
+                logger.info('orca terminated normally')
                 return True
             if n_line > 30:
                 # The above lines are pretty close to the end of the file – there's no point parsing it all
@@ -148,7 +152,7 @@ class ORCA(ElectronicStructureMethod):
         if calc.partial_hessian:
             n_atoms = len(calc.partial_hessian)
         else:
-            n_atoms = calc.n_atoms
+            n_atoms = calc.molecule.n_atoms
 
         for i, line in enumerate(calc.output_file_lines):
             if 'VIBRATIONAL FREQUENCIES' in line:
@@ -165,7 +169,7 @@ class ORCA(ElectronicStructureMethod):
         if calc.partial_hessian:
             n_atoms = len(calc.partial_hessian)
         else:
-            n_atoms = calc.n_atoms
+            n_atoms = calc.molecule.n_atoms
 
         for j, line in enumerate(calc.output_file_lines):
             if 'NORMAL MODES' in line:
@@ -186,27 +190,29 @@ class ORCA(ElectronicStructureMethod):
                         displacements = [float(disp_line.split()[col]) for disp_line in
                                          calc.output_file_lines[j + 1:j + 3 * n_atoms + 1]]
 
-        displacements_xyz = [displacements[i:i + 3]
-                             for i in range(0, len(displacements), 3)]
+        displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
+
         if len(displacements_xyz) != n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')
-            return None
+            raise NoNormalModesFound
 
-        return displacements_xyz
+        return np.array(displacements_xyz)
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
-        xyzs = []
-        if calc.output_filename:
-            xyz_file_name = calc.output_filename[:-4] + '.xyz'
-            if os.path.exists(xyz_file_name):
-                with open(xyz_file_name, 'r') as file:
-                    for line_no, line in enumerate(file):
-                        if line_no > 1:
-                            atom_label, x, y, z = line.split()
-                            xyzs.append([atom_label, float(x), float(y), float(z)])
+        atoms = []
+        xyz_file_name = calc.output_filename.replace('.out', '.xyz')
 
-        return xyzs
+        if not os.path.exists(xyz_file_name):
+            raise NoCalculationOutput
+
+        with open(xyz_file_name, 'r') as xyz_file:
+            for line_no, line in enumerate(xyz_file):
+                if line_no > 1:
+                    atom_label, x, y, z = line.split()
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+
+        return atoms
 
     def get_atomic_charges(self, calc):
 
@@ -242,12 +248,7 @@ class ORCA(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='orca', path=Config.ORCA.path,
-                         scan_keywords=Config.ORCA.scan_keywords,
-                         conf_opt_keywords=Config.ORCA.conf_opt_keywords,
-                         gradients_keywords=Config.ORCA.gradients_keywords,
-                         opt_keywords=Config.ORCA.opt_keywords,
-                         opt_ts_keywords=Config.ORCA.opt_ts_keywords,
-                         hess_keywords=Config.ORCA.hess_keywords,
-                         opt_ts_block=Config.ORCA.opt_ts_block,
-                         sp_keywords=Config.ORCA.sp_keywords)
+        super().__init__(name='orca', path=Config.ORCA.path, keywords=Config.ORCA.keywords)
+
+
+orca = ORCA()

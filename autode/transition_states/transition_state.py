@@ -1,254 +1,173 @@
 from autode.log import logger
-from autode.constants import Constants
+from copy import deepcopy
+from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.config import Config
-from autode.geom import calc_distance_matrix
-from autode.mol_graphs import make_graph
-from autode.mol_graphs import is_isomorphic
 from autode.transition_states.templates import TStemplate
+from autode.utils import requires_atoms, requires_graph
+from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.calculation import Calculation
-from autode.transition_states.ts_guess import TSguess
-from autode.transition_states.optts import get_ts
-from autode.conformers.conformers import Conformer
-from autode.conformers.conf_gen import gen_simanl_conf_xyzs
-from autode.solvent.qmmm import QMMM
-import numpy as np
-
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.mol_graphs import get_active_mol_graph
+from autode.methods import get_hmethod
+from autode.geom import get_distance_constraints
+from autode.conformers.conformer import Conformer
+from autode.conformers.conf_gen import get_simanl_atoms
+from autode.transition_states.base import TSbase
 
 
-class TS(TSguess):
+class TransitionState(TSbase):
 
-    def make_graph(self):
-        logger.info('Making TS graph with \'active\' edges')
+    @requires_graph()
+    def _update_graph(self):
+        """Update the molecular graph to include all the bonds that are being made/broken"""
+        self.graph = get_active_mol_graph(graph=self.graph, active_bonds=self.bond_rearrangement.all)
 
-        full_graph = make_graph(self.xyzs, n_atoms=len(self.xyzs))
-        distance_matrix = calc_distance_matrix(self.xyzs)
+        logger.info(f'Molecular graph updated with {len(self.bond_rearrangement.all)} active bonds')
+        return None
 
-        self.graph_from_xyzs = full_graph.copy()
+    def _run_opt_ts_calc(self, method, name_ext):
+        """Run an optts calculation and attempt to set the geometry, energy and normal modes"""
 
-        for bond in self.active_bonds:
-            atom_i, atom_j = bond
-            full_graph.add_edge(atom_i, atom_j, active=True,
-                                weight=distance_matrix[atom_i, atom_j])
+        self.optts_calc = Calculation(name=f'{self.name}_{name_ext}', molecule=self, method=method,
+                                      n_cores=Config.n_cores,
+                                      keywords_list=method.keywords.opt_ts,
+                                      bond_ids_to_add=self.bond_rearrangement.all,
+                                      other_input_block=method.keywords.optts_block)
+        self.optts_calc.run()
 
-        nodes_to_keep = self.active_atoms.copy()
-        for edge in full_graph.edges():
-            node_i, node_j = edge
-            if node_i in self.active_atoms:
-                nodes_to_keep.append(node_j)
-            if node_j in self.active_atoms:
-                nodes_to_keep.append(node_i)
+        try:
+            self.imaginary_frequencies = self.optts_calc.get_imag_freqs()
+            self.set_atoms(atoms=self.optts_calc.get_final_atoms())
+            self.energy = self.optts_calc.get_energy()
 
-        self.graph = full_graph
+        except (AtomsNotFound, NoNormalModesFound):
+            logger.error('Transition state optimisation calculation failed')
 
-        nodes_list = list(full_graph.nodes()).copy()
-        truncated_graph = full_graph.copy()
-        [truncated_graph.remove_node(node) for node in nodes_list if node not in nodes_to_keep]
-        self.truncated_graph = truncated_graph
+        return
+
+    def _generate_conformers(self, n_confs=50):
+        """Generate conformers at the TS """
+
+        self.conformers = []
+
+        for i in range(n_confs):
+
+            distance_consts = get_distance_constraints(self)
+            atoms = get_simanl_atoms(self, dist_consts=distance_consts, conf_n=i)
+            conf = Conformer(name=f'{self.name}_conf{i}', atoms=atoms, dist_consts=distance_consts,
+                             charge=self.charge, mult=self.mult)
+
+            conf.solvent = self.solvent
+            conf.graph = deepcopy(self.graph)
+            self.conformers.append(conf)
+
+        logger.info(f'Generated {len(self.conformers)} conformer(s)')
+        return None
+
+    @requires_atoms()
+    def opt_ts(self, name_ext='optts'):
+        """Optimise this TS to a true TS """
+        logger.info(f'Optimising {self.name} to a transition state')
+
+        self._run_opt_ts_calc(method=get_hmethod(), name_ext=name_ext)
+
+        # A transition state is a first order saddle point i.e. has a single imaginary frequency
+        if len(self.imaginary_frequencies) == 1:
+            logger.info('Found a TS with a single imaginary frequency')
+            return None
+
+        if len(self.imaginary_frequencies) == 0:
+            logger.error('Transition state optimisation did not return any imaginary frequencies')
+            return None
+
+        # There is more than one imaginary frequency. Will assume that the most negative is the correct mode..
+        for disp_magnitude in [1, -1]:
+            self.atoms = get_displaced_atoms_along_mode(self.optts_calc, mode_number=7, disp_magnitude=disp_magnitude)
+            self._run_opt_ts_calc(method=get_hmethod(), name_ext=name_ext)
+
+            if len(self.imaginary_frequencies) == 1:
+                logger.info('Displacement along second imaginary mode successful. Now have 1 imaginary mode')
+                break
+
+        return None
+
+    def find_lowest_energy_ts_conformer(self):
+        """Find the lowest energy transition state conformer by performing constrained optimisations"""
+        atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.calc)
+
+        self.find_lowest_energy_conformer()
+
+        if len(self.conformers) == 1:
+            logger.warning('Only found a single conformer. Not rerunning TS optimisation')
+            return None
+
+        self.opt_ts(name_ext='optts_conf')
+
+        if self.is_true_ts() and self.energy < energy:
+            logger.info('Conformer search successful')
+
+        else:
+            logger.warning('Transition state conformer search failed. Reverting')
+            self.set_atoms(atoms=atoms)
+            self.energy = energy
+            self.calc = calc
+
+        return None
+
+    def is_true_ts(self):
+        """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
+
+        if len(self.imaginary_frequencies) > 0:
+            if self.has_correct_imag_mode(active_atoms=self.bond_rearrangement.active_atoms,
+                                          calc=self.optts_calc, ensure_links=True):
+                logger.info('Found a transition state with the correct imaginary mode & links reactants and products')
+                return True
+
+        return False
 
     def save_ts_template(self, folder_path=None):
-        """Save a transition state template containing the active bond lengths, solvent and charge in folder_path
+        """Save a transition state template containing the active bond lengths, solvent_name and charge in folder_path
 
         Keyword Arguments:
             folder_path (str): folder to save the TS template to (default: {None})
         """
-        logger.info('Saving TS template')
+        logger.info(f'Saving TS template for {self.name}')
+
         try:
-            ts_template = TStemplate(self.truncated_graph, reaction_class=self.reaction_class, solvent=self.solvent,
-                                     charge=self.charge, mult=self.mult)
+            ts_template = TStemplate(self.graph, solvent=self.solvent,  charge=self.charge, mult=self.mult)
             ts_template.save_object(folder_path=folder_path)
             logger.info('Saved TS template')
 
         except (ValueError, AttributeError):
             logger.error('Could not save TS template')
 
-    def get_atom_label(self, atom_i):
-        return self.xyzs[atom_i][0]
+        return None
 
-    def get_dist_consts(self):
-        dist_const_dict = {}
-        for bond in self.active_bonds:
-            atom1, atom2 = bond
-            coords = self.get_coords()
-            bond_length = np.linalg.norm(coords[atom1] - coords[atom2])
-            dist_const_dict[bond] = bond_length
-        self.dist_consts = dist_const_dict
-
-    def is_true_ts(self):
-        if len(self.imag_freqs) == 1:
-            return True
-        else:
-            return False
-
-    def single_point(self, solvent_mol, method=None):
-        logger.info(f'Running single point energy evaluation of {self.name}')
-        if method is None:
-            method = self.method
-
-        if solvent_mol:
-            point_charges = []
-            for i, xyz in enumerate(self.mm_solvent_xyzs):
-                point_charges.append(xyz + [solvent_mol.charges[i % solvent_mol.n_atoms]])
-        else:
-            point_charges = None
-
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords=self.method.sp_keywords,
-                         n_cores=Config.n_cores, max_core_mb=Config.max_core, charges=self.point_charges)
-        sp.run()
-        self.energy = sp.get_energy()
-
-    def generate_conformers(self):
-
-        self.conformers = []
-
-        bond_list = list(self.graph.edges)
-        conf_xyzs = gen_simanl_conf_xyzs(name=self.name, init_xyzs=self.xyzs, bond_list=bond_list, stereocentres=self.stereocentres, dist_consts=self.dist_consts.copy())
-
-        for i in range(len(conf_xyzs)):
-
-            self.conformers.append(Conformer(name=self.name + f'_conf{i}', xyzs=conf_xyzs[i], solvent=self.solvent,
-                                             charge=self.charge, mult=self.mult, dist_consts=self.dist_consts))
-
-        self.n_conformers = len(self.conformers)
-
-    def strip_non_unique_confs(self, energy_threshold_kj=1):
-        logger.info('Stripping conformers with energy ∆E < 1 kJ mol-1 to others')
-        # conformer.energy is in Hartrees
-        d_e = energy_threshold_kj / Constants.ha2kJmol
-
-        # The first conformer must be unique
-        unique_conformers = [self.conformers[0]]
-
-        for i in range(1, self.n_conformers):
-            unique = True
-            for j in range(len(unique_conformers)):
-                if self.conformers[i].energy - d_e < self.conformers[j].energy < self.conformers[i].energy + d_e:
-                    unique = False
-                    break
-            if unique:
-                unique_conformers.append(self.conformers[i])
-
-        logger.info(f'Stripped {self.n_conformers - len(unique_conformers)} conformers from a total of {self.n_conformers}')
-        self.conformers = unique_conformers
-        self.n_conformers = len(self.conformers)
-
-    def strip_confs_failed(self):
-        self.conformers = [conf for conf in self.conformers if conf.xyzs is not None and conf.energy is not None]
-        self.n_conformers = len(self.conformers)
-
-    def opt_ts(self, solvent_mol):
-        """Run the optts calculation
-
-        Returns:
-            ts object: the optimised transition state conformer
+    def __init__(self, ts_guess, bond_rearrangement):
         """
-        name = self.name
+        Transition State
 
-        ts_conf_get_ts_output = get_ts(self, solvent_mol)
-        if ts_conf_get_ts_output is None:
-            return None
-
-        self.converged = ts_conf_get_ts_output[1]
-        self.energy = self.optts_calc.get_energy()
-
-        self.name = name
-
-        return self
-
-    def find_lowest_energy_conformer(self, solvent_mol):
-        """For a transition state object find the lowest conformer in energy and set it as the mol.xyzs and mol.energy
-
-        Returns:
-            ts object: optimised ts object
+        Arguments:
+            ts_guess (autode.transition_states.ts_guess.TSguess)
+            bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
         """
-        self.generate_conformers()
-        [self.conformers[i].optimise() for i in range(len(self.conformers))]
-        self.strip_confs_failed()
-        self.strip_non_unique_confs()
-        [self.conformers[i].optimise(method=self.method)
-         for i in range(len(self.conformers))]
+        super().__init__(atoms=ts_guess.atoms, reactant=ts_guess.reactant,
+                         product=ts_guess.product, name=f'TS_{ts_guess.name}')
 
-        lowest_energy = None
-        for conformer in self.conformers:
-            if conformer.energy is None:
-                continue
-
-            conformer_graph = make_graph(conformer.xyzs, self.n_atoms)
-
-            if is_isomorphic(self.graph_from_xyzs, conformer_graph):
-                # If the conformer retains the same connectivity
-                if lowest_energy is None:
-                    lowest_energy = conformer.energy
-
-                elif conformer.energy <= lowest_energy:
-                    self.energy = conformer.energy
-                    self.xyzs = conformer.xyzs
-                    lowest_energy = conformer.energy
-
-                else:
-                    pass
-            else:
-                logger.warning('Conformer had a different molecular graph. Ignoring')
-
-        logger.info('Set lowest energy conformer energy & geometry as mol.energy & mol.xyzs')
-
-        if solvent_mol is not None:
-            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, self.method, fix_solute=True)
-
-            self.xyzs = qmmm_xyzs[:self.n_atoms]
-            self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
-            self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
-
-        return self.opt_ts(solvent_mol)
-
-    def __init__(self, ts_guess=None, name='TS', converged=True):
-        logger.info(f'Generating a TS object for {name}')
-
-        self.name = name
-
-        if ts_guess is None:
-            logger.error('A TS needs to be initialised from a TSguess object')
-            return
-
-        self.solvent = ts_guess.solvent
-        self.charge = ts_guess.charge
-        self.mult = ts_guess.mult
-        self.converged = converged
-        self.method = ts_guess.method
-        self.stereocentres = ts_guess.stereocentres
-        self.n_atoms = ts_guess.n_atoms
-        self.reactant = ts_guess.reactant
-        self.product = ts_guess.product
-        self.xyzs = ts_guess.xyzs
-        self.qm_solvent_xyzs = ts_guess.qm_solvent_xyzs
-        self.mm_solvent_xyzs = ts_guess.mm_solvent_xyzs
-
-        self.imag_freqs, _, self.energy = ts_guess.get_imag_frequencies_xyzs_energy()
-        self.charges = ts_guess.get_charges()[:self.n_atoms]
-
-        self.active_bonds = ts_guess.active_bonds
-        self.active_atoms = list(set([atom_id for bond in self.active_bonds for atom_id in bond]))
-        self.reaction_class = ts_guess.reaction_class
-
-        self.graph = None
-        self.truncated_graph = None
-        self.graph_from_xyzs = None
-        self.make_graph()
-
-        self.dist_consts = None
-        self.get_dist_consts()
-
+        self.bond_rearrangement = bond_rearrangement
         self.conformers = None
-        self.n_conformers = None
 
-        if Config.make_ts_template:
-            self.save_ts_template()
-
-        self.optts_converged = False
-        self.optts_nearly_converged = False
         self.optts_calc = None
-        self.hess_calc = None
+        self.imaginary_frequencies = []
 
-        self.calc_failed = False
+        self._update_graph()
 
-        self.point_charges = None
+
+class SolvatedTransitionState(TransitionState):
+
+    def __init__(self, ts_guess, bond_rearrangement, name='TS'):
+
+        super().__init__(ts_guess=ts_guess, bond_rearrangement=bond_rearrangement, name=name)
+        self.qm_solvent_xyzs = None
+        self.mm_solvent_xyzs = None
+
+        # self.charges = ts_guess.get_charges()[:self.n_atoms]

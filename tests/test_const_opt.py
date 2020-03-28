@@ -1,4 +1,4 @@
-from autode.opt import get_ts_guess_constrained_opt
+from autode.transition_states.ts_guess import get_ts_guess_constrained_opt
 from autode.molecule import Molecule
 from autode.config import Config
 from autode.reactions import Substitution
@@ -16,7 +16,7 @@ def test_constrained_opt():
     mol.method = ORCA()
 
     ts_guess = get_ts_guess_constrained_opt(mol=mol, distance_consts={(0, 1): 1.0}, reaction_class=Substitution,
-                                            keywords=Config.ORCA.scan_keywords, name='template_ts_guess', product=mol)
+                                            keywords=Config.ORCA.keywords.low_opt, name='template_ts_guess', product=mol)
     assert ts_guess.active_bonds == [(0, 1)]
     assert ts_guess.n_atoms == 3
 

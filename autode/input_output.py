@@ -1,44 +1,41 @@
 from autode.log import logger
+from autode.exceptions import XYZfileWrongFormat, XYZfileDidNotExist
+from autode.atoms import Atom
+import os
 
 
-def xyzs2xyzfile(xyzs, filename=None, basename=None, title_line=''):
-    """For a list of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] create a standard .xyz file
+def xyz_file_to_atoms(filename):
+    """/
+    From an .xyz file get a list of atoms
 
     Arguments:
-        xyzs (list(list)): List of xyzs
-
-    Keyword Arguments:
-        filename (str): Name of the generated xyz file (default: {None})
-        basename (str): Name of the generated xyz file without the file extension (default: {None})
-        title_line (str): String to print on the title line of an xyz file (default: {''})
+        filename (str): .xyz filename
 
     Returns:
-        str: Name of the generated xyz file
+        (list(autode.atoms.Atom)):
     """
+    logger.info(f'Getting atoms from {filename}')
 
-    if basename:
-        filename = basename + '.xyz'
+    atoms = []
 
-    if filename is None:
-        logger.error('xyz filename cannot be None')
-        return None
-
-    logger.info(f'Generating xyz file for {filename}')
+    if not os.path.exists(filename):
+        raise XYZfileDidNotExist
 
     if not filename.endswith('.xyz'):
-        logger.error('xyz filename does not end with .xyz')
-        return None
+        raise XYZfileWrongFormat
 
-    if xyzs is None:
-        logger.error(' No xyzs to print')
-        return None
+    # Open the file that exists and should(!) be in the correct format
+    with open(filename, 'r') as xyz_file:
+        n_atoms = int(xyz_file.readline().split()[0])       # First item in an xyz file is the number of atoms
+        xyz_lines = xyz_file.readlines()[1:n_atoms+1]       # XYZ lines should be the following 2 + n_atoms lines
 
-    if len(xyzs) == 0:
-        logger.error(' No xyzs to print')
-        return None
+        for line in xyz_lines:
 
-    with open(filename, 'w') as xyz_file:
-        print(len(xyzs), '\n', title_line, sep='', file=xyz_file)
-        [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=xyz_file) for line in xyzs]
+            try:
+                atom_label, x, y, z = line.split()[:4]
+                atoms.append(Atom(atomic_symbol=atom_label, x=float(x), y=float(y), z=float(z)))
 
-    return filename
+            except (IndexError, TypeError):
+                raise XYZfileWrongFormat
+
+    return atoms

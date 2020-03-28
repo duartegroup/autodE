@@ -1,157 +1,135 @@
-from scipy import optimize
+from scipy.optimize import minimize, Bounds
 from autode.log import logger
-from autode.min_energy_pathway import get_mep
-from autode.min_energy_pathway import get_point_on_grid
+import numpy as np
 
 
-def poly2d_saddlepoints(coeff_mat):
+def poly2d_saddlepoints(coeff_mat, xs, ys):
     """Finds the saddle points of a 2d surface defined by a matrix of coefficients
 
     Arguments:
         coeff_mat (np.array): Matrix of coefficients of the n order polynomial
+        xs (float) (np.ndarray): 1D
+        ys (float) (np.ndarray): 1D
 
     Returns:
         list: list of saddle points
     """
-
     logger.info('Finding saddle points')
+    min_x, max_x, min_y, max_y = min(xs), max(xs), min(ys), max(ys)
+
     stationary_points = []
-    # start in every place on the surface to ensure all relevant stationary points are found
-    for i in [n/10 for n in range(15, 35)]:
-        for j in [m/10 for m in range(15, 35)]:
-            sol = optimize.root(root_finder, [i, j], args=(coeff_mat))
-            stationary_points.append(sol.x.tolist())
 
-    # sometimes finds extra stationary points, so remove them now
-    true_stationary_points = []
-    for stationary_point in stationary_points:
-        dx, dy = root_finder(stationary_point, coeff_mat)
-        if (-0.00001 < dx < 0.00001) and (-0.00001 < dy < 0.00001):
-            true_stationary_points.append(stationary_point)
+    # Optimise the derivatives over a uniform grid in x, y. 10x10 should find all the unique stationary points
+    for x in np.linspace(min_x, max_x, num=10):
+        for y in np.linspace(min_y, max_y, num=10):
 
-    # remove repeats
-    unique_stationary_points = []
-    for stationary_point in true_stationary_points:
-        unique = True
-        for unique_point in unique_stationary_points:
-            x_same = False
-            y_same = False
-            if unique_point[0] - 0.1 < stationary_point[0] < unique_point[0] + 0.1:
-                x_same = True
-            if unique_point[1] - 0.1 < stationary_point[1] < unique_point[1] + 0.1:
-                y_same = True
-            if x_same and y_same:
-                unique = False
-                break
-        if unique:
-            unique_stationary_points.append(stationary_point)
+            # Minimise (df/dx)^2 + (dy/dx)^2 with bounds ensuring the saddle points are within the surface
+            opt = minimize(sum_squared_xy_derivative,
+                           x0=np.array([x, y]), args=(coeff_mat,),
+                           method='TNC',
+                           bounds=Bounds(lb=np.array([min_x, min_y]),
+                                         ub=np.array([max_x, max_y])))
+            opt_x, opt_y = opt.x
 
-    # now see which stationary points are saddle points
-    saddle_points = []
-    for stationary_point in unique_stationary_points:
-        if calc_delta(coeff_mat, stationary_point) < 0:
-            saddle_points.append(stationary_point)
+            # Check that we're still inside the bounds and the optimisation has converged reasonably
+            if min_x < opt_x < max_x and min_y < opt_y < max_y and opt.fun < 1E-1:
+                stationary_points.append(opt.x)
 
+    # Remove all repeated stationary points
+    stationary_points = get_unique_stationary_points(stationary_points)
+
+    # Return all stationary points that are first order saddle points (i.e. could be a TS)
+    saddle_points = [point for point in stationary_points if is_saddle_point(point, coeff_mat)]
+    logger.info(f'Found {len(saddle_points)} saddle points')
+
+    saddle_points = get_sorted_saddlepoints(saddle_points=saddle_points, xs=xs, ys=ys)
     return saddle_points
 
 
-def root_finder(vector, coeff_mat):
-    """For a coordinate, and function, finds df/dx and df/dy
+def get_sorted_saddlepoints(saddle_points, xs, ys):
+    """Get the list of saddle points ordered by their distance from the (x, y) mid-point"""
+
+    mid_x, mid_y = np.average(xs), np.average(ys)
+
+    return sorted(saddle_points, key=lambda point: np.abs(point[0] - mid_x) + np.abs(point[1] - mid_y))
+
+
+def get_unique_stationary_points(stationary_points, dist_threshold=0.1):
+    """Strip all points that are close to each other"""
+    logger.info(f'Have {len(stationary_points)} stationary points')
+
+    unique_stationary_points = stationary_points[:1]
+
+    for stat_point in stationary_points[1:]:
+
+        # Assume the point in unique and determine if it is close to any of the point already in the list
+        unique = True
+
+        for unique_stat_point in unique_stationary_points:
+            distance = np.sqrt(np.sum(np.square(np.array(stat_point) - np.array(unique_stat_point))))
+            if distance < dist_threshold:
+                unique = False
+
+        if unique:
+            unique_stationary_points.append(stat_point)
+
+    logger.info(f'Stripped {len(stationary_points) - len(unique_stationary_points)} stationary points')
+    return unique_stationary_points
+
+
+def sum_squared_xy_derivative(xy_point, coeff_mat):
+    """For a coordinate, and function, finds df/dx and df/dy and returns the sum of the squares
 
     Arguments:
-        vector (tuple): (x,y)
+        xy_point (tuple): (x,y)
         coeff_mat (np.array): Matrix of coefficients of the n order polynomial
 
     Returns:
-        tuple: (df/dx, df/dy)
+        (float): (df/dx + df/dy)^2 where at a stationary point ~ 0
     """
     order = coeff_mat.shape[0]
-    x, y = vector
-    dx = 0
-    dy = 0
+    x, y = xy_point
+    dx, dy = 0, 0
+
     for i in range(order):  # x index
         for j in range(order):  # y index
             if i > 0:
-                dx += coeff_mat[i][j] * i * x**(i-1) * y**(j)
+                dx += coeff_mat[i, j] * i * x**(i-1) * y**j
             if j > 0:
-                dy += coeff_mat[i][j] * x**(i) * j * y**(j-1)
-    return dx, dy
+                dy += coeff_mat[i, j] * x**i * j * y**(j-1)
+
+    return dx**2 + dy**2
 
 
-def calc_delta(coeff_mat, root):
-    """calculates delta ((d2f/dx2)*(d2f/dy2) - (d2f/dxdy)**2), to determine if the stationary point is a saddle point (delta < 0) 
+def is_saddle_point(xy_point, coeff_mat):
+    """
+    Calculates whether a point (x, y) is a saddle point by computing
+
+    delta = ((d2f/dx2)*(d2f/dy2) - (d2f/dxdy)**2)
 
     Arguments:
-        coeff_mat (np.array): Matrix of the coefficients of the n order polynomial
-        root (tuple): the stationary point to be examined
+        coeff_mat (np.array): Matrix of the coefficients of the n order polynomial (n x n)
+        xy_point (tuple): the stationary point to be examined
 
     Returns:
-        delta (int): value of delta
+         (bool):
     """
-    dx2 = 0
-    dy2 = 0
-    dxdy = 0
-    x, y = root
+    dx2, dy2, dxdy = 0, 0, 0
+    x, y = xy_point
+
     order = coeff_mat.shape[0]
     for i in range(order):  # x index
         for j in range(order):  # y index
             if i > 1:
-                dx2 += coeff_mat[i][j] * i * (i-1) * x**(i-2) * y**(j)
+                dx2 += coeff_mat[i, j] * i * (i - 1) * x**(i - 2) * y**j
             if j > 1:
-                dy2 += coeff_mat[i][j] * x**(i) * j * (j-1) * y**(j-2)
+                dy2 += coeff_mat[i, j] * x**i * j * (j - 1) * y**(j - 2)
             if i > 0 and j > 0:
-                dxdy += coeff_mat[i][j] * i * x**(i-1) * j * y**(j-1)
-    delta = dx2 * dy2 - dxdy**2
-    return delta
+                dxdy += coeff_mat[i, j] * i * x**(i - 1) * j * y**(j - 1)
 
+    if dx2 * dy2 - dxdy**2 < 0:
+        logger.info(f'Found saddle point at r1 = {x:.3f}, r2 = {y:.3f} Å')
+        return True
 
-def best_saddlepoint(saddle_points, r1, r2, energy_grid):
-    """Finds the saddle point with the lowest peak in its minimum energy pathway
-    
-    Arguments:
-        saddle_points {list(tuple)): list of saddlepoints, defined by their coordinates in r1 and r2
-        r1 (tuple): the distances of grid points on one axis
-        r2 (tuple): the distances of grid points on one axis
-        energy_grid (np.array): grid of the energy at each grid point given by r1 and r2
-    
-    Returns:
-        tuple: (r1 saddle distance, r2 saddle distance, list of mep coords)
-    """
-    saddle_points_on_mep = []
-    min_energy_pathways = []
-
-    for saddle_point in saddle_points:
-        min_energy_pathway = get_mep(r1, r2, energy_grid, saddle_point)
-        if min_energy_pathway is not None:
-            saddle_points_on_mep.append(saddle_point)
-            min_energy_pathways.append(min_energy_pathway)
-
-    if len(saddle_points_on_mep) == 0:
-        logger.info('No saddle points were found connecting reactants and products')
-        return None
-    elif len(saddle_points_on_mep) == 1:
-        min_energy_pathway = min_energy_pathways[0]
-        r1_saddle, r2_saddle = saddle_points_on_mep[0]
-    elif len(saddle_points_on_mep) > 1:
-        logger.info('Multiple saddlepoints remain, choosing the highest peak on the lowest minimum energy pathway')
-
-        peak_of_meps = []
-        for mep in min_energy_pathways:
-            energy_of_mep = [energy_grid[x, y] for x, y in mep]
-            peak_of_meps.append(max(energy_of_mep))
-        lowest_mep_index = peak_of_meps.index(min(peak_of_meps))
-        min_energy_pathway = min_energy_pathways[lowest_mep_index]
-        grid_saddlepoints_in_lowest_mep = []
-        saddlepoints_in_lowest_mep = []
-
-        for saddlepoint in saddle_points_on_mep:
-            saddlepoint_on_grid = get_point_on_grid(saddlepoint, r1, r2)
-            if saddlepoint_on_grid in min_energy_pathway:
-                grid_saddlepoints_in_lowest_mep.append(saddlepoint_on_grid)
-                saddlepoints_in_lowest_mep.append(saddlepoint)
-
-        saddlepoint_in_lowest_mep_energies = [energy_grid[x, y] for x, y in grid_saddlepoints_in_lowest_mep]
-        max_saddle_energy_index = saddlepoint_in_lowest_mep_energies.index(max(saddlepoint_in_lowest_mep_energies))
-        r1_saddle, r2_saddle = saddlepoints_in_lowest_mep[max_saddle_energy_index]
-
-    return r1_saddle, r2_saddle, min_energy_pathway
+    else:
+        return False

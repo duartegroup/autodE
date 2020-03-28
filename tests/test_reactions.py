@@ -1,4 +1,5 @@
 from autode import reactions
+from autode.exceptions import ReactionFormationFalied
 import pytest
 
 
@@ -19,5 +20,5 @@ def test_classify():
     rearrangement = reactions.classify([0], [0])
     assert rearrangement.name == 'rearrangement'
 
-    with pytest.raises(SystemExit):
-        bad_reaction = reactions.classify([], [])
+    with pytest.raises(ReactionFormationFalied):
+        reactions.classify([], [])

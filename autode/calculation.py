@@ -1,13 +1,22 @@
 import os
 from subprocess import Popen
 from autode.log import logger
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
+from autode.exceptions import CouldNotGetProperty
 from autode.exceptions import NoInputError
-from autode.solvent.solvents import get_available_solvents
+from autode.utils import work_in_tmp_dir
+from autode import mol_graphs
+from autode.config import Config
+from autode.solvent.solvents import get_available_solvent_names
 from autode.exceptions import SolventUnavailable
-import shutil
-from tempfile import mkdtemp
 from copy import deepcopy
+
+output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
+
+
+# Top level function that can be hashed
+def execute_calc(calc):
+    return calc.execute_calculation()
 
 
 class Calculation:
@@ -24,10 +33,17 @@ class Calculation:
             active_atoms.add(bond[0])
             active_atoms.add(bond[1])
 
+        # Will set molecule.graph to a NetworkX Graph to find the nearest neighbours
+        if hasattr(molecule, 'graph') and molecule.graph is not None:
+            logger.warning('Molecular graph was set. Not regenerating')
+        else:
+            mol_graphs.make_graph(molecule)
+
         core_atoms = set()
         for active_atom in active_atoms:
-            bonded_atoms = molecule.get_bonded_atoms_to_i(active_atom)
+            bonded_atoms = molecule.graph.neighbors(active_atom)
             core_atoms.add(active_atom)
+
             for bonded_atom in bonded_atoms:
                 core_atoms.add(bonded_atom)
 
@@ -65,52 +81,51 @@ class Calculation:
         n_atoms each with 3 components (x, y, z)
 
         Arguments:
-            mode_number (int): normal mode number. 6 will be the first vibrational mode (indexed from 0 in ORCA)
+            mode_number (int): normal mode number. 6 will be the first vibrational mode (indexed from 0 in orca)
 
         Returns:
             list(list): list of displacement distances for each xyz
         """
         return self.method.get_normal_mode_displacements(self, mode_number)
 
-    def get_final_xyzs(self):
+    def get_final_atoms(self):
         logger.info(f'Getting final xyzs from {self.output_filename}')
 
         if self.output_file_lines is None:
             logger.error('Could not get the final xyzs. The output file lines were not set')
-            return None
+            raise AtomsNotFound
 
-        xyzs = self.method.get_final_xyzs(self)
+        atoms = self.method.get_final_atoms(self)
 
-        if len(xyzs) == 0:
+        if len(atoms) == 0:
             logger.error(f'Could not get xyzs from calculation file {self.name}')
-            raise XYZsNotFound
+            raise AtomsNotFound
 
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self):
         logger.info(f'Getting atomic charges from calculation file {self.output_filename}')
         charges = self.method.get_atomic_charges(self)
 
-        if len(charges) != self.n_atoms:
-            logger.critical(f'Could not get atomic charges from calculation file {self.name}')
-            exit()
+        if len(charges) != self.molecule.n_atoms:
+            raise  CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
 
         return charges
 
     def get_gradients(self):
         logger.info(f'Getting gradients from calculation file {self.output_filename}')
-
         gradients = self.method.get_gradients(self)
 
-        if len(gradients) != self.n_atoms:
-            logger.critical(f'Could not get gradients from calculation file {self.name}')
-            exit()
+        if len(gradients) != self.molecule.n_atoms:
+            raise CouldNotGetProperty(f'Could not get gradients from calculation output file {self.name}')
 
         return gradients
 
     def calculation_terminated_normally(self):
         logger.info(f'Checking to see if {self.output_filename} terminated normally')
+
         if self.output_file_lines is None:
+            logger.warning('Calculation did not generate any output')
             return False
 
         return self.method.calculation_terminated_normally(self)
@@ -127,14 +142,12 @@ class Calculation:
         return self.method.generate_input(self)
 
     def execute_calculation(self):
-        logger.info(f'Running calculation {self.input_filename}')
+        logger.info(f'Running calculation {self.input_filename} using {self.method.name}')
 
         if self.input_filename is None:
-            logger.error('Could not run the calculation. Input filename not defined')
             raise NoInputError
 
         if not os.path.exists(self.input_filename):
-            logger.error('Could not run the calculation. Input file does not exist')
             raise NoInputError
 
         if os.path.exists(self.output_filename):
@@ -144,49 +157,29 @@ class Calculation:
         if self.output_file_exists:
             if self.calculation_terminated_normally():
                 logger.info('Calculation already terminated successfully. Skipping')
-                return self.set_output_file_lines()
+                return
 
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
 
-        here = os.getcwd()
-        tmpdir_path = mkdtemp()
-        logger.info(f'Creating tmpdir to work in {tmpdir_path}')
-        shutil.move(os.path.join(here, self.input_filename), os.path.join(tmpdir_path, self.input_filename))
-        for initial_filename, end_filename in self.additional_input_files:
-            shutil.move(os.path.join(here, initial_filename), os.path.join(tmpdir_path, end_filename))
-        os.chdir(tmpdir_path)
+        @work_in_tmp_dir(filenames_to_copy=[self.input_filename]+self.additional_input_files, kept_file_exts=output_exts)
+        def execute_est_method():
 
-        with open(self.output_filename, 'w') as output_file:
+            with open(self.output_filename, 'w') as output_file:
 
-            if self.method.mpirun:
-                mpirun_path = shutil.which('mpirun')
-                params = [mpirun_path, '-np', str(self.n_cores), self.method.path, self.input_filename]
-            else:
-                params = [self.method.path, self.input_filename]
-            if self.flags is not None:
-                params += self.flags
+                if self.method.mpirun:
+                    params = ['mpirun', '-np', str(self.n_cores), self.method.path, self.input_filename]
+                else:
+                    params = [self.method.path, self.input_filename]
+                if self.flags is not None:
+                    params += self.flags
 
-            subprocess = Popen(params, stdout=output_file,
-                               stderr=open(os.devnull, 'w'))
-        subprocess.wait()
-        logger.info(f'Calculation {self.output_filename} done')
+                subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
+            subprocess.wait()
+            logger.info(f'Calculation {self.output_filename} done')
 
-        self.set_output_file_lines()
-        if self.grad:
-            self.method.get_gradients(self)
-        for filename in os.listdir(os.getcwd()):
-            name_string = '.'.join(self.input_filename.split('.')[:-1])
-            if name_string in filename:
-                if filename.endswith(('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')) and not filename.endswith(('.smd.out', '.drv.hess', 'trj.xyz')):
-                    shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
-            if 'xcontrol' in filename:
-                shutil.move(os.path.join(tmpdir_path, filename), os.path.join(here, filename))
-
-        os.chdir(here)
-        shutil.rmtree(tmpdir_path)
-
-        return None
+        execute_est_method()
+        return self.set_output_file_lines()
 
     def run(self):
         logger.info(f'Running calculation of {self.name}')
@@ -197,9 +190,9 @@ class Calculation:
 
         return None
 
-    def __init__(self, name, molecule, method, keywords=None, n_cores=1, max_core_mb=1000, bond_ids_to_add=None,
-                 optts_block=None, opt=False, distance_constraints=None, cartesian_constraints=None, constraints_already_met=False,
-                 charges=None, grad=False, partial_hessian=None):
+    def __init__(self, name, molecule, method, keywords_list=None, n_cores=1, bond_ids_to_add=None,
+                 other_input_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
+                 constraints_already_met=False, grad=False, partial_hessian=None):
         """
         Arguments:
             name (str): calc name
@@ -207,48 +200,43 @@ class Calculation:
             method (method object): which electronic structure wrapper to use
 
         Keyword Arguments:
-            keywords (calc keywords): keywords to use in the calc (default: {None})
+            keywords_list (list(str)): keywords_list to use in the calc (default: {None})
             n_cores (int): number of cores available (default: {1})
-            max_core_mb (int): max mb per core (default: {1000})
             bond_ids_to_add (list(tuples)): list of active bonds (default: {None})
-            optts_block (list): keywords to use when performing a TS search (default: {None})
-            opt (bool): opt calc or not (needed for XTB) (default: {False})
+            other_input_block (list): keywords_list to use when performing a TS search (default: {None})
+            opt (bool): opt calc or not (needed for xtb) (default: {False})
             distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length
                                          to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
-            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for XTB force constant) (default: {False})
-            charges (list(list)): list of point charges and thier positions [xyzs, charge] (default: {None})
-            grad (bool): grad calc or not (needed for XTB) (default: {False})
+            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for xtb force constant) (default: {False})
+            grad (bool): grad calc or not (needed for xtb) (default: {False})
             partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
+
+        # TODO Purge some of these attributes
         self.name = name
-        self.xyzs = deepcopy(molecule.xyzs)
-        self.charge = molecule.charge
-        self.mult = molecule.mult
+        self.molecule = deepcopy(molecule)
+
         self.method = method
-        self.keywords = keywords
+        self.keywords_list = keywords_list
         self.flags = None
         self.opt = opt
         self.core_atoms = None
         self.grad = grad
         self.partial_hessian = partial_hessian
 
-        if molecule.qm_solvent_xyzs is not None:
-            self.xyzs += molecule.qm_solvent_xyzs
-
-        self.solvent = molecule.solvent
+        # TODO reimplement this
+        # if molecule.qm_solvent_xyzs is not None:
+        #    self.xyzs += molecule.qm_solvent_xyzs
 
         self.n_cores = n_cores
-        # Maximum memory per core to use
-        self.max_core_mb = max_core_mb
+        self.max_core_mb = Config.max_core        # Maximum memory per core to use
 
         self.bond_ids_to_add = bond_ids_to_add
-        self.optts_block = optts_block
+        self.other_input_block = other_input_block
         self.distance_constraints = distance_constraints
         self.cartesian_constraints = cartesian_constraints
         self.constraints_already_met = constraints_already_met
-
-        self.charges = charges
 
         # Set in self.generate_input()
         self.input_filename = None
@@ -262,20 +250,17 @@ class Calculation:
 
         self.additional_input_files = []
 
+        self.solvent_keyword = None
         if molecule.solvent is not None:
-            if getattr(molecule.solvent, method.__name__) is False:
-                logger.critical('Solvent is not available. Cannot run the calculation')
-                print(f'Available solvents for {self.method.__name__} are {get_available_solvents(self.method.__name__)}')
+            if getattr(molecule.solvent, method.name) is None:
+                print(f'Available solvents for {self.method.__name__} are {get_available_solvent_names(self.method)}')
                 raise SolventUnavailable
-            self.solvent_keyword = getattr(molecule.solvent, method.__name__)
-        else:
-            self.solvent_keyword = None
 
-        if self.xyzs is None:
+            self.solvent_keyword = getattr(molecule.solvent, method.name)
+
+        if self.molecule.atoms is None:
             logger.error('Have no xyzs. Can\'t make a calculation')
             return
 
         if self.bond_ids_to_add:
             self._set_core_atoms(molecule)
-
-        self.n_atoms = len(self.xyzs)

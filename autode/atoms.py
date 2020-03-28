@@ -1,4 +1,50 @@
 from autode.log import logger
+import numpy as np
+
+
+class Atom:
+
+    def __repr__(self):
+        return f'[{self.label}, {self.coord[0]:.4f}, {self.coord[1]:.4f}, {self.coord[2]:.4f}]'
+
+    def translate(self, vec):
+        """Translate this atom by a vector (np.ndarray, length 3)"""
+        self.coord += vec
+        return None
+
+    def rotate(self, axis, theta, origin=None):
+        """Rotate this atom by theta radians (float) in an axis (np.ndarray, length 3)"""
+
+        # If specified shift so that the origin is at (0, 0, 0), apply the rotation, and shift back
+        if origin is not None:
+            self.translate(vec=-origin)
+
+        # Normalise the axis
+        axis = np.asarray(axis)
+        axis = axis / np.linalg.norm(axis)
+
+        # Compute the 3D rotation matrix using https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
+        a = np.cos(theta / 2.0)
+        b, c, d = -axis * np.sin(theta / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                               [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                               [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+        # Apply the rotation
+        self.coord = np.matmul(rot_matrix, self.coord)
+
+        if origin is not None:
+            self.translate(vec=origin)
+
+        return None
+
+    def __init__(self, atomic_symbol, x, y, z):
+
+        self.label = atomic_symbol
+        self.coord = np.array([x, y, z])
+
 
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],
@@ -38,6 +84,9 @@ vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, '
              'Dy': 2.31, 'Ho': 2.3, 'Er': 2.29, 'Tm': 2.27, 'Yb': 2.26, 'Lu': 2.24, 'Hf': 2.23, 'Ta': 2.22, 'W': 2.18, 'Re': 2.16, 'Os': 2.16, 'Ir': 2.13, 'Pt': 2.13,
              'Au': 2.14, 'Hg': 2.23, 'Tl': 1.96, 'Pb': 2.02, 'Bi': 2.07, 'Po': 1.97, 'At': 2.02, 'Rn': 2.2, 'Fr': 3.48, 'Ra': 2.83, 'Ac': 2.47, 'Th': 2.45, 'Pa': 2.43,
              'U': 2.41, 'Np': 2.39, 'Pu': 2.43, 'Am': 2.44, 'Cm': 2.45, 'Bk': 2.44, 'Cf': 2.45, 'Es': 2.45, 'Fm': 2.45, 'Md': 2.46, 'No': 2.46, 'Lr': 2.46}
+
+pi_valencies = {'B': [1, 2], 'N': [1, 2], 'O': [1], 'C': [1, 2, 3], 'P': [1, 2, 3, 4], 'S': [1, 3, 4, 5],
+                'Si': [1, 2, 3]}
 
 
 def get_maximal_valance(atom_label):
@@ -86,3 +135,24 @@ def get_vdw_radius(atom_label):
     else:
         logger.error(f'Couldn\'t find the VdV radii for {atom_label}. Guessing at 2.3')
         return 2.3
+
+
+def is_pi_atom(atom_label, valency):
+    """
+    Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or second row element
+
+    Arguments;
+        atom_label (str):
+        valency (int):
+
+    Returns:
+        (bool)
+    """
+
+    if atom_label not in pi_valencies.keys():
+        return False
+
+    if valency in pi_valencies[atom_label]:
+        return True
+
+    return False

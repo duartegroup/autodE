@@ -1,13 +1,14 @@
 from autode.config import Config
 from autode.log import logger
 from autode.constants import Constants
-from autode.geom import get_shifted_xyzs_linear_interp
+from autode.atoms import Atom
+from autode.geom import get_shifted_atoms_linear_interp
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
 
 
-# dielectrics from Gaussian solvent list
+# dielectrics from Gaussian solvent_name list
 solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile': 35.69, 'benzene': 2.27, '1-butanol': 17.33,
                             '2-butanone': 18.25, 'carbon tetrachloride': 2.23, 'chlorobenzene': 5.70, 'chloroform': 4.71,
                             'cyclohexane': 2.02, '1,2-dichlorobenzene': 9.99, 'dichloromethane': 8.93, 'n,n-dimethylacetamide': 37.78,
@@ -51,7 +52,7 @@ solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile
 class MOPAC(ElectronicStructureMethod):
 
     def generate_input(self, calc):
-        logger.info(f'Generating MOPAC input for {calc.name}')
+        logger.info(f'Generating mopac input for {calc.name}')
 
         calc.input_filename = calc.name + '_mopac.mop'
         calc.output_filename = calc.input_filename.replace('.mop', '.out')
@@ -64,7 +65,7 @@ class MOPAC(ElectronicStructureMethod):
         if calc.grad:
             keywords.append('GRAD')
 
-        if calc.charges:
+        if calc.molecule.charges:
             keywords.append('QMMM')
 
         if calc.solvent_keyword is not None:
@@ -72,12 +73,12 @@ class MOPAC(ElectronicStructureMethod):
 
         keywords.append(f'CHARGE={calc.charge}')
 
-        if calc.mult != 1:
-            if calc.mult == 2:
+        if calc.molecule.mult != 1:
+            if calc.molecule.mult == 2:
                 keywords.append('DOUBLET')
-            elif calc.mult == 3:
+            elif calc.molecule.mult == 3:
                 keywords.append('TRIPLET')
-            elif calc.mult == 4:
+            elif calc.molecule.mult == 4:
                 keywords.append('QUARTET')
             else:
                 logger.critical('Unsupported spin multiplicity')
@@ -87,19 +88,19 @@ class MOPAC(ElectronicStructureMethod):
             print(*keywords, '\n\n', file=input_file)
 
             if calc.distance_constraints is not None:
-                # MOPAC seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
+                # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
-                xyzs = get_shifted_xyzs_linear_interp(xyzs=calc.xyzs,
-                                                      bonds=list(calc.distance_constraints.keys()),
-                                                      final_distances=list(calc.distance_constraints.values()))
+                xyzs = get_shifted_atoms_linear_interp(xyzs=calc.molecule.atoms,
+                                                       bonds=list(calc.distance_constraints.keys()),
+                                                       final_distances=list(calc.distance_constraints.values()))
 
                 # Populate a flat list of atom ids to fix
                 fixed_atoms = [i for bond in calc.distance_constraints.keys()
                                for i in bond]
 
             else:
-                xyzs = calc.xyzs
+                xyzs = calc.molecule.xyzs
                 fixed_atoms = []
 
             if calc.cartesian_constraints is not None:
@@ -111,18 +112,18 @@ class MOPAC(ElectronicStructureMethod):
                 else:
                     print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
 
-        if calc.charges:
+        if calc.molecule.charges:
             potentials = []
-            for xyz in calc.xyzs:
+            for xyz in calc.molecule.xyzs:
                 potential = 0
                 coord = np.asarray(xyz[1:])
-                for charge in calc.charges:
+                for charge in calc.molecule.charges:
                     charge_coords = np.asarray(charge[1:4])
                     distance = np.linalg.norm(coord - charge_coords)
                     potential += charge[4] / distance
                 potentials.append(322*potential)
             with open(f'{calc.name}_mol.in', 'w') as pc_file:
-                print(f'\n{len(calc.xyzs)} 0', file=pc_file)
+                print(f'\n{calc.molecule.n_atoms} 0', file=pc_file)
                 [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
             calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
 
@@ -134,7 +135,7 @@ class MOPAC(ElectronicStructureMethod):
             if 'JOB ENDED NORMALLY' in line:
                 return True
             if n_line > 50:
-                # MOPAC will have a     * JOB ENDED NORMALLY *  line close to the end if terminated normally
+                # mopac will have a     * JOB ENDED NORMALLY *  line close to the end if terminated normally
                 return False
 
         return False
@@ -164,9 +165,9 @@ class MOPAC(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         raise NotImplementedError
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
-        xyzs = []
+        atoms = []
 
         for n_line, line in enumerate(calc.output_file_lines):
             if 'CARTESIAN COORDINATES' in line and len(calc.output_file_lines[n_line+3].split()) == 5:
@@ -174,13 +175,13 @@ class MOPAC(ElectronicStructureMethod):
                 #
                 #    1    C        1.255660629     0.020580974    -0.276235553
 
-                xyzs = []
-                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.n_atoms]
+                atoms = []
+                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.molecule.n_atoms]
                 for xyz_line in xyz_lines:
                     atom_label, x, y, z = xyz_line.split()[1:]
-                    xyzs.append([atom_label, float(x), float(y), float(z)])
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
 
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
         raise NotImplementedError
@@ -201,9 +202,12 @@ class MOPAC(ElectronicStructureMethod):
                 gradients.append(value)
         grad_array = np.asarray(gradients)
         grad_array *= Constants.a02ang/Constants.ha2kcalmol
-        grad_array.reshape((calc.n_atoms, 3))
+        grad_array.reshape((calc.molecule.n_atoms, 3))
 
         return grad_array.tolist()
 
     def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path, req_licence=True, path_to_licence=Config.MOPAC.path_to_licence)
+        super().__init__(name='mopac', path=Config.MOPAC.path, keywords=Config.MOPAC.keywords)
+
+
+mopac = MOPAC()

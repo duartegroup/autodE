@@ -1,12 +1,9 @@
 from autode.config import Config
 from autode.log import logger
-from autode.constants import Constants
+from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.geom import coords2xyzs
-from autode.input_output import xyzs2xyzfile
 from copy import deepcopy
 import numpy as np
-import os
 
 
 class G09(ElectronicStructureMethod):
@@ -14,7 +11,7 @@ class G09(ElectronicStructureMethod):
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_g09.com'
         calc.output_filename = calc.name + '_g09.log'
-        keywords = calc.keywords.copy()
+        keywords = calc.keywords_list.copy()
 
         if calc.distance_constraints or calc.cartesian_constraints or calc.bond_ids_to_add:
             keywords.append('Geom=ModRedun')
@@ -25,10 +22,10 @@ class G09(ElectronicStructureMethod):
             if 'nosymm' in keyword.lower():
                 nosymm = True
             if 'opt' in keyword.lower():
-                if calc.n_atoms == 1:
+                if calc.molecule.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
-                elif calc.charges:
+                elif calc.molecule.charges:
                     options = []
                     if '=(' in keyword:
                         # get the individual options
@@ -51,7 +48,7 @@ class G09(ElectronicStructureMethod):
                     opt = True
             if opt and not nosymm:
                 keywords.append('NoSymm')
-        if calc.charges:
+        if calc.molecule.charges:
             keywords.append('Charge')
 
         with open(calc.input_filename, 'w') as inp_file:
@@ -62,18 +59,21 @@ class G09(ElectronicStructureMethod):
             print('#', *keywords, file=inp_file, end=' ')
 
             if calc.solvent_keyword:
-                print(f'scrf=(smd,solvent={calc.solvent_keyword})', file=inp_file)
+                print(f'scrf=(smd,solvent_name={calc.solvent_keyword})', file=inp_file)
             else:
                 print('', file=inp_file)
 
             print(f'\n {calc.name}\n', file=inp_file)
 
-            print(calc.charge, calc.mult, file=inp_file)
-            [print('{:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+            print(calc.molecule.charge, calc.molecule.mult, file=inp_file)
 
-            if calc.charges:
+            for atom in atoms:
+                print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
+                      file=inp_file)
+
+            if calc.molecule.charges:
                 print('')
-                [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.charges]
+                [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.molecule.charges]
 
             print('', file=inp_file)
 
@@ -104,9 +104,9 @@ class G09(ElectronicStructureMethod):
             if 'Bend failed for angle' in line:
                 logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
                 cart_calc = deepcopy(calc)
-                for keyword in cart_calc.keywords.copy():
+                for keyword in cart_calc.keywords_list.copy():
                     if keyword.lower().startswith('geom'):
-                        cart_calc.keywords.remove(keyword)
+                        cart_calc.keywords_list.remove(keyword)
                     elif keyword.lower().startswith('opt'):
                         options = []
                         if '=(' in keyword:
@@ -125,11 +125,11 @@ class G09(ElectronicStructureMethod):
                         new_keyword = 'Opt=('
                         new_keyword += ', '.join(options)
                         new_keyword += ')'
-                        cart_calc.keywords.remove(keyword)
-                        cart_calc.keywords.append(new_keyword)
+                        cart_calc.keywords_list.remove(keyword)
+                        cart_calc.keywords_list.append(new_keyword)
 
                 cart_calc.name += '_cartesian'
-                cart_calc.xyzs = calc.get_final_xyzs()
+                cart_calc.xyzs = calc.get_final_atoms()
                 cart_calc.distance_constraints = None
                 cart_calc.cartesian_constraints = None
                 cart_calc.bond_ids_to_add = None
@@ -152,7 +152,7 @@ class G09(ElectronicStructureMethod):
 
                 fixed_angle_calc = deepcopy(calc)
                 fixed_angle_calc.name += '_internal'
-                fixed_angle_calc.xyzs = cart_calc.get_final_xyzs()
+                fixed_angle_calc.xyzs = cart_calc.get_final_atoms()
                 fixed_angle_calc.input_filename = None
                 fixed_angle_calc.output_filename = None
                 fixed_angle_calc.output_file_exists = False
@@ -205,7 +205,7 @@ class G09(ElectronicStructureMethod):
         return False
 
     def get_imag_freqs(self, calc):
-        imag_freqs = None
+        imag_freqs = []
         normal_mode_section = False
 
         for line in calc.output_file_lines:
@@ -245,7 +245,7 @@ class G09(ElectronicStructureMethod):
                         mode_numbers = [int(val) for val in line.split()]
                         if mode_number in mode_numbers:
                             start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
-                            for i in range(calc.n_atoms):
+                            for i in range(calc.molecule.n_atoms):
                                 disp_line = calc.output_file_lines[j + 7 + i]
                                 xyz_disp = [float(disp_line.split()[k])
                                             for k in range(start_col, start_col + 3)]
@@ -253,15 +253,15 @@ class G09(ElectronicStructureMethod):
                     except ValueError:
                         pass
 
-        if len(displacements) != calc.n_atoms:
+        if len(displacements) != calc.molecule.n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')
             return None
 
-        return displacements
+        return np.array(displacements)
 
-    def get_final_xyzs(self, calc):
+    def get_final_atoms(self, calc):
 
-        coords = np.zeros((calc.n_atoms, 3))
+        atoms = []
         xyz_section = False
         dashed_line = 0
 
@@ -280,26 +280,12 @@ class G09(ElectronicStructureMethod):
                 atom_index, _, _, x, y, z = line.split()
                 try:
                     atom_index = int(atom_index) - 1
-                    coords[atom_index][0] = float(x)
-                    coords[atom_index][1] = float(y)
-                    coords[atom_index][2] = float(z)
+                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=float(x), y=float(y), z=float(z)))
+
                 except ValueError:
                     pass
 
-        xyzs = coords2xyzs(coords, calc.xyzs)
-
-        zero_xyzs = False
-        for xyz in xyzs:
-            if all(xyz[i] == 0.0 for i in range(1, 4)):
-                if zero_xyzs:
-                    return []
-                else:
-                    zero_xyzs = True
-
-        xyz_filename = f'{calc.name}_g09.xyz'
-        xyzs2xyzfile(xyzs, xyz_filename)
-
-        return xyzs
+        return atoms
 
     def get_atomic_charges(self, calc):
 
@@ -344,10 +330,7 @@ class G09(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='g09', path=Config.G09.path,
-                         scan_keywords=Config.G09.scan_keywords,
-                         conf_opt_keywords=Config.G09.conf_opt_keywords,
-                         opt_keywords=Config.G09.opt_keywords,
-                         opt_ts_keywords=Config.G09.opt_ts_keywords,
-                         hess_keywords=Config.G09.hess_keywords,
-                         sp_keywords=Config.G09.sp_keywords)
+        super().__init__(name='g09', path=Config.G09.path, keywords=Config.G09.keywords)
+
+
+g09 = G09()

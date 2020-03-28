@@ -1,7 +1,7 @@
 from autode.wrappers.G09 import G09
 from autode.calculation import Calculation
 from autode.molecule import Molecule
-from autode.exceptions import XYZsNotFound
+from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 import pytest
 import os
@@ -16,14 +16,14 @@ def test_gauss_opt_calc():
 
     os.chdir(os.path.join(here, 'data'))
 
-    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent='water')
+    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent_name='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords=['PBE1PBE/Def2SVP', 'Opt'])
+                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
     assert os.path.exists('opt_g09.com') is True
     assert os.path.exists('opt_g09.log') is True
-    assert len(calc.get_final_xyzs()) == 5
+    assert len(calc.get_final_atoms()) == 5
     assert os.path.exists('opt_g09.xyz') is True
     assert calc.get_energy() == -499.729222331
     assert calc.output_file_exists is True
@@ -47,7 +47,7 @@ def test_gauss_optts_calc():
     os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
-                       keywords=['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', 'Freq'])
+                       keywords_list=['PBE1PBE/Def2SVP', 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', 'Freq'])
     calc.run()
 
     assert calc.get_normal_mode_displacements(mode_number=6) is not None
@@ -67,8 +67,8 @@ def test_bad_gauss_output():
     calc.rev_output_file_lines = []
 
     assert calc.get_energy() is None
-    with pytest.raises(XYZsNotFound):
-        calc.get_final_xyzs()
+    with pytest.raises(AtomsNotFound):
+        calc.get_final_atoms()
 
     with pytest.raises(NoInputError):
         calc.execute_calculation()
@@ -81,7 +81,7 @@ def test_fix_angle_error():
     mol = Molecule(smiles='CC/C=C/CO')
 
     calc = Calculation(name='angle_fail', molecule=mol, method=method, opt=True,
-                       keywords=['PBE1PBE/Def2SVP', 'Opt'])
+                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
     assert os.path.exists('angle_fail_cartesian_g09.com') is True
