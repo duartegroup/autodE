@@ -218,6 +218,8 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
     if is_isomorphic(f_displaced_mol.graph, reactant_graph) and is_isomorphic(b_displaced_mol.graph, product_graph):
         logger.info('Backwards displacement lead to products and forwards to reactants')
         return True
+    
+    # TODO check that there is an isomorphism up to a single weak interaction
 
     return False
 

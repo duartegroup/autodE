@@ -143,7 +143,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     logger.info('Minimising with BFGS...')
     st = time.time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=1, c=0.01, d0=d0, tol=species.n_atoms/1E4, fixed_bonds=fixed_bonds)
+                                    k=1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=fixed_bonds)
     logger.info(f'                    ... ({time.time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms

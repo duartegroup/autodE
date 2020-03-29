@@ -68,7 +68,7 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
 
                 n_neighbours = len(list(s_molecule.graph.neighbors(n_atom_index)))
                 if s_molecule.atoms[n_atom_index].label == 'C' and n_neighbours == 4:
-                    truncated_graph.add_node(n_atom_index, atom_label='H')
+                    truncated_graph.add_node(n_atom_index, atom_label='H', stereo=False)
                     truncated_atoms.append(n_atom_index)
 
                 else:

@@ -1,5 +1,6 @@
 from autode.species import Species
 from autode.log import logger
+from autode.mol_graphs import make_graph
 from autode.calculation import Calculation
 from autode.exceptions import AtomsNotFound
 from autode.config import Config
@@ -16,7 +17,7 @@ class Conformer(Species):
         self.energy = opt.get_energy()
 
         try:
-            self.atoms = opt.get_final_atoms()
+            self.set_atoms(atoms=opt.get_final_atoms())
 
         except AtomsNotFound:
             logger.error(f'Atoms not found for {self.name} but not critical')

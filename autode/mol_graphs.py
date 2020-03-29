@@ -8,7 +8,7 @@ from autode.bond_lengths import get_avg_bond_length
 from autode.atoms import is_pi_atom
 
 
-def make_graph(species, rel_tolerance=0.2, rdkit_bonds=None):
+def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria or a list of RDKit bonds. All attributes
     default to false

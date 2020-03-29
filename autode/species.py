@@ -112,6 +112,10 @@ class Species:
         """
         logger.info('Finding lowest energy conformer')
 
+        if self.n_atoms <= 2:
+            logger.warning('Cannot have conformers of a species with 2 atoms or fewer')
+            return None
+
         if low_level_method is None:
             logger.info('Getting the default low level method')
             low_level_method = get_lmethod()
