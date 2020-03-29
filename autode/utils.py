@@ -139,6 +139,9 @@ def requires_output():
         def wrapped_function(*args, **kwargs):
             # Species must be the first argument
             assert hasattr(args[0], 'output_filename')
+            if args[0].output_filename is None:
+                raise NoCalculationOutput
+
             assert hasattr(args[0], 'output_file_exists')
             assert hasattr(args[0], 'output_file_lines')
             assert hasattr(args[0], 'rev_output_file_lines')

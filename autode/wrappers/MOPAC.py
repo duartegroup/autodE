@@ -1,3 +1,4 @@
+from copy import deepcopy
 from autode.config import Config
 from autode.log import logger
 from autode.constants import Constants
@@ -57,7 +58,10 @@ class MOPAC(ElectronicStructureMethod):
         calc.input_filename = calc.name + '_mopac.mop'
         calc.output_filename = calc.input_filename.replace('.mop', '.out')
 
-        keywords = Config.MOPAC.keywords.copy()
+        if calc.opt:
+            keywords = deepcopy(Config.MOPAC.keywords.low_opt)
+        else:
+            keywords = []
 
         if not calc.opt:
             keywords.append('1SCF')
@@ -71,7 +75,7 @@ class MOPAC(ElectronicStructureMethod):
         if calc.solvent_keyword is not None:
             keywords.append('EPS=' + str(solvents_and_dielectrics[calc.solvent_keyword]))
 
-        keywords.append(f'CHARGE={calc.charge}')
+        keywords.append(f'CHARGE={calc.molecule.charge}')
 
         if calc.molecule.mult != 1:
             if calc.molecule.mult == 2:
@@ -91,7 +95,7 @@ class MOPAC(ElectronicStructureMethod):
                 # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
-                xyzs = get_shifted_atoms_linear_interp(xyzs=calc.molecule.atoms,
+                xyzs = get_shifted_atoms_linear_interp(atoms=calc.molecule.atoms,
                                                        bonds=list(calc.distance_constraints.keys()),
                                                        final_distances=list(calc.distance_constraints.values()))
 

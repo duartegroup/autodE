@@ -13,7 +13,12 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     """Get a TS guess from a constrained optimisation with the active atoms fixed at values defined in distance_consts
 
     Arguments:
-
+        reactant (autode.complex.ReactantComplex):
+        method (autode.wrappers.base.ElectronicStructureMethod):
+        keywords (autode.wrappers.keywords.Keywords):
+        name (str):
+        distance_consts (dict): Distance constraints keyed with a tuple of atom indexes and value of the distance
+        product (autode.complex.ProductComplex):
 
     Returns:
        (autode.ts_guess.TSguess):

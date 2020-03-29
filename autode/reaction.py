@@ -16,7 +16,6 @@ from autode.methods import get_lmethod
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from copy import deepcopy
-import os
 
 
 def calculate_reaction_profile(reaction, units):

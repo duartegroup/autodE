@@ -27,7 +27,7 @@ def test_orca_opt_calculation():
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
-    assert calc.get_imag_freqs() is None
+    assert calc.get_imag_freqs() == []
     assert calc.get_normal_mode_displacements(mode_number=1) is None
     assert calc.input_filename == 'opt_orca.inp'
     assert calc.output_filename == 'opt_orca.out'

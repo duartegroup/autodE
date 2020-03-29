@@ -1,6 +1,7 @@
 from autode.config import Config
 from autode.log import logger
 from autode.atoms import Atom
+from autode.exceptions import AtomsNotFound
 from autode.wrappers.base import ElectronicStructureMethod
 from copy import deepcopy
 import numpy as np
@@ -67,7 +68,7 @@ class G09(ElectronicStructureMethod):
 
             print(calc.molecule.charge, calc.molecule.mult, file=inp_file)
 
-            for atom in atoms:
+            for atom in calc.molecule.atoms:
                 print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
                       file=inp_file)
 
@@ -261,29 +262,26 @@ class G09(ElectronicStructureMethod):
 
     def get_final_atoms(self, calc):
 
-        atoms = []
-        xyz_section = False
-        dashed_line = 0
+        n_atoms = len(calc.molecule.atoms)
+        atoms = None
 
-        for line in calc.output_file_lines:
+        for i, line in enumerate(calc.output_file_lines):
 
             if 'Standard orientation' in line:
-                xyz_section = True
-                dashed_line = 0
 
-            if xyz_section and '--------' in line:
-                dashed_line += 1
-                if dashed_line == 3:
-                    xyz_section = False
+                atoms = []
+                xyz_lines = calc.output_file_lines[i+5:i+5+n_atoms]
 
-            if xyz_section and len(line.split()) == 6:
-                atom_index, _, _, x, y, z = line.split()
-                try:
+                for xyz_line in xyz_lines:
+                    atom_index, _, _, x, y, z = xyz_line.split()
                     atom_index = int(atom_index) - 1
                     atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=float(x), y=float(y), z=float(z)))
 
-                except ValueError:
-                    pass
+                if len(atoms) != n_atoms:
+                    raise AtomsNotFound
+
+        if atoms is None:
+            raise AtomsNotFound
 
         return atoms
 

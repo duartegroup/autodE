@@ -1,6 +1,9 @@
 from autode.transition_states.truncation import strip_non_core_atoms
+from autode.transition_states.truncation import get_truncated_rcomplex
+from autode.transition_states.truncation import get_truncated_pcomplex
+from autode.bond_rearrangement import BondRearrangement
 from autode.mol_graphs import is_isomorphic
-from autode.complex import ReactantComplex
+from autode.complex import ReactantComplex, ProductComplex
 from autode.molecule import Reactant
 from autode.atoms import Atom
 
@@ -46,11 +49,35 @@ but1ene = Reactant(name='but-1-ene', charge=0, mult=1,
 
 benzene = Reactant(name='benzene', charge=0, mult=1, smiles='c1ccccc1')
 
+ethanol = Reactant(name='ethanol', charge=0, mult=1,
+                   atoms=[Atom('C', -1.12058, -0.88145, -0.01072),
+                          Atom('C',  0.06169,  0.07347, -0.11534),
+                          Atom('H', -1.23059, -1.23894,  1.03497),
+                          Atom('H', -0.96469, -1.75405, -0.67985),
+                          Atom('H', -2.05248, -0.35802, -0.31150),
+                          Atom('O',  1.25088, -0.57948,  0.23621),
+                          Atom('H', -0.09854,  0.96628,  0.53077),
+                          Atom('H',  0.15114,  0.43369, -1.16189),
+                          Atom('H',  1.26514, -0.63012,  1.22767)])
+
+methlyethylether = Reactant(name='ether', charge=0, mult=1,
+                            atoms=[Atom('C', -1.25448, -0.89454, -0.18195),
+                                   Atom('C', -0.05755,  0.05009, -0.17717),
+                                   Atom('H', -1.39475, -1.34927,  0.82063),
+                                   Atom('H', -1.09810, -1.70182, -0.92836),
+                                   Atom('H', -2.17364, -0.33138, -0.44843),
+                                   Atom('O',  1.13580, -0.66150,  0.09251),
+                                   Atom('H', -0.23702,  0.89804,  0.52589),
+                                   Atom('H',  0.03878,  0.50740, -1.18451),
+                                   Atom('C',  1.44492, -0.60526,  1.46737),
+                                   Atom('H',  2.35098, -1.21969,  1.64663),
+                                   Atom('H',  0.63086, -1.03969,  2.08801),
+                                   Atom('H',  1.68693,  0.43411,  1.78118)])
+
 
 def test_core_strip():
 
     stripped = strip_non_core_atoms(methane, active_atoms=[0])
-
     # Should not strip any atoms if the carbon is designated as active
     assert stripped.n_atoms == 5
 
@@ -71,7 +98,35 @@ def test_core_strip():
     stripped = strip_non_core_atoms(benzene, active_atoms=[1])
     assert stripped.n_atoms == 12
 
+    # Ethanol with the terminal C as the active atom should not replace the OH with a H
+    stripped = strip_non_core_atoms(ethanol, active_atoms=[0])
+    assert stripped.n_atoms == 9
+
+    # Ether with the terminal C as the active atom should replace the OMe with OH
+    stripped = strip_non_core_atoms(methlyethylether, active_atoms=[0])
+    assert stripped.n_atoms == 9
+    assert is_isomorphic(stripped.graph, ethanol.graph)
+
 
 def test_reactant_complex_truncation():
 
-    dimer = ReactantComplex(methane, methane)
+    # Non-sensical bond rearrangement
+    bond_rearr = BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(0, 5)])
+
+    methane_dimer = ReactantComplex(methane, methane)
+
+    # Should not truncate methane dimer at all
+    truncated = get_truncated_rcomplex(methane_dimer, bond_rearr)
+    assert truncated.n_atoms == 10
+
+
+def test_procut_complex_truncation():
+
+    # H atom transfer from methane to ethene
+    bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)], forming_bonds=[(1, 5)])
+
+    methane_ethene = ReactantComplex(methane, ethene)
+
+    # Should retain all atoms
+    truncated = get_truncated_pcomplex(methane_ethene, bond_rearr)
+    assert truncated.n_atoms == 11

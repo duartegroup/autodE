@@ -1,7 +1,5 @@
 ! SP PBE0 RIJCOSX D3BJ def2/J def2-TZVP
 %geom MaxIter 100 end
-%pal nprocs 8
-end
 %output 
 xyzfile=True 
 end 

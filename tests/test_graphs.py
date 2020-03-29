@@ -73,22 +73,24 @@ def test_split_graph():
 
 def test_set_pi_bonds():
 
-    ethene = Species(name='ethene', charge=0, mult=1, atoms=[Atom('C', -2.20421, 0.40461, 0.00000),
-                                                             Atom('C', -0.87115, 0.38845, 0.00000),
-                                                             Atom('H', -2.76098, -0.22576, 0.68554),
-                                                             Atom('H', -2.74554, 1.04829, -0.68554),
-                                                             Atom('H', -0.32982, -0.25523, 0.68554),
-                                                             Atom('H', -0.31437, 1.01882, -0.68554)])
+    ethene = Species(name='ethene', charge=0, mult=1,
+                     atoms=[Atom('C', -2.20421, 0.40461, 0.00000),
+                            Atom('C', -0.87115, 0.38845, 0.00000),
+                            Atom('H', -2.76098, -0.22576, 0.68554),
+                            Atom('H', -2.74554, 1.04829, -0.68554),
+                            Atom('H', -0.32982, -0.25523, 0.68554),
+                            Atom('H', -0.31437, 1.01882, -0.68554)])
     mol_graphs.make_graph(ethene)
 
     assert ethene.graph.edges[0, 1]['pi'] is True
     assert ethene.graph.edges[1, 0]['pi'] is True
     assert ethene.graph.edges[0, 2]['pi'] is False
 
-    acetylene = Species(name='acetylene', charge=0, mult=1, atoms=[Atom('C', -2.14031, 0.40384, 0.00000),
-                                                                   Atom('C', -0.93505, 0.38923, 0.00000),
-                                                                   Atom('H', -3.19861, 0.41666, 0.00000),
-                                                                   Atom('H',  0.12326, 0.37640, 0.00000)])
+    acetylene = Species(name='acetylene', charge=0, mult=1,
+                        atoms=[Atom('C', -2.14031, 0.40384, 0.00000),
+                               Atom('C', -0.93505, 0.38923, 0.00000),
+                               Atom('H', -3.19861, 0.41666, 0.00000),
+                               Atom('H',  0.12326, 0.37640, 0.00000)])
     mol_graphs.make_graph(acetylene)
 
     assert acetylene.graph.edges[0, 1]['pi'] is True
