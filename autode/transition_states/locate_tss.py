@@ -10,8 +10,7 @@ from autode.bond_lengths import get_avg_bond_length
 from autode.complex import ReactantComplex, ProductComplex
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.transition_states.truncation import is_worth_truncating
-from autode.transition_states.truncation import get_truncated_rcomplex
-from autode.transition_states.truncation import get_truncated_pcomplex
+from autode.transition_states.truncation import get_truncated_complex
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
 from autode.methods import get_hmethod
@@ -65,7 +64,7 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
     Returns:
         (list): updated funcs and params list
     """
-    name = '+'.join([r.name for r in reaction.reacs]) + '--' + '+'.join([p.name for p in reaction.prods])
+    name = f'{reaction.name}_{"+".join([r.name for r in reaction.reacs])}--{"+".join([p.name for p in reaction.prods])}'
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
@@ -215,10 +214,20 @@ def get_truncated_ts(reaction, reactant, product, bond_rearr):
     """Get the TS of a truncated reactant and product complex"""
 
     # Truncate the reactant and product complex to the core atoms so the full TS can be template-d
-    truncated_reactant = get_truncated_rcomplex(reactant, bond_rearrangement=bond_rearr)
-    truncated_product = get_truncated_pcomplex(product, bond_rearrangement=bond_rearr)
+    t_reactant = get_truncated_complex(reactant, bond_rearrangement=bond_rearr)
+    t_product = get_truncated_complex(product, bond_rearrangement=bond_rearr)
 
-    return get_ts(reaction, truncated_reactant, truncated_product, bond_rearrangement=bond_rearr, strip_molecule=False)
+    # Re-find the bond rearrangements, which really should exist as it it just a cut down reactant complex
+    reaction.name += '_truncated'
+    bond_rearrangs = get_bond_rearrangs(t_reactant, t_product, name=reaction.name)
+
+    for bond_rearr in bond_rearrangs:
+        get_ts(reaction, t_reactant, t_product, bond_rearrangement=bond_rearr, strip_molecule=False)
+
+    reaction.name -= '_truncated'
+
+    logger.info('Done with truncation')
+    return None
 
 
 def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True):

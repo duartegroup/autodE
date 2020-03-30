@@ -1,11 +1,13 @@
 from autode.log import logger
 import networkx as nx
+import numpy as np
 from copy import deepcopy
 import multiprocessing as mp
 from networkx.algorithms import isomorphism
 from scipy.spatial import distance_matrix
 from autode.bond_lengths import get_avg_bond_length
 from autode.atoms import is_pi_atom
+from autode.atoms import get_maximal_valance
 
 
 def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
@@ -14,6 +16,7 @@ def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
     default to false
 
     Nodes attributes:
+        (0) atom_label: Atomic symbol of this atom
         (1) stereo: Is this atom part of some stereochemistry e.g. R/S or E/Z
 
     Edge attributes:
@@ -46,17 +49,54 @@ def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
     dist_mat = distance_matrix(coordinates, coordinates)
 
     for i in range(species.n_atoms):
-        for j in range(i + 1, species.n_atoms):
+
+        # Iterate through the closest atoms to atom i
+        for j in np.argsort(dist_mat[i]):
+
+            if i == j:
+                # Don't bond atoms to themselves
+                continue
 
             avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
                                                   atom_j_label=species.atoms[j].label)
 
-            # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
-            if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance):
+            # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond' and not added
+            if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance) and (i, j) not in graph.edges:
                 graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
+    remove_bonds_invalid_valancies(species)
     set_pi_bonds(species)
+
+    return None
+
+
+def remove_bonds_invalid_valancies(species):
+    """
+    Remove invalid valencies for atoms that exceed their maximum valencies e.g. H should have
+    no more than 1 'bond'
+
+    Arguments:
+        species (autode.species.Species):
+    """
+
+    for i in species.graph.nodes:
+
+        max_valance = get_maximal_valance(atom_label=species.atoms[i].label)
+        neighbours = list(species.graph.neighbors(i))
+
+        if len(neighbours) <= max_valance:
+            # All is well
+            continue
+
+        logger.warning(f'Atom {i} exceeds its maximal valence removing edges')
+
+        # Get the atom indexes sorted by the closest to atom i
+        closest_atoms = sorted(neighbours, key=lambda j: species.get_distance(i, j))
+
+        # Delete all the bonds to atom(s) j that are above the maximal valance
+        for j in closest_atoms[max_valance:]:
+            species.graph.remove_edge(i, j)
 
     return None
 

@@ -119,48 +119,26 @@ def strip_non_core_atoms(molecule, active_atoms):
     for i in truncated_graph.nodes:
         s_molecule.atoms[i].label = truncated_graph.nodes[i]['atom_label']
 
-    s_molecule.set_atoms(atoms=[atom for i, atom in enumerate(molecule.atoms) if i in truncated_graph.nodes])
+    s_molecule.set_atoms(atoms=[atom for i, atom in enumerate(s_molecule.atoms) if i in sorted(truncated_graph.nodes)])
+
+    # Relabel the nodes so they correspond to the new set of atoms
+    mapping = {node_label: i for i, node_label in enumerate(sorted(truncated_graph.nodes))}
+    s_molecule.graph = nx.relabel_nodes(s_molecule.graph, mapping=mapping)
 
     logger.info(f'Truncated to {s_molecule.n_atoms} atoms')
     return s_molecule
 
 
-def get_truncated_rcomplex(reactant_complex, bond_rearrangement):
+def get_truncated_complex(complex_, bond_rearrangement):
     """
     From a truncated reactant complex
 
     Arguments:
-        reactant_complex (autode.complex.ReactantComplex):
+        complex_ (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
 
-    truncated_complex = strip_non_core_atoms(molecule=reactant_complex,
-                                             active_atoms=bond_rearrangement.active_atoms)
-
-    # Regenerate the 3D structure from the new graph
-    atoms = get_simanl_atoms(species=truncated_complex)
-    truncated_complex.set_atoms(atoms=atoms)
-
-    return truncated_complex
-
-
-def get_truncated_pcomplex(reactant_complex, bond_rearrangement):
-    """
-    Form a truncated product complex
-
-    Arguments:
-        reactant_complex (autode.complex.ReactantComplex):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
-    """
-    product_complex = deepcopy(reactant_complex)
-
-    for forming_bond in bond_rearrangement.fbonds:
-        product_complex.graph.add_edge(*forming_bond, active=True, pi=False)
-
-    for breaking_bond in bond_rearrangement.bbonds:
-        product_complex.graph.remove_edge(*breaking_bond)
-
-    truncated_complex = strip_non_core_atoms(molecule=product_complex,
+    truncated_complex = strip_non_core_atoms(molecule=complex_,
                                              active_atoms=bond_rearrangement.active_atoms)
 
     # Regenerate the 3D structure from the new graph
@@ -178,7 +156,7 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
         reactant_complex (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
-    truncated_complex = get_truncated_rcomplex(reactant_complex, bond_rearrangement)
+    truncated_complex = get_truncated_complex(reactant_complex, bond_rearrangement)
 
     if reactant_complex.n_atoms - truncated_complex.n_atoms < 5:
         logger.info('Truncated complex had 5 atoms or fewer than the full complex. Not truncating')
