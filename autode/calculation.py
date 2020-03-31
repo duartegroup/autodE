@@ -4,6 +4,7 @@ from autode.log import logger
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import CouldNotGetProperty
 from autode.exceptions import NoInputError
+from autode.exceptions import MethodUnavailable
 from autode.utils import work_in_tmp_dir
 from autode import mol_graphs
 from autode.config import Config
@@ -149,6 +150,10 @@ class Calculation:
 
         if not os.path.exists(self.input_filename):
             raise NoInputError
+
+        self.method.set_availability()
+        if not self.method.available:
+            raise MethodUnavailable
 
         if os.path.exists(self.output_filename):
             self.output_file_exists = True

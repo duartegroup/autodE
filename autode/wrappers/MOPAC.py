@@ -95,26 +95,26 @@ class MOPAC(ElectronicStructureMethod):
                 # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
-                xyzs = get_shifted_atoms_linear_interp(atoms=calc.molecule.atoms,
-                                                       bonds=list(calc.distance_constraints.keys()),
-                                                       final_distances=list(calc.distance_constraints.values()))
+                atoms = get_shifted_atoms_linear_interp(atoms=calc.molecule.atoms,
+                                                        bonds=list(calc.distance_constraints.keys()),
+                                                        final_distances=list(calc.distance_constraints.values()))
 
                 # Populate a flat list of atom ids to fix
                 fixed_atoms = [i for bond in calc.distance_constraints.keys()
                                for i in bond]
 
             else:
-                xyzs = calc.molecule.xyzs
+                atoms = calc.molecule.atoms
                 fixed_atoms = []
 
             if calc.cartesian_constraints is not None:
                 fixed_atoms += calc.cartesian_constraints
 
-            for i, xyz_line in enumerate(xyzs):
+            for i, atom in enumerate(atoms):
                 if i in fixed_atoms:
-                    print('{:<3}{:^10.5f} 0 {:^10.5f} 0 {:^10.5f} 0'.format(*xyz_line), file=input_file)
+                    print(f'{atom.label:<3}{atom.coord[0]:^10.5f} 0 {atom.coord[1]:^10.5f} 0 {atom.coord[2]:^10.5f} 0', file=input_file)
                 else:
-                    print('{:<3}{:^10.5f} 1 {:^10.5f} 1 {:^10.5f} 1'.format(*xyz_line), file=input_file)
+                    print(f'{atom.label:<3}{atom.coord[0]:^10.5f} 1 {atom.coord[1]:^10.5f} 1 {atom.coord[2]:^10.5f} 1', file=input_file)
 
         if calc.molecule.charges:
             potentials = []

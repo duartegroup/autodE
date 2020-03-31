@@ -1,7 +1,9 @@
 import numpy as np
 from copy import deepcopy
 from autode.species import Species
+from autode.units import KcalMol
 from autode.methods import get_hmethod
+from autode.methods import get_lmethod
 from autode.geom import length
 from autode.config import Config
 from autode import mol_graphs
@@ -12,6 +14,7 @@ from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoCalculationOutput
 from autode.log import logger
 from autode.atoms import get_atomic_weight
+from autode.bond_lengths import get_avg_bond_length
 
 
 class TSbase(Species):
@@ -224,17 +227,64 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
     return False
 
 
-def is_isomorphic_wi(species, graph):
+def is_isomorphic_wi(species, graph, wi_threshold=0.0016):
     """
-    Determine if a species is isomorphic with a graph given a slightly tighter tolerance on the molecular graph, i.e.
-    up to a weak interaction
+    Determine if a species is isomorphic with a graph up to the deletion of a single edge in the molecular graph. The
+    edge needs to be > 15% above it's ideal value and not a covalent bond. This is determined using an energy threshold;
+    if ∆E between two optimisations < threshold then the interaction is weak where the two energies are for the current
+    distance on that edge and +0.2 Å (assumes that no other strain is introduced)
 
      Arguments:
         species (autode.species.Species):
         graph (networkx.Graph):
+
+    Keyword Arguments:
+        wi_threshold (float): Upper energy bound in hartrees for a 'weak interaction' (~2 kcal mol-1)
     """
 
-    # TODO 2 point energy difference to check that long bond is a NCI rather than a covalent bond
+    for (i, j) in species.graph.edges:
+
+        # Check that the current distance for a bond is 1.15x it's ideal value, so could be a weak interaction
+        if species.get_distance(i, j) < 1.15 * get_avg_bond_length(species.atoms[i].label, species.atoms[j].label):
+            # Bond is normal
+            continue
+
+        logger.info(f'Found a long "bond" {i, j}')
+
+        # Delete that edge and check for an isomorphism
+        d_graph = deepcopy(species.graph)
+        d_graph.remove_edge(i, j)
+
+        if not is_isomorphic(d_graph, graph):
+            continue
+
+        logger.info(f'Deleting a long bond {i, j} leads to an isomorphism')
+
+        # Run two constrained optimisations to check if and elongation along this edge is relatively easy
+        curr_dist = species.get_distance(i, j)
+        method = get_lmethod()
+
+        curr_dist_calc = Calculation(name=f'{species.name}_{i}_{j}_curr_dist_{method.name}', molecule=species, opt=True,
+                                     method=method, keywords_list=method.keywords.low_opt,
+                                     distance_constraints={(i, j): curr_dist})
+        curr_dist_calc.run()
+
+        plus_dist_calc = Calculation(name=f'{species.name}_{i}_{j}_+_dist_{method.name}', molecule=species, opt=True,
+                                     method=method, keywords_list=method.keywords.low_opt,
+                                     distance_constraints={(i, j): curr_dist + 0.2})
+        plus_dist_calc.run()
+
+        try:
+            delta_e = plus_dist_calc.get_energy() - curr_dist_calc.get_energy()
+            logger.info(f'∆E = {KcalMol.conversion * delta_e:.1f} kcal mol-1')
+
+            if delta_e < wi_threshold:
+                logger.info('Interaction is weak')
+                return True
+
+        except TypeError:
+            logger.error('Calculation failed to return the energy')
+            pass
 
     return False
 
