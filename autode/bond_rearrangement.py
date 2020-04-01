@@ -370,6 +370,14 @@ class BondRearrangement:
 
         return self.active_atom_nl
 
+    def _set_list(self, bonds, ls):
+        for bond in bonds:
+            for atom in bond:
+                if not atom in ls:
+                    ls.append(atom)
+                if not atom in self.active_atoms:
+                    self.active_atoms.append(atom)
+
     def __eq__(self, other):
         return self.fbonds == other.fbonds and self.bbonds == other.bbonds
 
@@ -381,9 +389,11 @@ class BondRearrangement:
         self.n_fbonds = len(self.fbonds)
         self.n_bbonds = len(self.bbonds)
 
-        self.all = self.fbonds + self.bbonds
-        self.active_atoms = [atom_id for bond in self.all for atom_id in bond]
+        self.active_atoms = []
+        self.fatoms = []
+        self.batoms = []
         self.active_atom_nl = None
+        self.all = self.fbonds + self.bbonds
 
-        self.fatoms = [atom_id for bond in self.fbonds for atom_id in bond]
-        self.batoms = [atom_id for bond in self.bbonds for atom_id in bond]
+        self._set_list(self.fbonds, self.fatoms)
+        self._set_list(self.bbonds, self.batoms)

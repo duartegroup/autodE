@@ -7,7 +7,6 @@ from autode.molecule import Product
 from autode.reaction import Reaction
 from autode.conformers import conformers
 from autode.bond_rearrangement import BondRearrangement
-from rdkit.Chem import Mol
 import numpy as np
 import pytest
 import os
@@ -33,15 +32,13 @@ def test_basic_attributes():
     assert methane.conformers is None
     assert methane.charge == 0
     assert methane.mult == 1
-    assert isinstance(methane.rdkit_mol_obj, Mol)
 
 
 def test_gen_conformers():
 
     ethane = Molecule(name='ethane', smiles='CC')
-    ethane._generate_conformers(n_rdkit_confs=2)
+    ethane._generate_conformers(n_siman_confs=2)
 
-    assert ethane.rdkit_conf_gen_is_fine
     assert type(ethane.conformers) == list
     assert len(ethane.conformers) >= 1          # Even though two conformers have been requested they are pruned on RMSD
     assert type(ethane.conformers[0]) == Conformer
@@ -77,14 +74,6 @@ def test_molecule_opt():
 
 
 """
-def test_rdkit_conf_generation():
-
-    h2 = Molecule(name='mol', smiles='[H][H]')
-
-    h2._generate_conformers(n_rdkit_confs=1)
-    assert isinstance(h2.conformers[0], conformers.Conformer)
-    assert len(h2.conformers) == 1
-    assert h2.n_conformers == 1
 
 
 def test_attributes_methods():
@@ -93,8 +82,8 @@ def test_attributes_methods():
     assert h_atom.mult == 2
     assert h2._calc_multiplicity(n_radical_electrons=2) == 1
 
-    h2_rdkit = Molecule(name='mol', smiles='[H][H]')
-    h2_rdkit.graph.remove_edge(0, 1)
+    h2_siman = Molecule(name='mol', smiles='[H][H]')
+    h2_siman.graph.remove_edge(0, 1)
 
     assert 0.69 < h2.calc_bond_distance(bond=(0, 1)) < 0.71
 
