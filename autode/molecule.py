@@ -1,49 +1,37 @@
 from autode.config import Config
 from autode.log import logger
-from rdkit.Chem import AllChem
-from rdkit import Chem
-import rdkit.Chem.Descriptors
 from autode.species import Species
-from autode.geom import are_coords_reasonable
 from autode.mol_graphs import make_graph
-from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
+from autode.conformers.conformers import check_rmsd
 from autode.calculation import Calculation
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
-from autode.exceptions import RDKitFailed, BondsInSMILESAndGraphDontMatch, NoAtomsInMolecule
+from autode.exceptions import BondsInSMILESAndGraphDontMatch, NoAtomsInMolecule
 from autode.utils import requires_atoms
+from autode.smiles_parser import SmilesParser
 
 
 class Molecule(Species):
 
     def _init_smiles(self, smiles):
-        """Initialise a molecule from a SMILES string using RDKit"""
+        """Initialise a molecule from a SMILES string """
 
-        try:
-            self.rdkit_mol_obj = Chem.MolFromSmiles(smiles)
-            self.rdkit_mol_obj = Chem.AddHs(self.rdkit_mol_obj)
-        except RuntimeError:
-            raise RDKitFailed
+        self.parser = SmilesParser()
+        self.parser.parse_smiles(smiles)
 
-        self.charge = Chem.GetFormalCharge(self.rdkit_mol_obj)
-        self.mult = self._calc_multiplicity(rdkit.Chem.Descriptors.NumRadicalElectrons(self.rdkit_mol_obj))
+        self.charge = self.parser.charge
+        self.mult = self._calc_multiplicity(self.parser.n_radical_electrons)
 
-        # Generate a single 3D structure using RDKit's ETKDG conformer generation algorithm
-        AllChem.EmbedMultipleConfs(self.rdkit_mol_obj, numConfs=1, params=AllChem.ETKDGv2())
-        self.set_atoms(atoms=get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id=0))
+        self.set_atoms(self.parser.atoms)
 
-        if not are_coords_reasonable(coords=self.get_coordinates()):
-            logger.warning('RDKit conformer was not reasonable')
-            self.rdkit_conf_gen_is_fine = False
-
-            make_graph(self, rdkit_bonds=self.rdkit_mol_obj.GetBonds())
-            self.set_atoms(atoms=get_simanl_atoms(self))
+        make_graph(self, smiles_parser=self.parser)
+        self.set_atoms(atoms=get_simanl_atoms(self))
 
         # Ensure the SMILES string and the 3D structure have the same bonds
         make_graph(self)
 
-        if len(self.rdkit_mol_obj.GetBonds()) != self.graph.number_of_edges():
+        if len(self.parser.bonds) != self.graph.number_of_edges():
             raise BondsInSMILESAndGraphDontMatch
 
         logger.info(f'Initialisation with SMILES successful. Charge={self.charge}, Multiplicity={self.mult}, '
@@ -75,39 +63,21 @@ class Molecule(Species):
         pass
 
     @requires_atoms()
-    def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=50):
+    def _generate_conformers(self, n_siman_confs=300):
         """
-        Use either RDKit or a simulated annealing approach to generate conformers for this molecule. RDKit is preferred,
-        being considerably faster. However for some unusual molecule and metal complexes it fails to generate a sensible
-        structure. In this case fall back to the simulated annealing algorithm
+        Use a simulated annealing approach to generate conformers for this molecule.
 
         Keyword Arguments:
-            n_rdkit_confs (int):
             n_siman_confs (int):
         """
         self.conformers = []
 
-        if self.smiles is not None and self.rdkit_conf_gen_is_fine:
-            logger.info(f'Using RDKit to generate conformers. {n_rdkit_confs} requested')
-
-            method = AllChem.ETKDGv2()
-            method.pruneRmsThresh = 0.5
-            method.numThreads = Config.n_cores
-
-            logger.info('Running conformation generation with RDKit... running')
-            conf_ids = list(AllChem.EmbedMultipleConfs(self.rdkit_mol_obj, numConfs=n_rdkit_confs, params=method))
-            logger.info('                                          ... done')
-
-            conf_atoms_list = [get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id) for conf_id in conf_ids]
-
-        else:
-            logger.info('Using simulated annealing to generate conformers')
-            conf_atoms_list = [get_simanl_atoms(species=self, conf_n=i) for i in range(n_siman_confs)]
-
-        for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}', atoms=atoms,  charge=self.charge, mult=self.mult)
-            conf.solvent = self.solvent
-            self.conformers.append(conf)
+        logger.info('Using simulated annealing to generate conformers')
+        for i in range(n_siman_confs):
+            conf = Conformer(name=f'{self.name}_conf{i}', atoms=get_simanl_atoms(species=self, conf_n=i),  charge=self.charge, mult=self.mult)
+            if check_rmsd(conf, self.conformers):
+                conf.solvent = self.solvent
+                self.conformers.append(conf)
 
         logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
         return None
@@ -127,7 +97,7 @@ class Molecule(Species):
 
     def __init__(self, name='molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
         """Initialise a Molecule object.
-        Will generate xyz lists of all the conformers found by RDKit within the number
+        Will generate atoms lists of all the conformers found by simulated annealing within the number
         of conformers searched (n_confs)
 
         Keyword Arguments:
@@ -142,8 +112,7 @@ class Molecule(Species):
         super().__init__(name, atoms, charge, mult, solvent_name)
 
         self.smiles = smiles
-        self.rdkit_conf_gen_is_fine = True
-        self.rdkit_mol_obj = None
+        self.parser = None
 
         self.conformers = None
 

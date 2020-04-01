@@ -1,7 +1,6 @@
 from autode.molecule import Molecule
 from autode.conformers.conformer import Conformer
 from autode.exceptions import NoAtomsInMolecule
-from autode.geom import are_coords_reasonable
 from autode.wrappers.ORCA import orca
 from autode.molecule import Reactant
 from autode.molecule import Product
@@ -57,7 +56,6 @@ def test_gen_conformers():
 def test_siman_conf_gen():
 
     rh_complex = Molecule(name='[RhH(CO)3(ethene)]', smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
-    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
     assert rh_complex.n_atoms == 14
     assert rh_complex.graph.number_of_edges() == 14
 

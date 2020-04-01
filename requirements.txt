@@ -1,4 +1,3 @@
-rdkit
 numpy
 networkx
 matplotlib

@@ -156,7 +156,7 @@ class Reaction:
 
     @work_in('conformers')
     def find_lowest_energy_conformers(self):
-        """Try and locate the lowest energy conformation using RDKit, then optimise them with xtb, then
+        """Try and locate the lowest energy conformation using simulated annealing, then optimise them with xtb, then
         optimise the unique (defined by an energy cut-off) conformers with an electronic structure method"""
 
         for mol in self.reacs + self.prods:
@@ -273,7 +273,7 @@ class SolvatedReaction(Reaction):
             self.solvent_sphere_energy = qmmm_solvent_mol.energy
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
-                solvent_name=None):
+                 solvent_name=None):
         super().__init__(mol1, mol2, mol3, mol4, mol5, mol6, name, solvent_name)
 
         self.solvent_sphere_energy = None
