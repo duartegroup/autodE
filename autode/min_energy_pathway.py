@@ -2,7 +2,6 @@ import networkx as nx
 import numpy as np
 from autode.log import logger
 from autode.mol_graphs import is_isomorphic
-from autode.mol_graphs import make_graph
 
 
 def get_sum_energy_mep(saddle_point_r1r2, pes_2d):

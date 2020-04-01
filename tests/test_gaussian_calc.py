@@ -29,7 +29,7 @@ def test_gauss_opt_calc():
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
-    assert calc.get_imag_freqs() is None
+    assert calc.get_imag_freqs() == []
     assert calc.get_normal_mode_displacements(mode_number=1) is None
     assert calc.input_filename == 'opt_g09.com'
     assert calc.output_filename == 'opt_g09.log'
@@ -88,9 +88,6 @@ def test_fix_angle_error():
     assert os.path.exists('angle_fail_internal_g09.com') is True
     assert calc.output_filename == 'angle_fail_internal_g09.log'
     assert calc.terminated_normally is True
-
-    os.remove('angle_fail_cartesian_g09.xyz')
-    os.remove('angle_fail_g09.xyz')
 
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.com'):

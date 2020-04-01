@@ -19,7 +19,8 @@ class Species:
     def _set_lowest_energy_conformer(self):
         """Set the species energy and atoms as those of the lowest energy conformer"""
 
-        lowest_energy = None
+        lowest_energy = self.energy
+
         for conformer in self.conformers:
             if conformer.energy is None:
                 continue
@@ -27,7 +28,7 @@ class Species:
             # Conformers don't have a molecular graph, so make it
             mol_graphs.make_graph(conformer)
 
-            if not mol_graphs.is_isomorphic(self.graph, conformer.graph, ignore_active_bonds=True):
+            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True):
                 logger.warning('Conformer had a different molecular graph. Ignoring')
                 continue
 
@@ -111,6 +112,10 @@ class Species:
             high_level_method (autode.wrappers.ElectronicStructureMethod):
         """
         logger.info('Finding lowest energy conformer')
+
+        if self.n_atoms <= 2:
+            logger.warning('Cannot have conformers of a species with 2 atoms or fewer')
+            return None
 
         if low_level_method is None:
             logger.info('Getting the default low level method')

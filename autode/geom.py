@@ -45,7 +45,7 @@ def get_shifted_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
 
     Arguments:
-        xyzs (list(list)): list of xyzs
+        atoms (list(autode.atoms.Atom)): list of atoms
         bonds (list(tuple)): List of bond ids on for which the final_distances apply
         final_distances (list(float)): List of final bond distances for the bonds
 

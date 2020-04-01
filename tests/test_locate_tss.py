@@ -11,7 +11,7 @@ import autode.bond_rearrangement as bond_rearrangement
 h_product_1 = Product(name='h_a', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 h_product_2 = Product(name='h_b', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
-hh_reactant = Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
+hh_reactant = Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.7, 0.0, 0.0)])
 
 dissoc_reaction = Reaction(name='dissoc', mol1=h_product_1, mol2=h_product_2, mol3=hh_reactant)
 

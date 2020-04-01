@@ -29,6 +29,7 @@ class Config:
     # if ts_template_folder_path is not set to override it
     #
     make_ts_template = True
+    #
     ts_template_folder_path = None
     #
     # ----------------------------------------------------------------------------------------------

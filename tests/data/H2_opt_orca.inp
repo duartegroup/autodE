@@ -1,7 +1,5 @@
 ! Opt PBE0 RIJCOSX D3BJ def2-SVP def2/J
 %geom MaxIter 100 end
-%pal nprocs 8
-end
 %output 
 xyzfile=True 
 end 
@@ -10,6 +8,6 @@ maxiter 250
 end
 % maxcore 4000
 *xyz 0 1
-H    0.35690000   0.00000000   0.00000000 
-H   -0.35690000   0.00000000   0.00000000 
+H    0.35040000   0.00000000   0.00000000 
+H   -0.35040000   0.00000000   0.00000000 
 *

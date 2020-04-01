@@ -1,8 +1,9 @@
 from autode.transition_states.ts_guess import get_ts_guess_constrained_opt
 from autode.molecule import Molecule
+from autode.complex import ReactantComplex, ProductComplex
 from autode.config import Config
-from autode.reactions import Substitution
-from autode.wrappers.ORCA import ORCA
+from autode.atoms import Atom
+from autode.wrappers.ORCA import orca
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -11,14 +12,19 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_constrained_opt():
     os.chdir(os.path.join(here, 'data'))
 
-    h3_xyzs = [['H', 0.0, 0.0, 0.0], ['H', 0.7, 0.0, 0.0], ['H', 1.7, 0.0, 0.0]]
-    mol = Molecule(name='h3', xyzs=h3_xyzs, mult=2)
-    mol.method = ORCA()
+    mol = Molecule(name='h3', mult=2, charge=0,
+                   atoms=[Atom('H', 0.0, 0.0, 0.0),
+                          Atom('H', 0.7, 0.0, 0.0),
+                          Atom('H', 1.7, 0.0, 0.0)])
 
-    ts_guess = get_ts_guess_constrained_opt(mol=mol, distance_consts={(0, 1): 1.0}, reaction_class=Substitution,
-                                            keywords=Config.ORCA.keywords.low_opt, name='template_ts_guess', product=mol)
-    assert ts_guess.active_bonds == [(0, 1)]
+    ts_guess = get_ts_guess_constrained_opt(reactant=ReactantComplex(mol),
+                                            distance_consts={(0, 1): 1.0},
+                                            method=orca,
+                                            keywords=Config.ORCA.keywords.low_opt,
+                                            name='template_ts_guess',
+                                            product=ProductComplex(mol))
     assert ts_guess.n_atoms == 3
+    assert ts_guess.energy == -1.655676296857
 
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.inp'):

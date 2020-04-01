@@ -17,6 +17,7 @@ class ElectronicStructureMethod(ABC):
 
         if not self.available:
             logger.info(f'{self.__name__} is not available')
+            self.available = False
 
     @abstractmethod
     def generate_input(self, calc):

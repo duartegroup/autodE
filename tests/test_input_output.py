@@ -1,20 +1,31 @@
-from autode import input_output
+from autode.input_output import xyz_file_to_atoms
+from autode.exceptions import XYZfileDidNotExist, XYZfileWrongFormat
+from autode.atoms import Atom
+import pytest
+import os
+here = os.path.dirname(os.path.abspath(__file__))
 
 
-xyz_list = [['H', 0.0, 0.0, 0.0], ['H', 1.0, 0.0, 0.0]]
+def test_xyz_file_to_atoms():
 
+    os.chdir(os.path.join(here, 'data'))
 
-def test_xyzsxyzfile():
+    atoms = xyz_file_to_atoms(filename='opt_orca.xyz')
+    assert len(atoms) == 5
+    assert type(atoms) == list
+    assert type(atoms[0]) == Atom
+    assert atoms[0].coord[0] == -0.137572
 
-    no_name = input_output.xyzs2xyzfile(xyz_list, None, None,)
-    assert no_name == None
+    with pytest.raises(XYZfileDidNotExist):
+        xyz_file_to_atoms(filename='test')
 
-    wrong_ending = input_output.xyzs2xyzfile(xyz_list, 'test.abc', None,)
-    assert wrong_ending == None
+    with pytest.raises(XYZfileWrongFormat):
+        xyz_file_to_atoms(filename='opt_orca_broken.xyz')
 
-    xyz_empty = []
-    no_xyz = input_output.xyzs2xyzfile(xyz_empty, None, 'test',)
-    assert no_xyz == None
+    with pytest.raises(XYZfileWrongFormat):
+        xyz_file_to_atoms(filename='opt_orca_broken2.xyz')
 
-    no_xyz2 = input_output.xyzs2xyzfile(None, None, 'test',)
-    assert no_xyz2 == None
+    with pytest.raises(XYZfileWrongFormat):
+        xyz_file_to_atoms(filename='opt_orca.out')
+
+    os.chdir(here)

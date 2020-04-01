@@ -35,6 +35,7 @@ class NWChem(ElectronicStructureMethod):
                 if calc.solvent_keyword:
                     logger.critical('nwchem only supports solvent for DFT calculations')
                     raise UnsuppportedCalculationInput
+
                 scf_block = True
                 lines = keyword.split('\n')
                 lines.insert(1, f'  nopen {calc.molecule.mult - 1}')
@@ -55,7 +56,7 @@ class NWChem(ElectronicStructureMethod):
             print(f'start {calc.name}_nwchem\necho', file=inp_file)
 
             if calc.solvent_keyword:
-                print(f'cosmo\n do_cosmo_smd true\n solvent_name {calc.solvent_keyword}\nend', file=inp_file)
+                print(f'cosmo\n do_cosmo_smd true\n solvent {calc.solvent_keyword}\nend', file=inp_file)
 
             print('geometry', end=' ', file=inp_file)
             if calc.distance_constraints or calc.cartesian_constraints:
@@ -125,7 +126,8 @@ class NWChem(ElectronicStructureMethod):
     def calculation_terminated_normally(self, calc):
 
         for n_line, line in enumerate(calc.rev_output_file_lines):
-            if any(substring in line for substring in['CITATION', 'Failed to converge in maximum number of steps or available time']):
+            if any(substring in line for substring in['CITATION',
+                                                      'Failed to converge in maximum number of steps or available time']):
                 logger.info('nwchem terminated normally')
                 return True
             if n_line > 500:

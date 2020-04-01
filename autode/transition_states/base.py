@@ -2,6 +2,7 @@ import numpy as np
 from copy import deepcopy
 from autode.species import Species
 from autode.methods import get_hmethod
+from autode.mol_graphs import is_isomorphic_ish
 from autode.geom import length
 from autode.config import Config
 from autode import mol_graphs
@@ -211,11 +212,11 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
         logger.warning('Atoms not set in the output. Cannot calculate isomorphisms')
         return False
 
-    if is_isomorphic(b_displaced_mol.graph, reactant_graph) and is_isomorphic(f_displaced_mol.graph, product_graph):
+    if is_isomorphic_ish(b_displaced_mol, reactant_graph) and is_isomorphic_ish(f_displaced_mol, product_graph):
         logger.info('Forwards displacement lead to products and backwards')
         return True
 
-    if is_isomorphic(f_displaced_mol.graph, reactant_graph) and is_isomorphic(b_displaced_mol.graph, product_graph):
+    if is_isomorphic_ish(f_displaced_mol, reactant_graph) and is_isomorphic_ish(b_displaced_mol, product_graph):
         logger.info('Backwards displacement lead to products and forwards to reactants')
         return True
 

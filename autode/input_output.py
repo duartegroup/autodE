@@ -26,7 +26,13 @@ def xyz_file_to_atoms(filename):
 
     # Open the file that exists and should(!) be in the correct format
     with open(filename, 'r') as xyz_file:
-        n_atoms = int(xyz_file.readline().split()[0])       # First item in an xyz file is the number of atoms
+
+        try:
+            n_atoms = int(xyz_file.readline().split()[0])       # First item in an xyz file is the number of atoms
+
+        except IndexError:
+            raise XYZfileWrongFormat
+
         xyz_lines = xyz_file.readlines()[1:n_atoms+1]       # XYZ lines should be the following 2 + n_atoms lines
 
         for line in xyz_lines:
@@ -35,7 +41,7 @@ def xyz_file_to_atoms(filename):
                 atom_label, x, y, z = line.split()[:4]
                 atoms.append(Atom(atomic_symbol=atom_label, x=float(x), y=float(y), z=float(z)))
 
-            except (IndexError, TypeError):
+            except (IndexError, TypeError, ValueError):
                 raise XYZfileWrongFormat
 
     return atoms

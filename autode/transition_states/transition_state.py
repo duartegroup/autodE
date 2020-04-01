@@ -7,6 +7,7 @@ from autode.utils import requires_atoms, requires_graph
 from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.calculation import Calculation
 from autode.mol_graphs import get_active_mol_graph
+from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.methods import get_hmethod
 from autode.geom import get_distance_constraints
 from autode.conformers.conformer import Conformer
@@ -124,7 +125,7 @@ class TransitionState(TSbase):
 
         return False
 
-    def save_ts_template(self, folder_path=None):
+    def save_ts_template(self, folder_path=Config.ts_template_folder_path):
         """Save a transition state template containing the active bond lengths, solvent_name and charge in folder_path
 
         Keyword Arguments:
@@ -132,14 +133,15 @@ class TransitionState(TSbase):
         """
         logger.info(f'Saving TS template for {self.name}')
 
-        try:
-            ts_template = TStemplate(self.graph, solvent=self.solvent,  charge=self.charge, mult=self.mult)
-            ts_template.save_object(folder_path=folder_path)
-            logger.info('Saved TS template')
+        truncated_graph = get_truncated_active_mol_graph(self.graph, active_bonds=self.bond_rearrangement.all)
 
-        except (ValueError, AttributeError):
-            logger.error('Could not save TS template')
+        for bond in self.bond_rearrangement.all:
+            truncated_graph.edges[bond]['distance'] = self.get_distance(*bond)
 
+        ts_template = TStemplate(truncated_graph, solvent=self.solvent,  charge=self.charge, mult=self.mult)
+        ts_template.save_object(folder_path=folder_path)
+
+        logger.info('Saved TS template')
         return None
 
     def __init__(self, ts_guess, bond_rearrangement):
