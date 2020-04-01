@@ -160,8 +160,7 @@ class Reaction:
         optimise the unique (defined by an energy cut-off) conformers with an electronic structure method"""
 
         for mol in self.reacs + self.prods:
-            if mol.n_atoms > 1:
-                mol.find_lowest_energy_conformer(low_level_method=get_lmethod(), high_level_method=get_hmethod())
+            mol.find_lowest_energy_conformer(low_level_method=get_lmethod(), high_level_method=get_hmethod())
 
     @work_in('reactants_and_products')
     def optimise_reacs_prods(self):
