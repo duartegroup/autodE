@@ -107,7 +107,7 @@ class TransitionState(TSbase):
             logger.info('Conformer search successful')
 
         else:
-            logger.warning('Transition state conformer search failed. Reverting')
+            logger.warning(f'Transition state conformer search failed (∆E = {energy - self.energy:.4f} Ha). Reverting')
             self.set_atoms(atoms=atoms)
             self.energy = energy
             self.calc = calc
@@ -118,8 +118,7 @@ class TransitionState(TSbase):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
 
         if len(self.imaginary_frequencies) > 0:
-            if self.has_correct_imag_mode(active_atoms=self.bond_rearrangement.active_atoms,
-                                          calc=self.optts_calc, ensure_links=True):
+            if self.has_correct_imag_mode(bond_rearrangement=self.bond_rearrangement,  calc=self.optts_calc):
                 logger.info('Found a transition state with the correct imaginary mode & links reactants and products')
                 return True
 

@@ -31,8 +31,9 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
 
     # Run a low level constrained optimisation first to prevent the DFT being problematic if there are >1 constraint
     l_method = get_lmethod()
-    const_opt = Calculation(name=f'{name}_constrained_opt_{l_method.name}', molecule=mol_with_const, method=l_method,
-                            keywords_list=l_method.keywords.low_opt, n_cores=Config.n_cores, distance_constraints=distance_consts)
+    const_opt = Calculation(name=f'{name}_constrained_opt_ll', molecule=mol_with_const, method=l_method,
+                            keywords_list=l_method.keywords.low_opt, n_cores=Config.n_cores, opt=True,
+                            distance_constraints=distance_consts)
     const_opt.run()
 
     # Try and set the atoms, but continue if they're not found as hopefully the other method will be fine(?)
@@ -42,7 +43,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     except AtomsNotFound:
         pass
 
-    const_opt = Calculation(name=f'{name}_constrained_opt', molecule=mol_with_const, method=method,
+    const_opt = Calculation(name=f'{name}_constrained_opt', molecule=mol_with_const, method=method, opt=True,
                             keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts)
     const_opt.run()
 

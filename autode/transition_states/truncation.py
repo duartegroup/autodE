@@ -158,8 +158,8 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
     """
     truncated_complex = get_truncated_complex(reactant_complex, bond_rearrangement)
 
-    if reactant_complex.n_atoms - truncated_complex.n_atoms < 5:
-        logger.info('Truncated complex had 5 atoms or fewer than the full complex. Not truncating')
+    if reactant_complex.n_atoms - truncated_complex.n_atoms < 10:
+        logger.info('Truncated complex had 10 atoms or fewer than the full complex. Not truncating')
         return False
 
     logger.info('Complex is worth truncating')

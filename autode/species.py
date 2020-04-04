@@ -28,7 +28,7 @@ class Species:
             # Conformers don't have a molecular graph, so make it
             mol_graphs.make_graph(conformer)
 
-            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True):
+            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True, any_interaction=True):
                 logger.warning('Conformer had a different molecular graph. Ignoring')
                 continue
 

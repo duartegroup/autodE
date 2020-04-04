@@ -403,7 +403,7 @@ def get_truncated_active_mol_graph(graph, active_bonds):
     return t_graph
 
 
-def is_isomorphic_ish(species, graph, ignore_active_bonds=False):
+def is_isomorphic_ish(species, graph, ignore_active_bonds=False, any_interaction=False):
     """
     Determine if a species is close to or is isomorphic to
 
@@ -412,6 +412,7 @@ def is_isomorphic_ish(species, graph, ignore_active_bonds=False):
         graph (nx.Graph):
 
     Keyword Arguments:
+        any_interaction (bool):
         ignore_active_bonds (bool):
     """
 
@@ -430,14 +431,14 @@ def is_isomorphic_ish(species, graph, ignore_active_bonds=False):
     if is_isomorphic(loose_mol.graph, graph, ignore_active_bonds=ignore_active_bonds):
         return True
 
-    if is_isomorphic_wi(species, graph, ignore_ab=ignore_active_bonds):
+    if is_isomorphic_wi(species, graph, ignore_ab=ignore_active_bonds, any_inter=any_interaction):
         return True
 
     logger.warning('Species is not close to being isomorphic')
     return False
 
 
-def is_isomorphic_wi(species, graph, wi_threshold=0.0016, ignore_ab=False):
+def is_isomorphic_wi(species, graph, any_inter, ignore_ab, wi_threshold=0.0016):
     """
     Determine if a species is isomorphic with a graph up to the deletion of a single edge in the molecular graph. The
     edge needs to be > 5% above it's ideal value and not a covalent bond. This is determined using an energy threshold;
@@ -447,10 +448,11 @@ def is_isomorphic_wi(species, graph, wi_threshold=0.0016, ignore_ab=False):
      Arguments:
         species (autode.species.Species):
         graph (networkx.Graph):
+        any_inter (bool): Allow any interaction
+        ignore_ab (bool): Ignore the active bonds in the species graph
 
     Keyword Arguments:
         wi_threshold (float): Upper energy bound in hartrees for a 'weak interaction' (~2 kcal mol-1)
-        ignore_ab (bool):
     """
 
     for (i, j) in species.graph.edges:
@@ -470,6 +472,10 @@ def is_isomorphic_wi(species, graph, wi_threshold=0.0016, ignore_ab=False):
             continue
 
         logger.info(f'Deleting a long bond {i, j} leads to an isomorphism')
+
+        # If there is no constraint on the bond energy difference then the species is isomorphic
+        if any_inter:
+            return True
 
         # Run two constrained optimisations to check if and elongation along this edge is relatively easy
         curr_dist = species.get_distance(i, j)

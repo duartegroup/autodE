@@ -1,71 +1,32 @@
 from autode.config import Config
 from autode.log import logger
 from rdkit.Chem import AllChem
-from rdkit import Chem
-import rdkit.Chem.Descriptors
+from autode.atoms import metals
 from autode.species import Species
-from autode.geom import are_coords_reasonable
 from autode.mol_graphs import make_graph
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.calculation import Calculation
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
-from autode.exceptions import RDKitFailed, BondsInSMILESAndGraphDontMatch, NoAtomsInMolecule
+from autode.exceptions import NoAtomsInMolecule
 from autode.utils import requires_atoms
+from autode.smiles import init_organic_smiles
+from autode.smiles import init_smiles
 
 
 class Molecule(Species):
 
     def _init_smiles(self, smiles):
-        """Initialise a molecule from a SMILES string using RDKit"""
+        """Initialise a molecule from a SMILES string using RDKit if it's purely organic"""
 
-        try:
-            self.rdkit_mol_obj = Chem.MolFromSmiles(smiles)
-            self.rdkit_mol_obj = Chem.AddHs(self.rdkit_mol_obj)
-        except RuntimeError:
-            raise RDKitFailed
+        if any(metal in smiles for metal in metals):
+            init_smiles(self, smiles)
 
-        self.charge = Chem.GetFormalCharge(self.rdkit_mol_obj)
-        self.mult = self._calc_multiplicity(rdkit.Chem.Descriptors.NumRadicalElectrons(self.rdkit_mol_obj))
+        else:
+            init_organic_smiles(self, smiles)
 
-        # Generate a single 3D structure using RDKit's ETKDG conformer generation algorithm
-        AllChem.EmbedMultipleConfs(self.rdkit_mol_obj, numConfs=1, params=AllChem.ETKDGv2())
-        self.set_atoms(atoms=get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id=0))
-
-        if not are_coords_reasonable(coords=self.get_coordinates()):
-            logger.warning('RDKit conformer was not reasonable')
-            self.rdkit_conf_gen_is_fine = False
-
-            make_graph(self, rdkit_bonds=self.rdkit_mol_obj.GetBonds())
-            self.set_atoms(atoms=get_simanl_atoms(self))
-
-        # Ensure the SMILES string and the 3D structure have the same bonds
-        make_graph(self)
-
-        if len(self.rdkit_mol_obj.GetBonds()) != self.graph.number_of_edges():
-            raise BondsInSMILESAndGraphDontMatch
-
-        logger.info(f'Initialisation with SMILES successful. Charge={self.charge}, Multiplicity={self.mult}, '
-                    f'Num. Atoms={self.n_atoms}')
         return None
-
-    def _calc_multiplicity(self, n_radical_electrons):
-        """Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
-
-        Arguments:
-            n_radical_electrons (int): number of radical electrons
-
-        Returns:
-            int: multiplicity of the molecule
-        """
-        if n_radical_electrons == 1:
-            return 2
-
-        if n_radical_electrons > 1:
-            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
-
-        return self.mult
 
     @requires_atoms()
     def _find_stereocentres(self):
