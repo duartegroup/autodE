@@ -238,14 +238,13 @@ class NWChem(ElectronicStructureMethod):
         charges_section = False
         charges = []
         for line in calc.rev_output_file_lines:
+            if charges_section and len(line.split()) == 4:
+                charges.append(float(line.split()[2]) - float(line.split()[3]))
             if '----- Bond indices -----' in line:
                 charges_section = True
             if 'gross population on atoms' in line:
                 charges_section = False
                 return list(reversed(charges))
-
-            if charges_section and len(line.split()) == 4:
-                charges.append(float(line.split()[2]) - float(line.split()[3]))
 
     def get_gradients(self, calc):
 

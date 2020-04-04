@@ -13,9 +13,9 @@ from autode.methods import get_lmethod
 from autode.units import KcalMol
 
 
-def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
+def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
     """
-    Make the molecular graph from the 'bonds' determined on a distance criteria or a list of RDKit bonds. All attributes
+    Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
     default to false
 
     Nodes attributes:
@@ -31,7 +31,7 @@ def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
 
     Keyword Arguments:
         rel_tolerance (float):
-        rdkit_bonds (RDKit.Chem.Bond):
+        smiles_parser (autode.smiles_parser.SmilesParser):
     """
     logger.info('Generating molecular graph with NetworkX')
 
@@ -41,9 +41,9 @@ def make_graph(species, rel_tolerance=0.25, rdkit_bonds=None):
     for i in range(species.n_atoms):
         graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
 
-    # If rdkit bonds object is specified then add edges to the graph and return
-    if rdkit_bonds is not None:
-        [graph.add_edge(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), pi=False, active=False) for bond in rdkit_bonds]
+    # If smiles parser object is specified then add edges to the graph and return
+    if smiles_parser is not None:
+        [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in smiles_parser.bonds]
         species.graph = graph
         return None
 

@@ -112,7 +112,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     Returns:
         (np.ndarray): Coordinates of the generated conformer
     """
-    xyz_filename = f'{species.name}_conf{conf_n}.xyz'
+    xyz_filename = f'{species.name}_conf{conf_n}_siman.xyz'
 
     for filename in os.listdir(os.getcwd()):
         if filename == xyz_filename:
@@ -149,5 +149,11 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     # Set the coordinates of the new atoms
     for i, atom in enumerate(atoms):
         atom.coord = coords[i]
+
+    with open(xyz_filename, 'w') as xyz_file:
+        print(len(atoms), '', sep='\n', file=xyz_file)
+        for atom in atoms:
+            x, y, z = atom.coord
+            print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=xyz_file)
 
     return atoms

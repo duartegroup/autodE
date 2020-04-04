@@ -38,10 +38,6 @@ class SolventsDontMatch(Exception):
     pass
 
 
-class RDKitFailed(Exception):
-    pass
-
-
 class BondsInSMILESAndGraphDontMatch(Exception):
     pass
 

@@ -48,7 +48,10 @@ class ORCA(ElectronicStructureMethod):
                 else:
                     print('%cpcm\nsmd true\nSMDsolvent \"' + calc.solvent_keyword + '\"\nend', file=inp_file)
 
+            max_iter_done = False
             if calc.other_input_block:
+                if 'maxiter' in calc.other_input_block.lower():
+                    max_iter_done = True
                 print(calc.other_input_block, file=inp_file)
                 if calc.core_atoms and calc.molecule.n_atoms > 25 and not calc.partial_hessian:
                     core_atoms_str = ' '.join(map(str, calc.core_atoms))
@@ -75,7 +78,7 @@ class ORCA(ElectronicStructureMethod):
                  for atom_id in calc.cartesian_constraints]
                 print('    end\nend', file=inp_file)
 
-            if calc.molecule.n_atoms < 33:
+            if calc.molecule.n_atoms < 33 and not max_iter_done:
                 print('%geom MaxIter 100 end', file=inp_file)
 
             if calc.partial_hessian:

@@ -132,7 +132,8 @@ class Config:
                                     '  xc pbe0\n'
                                     'end',
                                     'task dft saddle',
-                                    'task dft freq'],
+                                    'task dft freq',
+                                    'task dft property'],
                             hess=[svp_basis_block, 'dft\n  xc pbe0\nend', 'task dft freq'],
                             sp=[tzvp_basis_block, 'dft\n  xc pbe0\nend', 'task dft energy'])
 

@@ -40,7 +40,7 @@ def get_bond_rearrangs(reactant, product, name):
     # list of lists, shallow level separates by type of bond, deeper level is bonds of those type that can form
     all_possible_fbonds = []
     # list of tuples, shallow level separates by type of bond, tuple is ([bbonds of that type], [fbonds of that type])
-    possible_fbond_and_bbonds = []
+    possible_bbond_and_fbonds = []
     # list of bonds that can be broken of the type of forming bond
     fbond_atom_type_bbonds = None
     # list of bonds that can be formed of the type of breaking bond
@@ -57,7 +57,7 @@ def get_bond_rearrangs(reactant, product, name):
             fbond_atom_type_bbonds = reac_bonds
         else:
             if len(reac_bonds) != 0:
-                possible_fbond_and_bbonds.append([reac_bonds, possible_fbonds])
+                possible_bbond_and_fbonds.append([reac_bonds, possible_fbonds])
 
     delta_n_bonds = reactant.graph.number_of_edges() - product.graph.number_of_edges()
     if delta_n_bonds == 0:
@@ -74,7 +74,7 @@ def get_bond_rearrangs(reactant, product, name):
 
     for func in funcs:
         possible_bond_rearrangements = func(reactant, product, possible_bond_rearrangements, all_possible_bbonds, all_possible_fbonds,
-                                            possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds)
+                                            possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds)
         if len(possible_bond_rearrangements) > 0:
             logger.info(f'Found a molecular graph rearrangement to products with {func.__name__}')
             # This function will return with from the first bond rearrangement that leads to products
@@ -207,7 +207,7 @@ def generate_rearranged_graph(graph, fbonds, bbonds):
     return rearranged_graph
 
 
-def get_fbonds_bbonds_1b(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
+def get_fbonds_bbonds_1b(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
     logger.info('Getting possible 1 breaking bond rearrangements')
 
     for bbond in all_possible_bbonds[0]:
@@ -216,7 +216,7 @@ def get_fbonds_bbonds_1b(reactant, product, possible_bond_rearrangs, all_possibl
     return possible_bond_rearrangs
 
 
-def get_fbonds_bbonds_2b(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
+def get_fbonds_bbonds_2b(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
     logger.info('Getting possible 2 breaking bond rearrangements')
 
     if len(all_possible_bbonds) == 1:
@@ -229,7 +229,7 @@ def get_fbonds_bbonds_2b(reactant, product, possible_bond_rearrangs, all_possibl
     return possible_bond_rearrangs
 
 
-def get_fbonds_bbonds_1b1f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
+def get_fbonds_bbonds_1b1f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
     logger.info('Getting possible 1 breaking and 1 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
@@ -237,14 +237,14 @@ def get_fbonds_bbonds_1b1f(reactant, product, possible_bond_rearrangs, all_possi
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond])
 
     elif len(all_possible_bbonds) == 0 and len(all_possible_fbonds) == 0:
-        for bbonds, fbonds in possible_fbond_and_bbonds:
+        for bbonds, fbonds in possible_bbond_and_fbonds:
             for bbond, fbond in itertools.product(bbonds, fbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond])
 
     return possible_bond_rearrangs
 
 
-def get_fbonds_bbonds_1b2f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
+def get_fbonds_bbonds_1b2f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
     logger.info('Getting possible 1 breaking and 2 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 2:
@@ -256,7 +256,7 @@ def get_fbonds_bbonds_1b2f(reactant, product, possible_bond_rearrangs, all_possi
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond])
 
     elif len(all_possible_bbonds) == 0 and len(all_possible_fbonds) == 1:
-        for bbonds, fbonds in possible_fbond_and_bbonds:
+        for bbonds, fbonds in possible_bbond_and_fbonds:
             for fbond1, fbond2, bbond in itertools.product(all_possible_fbonds[0], fbonds, bbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond])
         for bbond, (fbond1, fbond2) in itertools.product(fbond_atom_type_bbonds, itertools.combinations(all_possible_fbonds[0], 2)):
@@ -265,7 +265,7 @@ def get_fbonds_bbonds_1b2f(reactant, product, possible_bond_rearrangs, all_possi
     return possible_bond_rearrangs
 
 
-def get_fbonds_bbonds_2b1f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
+def get_fbonds_bbonds_2b1f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
     logger.info('Getting possible 2 breaking and 1 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 1:
@@ -277,7 +277,7 @@ def get_fbonds_bbonds_2b1f(reactant, product, possible_bond_rearrangs, all_possi
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 0:
-        for bbonds, fbonds in possible_fbond_and_bbonds:
+        for bbonds, fbonds in possible_bbond_and_fbonds:
             for fbond, bbond1, bbond2 in itertools.product(fbonds, all_possible_bbonds[0], bbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond1, bbond2])
         for fbond, (bbond1, bbond2) in itertools.product(bbond_atom_type_fbonds, itertools.combinations(all_possible_bbonds[0], 2)):
@@ -286,7 +286,7 @@ def get_fbonds_bbonds_2b1f(reactant, product, possible_bond_rearrangs, all_possi
     return possible_bond_rearrangs
 
 
-def get_fbonds_bbonds_2b2f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_fbond_and_bbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
+def get_fbonds_bbonds_2b2f(reactant, product, possible_bond_rearrangs, all_possible_bbonds, all_possible_fbonds, possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds):
     logger.info('Getting possible 2 breaking and 2 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 2:
@@ -304,7 +304,7 @@ def get_fbonds_bbonds_2b2f(reactant, product, possible_bond_rearrangs, all_possi
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
         for (fbond1, fbond2), (bbond1, bbond2) in itertools.product(itertools.combinations(all_possible_fbonds[0], 2), itertools.combinations(all_possible_bbonds[0], 2)):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
-        for bbonds, fbonds in possible_fbond_and_bbonds:
+        for bbonds, fbonds in possible_bbond_and_fbonds:
             for fbond1, fbond2, bbond1, bbond2 in itertools.product(all_possible_fbonds[0], fbonds, all_possible_bbonds[0], bbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
         for fbond1, fbond2, (bbond1, bbond2) in itertools.product(all_possible_fbonds[0], bbond_atom_type_fbonds, itertools.combinations(all_possible_bbonds[0], 2)):
@@ -313,25 +313,12 @@ def get_fbonds_bbonds_2b2f(reactant, product, possible_bond_rearrangs, all_possi
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 0 and len(all_possible_fbonds) == 0:
-        for m in range(len(possible_fbond_and_bbonds)):
-            for n in range(len(possible_fbond_and_bbonds)):
-                if m == n:
-                    for o in range(len(possible_fbond_and_bbonds[m][0])):
-                        for p in range(len(possible_fbond_and_bbonds[m][0])):
-                            if p > o:
-                                for q in range(len(possible_fbond_and_bbonds[m][1])):
-                                    for r in range(len(possible_fbond_and_bbonds[m][1])):
-                                        if q > r:
-                                            bbond1, bbond2 = possible_fbond_and_bbonds[m][0][o], possible_fbond_and_bbonds[m][0][p]
-                                            fbond1, fbond2 = possible_fbond_and_bbonds[m][1][q], possible_fbond_and_bbonds[m][1][r]
-                                            possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
-
-                elif m > n:
-                    for bbond1 in possible_fbond_and_bbonds[m][0]:
-                        for bbond2 in possible_fbond_and_bbonds[n][0]:
-                            for fbond1 in possible_fbond_and_bbonds[m][1]:
-                                for fbond2 in possible_fbond_and_bbonds[n][1]:
-                                    possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
+        for (bbonds1, fbonds1), (bbonds2, fbonds2) in itertools.combinations(possible_bbond_and_fbonds, 2):
+            for fbond1, bbond1, fbond2, bbond2 in itertools.product(fbonds1, bbonds1, fbonds2, bbonds2):
+                possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
+        for bbonds, fbonds in possible_bbond_and_fbonds:
+            for (fbond1, fbond2), (bbond1, bbond2) in itertools.product(itertools.combinations(fbonds, 2), itertools.combinations(bbonds, 2)):
+                possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
     return possible_bond_rearrangs
 
@@ -383,6 +370,14 @@ class BondRearrangement:
 
         return self.active_atom_nl
 
+    def _set_list(self, bonds, ls):
+        for bond in bonds:
+            for atom in bond:
+                if not atom in ls:
+                    ls.append(atom)
+                if not atom in self.active_atoms:
+                    self.active_atoms.append(atom)
+
     def __eq__(self, other):
         return self.fbonds == other.fbonds and self.bbonds == other.bbonds
 
@@ -394,9 +389,11 @@ class BondRearrangement:
         self.n_fbonds = len(self.fbonds)
         self.n_bbonds = len(self.bbonds)
 
-        self.all = self.fbonds + self.bbonds
-        self.active_atoms = [atom_id for bond in self.all for atom_id in bond]
+        self.active_atoms = []
+        self.fatoms = []
+        self.batoms = []
         self.active_atom_nl = None
+        self.all = self.fbonds + self.bbonds
 
-        self.fatoms = [atom_id for bond in self.fbonds for atom_id in bond]
-        self.batoms = [atom_id for bond in self.bbonds for atom_id in bond]
+        self._set_list(self.fbonds, self.fatoms)
+        self._set_list(self.bbonds, self.batoms)
