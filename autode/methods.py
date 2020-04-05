@@ -58,6 +58,9 @@ def get_lmethod():
             method = xtb
         elif Config.lcode.lower() == 'mopac':
             method = mopac
+        elif Config.lcode.lower() == 'orca':
+            method = orca
+            
         else:
             logger.critical('Requested electronic structure code doesn\'t exist')
             raise MethodUnavailable

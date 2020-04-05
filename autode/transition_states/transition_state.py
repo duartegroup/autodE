@@ -12,7 +12,7 @@ from autode.methods import get_hmethod
 from autode.geom import get_distance_constraints
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
-from autode.conformers.conformers import check_rmsd
+from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.transition_states.base import TSbase
 
 
@@ -57,7 +57,7 @@ class TransitionState(TSbase):
 
             conf = Conformer(name=f'{self.name}_conf{i}', atoms=get_simanl_atoms(self, dist_consts=distance_consts, conf_n=i),
                              dist_consts=distance_consts, charge=self.charge, mult=self.mult)
-            if check_rmsd(conf, self.conformers):
+            if conf_is_unique_rmsd(conf, self.conformers):
                 conf.solvent = self.solvent
                 conf.graph = deepcopy(self.graph)
                 self.conformers.append(conf)

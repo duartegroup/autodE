@@ -13,7 +13,7 @@ from autode.methods import get_lmethod
 from autode.units import KcalMol
 
 
-def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
+def make_graph(species, rel_tolerance=0.25, bond_list=None, ignore_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
     default to false
@@ -31,7 +31,8 @@ def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
 
     Keyword Arguments:
         rel_tolerance (float):
-        smiles_parser (autode.smiles_parser.SmilesParser):
+        bond_list (list(tuple)):
+        ignore_invalid_valancies (bool):
     """
     logger.info('Generating molecular graph with NetworkX')
 
@@ -42,34 +43,35 @@ def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
         graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
 
     # If smiles parser object is specified then add edges to the graph and return
-    if smiles_parser is not None:
-        [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in smiles_parser.bonds]
-        species.graph = graph
-        return None
+    if bond_list is not None:
+        [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in bond_list]
 
-    # Loop over the unique pairs of atoms and add 'bonds'
-    coordinates = species.get_coordinates()
-    dist_mat = distance_matrix(coordinates, coordinates)
+    else:
+        # Loop over the unique pairs of atoms and add 'bonds'
+        coordinates = species.get_coordinates()
+        dist_mat = distance_matrix(coordinates, coordinates)
 
-    for i in range(species.n_atoms):
+        for i in range(species.n_atoms):
 
-        # Iterate through the closest atoms to atom i
-        for j in np.argsort(dist_mat[i]):
+            # Iterate through the closest atoms to atom i
+            for j in np.argsort(dist_mat[i]):
 
-            if i == j:
-                # Don't bond atoms to themselves
-                continue
+                if i == j:
+                    # Don't bond atoms to themselves
+                    continue
 
-            avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
-                                                  atom_j_label=species.atoms[j].label)
+                avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
+                                                      atom_j_label=species.atoms[j].label)
 
-            # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond' and not added
-            if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance) and (i, j) not in graph.edges:
-                graph.add_edge(i, j, pi=False, active=False)
+                # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
+                if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance) and (i, j) not in graph.edges:
+                    graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
-    remove_bonds_invalid_valancies(species)
     set_pi_bonds(species)
+
+    if ignore_invalid_valancies:
+        remove_bonds_invalid_valancies(species)
 
     return None
 
