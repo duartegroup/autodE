@@ -96,11 +96,11 @@ def init_smiles(molecule, smiles):
 
     molecule.set_atoms(atoms=parser.atoms)
 
-    make_graph(molecule, bond_list=parser.bonds, ignore_invalid_valancies=False)
+    make_graph(molecule, bond_list=parser.bonds, allow_invalid_valancies=False)
     molecule.set_atoms(atoms=get_simanl_atoms(molecule))
 
     # Ensure the SMILES string and the 3D structure have the same bonds
-    make_graph(molecule, ignore_invalid_valancies=False)
+    make_graph(molecule, allow_invalid_valancies=False)
 
     if len(parser.bonds) != molecule.graph.number_of_edges():
         logger.error('Bonds and graph do no match')

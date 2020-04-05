@@ -24,7 +24,7 @@ def test_bondrearr_obj():
                                            Atom('H', 0.0, 0.0, 1.0)])
 
     active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol=h2_h_mol, depth=1)
-    assert len(active_atom_nl) == 4
+    assert len(active_atom_nl) == 3
     assert active_atom_nl == [['H'], ['H'], ['H'], ['H']]
 
 

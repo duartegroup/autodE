@@ -2,6 +2,9 @@ from autode.atoms import Atom
 from autode.conformers.conformer import Conformer
 from autode.wrappers.ORCA import orca
 from scipy.spatial import distance_matrix
+from rdkit import Chem
+from rdkit.Chem import AllChem
+from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 import numpy as np
 import os
 from autode.conformers.conformers import get_unique_confs

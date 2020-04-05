@@ -13,7 +13,7 @@ from autode.methods import get_lmethod
 from autode.units import KcalMol
 
 
-def make_graph(species, rel_tolerance=0.25, bond_list=None, ignore_invalid_valancies=False):
+def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
     default to false
@@ -32,7 +32,7 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, ignore_invalid_valan
     Keyword Arguments:
         rel_tolerance (float):
         bond_list (list(tuple)):
-        ignore_invalid_valancies (bool):
+        allow_invalid_valancies (bool):
     """
     logger.info('Generating molecular graph with NetworkX')
 
@@ -70,7 +70,7 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, ignore_invalid_valan
     species.graph = graph
     set_pi_bonds(species)
 
-    if ignore_invalid_valancies:
+    if not allow_invalid_valancies:
         remove_bonds_invalid_valancies(species)
 
     return None

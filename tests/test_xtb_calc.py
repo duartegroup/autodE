@@ -20,18 +20,18 @@ def test_xtb_calculation():
     assert os.path.exists('opt_xtb.xyz') is True
     assert os.path.exists('opt_xtb.out') is True
     assert len(calc.get_final_atoms()) == 22
-    assert calc.get_energy() == -36.962231783045
+    assert calc.get_energy() == -36.990267613593
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
     assert calc.input_filename == 'opt_xtb.xyz'
     assert calc.output_filename == 'opt_xtb.out'
     with pytest.raises(NotImplementedError):
-        _ = calc.optimisation_nearly_converged()
+        calc.optimisation_nearly_converged()
     with pytest.raises(NotImplementedError):
-        _ = calc.get_imag_freqs()
+        calc.get_imag_freqs()
     with pytest.raises(NotImplementedError):
-        _ = calc.get_normal_mode_displacements(4)
+        calc.get_normal_mode_displacements(4)
 
     const_opt = Calculation(name='opt', molecule=test_mol,
                             method=method, opt=True, distance_constraints={(0, 1): 1.2539792})

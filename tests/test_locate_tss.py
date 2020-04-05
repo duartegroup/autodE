@@ -1,4 +1,5 @@
 from autode.transition_states import locate_tss
+import os
 from autode.atoms import Atom
 from autode.molecule import Reactant, Product
 from autode.transition_states import locate_tss
@@ -6,6 +7,8 @@ from autode.reaction import Reaction
 from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.templates import get_ts_templates
 import autode.bond_rearrangement as bond_rearrangement
+here = os.path.dirname(os.path.abspath(__file__))
+
 
 # H2 -> H + H dissociation
 h_product_1 = Product(name='h_a', atoms=[Atom('H', 0.0, 0.0, 0.0)])
@@ -25,6 +28,10 @@ subs_reaction = Reaction(name='subs', mol1=h_reactant, mol2=hh_reactant, mol3=hh
 
 def test_find_tss():
 
-    tss = locate_tss.find_tss(dissoc_reaction)
+    os.chdir('data/transition_states')
+
+    tss = locate_tss.find_tss(reaction=dissoc_reaction)
 
     assert len(tss) == 1
+
+    os.chdir(here)

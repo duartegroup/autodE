@@ -29,7 +29,7 @@ def find_tss(reaction):
     """
     logger.info('Finding possible transition states')
 
-    reactant, product = ReactantComplex(*reaction.reacs), ProductComplex(*reaction.prods)
+    reactant, product = ReactantComplex(*reaction.reacs, name='r'), ProductComplex(*reaction.prods, name='p')
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=reaction.name)
 
     if bond_rearrangs is None:

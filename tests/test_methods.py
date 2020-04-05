@@ -6,6 +6,7 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
+
 def test_get_hmethod():
     Config.hcode = None
     Config.ORCA.path = here       # A path that exists

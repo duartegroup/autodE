@@ -74,7 +74,7 @@ class Complex(Species):
 
         return repulsion
 
-    def __init__(self, *args):
+    def __init__(self, *args, name='complex'):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
         """
@@ -89,7 +89,7 @@ class Complex(Species):
         for mol in self.molecules:
             complex_atoms += deepcopy(mol.atoms)
 
-        super().__init__(name='complex', atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
+        super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
 
         self.solvent = self.molecules[0].solvent
         self.graph = mol_graphs.union(graphs=[mol.graph for mol in self.molecules])

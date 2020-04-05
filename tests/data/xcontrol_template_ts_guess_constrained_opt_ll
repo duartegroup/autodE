@@ -1,0 +1,4 @@
+$constrain
+force constant=10
+distance:1, 2, 1.0
+$
