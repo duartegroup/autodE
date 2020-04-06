@@ -180,7 +180,7 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
     return atoms
 
 
-def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, delta_threshold=0.2):
+def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, delta_threshold=0.1):
     """
     Check whether the imaginary mode in a calculation with a hessian forms and breaks the correct bonds
 

@@ -120,8 +120,8 @@ class Molecule(Species):
         if self.n_atoms == 0:
             raise NoAtomsInMolecule
 
-        self._find_stereocentres()
         make_graph(self)
+        self._find_stereocentres()
 
 
 class SolvatedMolecule(Molecule):

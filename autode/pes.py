@@ -19,7 +19,7 @@ def get_closest_species(point, pes):
         point (tuple): Index of the current point
 
     Returns:
-        (tuple): Index(es) of the closest
+        (autode.species.Species):
     """
 
     if all(index == 0 for index in point):

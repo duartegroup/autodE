@@ -2,6 +2,7 @@ from autode.log import logger
 from rdkit import Chem
 from autode.atoms import Atom
 from autode.constants import Constants
+from autode.config import Config
 from autode.geom import get_krot_p_q
 import numpy as np
 
@@ -68,7 +69,7 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     return unique_conformers
 
 
-def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=0.5):
+def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
     """
     Determine if a conformer is unique based on an root mean squared displacement RMSD threshold
 
@@ -79,7 +80,10 @@ def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=0.5):
     Keyword Arguments:
         rmsd_tol (float):
     """
+    # Use the threshold defined in Config by default
+    rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
 
+    # Calculate the RMSD between this Conformer and the those in conf_list using the Kabsch algorithm
     for other_conf in conf_list:
         conf_coords = conf.get_coordinates()
         other_conf_coords = other_conf.get_coordinates()

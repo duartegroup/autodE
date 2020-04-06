@@ -17,7 +17,7 @@ def save_plot(plot, filename):
         logger.warning('Plot already exists. Overriding..')
         os.remove(filename)
 
-    plot.savefig(filename, dpi=800 if Config.high_qual_plots else 100)
+    plot.savefig(filename, dpi=800 if Config.high_quality_plots else 100)
     plot.close()
 
     return None

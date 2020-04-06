@@ -11,9 +11,9 @@ class ElectronicStructureMethod(ABC):
         logger.info(f'Setting the availability of {self.__name__}')
 
         if self.path is not None:
-                if os.path.exists(self.path):
-                    self.available = True
-                    logger.info(f'{self.__name__} is available')
+            if os.path.exists(self.path):
+                self.available = True
+                logger.info(f'{self.__name__} is available')
 
         if not self.available:
             logger.info(f'{self.__name__} is not available')

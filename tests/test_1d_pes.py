@@ -9,7 +9,7 @@ import numpy as np
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
-Config.high_qual_plots = False
+Config.high_quality_plots = False
 
 # Override the availability of
 orca.available = True

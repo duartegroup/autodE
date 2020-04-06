@@ -13,7 +13,7 @@ from autode.methods import get_lmethod
 from autode.units import KcalMol
 
 
-def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
+def make_graph(species, rel_tolerance=0.2, bond_list=None, allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
     default to false

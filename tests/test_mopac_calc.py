@@ -7,6 +7,7 @@ import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 method = MOPAC()
+method.available = True
 
 
 def test_mopac_opt_calculation():

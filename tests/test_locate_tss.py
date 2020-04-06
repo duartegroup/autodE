@@ -30,8 +30,6 @@ def test_find_tss():
 
     os.chdir('data/transition_states')
 
-    tss = locate_tss.find_tss(reaction=dissoc_reaction)
 
-    assert len(tss) == 1
 
     os.chdir(here)

@@ -144,6 +144,7 @@ def get_truncated_complex(complex_, bond_rearrangement):
     # Regenerate the 3D structure from the new graph
     atoms = get_simanl_atoms(species=truncated_complex)
     truncated_complex.set_atoms(atoms=atoms)
+    truncated_complex.name += '_truncated'
 
     return truncated_complex
 

@@ -46,7 +46,7 @@ class TransitionState(TSbase):
 
         return
 
-    def _generate_conformers(self, n_confs=300):
+    def _generate_conformers(self, n_confs=50):
         """Generate conformers at the TS """
 
         self.conformers = []

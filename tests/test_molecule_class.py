@@ -2,6 +2,7 @@ from autode.molecule import Molecule
 from autode.conformers.conformer import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
+from autode.smiles import calc_multiplicity
 from autode.wrappers.ORCA import orca
 from autode.molecule import Reactant
 from autode.molecule import Product
@@ -24,7 +25,6 @@ def test_basic_attributes():
 
     methane = Molecule(name='methane', smiles='C')
 
-    assert methane._calc_multiplicity(1) == 2
     assert methane.name == 'methane'
     assert methane.smiles == 'C'
     assert methane.energy is None
@@ -76,6 +76,20 @@ def test_molecule_opt():
     assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768      # H2 bond length ~ 0.767 Å at PBE/def2-SVP
 
     os.chdir(here)
+
+
+def calc_mut():
+
+    h = Molecule(name='H', smiles='[H]')
+    assert calc_multiplicity(h, n_radical_electrons=1) == 2
+
+    # Setting the multiplicity manually should override the number of radical electrons derived from the SMILES string
+    # note: H with M=3 is obviously not possible
+    h.mult = 3
+    assert calc_multiplicity(h, n_radical_electrons=1) == 3
+
+    # Diradicals should default to singlets..
+    assert calc_multiplicity(h, n_radical_electrons=2) == 1
 
 
 """

@@ -2,6 +2,7 @@ from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.molecule import Molecule
 from autode.exceptions import AtomsNotFound
+from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
 import pytest
 
@@ -28,13 +29,15 @@ def test_orca_opt_calculation():
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
     assert calc.get_imag_freqs() == []
-    assert calc.get_normal_mode_displacements(mode_number=1) is None
     assert calc.input_filename == 'opt_orca.inp'
     assert calc.output_filename == 'opt_orca.out'
     assert calc.terminated_normally is True
     assert calc.calculation_terminated_normally() is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
+
+    with pytest.raises(NoNormalModesFound):
+        calc.get_normal_mode_displacements(mode_number=0)
 
     os.remove('opt_orca.inp')
     os.chdir(here)

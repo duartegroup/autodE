@@ -3,8 +3,13 @@ from autode.molecule import Molecule
 from autode.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import make_graph
 import networkx as nx
 import os
+
+
+# Some of the 'reactions' here are not physical, hence for some the graph will be regenerated allowing for
+# invalid hydrogen valencies
 
 
 def test_bondrearr_obj():
@@ -25,7 +30,7 @@ def test_bondrearr_obj():
 
     active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol=h2_h_mol, depth=1)
     assert len(active_atom_nl) == 3
-    assert active_atom_nl == [['H'], ['H'], ['H'], ['H']]
+    assert active_atom_nl == [['H'], ['H'], ['H']]
 
 
 def test_get_bond_rearrangs():
@@ -66,12 +71,9 @@ def test_generate_rearranged_graph():
 
 def test_2b():
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('H', 1.2, 0, 0)])
+    make_graph(reac, allow_invalid_valancies=True)
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 10, 0, 0), Atom('H', 20, 0, 0)])
     assert rearr.get_fbonds_bbonds_2b(reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []) == [rearr.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
-
-    reac = Molecule(atoms=[Atom('C', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('H', 1.2, 0, 0)])
-    prod = Molecule(atoms=[Atom('C', 0, 0, 0), Atom('H', 10, 0, 0), Atom('H', 20, 0, 0)])
-    assert rearr.get_fbonds_bbonds_2b(reac, prod, [], [[(0, 1)], [(1, 2)]], [], [], [], []) == [rearr.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
 
 
 def test_1b1f():
@@ -87,27 +89,35 @@ def test_1b1f():
 def test_1b2f():
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('O', 0.6, 0, 0), Atom('C', 10, 0, 0)])
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('O', 1.2, 0, 0), Atom('C', 0.6, 0, 0)])
+    make_graph(prod, allow_invalid_valancies=True)
     assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [[(0, 1)]], [[(0, 2)], [(1, 2)]], [], [], []) == [rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)])]
 
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('C', 10, 0, 0)])
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 1.2, 0, 0), Atom('C', 0.6, 0, 0)])
+    make_graph(prod, allow_invalid_valancies=True)
+
     assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [[(0, 1)]], [[(0, 2), (1, 2)]], [], [], []) == [rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)])]
 
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('H', 10, 0, 0)])
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('H', 1.2, 0, 0)])
+    make_graph(prod, allow_invalid_valancies=True)
+
     assert rearr.get_fbonds_bbonds_1b2f(reac, prod, [], [], [[(0, 2), (1, 2)]], [], [], [(0, 1)]) == [rearr.BondRearrangement(forming_bonds=[(0, 2), (1, 2)], breaking_bonds=[(0, 1)])]
 
 
 def test_2b1f():
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 0.6, 0, 0), Atom('O', 1.2, 0, 0)])
+    make_graph(reac, allow_invalid_valancies=True)
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 10, 0, 0), Atom('O', 0.6, 0, 0)])
     assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1)], [(1, 2)]], [[(0, 2)]], [], [], []) == [rearr.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
 
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 0.6, 0, 0), Atom('H', 1.2, 0, 0)])
+    make_graph(reac, allow_invalid_valancies=True)
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 10, 0, 0), Atom('H', 0.6, 0, 0)])
     assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 2)]], [], [], []) == [rearr.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
 
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('H', 1.2, 0, 0)])
+    make_graph(reac, allow_invalid_valancies=True)
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0), Atom('H', 10, 0, 0)])
     assert rearr.get_fbonds_bbonds_2b1f(reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []) == [rearr.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
 

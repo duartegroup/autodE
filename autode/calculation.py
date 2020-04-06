@@ -92,8 +92,8 @@ class Calculation:
     def get_final_atoms(self):
         logger.info(f'Getting final xyzs from {self.output_filename}')
 
-        if self.output_file_lines is None:
-            logger.error('Could not get the final xyzs. The output file lines were not set')
+        if self.output_file_lines is None or self.output_filename is None:
+            logger.error('Could not get the final atoms. The output file lines were not set')
             raise AtomsNotFound
 
         atoms = self.method.get_final_atoms(self)

@@ -1,6 +1,6 @@
 from autode import *
 
-Config.n_cores = 4
+Config.n_cores = 2
 
 butadiene = Reactant(name='butadiene', smiles='C=CC=C')
 ethene = Reactant(name='ethene', smiles='C=C')

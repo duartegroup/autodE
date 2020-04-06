@@ -1,6 +1,6 @@
 from autode import *
 
-Config.n_cores = 8
+Config.n_cores = 2
 
 acetone = Reactant(name='acetone', smiles='CC(C)=O')
 cyanide = Reactant(name='cyanide', smiles='[C-]#N')

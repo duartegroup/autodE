@@ -1,0 +1,17 @@
+! LooseOpt PBE RI D3BJ def2-SVP def2/J
+%geom Constraints
+{ B 0 1 0.9727272727272727 C }
+    end
+end
+%geom MaxIter 100 end
+%output 
+xyzfile=True 
+end 
+%scf 
+maxiter 250 
+end
+% maxcore 4000
+*xyz 0 1
+H   -0.06818182   0.00000000   0.00000000 
+H    0.76818182   0.00000000   0.00000000 
+*

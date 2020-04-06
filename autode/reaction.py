@@ -77,6 +77,12 @@ class Reaction:
                     logger.info(f'Setting the reaction solvent to {self.reacs[0].solvent}')
                     self.solvent = self.reacs[0].solvent
 
+            else:
+                print([mol.solvent for mol in self.reacs + self.prods])
+                print([mol.name for mol in self.reacs + self.prods])
+
+                raise SolventsDontMatch
+
         if self.solvent is not None:
             logger.info(f'Setting solvent to {self.solvent.name} for all molecules in the reaction')
 
@@ -121,7 +127,7 @@ class Reaction:
 
         return units.conversion * (products_energy - reactants_energy)
 
-    def calc_delta_e_ddagger(self, units=KjMol):
+    def calc_delta_e_ddagger(self, units=KcalMol):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
 
         Returns:
@@ -166,7 +172,7 @@ class Reaction:
     def optimise_reacs_prods(self):
         """Perform a geometry optimisation on all the reactants and products using the hcode"""
         h_method = get_hmethod()
-        logger.info('Calculating optimised reactants and products with {h_method.name}')
+        logger.info(f'Calculating optimised reactants and products with {h_method.name}')
         [mol.optimise(method=h_method) for mol in self.reacs + self.prods]
 
     @work_in('transition_states')

@@ -39,9 +39,9 @@ def test_get_lmethod():
 
 def test_method_unavalible():
 
-    Config.ORCA.path = None
-    Config.NWChem.path = None
-    Config.G09.path = None
+    Config.ORCA.path = '/an/incorrect/path'
+    Config.NWChem.path = '/an/incorrect/path'
+    Config.G09.path = '/an/incorrect/path'
 
     with pytest.raises(MethodUnavailable):
         methods.get_hmethod()

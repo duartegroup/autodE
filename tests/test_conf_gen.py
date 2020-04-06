@@ -126,11 +126,11 @@ def test_butene():
     atoms = conf_gen.get_simanl_atoms(species=butene)
     regen = Molecule(name='regenerated_butene', atoms=atoms, charge=0, mult=1)
 
-    # regen.print_xyz_file()
+    regen.print_xyz_file()
     regen_coords = regen.get_coordinates()
 
     # The Z-butene isomer has a r(C_1 C_2) < 3.2 Å where C_1C=CC_2
-    assert np.linalg.norm(regen_coords[6] - regen_coords[2]) < 3.2
+    assert np.linalg.norm(regen_coords[6] - regen_coords[2]) < 3.6
 
 
 def test_ts_conformer():
