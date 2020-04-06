@@ -107,11 +107,12 @@ class Reaction:
         else:
             logger.info('Does not appear to be an intramolecular addition, continuing')
 
-    def switch_addition(self):
+    def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
         """
         logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
-        self.type = reactions.Dissociation
+        if self.type == reactions.Addition:
+            self.type = reactions.Dissociation
         self.prods, self.reacs = self.reacs, self.prods
         self.switched_reacs_prods = True
 
@@ -219,8 +220,9 @@ class Reaction:
         self._check_balance()
 
         self.switched_reacs_prods = False               #: Have the reactants and products been switched
-        if self.type == reactions.Addition:
-            self.switch_addition()
+        # If there are more bonds in the product e.g. an addition reaction then switch as the TS is then easier to find
+        if sum(p.graph.number_of_edges() for p in self.prods) > sum(r.graph.number_of_edges() for r in self.reacs):
+            self.switch_reactants_products()
 
         if self.type == reactions.Rearrangement:
             self._check_rearrangement()

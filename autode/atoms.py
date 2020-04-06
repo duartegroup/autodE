@@ -103,7 +103,7 @@ def get_maximal_valance(atom_label):
         atom_label (str): atom label e.g. C or Pd
 
     Returns:
-        int: maximal valence of the atom
+        (int): maximal valence of the atom
     """
 
     if atom_label in valid_valances.keys():
@@ -120,7 +120,7 @@ def get_atomic_weight(atom_label):
         atom_label (str): atom label e.g. C or Pd
 
     Returns:
-        float: atomic weight of the atom
+        (float): atomic weight of the atom
     """
 
     if atom_label in atomic_weights.keys():
@@ -135,7 +135,7 @@ def get_vdw_radius(atom_label):
     Arguments:
         atom_label (str): atom label e.g. C or Pd
     Returns:
-        float: van der waal's radius of the atom
+        (float): van der waal's radius of the atom
     """
     if atom_label in vdw_radii.keys():
         return vdw_radii[atom_label]

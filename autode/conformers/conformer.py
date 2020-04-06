@@ -1,6 +1,5 @@
 from autode.species import Species
 from autode.log import logger
-from autode.mol_graphs import make_graph
 from autode.calculation import Calculation
 from autode.exceptions import AtomsNotFound
 from autode.config import Config

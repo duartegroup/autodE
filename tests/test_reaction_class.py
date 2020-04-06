@@ -7,15 +7,13 @@ from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from autode.units import KcalMol
+from autode.mol_graphs import make_graph
 import pytest
 
 h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
 h2 = reaction.Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
 h2_product = reaction.Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
-
-#hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
-#hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
 
 lin_h3 = reaction.Reactant(name='h3_linear', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
                                                     Atom('H', -2.13052, 0.18085, 0.00494),
@@ -28,7 +26,7 @@ trig_h3 = reaction.Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.7908
 
 def test_reaction_class():
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
-    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
+    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.7, 0.0, 0.0)])
 
     # h + h > mol
     hh_reac = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh_product, name='h2_assoc')
@@ -57,6 +55,17 @@ def test_reaction_class():
     assert h_sub.name == 'reaction'
     assert h_sub.solvent.name == 'water'
     assert h_sub.solvent.smiles == 'O'
+
+
+def test_check_rearrangement():
+
+    # Linear H3 -> Trigonal H3
+    make_graph(species=trig_h3, allow_invalid_valancies=True)
+    reac = reaction.Reaction(lin_h3, trig_h3)
+
+    # Should switch reactants and products if the products have more bonds than the reactants
+    assert reac.reacs[0].name == 'h3_trigonal'
+    assert reac.prods[0].name == 'h3_linear'
 
 
 def test_solvated_reaction_class():
