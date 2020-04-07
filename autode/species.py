@@ -4,6 +4,7 @@ from autode.solvent.solvents import get_solvent
 from autode.calculation import Calculation
 from autode import mol_graphs
 from autode.methods import get_lmethod
+from autode.input_output import atoms_to_xyz_file
 from autode.conformers.conformers import get_unique_confs
 from autode.config import Config
 from autode.geom import length
@@ -74,13 +75,7 @@ class Species:
         if filename is None:
             filename = f'{self.name}.xyz'
 
-        with open(filename, 'w') as xyz_file:
-            print(self.n_atoms, title_line, sep='\n', file=xyz_file)
-            for atom in self.atoms:
-                x, y, z = atom.coord
-                print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=xyz_file)
-
-        return None
+        return atoms_to_xyz_file(atoms=self.atoms, filename=filename, title_line=title_line)
 
     @requires_atoms()
     def get_coordinates(self):

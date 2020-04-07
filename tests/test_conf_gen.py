@@ -41,6 +41,13 @@ def test_conf_gen():
 
     atoms = conf_gen.get_simanl_atoms(species=methane)
     assert len(atoms) == 5
+    assert os.path.exists('methane_conf0_siman.xyz')
+
+    # Rerunning the conformer generation should read the generated .xyz file
+    atoms = conf_gen.get_simanl_atoms(species=methane)
+    assert len(atoms) == 5
+
+    os.remove('methane_conf0_siman.xyz')
 
     # Ensure the new graph is identical
     regen = Molecule(name='regenerated_methane', atoms=atoms)
@@ -63,6 +70,8 @@ def test_conf_gen_dist_const():
     long_hydrogen = Molecule(name='H2', atoms=atoms, charge=0, mult=1)
     assert long_hydrogen.n_atoms == 2
     assert len(long_hydrogen.graph.edges) == 0
+
+    os.remove('H2_conf0_siman.xyz')
 
 
 def test_chiral_rotation():
@@ -102,6 +111,8 @@ def test_chiral_rotation():
         # RMSD on the 5 atoms should be < 0.5 Å
         assert np.sqrt(np.average(np.square(fitted_centre1 - coords[centre_idxs]))) < 5E-1
 
+    os.remove('chiral_ethane_conf0_siman.xyz')
+
 
 def test_butene():
 
@@ -126,11 +137,16 @@ def test_butene():
     atoms = conf_gen.get_simanl_atoms(species=butene)
     regen = Molecule(name='regenerated_butene', atoms=atoms, charge=0, mult=1)
 
+    if os.path.exists('regenerated_butene.xyz'):
+        os.remove('regenerated_butene.xyz')
+
     regen.print_xyz_file()
     regen_coords = regen.get_coordinates()
 
     # The Z-butene isomer has a r(C_1 C_2) < 3.2 Å where C_1C=CC_2
     assert np.linalg.norm(regen_coords[6] - regen_coords[2]) < 3.6
+
+    os.remove('z-but-2-ene_conf0_siman.xyz')
 
 
 def test_ts_conformer():
@@ -173,3 +189,7 @@ def test_ts_conformer():
 
     assert 1.9 < np.linalg.norm(regen_coords[0] - regen_coords[2]) < 2.1
     assert 2.0 < np.linalg.norm(regen_coords[1] - regen_coords[2]) < 2.2
+
+    os.remove('TS_ts_guess_conf0_siman.xyz')
+    os.remove('complex_conf0_siman.xyz')
+    os.remove('product_complex_conf0_siman.xyz')
