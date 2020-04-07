@@ -1,59 +1,36 @@
 from autode.config import Config
 from autode.log import logger
+from rdkit.Chem import AllChem
+from autode.atoms import metals
 from autode.species import Species
 from autode.mol_graphs import make_graph
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
-from autode.conformers.conformers import check_rmsd
+from autode.conformers.conformers import conf_is_unique_rmsd
+from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.calculation import Calculation
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
-from autode.exceptions import BondsInSMILESAndGraphDontMatch, NoAtomsInMolecule
+from autode.exceptions import NoAtomsInMolecule
 from autode.utils import requires_atoms
-from autode.smiles_parser import SmilesParser
+from autode.smiles import init_organic_smiles
+from autode.smiles import init_smiles
 
 
 class Molecule(Species):
 
     def _init_smiles(self, smiles):
+        """Initialise a molecule from a SMILES string using RDKit if it's purely organic"""
         """Initialise a molecule from a SMILES string """
 
-        self.parser = SmilesParser()
-        self.parser.parse_smiles(smiles)
+        if any(metal in smiles for metal in metals):
+            init_smiles(self, smiles)
 
-        self.charge = self.parser.charge
-        self.mult = self._calc_multiplicity(self.parser.n_radical_electrons)
-
-        self.set_atoms(self.parser.atoms)
-
-        make_graph(self, smiles_parser=self.parser)
-        self.set_atoms(atoms=get_simanl_atoms(self))
-
-        # Ensure the SMILES string and the 3D structure have the same bonds
-        make_graph(self)
-
-        if len(self.parser.bonds) != self.graph.number_of_edges():
-            raise BondsInSMILESAndGraphDontMatch
+        else:
+            init_organic_smiles(self, smiles)
 
         logger.info(f'Initialisation with SMILES successful. Charge={self.charge}, Multiplicity={self.mult}, '
                     f'Num. Atoms={self.n_atoms}')
         return None
-
-    def _calc_multiplicity(self, n_radical_electrons):
-        """Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
-
-        Arguments:
-            n_radical_electrons (int): number of radical electrons
-
-        Returns:
-            int: multiplicity of the molecule
-        """
-        if n_radical_electrons == 1:
-            return 2
-
-        if n_radical_electrons > 1:
-            logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
-
-        return self.mult
 
     @requires_atoms()
     def _find_stereocentres(self):
@@ -63,19 +40,39 @@ class Molecule(Species):
         pass
 
     @requires_atoms()
-    def _generate_conformers(self, n_siman_confs=300):
+    def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=50):
         """
         Use a simulated annealing approach to generate conformers for this molecule.
 
         Keyword Arguments:
+            n_rdkit_confs (int):
             n_siman_confs (int):
         """
         self.conformers = []
 
-        logger.info('Using simulated annealing to generate conformers')
-        for i in range(n_siman_confs):
-            conf = Conformer(name=f'{self.name}_conf{i}', atoms=get_simanl_atoms(species=self, conf_n=i),  charge=self.charge, mult=self.mult)
-            if check_rmsd(conf, self.conformers):
+        if self.smiles is not None and self.rdkit_conf_gen_is_fine:
+            logger.info(f'Using RDKit to generate conformers. {n_rdkit_confs} requested')
+
+            method = AllChem.ETKDGv2()
+            method.pruneRmsThresh = 0.5
+            method.numThreads = Config.n_cores
+
+            logger.info('Running conformation generation with RDKit... running')
+            conf_ids = list(AllChem.EmbedMultipleConfs(self.rdkit_mol_obj, numConfs=n_rdkit_confs, params=method))
+            logger.info('                                          ... done')
+
+            conf_atoms_list = [get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id) for conf_id in conf_ids]
+
+        else:
+            logger.info('Using simulated annealing to generate conformers')
+            # TODO parallelise
+            conf_atoms_list = [get_simanl_atoms(species=self, conf_n=i) for i in range(n_siman_confs)]
+
+        for i, atoms in enumerate(conf_atoms_list):
+            conf = Conformer(name=f'{self.name}_conf{i}',  charge=self.charge, mult=self.mult, atoms=atoms)
+
+            # If the conformer is unique on an RMSD threshold
+            if conf_is_unique_rmsd(conf, self.conformers):
                 conf.solvent = self.solvent
                 self.conformers.append(conf)
 
@@ -112,7 +109,8 @@ class Molecule(Species):
         super().__init__(name, atoms, charge, mult, solvent_name)
 
         self.smiles = smiles
-        self.parser = None
+        self.rdkit_mol_obj = None
+        self.rdkit_conf_gen_is_fine = True
 
         self.conformers = None
 
@@ -122,8 +120,8 @@ class Molecule(Species):
         if self.n_atoms == 0:
             raise NoAtomsInMolecule
 
-        self._find_stereocentres()
         make_graph(self)
+        self._find_stereocentres()
 
 
 class SolvatedMolecule(Molecule):

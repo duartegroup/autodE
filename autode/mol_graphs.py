@@ -13,7 +13,7 @@ from autode.methods import get_lmethod
 from autode.units import KcalMol
 
 
-def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
+def make_graph(species, rel_tolerance=0.2, bond_list=None, allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
     default to false
@@ -31,7 +31,8 @@ def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
 
     Keyword Arguments:
         rel_tolerance (float):
-        smiles_parser (autode.smiles_parser.SmilesParser):
+        bond_list (list(tuple)):
+        allow_invalid_valancies (bool):
     """
     logger.info('Generating molecular graph with NetworkX')
 
@@ -42,34 +43,35 @@ def make_graph(species, rel_tolerance=0.25, smiles_parser=None):
         graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
 
     # If smiles parser object is specified then add edges to the graph and return
-    if smiles_parser is not None:
-        [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in smiles_parser.bonds]
-        species.graph = graph
-        return None
+    if bond_list is not None:
+        [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in bond_list]
 
-    # Loop over the unique pairs of atoms and add 'bonds'
-    coordinates = species.get_coordinates()
-    dist_mat = distance_matrix(coordinates, coordinates)
+    else:
+        # Loop over the unique pairs of atoms and add 'bonds'
+        coordinates = species.get_coordinates()
+        dist_mat = distance_matrix(coordinates, coordinates)
 
-    for i in range(species.n_atoms):
+        for i in range(species.n_atoms):
 
-        # Iterate through the closest atoms to atom i
-        for j in np.argsort(dist_mat[i]):
+            # Iterate through the closest atoms to atom i
+            for j in np.argsort(dist_mat[i]):
 
-            if i == j:
-                # Don't bond atoms to themselves
-                continue
+                if i == j:
+                    # Don't bond atoms to themselves
+                    continue
 
-            avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
-                                                  atom_j_label=species.atoms[j].label)
+                avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
+                                                      atom_j_label=species.atoms[j].label)
 
-            # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond' and not added
-            if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance) and (i, j) not in graph.edges:
-                graph.add_edge(i, j, pi=False, active=False)
+                # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
+                if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance) and (i, j) not in graph.edges:
+                    graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
-    remove_bonds_invalid_valancies(species)
     set_pi_bonds(species)
+
+    if not allow_invalid_valancies:
+        remove_bonds_invalid_valancies(species)
 
     return None
 
@@ -403,7 +405,7 @@ def get_truncated_active_mol_graph(graph, active_bonds):
     return t_graph
 
 
-def is_isomorphic_ish(species, graph, ignore_active_bonds=False):
+def is_isomorphic_ish(species, graph, ignore_active_bonds=False, any_interaction=False):
     """
     Determine if a species is close to or is isomorphic to
 
@@ -412,6 +414,7 @@ def is_isomorphic_ish(species, graph, ignore_active_bonds=False):
         graph (nx.Graph):
 
     Keyword Arguments:
+        any_interaction (bool):
         ignore_active_bonds (bool):
     """
 
@@ -430,14 +433,14 @@ def is_isomorphic_ish(species, graph, ignore_active_bonds=False):
     if is_isomorphic(loose_mol.graph, graph, ignore_active_bonds=ignore_active_bonds):
         return True
 
-    if is_isomorphic_wi(species, graph, ignore_ab=ignore_active_bonds):
+    if is_isomorphic_wi(species, graph, ignore_ab=ignore_active_bonds, any_inter=any_interaction):
         return True
 
     logger.warning('Species is not close to being isomorphic')
     return False
 
 
-def is_isomorphic_wi(species, graph, wi_threshold=0.0016, ignore_ab=False):
+def is_isomorphic_wi(species, graph, any_inter, ignore_ab, wi_threshold=0.0016):
     """
     Determine if a species is isomorphic with a graph up to the deletion of a single edge in the molecular graph. The
     edge needs to be > 5% above it's ideal value and not a covalent bond. This is determined using an energy threshold;
@@ -447,10 +450,11 @@ def is_isomorphic_wi(species, graph, wi_threshold=0.0016, ignore_ab=False):
      Arguments:
         species (autode.species.Species):
         graph (networkx.Graph):
+        any_inter (bool): Allow any interaction
+        ignore_ab (bool): Ignore the active bonds in the species graph
 
     Keyword Arguments:
         wi_threshold (float): Upper energy bound in hartrees for a 'weak interaction' (~2 kcal mol-1)
-        ignore_ab (bool):
     """
 
     for (i, j) in species.graph.edges:
@@ -470,6 +474,10 @@ def is_isomorphic_wi(species, graph, wi_threshold=0.0016, ignore_ab=False):
             continue
 
         logger.info(f'Deleting a long bond {i, j} leads to an isomorphism')
+
+        # If there is no constraint on the bond energy difference then the species is isomorphic
+        if any_inter:
+            return True
 
         # Run two constrained optimisations to check if and elongation along this edge is relatively easy
         curr_dist = species.get_distance(i, j)

@@ -6,6 +6,7 @@ from autode import mol_graphs
 from autode.methods import get_lmethod
 from autode.conformers.conformers import get_unique_confs
 from autode.config import Config
+from autode.geom import length
 from autode.utils import requires_atoms
 from autode.utils import requires_conformers
 
@@ -28,7 +29,7 @@ class Species:
             # Conformers don't have a molecular graph, so make it
             mol_graphs.make_graph(conformer)
 
-            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True):
+            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True, any_interaction=True):
                 logger.warning('Conformer had a different molecular graph. Ignoring')
                 continue
 
@@ -101,7 +102,7 @@ class Species:
     @requires_atoms()
     def get_distance(self, atom_i, atom_j):
         """Get the distance between two atoms in the species"""
-        return np.linalg.norm(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
+        return length(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
 
     def find_lowest_energy_conformer(self, low_level_method=None, high_level_method=None):
         """

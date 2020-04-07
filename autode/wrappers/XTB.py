@@ -1,6 +1,7 @@
 from autode.config import Config
 from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.exceptions import AtomsNotFound
 from autode.atoms import Atom
 import numpy as np
 import os
@@ -110,11 +111,51 @@ class XTB(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         raise NotImplementedError
 
-    def get_final_atoms(self, calc):
+    def _get_final_atoms_6_2_3(self, calc):
+        """
+        e.g.
+
+        ================
+         final structure:
+        ================
+        5
+         xtb: 6.2.3 (830e466)
+        Cl        1.62694523673790    0.09780349799138   -0.02455489507427
+        C        -0.15839164427314   -0.00942638308615    0.00237760557913
+        H        -0.46867957388620   -0.59222865914178   -0.85786049981721
+        H        -0.44751262498645   -0.49575975568264    0.92748366742968
+        H        -0.55236139359212    0.99971129991918   -0.04744587811734
+        """
         atoms = []
 
+        for i, line in enumerate(calc.output_file_lines):
+            if 'final structure' in line:
+                n_atoms = int(calc.output_file_lines[i+2].split()[0])
+
+                for xyz_line in calc.output_file_lines[i+4:i+4+n_atoms]:
+                    atom_label, x, y, z = xyz_line.split()
+                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+
+                break
+
+        return atoms
+
+    def _get_final_atoms_6_2_2(self, calc):
+        """
+        e.g.
+
+        ================
+         final structure:
+        ================
+        $coord
+            2.52072290250473   -0.04782551206377   -0.50388676977877      C
+                    .                 .                    .              .
+        """
+        atoms = []
         geom_section = False
+
         for line in calc.output_file_lines:
+
             if '$coord' in line:
                 geom_section = True
 
@@ -125,6 +166,28 @@ class XTB(ElectronicStructureMethod):
                 x, y, z, atom_label = line.split()
                 atoms.append(Atom(atom_label, x=float(x) * Constants.a02ang, y=float(y) * Constants.a02ang,
                                   z=float(z) * Constants.a02ang))
+        return atoms
+
+    def get_final_atoms(self, calc):
+        atoms = []
+
+        for line in calc.output_file_lines:
+
+            # XTB 6.2.x have a slightly different way of printing the atoms, helpfully
+            if 'xtb version' in line and len(line.split()) >= 4:
+                if line.split()[3] == '6.2.3':
+                    atoms = self._get_final_atoms_6_2_3(calc)
+                    break
+
+                elif line.split()[3] == '6.2.2' or '6.1' in line.split()[3]:
+                    atoms = self._get_final_atoms_6_2_2(calc)
+                    break
+
+                else:
+                    raise AtomsNotFound
+
+        if len(atoms) == 0:
+            raise AtomsNotFound
 
         return atoms
 

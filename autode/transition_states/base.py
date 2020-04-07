@@ -24,7 +24,7 @@ class TSbase(Species):
         self.graph = self.reactant.graph.copy()
         return None
 
-    def could_have_correct_imag_mode(self, method=None, threshold=-50):
+    def could_have_correct_imag_mode(self, bond_rearrangement, method=None, threshold=-50):
         """
         Determine if a point on the PES could have the correct imaginary mode. This must have
 
@@ -37,8 +37,12 @@ class TSbase(Species):
             threshold (float):
         """
 
+        # By default the high level method is used to check imaginary modes
+        if method is None:
+            method = get_hmethod()
+
         if self.calc is None:
-            logger.info('Calculating the hessian ')
+            logger.info('Calculating the hessian..')
             self.calc = Calculation(name=self.name + '_hess', molecule=self, method=method,
                                     keywords_list=method.keywords.hess, n_cores=Config.n_cores)
             self.calc.run()
@@ -56,38 +60,36 @@ class TSbase(Species):
             logger.warning('Imaginary modes were too small to be significant')
             return False
 
+        if not ts_has_contribution_from_active_atoms(calc=self.calc, active_atoms=bond_rearrangement.active_atoms):
+            logger.warning('Species does not have the correct imaginary mode')
+            return False
+
         logger.info('Species could have the correct imaginary mode')
         return True
 
-    def has_correct_imag_mode(self, active_atoms, calc=None, method=None, ensure_links=False):
+    def has_correct_imag_mode(self, bond_rearrangement, calc=None, method=None):
         """Check that the imaginary mode is 'correct' set the calculation (hessian or optts)"""
-        self.calc = calc
+        self.calc = calc if calc is not None else self.calc
 
         # By default the high level method is used to check imaginary modes
         if method is None:
             method = get_hmethod()
 
         # Run a fast check on  whether it's likely the mode is correct
-        if not self.could_have_correct_imag_mode(method=method):
+        if not self.could_have_correct_imag_mode(bond_rearrangement=bond_rearrangement, method=method):
             return False
 
-        if not ts_has_contribution_from_active_atoms(calc=self.calc, active_atoms=active_atoms):
-            logger.info('Species does not have the correct imaginary mode')
-            return False
+        if imag_mode_has_correct_displacement(calc=self.calc, bond_rearrangement=bond_rearrangement):
+            logger.info('Displacement of the active atoms in the imaginary mode bond forms and breaks the correct bonds')
+            return True
 
-        # If requested, perform displacements over the imaginary mode to ensure the mode connects reactants and products
-        if ensure_links:
+        # Perform displacements over the imaginary mode to ensure the mode connects reactants and products
+        if imag_mode_links_reactant_products(self.calc, self.reactant.graph, self.product.graph, method=method):
+            logger.info('Imaginary mode does link reactants and products')
+            return True
 
-            if imag_mode_links_reactant_products(calc, self.reactant.graph, self.product.graph, method=method):
-                logger.info('Imaginary mode links reactants and products, TS found')
-                return True
-
-            else:
-                logger.warning('Imaginary mode does not link reactants and products, TS *not* found')
-                return False
-
-        logger.warning('Species may have the correct imaginary mode')
-        return True
+        logger.warning('Species does *not* have the correct imaginary mode')
+        return False
 
     def __init__(self, atoms, reactant, product, name='ts_guess'):
 
@@ -178,7 +180,65 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
     return atoms
 
 
-def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, method, disp_mag=1):
+def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, delta_threshold=0.1):
+    """
+    Check whether the imaginary mode in a calculation with a hessian forms and breaks the correct bonds
+
+    Arguments:
+        calc (autode.calculation.Calculation):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+
+    Keyword Arguments:
+        disp_mag (float):
+        delta_threshold (float): Required ∆r on a bond for the bond to be considered as forming
+    """
+    logger.info('Checking displacement on imaginary mode forms the correct bonds')
+    ts_species = deepcopy(calc.molecule)
+
+    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=disp_mag)
+    f_species = Species(name='f_displaced', atoms=f_displaced_atoms, charge=0, mult=1)  # Charge & mult are placeholders
+
+    b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=-disp_mag)
+    b_species = Species(name='b_displaced', atoms=b_displaced_atoms, charge=0, mult=1)
+
+    for product in (f_species, b_species):
+
+        fbond_bbond_correct_disps = []
+
+        for fbond in bond_rearrangement.fbonds:
+
+            ts_dist = ts_species.get_distance(*fbond)
+            p_dist = product.get_distance(*fbond)
+
+            # Displaced distance towards products should be shorter than the distance at the TS if the bond is forming
+            if ts_dist - p_dist > delta_threshold:
+                fbond_bbond_correct_disps.append(True)
+
+            else:
+                fbond_bbond_correct_disps.append(False)
+
+        for bbond in bond_rearrangement.bbonds:
+
+            ts_dist = ts_species.get_distance(*bbond)
+            p_dist = product.get_distance(*bbond)
+
+            # Displaced distance towards products should be longer than the distance at the TS if the bond is breaking
+            if p_dist - ts_dist > delta_threshold:
+                fbond_bbond_correct_disps.append(True)
+
+            else:
+                fbond_bbond_correct_disps.append(False)
+
+        logger.info(f'List of forming and breaking bonds that have the correct properties {fbond_bbond_correct_disps}')
+        if all(fbond_bbond_correct_disps):
+            logger.info(f'{product.name} afforded the correct bond forming/breaking reactants -> products')
+            return True
+
+    logger.warning('Displacement along the imaginary mode did not form and break the correct bonds')
+    return False
+
+
+def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, method, disp_mag=1.0):
     """Displaces atoms along the imaginary mode forwards (f) and backwards (b) to see if products and reactants are made
 
     Arguments:
@@ -186,7 +246,6 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
         reactant_graph (networkx.Graph):
         product_graph (networkx.Graph):
         method (autode.wrappers.base.ElectronicStructureMethod):
-
 
     Keyword Arguments:
         disp_mag (int): Distance to be displaced along the imag mode (default: {1})
@@ -213,13 +272,15 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
         return False
 
     if is_isomorphic_ish(b_displaced_mol, reactant_graph) and is_isomorphic_ish(f_displaced_mol, product_graph):
-        logger.info('Forwards displacement lead to products and backwards')
+        logger.info('Forwards displacement lead to products and backwards reactants')
         return True
 
     if is_isomorphic_ish(f_displaced_mol, reactant_graph) and is_isomorphic_ish(b_displaced_mol, product_graph):
         logger.info('Backwards displacement lead to products and forwards to reactants')
         return True
 
+    print(b_displaced_mol.graph.edges)
+    exit()
     return False
 
 

@@ -10,6 +10,34 @@ def length(vec):
     return np.linalg.norm(vec)
 
 
+def are_coords_reasonable(coords):
+    """
+    Determine if a set of coords are reasonable. No distances can be < 0.7 Å and if there are more than 4 atoms ensure
+    they do not all lie in the same plane. The latter possibility arises from RDKit's conformer generation algorithm
+    breaking
+    Arguments:
+        coords (np.ndarray): Species coordinates as a n_atoms x 3 array
+    Returns:
+        bool:
+    """
+
+    n_atoms = len(coords)
+
+    # Generate a n_atoms x n_atoms matrix
+    distance_matrix_unity_diag = distance_matrix(coords, coords) + np.identity(n_atoms)
+
+    if np.min(distance_matrix_unity_diag) < 0.7:
+        logger.warning('There is a distance < 0.7 Å. Structure is *not* sensible')
+        return False
+
+    if n_atoms > 4:
+        if all([coord[2] == 0.0 for coord in coords]):
+            logger.warning('RDKit likely generated a wrong geometry. Structure is *not* sensible')
+            return False
+
+    return True
+
+
 def get_shifted_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
 

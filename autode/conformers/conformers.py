@@ -1,7 +1,31 @@
 from autode.log import logger
+from rdkit import Chem
+from autode.atoms import Atom
 from autode.constants import Constants
+from autode.config import Config
 from autode.geom import get_krot_p_q
 import numpy as np
+
+
+def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
+    """Generate atoms for conformers in rdkit_mol_obj
+        Arguments:
+            rdkit_mol_obj (mol obj): Molecule object
+            conf_id (int): Conformer ids to convert to atoms
+        Returns:
+            atoms (list(autode.atoms.Atom)):
+        """
+
+    mol_block_lines = Chem.MolToMolBlock(rdkit_mol_obj, confId=conf_id).split('\n')
+    mol_file_atoms = []
+
+    for line in mol_block_lines:
+        split_line = line.split()
+        if len(split_line) == 16:
+            atom_label, x, y, z = split_line[3], split_line[0], split_line[1], split_line[2]
+            mol_file_atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+
+    return mol_file_atoms
 
 
 def get_unique_confs(conformers, energy_threshold_kj=1):
@@ -45,10 +69,25 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     return unique_conformers
 
 
-def check_rmsd(conf, conf_list, rmsd_tol=0.5):
+def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
+    """
+    Determine if a conformer is unique based on an root mean squared displacement RMSD threshold
+
+    Arguments:
+        conf (autode.conformer.Conformer):
+        conf_list (list((list(autode.conformer.Conformer)):
+
+    Keyword Arguments:
+        rmsd_tol (float):
+    """
+    # Use the threshold defined in Config by default
+    rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
+
+    # Calculate the RMSD between this Conformer and the those in conf_list using the Kabsch algorithm
     for other_conf in conf_list:
         conf_coords = conf.get_coordinates()
         other_conf_coords = other_conf.get_coordinates()
+
         rot_mat, p, q = get_krot_p_q(template_coords=conf_coords, coords_to_fit=other_conf_coords)
         fitted_other_conf_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in other_conf_coords])
 

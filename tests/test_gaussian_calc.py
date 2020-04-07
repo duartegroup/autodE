@@ -10,6 +10,7 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = G09()
+method.available = True
 
 
 def test_gauss_opt_calc():

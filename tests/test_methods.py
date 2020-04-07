@@ -6,6 +6,7 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
+
 def test_get_hmethod():
     Config.hcode = None
     Config.ORCA.path = here       # A path that exists
@@ -38,9 +39,9 @@ def test_get_lmethod():
 
 def test_method_unavalible():
 
-    Config.ORCA.path = None
-    Config.NWChem.path = None
-    Config.G09.path = None
+    Config.ORCA.path = '/an/incorrect/path'
+    Config.NWChem.path = '/an/incorrect/path'
+    Config.G09.path = '/an/incorrect/path'
 
     with pytest.raises(MethodUnavailable):
         methods.get_hmethod()

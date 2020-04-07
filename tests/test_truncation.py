@@ -1,6 +1,5 @@
 from autode.transition_states.truncation import strip_non_core_atoms
-from autode.transition_states.truncation import get_truncated_rcomplex
-from autode.transition_states.truncation import get_truncated_pcomplex
+from autode.transition_states.truncation import get_truncated_complex
 from autode.bond_rearrangement import BondRearrangement
 from autode.mol_graphs import is_isomorphic
 from autode.complex import ReactantComplex, ProductComplex
@@ -116,7 +115,7 @@ def test_reactant_complex_truncation():
     methane_dimer = ReactantComplex(methane, methane)
 
     # Should not truncate methane dimer at all
-    truncated = get_truncated_rcomplex(methane_dimer, bond_rearr)
+    truncated = get_truncated_complex(methane_dimer, bond_rearr)
     assert truncated.n_atoms == 10
 
 
@@ -125,8 +124,8 @@ def test_procut_complex_truncation():
     # H atom transfer from methane to ethene
     bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)], forming_bonds=[(1, 5)])
 
-    methane_ethene = ReactantComplex(methane, ethene)
+    methane_ethene = ReactantComplex(methane, ethene, name='product_complex')
 
     # Should retain all atoms
-    truncated = get_truncated_pcomplex(methane_ethene, bond_rearr)
+    truncated = get_truncated_complex(methane_ethene, bond_rearr)
     assert truncated.n_atoms == 11

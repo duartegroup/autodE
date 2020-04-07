@@ -144,6 +144,7 @@ def get_truncated_complex(complex_, bond_rearrangement):
     # Regenerate the 3D structure from the new graph
     atoms = get_simanl_atoms(species=truncated_complex)
     truncated_complex.set_atoms(atoms=atoms)
+    truncated_complex.name += '_truncated'
 
     return truncated_complex
 
@@ -158,8 +159,8 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
     """
     truncated_complex = get_truncated_complex(reactant_complex, bond_rearrangement)
 
-    if reactant_complex.n_atoms - truncated_complex.n_atoms < 5:
-        logger.info('Truncated complex had 5 atoms or fewer than the full complex. Not truncating')
+    if reactant_complex.n_atoms - truncated_complex.n_atoms < 10:
+        logger.info('Truncated complex had 10 atoms or fewer than the full complex. Not truncating')
         return False
 
     logger.info('Complex is worth truncating')

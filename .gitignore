@@ -27,3 +27,8 @@ autode/solvent/csolvent.c
 examples/
 
 doc/_build/
+.DS_Store
+
+tests/htmlcov/
+
+*.inp

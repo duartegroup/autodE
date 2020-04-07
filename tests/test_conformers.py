@@ -2,6 +2,9 @@ from autode.atoms import Atom
 from autode.conformers.conformer import Conformer
 from autode.wrappers.ORCA import orca
 from scipy.spatial import distance_matrix
+from rdkit import Chem
+from rdkit.Chem import AllChem
+from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 import numpy as np
 import os
 from autode.conformers.conformers import get_unique_confs
@@ -47,6 +50,26 @@ def test_conf_class():
             os.remove(filename)
 
     os.chdir(here)
+
+
+def test_rdkit_atoms():
+
+    mol = Chem.MolFromSmiles('C')
+    mol = Chem.AddHs(mol)
+
+    AllChem.EmbedMultipleConfs(mol, numConfs=1)
+
+    atoms = get_atoms_from_rdkit_mol_object(rdkit_mol_obj=mol, conf_id=0)
+    assert len(atoms) == 5
+
+    coords = np.array([atom.coord for atom in atoms])
+    dist_mat = distance_matrix(coords, coords)
+
+    # No distance between the same atom
+    assert dist_mat[0, 0] == 0.0
+
+    # CH bond should be ~1 Å
+    assert 0.9 < dist_mat[0, 1] < 1.2
 
 
 def test_unique_confs():

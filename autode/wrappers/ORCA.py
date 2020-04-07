@@ -3,6 +3,7 @@ from autode.log import logger
 from autode.atoms import Atom
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.exceptions import NoCalculationOutput, NoNormalModesFound
+from autode.exceptions import AtomsNotFound
 import numpy as np
 import os
 

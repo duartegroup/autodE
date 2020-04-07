@@ -6,7 +6,7 @@ from autode.wrappers.ORCA import orca
 from autode.config import Config
 import os
 
-Config.high_qual_plots = False
+Config.high_quality_plots = False
 
 here = os.path.dirname(os.path.abspath(__file__))
 

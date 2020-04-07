@@ -12,7 +12,7 @@ from autode.methods import get_hmethod
 from autode.geom import get_distance_constraints
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
-from autode.conformers.conformers import check_rmsd
+from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.transition_states.base import TSbase
 
 
@@ -46,7 +46,7 @@ class TransitionState(TSbase):
 
         return
 
-    def _generate_conformers(self, n_confs=300):
+    def _generate_conformers(self, n_confs=50):
         """Generate conformers at the TS """
 
         self.conformers = []
@@ -57,7 +57,7 @@ class TransitionState(TSbase):
 
             conf = Conformer(name=f'{self.name}_conf{i}', atoms=get_simanl_atoms(self, dist_consts=distance_consts, conf_n=i),
                              dist_consts=distance_consts, charge=self.charge, mult=self.mult)
-            if check_rmsd(conf, self.conformers):
+            if conf_is_unique_rmsd(conf, self.conformers):
                 conf.solvent = self.solvent
                 conf.graph = deepcopy(self.graph)
                 self.conformers.append(conf)
@@ -108,7 +108,7 @@ class TransitionState(TSbase):
             logger.info('Conformer search successful')
 
         else:
-            logger.warning('Transition state conformer search failed. Reverting')
+            logger.warning(f'Transition state conformer search failed (∆E = {energy - self.energy:.4f} Ha). Reverting')
             self.set_atoms(atoms=atoms)
             self.energy = energy
             self.calc = calc
@@ -119,8 +119,7 @@ class TransitionState(TSbase):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
 
         if len(self.imaginary_frequencies) > 0:
-            if self.has_correct_imag_mode(active_atoms=self.bond_rearrangement.active_atoms,
-                                          calc=self.optts_calc, ensure_links=True):
+            if self.has_correct_imag_mode(bond_rearrangement=self.bond_rearrangement,  calc=self.optts_calc):
                 logger.info('Found a transition state with the correct imaginary mode & links reactants and products')
                 return True
 

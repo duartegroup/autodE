@@ -70,6 +70,10 @@ class NoCalculationOutput(Exception):
     pass
 
 
+class RDKitFailed(Exception):
+    pass
+
+
 class CouldNotGetProperty(Exception):
 
     def __init__(self, message):
