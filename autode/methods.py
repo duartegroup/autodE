@@ -12,6 +12,9 @@ from autode.wrappers.G09 import G09
 from autode.wrappers.NWChem import NWChem
 from autode.exceptions import MethodUnavailable
 
+high_level_method_names = ['orca', 'g09', 'nwchem']
+low_level_method_names = ['xtb', 'mopac']
+
 
 def get_hmethod():
     """Get the high-level electronic structure theory method to use

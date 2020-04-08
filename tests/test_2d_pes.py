@@ -57,7 +57,7 @@ def test_get_ts_guess_2dscan():
     pes.calculate(name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt)
 
     assert pes.species[0, 1] is not None
-    assert pes.species[0, 1].energy == -13.116895281907
+    assert pes.species[0, 1].energy == -13.116895286939
     assert pes.species.shape == (6, 6)
     assert pes.rs.shape == (6, 6)
     assert type(pes.rs[0, 1]) == tuple
@@ -78,7 +78,7 @@ def test_get_ts_guess_2dscan():
     ts_guess = pes_2d.get_ts_guess_2d(reactant=ReactantComplex(ch3cl_f), product=ProductComplex(ch3f_cl),
                                       active_bond1=(0, 2), active_bond2=(1, 2), final_dist1=1.5, final_dist2=4.0,
                                       polynomial_order=3, name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt,
-                                      n_steps=6)
+                                      dr=0.3)
     assert ts_guess is not None
     assert ts_guess.n_atoms == 6
     assert ts_guess.energy is None
