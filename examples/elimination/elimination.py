@@ -1,6 +1,6 @@
 from autode import *
 
-Config.n_cores = 8
+Config.n_cores = 2
 
 methoxide = Reactant(name='methoxide', smiles='C[O-]')
 propyl_chloride = Reactant(name='propyl_chloride', smiles='CCCCl')

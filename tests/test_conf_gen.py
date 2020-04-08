@@ -37,7 +37,8 @@ methane = Molecule(name='methane', charge=0, mult=1, atoms=[Atom('C', 0.70879, 0
                                                             Atom('H', 0.33899, 1.93529, -0.55331)])
 
 
-def test_conf_gen():
+def test_conf_gen(tmpdir):
+    os.chdir(tmpdir)
 
     atoms = conf_gen.get_simanl_atoms(species=methane)
     assert len(atoms) == 5
@@ -55,8 +56,11 @@ def test_conf_gen():
     assert regen.graph.edges == methane.graph.edges
     assert regen.graph.nodes == methane.graph.nodes
 
+    os.chdir(here)
 
-def test_conf_gen_dist_const():
+
+def test_conf_gen_dist_const(tmpdir):
+    os.chdir(tmpdir)
 
     hydrogen = Molecule(name='H2', charge=0, mult=1, atoms=[Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0),
                                                             Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.7)])
@@ -71,10 +75,11 @@ def test_conf_gen_dist_const():
     assert long_hydrogen.n_atoms == 2
     assert len(long_hydrogen.graph.edges) == 0
 
-    os.remove('H2_conf0_siman.xyz')
+    os.chdir(here)
 
 
-def test_chiral_rotation():
+def test_chiral_rotation(tmpdir):
+    os.chdir(tmpdir)
 
     chiral_ethane = Molecule(name='chiral_ethane', charge=0, mult=1,
                              atoms=[Atom('C', -0.26307, 0.59858, -0.07141),
@@ -111,10 +116,11 @@ def test_chiral_rotation():
         # RMSD on the 5 atoms should be < 0.5 Å
         assert np.sqrt(np.average(np.square(fitted_centre1 - coords[centre_idxs]))) < 5E-1
 
-    os.remove('chiral_ethane_conf0_siman.xyz')
+    os.chdir(here)
 
 
-def test_butene():
+def test_butene(tmpdir):
+    os.chdir(tmpdir)
 
     butene = Molecule(name='z-but-2-ene', charge=0, mult=1,
                       atoms=[Atom('C', -1.69185, -0.28379, -0.01192),
@@ -137,19 +143,17 @@ def test_butene():
     atoms = conf_gen.get_simanl_atoms(species=butene)
     regen = Molecule(name='regenerated_butene', atoms=atoms, charge=0, mult=1)
 
-    if os.path.exists('regenerated_butene.xyz'):
-        os.remove('regenerated_butene.xyz')
-
     regen.print_xyz_file()
     regen_coords = regen.get_coordinates()
 
     # The Z-butene isomer has a r(C_1 C_2) < 3.2 Å where C_1C=CC_2
     assert np.linalg.norm(regen_coords[6] - regen_coords[2]) < 3.6
 
-    os.remove('z-but-2-ene_conf0_siman.xyz')
+    os.chdir(here)
 
 
-def test_ts_conformer():
+def test_ts_conformer(tmpdir):
+    os.chdir(tmpdir)
 
     ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl',  1.63664,  0.02010, -0.05829),
                                               Atom('C', -0.14524, -0.00136,  0.00498),
@@ -190,6 +194,4 @@ def test_ts_conformer():
     assert 1.9 < np.linalg.norm(regen_coords[0] - regen_coords[2]) < 2.1
     assert 2.0 < np.linalg.norm(regen_coords[1] - regen_coords[2]) < 2.2
 
-    os.remove('TS_ts_guess_conf0_siman.xyz')
-    os.remove('complex_conf0_siman.xyz')
-    os.remove('product_complex_conf0_siman.xyz')
+    os.chdir(here)

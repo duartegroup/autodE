@@ -66,6 +66,85 @@ def test_subgraph_isomorphism():
 
     assert mol_graphs.is_subgraph_isomorphic(larger_graph=h4.graph, smaller_graph=h2.graph) is True
 
+    # H3 in a triangular arrangement should not be sub-graph isomorphic to linear H4
+    h_e = Atom(atomic_symbol='H', x=0.3, y=0.0, z=0.3)
+    h3 = Species(name='H_H', charge=0, mult=1, atoms=[h_a, h_b, h_e])
+    mol_graphs.make_graph(h3, allow_invalid_valancies=True)
+    assert mol_graphs.is_subgraph_isomorphic(larger_graph=h4.graph, smaller_graph=h3.graph) is False
+
+
+def test_ts_template():
+
+    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.4)
+
+    ts_template = Species(name='template', charge=0, mult=1,
+                          atoms=[h_a, h_b, h_c])
+    mol_graphs.make_graph(species=ts_template, allow_invalid_valancies=True)
+    ts_template.graph.edges[0, 1]['active'] = True
+
+    ts = Species(name='template', charge=0, mult=1, atoms=[h_a, h_b, h_c])
+    mol_graphs.make_graph(species=ts, allow_invalid_valancies=True)
+    ts.graph.edges[1, 2]['active'] = True
+
+    mapping = mol_graphs.get_mapping_ts_template(ts.graph, ts_template.graph)
+    assert mapping is not None
+    assert type(mapping) == dict
+
+    assert mol_graphs.is_isomorphic(ts.graph, ts_template.graph, ignore_active_bonds=True)
+
+
+def test_truncated_active_graph():
+
+    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.4)
+    h_d = Atom(atomic_symbol='H', x=0.0, y=0.0, z=2.1)
+
+    ts = Species(name='template', charge=0, mult=1, atoms=[h_a, h_b, h_c, h_d])
+    mol_graphs.make_graph(species=ts, allow_invalid_valancies=True)
+
+    # H--active--H--H--H should truncate by keeping only the nearest neighbours to the first two atoms
+    truncated_graph = mol_graphs.get_truncated_active_mol_graph(ts.graph, active_bonds=[(0, 1)])
+    assert truncated_graph.number_of_nodes() == 3
+    assert truncated_graph.number_of_edges() == 2
+
+
+def test_mapping():
+    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.4)
+
+    h3_a = Species(name='template', charge=0, mult=1,
+                          atoms=[h_a, h_b, h_c])
+    mol_graphs.make_graph(species=h3_a, allow_invalid_valancies=True)
+
+    h3_b = Species(name='template', charge=0, mult=1, atoms=[h_a, h_b, h_c])
+    mol_graphs.make_graph(species=h3_b, allow_invalid_valancies=True)
+
+    # Isomorphic (identical) graphs should have at least one mapping between them
+    mapping = mol_graphs.get_mapping(h3_b.graph, h3_a.graph)
+    assert mapping is not None
+    assert type(mapping) == dict
+
+
+def test_approx_isomorphic():
+
+    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.8)
+    h2_b = Species(name='template', charge=0, mult=1, atoms=[h_a, h_c])
+    mol_graphs.make_graph(species=h2_b, rel_tolerance=0.3)
+
+    # Long H-H bond should be isomorphic ish
+    assert mol_graphs.is_isomorphic(h2.graph, h2_b.graph) is False
+    assert mol_graphs.is_isomorphic_ish(h2_b, graph=h2.graph)
+
+    # Graph with one more bond should be isomorphic ish, any interaction does not check on energy
+    # differences
+    c3_linear = Species(name='c3_lin', charge=0, mult=1,
+                        atoms=[Atom('C', 0, 0, 0), Atom('C', 0, 0, 1.1), Atom('C', 0, 0, 2.2)])
+    mol_graphs.make_graph(c3_linear)
+
+    c3_trig = Species(name='c3_lin', charge=0, mult=1,
+                      atoms=[Atom('C', 0, 0, 0), Atom('C', 0, 0, 1.1), Atom('C', 0, 0.65, 0.45)])
+    mol_graphs.make_graph(c3_trig)
+
+    assert mol_graphs.is_isomorphic_ish(c3_trig, graph=c3_linear.graph, any_interaction=True)
+
 
 def test_not_isomorphic():
 
