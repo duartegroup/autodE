@@ -81,7 +81,7 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label,
                                                atom_j_label=reactant.atoms[fbond[1]].label)
 
-        yield get_ts_guess_2d, (reactant, product, fbond, bbond, 12, scan_name + '_ll2d', lmethod,
+        yield get_ts_guess_2d, (reactant, product, fbond, bbond, 12, name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}_ll2d', lmethod,
                                 lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
 
         yield get_ts_guess_1d, (reactant, product, bbond, 12, scan_name + '_hl1d_bbond', hmethod,

@@ -3,6 +3,7 @@ from numpy.polynomial import polynomial
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from scipy.ndimage.filters import gaussian_filter1d
 from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
@@ -24,7 +25,7 @@ def save_plot(plot, filename):
 
 
 def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
-    """For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 20x20 grid after fitting with
+    """For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 50x50 grid after fitting with
     a 2d polynomial function
 
     Arguments:
@@ -38,9 +39,21 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     """
     plt.close()
 
+    try:
+        name_split = name.split('_')
+        bond1 = name_split[-3]
+        bond2 = name_split[-2]
+        bond1_atoms = [int(atom) for atom in bond1.split('-')]
+        bond2_atoms = [int(atom) for atom in bond2.split('-')]
+        xlabel = f'Atom {bond1_atoms[0]} - Atom {bond1_atoms[1]} distance / Å'
+        ylabel = f'Atom {bond2_atoms[0]} - Atom {bond2_atoms[1]} distance / Å'
+    except:
+        xlabel = '$r1$ / Å'
+        ylabel = '$r2$ / Å'
+
     logger.info(f'Plotting 2D scan and saving to {name}.png')
 
-    nx, ny = 30, 30
+    nx, ny = 50, 50
     xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
                          np.linspace(r2.min(), r2.max(), ny))
 
@@ -50,25 +63,24 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
     fig = plt.figure(figsize=(12, 4))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
-    pos1 = ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'), alpha=0.7)
-    pos1 = ax1.contour3D(xx, yy, zz, 30, colors='k', antialiased=True)
-
-    if mep is not None:
-        mep_r1 = [coord[0] for coord in mep]
-        mep_r2 = [coord[1] for coord in mep]
-        mep_energies = [polynomial.polyval2d(x, y, coeff_mat) for x, y in mep]
-        pos1 = ax1.plot(mep_r1, mep_r2, mep_energies, color='forestgreen', lw=2, alpha=1)
+    ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
 
     ax1.view_init(45)
-    ax1.set_xlabel('$r1$ / Å')
-    ax1.set_ylabel('$r2$ / Å')
+    ax1.set_xlabel(xlabel)
+    ax1.set_ylabel(ylabel)
     ax2 = fig.add_subplot(1, 2, 2)
+
     pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())), extent=(r1.min(), r1.max(),
                                                                                           r2.min(), r2.max()),
                       origin='lower', cmap=plt.get_cmap('plasma'))
 
-    ax2.set_xlabel('$r1$ / Å')
-    ax2.set_ylabel('$r2$ / Å')
+    if mep is not None:
+        xsmoothed = gaussian_filter1d([coord[0] for coord in mep], sigma=2)
+        ysmoothed = gaussian_filter1d([coord[1] for coord in mep], sigma=2)
+        ax2.plot(xsmoothed, ysmoothed, color='forestgreen', lw=2)
+
+    ax2.set_xlabel(xlabel)
+    ax2.set_ylabel(ylabel)
     cbar = plt.colorbar(pos2, ax=ax2)
     cbar.ax.set_ylabel('∆$E$ / kcal mol$^{-1}$')
 
