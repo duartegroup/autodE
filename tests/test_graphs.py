@@ -169,7 +169,7 @@ def test_find_cycles():
 def test_reac_to_prods():
 
     rearrang = BondRearrangement([(0, 4)], [(3, 4)])
-    prod_graph = mol_graphs.reac_graph_to_prods(g, rearrang)
+    prod_graph = mol_graphs.reac_graph_to_prod_graph(g, rearrang)
     expected_edges = [(0, 1), (1, 2), (2, 0), (0, 3), (0, 4)]
     expected_graph = nx.Graph()
     for edge in expected_edges:

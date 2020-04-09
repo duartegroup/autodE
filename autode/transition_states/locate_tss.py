@@ -1,5 +1,6 @@
 from autode.log import logger
 import numpy as np
+from copy import deepcopy
 from scipy.optimize import minimize
 from autode.config import Config
 from autode.substitution import get_cost_rotate_translate
@@ -7,6 +8,9 @@ from autode.bond_rearrangement import get_bond_rearrangs
 from autode.substitution import get_substitution_centres
 from autode.reactions import Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
+from autode.mol_graphs import get_mapping
+from autode.mol_graphs import reac_graph_to_prod_graph
+from autode.mol_graphs import reorder_nodes
 from autode.complex import ReactantComplex, ProductComplex
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.transition_states.truncation import is_worth_truncating
@@ -222,10 +226,30 @@ def get_truncated_ts(reaction, reactant, product, bond_rearr):
     for bond_rearr in bond_rearrangs:
         get_ts(reaction, t_reactant, t_product, bond_rearrangement=bond_rearr, strip_molecule=False)
 
-    reaction.name -= '_truncated'
+    reaction.name = reaction.name.replace('_truncated', '')
 
     logger.info('Done with truncation')
     return None
+
+
+def reorder_product_complex(reactant, product, bond_rearrangement):
+    """
+    Reorder the atoms in the product, and its molecular graph to reflect those in the reactant
+
+    Arguments:
+        reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+    """
+    reordered_product = deepcopy(product)
+
+    mapping = get_mapping(graph=reordered_product.graph,
+                          other_graph=reac_graph_to_prod_graph(reactant.graph, bond_rearrangement))
+
+    reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
+    reordered_product.graph = reorder_nodes(graph=reordered_product.graph, mapping={u: v for v, u in mapping.items()})
+
+    return reordered_product
 
 
 def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
@@ -242,6 +266,9 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
     Returns:
         (autode.transition_states.transition_state.TransitionState):
     """
+    # Reorder the atoms in the product complex so they are equivalent to the reactant
+    product = reorder_product_complex(reactant, product, bond_rearrangement)
+
     # If specified then strip non-core atoms from the structure
     if strip_molecule and is_worth_truncating(reactant, bond_rearrangement):
         get_truncated_ts(reaction, reactant, product, bond_rearrangement)

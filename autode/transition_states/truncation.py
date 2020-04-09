@@ -148,7 +148,6 @@ def strip_non_core_atoms(molecule, active_atoms):
 
     # Delete all atoms not in the truncated graph and reset the graph
     s_molecule.graph = truncated_graph
-
     s_molecule.set_atoms(atoms=[atom for i, atom in enumerate(s_molecule.atoms) if i in sorted(truncated_graph.nodes)])
 
     # Relabel the nodes so they correspond to the new set of atoms

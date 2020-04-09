@@ -13,7 +13,7 @@ from rdkit.Chem import Mol
 import numpy as np
 import pytest
 import os
-from autode.mol_graphs import reac_graph_to_prods
+from autode.mol_graphs import reac_graph_to_prod_graph
 here = os.path.dirname(os.path.abspath(__file__))
 
 
