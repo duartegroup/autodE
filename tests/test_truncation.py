@@ -119,7 +119,7 @@ def test_reactant_complex_truncation():
     assert truncated.n_atoms == 10
 
 
-def test_procut_complex_truncation():
+def test_prodcut_complex_truncation():
 
     # H atom transfer from methane to ethene
     bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)], forming_bonds=[(1, 5)])

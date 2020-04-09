@@ -99,11 +99,10 @@ def get_ts_guess_1d(reactant, product, active_bond, name, method, keywords, fina
     logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
     curr_dist = reactant.get_distance(atom_i=active_bond[0], atom_j=active_bond[1])
 
-    dr = dr if final_dist > curr_dist else -dr
-
     # Create a potential energy surface in the active bonds and calculate
     pes = PES1d(reactant=reactant, product=product,
-                rs=np.arange(curr_dist, final_dist, dr), r_idxs=active_bond)
+                rs=np.arange(curr_dist, final_dist, step=dr if final_dist > curr_dist else -dr),
+                r_idxs=active_bond)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 

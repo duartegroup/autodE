@@ -208,18 +208,18 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
     curr_dist2 = reactant.get_distance(atom_i=active_bond2[0], atom_j=active_bond2[1])
 
     # Steps of +Δr if the final distance is greater than the current else -Δr
-    dr1 = dr if final_dist1 > curr_dist1 else -dr
-    dr2 = dr if final_dist2 > curr_dist2 else -dr
+    n_steps1 = int(np.abs((final_dist1 - curr_dist1) / dr))
+    n_steps2 = int(np.abs((final_dist2 - curr_dist2) / dr))
 
     if method.name in high_level_method_names:
         logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')
-        dr1 = np.sing(dr1) * max(np.sing(dr1) * dr1, np.sing(dr1) * int((final_dist1 - curr_dist1) / 8))
-        dr2 = np.sing(dr2) * max(np.sing(dr2) * dr2, np.sing(dr2) * int((final_dist2 - curr_dist2) / 8))
+        n_steps1 = min(n_steps1, 8)
+        n_steps2 = min(n_steps2, 8)
 
     # Create a potential energy surface in the two active bonds and calculate
     pes = PES2d(reactant=reactant, product=product,
-                r1s=np.arange(curr_dist1, final_dist1, dr1), r1_idxs=active_bond1,
-                r2s=np.arange(curr_dist2, final_dist2, dr2), r2_idxs=active_bond2)
+                r1s=np.linspace(curr_dist1, final_dist1, n_steps1), r1_idxs=active_bond1,
+                r2s=np.linspace(curr_dist2, final_dist2, n_steps2), r2_idxs=active_bond2)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 
