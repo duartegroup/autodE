@@ -123,6 +123,9 @@ class PES2d(PES):
                 for i, point in enumerate(points):
                     self.species[point] = results[i].get(timeout=None)
 
+        self.species[0, 0].generate_pymol_image(active_atoms=np.array(self.rs_idxs).flatten().tolist(), name=f'{name}_scan_0-0')
+        self.species[-1, -1].generate_pymol_image(active_atoms=np.array(self.rs_idxs).flatten().tolist(), name=f'{name}_scan_{self.n_points_r1-1}-{self.n_points_r2-1}')
+
         logger.info('2D PES scan done')
         return None
 

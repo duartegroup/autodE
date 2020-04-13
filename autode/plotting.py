@@ -1,4 +1,6 @@
 import numpy as np
+import pymol
+import os
 from numpy.polynomial import polynomial
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -8,7 +10,7 @@ from autode.log import logger
 from autode.units import KjMol
 from autode.units import KcalMol
 from autode.config import Config
-import os
+from autode.geom import get_krot_p_q
 
 
 def save_plot(plot, filename):
@@ -218,3 +220,62 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, switche
     plt.ylim(min(y_vals) - 0.1*max(y_vals), 1.2 * max(y_vals))
 
     return save_plot(plt, filename='reaction_profile.png')
+
+
+def make_pymol_image(species, active_atoms, name):
+    # todo add bond lengths
+
+    pymol.finish_launching(['pymol', '-Qc'])
+    pymol.cmd.load(f'{name}.xyz')
+
+    pymol.cmd.hide('everything')
+    pymol.cmd.show('sticks')
+    pymol.cmd.show('spheres')
+    pymol.cmd.set('stick_radius', 0.08)
+    pymol.cmd.set('sphere_scale', 0.18)
+    pymol.cmd.set('sphere_scale', 0.2, 'elem H')
+    pymol.cmd.set('bg_rgb', [1, 1, 1])
+    pymol.cmd.set('stick_quality', 50)
+    pymol.cmd.set('sphere_quality', 4)
+    pymol.cmd.color('gray85', 'elem C')
+    pymol.cmd.color('red', 'elem O')
+    pymol.cmd.color('slate', 'elem N')
+    pymol.cmd.color('gray98', 'elem H')
+    pymol.cmd.set('stick_color', 'black')
+    pymol.cmd.set('ray_trace_mode', 1)
+    pymol.cmd.set('ray_texture', 2)
+    pymol.cmd.set('antialias', 3)
+    pymol.cmd.set('ambient', 0.5)
+    pymol.cmd.set('spec_count', 5)
+    pymol.cmd.set('shininess', 50)
+    pymol.cmd.set('specular', 1)
+    pymol.cmd.set('reflect', 0.1)
+    pymol.cmd.set('dash_gap', 0)
+    pymol.cmd.set('dash_color', 'black')
+    pymol.cmd.set('dash_gap', 0.15)
+    pymol.cmd.set('dash_length', 0.05)
+    pymol.cmd.set('dash_round_ends', 0)
+    pymol.cmd.set('dash_radius', 0.05)
+    if active_atoms is not None:
+        coords_to_fit = species.get_coordinates()[active_atoms]
+    else:
+        coords_to_fit = species.get_coordinates()
+    template_coords = [[np.sin(2*i*np.pi/len(coords_to_fit)), np.cos(2*i*np.pi/len(coords_to_fit)), -10] for i in range(len(coords_to_fit))]
+    rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
+    view = rot_mat.flatten().tolist() + q.tolist() + p.tolist() + [23.7,   36.4,  -10.0]
+    pymol.cmd.set_view(view)
+    pymol.cmd.set('surface_quality', 3)
+    pymol.cmd.set('ray_texture', 2)
+    pymol.cmd.set('antialias', 3)
+    pymol.cmd.set('ambient', 0.5)
+    pymol.cmd.set('spec_count', 5)
+    pymol.cmd.set('shininess', 50)
+    pymol.cmd.set('specular', 1)
+    pymol.cmd.set('opaque_background', 'on')
+    pymol.cmd.set('transparency', 0.5)
+    pymol.cmd.zoom(buffer=1, complete=1)
+
+    pymol.cmd.ray()
+    pymol.cmd.png(f'{name}.png', 0, 0, -1, ray=1)
+
+    pymol.cmd.quit()

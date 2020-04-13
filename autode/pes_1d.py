@@ -52,6 +52,9 @@ class PES1d(PES):
         for i in range(self.n_points):
             self.species[i] = get_point_species((i,), self, name, method, keywords, Config.n_cores)
 
+        self.species[0].generate_pymol_image(active_atoms=self.rs_idxs, name=f'{name}_scan_0')
+        self.species[-1].generate_pymol_image(active_atoms=self.rs_idxs, name=f'{name}_scan_{self.n_points-1}')
+
         return None
 
     def __init__(self, reactant, product, rs, r_idxs):

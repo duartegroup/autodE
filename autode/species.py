@@ -10,6 +10,7 @@ from autode.config import Config
 from autode.geom import length
 from autode.utils import requires_atoms
 from autode.utils import requires_conformers
+from autode.plotting import make_pymol_image
 
 
 class Species:
@@ -98,6 +99,17 @@ class Species:
     def get_distance(self, atom_i, atom_j):
         """Get the distance between two atoms in the species"""
         return length(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
+
+    @requires_atoms()
+    def generate_pymol_image(self, active_atoms=None, name=None):
+        """Generate a PyMOL .png from the Molecule's atoms"""
+
+        name = self.name if name is None else name
+
+        logger.info(f'Creating PyMOL image and saving to {name}.png')
+
+        self.print_xyz_file(filename=f'{name}.xyz')
+        return make_pymol_image(species=self, active_atoms=active_atoms, name=name)
 
     def find_lowest_energy_conformer(self, low_level_method=None, high_level_method=None):
         """
