@@ -140,7 +140,7 @@ class XTB(ElectronicStructureMethod):
 
         return atoms
 
-    def _get_final_atoms_6_2_2(self, calc):
+    def _get_final_atoms_old(self, calc):
         """
         e.g.
 
@@ -171,7 +171,7 @@ class XTB(ElectronicStructureMethod):
     def get_final_atoms(self, calc):
         atoms = []
 
-        for line in calc.output_file_lines:
+        for i, line in enumerate(calc.output_file_lines):
 
             # XTB 6.2.x have a slightly different way of printing the atoms, helpfully
             if 'xtb version' in line and len(line.split()) >= 4:
@@ -180,11 +180,13 @@ class XTB(ElectronicStructureMethod):
                     break
 
                 elif line.split()[3] == '6.2.2' or '6.1' in line.split()[3]:
-                    atoms = self._get_final_atoms_6_2_2(calc)
+                    atoms = self._get_final_atoms_old(calc)
                     break
 
-                else:
-                    raise AtomsNotFound
+            # Version is not recognised if we're 50 lines into the output file - try and use the old version
+            if i > 50:
+                atoms = self._get_final_atoms_old(calc)
+                break
 
         if len(atoms) == 0:
             raise AtomsNotFound

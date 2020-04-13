@@ -12,7 +12,7 @@ from autode.exceptions import AtomsNotFound
 from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
 from autode.min_energy_pathway import get_sum_energy_mep
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.methods import high_level_method_names
 from autode.pes import PES
 from autode.pes import get_point_species
 
@@ -118,10 +118,10 @@ class PES2d(PES):
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
             with Pool(processes=Config.n_cores) as pool:
-                    results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
-                                                                              cores_per_process)) for p in points]
-                    for i, point in enumerate(points):
-                        self.species[point] = results[i].get(timeout=None)
+                results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
+                                                                          cores_per_process)) for p in points]
+                for i, point in enumerate(points):
+                    self.species[point] = results[i].get(timeout=None)
 
         logger.info('2D PES scan done')
         return None
@@ -179,8 +179,8 @@ class PES2d(PES):
         self.product_graph = product.graph
 
 
-def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name, method, keywords,
-                    final_dist1, final_dist2, polynomial_order=5):
+def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method, keywords, final_dist1, final_dist2,
+                    polynomial_order=3, dr=0.1):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:
@@ -188,7 +188,6 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
         product (autode.complex.ProductComplex):
         active_bond1 (tuple): tuple of atom ids showing the first bond being scanned
         active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
-        n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
         name (str): name of reaction
         method (autode.): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
@@ -196,7 +195,8 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
         final_dist2 (float): distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
 
     Keyword Arguments:
-        polynomial_order (int): order of polynomial to fit the data to (default: {5})
+        polynomial_order (int): order of polynomial to fit the data to (default: {3})
+        dr (float): Δr on the surface *absolute value*
 
     Returns:
         (autode.transition_states.ts_guess.TSguess)
@@ -207,10 +207,19 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, n_steps, name
     curr_dist1 = reactant.get_distance(atom_i=active_bond1[0], atom_j=active_bond1[1])
     curr_dist2 = reactant.get_distance(atom_i=active_bond2[0], atom_j=active_bond2[1])
 
+    # Steps of +Δr if the final distance is greater than the current else -Δr
+    n_steps1 = int(np.abs((final_dist1 - curr_dist1) / dr))
+    n_steps2 = int(np.abs((final_dist2 - curr_dist2) / dr))
+
+    if method.name in high_level_method_names:
+        logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')
+        n_steps1 = min(n_steps1, 8)
+        n_steps2 = min(n_steps2, 8)
+
     # Create a potential energy surface in the two active bonds and calculate
     pes = PES2d(reactant=reactant, product=product,
-                r1s=np.linspace(curr_dist1, final_dist1, n_steps), r1_idxs=active_bond1,
-                r2s=np.linspace(curr_dist2, final_dist2, n_steps), r2_idxs=active_bond2)
+                r1s=np.linspace(curr_dist1, final_dist1, n_steps1), r1_idxs=active_bond1,
+                r2s=np.linspace(curr_dist2, final_dist2, n_steps2), r2_idxs=active_bond2)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 

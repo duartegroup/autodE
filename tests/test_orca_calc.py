@@ -1,9 +1,13 @@
 from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
+from autode.calculation import execute_calc
+from autode.calculation import check_molecule_attr
 from autode.molecule import Molecule
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
+from autode.exceptions import SolventUnavailable
+from autode.solvent.solvents import Solvent
 import pytest
 
 import os
@@ -39,26 +43,75 @@ def test_orca_opt_calculation():
     with pytest.raises(NoNormalModesFound):
         calc.get_normal_mode_displacements(mode_number=0)
 
+    # Should have a partial atomic charge for every atom
+    assert len(calc.get_atomic_charges()) == 5
+    assert type(calc.get_atomic_charges()[0]) == float
+
+    calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
+                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
+
+    # If the calculation is not run with calc.run() then there should be no input and the calc should
+    # raise that there is no input
+    with pytest.raises(NoInputError):
+        execute_calc(calc)
+
     os.remove('opt_orca.inp')
     os.chdir(here)
+
+
+def test_calc_bad_mol():
+
+    class Mol:
+        pass
+
+    mol = Mol()
+
+    with pytest.raises(AssertionError):
+        Calculation(name='bad_mol_object', molecule=mol, method=method)
+
+    mol.atoms = None
+    mol.mult = 1
+    mol.n_atoms = 0
+    mol.charge = 0
+    mol.solvent = None
+
+    with pytest.raises(NoInputError):
+        Calculation(name='no_atoms_mol', molecule=mol, method=method)
+
+    solvent = Solvent(name='xx', smiles='X', aliases=['X'])
+    mol.solvent = solvent
+    with pytest.raises(SolventUnavailable):
+        Calculation(name='no_atoms_mol', molecule=mol, method=method)
 
 
 def test_orca_optts_calculation():
     # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
 
     os.chdir(os.path.join(here, 'data'))
+    methane = Molecule(name='methane', smiles='C')
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX',
-                                 'D3BJ', 'def2-SVP', 'def2/J'],
+    calc = Calculation(name='test_ts_reopt_optts', molecule=methane, method=method, opt=True,
+                       bond_ids_to_add=[(0, 1)],
+                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                        other_input_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
     calc.run()
+
+    assert os.path.exists('test_ts_reopt_optts_orca.inp')
+    inp_lines = open('test_ts_reopt_optts_orca.inp', 'r').readlines()
+
+    # If the 0, 1 is the active bond in the TS then all the atoms in methane are 'core'
+    assert all(atom_index in calc.core_atoms for atom_index in [0, 1, 2, 3, 4])
 
     assert calc.get_normal_mode_displacements(mode_number=6) is not None
     assert calc.terminated_normally is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
     assert len(calc.get_imag_freqs()) == 1
+
+    # Gradients should be an n_atom x 3 array
+    gradients = calc.get_gradients()
+    assert len(gradients) == 5
+    assert len(gradients[0]) == 3
 
     os.remove('test_ts_reopt_optts_orca.inp')
     os.chdir(here)
@@ -76,6 +129,9 @@ def test_bad_orca_output():
 
     with pytest.raises(NoInputError):
         calc.execute_calculation()
+
+    calc.output_file_lines = None
+    assert calc.calculation_terminated_normally() is False
 
 
 def test_subprocess_to_output():

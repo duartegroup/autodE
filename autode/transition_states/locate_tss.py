@@ -1,5 +1,6 @@
 from autode.log import logger
 import numpy as np
+from copy import deepcopy
 from scipy.optimize import minimize
 from autode.config import Config
 from autode.substitution import get_cost_rotate_translate
@@ -7,6 +8,9 @@ from autode.bond_rearrangement import get_bond_rearrangs
 from autode.substitution import get_substitution_centres
 from autode.reactions import Substitution, Elimination
 from autode.bond_lengths import get_avg_bond_length
+from autode.mol_graphs import get_mapping
+from autode.mol_graphs import reac_graph_to_prod_graph
+from autode.mol_graphs import reorder_nodes
 from autode.complex import ReactantComplex, ProductComplex
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.transition_states.truncation import is_worth_truncating
@@ -76,18 +80,18 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         bbond = bond_rearr.bbonds[0]
         fbond = bond_rearr.fbonds[0]
 
-        scan_name = name + f'_{bbond[0]}-{bbond[1]}'
+        scan_name = name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}'
         bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
         fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label,
                                                atom_j_label=reactant.atoms[fbond[1]].label)
 
-        yield get_ts_guess_2d, (reactant, product, fbond, bbond, 12, name + f'_{fbond[0]}-{fbond[1]}_{bbond[0]}-{bbond[1]}_ll2d', lmethod,
+        yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_ll2d', lmethod,
                                 lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, 12, scan_name + '_hl1d_bbond', hmethod,
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_bbond', hmethod,
                                 hmethod.keywords.low_opt, bbond_final_dist)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, 12, scan_name + '_hl1d_opt_level_bbond',
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_opt_level_bbond',
                                 hmethod, hmethod.keywords.opt, bbond_final_dist)
 
     if bond_rearr.n_bbonds > 0 and bond_rearr.n_fbonds == 1:
@@ -96,10 +100,10 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[fbond[0]].label,
                                                atom_j_label=reactant.atoms[fbond[1]].label)
 
-        yield get_ts_guess_1d, (reactant, product, fbond, 10, scan_name + '_hl1d_fbond', hmethod,
+        yield get_ts_guess_1d, (reactant, product, fbond, f'{scan_name}_hl1d_fbond', hmethod,
                                 hmethod.keywords.low_opt, fbond_final_dist)
 
-        yield get_ts_guess_1d, (reactant, product, fbond, 12, scan_name + '_hl1d_opt_level_fbond', hmethod,
+        yield get_ts_guess_1d, (reactant, product, fbond, f'{scan_name}_hl1d_opt_level_fbond', hmethod,
                                 hmethod.keywords.opt, fbond_final_dist)
 
     if bond_rearr.n_bbonds >= 1 and bond_rearr.n_fbonds >= 1:
@@ -111,21 +115,21 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
                                                        atom_j_label=reactant.atoms[fbond[1]].label)
                 bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
 
-                yield get_ts_guess_2d, (reactant, product, fbond, bbond, 12, scan_name + '_ll2d', lmethod,
+                yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_ll2d', lmethod,
                                         lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
 
-                yield get_ts_guess_2d, (reactant, product, fbond, bbond, 8, scan_name + '_hl2d', hmethod,
-                                        hmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist, 3)
+                yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_hl2d', hmethod,
+                                        hmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
 
     if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 0:
         bbond = bond_rearr.bbonds[0]
         scan_name = name + f'_{bbond[0]}-{bbond[1]}'
         bbond_final_dist = reactant.get_distance(atom_i=bbond[0], atom_j=bbond[1]) + get_added_bbond_dist(reaction)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, 12, scan_name + '_hl1d',
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d',
                                 hmethod, hmethod.keywords.low_opt, bbond_final_dist)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, 12, scan_name + '_hl1d_opt_level', hmethod,
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_opt_level', hmethod,
                                 hmethod.keywords.opt, bbond_final_dist)
 
     if bond_rearr.n_fbonds == 2:
@@ -138,23 +142,23 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
         fbond_final_dist2 = get_avg_bond_length(atom_i_label=reactant.atoms[fbond2[0]].label,
                                                 atom_j_label=reactant.atoms[fbond2[1]].label)
 
-        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 12, scan_name + '_ll2d_fbonds', lmethod,
+        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, f'{scan_name}_ll2d_fbonds', lmethod,
                                 lmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
-        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, 8, scan_name + '_hl2d_fbonds', hmethod,
-                                hmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2, 3)
+        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, f'{scan_name}_hl2d_fbonds', hmethod,
+                                hmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
 
     if bond_rearr.n_bbonds == 2:
         bbond1, bbond2 = bond_rearr.bbonds
         scan_name = name + f'_{bbond1[0]}-{bbond1[1]}_{bbond2[0]}-{bbond2[1]}'
 
-        bbond1_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction) + get_added_bbond_dist(reaction)
-        bbond2_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction) + get_added_bbond_dist(reaction)
+        bbond1_final_dist = reactant.get_distance(atom_i=bbond1[0], atom_j=bbond1[1]) + get_added_bbond_dist(reaction)
+        bbond2_final_dist = reactant.get_distance(atom_i=bbond2[0], atom_j=bbond2[1]) + get_added_bbond_dist(reaction)
 
-        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 12, scan_name + '_ll2d_bbonds', lmethod,
+        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, f'{scan_name}_ll2d_bbonds', lmethod,
                                 lmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
 
-        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, 8, scan_name + '_hl2d_bbonds', hmethod,
-                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist, 3)
+        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, f'{scan_name}_hl2d_bbonds', hmethod,
+                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
 
     return None
 
@@ -222,10 +226,30 @@ def get_truncated_ts(reaction, reactant, product, bond_rearr):
     for bond_rearr in bond_rearrangs:
         get_ts(reaction, t_reactant, t_product, bond_rearrangement=bond_rearr, strip_molecule=False)
 
-    reaction.name -= '_truncated'
+    reaction.name = reaction.name.replace('_truncated', '')
 
     logger.info('Done with truncation')
     return None
+
+
+def reorder_product_complex(reactant, product, bond_rearrangement):
+    """
+    Reorder the atoms in the product, and its molecular graph to reflect those in the reactant
+
+    Arguments:
+        reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+    """
+    reordered_product = deepcopy(product)
+
+    mapping = get_mapping(graph=reordered_product.graph,
+                          other_graph=reac_graph_to_prod_graph(reactant.graph, bond_rearrangement))
+
+    reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
+    reordered_product.graph = reorder_nodes(graph=reordered_product.graph, mapping={u: v for v, u in mapping.items()})
+
+    return reordered_product
 
 
 def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
@@ -242,13 +266,16 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
     Returns:
         (autode.transition_states.transition_state.TransitionState):
     """
+    # Reorder the atoms in the product complex so they are equivalent to the reactant
+    product = reorder_product_complex(reactant, product, bond_rearrangement)
+
     # If specified then strip non-core atoms from the structure
     if strip_molecule and is_worth_truncating(reactant, bond_rearrangement):
         get_truncated_ts(reaction, reactant, product, bond_rearrangement)
 
     # If the reaction is a substitution or elimination then the reactants must be orientated correctly
     translate_rotate_reactant(reactant, bond_rearrangement,
-                              shift_factor=3 if any(mol.charge != 0 for mol in reaction.reacs) else 1.5)
+                              shift_factor=1.5 if reactant.charge == 0 else 2.5)
 
     # There are multiple methods of finding a transtion state. Iterate through from the cheapest -> most expensive
     for func, params in get_ts_guess_function_and_params(reaction, reactant, product, bond_rearrangement):

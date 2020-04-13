@@ -1,7 +1,7 @@
 import networkx as nx
 from autode.log import logger
 from copy import deepcopy
-from autode.conformers.conf_gen import get_simanl_atoms
+from autode.bond_lengths import get_avg_bond_length
 
 
 def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
@@ -40,9 +40,42 @@ def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
     return curr_nodes
 
 
+def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
+    """
+    Add a capping atom, e.g.
+
+
+              H
+             /
+     C_a---C_b - H   ->   C_a--H          where C_a is numbered atom_index, C_b is numbered n_atom_index
+             \
+              H
+
+    Arguments:
+        atom_index (int):
+        n_atom_index (int):
+        graph (nx.Graph): Current molecular graph of the stripped/truncated molecule
+        s_molecule (autode.species.Species): Stripped molecule
+    """
+
+    graph.add_node(n_atom_index, atom_label='H', stereo=False)
+
+    # Relabel the atom in the stripped molecule
+    s_molecule.atoms[n_atom_index].label = 'H'
+
+    # Shift the added capping hydrogen to the 'ideal' E-H bond length
+    curr_dist = s_molecule.get_distance(atom_index, n_atom_index)
+    ideal_dist = get_avg_bond_length(atom_i_label=s_molecule.atoms[atom_index].label, atom_j_label='H')
+    shift_vec = s_molecule.atoms[n_atom_index].coord - s_molecule.atoms[atom_index].coord
+
+    s_molecule.atoms[n_atom_index].translate(vec=(ideal_dist - curr_dist) * shift_vec / curr_dist)
+
+    return None
+
+
 def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
     """
-    Add capping atoms to the graph, truncating over C-C bonds where appropriate
+    Add capping atoms to the graph, truncating over C-C single bonds where appropriate
 
     Arguments:
         molecule (autode.species.Species):
@@ -51,13 +84,13 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
         curr_nodes (list(int)):
     """
 
-    truncated_atoms = []
+    truncated_atom_indexes = []
 
     while True:
 
         for i in curr_nodes:
 
-            if i in truncated_atoms:
+            if i in truncated_atom_indexes:
                 # Truncated atoms by definition do not have any neighbours that are not already in the graph
                 continue
 
@@ -68,8 +101,9 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
 
                 n_neighbours = len(list(s_molecule.graph.neighbors(n_atom_index)))
                 if s_molecule.atoms[n_atom_index].label == 'C' and n_neighbours == 4:
-                    truncated_graph.add_node(n_atom_index, atom_label='H', stereo=False)
-                    truncated_atoms.append(n_atom_index)
+                    truncated_atom_indexes.append(n_atom_index)
+
+                    add_capping_atom(i, n_atom_index, graph=truncated_graph, s_molecule=s_molecule)
 
                 else:
                     truncated_graph.add_nodes_from([(n_atom_index, molecule.graph.nodes[n_atom_index])])
@@ -114,11 +148,6 @@ def strip_non_core_atoms(molecule, active_atoms):
 
     # Delete all atoms not in the truncated graph and reset the graph
     s_molecule.graph = truncated_graph
-
-    # Reset the atom labels as some may have changed
-    for i in truncated_graph.nodes:
-        s_molecule.atoms[i].label = truncated_graph.nodes[i]['atom_label']
-
     s_molecule.set_atoms(atoms=[atom for i, atom in enumerate(s_molecule.atoms) if i in sorted(truncated_graph.nodes)])
 
     # Relabel the nodes so they correspond to the new set of atoms
@@ -140,10 +169,6 @@ def get_truncated_complex(complex_, bond_rearrangement):
 
     truncated_complex = strip_non_core_atoms(molecule=complex_,
                                              active_atoms=bond_rearrangement.active_atoms)
-
-    # Regenerate the 3D structure from the new graph
-    atoms = get_simanl_atoms(species=truncated_complex)
-    truncated_complex.set_atoms(atoms=atoms)
     truncated_complex.name += '_truncated'
 
     return truncated_complex

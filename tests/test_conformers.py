@@ -5,6 +5,7 @@ from scipy.spatial import distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
+from autode.conformers.conformers import conf_is_unique_rmsd
 import numpy as np
 import os
 from autode.conformers.conformers import get_unique_confs
@@ -86,3 +87,23 @@ def test_unique_confs():
     assert len(unique_confs) == 1
     assert type(unique_confs[0]) is Conformer
     assert unique_confs[0].energy == 1
+
+
+def test_rmsd_confs():
+
+    methane1 = Conformer(name='methane1', charge=0, mult=1,
+                         atoms=[Atom('C', -1.38718,  0.38899,  0.00000),
+                                Atom('H', -0.27778,  0.38899, -0.00000),
+                                Atom('H', -1.75698,  1.06232,  0.80041),
+                                Atom('H', -1.75698, -0.64084,  0.18291),
+                                Atom('H', -1.75698,  0.74551, -0.98332)])
+
+    methane2 = Conformer(name='methane2', charge=0, mult=1,
+                         atoms=[Atom('C', -1.38718,  0.38899,  0.00000),
+                                Atom('H', -0.43400,  0.50158, -0.55637),
+                                Atom('H', -2.23299,  0.69379, -0.64998),
+                                Atom('H', -1.36561,  1.03128,  0.90431),
+                                Atom('H', -1.51612, -0.67068,  0.30205)])
+
+    # Methane but rotated should have an RMSD ~ 0 Angstroms
+    assert conf_is_unique_rmsd(conf=methane2, conf_list=[methane1], rmsd_tol=0.1) is False

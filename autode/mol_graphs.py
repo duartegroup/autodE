@@ -13,7 +13,7 @@ from autode.methods import get_lmethod
 from autode.units import KcalMol
 
 
-def make_graph(species, rel_tolerance=0.2, bond_list=None, allow_invalid_valancies=False):
+def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
     default to false
@@ -216,7 +216,7 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
             logger.error('NX graph matching hanging')
             return False
 
-        return res.values()[0]
+        return list(res.values())[0]
     else:
         return False
 
@@ -237,7 +237,7 @@ def find_cycles(graph):
     return nx.cycle_basis(graph)
 
 
-def reac_graph_to_prods(reac_graph, bond_rearrang):
+def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
     """Makes the graph of the product from the reactant and the bond rearrang, so it has the indices of the reactant
 
     Arguments:
@@ -428,7 +428,7 @@ def is_isomorphic_ish(species, graph, ignore_active_bonds=False, any_interaction
         return True
 
     loose_mol = deepcopy(species)
-    make_graph(species=tight_mol, rel_tolerance=0.3)
+    make_graph(species=loose_mol, rel_tolerance=0.4)
 
     if is_isomorphic(loose_mol.graph, graph, ignore_active_bonds=ignore_active_bonds):
         return True
@@ -460,7 +460,7 @@ def is_isomorphic_wi(species, graph, any_inter, ignore_ab, wi_threshold=0.0016):
     for (i, j) in species.graph.edges:
 
         # Check that the current distance for a bond is 1.05x it's ideal value, so could be a weak interaction
-        if species.get_distance(i, j) < 1.05 * get_avg_bond_length(species.atoms[i].label, species.atoms[j].label):
+        if species.get_distance(i, j) > 1.1 * get_avg_bond_length(species.atoms[i].label, species.atoms[j].label):
             # Bond is normal
             continue
 

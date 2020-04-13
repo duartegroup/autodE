@@ -7,6 +7,7 @@ from scipy.optimize import minimize
 from autode.bond_lengths import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms
 from autode.log import logger
+from autode.input_output import atoms_to_xyz_file
 from autode.config import Config
 from autode.mol_graphs import split_mol_across_bond
 from multiprocessing import Pool
@@ -150,10 +151,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     for i, atom in enumerate(atoms):
         atom.coord = coords[i]
 
-    with open(xyz_filename, 'w') as xyz_file:
-        print(len(atoms), '', sep='\n', file=xyz_file)
-        for atom in atoms:
-            x, y, z = atom.coord
-            print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=xyz_file)
+    # Print an xyz file so rerunning will read the file
+    atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
 
     return atoms

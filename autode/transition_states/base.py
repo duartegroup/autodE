@@ -279,8 +279,8 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
         logger.info('Backwards displacement lead to products and forwards to reactants')
         return True
 
-    print(b_displaced_mol.graph.edges)
-    exit()
+    logger.info(f'Forwards displaced edegs {f_displaced_mol.graph.edges}')
+    logger.info(f'Backwards displaced edegs {b_displaced_mol.graph.edges}')
     return False
 
 

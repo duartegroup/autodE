@@ -216,35 +216,45 @@ class ORCA(ElectronicStructureMethod):
         return atoms
 
     def get_atomic_charges(self, calc):
-
-        charges_section = False
+        """
+        e.g.
+        -----------------------
+        MULLIKEN ATOMIC CHARGES
+        -----------------------
+           0 C :   -0.079081
+           1 Cl:   -0.196692
+           . .         .
+        """
         charges = []
-        for line in calc.output_file_lines:
+
+        for i, line in enumerate(calc.output_file_lines):
             if 'MULLIKEN ATOMIC CHARGES' in line:
-                charges_section = True
                 charges = []
-            if 'Sum of atomic charges' in line:
-                charges_section = False
-            if charges_section and len(line.split()) > 1:
-                if line.split()[0].isdigit():
-                    if line.split()[1] != 'Q':
-                        charges.append(float(line.split()[-1]))
+                for charge_line in calc.output_file_lines[i+2:i+2+calc.molecule.n_atoms]:
+                    charges.append(float(charge_line.split()[-1]))
 
         return charges
 
     def get_gradients(self, calc):
+        """
+        e.g.
 
-        gradients_section = False
+        ------------------
+        CARTESIAN GRADIENT                                            <- i
+        ------------------
+
+           1   C   :   -0.011390275   -0.000447412    0.000552736    <- j
+        """
         gradients = []
-        for line in calc.output_file_lines:
+
+        for i, line in enumerate(calc.output_file_lines):
             if 'CARTESIAN GRADIENT' in line:
-                gradients_section = True
-            if 'Difference to translation invariance' in line:
-                gradients_section = False
-            if gradients_section and len(line.split()) == 6:
-                atom, _, _, x, y, z = line.split()
-                if atom != 'Q':
-                    gradients.append([float(x), float(y), float(z)])
+                gradients = []
+                j = i + 3
+
+                for grad_line in calc.output_file_lines[j:j+calc.molecule.n_atoms]:
+                    dadx, dady, dadz = grad_line.split()[-3:]
+                    gradients.append([float(dadx), float(dady), float(dadz)])
 
         return gradients
 

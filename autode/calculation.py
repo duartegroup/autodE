@@ -20,6 +20,14 @@ def execute_calc(calc):
     return calc.execute_calculation()
 
 
+def check_molecule_attr(molecule):
+    assert hasattr(molecule, 'n_atoms')
+    assert hasattr(molecule, 'atoms')
+    assert hasattr(molecule, 'mult')
+    assert hasattr(molecule, 'charge')
+    assert hasattr(molecule, 'solvent')
+
+
 class Calculation:
 
     def _set_core_atoms(self, molecule):
@@ -220,6 +228,7 @@ class Calculation:
 
         # TODO Purge some of these attributes
         self.name = name
+        check_molecule_attr(molecule=molecule)
         self.molecule = deepcopy(molecule)
 
         self.method = method
@@ -263,9 +272,9 @@ class Calculation:
 
             self.solvent_keyword = getattr(molecule.solvent, method.name)
 
-        if self.molecule.atoms is None:
+        if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             logger.error('Have no xyzs. Can\'t make a calculation')
-            return
+            raise NoInputError
 
         if self.bond_ids_to_add:
             self._set_core_atoms(molecule)

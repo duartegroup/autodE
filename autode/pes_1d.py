@@ -78,18 +78,20 @@ class PES1d(PES):
         self.product_graph = product.graph
 
 
-def get_ts_guess_1d(reactant, product, active_bond, n_steps, name, method, keywords, final_dist):
+def get_ts_guess_1d(reactant, product, active_bond, name, method, keywords, final_dist, dr=0.1):
     """Scan the distance between two atoms and return a guess for the TS
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
         product (autode.complex.ProductComplex):
         active_bond (tuple): tuple of atom ids showing the first bond being scanned
-        n_steps (int): number of steps to take for each bond in the scan (so n^2 differenct scan points in total)
         name (str): name of reaction
         method (autode.): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
         final_dist (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
+
+    Keyword Arguments:
+        dr (float): Δr on the surface *absolute value*
 
     Returns:
         (autode.transition_states.ts_guess.TSguess)
@@ -99,7 +101,8 @@ def get_ts_guess_1d(reactant, product, active_bond, n_steps, name, method, keywo
 
     # Create a potential energy surface in the active bonds and calculate
     pes = PES1d(reactant=reactant, product=product,
-                rs=np.linspace(curr_dist, final_dist, n_steps), r_idxs=active_bond)
+                rs=np.arange(curr_dist, final_dist, step=dr if final_dist > curr_dist else -dr),
+                r_idxs=active_bond)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 

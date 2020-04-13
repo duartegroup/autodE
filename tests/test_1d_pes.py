@@ -34,10 +34,10 @@ def test_get_ts_guess_1dscan():
     ts_guess = get_ts_guess_1d(name='H+H2_H2+H',
                                reactant=reac, product=prod,
                                active_bond=(1, 2),
-                               n_steps=5,
                                method=orca,
                                keywords=['PBE', 'def2-SVP', 'Opt'],
-                               final_dist=0.7)
+                               final_dist=0.7,
+                               dr=0.06)
 
     assert ts_guess.n_atoms == 3
 

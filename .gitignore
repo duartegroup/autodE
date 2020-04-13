@@ -32,3 +32,5 @@ doc/_build/
 tests/htmlcov/
 
 *.inp
+
+htmlcov/
