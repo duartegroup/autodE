@@ -1,6 +1,7 @@
 from autode.log import logger
 import networkx as nx
 import numpy as np
+import itertools
 from copy import deepcopy
 import multiprocessing as mp
 from networkx.algorithms import isomorphism
@@ -11,7 +12,6 @@ from autode.atoms import get_maximal_valance
 from autode.calculation import Calculation
 from autode.methods import get_lmethod
 from autode.units import KcalMol
-from autode.geom import is_chiral_atom
 
 
 def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
@@ -278,6 +278,9 @@ def get_separate_subgraphs(graph):
     Returns:
         list: list of graphs separate graphs
     """
+
+    # TODO what happens if we've split across a ring?
+
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
 
@@ -538,11 +541,33 @@ def is_chiral_pi_bond(species, bond):
 
         graphs = []
         for neighbour in neighbours:
-            graph = species.graph.copy().remove_edge(atom, neighbour)
+            graph = species.graph.copy()
+            graph.remove_edge(atom, neighbour)
             split_subgraphs = get_separate_subgraphs(graph)
             graphs.append([subgraph for subgraph in split_subgraphs if neighbour in list(subgraph.nodes())][0])
 
         if is_isomorphic(graphs[0], graphs[1], ignore_active_bonds=True):
+            return False
+
+    return True
+
+
+def is_chiral_atom(species, atom):
+    """Determine if an atom is chiral, by seeing if any of the bonded groups are the same"""
+    neighbours = list(species.graph.neighbors(atom))
+
+    if len(neighbours) != 4:
+        return False
+
+    graphs = []
+    for neighbour in neighbours:
+        graph = species.graph.copy()
+        graph.remove_edge(atom, neighbour)
+        split_subgraphs = get_separate_subgraphs(graph)
+        graphs.append([subgraph for subgraph in split_subgraphs if neighbour in list(subgraph.nodes())][0])
+
+    for graph1, graph2 in itertools.combinations(graphs, 2):
+        if is_isomorphic(graph1, graph2, ignore_active_bonds=True):
             return False
 
     return True

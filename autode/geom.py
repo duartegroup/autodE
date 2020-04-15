@@ -167,20 +167,3 @@ def calc_rmsd(template_coords, coords_to_fit):
     rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
     fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords_to_fit])
     return np.sqrt(np.average(np.square(fitted_coords - template_coords)))
-
-
-def is_chiral_atom(species, atom):
-    """Determine if an atom is chiral, by superimposing the mirror image of its neigbours on it, and calculating the RMSD"""
-    neighbours = list(species.graph.neighbors(atom))
-
-    if len(neighbours) != 4:
-        return False
-
-    init_coords = species.get_coordinates()[[atom] + neighbours]
-    mirrored_coords = init_coords.copy() * [-1, 0, 0]
-
-    # RMSD on the 5 atoms should be < 0.5 Å if it is not a stereocentre
-    if calc_rmsd(init_coords, mirrored_coords) < 0.5:
-        return False
-
-    return True

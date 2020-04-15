@@ -103,6 +103,8 @@ class Molecule(Species):
         logger.info(f'Generating a Molecule object for {name}')
         super().__init__(name, atoms, charge, mult, solvent_name)
 
+        # TODO init from xyzs?
+
         self.smiles = smiles
         self.rdkit_mol_obj = None
         self.rdkit_conf_gen_is_fine = True
