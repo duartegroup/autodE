@@ -11,6 +11,7 @@ from autode.atoms import get_maximal_valance
 from autode.calculation import Calculation
 from autode.methods import get_lmethod
 from autode.units import KcalMol
+from autode.geom import is_chiral_atom
 
 
 def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
@@ -42,9 +43,11 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valanc
     for i in range(species.n_atoms):
         graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
 
-    # If smiles parser object is specified then add edges to the graph and return
+    # If bonds are specified then add edges to the graph and return
     if bond_list is not None:
         [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in bond_list]
+        species.graph = graph
+        return None
 
     else:
         # Loop over the unique pairs of atoms and add 'bonds'
@@ -68,7 +71,7 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valanc
                     graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
-    set_pi_bonds(species)
+    set_graph_attributes(species)
 
     if not allow_invalid_valancies:
         remove_bonds_invalid_valancies(species)
@@ -106,9 +109,9 @@ def remove_bonds_invalid_valancies(species):
     return None
 
 
-def set_pi_bonds(species):
+def set_graph_attributes(species):
     """
-    For a molecular species set the π bonds in the molecular graph.
+    For a molecular species set the π bonds and stereocentres in the molecular graph.
 
     Arguments:
         species (autode.species.Species):
@@ -120,6 +123,17 @@ def set_pi_bonds(species):
 
         if all([is_pi_atom(atom_label=species.atoms[atom].label, valency=species.graph.degree[atom]) for atom in bond]):
             species.graph.edges[atom_i, atom_j]['pi'] = True
+
+    logger.info('Setting the stereocentres in a species')
+
+    for bond in [edge for edge in species.graph.edges if species.graph.edges[edge]['pi'] is True]:
+        if is_chiral_pi_bond(species, bond):
+            species.graph.nodes[bond[0]]['stereo'] = True
+            species.graph.nodes[bond[1]]['stereo'] = True
+
+    for atom in range(species.n_atoms):
+        if is_chiral_atom(species, atom):
+            species.graph.nodes[atom]['stereo'] = True
 
     return None
 
@@ -344,29 +358,33 @@ def get_fbonds(graph, key):
     return possible_fbonds
 
 
-def get_active_mol_graph(graph, active_bonds):
+def get_active_mol_graph(species, active_bonds):
     """
     Get a molecular graph that includes 'active edges' i.e. bonds that are either made or broken in the reaction
 
     Arguments:
-        graph (nx.Graph):
+        species (autode.species.Species):
         active_bonds: (list(tuple(int)))
 
     """
     logger.info('Getting molecular graph with active edges')
-    active_graph = graph.copy()
+    active_graph = species.graph.copy()
 
     for bond in active_bonds:
 
         # The graph has both (i, j) and (j, i) edges such that the order is not important
-        if bond in graph.edges:
+        if bond in species.graph.edges:
             active_graph.edges[bond]['active'] = True
 
         else:
             active_graph.add_edge(*bond, pi=False, active=True)
 
     logger.info(f'Modified and added a total of {len(active_bonds)} bonds to the molecular graph')
-    return active_graph
+
+    species.graph = active_graph
+    set_graph_attributes(species)
+
+    return None
 
 
 def get_truncated_active_mol_graph(graph, active_bonds):
@@ -506,3 +524,25 @@ def is_isomorphic_wi(species, graph, any_inter, ignore_ab, wi_threshold=0.0016):
             pass
 
     return False
+
+
+def is_chiral_pi_bond(species, bond):
+    """Determine if a pi bond is chiral, by seeing if either atom has the same atoms bonded to it twice"""
+
+    for i, atom in enumerate(bond):
+        neighbours = list(species.graph.neighbors(atom))
+        neighbours.remove(bond[1-i])
+
+        if len(neighbours) != 2:
+            return False
+
+        graphs = []
+        for neighbour in neighbours:
+            graph = species.graph.copy().remove_edge(atom, neighbour)
+            split_subgraphs = get_separate_subgraphs(graph)
+            graphs.append([subgraph for subgraph in split_subgraphs if neighbour in list(subgraph.nodes())][0])
+
+        if is_isomorphic(graphs[0], graphs[1], ignore_active_bonds=True):
+            return False
+
+    return True

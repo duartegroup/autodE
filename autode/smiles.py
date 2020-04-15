@@ -70,6 +70,16 @@ def init_organic_smiles(molecule, smiles):
     # Ensure the SMILES string and the 3D structure have the same bonds
     make_graph(molecule)
 
+    for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
+        molecule.graph.nodes[atom]['stereo'] = True
+
+    for bond in molecule.mol_obj.GetBonds():
+        if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
+            molecule.graph.edges[bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()]['pi'] = True
+        if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:
+            molecule.graph.nodes[bond.GetBeginAtomIdx()]['stereo'] = True
+            molecule.graph.nodes[bond.GetEndAtomIdx()]['stereo'] = True
+
     if len(molecule.rdkit_mol_obj.GetBonds()) != molecule.graph.number_of_edges():
         logger.error('Bonds and graph do no match')
 
@@ -97,6 +107,13 @@ def init_smiles(molecule, smiles):
     molecule.set_atoms(atoms=parser.atoms)
 
     make_graph(molecule, bond_list=parser.bonds, allow_invalid_valancies=False)
+
+    for stereocentre in parser.stereocentres:
+        molecule.graph.nodes[stereocentre]['stereo'] = True
+    for bond_index in parser.bond_order_dict.keys():
+        bond = parser.bonds[bond_index]
+        molecule.graph.edges[bond]['pi'] = True
+
     molecule.set_atoms(atoms=get_simanl_atoms(molecule))
 
     # Ensure the SMILES string and the 3D structure have the same bonds

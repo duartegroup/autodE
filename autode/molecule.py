@@ -34,14 +34,7 @@ class Molecule(Species):
         return None
 
     @requires_atoms()
-    def _find_stereocentres(self):
-        # TODO... write this
-
-        # Set self.graph.node['stereo'] = True
-        pass
-
-    @requires_atoms()
-    def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=50):
+    def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=300):
         """
         Use a simulated annealing approach to generate conformers for this molecule.
 
@@ -118,12 +111,11 @@ class Molecule(Species):
 
         if smiles:
             self._init_smiles(smiles)
+        else:
+            make_graph(self)
 
         if self.n_atoms == 0:
             raise NoAtomsInMolecule
-
-        make_graph(self)
-        self._find_stereocentres()
 
 
 class SolvatedMolecule(Molecule):

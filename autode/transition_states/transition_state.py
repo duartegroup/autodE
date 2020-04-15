@@ -23,7 +23,7 @@ class TransitionState(TSbase):
     @requires_graph()
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being made/broken"""
-        self.graph = get_active_mol_graph(graph=self.graph, active_bonds=self.bond_rearrangement.all)
+        get_active_mol_graph(species=self, active_bonds=self.bond_rearrangement.all)
 
         logger.info(f'Molecular graph updated with {len(self.bond_rearrangement.all)} active bonds')
         return None
