@@ -217,7 +217,7 @@ def do_explicit_solvent_qmmm(solute, solvent, method, dist_consts=None, fix_solu
     for e in qmmm_energies:
         energy = e - min_e
         q += np.exp(-1052.58*energy)
-        boltzmann_qmmm_energy = energy * np.exp(-1052.58*energy)
+        boltzmann_qmmm_energy += energy * np.exp(-1052.58*energy)
     boltzmann_qmmm_energy = (boltzmann_qmmm_energy / q) + min_e
 
     return boltzmann_qmmm_energy, lowest_energy_qmmm_xyzs, qmmm_n_qm_atoms

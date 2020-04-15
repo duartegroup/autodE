@@ -49,7 +49,9 @@ class PES2d(PES):
                 logger.error('Constrained optimisation at the saddle point failed')
                 pass
 
-            yield species
+            return species
+
+        return None
 
     def fit(self, polynomial_order):
         """Fit an analytic 2d surface"""
@@ -117,14 +119,12 @@ class PES2d(PES):
             # The cores for this diagonal are the floored number of total cores divided by the number of calculations
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
+            # TODO passing PES in here is really slow with big molecules
             with Pool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
                                                                           cores_per_process)) for p in points]
                 for i, point in enumerate(points):
                     self.species[point] = results[i].get(timeout=None)
-
-        self.species[0, 0].generate_pymol_image(active_atoms=np.array(self.rs_idxs).flatten().tolist(), name=f'{name}_scan_0-0')
-        self.species[-1, -1].generate_pymol_image(active_atoms=np.array(self.rs_idxs).flatten().tolist(), name=f'{name}_scan_{self.n_points_r1-1}-{self.n_points_r2-1}')
 
         logger.info('2D PES scan done')
         return None
@@ -234,8 +234,10 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
     pes.fit(polynomial_order=polynomial_order)
     pes.print_plot(name=name)
 
-    # Yield a TSGuess for every saddle point on the surface
-    for species in pes.get_species_saddle_point(name=name, method=method, keywords=keywords):
+    # Get a TSGuess for the lowest energy MEP saddle point on the surface
+    species = pes.get_species_saddle_point(name=name, method=method, keywords=keywords)
+
+    if species is not None:
         return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
 
     logger.error('No possible TSs found on the 2D surface')

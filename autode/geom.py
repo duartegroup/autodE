@@ -160,3 +160,11 @@ def get_distance_constraints(species):
             distance_constraints[edge] = species.get_distance(*edge)
 
     return distance_constraints
+
+
+def calc_rmsd(template_coords, coords_to_fit):
+    """Calculate the RMSD between two sets of coordinates"""
+    rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
+    fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords_to_fit])
+    return np.sqrt(np.average(np.square(fitted_coords - template_coords)))
+

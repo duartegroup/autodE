@@ -23,9 +23,6 @@ atoms_and_electrons = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7
 
 bond_order_symbol_dict = {'-': 1, '=': 2, '#': 3, '$': 4}
 
-string = 'O=C(CC)[Co]1([H][H]1)(=C=O)(=C=O)=C=O'
-
-
 class SmilesParser:
 
     def divide_smiles(self, string_to_divide):

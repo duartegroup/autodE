@@ -10,7 +10,6 @@ from autode.config import Config
 from autode.geom import length
 from autode.utils import requires_atoms
 from autode.utils import requires_conformers
-from autode.plotting import make_pymol_image
 
 
 class Species:
@@ -100,17 +99,6 @@ class Species:
         """Get the distance between two atoms in the species"""
         return length(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
 
-    @requires_atoms()
-    def generate_pymol_image(self, active_atoms=None, name=None):
-        """Generate a PyMOL .png from the Molecule's atoms"""
-
-        name = self.name if name is None else name
-
-        logger.info(f'Creating PyMOL image and saving to {name}.png')
-
-        self.print_xyz_file(filename=f'{name}.xyz')
-        return make_pymol_image(species=self, active_atoms=active_atoms, name=name)
-
     def find_lowest_energy_conformer(self, low_level_method=None, high_level_method=None):
         """
         For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy
@@ -136,8 +124,7 @@ class Species:
             return None
 
         # For all the generated conformers optimise with the low level of theory
-        for i in range(len(self.conformers)):
-            self.conformers[i].optimise(low_level_method)
+        [self.conformers[i].optimise(low_level_method) for i in range(len(self.conformers))]
 
         # Strip conformers that are similar based on an energy criteria or don't have an energy
         self.conformers = get_unique_confs(conformers=self.conformers)

@@ -14,6 +14,7 @@ from autode.exceptions import NoAtomsInMolecule
 from autode.utils import requires_atoms
 from autode.smiles import init_organic_smiles
 from autode.smiles import init_smiles
+from multiprocessing import Pool
 
 
 class Molecule(Species):
@@ -65,11 +66,12 @@ class Molecule(Species):
 
         else:
             logger.info('Using simulated annealing to generate conformers')
-            # TODO parallelise
-            conf_atoms_list = [get_simanl_atoms(species=self, conf_n=i) for i in range(n_siman_confs)]
+            with Pool(processes=Config.n_cores) as pool:
+                results = [pool.apply_async(get_simanl_atoms, (self, None, i)) for i in range(n_siman_confs)]
+                conf_atoms_list = [res.get(timeout=None) for res in results]
 
         for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}',  charge=self.charge, mult=self.mult, atoms=atoms)
+            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge, mult=self.mult, atoms=atoms)
 
             # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):
