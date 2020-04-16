@@ -73,7 +73,7 @@ def init_organic_smiles(molecule, smiles):
     for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
         molecule.graph.nodes[atom]['stereo'] = True
 
-    for bond in molecule.mol_obj.GetBonds():
+    for bond in molecule.rdkit_mol_obj.GetBonds():
         if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
             molecule.graph.edges[bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()]['pi'] = True
         if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:

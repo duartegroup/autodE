@@ -28,13 +28,13 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return res.x.reshape(n_atoms, 3)
 
 
-def get_atoms_rotated_stereocentres(species, atoms, theta):
+def get_atoms_rotated_stereocentres(species, atoms, rand):
     """If two stereocentres are bonded, rotate them randomly with respect to each other
 
     Arguments:
         species (autode.species.Species):
         atoms (list(autode.atoms.Atom)):
-        theta (float): Rotation angle in radians
+        rand (np.RandomState): random state
     """
 
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
@@ -48,11 +48,11 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
                 logger.info('Stereocenters were π bonded – not rotating')
                 continue
 
-            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+            left_idxs, _ = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
 
             # Rotate the left hand side randomly
             rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
-            [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for i in left_idxs]
+            [atoms[i].rotate(axis=rot_axis, theta=2*np.pi*rand.rand(), origin=atoms[atom_i].coord) for i in left_idxs]
 
     return atoms
 
@@ -122,7 +122,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
 
     # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
     rand = RandomState()
-    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), theta=2*np.pi*rand.rand())
+    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), rand=rand)
 
     # Add the distance constraints as fixed bonds
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())

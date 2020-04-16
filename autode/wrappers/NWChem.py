@@ -63,7 +63,9 @@ class NWChem(ElectronicStructureMethod):
                 print('noautoz', file=inp_file)
             else:
                 print('', file=inp_file)
-            [print('  {:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+            for atom in calc.molecule.atoms:
+                x, y, z = atom.coord
+                print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             if calc.bond_ids_to_add or calc.distance_constraints:
                 print('  zcoord', file=inp_file)
                 if calc.bond_ids_to_add:

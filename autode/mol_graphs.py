@@ -122,6 +122,7 @@ def set_graph_attributes(species):
         atom_i, atom_j = bond
 
         if all([is_pi_atom(atom_label=species.atoms[atom].label, valency=species.graph.degree[atom]) for atom in bond]):
+            # TODO fix this for alternating single and double bonds, currently all shown as pi
             species.graph.edges[atom_i, atom_j]['pi'] = True
 
     logger.info('Setting the stereocentres in a species')

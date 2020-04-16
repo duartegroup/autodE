@@ -147,10 +147,6 @@ class TransitionState(TSbase):
 
         return None
 
-            self.calc = calc
-
-        return None
-
     def is_true_ts(self):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
 
@@ -207,5 +203,3 @@ class SolvatedTransitionState(TransitionState):
         super().__init__(ts_guess=ts_guess, bond_rearrangement=bond_rearrangement, name=name)
         self.qm_solvent_xyzs = None
         self.mm_solvent_xyzs = None
-
-        # self.charges = ts_guess.get_charges()[:self.n_atoms]
