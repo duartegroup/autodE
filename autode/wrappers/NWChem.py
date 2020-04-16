@@ -66,6 +66,10 @@ class NWChem(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
+                for atom in calc.qm_solvent_atoms:
+                    x, y, z = atom.coord
+                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             if calc.bond_ids_to_add or calc.distance_constraints:
                 print('  zcoord', file=inp_file)
                 if calc.bond_ids_to_add:
@@ -111,10 +115,12 @@ class NWChem(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=' ', file=inp_file)
                 print('end', file=inp_file)
 
-            if calc.molecule.charges:
+            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
                 print('bq')
-                [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file)
-                 for line in calc.molecule.charges]
+                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
+                    charge = calc.molecule.solvent.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    x, y, z = atom.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
                 print('end')
 
             print(f'memory {Config.max_core} mb', file=inp_file)

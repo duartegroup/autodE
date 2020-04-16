@@ -3,6 +3,7 @@ from autode.log import logger
 from rdkit.Chem import AllChem
 from autode.atoms import metals
 from autode.species import Species
+from autode.species import SolvatedSpecies
 from autode.mol_graphs import make_graph
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
@@ -120,29 +121,34 @@ class Molecule(Species):
             raise NoAtomsInMolecule
 
 
-class SolvatedMolecule(Molecule):
+class SolvatedMolecule(Molecule, SolvatedSpecies):
 
+    @requires_atoms()
     def optimise(self, method):
         logger.info(f'Running optimisation of {self.name}')
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords_list=method.opt_keywords,
-                          n_cores=Config.n_cores, opt=True)
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
+                          keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
         opt.run()
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
-        self.charges = opt.get_atomic_charges()
+        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
+        for i, charge in enumerate(opt.get_atomic_charges()):
+            self.graph.nodes[i]['charge'] = charge
 
-        # TODO get this to return the atoms
-        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, method, n_confs=96)
-        self.xyzs = qmmm_xyzs[:self.n_atoms]
-        self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
-        self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, self.solvent_mol, method, n_confs=96)
+        self.set_atoms(species_atoms)
+        self.qm_solvent_atoms = qm_solvent_atoms
+        self.mm_solvent_atoms = mm_solvent_atoms
+
+        return None
 
     def __init__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
         super().__init__(name, smiles, atoms, solvent_name, charge, mult)
 
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None
+        self.solvent_mol = None
+        self.qm_solvent_atoms = None
+        self.mm_solvent_atoms = None
 
 
 class Reactant(Molecule):

@@ -239,10 +239,6 @@ class Calculation:
         self.grad = grad
         self.partial_hessian = partial_hessian
 
-        # TODO reimplement this
-        # if molecule.qm_solvent_xyzs is not None:
-        #    self.xyzs += molecule.qm_solvent_xyzs
-
         self.n_cores = n_cores
         self.max_core_mb = Config.max_core        # Maximum memory per core to use
 

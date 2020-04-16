@@ -16,71 +16,66 @@ from openmmtools.integrators import GradientDescentMinimizationIntegrator
 class QMMM:
 
     def set_up_main_simulation(self, fix_solute):
-        pdb = omapp.PDBFile(self.pdb_filename)
-        system = self.forcefield.createSystem(pdb.topology)
+        atoms2pdb(deepcopy(self.species.qm_solvent_atoms + self.species.mm_solvent_atoms), f'{self.name}.pdb')
+        pdb = omapp.PDBFile(f'{self.name}.pdb')
+        self.system = omapp.ForceField('tip3pfb.xml').createSystem(pdb.topology)
 
-        coords = xyz2coord(self.all_xyzs)
+        coords = [atom.coord for atom in self.species.qm_solvent_atoms + self.species.mm_solvent_atoms + self.species.atoms]
         box_size = (np.max(coords, axis=0) - np.min(coords, axis=0)) / 10
         x_vec = om.Vec3(box_size[0], 0, 0)
         y_vec = om.Vec3(0, box_size[1], 0)
         z_vec = om.Vec3(0, 0, box_size[2])
-        system.setDefaultPeriodicBoxVectors(x_vec, y_vec, z_vec)
+        self.system.setDefaultPeriodicBoxVectors(x_vec, y_vec, z_vec)
 
-        for _ in range(len(self.solute_xyzs)):
-            system.addParticle(0)
+        for _ in range(self.species.n_atoms):
+            self.system.addParticle(0)
 
-        qmmm_force_obj = om.CustomExternalForce("-x*fx-y*fy-z*fz")
-        qmmm_force_obj.addPerParticleParameter('fx')
-        qmmm_force_obj.addPerParticleParameter('fy')
-        qmmm_force_obj.addPerParticleParameter('fz')
+        self.qmmm_force_obj = om.CustomExternalForce("-x*fx-y*fy-z*fz")
+        self.qmmm_force_obj.addPerParticleParameter('fx')
+        self.qmmm_force_obj.addPerParticleParameter('fy')
+        self.qmmm_force_obj.addPerParticleParameter('fz')
 
-        for i in range(self.n_atoms):
-            qmmm_force_obj.addParticle(i, np.array([0.0, 0.0, 0.0]))
+        for i in range(len(coords)):
+            self.qmmm_force_obj.addParticle(i, np.array([0.0, 0.0, 0.0]))
 
-        system.addForce(qmmm_force_obj)
+        self.system.addForce(self.qmmm_force_obj)
 
-        for force in system.getForces():
+        for force in self.system.getForces():
             if type(force) is om.NonbondedForce:
-                for i in range(len(self.solute_xyzs)):
-                    atom_label = self.solute_xyzs[i][0]
-                    force.addParticle(self.solute_charges[i], 0.2 * get_vdw_radius(atom_label), 0.2)
+                for i, atom in enumerate(self.species.atoms):
+                    force.addParticle(self.species.graph.nodes[i]['charge'], 0.2 * get_vdw_radius(atom.label), 0.2)
 
-        simulation = omapp.Simulation(pdb.topology, system, self.integrator)
+        self.simulation = omapp.Simulation(pdb.topology, self.system, GradientDescentMinimizationIntegrator(initial_step_size=1*angstrom))
 
-        # prevent openmm multithreading combined with python multithreading overloading the CPU
-        simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
-        simulation.context.reinitialize(preserveState=True)
+        # Prevent openmm multithreading combined with python multithreading overloading the CPU
+        self.simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
+        self.simulation.context.reinitialize(preserveState=True)
 
-        coords_in_nm = xyz2coord(self.solvent_xyzs + self.solute_xyzs) * 0.1
-        simulation.context.setPositions(coords_in_nm)
+        coords_in_nm = coords * 0.1
+        self.simulation.context.setPositions(coords_in_nm)
 
         logger.info('Minimizing solvent energy')
-        simulation.minimizeEnergy()
+        self.simulation.minimizeEnergy()
+        self.set_qm_atoms()
 
-        for force in system.getForces():
+        for force in self.system.getForces():
             if type(force) is om.NonbondedForce:
-                for i in range(len(self.solute_xyzs)):
-                    force.setParticleParameters(i + self.n_solvent_atoms, self.solute_charges[i], 0, 0)
+                for i in range(self.species.n_atoms):
+                    force.setParticleParameters(i + self.n_solvent_atoms, self.species.graph.nodes[i]['charge'], 0, 0)
 
         if not fix_solute:
-            for i, xyz in enumerate(self.solute_xyzs):
-                el = omapp.Element.getBySymbol(xyz[0])
-                mass = el.mass / dalton
-                system.setParticleMass(i + self.n_solvent_atoms, mass)
+            for i, atom in enumerate(self.species.atoms):
+                self.system.setParticleMass(i + self.n_solvent_atoms, omapp.Element.getBySymbol(atom.label).mass / dalton)
 
             for (atom1, atom2), distance in self.dist_consts.items():
-                system.addConstraint(atom1 + self.n_solvent_atoms, atom2 + self.n_solvent_atoms, distance/10)
-
-        self.system = system
-        self.qmmm_force_obj = qmmm_force_obj
-        self.simulation = simulation
+                self.system.addConstraint(atom1 + self.n_solvent_atoms, atom2 + self.n_solvent_atoms, distance/10)
 
     def set_qm_atoms(self):
         positions = self.simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
         solute_coords = positions[self.n_solvent_atoms:] / nanometer
         all_distances = []
-        for i in range(self.n_solvent_mols):
-            solvent_coords = positions[i*self.n_atoms_in_solvent_mol:(i+1)*self.n_atoms_in_solvent_mol] / nanometer
+        for i in range(self.n_solvent_atoms / self.species.solvent_mol.n_atoms):
+            solvent_coords = positions[i*self.species.solvent_mol.n_atoms:(i+1)*self.species.solvent_mol.n_atoms] / nanometer
             solvent_centre = np.average(solvent_coords, axis=0)
             distances = []
             for coord in solute_coords:
@@ -88,24 +83,34 @@ class QMMM:
             all_distances.append(min(distances))
         sorted_distances = sorted(all_distances)
         closest_solvents = []
-        for i in range(self.n_qm_solvent_mols):
+        for i in range(len(self.species.qm_solvent_atoms)/self.species.solvent_mol.n_atoms):
             closest_solvents.append(all_distances.index(sorted_distances[i]))
         qm_atoms = []
         for index in closest_solvents:
-            all_mol_indices = [i+(index*self.n_atoms_in_solvent_mol) for i in range(self.n_atoms_in_solvent_mol)]
+            all_mol_indices = [i+(index*self.species.solvent_mol.n_atoms) for i in range(self.species.solvent_mol.n_atoms)]
             qm_atoms += all_mol_indices
-        self.qm_solvent_atoms = qm_atoms
+        self.qm_solvent_atom_idxs = qm_atoms
+        self.update_atoms(positions)
+
+    def update_atoms(self, positions):
+        coords = positions / angstrom
+        self.species.set_coordinates(coords[self.n_solvent_atoms:])
+        qm_solvent_coords = coords[self.qm_solvent_atom_idxs]
+        mm_solvent_coords = coords[[i for i in range(self.n_solvent_atoms) if not i in self.qm_solvent_atom_idxs]]
+        for i, coord in qm_solvent_coords:
+            self.species.qm_solvent_atoms[i].coord = coord
+        for i, coord in mm_solvent_coords:
+            self.species.mm_solvent_atoms[i].coord = coord
 
     def simulate(self):
         self.run_qmmm_step()
         self.run_qmmm_step()
         while abs(self.all_qmmm_energy[-1] - self.all_qmmm_energy[-2]) > 0.000001:
             self.run_qmmm_step()
-        final_state = self.simulation.context.getState(getPositions=True)
-        final_positions = final_state.getPositions(asNumpy=True)
 
-        self.final_xyzs = self.positions2xyzs(final_positions)
-        self.final_energy = self.all_qmmm_energy[-1]
+        self.species.energy = self.all_qmmm_energy[-1]
+
+        return None
 
     def run_qmmm_step(self):
         qmmm_force = self.calc_forces_and_energies()
@@ -125,7 +130,6 @@ class QMMM:
         full_mm_state = self.simulation.context.getState(getPositions=True, getEnergy=True)
         full_mm_energy = full_mm_state.getPotentialEnergy() / (kilojoule_per_mole * Constants.ha2kJmol)
         positions = full_mm_state.getPositions(asNumpy=True)
-        self.print_traj_point(positions)
 
         for _ in range(self.system.getNumForces()):
             self.system.removeForce(0)
@@ -151,7 +155,7 @@ class QMMM:
                 new_force = deepcopy(force)
                 for i in range(new_force.getNumParticles()):
                     params = new_force.getParticleParameters(i)
-                    if i < self.n_solvent_atoms and not i in self.qm_solvent_atoms:
+                    if i < self.n_solvent_atoms and not i in self.qm_solvent_atom_idxs:
                         new_force.setParticleParameters(i, params[0], 0, 0)
                     else:
                         new_force.setParticleParameters(i, 0, 0, 0)
@@ -171,18 +175,16 @@ class QMMM:
 
         qm_forces, qm_energy = self.get_qm_force_energy(positions)
 
-        self.qm_energy = qm_energy
-
-        qmmm_forces = np.zeros((self.n_atoms, 3))
+        qmmm_forces = np.zeros((len(positions), 3))
         for i, force in enumerate(qm_forces):
             # force for solute, then solvent_name atoms
-            if i < len(self.solute_xyzs):
+            if i < self.species.n_atoms:
                 index = self.n_solvent_atoms + i
             else:
-                index = self.qm_solvent_atoms[i - len(self.solute_xyzs)]
+                index = self.qm_solvent_atom_idxs[i - self.species.n_atoms]
             qmmm_forces[index] += force
         for i, force in enumerate(all_coulomb_forces):
-            if i > self.n_solvent_atoms or i in self.qm_solvent_atoms:
+            if i > self.n_solvent_atoms or i in self.qm_solvent_atom_idxs:
                 qmmm_forces[i] -= force
         qmmm_forces *= (kilojoule_per_mole * Constants.ha2kJmol * 10) / nanometer
         self.update_forces(qmmm_forces)
@@ -193,15 +195,7 @@ class QMMM:
         return qmmm_forces
 
     def get_qm_force_energy(self, positions):
-        xyzs = self.positions2xyzs(positions)
-        mol = deepcopy(self.molecule)
-        mol.name = f'{self.name}_step_{self.step_no}_grad'
-        mol.xyzs = xyzs[:self.n_qm_atoms]
-        charges_with_coords = []
-        for i in range(self.n_mm_solvent_atoms):
-            charges_with_coords.append(xyzs[i + self.n_qm_atoms] + [self.solvent_charges[i]])
-        keywords = self.method.gradients_keywords
-        grad_calc = Calculation(mol.name, mol, self.method, keywords, 1, Config.max_core, charges=charges_with_coords, grad=True)
+        grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, Config.max_core, grad=True)
         grad_calc.run()
         qm_grads = grad_calc.get_gradients()  # in Eh/bohr
         qm_forces = []
@@ -220,86 +214,42 @@ class QMMM:
             self.qmmm_force_obj.setParticleParameters(i, i, force)
         self.qmmm_force_obj.updateParametersInContext(self.simulation.context)
 
-    def positions2xyzs(self, positions):
-        coords = positions / angstrom
-        qm_solvent_coords = coords[self.qm_solvent_atoms]
-        mm_solvent_coords = coords[[i for i in range(self.n_solvent_atoms) if not i in self.qm_solvent_atoms]]
-        ordered_coords = np.concatenate((coords[self.n_solvent_atoms:], qm_solvent_coords, mm_solvent_coords))
-        return coords2xyzs(ordered_coords, self.all_xyzs)
-
-    def print_traj_point(self, positions):
-        xyzs = self.positions2xyzs(positions)
-        with open(f'{self.name}_traj.xyz', 'a') as traj_file:
-            print(f'{self.n_atoms}\n', file=traj_file)
-            [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=traj_file) for line in xyzs]
-        with open(f'{self.name}_qm_traj.xyz', 'a') as traj_file:
-            print(f'{self.n_qm_atoms}\n', file=traj_file)
-            [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=traj_file) for line in xyzs[:self.n_qm_atoms]]
-
-    def __init__(self, solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, dist_consts, number, method, fix_solute):
-        self.name = f'{solute.name}_qmmm_{number}'
-        self.solute_xyzs = solute.xyzs
-        self.solute_charge = solute.charge
-        self.solute_mult = solute.mult
-        self.solute_charges = solute.charges
-        self.n_solvent_mols = n_solvent_mols
-        self.solvent_xyzs = solvent_xyzs
-        self.solvent_bonds = solvent_bonds
-        self.solvent_charges = solvent_charges
-        self.n_qm_solvent_mols = n_qm_solvent_mols
+    def __init__(self, species, dist_consts, method, fix_solute, number):
+        self.name = f'{species.name}_qmmm_{number}'
+        self.species = species
         self.dist_consts = [] if dist_consts is None else dist_consts
         self.method = method
+        self.n_solvent_atoms = len(species.qm_solvent_atoms + species.mm_solvent_atoms)
 
-        self.qm_energy = None
-
-        self.n_solvent_atoms = len(self.solvent_xyzs)
-        self.all_xyzs = self.solute_xyzs + self.solvent_xyzs
-        self.n_atoms = len(self.all_xyzs)
-        self.n_atoms_in_solvent_mol = int(self.n_solvent_atoms/self.n_solvent_mols)
-        self.n_qm_atoms = len(self.solute_xyzs) + (self.n_qm_solvent_mols * self.n_atoms_in_solvent_mol)
-        self.n_mm_solvent_atoms = self.n_solvent_atoms - (self.n_qm_solvent_mols * self.n_atoms_in_solvent_mol)
-
-        self.pdb_filename = self.name + '.pdb'
-        xyzs2pdb(deepcopy(self.solvent_xyzs), self.pdb_filename)
-
-        self.molecule = deepcopy(solute)
-
-        self.topology = None
         self.system = None
         self.simulation = None
-        self.forcefield = omapp.ForceField('tip3pfb.xml')
-        self.integrator = GradientDescentMinimizationIntegrator(initial_step_size=1*angstrom)
         self.qmmm_force_obj = None
         self.set_up_main_simulation(fix_solute)
 
-        self.qm_solvent_atoms = None
-        self.set_qm_atoms()
+        self.qm_solvent_atom_idxs = None
 
         self.all_qmmm_energy = []
         self.step_no = 0
 
-        self.final_xyzs = None
-        self.final_energy = None
 
-
-def xyzs2pdb(xyzs, filename):
-    for i in range(len(xyzs)):
+def atoms2pdb(atoms, filename):
+    for i, atom in enumerate(atoms):
         if i % 3 == 1:
-            xyzs[i][0] = 'H1'
+            atom.label = 'H1'
         if i % 3 == 2:
-            xyzs[i][0] = 'H2'
+            atom.label = 'H2'
     with open(filename, 'w') as pdb_file:
         print('COMPND    ', 'Title\n',
               'AUTHOR    ', 'Generated by autodE', file=pdb_file)
-        for i, xyz in enumerate(xyzs):
-            atom_label, x, y, z = xyz
+        for i, atom in enumerate(atoms):
+            x, y, z = atom.coord
             atm = 'HETATM'
-            resname = 'HOH' if atom_label in ['O', 'H1', 'H2'] else 'UNL'
-            print(f'{atm:6s}{i+1:5d}{atom_label.upper():>3s}   {resname:3s}  {i//3:4d}    '
-                  f'{x:8.3f}{y:8.3f}{z:8.3f}{1.0:6.2f}{0.0:6.2f}          {atom_label[0]:>2s}  ', file=pdb_file)
-        # Connect the oxygen atoms
-        for i, xyz in enumerate(xyzs):
-            if xyz[0] == 'O':
+            resname = 'HOH'
+            print(f'{atm:6s}{i+1:5d}{atom.label.upper():>3s}   {resname:3s}  {i//3:4d}    '
+                  f'{x:8.3f}{y:8.3f}{z:8.3f}{1.0:6.2f}{0.0:6.2f}          {atom.label[0]:>2s}  ', file=pdb_file)
+        # Add the water bonds
+        for i, atom in enumerate(atoms):
+            if atom.label == 'O':
                 print(f'CONECT{i+1:5d}{i+2:5d}{i+3:5d}', file=pdb_file)
                 print(f'CONECT{i+2:5d}{i+1:5d}', file=pdb_file)
                 print(f'CONECT{i+3:5d}{i+1:5d}', file=pdb_file)

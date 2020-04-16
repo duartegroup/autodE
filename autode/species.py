@@ -58,13 +58,7 @@ class Species:
         """Rotate the molecule by around an axis (np.ndarray, length 3) an theta radians"""
         for atom in self.atoms:
 
-            if origin is not None:
-                atom.translate(vec=-origin)
-                atom.rotate(axis, theta, origin=origin)
-                atom.translate(vec=origin)
-
-            else:
-                atom.rotate(axis, theta)
+            atom.rotate(axis, theta, origin=origin)
 
         return None
 
@@ -180,8 +174,6 @@ class Species:
 
         self.energy = None                                              # Total electronic energy in Hartrees (float)
 
-        self.charges = None                                             # List of partial atomic charges (list(float))
-
         self.graph = None                                               # NetworkX.Graph object with atoms and bonds
 
         self.conformers = None                                          # List of autode.conformers.conformers.Conformer
@@ -192,17 +184,12 @@ class SolvatedSpecies(Species):
     def single_point(self, method):
         logger.info(f'Running single point energy evaluation of {self.name}')
 
+        # TODO make this work
         point_charges = []
         for i, xyz in enumerate(self.mm_solvent_xyzs):
-            point_charges.append(xyz + [self.solvent.charges[i % self.solvent.n_atoms]])
+            point_charges.append(xyz + [self.solvent_mol.charges[i % self.solvent_mol.n_atoms]])
 
         sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords_list=method.sp_keywords,
                          n_cores=Config.n_cores)
         sp.run()
         self.energy = sp.get_energy()
-
-    def __int__(self, name, atoms, charge, mult, solvent_name):
-        super(SolvatedSpecies, self).__init__(name, atoms, charge, mult, solvent_name)
-
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None

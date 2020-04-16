@@ -87,7 +87,14 @@ class ORCA(ElectronicStructureMethod):
                 print(*calc.partial_hessian, file=inp_file, end='')
                 print('} end\nend', file=inp_file)
 
-            if calc.molecule.charges:
+            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+                with open(f'{calc.name}_orca.pc', 'w') as pc_file:
+                    print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
+                    for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
+                        charge = calc.molecule.solvent.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                        x, y, z = atom.coord
+                        print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+                    calc.additional_input_files.append((f'{calc.name}_orca.pc', f'{calc.name}_orca.pc'))
                 print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
             if calc.n_cores > 1:
@@ -99,15 +106,11 @@ class ORCA(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
+                for atom in calc.qm_solvent_atoms:
+                    x, y, z = atom.coord
+                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             print('*', file=inp_file)
-
-        if calc.molecule.charges:
-            with open(f'{calc.name}_orca.pc', 'w') as pc_file:
-                print(len(calc.molecule.charges), file=pc_file)
-                for line in calc.molecule.charges:
-                    formatted_line = [line[-1]] + line[1:4]
-                    print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=pc_file)
-            calc.additional_input_files.append((f'{calc.name}_orca.pc', f'{calc.name}_orca.pc'))
 
         return None
 
