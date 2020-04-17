@@ -23,13 +23,16 @@ Documentation
    min_energy_pathway
    mol_graphs
    molecule
-   opt
    pes_1d
    pes_2d
+   pes
    plotting
    reaction
    reactions
    saddle_points
+   smiles_parser
+   smiles
+   species
    substitution
    units
    utils
