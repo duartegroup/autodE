@@ -41,7 +41,7 @@ def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
     # TODO make this nicer?
     # Only take closest solvent molecules
     distances = []
-    for i in range(len(all_solvent_atoms)/solvent_n_atoms):
+    for i in range(int(len(all_solvent_atoms)/solvent_n_atoms)):
         solvent_mol_atoms = all_solvent_atoms[i*solvent_n_atoms:(i+1)*solvent_n_atoms]
         solvent_mol_coords = [atom.coord for atom in solvent_mol_atoms]
         distances.append(np.linalg.norm(np.average(solvent_mol_coords, axis=0)))
@@ -52,7 +52,7 @@ def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
     for i in range(n_solvent_mols):
         original_index = distances.index(sorted_distances[i])
         solvent_mol_atoms = all_solvent_atoms[original_index*solvent_n_atoms:(original_index+1)*solvent_n_atoms]
-        if i < len(n_qm_solvent_mols):
+        if i < n_qm_solvent_mols:
             species.qm_solvent_atoms += solvent_mol_atoms
         else:
             species.mm_solvent_atoms += solvent_mol_atoms
@@ -91,10 +91,11 @@ def add_solvent_on_sphere(species, solvent_atoms, radius, solvent_mol_area, radi
             y = (rad_to_use + rand_add) * np.sin(rand_theta) * np.sin(phi)
             z = (rad_to_use + rand_add) * np.cos(rand_theta)
             position = [x, y, z]
+            species.solvent_mol.rotate(axis=rand.uniform(-1.0, 1.0, 3), theta=2*np.pi*rand.rand())
             for atom in species.solvent_mol.atoms:
-                atom.rotate(axis=rand.uniform(-1.0, 1.0, 3), theta=2*np.pi*rand.rand())
-                atom.translate(position)
-                solvent_atoms.append(deepcopy(atom))
+                new_atom = deepcopy(atom)
+                new_atom.translate(position)
+                solvent_atoms.append(new_atom)
 
     return None
 
@@ -116,20 +117,20 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
                 xyzs_section = True
 
     else:
-        completed_qmmm = False
-        while not completed_qmmm:
-            try:
-                for filename in os.listdir(os.getcwd()):
-                    if f'{file_prefix}_step_' in filename:
-                        os.remove(filename)
-                add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols)
-                qmmm = QMMM(species, dist_consts, method, fix_solute, i)
-                qmmm.simulate()
-                atoms = species.atoms + species.qm_solvent_atoms + species.mm_solvent_atoms
-                qmmm_energy = species.energy
-                completed_qmmm = True
-            except:
-                pass
+        #completed_qmmm = False
+        # while not completed_qmmm:
+            # try:
+        for filename in os.listdir(os.getcwd()):
+            if f'{file_prefix}_step_' in filename:
+                os.remove(filename)
+        add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols)
+        qmmm = QMMM(species, dist_consts, method, fix_solute, i)
+        qmmm.simulate()
+        atoms = species.atoms + species.qm_solvent_atoms + species.mm_solvent_atoms
+        qmmm_energy = species.energy
+        #completed_qmmm = True
+        # except:
+        #     pass
         for filename in os.listdir(os.getcwd()):
             if f'{file_prefix}_step_' in filename:
                 os.remove(filename)

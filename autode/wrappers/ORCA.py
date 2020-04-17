@@ -91,10 +91,10 @@ class ORCA(ElectronicStructureMethod):
                 with open(f'{calc.name}_orca.pc', 'w') as pc_file:
                     print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
                     for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
-                        charge = calc.molecule.solvent.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                        charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
                         x, y, z = atom.coord
-                        print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
-                    calc.additional_input_files.append((f'{calc.name}_orca.pc', f'{calc.name}_orca.pc'))
+                        print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
+                    calc.additional_input_files.append(f'{calc.name}_orca.pc')
                 print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
             if calc.n_cores > 1:
@@ -107,7 +107,7 @@ class ORCA(ElectronicStructureMethod):
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
-                for atom in calc.qm_solvent_atoms:
+                for atom in calc.molecule.qm_solvent_atoms:
                     x, y, z = atom.coord
                     print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             print('*', file=inp_file)
@@ -254,7 +254,7 @@ class ORCA(ElectronicStructureMethod):
             if 'CARTESIAN GRADIENT' in line:
                 gradients = []
                 j = i + 3
-
+                n_atoms = calc.molecule.n_atoms + len(calc.molecule.qm_solvent_atoms)
                 for grad_line in calc.output_file_lines[j:j+calc.molecule.n_atoms]:
                     dadx, dady, dadz = grad_line.split()[-3:]
                     gradients.append([float(dadx), float(dady), float(dadz)])

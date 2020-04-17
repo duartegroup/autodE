@@ -20,7 +20,7 @@ class QMMM:
         pdb = omapp.PDBFile(f'{self.name}.pdb')
         self.system = omapp.ForceField('tip3pfb.xml').createSystem(pdb.topology)
 
-        coords = [atom.coord for atom in self.species.qm_solvent_atoms + self.species.mm_solvent_atoms + self.species.atoms]
+        coords = np.array([atom.coord for atom in self.species.qm_solvent_atoms + self.species.mm_solvent_atoms + self.species.atoms])
         box_size = (np.max(coords, axis=0) - np.min(coords, axis=0)) / 10
         x_vec = om.Vec3(box_size[0], 0, 0)
         y_vec = om.Vec3(0, box_size[1], 0)
@@ -74,7 +74,7 @@ class QMMM:
         positions = self.simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
         solute_coords = positions[self.n_solvent_atoms:] / nanometer
         all_distances = []
-        for i in range(self.n_solvent_atoms / self.species.solvent_mol.n_atoms):
+        for i in range(int(self.n_solvent_atoms / self.species.solvent_mol.n_atoms)):
             solvent_coords = positions[i*self.species.solvent_mol.n_atoms:(i+1)*self.species.solvent_mol.n_atoms] / nanometer
             solvent_centre = np.average(solvent_coords, axis=0)
             distances = []
@@ -83,7 +83,7 @@ class QMMM:
             all_distances.append(min(distances))
         sorted_distances = sorted(all_distances)
         closest_solvents = []
-        for i in range(len(self.species.qm_solvent_atoms)/self.species.solvent_mol.n_atoms):
+        for i in range(int(len(self.species.qm_solvent_atoms)/self.species.solvent_mol.n_atoms)):
             closest_solvents.append(all_distances.index(sorted_distances[i]))
         qm_atoms = []
         for index in closest_solvents:
@@ -97,12 +97,13 @@ class QMMM:
         self.species.set_coordinates(coords[self.n_solvent_atoms:])
         qm_solvent_coords = coords[self.qm_solvent_atom_idxs]
         mm_solvent_coords = coords[[i for i in range(self.n_solvent_atoms) if not i in self.qm_solvent_atom_idxs]]
-        for i, coord in qm_solvent_coords:
+        for i, coord in enumerate(qm_solvent_coords):
             self.species.qm_solvent_atoms[i].coord = coord
-        for i, coord in mm_solvent_coords:
+        for i, coord in enumerate(mm_solvent_coords):
             self.species.mm_solvent_atoms[i].coord = coord
 
     def simulate(self):
+        logger.info('Running QMMM steps')
         self.run_qmmm_step()
         self.run_qmmm_step()
         while abs(self.all_qmmm_energy[-1] - self.all_qmmm_energy[-2]) > 0.000001:
@@ -195,7 +196,7 @@ class QMMM:
         return qmmm_forces
 
     def get_qm_force_energy(self, positions):
-        grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, Config.max_core, grad=True)
+        grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, grad=True)
         grad_calc.run()
         qm_grads = grad_calc.get_gradients()  # in Eh/bohr
         qm_forces = []
@@ -217,16 +218,15 @@ class QMMM:
     def __init__(self, species, dist_consts, method, fix_solute, number):
         self.name = f'{species.name}_qmmm_{number}'
         self.species = species
-        self.dist_consts = [] if dist_consts is None else dist_consts
+        self.dist_consts = {} if dist_consts is None else dist_consts
         self.method = method
         self.n_solvent_atoms = len(species.qm_solvent_atoms + species.mm_solvent_atoms)
 
+        self.qm_solvent_atom_idxs = None
         self.system = None
         self.simulation = None
         self.qmmm_force_obj = None
         self.set_up_main_simulation(fix_solute)
-
-        self.qm_solvent_atom_idxs = None
 
         self.all_qmmm_energy = []
         self.step_no = 0

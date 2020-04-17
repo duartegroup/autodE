@@ -76,7 +76,7 @@ class XTB(ElectronicStructureMethod):
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
                 print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
                 for i, atom in calc.molecule.mm_solvent_atoms:
-                    charge = calc.molecule.solvent.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
                     x, y, z = atom.coord
                     print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} {atom.label:<3}', file=inp_file)
             calc.additional_input_files.append((f'{calc.name}_xtb.pc', f'{calc.name}_xtb.pc'))

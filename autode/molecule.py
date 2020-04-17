@@ -136,7 +136,7 @@ class SolvatedMolecule(Molecule, SolvatedSpecies):
         for i, charge in enumerate(opt.get_atomic_charges()):
             self.graph.nodes[i]['charge'] = charge
 
-        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, self.solvent_mol, method, n_confs=96)
+        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96)
         self.set_atoms(species_atoms)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms

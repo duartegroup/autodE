@@ -75,7 +75,7 @@ class G09(ElectronicStructureMethod):
             if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
                 print('')
                 for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
-                    charge = calc.molecule.solvent.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
                     x, y, z = atom.coord
                     print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
 

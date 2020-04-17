@@ -124,7 +124,7 @@ class MOPAC(ElectronicStructureMethod):
                 potential = 0
                 coord = atom.coord
                 for i, charge_atom in enumerate(calc.molecule.mm_solvent_atoms):
-                    charge = calc.molecule.solvent.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
                     charge_coords = charge_atom.coord
                     distance = np.linalg.norm(coord - charge_coords)
                     potential += charge / distance
@@ -132,7 +132,7 @@ class MOPAC(ElectronicStructureMethod):
             with open(f'{calc.name}_mol.in', 'w') as pc_file:
                 print(f'\n{len(atoms)} 0', file=pc_file)
                 [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
-            calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
+            calc.additional_input_files.append(f'{calc.name}_mol.in')
 
         return None
 
