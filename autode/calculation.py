@@ -9,7 +9,6 @@ from autode.exceptions import MethodUnavailable
 from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
 from autode.log import logger
-from autode.mol_graphs import make_graph
 from autode.utils import work_in_tmp_dir
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
@@ -41,12 +40,6 @@ class Calculation:
         for bond in self.bond_ids_to_add:
             active_atoms.add(bond[0])
             active_atoms.add(bond[1])
-
-        # Will set molecule.graph to a NetworkX Graph to find the nearest neighbours
-        if hasattr(molecule, 'graph') and molecule.graph is not None:
-            logger.warning('Molecular graph was set. Not regenerating')
-        else:
-            make_graph(molecule)
 
         core_atoms = set()
         for active_atom in active_atoms:
