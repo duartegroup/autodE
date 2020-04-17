@@ -4,7 +4,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.pes import PES
 from autode.pes import get_point_species
-from autode.transition_states.ts_guess import TSguess
+from autode.transition_states.ts_guess import get_ts_guess
 from autode.plotting import plot_1dpes
 from autode.units import KcalMol
 from autode import mol_graphs
@@ -114,7 +114,7 @@ def get_ts_guess_1d(reactant, product, active_bond, name, method, keywords, fina
     pes.print_plot(name=name, method_name=method.name)
 
     for species in pes.get_species_saddle_point():
-        return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
+        return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
 
     logger.error('No possible TSs found on the 1D surface')
     return None

@@ -3,7 +3,6 @@ from autode.log import logger
 from rdkit.Chem import AllChem
 from autode.atoms import metals
 from autode.species import Species
-from autode.species import SolvatedSpecies
 from autode.mol_graphs import make_graph
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
@@ -85,6 +84,7 @@ class Molecule(Species):
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
         self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
+        make_graph(self)
 
         return None
 
@@ -121,7 +121,7 @@ class Molecule(Species):
             raise NoAtomsInMolecule
 
 
-class SolvatedMolecule(Molecule, SolvatedSpecies):
+class SolvatedMolecule(Molecule):
 
     @requires_atoms()
     def optimise(self, method):
@@ -136,8 +136,9 @@ class SolvatedMolecule(Molecule, SolvatedSpecies):
         for i, charge in enumerate(opt.get_atomic_charges()):
             self.graph.nodes[i]['charge'] = charge
 
-        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96)
+        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=Config.n_cores)
         self.set_atoms(species_atoms)
+        make_graph(self)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms
 

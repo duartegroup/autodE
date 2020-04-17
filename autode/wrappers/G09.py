@@ -9,6 +9,8 @@ import numpy as np
 
 class G09(ElectronicStructureMethod):
 
+#TODO impliment partial hessian
+
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_g09.com'
         calc.output_filename = calc.name + '_g09.log'

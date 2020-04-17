@@ -177,19 +177,3 @@ class Species:
         self.graph = None                                               # NetworkX.Graph object with atoms and bonds
 
         self.conformers = None                                          # List of autode.conformers.conformers.Conformer
-
-
-class SolvatedSpecies(Species):
-
-    def single_point(self, method):
-        logger.info(f'Running single point energy evaluation of {self.name}')
-
-        # TODO make this work
-        point_charges = []
-        for i, xyz in enumerate(self.mm_solvent_xyzs):
-            point_charges.append(xyz + [self.solvent_mol.charges[i % self.solvent_mol.n_atoms]])
-
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords_list=method.sp_keywords,
-                         n_cores=Config.n_cores)
-        sp.run()
-        self.energy = sp.get_energy()

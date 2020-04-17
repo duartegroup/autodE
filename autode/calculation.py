@@ -205,7 +205,7 @@ class Calculation:
 
     def __init__(self, name, molecule, method, keywords_list=None, n_cores=1, bond_ids_to_add=None,
                  other_input_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
-                 constraints_already_met=False, grad=False, partial_hessian=None):
+                 constraints_already_met=False, grad=False):
         """
         Arguments:
             name (str): calc name
@@ -223,7 +223,6 @@ class Calculation:
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
             constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for xtb force constant) (default: {False})
             grad (bool): grad calc or not (needed for xtb) (default: {False})
-            partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
 
         # TODO Purge some of these attributes
@@ -237,7 +236,6 @@ class Calculation:
         self.opt = opt
         self.core_atoms = None
         self.grad = grad
-        self.partial_hessian = partial_hessian
 
         self.n_cores = n_cores
         self.max_core_mb = Config.max_core        # Maximum memory per core to use

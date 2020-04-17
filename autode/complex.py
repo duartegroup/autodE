@@ -5,6 +5,8 @@ from autode import mol_graphs
 from autode.species import Species
 from autode.utils import requires_atoms
 from autode.log import logger
+from autode.reaction import SolvatedReaction
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class Complex(Species):
@@ -96,8 +98,61 @@ class Complex(Species):
 
 
 class ReactantComplex(Complex):
-    pass
+
+    def run_const_opt(self, const_opt, method, n_cores):
+
+        const_opt.run()
+
+
+        atoms = const_opt.get_final_atoms()
+        energy = const_opt.get_energy()
+
+        # Set the energy, new set of atoms then make the molecular graph
+        self.energy = energy
+        self.set_atoms(atoms=atoms)
+        mol_graphs.make_graph(species=self)
+
+        return None
 
 
 class ProductComplex(Complex):
     pass
+
+
+class SolvatedReactantComplex(Complex):
+
+    def run_const_opt(self, const_opt, method, n_cores):
+
+        const_opt.run()
+
+        atoms = const_opt.get_final_atoms()
+
+        # Set the energy, new set of atoms then make the molecular graph
+        self.set_atoms(atoms=atoms)
+
+        for i, charge in enumerate(const_opt.get_atomic_charges()):
+            self.graph.nodes[i]['charge'] = charge
+
+        energy, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=n_cores)
+        self.energy = energy
+        self.set_atoms(species_atoms)
+        mol_graphs.make_graph(species=self)
+        self.qm_solvent_atoms = qm_solvent_atoms
+        self.mm_solvent_atoms = mm_solvent_atoms
+
+        return None
+
+    def __init__(self, *args, name='complex'):
+        super().__init__(*args, name=name)
+        self.solvent_mol = None
+        self.qm_solvent_atoms = None
+        self.mm_solvent_atoms = None
+
+
+def get_complexes(reaction):
+    if isinstance(reaction, SolvatedReaction):
+        reac = SolvatedReactantComplex(*reaction.reacs, name='r')
+    else:
+        reac = ReactantComplex(*reaction.reacs, name='r')
+    prod = ProductComplex(*reaction.prods, name='p')
+    return reac, prod

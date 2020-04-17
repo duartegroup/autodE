@@ -14,6 +14,8 @@ from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.transition_states.base import TSbase
+from autode.transition_states.ts_guess import SolvatedTSguess
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.constants import Constants
 from multiprocessing import Pool
 
@@ -132,6 +134,9 @@ class TransitionState(TSbase):
 
         if len(self.conformers) == 1:
             logger.warning('Only found a single conformer. Not rerunning TS optimisation')
+            self.set_atoms(atoms=atoms)
+            self.energy = energy
+            self.optts_calc = calc
             return None
 
         self.opt_ts(name_ext='optts_conf')
@@ -198,8 +203,49 @@ class TransitionState(TSbase):
 
 class SolvatedTransitionState(TransitionState):
 
-    def __init__(self, ts_guess, bond_rearrangement, name='TS'):
+    def find_lowest_energy_ts_conformer(self):
+        """Find the lowest energy transition state conformer by performing constrained optimisations"""
+        atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.optts_calc)
+        qm_atoms, mm_atoms = deepcopy(self.qm_solvent_atoms), deepcopy(self.mm_solvent_atoms)
+        self.find_lowest_energy_conformer()
 
-        super().__init__(ts_guess=ts_guess, bond_rearrangement=bond_rearrangement, name=name)
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None
+        if len(self.conformers) == 1:
+            logger.warning('Only found a single conformer. Not rerunning TS optimisation')
+            self.set_atoms(atoms=atoms)
+            self.energy = energy
+            self.optts_calc = calc
+            self.qm_solvent_atoms = qm_atoms
+            self.mm_solvent_atoms = mm_atoms
+            return None
+
+        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, get_hmethod(), Config.n_cores, dist_consts=get_distance_constraints(self))
+        self.set_atoms(species_atoms)
+        self.qm_solvent_atoms = qm_solvent_atoms
+        self.mm_solvent_atoms = mm_solvent_atoms
+
+        self.opt_ts(name_ext='optts_conf')
+
+        if self.is_true_ts() and self.energy < energy:
+            logger.info('Conformer search successful')
+
+        else:
+            logger.warning(f'Transition state conformer search failed (∆E = {energy - self.energy:.4f} Ha). Reverting')
+            self.set_atoms(atoms=atoms)
+            self.energy = energy
+            self.optts_calc = calc
+            self.qm_solvent_atoms = qm_atoms
+            self.mm_solvent_atoms = mm_atoms
+
+        return None
+
+    def __init__(self, ts_guess):
+
+        super().__init__(ts_guess=ts_guess)
+        self.qm_solvent_atoms = ts_guess.qm_solvent_atoms
+        self.mm_solvent_atoms = ts_guess.mm_solvent_atoms
+
+
+def get_ts_object(ts_guess):
+    if isinstance(ts_guess, SolvatedTSguess):
+        return SolvatedTransitionState(ts_guess=ts_guess)
+    return TransitionState(ts_guess=ts_guess)

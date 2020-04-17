@@ -265,6 +265,7 @@ class SolvatedReaction(Reaction):
         self.solvent_mol.optimise(get_hmethod())
         for mol in self.reacs + self.prods:
             mol.solvent_mol = self.solvent_mol
+        self.solvent_mol.single_point(method=get_hmethod())
 
     def make_solvated_mol_objects(self):
         solvated_reacs, solvated_prods = [], []

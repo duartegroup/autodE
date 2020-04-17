@@ -7,7 +7,7 @@ from autode.units import KcalMol
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.plotting import plot_2dpes
-from autode.transition_states.ts_guess import TSguess
+from autode.transition_states.ts_guess import get_ts_guess
 from autode.exceptions import AtomsNotFound
 from autode import mol_graphs
 from autode.saddle_points import poly2d_saddlepoints
@@ -39,12 +39,9 @@ class PES2d(PES):
             const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
                                     opt=True, n_cores=Config.n_cores, keywords_list=keywords,
                                     distance_constraints={self.rs_idxs[0]: r1, self.rs_idxs[1]: r2})
-            const_opt.run()
 
             try:
-                species.set_atoms(atoms=const_opt.get_final_atoms())
-                species.energy = const_opt.get_energy()
-
+                species.run_const_opt(const_opt, method, Config.n_cores)
             except AtomsNotFound:
                 logger.error('Constrained optimisation at the saddle point failed')
                 pass
@@ -238,7 +235,7 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
     species = pes.get_species_saddle_point(name=name, method=method, keywords=keywords)
 
     if species is not None:
-        return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
+        return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
 
     logger.error('No possible TSs found on the 2D surface')
     return None

@@ -11,7 +11,7 @@ from autode.bond_lengths import get_avg_bond_length
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
 from autode.mol_graphs import reorder_nodes
-from autode.complex import ReactantComplex, ProductComplex
+from autode.complex import get_complexes
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.transition_states.truncation import is_worth_truncating
 from autode.transition_states.truncation import get_truncated_complex
@@ -19,7 +19,8 @@ from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
-from autode.transition_states.transition_state import TransitionState
+from autode.transition_states.transition_state import get_ts_object
+from autode.reaction import SolvatedReaction
 
 
 def find_tss(reaction):
@@ -33,7 +34,7 @@ def find_tss(reaction):
     """
     logger.info('Finding possible transition states')
 
-    reactant, product = ReactantComplex(*reaction.reacs, name='r'), ProductComplex(*reaction.prods, name='p')
+    reactant, product = get_complexes(reaction)
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=reaction.name)
 
     if bond_rearrangs is None:
@@ -293,9 +294,10 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
             continue
 
         # Form a transition state object and run an OptTS calculation
-        ts = TransitionState(ts_guess)
+        ts = get_ts_object(ts_guess)
         ts.opt_ts()
 
+        # TODO This could give us a ll TS with many imag modes, when a hl one will only have one?
         if not ts.is_true_ts():
             continue
 
@@ -322,9 +324,7 @@ def get_added_bbond_dist(reaction):
     # saddle point,
     # as implicit solvation does not fully stabilise the charged molecule
 
-    # TODO reimplement with explicit solvent like:   if reaction is SolvatedReaction
-
-    if any(mol.charge != 0 for mol in reaction.prods):
+    if any(mol.charge != 0 for mol in reaction.prods) and not isinstance(reaction, SolvatedReaction):
         return 2.5
     else:
         return 1.5

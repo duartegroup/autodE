@@ -2,7 +2,6 @@ import os
 import numpy as np
 from numpy.random import RandomState
 from autode.log import logger
-from autode.config import Config
 from autode.solvent.qmmm import QMMM
 from autode.atoms import Atom
 from multiprocessing import Pool
@@ -144,7 +143,7 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
     return atoms, qmmm_energy
 
 
-def do_explicit_solvent_qmmm(species, method, dist_consts=None, fix_solute=False, n_confs=192, n_qm_solvent_mols=50, n_solvent_mols=700):
+def do_explicit_solvent_qmmm(species, method, n_cores, dist_consts=None, fix_solute=False, n_confs=192, n_qm_solvent_mols=50, n_solvent_mols=700):
     """Run explicit solvent qmmm calculations to find the lowest energy of the solvated species"""
 
     if os.path.exists(f'{species.name}_qmmm.out'):
@@ -165,8 +164,8 @@ def do_explicit_solvent_qmmm(species, method, dist_consts=None, fix_solute=False
         if species.solvent_mol is None:
             species.solvent_mol = deepcopy(species)
 
-        logger.info(f'Splitting calculation into {Config.n_cores} threads')
-        with Pool(processes=Config.n_cores) as pool:
+        logger.info(f'Splitting calculation into {n_cores} threads')
+        with Pool(processes=n_cores) as pool:
             results = [pool.apply_async(run_qmmm, (species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute, method, i)) for i in range(n_confs)]
             atoms_and_energies = [res.get(timeout=None) for res in results]
 

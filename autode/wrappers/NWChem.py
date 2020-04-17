@@ -8,6 +8,8 @@ import numpy as np
 
 class NWChem(ElectronicStructureMethod):
 
+    # TODO impliment partial hessian
+
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_nwchem.nw'
         calc.output_filename = calc.name + '_nwchem.out'
