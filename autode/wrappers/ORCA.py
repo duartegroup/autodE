@@ -1,11 +1,12 @@
-from autode.config import Config
-from autode.log import logger
-from autode.atoms import Atom
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import NoCalculationOutput, NoNormalModesFound
-from autode.exceptions import AtomsNotFound
 import numpy as np
 import os
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.exceptions import NoCalculationOutput
+from autode.exceptions import NoNormalModesFound
+from autode.log import logger
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
                              'carbon tetrachloride': 'CCl4', 'dichloromethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',

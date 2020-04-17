@@ -1,18 +1,17 @@
-import os
+from copy import deepcopy
+from math import ceil, floor
+from multiprocessing import Pool
 import numpy as np
-from numpy.random import RandomState
-from autode.log import logger
+import os
 from autode.solvent.qmmm import QMMM
 from autode.atoms import Atom
-from multiprocessing import Pool
-from math import ceil, floor
-from copy import deepcopy
+from autode.log import logger
 
 
 def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
     """Add a specific number of solvent molecules around a solute"""
     # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
-    rand = RandomState()
+    rand = np.random.RandomState()
 
     logger.info(f'Adding solvent molecules around {species.name}')
 

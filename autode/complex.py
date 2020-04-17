@@ -1,12 +1,12 @@
 from copy import deepcopy
 import numpy as np
 from scipy.spatial import distance_matrix
-from autode import mol_graphs
+from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.log import logger
+from autode.mol_graphs import make_graph
+from autode.mol_graphs import union
 from autode.species import Species
 from autode.utils import requires_atoms
-from autode.log import logger
-from autode.reaction import SolvatedReaction
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class Complex(Species):
@@ -94,7 +94,7 @@ class Complex(Species):
         super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
 
         self.solvent = self.molecules[0].solvent
-        self.graph = mol_graphs.union(graphs=[mol.graph for mol in self.molecules])
+        self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 
 class ReactantComplex(Complex):
@@ -103,14 +103,13 @@ class ReactantComplex(Complex):
 
         const_opt.run()
 
-
         atoms = const_opt.get_final_atoms()
         energy = const_opt.get_energy()
 
         # Set the energy, new set of atoms then make the molecular graph
         self.energy = energy
         self.set_atoms(atoms=atoms)
-        mol_graphs.make_graph(species=self)
+        make_graph(species=self)
 
         return None
 
@@ -136,7 +135,7 @@ class SolvatedReactantComplex(Complex):
         energy, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=n_cores)
         self.energy = energy
         self.set_atoms(species_atoms)
-        mol_graphs.make_graph(species=self)
+        make_graph(species=self)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms
 

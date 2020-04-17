@@ -1,10 +1,10 @@
-from autode.config import Config
-from autode.log import logger
-from autode.atoms import Atom
-from autode.exceptions import AtomsNotFound
-from autode.wrappers.base import ElectronicStructureMethod
 from copy import deepcopy
 import numpy as np
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.log import logger
 
 
 class G09(ElectronicStructureMethod):

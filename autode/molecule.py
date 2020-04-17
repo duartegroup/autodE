@@ -1,20 +1,20 @@
-from autode.config import Config
-from autode.log import logger
+from multiprocessing import Pool
 from rdkit.Chem import AllChem
-from autode.atoms import metals
-from autode.species import Species
-from autode.mol_graphs import make_graph
-from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
+from autode.conformers.conformer import Conformer
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
-from autode.calculation import Calculation
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.atoms import metals
+from autode.calculation import Calculation
+from autode.config import Config
 from autode.exceptions import NoAtomsInMolecule
-from autode.utils import requires_atoms
+from autode.log import logger
+from autode.mol_graphs import make_graph
 from autode.smiles import init_organic_smiles
 from autode.smiles import init_smiles
-from multiprocessing import Pool
+from autode.species import Species
+from autode.utils import requires_atoms
 
 
 class Molecule(Species):

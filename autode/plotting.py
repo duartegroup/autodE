@@ -1,14 +1,14 @@
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
+from numpy.polynomial import polynomial
 import numpy as np
 import os
-from numpy.polynomial import polynomial
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
 from scipy.ndimage.filters import gaussian_filter1d
-from autode.log import logger
-from autode.units import KjMol
-from autode.units import KcalMol
 from autode.config import Config
+from autode.log import logger
+from autode.units import KcalMol
+from autode.units import KjMol
 
 
 def save_plot(plot, filename):

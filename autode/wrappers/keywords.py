@@ -1,5 +1,3 @@
-
-
 class Keywords:
 
     def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None, hess=None, optts_block=None, sp=None):

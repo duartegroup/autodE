@@ -1,6 +1,6 @@
+import numpy as np
 from scipy.optimize import minimize, Bounds
 from autode.log import logger
-import numpy as np
 
 
 def poly2d_saddlepoints(coeff_mat, xs, ys):

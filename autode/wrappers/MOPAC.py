@@ -1,12 +1,12 @@
 from copy import deepcopy
-from autode.config import Config
-from autode.log import logger
-from autode.constants import Constants
-from autode.atoms import Atom
-from autode.geom import get_shifted_atoms_linear_interp
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.constants import Constants
+from autode.exceptions import UnsuppportedCalculationInput
+from autode.geom import get_shifted_atoms_linear_interp
+from autode.log import logger
 
 
 # dielectrics from Gaussian solvent_name list

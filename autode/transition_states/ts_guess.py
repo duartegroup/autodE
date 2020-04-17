@@ -1,15 +1,15 @@
-from autode.log import logger
 from copy import deepcopy
-from autode.config import Config
 from autode.transition_states.base import TSbase
-from autode.calculation import Calculation
-from autode.methods import get_lmethod
-from autode.exceptions import AtomsNotFound
-from autode.mol_graphs import get_mapping_ts_template
-from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
+from autode.calculation import Calculation
 from autode.complex import SolvatedReactantComplex
+from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.log import logger
+from autode.methods import get_lmethod
+from autode.mol_graphs import get_mapping_ts_template
+from autode.mol_graphs import get_truncated_active_mol_graph
 
 
 def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_consts, product):

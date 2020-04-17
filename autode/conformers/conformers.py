@@ -1,10 +1,10 @@
-from autode.log import logger
+import numpy as np
 from rdkit import Chem
 from autode.atoms import Atom
-from autode.constants import Constants
 from autode.config import Config
+from autode.constants import Constants
 from autode.geom import calc_rmsd
-import numpy as np
+from autode.log import logger
 
 
 def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):

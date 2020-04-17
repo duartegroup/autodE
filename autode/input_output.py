@@ -1,7 +1,8 @@
-from autode.log import logger
-from autode.exceptions import XYZfileWrongFormat, XYZfileDidNotExist
-from autode.atoms import Atom
 import os
+from autode.atoms import Atom
+from autode.exceptions import XYZfileDidNotExist
+from autode.exceptions import XYZfileWrongFormat
+from autode.log import logger
 
 
 def xyz_file_to_atoms(filename):

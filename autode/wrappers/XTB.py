@@ -1,10 +1,10 @@
-from autode.config import Config
-from autode.constants import Constants
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import AtomsNotFound
-from autode.atoms import Atom
 import numpy as np
 import os
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.constants import Constants
+from autode.exceptions import AtomsNotFound
 
 
 class XTB(ElectronicStructureMethod):

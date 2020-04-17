@@ -1,8 +1,8 @@
-from autode.species import Species
-from autode.log import logger
 from autode.calculation import Calculation
-from autode.exceptions import AtomsNotFound
 from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.log import logger
+from autode.species import Species
 
 
 class Conformer(Species):

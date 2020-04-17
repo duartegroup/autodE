@@ -1,15 +1,15 @@
-from autode.log import logger
-import networkx as nx
-import numpy as np
-import itertools
 from copy import deepcopy
+import itertools
 import multiprocessing as mp
 from networkx.algorithms import isomorphism
+import networkx as nx
+import numpy as np
 from scipy.spatial import distance_matrix
-from autode.bond_lengths import get_avg_bond_length
-from autode.atoms import is_pi_atom
 from autode.atoms import get_maximal_valance
+from autode.atoms import is_pi_atom
+from autode.bond_lengths import get_avg_bond_length
 from autode.calculation import Calculation
+from autode.log import logger
 from autode.methods import get_lmethod
 from autode.units import KcalMol
 

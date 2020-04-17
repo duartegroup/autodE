@@ -1,20 +1,21 @@
-import numpy as np
-from numpy.polynomial import polynomial
 from copy import deepcopy
+from numpy.polynomial import polynomial
+import numpy as np
 from multiprocessing import Pool
-from autode.config import Config
-from autode.units import KcalMol
-from autode.log import logger
-from autode.calculation import Calculation
-from autode.plotting import plot_2dpes
 from autode.transition_states.ts_guess import get_ts_guess
+from autode.calculation import Calculation
+from autode.config import Config
 from autode.exceptions import AtomsNotFound
-from autode import mol_graphs
-from autode.saddle_points import poly2d_saddlepoints
-from autode.min_energy_pathway import get_sum_energy_mep
+from autode.log import logger
 from autode.methods import high_level_method_names
-from autode.pes import PES
+from autode.min_energy_pathway import get_sum_energy_mep
+from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import make_graph
 from autode.pes import get_point_species
+from autode.pes import PES
+from autode.plotting import plot_2dpes
+from autode.saddle_points import poly2d_saddlepoints
+from autode.units import KcalMol
 
 
 class PES2d(PES):
@@ -73,9 +74,9 @@ class PES2d(PES):
 
         for i in range(self.n_points_r1):
             for j in range(self.n_points_r2):
-                mol_graphs.make_graph(self.species[i, j])
+                make_graph(self.species[i, j])
 
-                if mol_graphs.is_isomorphic(graph1=self.species[i, j].graph, graph2=self.product_graph):
+                if is_isomorphic(graph1=self.species[i, j].graph, graph2=self.product_graph):
                     logger.info(f'Products made at ({i}, {j})')
                     return True
 

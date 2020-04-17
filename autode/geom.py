@@ -1,7 +1,7 @@
-import numpy as np
 from copy import deepcopy
-from scipy.spatial import distance_matrix
+import numpy as np
 from scipy.spatial.distance import cdist
+from scipy.spatial import distance_matrix
 from autode.log import logger
 
 

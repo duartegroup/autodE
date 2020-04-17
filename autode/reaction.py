@@ -1,20 +1,20 @@
-from autode.log import logger
-from autode import reactions
-from autode.transition_states.locate_tss import find_tss
-from autode.molecule import Molecule
-from autode.molecule import SolvatedMolecule
-from autode.molecule import Reactant
-from autode.molecule import Product
-from autode.units import KcalMol
-from autode.units import KjMol
-from autode.plotting import plot_reaction_profile
-from autode.utils import work_in
+from copy import deepcopy
 from autode.solvent.solvents import get_solvent
-from autode.methods import get_hmethod
-from autode.methods import get_lmethod
+from autode.transition_states.locate_tss import find_tss
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
-from copy import deepcopy
+from autode.log import logger
+from autode.methods import get_hmethod
+from autode.methods import get_lmethod
+from autode.molecule import Molecule
+from autode.molecule import Product
+from autode.molecule import Reactant
+from autode.molecule import SolvatedMolecule
+from autode.plotting import plot_reaction_profile
+from autode.units import KcalMol
+from autode.units import KjMol
+from autode.utils import work_in
+from autode import reactions
 
 
 def calculate_reaction_profile(reaction, units):

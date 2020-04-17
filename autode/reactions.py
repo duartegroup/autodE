@@ -1,5 +1,5 @@
-from autode.log import logger
 from autode.exceptions import ReactionFormationFalied
+from autode.log import logger
 
 
 class ReactionType:

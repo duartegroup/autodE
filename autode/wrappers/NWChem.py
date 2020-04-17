@@ -1,9 +1,9 @@
-from autode.config import Config
-from autode.log import logger
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import UnsuppportedCalculationInput
-from autode.atoms import Atom
 import numpy as np
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.exceptions import UnsuppportedCalculationInput
+from autode.log import logger
 
 
 class NWChem(ElectronicStructureMethod):

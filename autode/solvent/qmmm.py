@@ -1,16 +1,16 @@
-from autode.methods import get_hmethod
+from copy import deepcopy
+import numpy as np
+from openmmtools.integrators import GradientDescentMinimizationIntegrator
+import os
+import simtk.openmm.app as omapp
+import simtk.openmm.openmm as om
+from simtk.unit.unit_definitions import kelvin, angstrom, bohr, hartree, picosecond, nanometer, kilojoule_per_mole, dalton, mole
+from autode.atoms import get_vdw_radius
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.constants import Constants
-from autode.atoms import get_vdw_radius
 from autode.log import logger
-import simtk.openmm.app as omapp
-import simtk.openmm.openmm as om
-import os
-from simtk.unit.unit_definitions import kelvin, angstrom, bohr, hartree, picosecond, nanometer, kilojoule_per_mole, dalton, mole
-import numpy as np
-from copy import deepcopy
-from openmmtools.integrators import GradientDescentMinimizationIntegrator
+from autode.methods import get_hmethod
 
 
 class QMMM:

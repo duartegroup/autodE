@@ -1,16 +1,17 @@
+from autode.wrappers.G09 import G09
+from autode.wrappers.MOPAC import MOPAC
+from autode.wrappers.NWChem import NWChem
+from autode.wrappers.ORCA import ORCA
+from autode.wrappers.XTB import XTB
+from autode.config import Config
+from autode.exceptions import MethodUnavailable
+from autode.log import logger
+
 """
 Functions to get the high and low level electronic structure methods to use for example high-level methods would be
 orca and Gaussian09 which can perform DFT/WF theory calculations, low level methods are for example xtb and mopac which
 are non ab-initio methods and are therefore considerably faster
 """
-from autode.config import Config
-from autode.log import logger
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.XTB import XTB
-from autode.wrappers.G09 import G09
-from autode.wrappers.NWChem import NWChem
-from autode.exceptions import MethodUnavailable
 
 high_level_method_names = ['orca', 'g09', 'nwchem']
 low_level_method_names = ['xtb', 'mopac']

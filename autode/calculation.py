@@ -1,16 +1,16 @@
+from copy import deepcopy
 import os
 from subprocess import Popen
-from autode.log import logger
+from autode.solvent.solvents import get_available_solvent_names
+from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import CouldNotGetProperty
-from autode.exceptions import NoInputError
 from autode.exceptions import MethodUnavailable
-from autode.utils import work_in_tmp_dir
-from autode import mol_graphs
-from autode.config import Config
-from autode.solvent.solvents import get_available_solvent_names
+from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
-from copy import deepcopy
+from autode.log import logger
+from autode.mol_graphs import make_graph
+from autode.utils import work_in_tmp_dir
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
 
@@ -46,7 +46,7 @@ class Calculation:
         if hasattr(molecule, 'graph') and molecule.graph is not None:
             logger.warning('Molecular graph was set. Not regenerating')
         else:
-            mol_graphs.make_graph(molecule)
+            make_graph(molecule)
 
         core_atoms = set()
         for active_atom in active_atoms:
@@ -117,7 +117,7 @@ class Calculation:
         charges = self.method.get_atomic_charges(self)
 
         if len(charges) != self.molecule.n_atoms:
-            raise  CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
+            raise CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
 
         return charges
 

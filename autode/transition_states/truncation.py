@@ -1,8 +1,7 @@
-import networkx as nx
-from autode.log import logger
 from copy import deepcopy
+import networkx as nx
 from autode.bond_lengths import get_avg_bond_length
-from autode.complex import SolvatedReactantComplex
+from autode.log import logger
 
 
 def add_core_pi_bonds(molecule, s_molecule, truncated_graph):

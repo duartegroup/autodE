@@ -1,17 +1,17 @@
-import numpy as np
 from copy import deepcopy
-from autode.species import Species
-from autode.methods import get_hmethod
-from autode.mol_graphs import is_isomorphic_ish
-from autode.geom import length
-from autode.config import Config
-from autode import mol_graphs
+import numpy as np
+from autode.atoms import get_atomic_weight
 from autode.calculation import Calculation
-from autode.exceptions import NoNormalModesFound
+from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoCalculationOutput
+from autode.exceptions import NoNormalModesFound
+from autode.geom import length
 from autode.log import logger
-from autode.atoms import get_atomic_weight
+from autode.methods import get_hmethod
+from autode.mol_graphs import is_isomorphic_ish
+from autode.mol_graphs import make_graph
+from autode.species import Species
 
 
 class TSbase(Species):
@@ -297,7 +297,7 @@ def get_optimised_species(calc, method, direction, atoms):
     try:
         species.set_atoms(atoms=calc.get_final_atoms())
         species.energy = calc.get_energy()
-        mol_graphs.make_graph(species)
+        make_graph(species)
 
     except AtomsNotFound:
         logger.error(f'{direction} displacement calculation failed')

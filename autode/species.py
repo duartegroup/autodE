@@ -1,13 +1,14 @@
 import numpy as np
-from autode.log import logger
+from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import get_solvent
 from autode.calculation import Calculation
-from autode import mol_graphs
-from autode.methods import get_lmethod
-from autode.input_output import atoms_to_xyz_file
-from autode.conformers.conformers import get_unique_confs
 from autode.config import Config
+from autode.input_output import atoms_to_xyz_file
 from autode.geom import length
+from autode.log import logger
+from autode.methods import get_lmethod
+from autode.mol_graphs import is_isomorphic_ish
+from autode.mol_graphs import make_graph
 from autode.utils import requires_atoms
 from autode.utils import requires_conformers
 
@@ -28,9 +29,9 @@ class Species:
                 continue
 
             # Conformers don't have a molecular graph, so make it
-            mol_graphs.make_graph(conformer)
+            make_graph(conformer)
 
-            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True, any_interaction=True):
+            if not is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True, any_interaction=True):
                 logger.warning('Conformer had a different molecular graph. Ignoring')
                 continue
 

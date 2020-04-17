@@ -1,9 +1,9 @@
+import itertools
+import numpy as np
 from autode.atoms import Atom
 from autode.bond_lengths import get_avg_bond_length
 from autode.log import logger
 
-import itertools
-import numpy as np
 
 
 atoms_and_electrons = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
@@ -22,6 +22,7 @@ atoms_and_electrons = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7
 # TODO chiral allyl systems, needs adding to conf gen also
 
 bond_order_symbol_dict = {'-': 1, '=': 2, '#': 3, '$': 4}
+
 
 class SmilesParser:
 

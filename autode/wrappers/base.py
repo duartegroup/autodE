@@ -1,7 +1,8 @@
-from shutil import which
+from abc import ABC
+from abc import abstractmethod
 import os
+from shutil import which
 from autode.log import logger
-from abc import ABC, abstractmethod
 from autode.utils import requires_output
 
 

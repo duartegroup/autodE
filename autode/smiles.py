@@ -1,13 +1,13 @@
-from rdkit import Chem
 import rdkit.Chem.Descriptors
 from rdkit.Chem import AllChem
-from autode.log import logger
-from autode.geom import are_coords_reasonable
-from autode.exceptions import RDKitFailed
-from autode.exceptions import BondsInSMILESAndGraphDontMatch
-from autode.mol_graphs import make_graph
+from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
+from autode.exceptions import RDKitFailed
+from autode.exceptions import BondsInSMILESAndGraphDontMatch
+from autode.geom import are_coords_reasonable
+from autode.log import logger
+from autode.mol_graphs import make_graph
 from autode.smiles_parser import SmilesParser
 
 

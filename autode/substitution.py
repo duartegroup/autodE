@@ -1,8 +1,8 @@
-import numpy as np
 from copy import deepcopy
-from autode.log import logger
-from autode.geom import length
+import numpy as np
 from autode.bond_lengths import get_avg_bond_length
+from autode.geom import length
+from autode.log import logger
 
 
 class SubstitutionCentre:
