@@ -324,7 +324,7 @@ def get_added_bbond_dist(reaction):
     # saddle point,
     # as implicit solvation does not fully stabilise the charged molecule
 
-    if any(mol.charge != 0 for mol in reaction.prods) and not isinstance(reaction, SolvatedReaction):
+    if any(mol.charge != 0 for mol in reaction.prods) and not (reaction.__class__.__name__ == 'SolvatedReaction'):
         return 2.5
     else:
         return 1.5

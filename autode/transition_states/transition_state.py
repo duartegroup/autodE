@@ -218,6 +218,10 @@ class SolvatedTransitionState(TransitionState):
             self.mm_solvent_atoms = mm_atoms
             return None
 
+        # TODO need to get charges
+        # for i, charge in enumerate(opt.get_atomic_charges()):
+        #     self.graph.nodes[i]['charge'] = charge
+
         _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, get_hmethod(), Config.n_cores, dist_consts=get_distance_constraints(self))
         self.set_atoms(species_atoms)
         self.qm_solvent_atoms = qm_solvent_atoms
@@ -246,6 +250,6 @@ class SolvatedTransitionState(TransitionState):
 
 
 def get_ts_object(ts_guess):
-    if isinstance(ts_guess, SolvatedTSguess):
+    if ts_guess.__class__.__name__ == 'SolvatedTSguess':
         return SolvatedTransitionState(ts_guess=ts_guess)
     return TransitionState(ts_guess=ts_guess)

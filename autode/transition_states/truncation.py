@@ -183,7 +183,7 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
         reactant_complex (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
-    if isinstance(reactant_complex, SolvatedReactantComplex):
+    if reactant_complex.__class__.__name__ == 'SolvatedReactantComplex':
         logger.info('Not worth truncating explicitily solvated reaction')
         return False
 

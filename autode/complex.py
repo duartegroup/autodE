@@ -150,7 +150,7 @@ class SolvatedReactantComplex(Complex):
 
 
 def get_complexes(reaction):
-    if isinstance(reaction, SolvatedReaction):
+    if reaction.__class__.__name__ == 'SolvatedReaction':
         reac = SolvatedReactantComplex(*reaction.reacs, name='r')
     else:
         reac = ReactantComplex(*reaction.reacs, name='r')

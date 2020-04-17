@@ -146,6 +146,11 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
 def do_explicit_solvent_qmmm(species, method, n_cores, dist_consts=None, fix_solute=False, n_confs=192, n_qm_solvent_mols=50, n_solvent_mols=700):
     """Run explicit solvent qmmm calculations to find the lowest energy of the solvated species"""
 
+    logger.info(f'Running QMMM for {species.name}')
+
+    if species.solvent_mol is None:
+        species.solvent_mol = deepcopy(species)
+
     if os.path.exists(f'{species.name}_qmmm.out'):
         lines = [line for line in open(f'{species.name}_qmmm.out', 'r', encoding="utf-8")]
         xyzs_section = False
@@ -161,9 +166,6 @@ def do_explicit_solvent_qmmm(species, method, n_cores, dist_consts=None, fix_sol
                 xyzs_section = True
 
     else:
-        if species.solvent_mol is None:
-            species.solvent_mol = deepcopy(species)
-
         logger.info(f'Splitting calculation into {n_cores} threads')
         with Pool(processes=n_cores) as pool:
             results = [pool.apply_async(run_qmmm, (species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute, method, i)) for i in range(n_confs)]
@@ -177,7 +179,7 @@ def do_explicit_solvent_qmmm(species, method, n_cores, dist_consts=None, fix_sol
             qmmm_atoms.append(atoms)
 
         min_e = min(qmmm_energies)
-        lowest_energy_qmmm_atoms = qmmm_atoms[qmmm_energies.index()]
+        lowest_energy_qmmm_atoms = qmmm_atoms[qmmm_energies.index(min_e)]
 
         # get a bolztmann weighting of the energy
         q = 0

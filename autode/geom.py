@@ -84,7 +84,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     """
 
     h = np.matmul(p_matrix.transpose(), q_matrix)
-    u, s, vh = np.linalg.svd(h)
+    u, _, vh = np.linalg.svd(h)
     d = np.linalg.det(np.matmul(vh.transpose(), u.transpose()))
     int_mat = np.identity(3)
     int_mat[2, 2] = d

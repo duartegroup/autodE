@@ -263,9 +263,8 @@ class SolvatedReaction(Reaction):
         self.solvent_mol = SolvatedMolecule(name=self.solvent.name, smiles=self.solvent.smiles)
         self.solvent_mol.find_lowest_energy_conformer(low_level_method=get_lmethod())
         self.solvent_mol.optimise(get_hmethod())
-        for mol in self.reacs + self.prods:
-            mol.solvent_mol = self.solvent_mol
         self.solvent_mol.single_point(method=get_hmethod())
+        self.make_solvated_mol_objects()
 
     def make_solvated_mol_objects(self):
         solvated_reacs, solvated_prods = [], []
@@ -275,6 +274,7 @@ class SolvatedReaction(Reaction):
             solvated_mol.rdkit_mol_obj = mol.rdkit_mol_obj
             solvated_mol.rdkit_conf_gen_is_fine = mol.rdkit_conf_gen_is_fine
             solvated_mol.graph = deepcopy(mol.graph)
+            solvated_mol.solvent_mol = self.solvent_mol
             solvated_reacs.append(solvated_mol)
         self.reacs = solvated_reacs
         for mol in self.prods:

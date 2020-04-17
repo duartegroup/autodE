@@ -84,7 +84,6 @@ class Molecule(Species):
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
         self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
-        make_graph(self)
 
         return None
 
@@ -138,7 +137,6 @@ class SolvatedMolecule(Molecule):
 
         _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=Config.n_cores)
         self.set_atoms(species_atoms)
-        make_graph(self)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms
 
