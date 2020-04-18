@@ -99,8 +99,8 @@ class Complex(Species):
 
 class ReactantComplex(Complex):
 
-    def run_const_opt(self, const_opt, method, n_cores):
-
+    def run_const_opt(self, const_opt, method=None, n_cores=None):
+        """Run a constrained optimisation of the ReactantComplex"""
         const_opt.run()
 
         atoms = const_opt.get_final_atoms()
@@ -121,7 +121,7 @@ class ProductComplex(Complex):
 class SolvatedReactantComplex(Complex):
 
     def run_const_opt(self, const_opt, method, n_cores):
-
+        """Run a constrained optimisation of the ReactantComplex"""
         const_opt.run()
 
         atoms = const_opt.get_final_atoms()
@@ -149,6 +149,7 @@ class SolvatedReactantComplex(Complex):
 
 
 def get_complexes(reaction):
+    """Creates Reactant and Product complexes for the reaction. If it is a SolvatedReaction, a SolvatedReactantComplex is returned"""
     if reaction.__class__.__name__ == 'SolvatedReaction':
         reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name='r')
     else:

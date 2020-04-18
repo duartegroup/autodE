@@ -59,13 +59,14 @@ def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
 
 
 def centre_species(species):
+    """Translates a species so its centre is at (0,0,0)"""
     species_coords = species.get_coordinates()
     species_centre = np.average(species_coords, axis=0)
     species.translate(-species_centre)
 
 
 def add_solvent_on_sphere(species, solvent_atoms, radius, solvent_mol_area, radius_mult, rand):
-    """Packs solvent molecules semi-evenly on a sphere around the solvent_name molecule"""
+    """Packs solvent molecules semi-evenly on a sphere around the solvent molecule"""
     rad_to_use = (radius * radius_mult * 0.8) + 0.4
     fit_on_sphere = ceil((4 * np.pi * rad_to_use**2) / solvent_mol_area)
     d = fit_on_sphere**(4/5)
@@ -136,7 +137,7 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
             print('XYZs', file=output_file)
             for atom in atoms:
                 x, y, z = atom.coord
-                print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=output_file)
+                print(f'{atom.label:<3} {x:^10.5f} {y:^10.5f} {z:^10.5f}', file=output_file)
             print(f'Energy = {qmmm_energy}', file=output_file)
 
     return atoms, qmmm_energy
@@ -194,7 +195,7 @@ def do_explicit_solvent_qmmm(species, method, n_cores, dist_consts=None, fix_sol
             print('XYZs', file=output_file)
             for atom in lowest_energy_qmmm_atoms:
                 x, y, z = atom.coord
-                print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=output_file)
+                print(f'{atom.label:<3} {x:^10.5f} {y:^10.5f} {z:^10.5f}', file=output_file)
             print(f'Energy = {boltzmann_qmmm_energy}', file=output_file)
         for filename in os.listdir(os.getcwd()):
             if f'{species.name}_qmmm_' in filename:

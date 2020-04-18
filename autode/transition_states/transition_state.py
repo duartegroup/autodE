@@ -257,6 +257,7 @@ class SolvatedTransitionState(TransitionState):
 
 
 def get_ts_object(ts_guess):
+    """Creates TransitionState for the TSguess. If it is a SolvatedTSguess, a SolvatedTransitionState is returned"""
     if ts_guess.__class__.__name__ == 'SolvatedTSguess':
         return SolvatedTransitionState(ts_guess=ts_guess)
     return TransitionState(ts_guess=ts_guess)

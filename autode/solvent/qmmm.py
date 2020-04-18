@@ -16,8 +16,10 @@ from autode.methods import get_hmethod
 class QMMM:
 
     def set_up_main_simulation(self, fix_solute):
+        """Set up an openmm qmmm simulation, including a qmmm force object ot use for QMMM simulations"""
         atoms2pdb(deepcopy(self.species.qm_solvent_atoms + self.species.mm_solvent_atoms), f'{self.name}.pdb')
         pdb = omapp.PDBFile(f'{self.name}.pdb')
+        # TODO make the forcefield work for not water
         self.system = omapp.ForceField('tip3pfb.xml').createSystem(pdb.topology)
 
         coords = np.array([atom.coord for atom in self.species.qm_solvent_atoms + self.species.mm_solvent_atoms + self.species.atoms])
@@ -71,6 +73,7 @@ class QMMM:
                 self.system.addConstraint(atom1 + self.n_solvent_atoms, atom2 + self.n_solvent_atoms, distance/10)
 
     def set_qm_atoms(self):
+        """Set the closest solvent molecules to be used as QM solvent"""
         positions = self.simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
         solute_coords = positions[self.n_solvent_atoms:] / nanometer
         all_distances = []
@@ -93,6 +96,7 @@ class QMMM:
         self.update_atoms(positions)
 
     def update_atoms(self, positions):
+        """Update the species qm and mm solvent atoms lists"""
         coords = positions / angstrom
         self.species.set_coordinates(coords[self.n_solvent_atoms:])
         qm_solvent_coords = coords[self.qm_solvent_atom_idxs]
@@ -103,6 +107,7 @@ class QMMM:
             self.species.mm_solvent_atoms[i].coord = coord
 
     def simulate(self):
+        """Run the QMMM simulation"""
         logger.info('Running QMMM steps')
         self.run_qmmm_step()
         self.run_qmmm_step()
@@ -114,12 +119,14 @@ class QMMM:
         return None
 
     def run_qmmm_step(self):
+        """Run a single QMMM step"""
         qmmm_force = self.calc_forces_and_energies()
         self.update_forces(qmmm_force)
         self.simulation.step(1)
         self.set_qm_atoms()
 
     def calc_forces_and_energies(self):
+        """Calculate the QMMM forces"""
         forces = []
         for i, force in enumerate(self.system.getForces()):
             forces.append(deepcopy(force))
@@ -196,6 +203,7 @@ class QMMM:
         return qmmm_forces
 
     def get_qm_force_energy(self, positions):
+        """Calculate the QM force"""
         grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, grad=True)
         grad_calc.run()
         qm_grads = grad_calc.get_gradients()  # in Eh/bohr
@@ -211,6 +219,7 @@ class QMMM:
         return qm_forces, qm_energy
 
     def update_forces(self, forces):
+        """Update the QMMM force with the QM force"""
         for i, force in enumerate(forces):
             self.qmmm_force_obj.setParticleParameters(i, i, force)
         self.qmmm_force_obj.updateParametersInContext(self.simulation.context)
@@ -233,6 +242,8 @@ class QMMM:
 
 
 def atoms2pdb(atoms, filename):
+    """Creates a PDB file for a set of atoms"""
+    # TODO make this work for not water
     for i, atom in enumerate(atoms):
         if i % 3 == 1:
             atom.label = 'H1'

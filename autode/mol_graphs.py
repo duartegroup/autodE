@@ -531,7 +531,7 @@ def is_isomorphic_wi(species, graph, any_inter, ignore_ab, wi_threshold=0.0016):
 
 
 def is_chiral_pi_bond(species, bond):
-    """Determine if a pi bond is chiral, by seeing if either atom has the same atoms bonded to it twice"""
+    """Determine if a pi bond is chiral, by seeing if either atom has the same group bonded to it twice"""
 
     for i, atom in enumerate(bond):
         neighbours = list(species.graph.neighbors(atom))

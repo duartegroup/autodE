@@ -259,6 +259,7 @@ class SolvatedReaction(Reaction):
 
     @work_in('solvent')
     def calc_solvent(self):
+        """Calculates the properties of the explicit solvent molecule"""
         logger.info('Optimising the solvent molecule')
         self.solvent_mol = SolvatedMolecule(name=self.solvent.name, smiles=self.solvent.smiles)
         self.solvent_mol.find_lowest_energy_conformer(low_level_method=get_lmethod())
@@ -267,6 +268,7 @@ class SolvatedReaction(Reaction):
         self.make_solvated_mol_objects()
 
     def make_solvated_mol_objects(self):
+        """Converts the Molecule objects in the reaction into SolvatedMolecule objects, and sets the solvent molecule"""
         solvated_reacs, solvated_prods = [], []
         for mol in self.reacs:
             solvated_mol = SolvatedMolecule(name=mol.name, atoms=mol.atoms, charge=mol.charge, mult=mol.mult)

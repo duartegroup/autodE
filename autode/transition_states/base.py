@@ -31,7 +31,6 @@ class TSbase(Species):
         (1) The most negative(/imaginary) is more negative that a threshold
 
         Keywords Arguments:
-            calc (autode.calculation.Calculation):
             method (autode.wrappers.base.ElectronicStructureMethod):
             threshold (float):
         """

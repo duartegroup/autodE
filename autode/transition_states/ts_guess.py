@@ -144,6 +144,7 @@ class SolvatedTSguess(TSguess):
 
 
 def get_ts_guess(species, reactant, product, name):
+    """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess is returned"""
     if species.__class__.__name__ == 'SolvatedReactantComplex':
         return SolvatedTSguess(species=species, reactant=reactant, product=product, name=name)
     return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
