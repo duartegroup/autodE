@@ -138,7 +138,7 @@ class SolvatedTSguess(TSguess):
 
     def __init__(self, species, reactant, product, name='ts_guess'):
         super().__init__(species.atoms, reactant, product, name)
-
+        self.solvent_mol = species.solvent_mol
         self.qm_solvent_atoms = species.qm_solvent_atoms
         self.mm_solvent_atoms = species.mm_solvent_atoms
 

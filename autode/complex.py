@@ -141,16 +141,16 @@ class SolvatedReactantComplex(Complex):
 
         return None
 
-    def __init__(self, *args, name='complex'):
+    def __init__(self, solvent_mol, *args, name='complex'):
         super().__init__(*args, name=name)
-        self.solvent_mol = None
+        self.solvent_mol = solvent_mol
         self.qm_solvent_atoms = None
         self.mm_solvent_atoms = None
 
 
 def get_complexes(reaction):
     if reaction.__class__.__name__ == 'SolvatedReaction':
-        reac = SolvatedReactantComplex(*reaction.reacs, name='r')
+        reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name='r')
     else:
         reac = ReactantComplex(*reaction.reacs, name='r')
     prod = ProductComplex(*reaction.prods, name='p')

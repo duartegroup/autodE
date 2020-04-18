@@ -217,11 +217,18 @@ class SolvatedTransitionState(TransitionState):
             self.mm_solvent_atoms = mm_atoms
             return None
 
-        # TODO need to get charges
-        # for i, charge in enumerate(opt.get_atomic_charges()):
-        #     self.graph.nodes[i]['charge'] = charge
+        dist_consts = get_distance_constraints(self)
+        method = get_hmethod()
 
-        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, get_hmethod(), Config.n_cores, dist_consts=get_distance_constraints(self))
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method, keywords_list=method.keywords.opt,
+                          n_cores=Config.n_cores, opt=True, distance_constraints=dist_consts)
+        opt.run()
+        self.set_atoms(atoms=opt.get_final_atoms())
+
+        for i, charge in enumerate(opt.get_atomic_charges()):
+            self.graph.nodes[i]['charge'] = charge
+
+        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, Config.n_cores, dist_consts=dist_consts)
         self.set_atoms(species_atoms)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms
@@ -244,6 +251,7 @@ class SolvatedTransitionState(TransitionState):
     def __init__(self, ts_guess):
 
         super().__init__(ts_guess=ts_guess)
+        self.solvent_mol = ts_guess.solvent_mol
         self.qm_solvent_atoms = ts_guess.qm_solvent_atoms
         self.mm_solvent_atoms = ts_guess.mm_solvent_atoms
 

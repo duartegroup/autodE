@@ -283,6 +283,7 @@ class SolvatedReaction(Reaction):
             solvated_mol.rdkit_mol_obj = mol.rdkit_mol_obj
             solvated_mol.rdkit_conf_gen_is_fine = mol.rdkit_conf_gen_is_fine
             solvated_mol.graph = deepcopy(mol.graph)
+            solvated_mol.solvent_mol = self.solvent_mol
             solvated_prods.append(solvated_mol)
         self.prods = solvated_prods
 
