@@ -1,7 +1,8 @@
 from copy import deepcopy
 from numpy.polynomial import polynomial
 import numpy as np
-from multiprocessing import Pool
+import multiprocessing.pool
+import multiprocessing
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.calculation import Calculation
 from autode.config import Config
@@ -118,7 +119,8 @@ class PES2d(PES):
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
             # TODO passing PES in here is really slow with big molecules
-            with Pool(processes=Config.n_cores) as pool:
+            # Have to use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
+            with NoDaemonPool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
                                                                           cores_per_process)) for p in points]
                 for i, point in enumerate(points):
@@ -262,3 +264,23 @@ def polyfit2d(x, y, z, order):
     # row has value x ** m * y ** n with (m,n) = (0,0), (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
     coeff_mat, _, _, _ = np.linalg.lstsq(vander, z, rcond=None)
     return coeff_mat.reshape(deg + 1)
+
+
+class NoDaemonProcess(multiprocessing.Process):
+    @property
+    def daemon(self):
+        return False
+
+    @daemon.setter
+    def daemon(self, value):
+        pass
+
+
+class NoDaemonContext(type(multiprocessing.get_context())):
+    Process = NoDaemonProcess
+
+
+class NoDaemonPool(multiprocessing.pool.Pool):
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super().__init__(*args, **kwargs)

@@ -116,20 +116,20 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
                 xyzs_section = True
 
     else:
-        #completed_qmmm = False
-        # while not completed_qmmm:
-            # try:
-        for filename in os.listdir(os.getcwd()):
-            if f'{file_prefix}_step_' in filename:
-                os.remove(filename)
-        add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols)
-        qmmm = QMMM(species, dist_consts, method, fix_solute, i)
-        qmmm.simulate()
-        atoms = species.atoms + species.qm_solvent_atoms + species.mm_solvent_atoms
-        qmmm_energy = species.energy
-        #completed_qmmm = True
-        # except:
-        #     pass
+        completed_qmmm = False
+        while not completed_qmmm:
+            try:
+                for filename in os.listdir(os.getcwd()):
+                    if f'{file_prefix}_step_' in filename:
+                        os.remove(filename)
+                add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols)
+                qmmm = QMMM(species, dist_consts, method, fix_solute, i)
+                qmmm.simulate()
+                atoms = species.atoms + species.qm_solvent_atoms + species.mm_solvent_atoms
+                qmmm_energy = species.energy
+                completed_qmmm = True
+            except:
+                pass
         for filename in os.listdir(os.getcwd()):
             if f'{file_prefix}_step_' in filename:
                 os.remove(filename)
