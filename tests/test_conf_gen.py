@@ -112,7 +112,7 @@ def test_chiral_rotation(tmpdir):
         # Ensure the fragmented centres map almost identically
 
         # RMSD on the 5 atoms should be < 0.5 Å
-        assert calc_rmsd(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs]) < 5E-1
+        assert calc_rmsd(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs]) < 0.5
 
     os.chdir(here)
 
@@ -176,9 +176,9 @@ def test_ts_conformer(tmpdir):
                                      Atom('H', -0.70611, -0.54149, 0.97313),
                                      Atom('H', -0.80305, 1.05409, 0.00503)])
 
-    f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess,
-                                 bond_rearrangement=BondRearrangement(breaking_bonds=[(2, 1)],
-                                                                      forming_bonds=[(0, 2)]))
+    f_ch3cl_tsguess.bond_rearrangement = BondRearrangement(breaking_bonds=[(2, 1)], forming_bonds=[(0, 2)])
+
+    f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess)
 
     atoms = conf_gen.get_simanl_atoms(species=f_ch3cl_ts,
                                       dist_consts=get_distance_constraints(f_ch3cl_ts))

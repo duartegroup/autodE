@@ -68,14 +68,6 @@ def test_check_rearrangement():
     assert reac.prods[0].name == 'h3_linear'
 
 
-def test_solvated_reaction_class():
-    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
-
-    hh_reac = reaction.SolvatedReaction(mol1=h1, mol2=h2, mol3=hh_product, name='h2_assoc')
-
-    assert hh_reac.solvent_sphere_energy is None
-
-
 def test_reaction_identical_reac_prods():
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
@@ -114,7 +106,8 @@ def test_calc_delta_e():
     r2.energy = -0.5
 
     tsguess = TSguess(atoms=None, reactant=ReactantComplex(r1), product=ProductComplex(r2))
-    ts = TransitionState(tsguess, bond_rearrangement=BondRearrangement())
+    tsguess.bond_rearrangement = BondRearrangement()
+    ts = TransitionState(tsguess)
     ts.energy = -0.8
 
     p = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])

@@ -108,10 +108,6 @@ def get_krot_p_q(template_coords, coords_to_fit):
     # Get the optimum rotation matrix
     rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
 
-    # Apply to get the new set of coordinates
-    # new_coords = np.array([np.matmul(rot_mat, coord - p_centroid) + q_centroid
-    #                              for coord in coords])
-
     return rot_mat, p_centroid, q_centroid
 
 

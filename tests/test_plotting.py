@@ -17,8 +17,9 @@ def test_plot_reaction_profile():
     os.chdir(os.path.join(here, 'data'))
     r = Molecule(name='reactant', smiles='C')
     p = Molecule(name='product', smiles='C')
-    tsguess = TSguess(atoms=None, reactant=ReactantComplex(r), product=ProductComplex(p))
-    ts = TransitionState(tsguess, bond_rearrangement=BondRearrangement())
+    tsguess = TSguess(atoms=r.atoms, reactant=ReactantComplex(r), product=ProductComplex(p))
+    tsguess.bond_rearrangement = BondRearrangement()
+    ts = TransitionState(tsguess)
 
     plotting.plot_reaction_profile(0.0, 10.0, -10.0, KjMol, reacs=[r], prods=[p], ts=ts)
 

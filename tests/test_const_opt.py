@@ -24,7 +24,6 @@ def test_constrained_opt():
                                             name='template_ts_guess',
                                             product=ProductComplex(mol))
     assert ts_guess.n_atoms == 3
-    assert ts_guess.energy == -1.655676296857
 
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.inp'):

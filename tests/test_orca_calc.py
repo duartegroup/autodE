@@ -3,6 +3,7 @@ from autode.calculation import Calculation
 from autode.calculation import execute_calc
 from autode.calculation import check_molecule_attr
 from autode.molecule import Molecule
+from autode.molecule import SolvatedMolecule
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
@@ -88,7 +89,8 @@ def test_orca_optts_calculation():
     # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
 
     os.chdir(os.path.join(here, 'data'))
-    methane = Molecule(name='methane', smiles='C')
+    methane = SolvatedMolecule(name='methane', smiles='C')
+    methane.qm_solvent_atoms = []
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=methane, method=method, opt=True,
                        bond_ids_to_add=[(0, 1)],
