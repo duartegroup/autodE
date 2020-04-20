@@ -15,6 +15,7 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = ORCA()
+method.available = True
 
 
 def test_orca_opt_calculation():

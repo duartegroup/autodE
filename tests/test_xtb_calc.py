@@ -6,6 +6,7 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 method = XTB()
+method.available = True
 
 
 def test_xtb_calculation():
