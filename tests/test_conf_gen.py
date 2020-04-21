@@ -4,7 +4,7 @@ from autode.molecule import Molecule
 from autode.molecule import Reactant, Product
 from autode.complex import ReactantComplex, ProductComplex
 from autode.config import Config
-from autode.geom import get_krot_p_q
+from autode.geom import calc_rmsd
 from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.transition_state import TransitionState
 from autode.bond_rearrangement import BondRearrangement
@@ -110,11 +110,9 @@ def test_chiral_rotation(tmpdir):
 
     for centre_idxs in [ccclfh, ccclbrh]:
         # Ensure the fragmented centres map almost identically
-        rot_mat, p, q = get_krot_p_q(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs])
-        fitted_centre1 = np.array([np.matmul(rot_mat, coord - p) + q for coord in regen_coords[centre_idxs]])
 
         # RMSD on the 5 atoms should be < 0.5 Å
-        assert np.sqrt(np.average(np.square(fitted_centre1 - coords[centre_idxs]))) < 5E-1
+        assert calc_rmsd(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs]) < 0.5
 
     os.chdir(here)
 
@@ -178,9 +176,9 @@ def test_ts_conformer(tmpdir):
                                      Atom('H', -0.70611, -0.54149, 0.97313),
                                      Atom('H', -0.80305, 1.05409, 0.00503)])
 
-    f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess,
-                                 bond_rearrangement=BondRearrangement(breaking_bonds=[(2, 1)],
-                                                                      forming_bonds=[(0, 2)]))
+    f_ch3cl_tsguess.bond_rearrangement = BondRearrangement(breaking_bonds=[(2, 1)], forming_bonds=[(0, 2)])
+
+    f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess)
 
     atoms = conf_gen.get_simanl_atoms(species=f_ch3cl_ts,
                                       dist_consts=get_distance_constraints(f_ch3cl_ts))

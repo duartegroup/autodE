@@ -7,6 +7,7 @@ from autode.wrappers.ORCA import orca
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+orca.available = True
 
 
 def test_constrained_opt():
@@ -17,6 +18,8 @@ def test_constrained_opt():
                           Atom('H', 0.7, 0.0, 0.0),
                           Atom('H', 1.7, 0.0, 0.0)])
 
+    Config.XTB.path = here       # A path that exists
+
     ts_guess = get_ts_guess_constrained_opt(reactant=ReactantComplex(mol),
                                             distance_consts={(0, 1): 1.0},
                                             method=orca,
@@ -24,7 +27,6 @@ def test_constrained_opt():
                                             name='template_ts_guess',
                                             product=ProductComplex(mol))
     assert ts_guess.n_atoms == 3
-    assert ts_guess.energy == -1.655676296857
 
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.inp'):

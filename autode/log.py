@@ -1,3 +1,6 @@
+import logging
+import os
+
 """
 Set up logging with the standard python logging module. Set the log level with
 $AUTODE_LOG_LEVEL = {'', INFO, WARNING, DEBUG}
@@ -8,8 +11,6 @@ Also, set whether to log to a file with
 $AUTODE_LOG_FILE = filename
 
 """
-import logging
-import os
 
 
 def get_log_level():

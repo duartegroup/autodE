@@ -1,5 +1,5 @@
-from autode.log import logger
 import numpy as np
+from autode.log import logger
 
 
 class Atom:

@@ -1,14 +1,15 @@
-from autode.log import logger
 from copy import deepcopy
-from autode.config import Config
 from autode.transition_states.base import TSbase
-from autode.calculation import Calculation
-from autode.methods import get_lmethod
-from autode.exceptions import AtomsNotFound
-from autode.mol_graphs import get_mapping_ts_template
-from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
+from autode.calculation import Calculation
+from autode.complex import SolvatedReactantComplex
+from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.log import logger
+from autode.methods import get_lmethod
+from autode.mol_graphs import get_mapping_ts_template
+from autode.mol_graphs import get_truncated_active_mol_graph
 
 
 def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_consts, product):
@@ -31,32 +32,32 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
 
     # Run a low level constrained optimisation first to prevent the DFT being problematic if there are >1 constraint
     l_method = get_lmethod()
-    const_opt = Calculation(name=f'{name}_constrained_opt_ll', molecule=mol_with_const, method=l_method,
-                            keywords_list=l_method.keywords.low_opt, n_cores=Config.n_cores, opt=True,
-                            distance_constraints=distance_consts)
-    const_opt.run()
+    ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll', molecule=mol_with_const, method=l_method,
+                               keywords_list=l_method.keywords.low_opt, n_cores=Config.n_cores, opt=True,
+                               distance_constraints=distance_consts)
+    ll_const_opt.run()
 
     # Try and set the atoms, but continue if they're not found as hopefully the other method will be fine(?)
     try:
-        mol_with_const.set_atoms(atoms=const_opt.get_final_atoms())
+        mol_with_const.set_atoms(atoms=ll_const_opt.get_final_atoms())
 
     except AtomsNotFound:
         pass
 
-    const_opt = Calculation(name=f'{name}_constrained_opt', molecule=mol_with_const, method=method, opt=True,
-                            keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts)
-    const_opt.run()
+    hl_const_opt = Calculation(name=f'{name}_constrained_opt', molecule=mol_with_const, method=method, opt=True,
+                               keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts)
+    hl_const_opt.run()
 
     # Form a transition state guess from the optimised atoms and set the corresponding energy
     try:
-        atoms = const_opt.get_final_atoms()
+        reactant.run_const_opt(hl_const_opt, method, Config.n_cores)
     except AtomsNotFound:
-        atoms = mol_with_const.atoms
+        try:
+            reactant.run_const_opt(ll_const_opt, get_lmethod(), Config.n_cores)
+        except AtomsNotFound:
+            return None
 
-    ts_guess = TSguess(atoms=atoms, reactant=reactant, product=product, name=f'ts_guess_{name}')
-    ts_guess.energy = const_opt.get_energy()
-
-    return ts_guess
+    return get_ts_guess(species=reactant, reactant=reactant, product=product, name=f'ts_guess_{name}')
 
 
 def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywords, dist_thresh=4.0):
@@ -135,9 +136,15 @@ class TSguess(TSbase):
 
 class SolvatedTSguess(TSguess):
 
-    def __init__(self, atoms, reactant, product,  name='ts_guess'):
-        super().__init__(atoms, reactant, product, name)
+    def __init__(self, species, reactant, product, name='ts_guess'):
+        super().__init__(species.atoms, reactant, product, name)
+        self.solvent_mol = species.solvent_mol
+        self.qm_solvent_atoms = species.qm_solvent_atoms
+        self.mm_solvent_atoms = species.mm_solvent_atoms
 
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None
 
+def get_ts_guess(species, reactant, product, name):
+    """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess is returned"""
+    if species.__class__.__name__ == 'SolvatedReactantComplex':
+        return SolvatedTSguess(species=species, reactant=reactant, product=product, name=name)
+    return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)

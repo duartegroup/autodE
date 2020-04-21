@@ -1,12 +1,14 @@
-from autode.config import Config
-from autode.log import logger
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import UnsuppportedCalculationInput
-from autode.atoms import Atom
 import numpy as np
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.exceptions import UnsuppportedCalculationInput
+from autode.log import logger
 
 
 class NWChem(ElectronicStructureMethod):
+
+    # TODO impliment partial hessian
 
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_nwchem.nw'
@@ -63,7 +65,13 @@ class NWChem(ElectronicStructureMethod):
                 print('noautoz', file=inp_file)
             else:
                 print('', file=inp_file)
-            [print('  {:<3} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=inp_file) for line in calc.xyzs]
+            for atom in calc.molecule.atoms:
+                x, y, z = atom.coord
+                print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
+                for atom in calc.molecule.qm_solvent_atoms:
+                    x, y, z = atom.coord
+                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             if calc.bond_ids_to_add or calc.distance_constraints:
                 print('  zcoord', file=inp_file)
                 if calc.bond_ids_to_add:
@@ -109,10 +117,12 @@ class NWChem(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=' ', file=inp_file)
                 print('end', file=inp_file)
 
-            if calc.molecule.charges:
+            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
                 print('bq')
-                [print(' {:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file)
-                 for line in calc.molecule.charges]
+                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    x, y, z = atom.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
                 print('end')
 
             print(f'memory {Config.max_core} mb', file=inp_file)

@@ -1,92 +1,73 @@
-import os
-import numpy as np
-from autode.log import logger
-from autode.config import Config
-from autode.solvent.qmmm import QMMM
-from multiprocessing import Pool
+from copy import deepcopy
 from math import ceil, floor
+from multiprocessing import Pool
+import numpy as np
+import os
+from autode.solvent.qmmm import QMMM
+from autode.atoms import Atom
+from autode.log import logger
 
 
-def add_solvent_molecules(solute, solvent, n_solvent_mols):
-    """Add a specific number of solvent_name molecules around a solute
+def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
+    """Add a specific number of solvent molecules around a solute"""
+    # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
+    rand = np.random.RandomState()
 
-    Arguments:
-        solute (mol obj) -- solute molecule
-        solvent (mol obj) -- solvent_name molecule
-        n_solvent_mols (int) -- number of solvent_name molecules desired
+    logger.info(f'Adding solvent molecules around {species.name}')
 
-    Returns:
-        list, list, list, list -- solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges
-    """
-    np.random.seed()
+    solvent_n_atoms = species.solvent_mol.n_atoms
+    total_n_solvent_atoms = n_solvent_mols * solvent_n_atoms
 
-    logger.info(f'Adding solvent_name molecules around {solute.name}')
+    centre_species(species.solvent_mol)
+    solvent_coords = species.solvent_mol.get_coordinates()
+    solvent_size = np.linalg.norm(np.max(solvent_coords, axis=0) - np.min(solvent_coords, axis=0))
+    solvent_size = 1 if solvent_size < 1 else solvent_size
 
-    # centre solvent_name
-    solvent_coords = xyz2coord(solvent.xyzs)
-    solvent_centre = np.average(solvent_coords, axis=0)
-    solvent_coords -= solvent_centre
-    max_solvent_cart_values = np.max(solvent_coords, axis=0)
-    min_solvent_cart_values = np.min(solvent_coords, axis=0)
-    solvent_size = np.linalg.norm(max_solvent_cart_values - min_solvent_cart_values)
-    if solvent_size == 0:
-        solvent_size = 1
+    centre_species(species)
+    solute_coords = species.get_coordinates()
+    radius = np.linalg.norm(np.max(solute_coords, axis=0) - np.min(solute_coords, axis=0))
+    radius = 2 if radius < 2 else radius
 
-    # centre solute
-    solute_coords = xyz2coord(solute.xyzs)
-    max_solute_cart_values = np.max(solute_coords, axis=0)
-    min_solute_cart_values = np.min(solute_coords, axis=0)
-    solute_centre = (max_solute_cart_values + min_solute_cart_values) / 2
-    solute_coords -= solute_centre
-    centered_solute_xyzs = coords2xyzs(solute_coords, solute.xyzs)
+    solvent_area = (0.9*solvent_size) ** 2 * np.pi
 
-    radius = (np.linalg.norm(max_solute_cart_values - min_solute_cart_values))
-    if radius < 2:
-        radius = 2
-    solvent_mol_area = (0.9*solvent_size)**2 * np.pi
-
-    solvent_bonds = list(solvent.graph.edges())
-    solvent_coords_on_sphere = []
-    all_solvent_xyzs = []
-    all_solvent_bonds = []
-    all_solvent_charges = []
-
-    distances = []
     i = 1
-    while len(solvent_coords_on_sphere) <= n_solvent_mols:
-        solvent_coords_on_sphere += add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, i)
+    all_solvent_atoms = []
+    while len(all_solvent_atoms) <= total_n_solvent_atoms:
+        add_solvent_on_sphere(species, all_solvent_atoms, radius, solvent_area, i, rand)
         i += 1
-    for i, solvent_coords in enumerate(solvent_coords_on_sphere):
-        distances.append(np.linalg.norm(solvent_coords))
-    # only take closest solvent_name molecules
-    sorted_by_dist_coords = [x for _, x in sorted(zip(distances, solvent_coords_on_sphere))]
-    for i, solvent_coords in enumerate(sorted_by_dist_coords):
-        if i == n_solvent_mols:
-            break
-        solvent_xyzs = coords2xyzs(solvent_coords, solvent.xyzs)
-        for xyz in solvent_xyzs:
-            all_solvent_xyzs.append(xyz)
-        for bond in solvent_bonds:
-            all_solvent_bonds.append((bond[0] + i * len(solvent_xyzs), bond[1] + i * len(solvent_xyzs)))
-        all_solvent_charges += solvent.charges
 
-    return centered_solute_xyzs, all_solvent_xyzs, all_solvent_bonds, all_solvent_charges
+    # TODO make this nicer?
+    # Only take closest solvent molecules
+    distances = []
+    for i in range(int(len(all_solvent_atoms)/solvent_n_atoms)):
+        solvent_mol_atoms = all_solvent_atoms[i*solvent_n_atoms:(i+1)*solvent_n_atoms]
+        solvent_mol_coords = [atom.coord for atom in solvent_mol_atoms]
+        distances.append(np.linalg.norm(np.average(solvent_mol_coords, axis=0)))
+
+    species.qm_solvent_atoms = []
+    species.mm_solvent_atoms = []
+    sorted_distances = sorted(distances)
+    for i in range(n_solvent_mols):
+        original_index = distances.index(sorted_distances[i])
+        solvent_mol_atoms = all_solvent_atoms[original_index*solvent_n_atoms:(original_index+1)*solvent_n_atoms]
+        if i < n_qm_solvent_mols:
+            species.qm_solvent_atoms += solvent_mol_atoms
+        else:
+            species.mm_solvent_atoms += solvent_mol_atoms
+
+    return None
 
 
-def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult):
-    """Packs solvent_name molecules semi-evenly on a sphere around the solvent_name molecule
+def centre_species(species):
+    """Translates a species so its centre is at (0,0,0)"""
+    species_coords = species.get_coordinates()
+    species_centre = np.average(species_coords, axis=0)
+    species.translate(-species_centre)
 
-    Arguments:
-        solvent_coords (np.array) -- solvent_name molecule coords
-        radius (float) -- radius of the solute molecule
-        solvent_mol_area (float) -- rough top down area of the molecule
-        radius_mult (int) -- multiplier to use on the radius to get the radius of this sphere of solvent_name
 
-    Returns:
-        np.array -- coords of the solvent_name molecules on the sphere
-    """
+def add_solvent_on_sphere(species, solvent_atoms, radius, solvent_mol_area, radius_mult, rand):
+    """Packs solvent molecules semi-evenly on a sphere around the solvent molecule"""
     rad_to_use = (radius * radius_mult * 0.8) + 0.4
-    solvent_coords_on_sphere = []
     fit_on_sphere = ceil((4 * np.pi * rad_to_use**2) / solvent_mol_area)
     d = fit_on_sphere**(4/5)
     m_theta = ceil(d/np.pi)
@@ -99,125 +80,129 @@ def add_solvent_on_sphere(solvent_coords, radius, solvent_mol_area, radius_mult)
         n_on_ring = int(round(circum * fit_on_sphere / total_circum))
         for n in range(0, n_on_ring):
             if m % 2 == 0:
-                phi = (2 * np.pi * n/n_on_ring) + 0.7*np.pi*(np.random.rand()-0.5)/(n_on_ring)
+                phi = (2 * np.pi * n/n_on_ring) + 0.7*np.pi*(rand.rand()-0.5)/(n_on_ring)
             else:
-                phi = (2 * np.pi * (n+0.5)/n_on_ring) + 0.7*np.pi*(np.random.rand()-0.5)/(n_on_ring)
-            # add a little bit of randomness to the positioning
-            rand_theta = theta + 0.35*np.pi*(np.random.rand()-0.5)/(m_theta-1)
-            rand_add = 0.4*radius * (np.random.rand()-0.5)
+                phi = (2 * np.pi * (n+0.5)/n_on_ring) + 0.7*np.pi*(rand.rand()-0.5)/(n_on_ring)
+            # Add a little bit of randomness to the positioning
+            rand_theta = theta + 0.35*np.pi*(rand.rand()-0.5)/(m_theta-1)
+            rand_add = 0.4*radius * (rand.rand()-0.5)
             x = (rad_to_use + rand_add) * np.sin(rand_theta) * np.cos(phi)
             y = (rad_to_use + rand_add) * np.sin(rand_theta) * np.sin(phi)
             z = (rad_to_use + rand_add) * np.cos(rand_theta)
             position = [x, y, z]
-            new_solvent_mol_coords = random_rot_solvent(solvent_coords.copy()) + position
-            solvent_coords_on_sphere.append(new_solvent_mol_coords)
-    return solvent_coords_on_sphere
+            species.solvent_mol.rotate(axis=rand.uniform(-1.0, 1.0, 3), theta=2*np.pi*rand.rand())
+            for atom in species.solvent_mol.atoms:
+                new_atom = deepcopy(atom)
+                new_atom.translate(position)
+                solvent_atoms.append(new_atom)
+
+    return None
 
 
-def random_rot_solvent(coords):
-    """rotate the solvent_name molecule randomly
-
-    Arguments:
-        coords (np.array) -- coords of solvent_name molecule
-
-    Returns:
-        np.array -- rotated coords of solvent_name molecule
-    """
-    axis = np.random.rand(3)
-    theta = np.random.rand() * np.pi * 2
-    rot_matrix = calc_rotation_matrix(axis, theta)
-    for i in range(len(coords)):
-        coords[i] = np.matmul(rot_matrix, coords[i])
-
-    return coords
-
-
-def run(solute, solvent, n_qm_solvent_mols, dist_consts, fix_solute, method, i):
-    if os.path.exists(f'{solute.name}_qmmm_{i}.out'):
-        lines = [line for line in open(f'{solute.name}_qmmm_{i}.out', 'r', encoding="utf-8")]
+def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute, method, i):
+    file_prefix = f'{species.name}_qmmm_{i}'
+    if os.path.exists(f'{file_prefix}.out'):
+        lines = [line for line in open(f'{file_prefix}.out', 'r', encoding="utf-8")]
         xyzs_section = False
-        xyzs = []
+        atoms = []
         for line in lines:
-            if 'XYZS' in line:
-                xyzs_section = True
             if 'Energy' in line:
                 xyzs_section = False
                 qmmm_energy = float(line.split()[2])
-            if xyzs_section and len(line.split()) == 4:
-                label, x, y, z = line.split()
-                xyzs.append([label, float(x), float(y), float(z)])
+            if xyzs_section:
+                atom_label, x, y, z = line.split()
+                atoms.append(Atom(atomic_symbol=atom_label, x=float(x), y=float(y), z=float(z)))
+            if 'XYZs' in line:
+                xyzs_section = True
+
     else:
         completed_qmmm = False
         while not completed_qmmm:
             try:
                 for filename in os.listdir(os.getcwd()):
-                    if f'{solute.name}_qmmm_{i}_step_' in filename:
+                    if f'{file_prefix}_step_' in filename:
                         os.remove(filename)
-                n_solvent_mols = 700
-                solute_xyzs, solvent_xyzs, solvent_bonds, solvent_charges = add_solvent_molecules(solute, solvent, n_solvent_mols)
-                solute.xyzs = solute_xyzs
-                os.environ['OPENMM_CPU_THREADS'] = str(1)
-                os.environ['OMP_NUM_THREADS '] = str(1)
-                qmmm = QMMM(solute, n_solvent_mols, solvent_xyzs, solvent_bonds, solvent_charges, n_qm_solvent_mols, dist_consts, i, method, fix_solute)
+                add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols)
+                qmmm = QMMM(species, dist_consts, method, fix_solute, i)
                 qmmm.simulate()
-                xyzs = qmmm.final_xyzs
-                qmmm_energy = qmmm.final_energy
+                atoms = species.atoms + species.qm_solvent_atoms + species.mm_solvent_atoms
+                qmmm_energy = species.energy
                 completed_qmmm = True
             except:
                 pass
         for filename in os.listdir(os.getcwd()):
-            if f'{solute.name}_qmmm_{i}_step_' in filename:
+            if f'{file_prefix}_step_' in filename:
                 os.remove(filename)
-        with open(f'{solute.name}_qmmm_{i}.out', 'w') as out_file:
-            print('XYZS', file=out_file)
-            [print('{:<3} {:^10.5f} {:^10.5f} {:^10.5f}'.format(*line), file=out_file) for line in xyzs]
-            print(f'Energy = {qmmm_energy}', file=out_file)
+        with open(f'{file_prefix}.out', 'w') as output_file:
+            print('XYZs', file=output_file)
+            for atom in atoms:
+                x, y, z = atom.coord
+                print(f'{atom.label:<3} {x:^10.5f} {y:^10.5f} {z:^10.5f}', file=output_file)
+            print(f'Energy = {qmmm_energy}', file=output_file)
 
-    return xyzs, qmmm_energy
+    return atoms, qmmm_energy
 
 
-def do_explicit_solvent_qmmm(solute, solvent, method, dist_consts=None, fix_solute=False, n_confs=192, n_qm_solvent_mols=50):
-    """Run explicit solvent qmmm calculations to find the lowest energy of the solvated molecule
+def do_explicit_solvent_qmmm(species, method, n_cores, dist_consts=None, fix_solute=False, n_confs=192, n_qm_solvent_mols=50, n_solvent_mols=700):
+    """Run explicit solvent qmmm calculations to find the lowest energy of the solvated species"""
 
-    Arguments:
-        solute (mol obj) -- molecule to be solvated, all coords will be fixed
-        solvent (mol obj) -- solvating molecule, will be randomly placed around the solute the optimized with qmmm calculations
-        method (ESW method) -- method to use for QM calculations
+    logger.info(f'Running QMMM for {species.name}')
 
-    Keyword Arguments:
-        dist_consts (dict) -- bond distance constraints, key=bond ids, value=distance (default: {None})
-        fix_solute (bool) -- if the solute should be fixed (default: {False})
-        n_confs (int) -- number of differenct solvent configurations to calculate (default: {192})
-        n_qm_solvent_mols (int) -- number of solvent molecules to place around the solute (default: {30})
+    if species.solvent_mol is None:
+        species.solvent_mol = deepcopy(species)
 
-    Returns:
-        float, list, int -- energy, xyzs, n_qm_atoms
-    """
-    qmmm_energies = []
-    qmmm_xyzs = []
+    if os.path.exists(f'{species.name}_qmmm.out'):
+        lines = [line for line in open(f'{species.name}_qmmm.out', 'r', encoding="utf-8")]
+        xyzs_section = False
+        lowest_energy_qmmm_atoms = []
+        for line in lines:
+            if 'Energy' in line:
+                xyzs_section = False
+                boltzmann_qmmm_energy = float(line.split()[2])
+            if xyzs_section:
+                atom_label, x, y, z = line.split()
+                lowest_energy_qmmm_atoms.append(Atom(atomic_symbol=atom_label, x=float(x), y=float(y), z=float(z)))
+            if 'XYZs' in line:
+                xyzs_section = True
 
-    logger.info(f'Splitting calculation into {Config.n_cores} threads')
-    with Pool(processes=Config.n_cores) as pool:
-        results = [pool.apply_async(run, (solute, solvent, n_qm_solvent_mols, dist_consts, fix_solute, method, i)) for i in range(n_confs)]
-        xyzs_and_energies = [res.get(timeout=None) for res in results]
+    else:
+        logger.info(f'Splitting calculation into {n_cores} threads')
+        with Pool(processes=n_cores) as pool:
+            results = [pool.apply_async(run_qmmm, (species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute, method, i)) for i in range(n_confs)]
+            atoms_and_energies = [res.get(timeout=None) for res in results]
 
-    for xyzs, qmmm_energy in xyzs_and_energies:
-        qmmm_energies.append(qmmm_energy)
-        qmmm_xyzs.append(xyzs)
+        qmmm_energies = []
+        qmmm_atoms = []
 
-    min_e = min(qmmm_energies)
-    lowest_energy_index = qmmm_energies.index(min_e)
-    lowest_energy_qmmm_xyzs = qmmm_xyzs[lowest_energy_index]
-    qmmm_n_qm_atoms = (n_qm_solvent_mols * len(solvent.xyzs)) + len(solute.xyzs)
+        for atoms, qmmm_energy in atoms_and_energies:
+            qmmm_energies.append(qmmm_energy)
+            qmmm_atoms.append(atoms)
 
-    q = 0
+        min_e = min(qmmm_energies)
+        lowest_energy_qmmm_atoms = qmmm_atoms[qmmm_energies.index(min_e)]
 
-    # get a bolztmann weighting of the energy
-    boltzmann_qmmm_energy = 0
-    for e in qmmm_energies:
-        energy = e - min_e
-        q += np.exp(-1052.58*energy)
-        boltzmann_qmmm_energy = energy * np.exp(-1052.58*energy)
-    boltzmann_qmmm_energy = (boltzmann_qmmm_energy / q) + min_e
+        # get a bolztmann weighting of the energy
+        q = 0
+        boltzmann_qmmm_energy = 0
+        for e in qmmm_energies:
+            energy = e - min_e
+            q += np.exp(-1052.58*energy)
+            boltzmann_qmmm_energy += energy * np.exp(-1052.58*energy)
+        boltzmann_qmmm_energy = (boltzmann_qmmm_energy / q) + min_e
 
-    return boltzmann_qmmm_energy, lowest_energy_qmmm_xyzs, qmmm_n_qm_atoms
+        # Need to clear files, or the folder gets too large
+        with open(f'{species.name}_qmmm.out', 'w') as output_file:
+            print('XYZs', file=output_file)
+            for atom in lowest_energy_qmmm_atoms:
+                x, y, z = atom.coord
+                print(f'{atom.label:<3} {x:^10.5f} {y:^10.5f} {z:^10.5f}', file=output_file)
+            print(f'Energy = {boltzmann_qmmm_energy}', file=output_file)
+        for filename in os.listdir(os.getcwd()):
+            if f'{species.name}_qmmm_' in filename:
+                os.remove(filename)
+
+    species_atoms = lowest_energy_qmmm_atoms[:species.n_atoms]
+    qm_solvent_atoms = lowest_energy_qmmm_atoms[species.n_atoms:n_qm_solvent_mols*species.solvent_mol.n_atoms]
+    mm_solvent_atoms = lowest_energy_qmmm_atoms[n_qm_solvent_mols*species.solvent_mol.n_atoms:]
+
+    return boltzmann_qmmm_energy, species_atoms, qm_solvent_atoms, mm_solvent_atoms

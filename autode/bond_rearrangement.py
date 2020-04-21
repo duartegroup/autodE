@@ -1,10 +1,11 @@
-from autode.geom import get_neighbour_list
-from autode.log import logger
-from autode import mol_graphs
-from autode.atoms import get_maximal_valance
-from autode.mol_graphs import is_isomorphic
 import itertools
 import os
+from autode.atoms import get_maximal_valance
+from autode.geom import get_neighbour_list
+from autode.log import logger
+from autode.mol_graphs import get_bond_type_list
+from autode.mol_graphs import get_fbonds
+from autode.mol_graphs import is_isomorphic
 
 
 def get_bond_rearrangs(reactant, product, name):
@@ -32,8 +33,8 @@ def get_bond_rearrangs(reactant, product, name):
 
     possible_bond_rearrangements = []
 
-    reac_bond_dict = mol_graphs.get_bond_type_list(reactant.graph)
-    prod_bond_dict = mol_graphs.get_bond_type_list(product.graph)
+    reac_bond_dict = get_bond_type_list(reactant.graph)
+    prod_bond_dict = get_bond_type_list(product.graph)
 
     # list of lists, shallow level separates by type of bond, deeper level is bonds of those type that can break
     all_possible_bbonds = []
@@ -48,7 +49,7 @@ def get_bond_rearrangs(reactant, product, name):
 
     for reac_key, reac_bonds in reac_bond_dict.items():
         prod_bonds = prod_bond_dict[reac_key]
-        possible_fbonds = mol_graphs.get_fbonds(reactant.graph, reac_key)
+        possible_fbonds = get_fbonds(reactant.graph, reac_key)
         if len(prod_bonds) < len(reac_bonds):
             all_possible_bbonds.append(reac_bonds)
             bbond_atom_type_fbonds = possible_fbonds
@@ -166,7 +167,7 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
                 return bond_rearrangs
 
     rearranged_graph = generate_rearranged_graph(reactant.graph, fbonds=fbonds, bbonds=bbonds)
-    if mol_graphs.is_isomorphic(rearranged_graph, product.graph):
+    if is_isomorphic(rearranged_graph, product.graph):
         ordered_fbonds = []
         ordered_bbonds = []
         for fbond in fbonds:

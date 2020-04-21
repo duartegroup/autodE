@@ -1,12 +1,12 @@
-from abc import ABC, abstractmethod
-from autode.log import logger
-from autode.exceptions import NoClosestSpecies
-from autode.exceptions import AtomsNotFound
-from autode.calculation import Calculation
-from autode import mol_graphs
+from abc import ABC
+from abc import abstractmethod
 from copy import deepcopy
-import numpy as np
 import itertools
+import numpy as np
+from autode.calculation import Calculation
+from autode.exceptions import AtomsNotFound
+from autode.exceptions import NoClosestSpecies
+from autode.log import logger
 
 
 def get_closest_species(point, pes):
@@ -70,6 +70,7 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
     dimension = len(pes.rs_idxs)
 
     species = get_closest_species(point=point, pes=pes)
+    original_species = deepcopy(species)
 
     # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
     distance_constraints = {pes.rs_idxs[i]: pes.rs[point][i] for i in range(dimension)}
@@ -78,28 +79,19 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
     name = f'{name}_scan_{"-".join([str(p) for p in point])}'
     const_opt = Calculation(name=name, molecule=species, method=method, opt=True, n_cores=n_cores,
                             keywords_list=keywords, distance_constraints=distance_constraints)
-    const_opt.run()
 
-    # Attempt to set the atoms and the energy from the calculation, if failed then leave as the closest
     try:
-        atoms = const_opt.get_final_atoms()
-        energy = const_opt.get_energy()
-
+        species.run_const_opt(const_opt, method, n_cores)
     except AtomsNotFound:
         logger.error(f'Optimisation failed for {point}')
-        return species
+        return original_species
 
     # If the energy difference is > 1 Hartree then likely something has gone wrong with the EST method
     # we need to be not on the first point to compute an energy difference..
     if not all(p == 0 for p in point):
-        if energy is None or np.abs(energy - species.energy) > energy_threshold:
+        if species.energy is None or np.abs(original_species.energy - species.energy) > energy_threshold:
             logger.error(f'PES point had a relative energy > {energy_threshold} Ha. Using the closest')
-            return species
-
-    # Set the energy, new set of atoms then make the molecular graph
-    species.energy = energy
-    species.set_atoms(atoms=atoms)
-    mol_graphs.make_graph(species=species)
+            return original_species
 
     return species
 

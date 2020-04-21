@@ -1,13 +1,15 @@
-from autode.config import Config
-from autode.log import logger
-from autode.atoms import Atom
-from autode.exceptions import AtomsNotFound
-from autode.wrappers.base import ElectronicStructureMethod
 from copy import deepcopy
 import numpy as np
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.log import logger
 
 
 class G09(ElectronicStructureMethod):
+
+#TODO impliment partial hessian
 
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_g09.com'
@@ -26,7 +28,7 @@ class G09(ElectronicStructureMethod):
                 if calc.molecule.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
-                elif calc.molecule.charges:
+                elif hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
                     options = []
                     if '=(' in keyword:
                         # get the individual options
@@ -49,7 +51,7 @@ class G09(ElectronicStructureMethod):
                     opt = True
             if opt and not nosymm:
                 keywords.append('NoSymm')
-        if calc.molecule.charges:
+        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
             keywords.append('Charge')
 
         with open(calc.input_filename, 'w') as inp_file:
@@ -72,9 +74,12 @@ class G09(ElectronicStructureMethod):
                 print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
                       file=inp_file)
 
-            if calc.molecule.charges:
+            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
                 print('')
-                [print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*line[1:]), file=inp_file) for line in calc.molecule.charges]
+                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    x, y, z = atom.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
 
             print('', file=inp_file)
 

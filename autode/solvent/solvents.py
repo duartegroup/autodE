@@ -219,4 +219,4 @@ solvents = [Solvent(name='water', smiles='O', aliases=['water', 'h2o'], orca='wa
             Solvent(name='quinoline', smiles='C12=CC=CC=C1N=CC=C2', aliases=['quinoline'], g09='Quinoline', mopac='quinoline'),
             Solvent(name='argon', smiles='[Ar]', aliases=['argon'], g09='Argon', mopac='argon'),
             Solvent(name='krypton', smiles='[Kr]', aliases=['krypton'], g09='Krypton', mopac='krypton'),
-            Solvent(name='xenon', smiles=['Xe'], aliases=['xenon'], g09='Xenon', mopac='xenon')]
+            Solvent(name='xenon', smiles='[Xe]', aliases=['xenon'], g09='Xenon', mopac='xenon')]

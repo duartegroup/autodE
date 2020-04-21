@@ -1,7 +1,7 @@
-import networkx as nx
-from autode.log import logger
 from copy import deepcopy
+import networkx as nx
 from autode.bond_lengths import get_avg_bond_length
+from autode.log import logger
 
 
 def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
@@ -182,6 +182,10 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
         reactant_complex (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
+    if reactant_complex.__class__.__name__ == 'SolvatedReactantComplex':
+        logger.info('Not worth truncating explicitily solvated reaction')
+        return False
+
     truncated_complex = get_truncated_complex(reactant_complex, bond_rearrangement)
 
     if reactant_complex.n_atoms - truncated_complex.n_atoms < 10:

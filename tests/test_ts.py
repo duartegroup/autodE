@@ -41,9 +41,10 @@ f_ch3cl_tsguess = TSguess(reactant=ReactantComplex(f, ch3cl),
                                  Atom('H', -0.70611, -0.54149, 0.97313),
                                  Atom('H', -0.80305, 1.05409, 0.00503)])
 
-f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess,
-                             bond_rearrangement=BondRearrangement(breaking_bonds=[(2, 1)],
-                                                                  forming_bonds=[(0, 2)]))
+f_ch3cl_tsguess.bond_rearrangement = BondRearrangement(breaking_bonds=[(2, 1)],
+                                                       forming_bonds=[(0, 2)])
+
+f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess)
 
 
 def test_ts_guess_class():

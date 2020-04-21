@@ -1,13 +1,14 @@
 import numpy as np
-from autode.log import logger
+from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import get_solvent
 from autode.calculation import Calculation
-from autode import mol_graphs
-from autode.methods import get_lmethod
-from autode.input_output import atoms_to_xyz_file
-from autode.conformers.conformers import get_unique_confs
 from autode.config import Config
+from autode.input_output import atoms_to_xyz_file
 from autode.geom import length
+from autode.log import logger
+from autode.methods import get_lmethod
+from autode.mol_graphs import is_isomorphic_ish
+from autode.mol_graphs import make_graph
 from autode.utils import requires_atoms
 from autode.utils import requires_conformers
 
@@ -28,9 +29,9 @@ class Species:
                 continue
 
             # Conformers don't have a molecular graph, so make it
-            mol_graphs.make_graph(conformer)
+            make_graph(conformer)
 
-            if not mol_graphs.is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True, any_interaction=True):
+            if not is_isomorphic_ish(conformer, self.graph, ignore_active_bonds=True, any_interaction=True):
                 logger.warning('Conformer had a different molecular graph. Ignoring')
                 continue
 
@@ -58,13 +59,7 @@ class Species:
         """Rotate the molecule by around an axis (np.ndarray, length 3) an theta radians"""
         for atom in self.atoms:
 
-            if origin is not None:
-                atom.translate(vec=-origin)
-                atom.rotate(axis, theta, origin=origin)
-                atom.translate(vec=origin)
-
-            else:
-                atom.rotate(axis, theta)
+            atom.rotate(axis, theta, origin=origin)
 
         return None
 
@@ -124,8 +119,7 @@ class Species:
             return None
 
         # For all the generated conformers optimise with the low level of theory
-        for i in range(len(self.conformers)):
-            self.conformers[i].optimise(low_level_method)
+        [self.conformers[i].optimise(low_level_method) for i in range(len(self.conformers))]
 
         # Strip conformers that are similar based on an energy criteria or don't have an energy
         self.conformers = get_unique_confs(conformers=self.conformers)
@@ -181,29 +175,6 @@ class Species:
 
         self.energy = None                                              # Total electronic energy in Hartrees (float)
 
-        self.charges = None                                             # List of partial atomic charges (list(float))
-
         self.graph = None                                               # NetworkX.Graph object with atoms and bonds
 
         self.conformers = None                                          # List of autode.conformers.conformers.Conformer
-
-
-class SolvatedSpecies(Species):
-
-    def single_point(self, method):
-        logger.info(f'Running single point energy evaluation of {self.name}')
-
-        point_charges = []
-        for i, xyz in enumerate(self.mm_solvent_xyzs):
-            point_charges.append(xyz + [self.solvent.charges[i % self.solvent.n_atoms]])
-
-        sp = Calculation(name=self.name + '_sp', molecule=self, method=method, keywords_list=method.sp_keywords,
-                         n_cores=Config.n_cores)
-        sp.run()
-        self.energy = sp.get_energy()
-
-    def __int__(self, name, atoms, charge, mult, solvent_name):
-        super(SolvatedSpecies, self).__init__(name, atoms, charge, mult, solvent_name)
-
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None

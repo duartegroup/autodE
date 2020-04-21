@@ -1,27 +1,26 @@
-from autode.log import logger
-from autode import reactions
-from autode.transition_states.locate_tss import find_tss
-from autode.molecule import Molecule
-from autode.molecule import Reactant
-from autode.molecule import Product
-from autode.units import KcalMol
-from autode.units import KjMol
-from autode.plotting import plot_reaction_profile
-from autode.utils import work_in
-from autode.config import Config
+from copy import deepcopy
 from autode.solvent.solvents import get_solvent
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
-from autode.methods import get_hmethod
-from autode.methods import get_lmethod
+from autode.transition_states.locate_tss import find_tss
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
-from copy import deepcopy
+from autode.log import logger
+from autode.methods import get_hmethod
+from autode.methods import get_lmethod
+from autode.molecule import Molecule
+from autode.molecule import Product
+from autode.molecule import Reactant
+from autode.molecule import SolvatedMolecule
+from autode.plotting import plot_reaction_profile
+from autode.units import KcalMol
+from autode.units import KjMol
+from autode.utils import work_in
+from autode import reactions
 
 
 def calculate_reaction_profile(reaction, units):
     logger.info('Calculating reaction profile')
 
-    if Config.explicit_solvation:
+    if isinstance(reaction, SolvatedReaction):
         reaction.calc_solvent()
 
     reaction.find_lowest_energy_conformers()
@@ -237,15 +236,14 @@ class SolvatedReaction(Reaction):
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆E‡')
-        if self.ts.energy is not None:
-            e = self.ts.energy - sum(filter(None, [r.energy for r in self.reacs]))
-            n_reacs = len(self.reacs)
-            if n_reacs != 1 and self.solvent_mol:
-                e += (len(self.reacs) - 1) * self.solvent_sphere_energy
-            return e
-        else:
+        if self.ts is None:
+            return None
+
+        if self.ts.energy is None:
             logger.error('TS had no energy. Setting ∆E‡ = None')
             return None
+
+        return units.conversion * (self.ts.energy - sum(filter(None, [r.energy for r in self.reacs])) + ((len(self.reacs) - 1) * self.solvent_mol.energy))
 
     def calc_delta_e(self, units=KcalMol):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
@@ -254,34 +252,47 @@ class SolvatedReaction(Reaction):
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        e = sum(filter(None, [p.energy for p in self.prods])) - sum(filter(None, [r.energy for r in self.reacs]))
-        delta_n_reacs = len(self.reacs) - len(self.prods)
-        if delta_n_reacs != 0 and self.solvent_mol:
-            e += delta_n_reacs * self.solvent_sphere_energy
-        return e
+        products_energy = sum(filter(None, [p.energy for p in self.prods]))
+        reactants_energy = sum(filter(None, [r.energy for r in self.reacs]))
+
+        return units.conversion * (products_energy - reactants_energy + ((len(self.reacs) - len(self.prods)) * self.solvent_mol.energy))
 
     @work_in('solvent')
     def calc_solvent(self):
-        logger.info('Optimising the solvent_name molecule')
-        solvent_smiles = self.solvent.smiles
-        solvent = Molecule(name=self.solvent.name, smiles=solvent_smiles, solvent_name=self.solvent)
+        """Calculates the properties of the explicit solvent molecule"""
+        logger.info('Optimising the solvent molecule')
+        self.solvent_mol = SolvatedMolecule(name=self.solvent.name, smiles=self.solvent.smiles)
+        self.solvent_mol.find_lowest_energy_conformer(low_level_method=get_lmethod())
+        self.solvent_mol.optimise(get_hmethod())
+        self.solvent_mol.single_point(method=get_hmethod())
+        self.make_solvated_mol_objects()
 
-        if solvent.n_atoms > 1:
-            solvent.find_lowest_energy_conformer(low_level_method=get_lmethod())
-        solvent.optimise(None)
-        logger.info('Saving the solvent_name molecule properties')
-        self.solvent_mol = solvent
-        if not len(self.reacs) == len(self.prods) == 1:
-            qmmm_solvent_mol = deepcopy(solvent)
-            _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(qmmm_solvent_mol, solvent, method=get_hmethod(), n_confs=96, n_qm_solvent_mols=49)
-            qmmm_solvent_mol.xyzs = qmmm_xyzs[:qmmm_solvent_mol.n_atoms]
-            qmmm_solvent_mol.qm_solvent_xyzs = qmmm_xyzs[qmmm_solvent_mol.n_atoms: n_qm_atoms]
-            qmmm_solvent_mol.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
-            qmmm_solvent_mol.single_point(solvent)
-            self.solvent_sphere_energy = qmmm_solvent_mol.energy
+    def make_solvated_mol_objects(self):
+        """Converts the Molecule objects in the reaction into SolvatedMolecule objects, and sets the solvent molecule"""
+        solvated_reacs, solvated_prods = [], []
+        for mol in self.reacs:
+            solvated_mol = SolvatedMolecule(name=mol.name, atoms=mol.atoms, charge=mol.charge, mult=mol.mult)
+            solvated_mol.smiles = mol.smiles
+            solvated_mol.rdkit_mol_obj = mol.rdkit_mol_obj
+            solvated_mol.rdkit_conf_gen_is_fine = mol.rdkit_conf_gen_is_fine
+            solvated_mol.graph = deepcopy(mol.graph)
+            solvated_mol.solvent_mol = self.solvent_mol
+            solvated_reacs.append(solvated_mol)
+        self.reacs = solvated_reacs
+        for mol in self.prods:
+            solvated_mol = SolvatedMolecule(name=mol.name, atoms=mol.atoms, charge=mol.charge, mult=mol.mult)
+            solvated_mol.smiles = mol.smiles
+            solvated_mol.rdkit_mol_obj = mol.rdkit_mol_obj
+            solvated_mol.rdkit_conf_gen_is_fine = mol.rdkit_conf_gen_is_fine
+            solvated_mol.graph = deepcopy(mol.graph)
+            solvated_mol.solvent_mol = self.solvent_mol
+            solvated_prods.append(solvated_mol)
+        self.prods = solvated_prods
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
                  solvent_name=None):
         super().__init__(mol1, mol2, mol3, mol4, mol5, mol6, name, solvent_name)
 
-        self.solvent_sphere_energy = None
+        self.solvent_mol = None
+
+        self.make_solvated_mol_objects()

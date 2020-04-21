@@ -1,12 +1,12 @@
+from functools import wraps
 import os
-from autode.log import logger
+import shutil
+from tempfile import mkdtemp
 from autode.exceptions import NoAtomsInMolecule
-from autode.exceptions import NoMolecularGraph
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
-from functools import wraps
-from tempfile import mkdtemp
-import shutil
+from autode.exceptions import NoMolecularGraph
+from autode.log import logger
 
 
 def work_in(dir_ext):
@@ -21,7 +21,7 @@ def work_in(dir_ext):
             dir_path = os.path.join(here, dir_ext)
 
             if not os.path.isdir(dir_path):
-                logger.info( f'Creating directory to store output files at {dir_path:}')
+                logger.info(f'Creating directory to store output files at {dir_path:}')
                 os.mkdir(dir_path)
 
             os.chdir(dir_path)

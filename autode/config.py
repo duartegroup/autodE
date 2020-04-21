@@ -37,10 +37,6 @@ class Config:
     high_quality_plots = True
     #
     # ----------------------------------------------------------------------------------------------
-    # Whether to do explicit solvation or not
-    #
-    explicit_solvation = False
-    # ----------------------------------------------------------------------------------------------
     # RMSD in angstroms threshold for conformers
     #
     rmsd_threshold = 0.5

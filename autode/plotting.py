@@ -1,14 +1,14 @@
-import numpy as np
-from numpy.polynomial import polynomial
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-from scipy.ndimage.filters import gaussian_filter1d
-from autode.log import logger
-from autode.units import KjMol
-from autode.units import KcalMol
-from autode.config import Config
+from mpl_toolkits.mplot3d import Axes3D
+from numpy.polynomial import polynomial
+import numpy as np
 import os
+from scipy.ndimage.filters import gaussian_filter1d
+from autode.config import Config
+from autode.log import logger
+from autode.units import KcalMol
+from autode.units import KjMol
 
 
 def save_plot(plot, filename):
@@ -201,7 +201,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, switche
             ax.annotate(f'TS has {len(ts.imaginary_frequencies)} imaginary frequency',
                         (0.5, 0.1*max(y_vals)), ha='center', color='red')
 
-        if ts.calc is not None and not ts.calc.optimisation_converged():
+        if ts.optts_calc is not None and not ts.optts_calc.optimisation_converged():
             ax.annotate('TS is not fully converged',
                         (0.5, 0.2*max(y_vals)), ha='center', color='red')
     else:

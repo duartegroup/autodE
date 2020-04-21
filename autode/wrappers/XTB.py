@@ -1,10 +1,10 @@
-from autode.config import Config
-from autode.constants import Constants
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import AtomsNotFound
-from autode.atoms import Atom
 import numpy as np
 import os
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.constants import Constants
+from autode.exceptions import AtomsNotFound
 
 
 class XTB(ElectronicStructureMethod):
@@ -12,7 +12,11 @@ class XTB(ElectronicStructureMethod):
     def generate_input(self, calc):
 
         calc.input_filename = calc.name + '_xtb.xyz'
+
+        if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
+            calc.molecule.atoms += calc.molecule.solvent_atoms
         calc.molecule.print_xyz_file(filename=calc.input_filename)
+        calc.molecule.atoms = calc.molecule.atoms[:calc.molecule.n_atoms]
 
         calc.output_filename = calc.name + '_xtb.out'
 
@@ -27,7 +31,7 @@ class XTB(ElectronicStructureMethod):
         if calc.solvent_keyword:
             calc.flags += ['--gbsa', calc.solvent_keyword]
 
-        if calc.distance_constraints or calc.cartesian_constraints or calc.molecule.charges:
+        if calc.distance_constraints or calc.cartesian_constraints or (hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None):
             force_constant = 10
 
             if calc.constraints_already_met:
@@ -62,18 +66,19 @@ class XTB(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=',', file=xcontrol_file)
                     print('$', file=xcontrol_file)
 
-                if calc.molecule.charges:
+                if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
                     print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
             calc.flags += ['--input', xcontrol_filename]
             calc.additional_input_files.append(xcontrol_filename)
 
-        if calc.molecule.charges is not None:
+        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
-                print(len(calc.molecule.charges), file=pc_file)
-                for line in calc.molecule.charges:
-                    formatted_line = [line[-1]] + line[1:4] + [line[0]]
-                    print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f} {:<3}'.format(*formatted_line), file=pc_file)
+                print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
+                for i, atom in calc.molecule.mm_solvent_atoms:
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    x, y, z = atom.coord
+                    print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} {atom.label:<3}', file=pc_file)
             calc.additional_input_files.append((f'{calc.name}_xtb.pc', f'{calc.name}_xtb.pc'))
 
         return None

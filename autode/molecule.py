@@ -1,19 +1,20 @@
-from autode.config import Config
-from autode.log import logger
+from multiprocessing import Pool
 from rdkit.Chem import AllChem
-from autode.atoms import metals
-from autode.species import Species
-from autode.mol_graphs import make_graph
-from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_atoms
+from autode.conformers.conformer import Conformer
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
-from autode.calculation import Calculation
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.atoms import metals
+from autode.calculation import Calculation
+from autode.config import Config
 from autode.exceptions import NoAtomsInMolecule
-from autode.utils import requires_atoms
+from autode.log import logger
+from autode.mol_graphs import make_graph
 from autode.smiles import init_organic_smiles
 from autode.smiles import init_smiles
+from autode.species import Species
+from autode.utils import requires_atoms
 
 
 class Molecule(Species):
@@ -33,14 +34,7 @@ class Molecule(Species):
         return None
 
     @requires_atoms()
-    def _find_stereocentres(self):
-        # TODO... write this
-
-        # Set self.graph.node['stereo'] = True
-        pass
-
-    @requires_atoms()
-    def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=50):
+    def _generate_conformers(self, n_rdkit_confs=300, n_siman_confs=300):
         """
         Use a simulated annealing approach to generate conformers for this molecule.
 
@@ -65,11 +59,12 @@ class Molecule(Species):
 
         else:
             logger.info('Using simulated annealing to generate conformers')
-            # TODO parallelise
-            conf_atoms_list = [get_simanl_atoms(species=self, conf_n=i) for i in range(n_siman_confs)]
+            with Pool(processes=Config.n_cores) as pool:
+                results = [pool.apply_async(get_simanl_atoms, (self, None, i)) for i in range(n_siman_confs)]
+                conf_atoms_list = [res.get(timeout=None) for res in results]
 
         for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}',  charge=self.charge, mult=self.mult, atoms=atoms)
+            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge, mult=self.mult, atoms=atoms)
 
             # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):
@@ -108,6 +103,8 @@ class Molecule(Species):
         logger.info(f'Generating a Molecule object for {name}')
         super().__init__(name, atoms, charge, mult, solvent_name)
 
+        # TODO init from xyzs?
+
         self.smiles = smiles
         self.rdkit_mol_obj = None
         self.rdkit_conf_gen_is_fine = True
@@ -116,37 +113,41 @@ class Molecule(Species):
 
         if smiles:
             self._init_smiles(smiles)
+        else:
+            make_graph(self)
 
         if self.n_atoms == 0:
             raise NoAtomsInMolecule
 
-        make_graph(self)
-        self._find_stereocentres()
-
 
 class SolvatedMolecule(Molecule):
 
+    @requires_atoms()
     def optimise(self, method):
         logger.info(f'Running optimisation of {self.name}')
 
-        opt = Calculation(name=self.name + '_opt', molecule=self, method=method, keywords_list=method.opt_keywords,
-                          n_cores=Config.n_cores, opt=True)
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
+                          keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
         opt.run()
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
-        self.charges = opt.get_atomic_charges()
+        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
+        for i, charge in enumerate(opt.get_atomic_charges()):
+            self.graph.nodes[i]['charge'] = charge
 
-        # TODO get this to return the atoms
-        _, qmmm_xyzs, n_qm_atoms = do_explicit_solvent_qmmm(self, self.solvent, method, n_confs=96)
-        self.xyzs = qmmm_xyzs[:self.n_atoms]
-        self.qm_solvent_xyzs = qmmm_xyzs[self.n_atoms: n_qm_atoms]
-        self.mm_solvent_xyzs = qmmm_xyzs[n_qm_atoms:]
+        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=Config.n_cores)
+        self.set_atoms(species_atoms)
+        self.qm_solvent_atoms = qm_solvent_atoms
+        self.mm_solvent_atoms = mm_solvent_atoms
 
-    def __init__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
+        return None
+
+    def __init__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1, solvent_mol=None):
         super().__init__(name, smiles, atoms, solvent_name, charge, mult)
 
-        self.qm_solvent_xyzs = None
-        self.mm_solvent_xyzs = None
+        self.solvent_mol = solvent_mol
+        self.qm_solvent_atoms = None
+        self.mm_solvent_atoms = None
 
 
 class Reactant(Molecule):

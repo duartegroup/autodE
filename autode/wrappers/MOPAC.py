@@ -1,12 +1,12 @@
 from copy import deepcopy
-from autode.config import Config
-from autode.log import logger
-from autode.constants import Constants
-from autode.atoms import Atom
-from autode.geom import get_shifted_atoms_linear_interp
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import UnsuppportedCalculationInput
 import numpy as np
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.constants import Constants
+from autode.exceptions import UnsuppportedCalculationInput
+from autode.geom import get_shifted_atoms_linear_interp
+from autode.log import logger
 
 
 # dielectrics from Gaussian solvent_name list
@@ -69,7 +69,7 @@ class MOPAC(ElectronicStructureMethod):
         if calc.grad:
             keywords.append('GRAD')
 
-        if calc.molecule.charges:
+        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
             keywords.append('QMMM')
 
         if calc.solvent_keyword is not None:
@@ -100,12 +100,14 @@ class MOPAC(ElectronicStructureMethod):
                                                         final_distances=list(calc.distance_constraints.values()))
 
                 # Populate a flat list of atom ids to fix
-                fixed_atoms = [i for bond in calc.distance_constraints.keys()
-                               for i in bond]
+                fixed_atoms = [i for bond in calc.distance_constraints.keys() for i in bond]
 
             else:
                 atoms = calc.molecule.atoms
                 fixed_atoms = []
+
+            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
+                atoms += calc.molecule.qm_solvent_atoms
 
             if calc.cartesian_constraints is not None:
                 fixed_atoms += calc.cartesian_constraints
@@ -116,20 +118,21 @@ class MOPAC(ElectronicStructureMethod):
                 else:
                     print(f'{atom.label:<3}{atom.coord[0]:^10.5f} 1 {atom.coord[1]:^10.5f} 1 {atom.coord[2]:^10.5f} 1', file=input_file)
 
-        if calc.molecule.charges:
+        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
             potentials = []
-            for xyz in calc.molecule.xyzs:
+            for atom in atoms:
                 potential = 0
-                coord = np.asarray(xyz[1:])
-                for charge in calc.molecule.charges:
-                    charge_coords = np.asarray(charge[1:4])
+                coord = atom.coord
+                for i, charge_atom in enumerate(calc.molecule.mm_solvent_atoms):
+                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                    charge_coords = charge_atom.coord
                     distance = np.linalg.norm(coord - charge_coords)
-                    potential += charge[4] / distance
+                    potential += charge / distance
                 potentials.append(322*potential)
             with open(f'{calc.name}_mol.in', 'w') as pc_file:
-                print(f'\n{calc.molecule.n_atoms} 0', file=pc_file)
+                print(f'\n{len(atoms)} 0', file=pc_file)
                 [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
-            calc.additional_input_files.append((f'{calc.name}_mol.in', 'mol.in'))
+            calc.additional_input_files.append(f'{calc.name}_mol.in')
 
         return None
 

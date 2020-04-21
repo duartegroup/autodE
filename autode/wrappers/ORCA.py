@@ -1,11 +1,12 @@
-from autode.config import Config
-from autode.log import logger
-from autode.atoms import Atom
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.exceptions import NoCalculationOutput, NoNormalModesFound
-from autode.exceptions import AtomsNotFound
 import numpy as np
 import os
+from autode.wrappers.base import ElectronicStructureMethod
+from autode.atoms import Atom
+from autode.config import Config
+from autode.exceptions import AtomsNotFound
+from autode.exceptions import NoCalculationOutput
+from autode.exceptions import NoNormalModesFound
+from autode.log import logger
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
                              'carbon tetrachloride': 'CCl4', 'dichloromethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',
@@ -22,6 +23,7 @@ class ORCA(ElectronicStructureMethod):
         keywords = calc.keywords_list.copy()
 
         opt_or_sp = False
+        qmmm_freq = False
 
         for keyword in keywords:
             if 'opt' in keyword.lower():
@@ -33,9 +35,10 @@ class ORCA(ElectronicStructureMethod):
             if keyword.lower() == 'sp':
                 opt_or_sp = True
             if keyword.lower() == 'freq':
-                if calc.partial_hessian:
+                if hasattr(calc.molecule, 'qm_solvent_atoms'):
                     keywords.remove(keyword)
                     keywords.append('NumFreq')
+                    qmmm_freq = True
 
         if opt_or_sp and calc.solvent_keyword in vdw_gaussian_solvent_dict.keys():
             keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
@@ -54,7 +57,7 @@ class ORCA(ElectronicStructureMethod):
                 if 'maxiter' in calc.other_input_block.lower():
                     max_iter_done = True
                 print(calc.other_input_block, file=inp_file)
-                if calc.core_atoms and calc.molecule.n_atoms > 25 and not calc.partial_hessian:
+                if calc.core_atoms and calc.molecule.n_atoms > 25 and not qmmm_freq:
                     core_atoms_str = ' '.join(map(str, calc.core_atoms))
                     print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
                 print('end', file=inp_file)
@@ -82,12 +85,20 @@ class ORCA(ElectronicStructureMethod):
             if calc.molecule.n_atoms < 33 and not max_iter_done:
                 print('%geom MaxIter 100 end', file=inp_file)
 
-            if calc.partial_hessian:
+            if qmmm_freq:
                 print('%freq\nPartial_Hess {', file=inp_file, end='')
-                print(*calc.partial_hessian, file=inp_file, end='')
+                solvent_atoms = [i + calc.molecule.n_atoms for i in range(len(calc.molecule.qm_solvent_atoms))]
+                print(*solvent_atoms, file=inp_file, end='')
                 print('} end\nend', file=inp_file)
 
-            if calc.molecule.charges:
+            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+                with open(f'{calc.name}_orca.pc', 'w') as pc_file:
+                    print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
+                    for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
+                        charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
+                        x, y, z = atom.coord
+                        print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
+                    calc.additional_input_files.append(f'{calc.name}_orca.pc')
                 print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
             if calc.n_cores > 1:
@@ -99,15 +110,11 @@ class ORCA(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
+                for atom in calc.molecule.qm_solvent_atoms:
+                    x, y, z = atom.coord
+                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             print('*', file=inp_file)
-
-        if calc.molecule.charges:
-            with open(f'{calc.name}_orca.pc', 'w') as pc_file:
-                print(len(calc.molecule.charges), file=pc_file)
-                for line in calc.molecule.charges:
-                    formatted_line = [line[-1]] + line[1:4]
-                    print('{:^12.8f} {:^12.8f} {:^12.8f} {:^12.8f}'.format(*formatted_line), file=pc_file)
-            calc.additional_input_files.append((f'{calc.name}_orca.pc', f'{calc.name}_orca.pc'))
 
         return None
 
@@ -150,10 +157,7 @@ class ORCA(ElectronicStructureMethod):
     def get_imag_freqs(self, calc):
         imag_freqs = []
 
-        if calc.partial_hessian:
-            n_atoms = len(calc.partial_hessian)
-        else:
-            n_atoms = calc.molecule.n_atoms
+        n_atoms = calc.molecule.n_atoms
 
         for i, line in enumerate(calc.output_file_lines):
             if 'VIBRATIONAL FREQUENCIES' in line:
@@ -167,10 +171,7 @@ class ORCA(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         normal_mode_section, values_sec, displacements, col = False, False, [], None
 
-        if calc.partial_hessian:
-            n_atoms = len(calc.partial_hessian)
-        else:
-            n_atoms = calc.molecule.n_atoms
+        n_atoms = calc.molecule.n_atoms
 
         for j, line in enumerate(calc.output_file_lines):
             if 'NORMAL MODES' in line:
@@ -251,7 +252,7 @@ class ORCA(ElectronicStructureMethod):
             if 'CARTESIAN GRADIENT' in line:
                 gradients = []
                 j = i + 3
-
+                n_atoms = calc.molecule.n_atoms + len(calc.molecule.qm_solvent_atoms)
                 for grad_line in calc.output_file_lines[j:j+calc.molecule.n_atoms]:
                     dadx, dady, dadz = grad_line.split()[-3:]
                     gradients.append([float(dadx), float(dady), float(dadz)])

@@ -1,18 +1,17 @@
-import numpy as np
 from copy import deepcopy
-from autode.species import Species
-from autode.methods import get_hmethod
-from autode.mol_graphs import is_isomorphic_ish
-from autode.geom import length
-from autode.config import Config
-from autode import mol_graphs
-from autode.mol_graphs import is_isomorphic
+import numpy as np
+from autode.atoms import get_atomic_weight
 from autode.calculation import Calculation
-from autode.exceptions import NoNormalModesFound
+from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoCalculationOutput
+from autode.exceptions import NoNormalModesFound
+from autode.geom import length
 from autode.log import logger
-from autode.atoms import get_atomic_weight
+from autode.methods import get_hmethod
+from autode.mol_graphs import is_isomorphic_ish
+from autode.mol_graphs import make_graph
+from autode.species import Species
 
 
 class TSbase(Species):
@@ -24,7 +23,7 @@ class TSbase(Species):
         self.graph = self.reactant.graph.copy()
         return None
 
-    def could_have_correct_imag_mode(self, bond_rearrangement, method=None, threshold=-50):
+    def could_have_correct_imag_mode(self, method=None, threshold=-50):
         """
         Determine if a point on the PES could have the correct imaginary mode. This must have
 
@@ -32,7 +31,6 @@ class TSbase(Species):
         (1) The most negative(/imaginary) is more negative that a threshold
 
         Keywords Arguments:
-            calc (autode.calculation.Calculation):
             method (autode.wrappers.base.ElectronicStructureMethod):
             threshold (float):
         """
@@ -60,14 +58,14 @@ class TSbase(Species):
             logger.warning('Imaginary modes were too small to be significant')
             return False
 
-        if not ts_has_contribution_from_active_atoms(calc=self.calc, active_atoms=bond_rearrangement.active_atoms):
+        if not ts_has_contribution_from_active_atoms(calc=self.calc, active_atoms=self.bond_rearrangement.active_atoms):
             logger.warning('Species does not have the correct imaginary mode')
             return False
 
         logger.info('Species could have the correct imaginary mode')
         return True
 
-    def has_correct_imag_mode(self, bond_rearrangement, calc=None, method=None):
+    def has_correct_imag_mode(self, calc=None, method=None):
         """Check that the imaginary mode is 'correct' set the calculation (hessian or optts)"""
         self.calc = calc if calc is not None else self.calc
 
@@ -76,10 +74,10 @@ class TSbase(Species):
             method = get_hmethod()
 
         # Run a fast check on  whether it's likely the mode is correct
-        if not self.could_have_correct_imag_mode(bond_rearrangement=bond_rearrangement, method=method):
+        if not self.could_have_correct_imag_mode(method=method):
             return False
 
-        if imag_mode_has_correct_displacement(calc=self.calc, bond_rearrangement=bond_rearrangement):
+        if imag_mode_has_correct_displacement(calc=self.calc, bond_rearrangement=self.bond_rearrangement):
             logger.info('Displacement of the active atoms in the imaginary mode bond forms and breaks the correct bonds')
             return True
 
@@ -101,6 +99,7 @@ class TSbase(Species):
         self.product = product
 
         self.calc = None
+        self.bond_rearrangement = None
 
         self._init_graph()
 
@@ -259,7 +258,7 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=disp_mag)
     f_displaced_mol = get_optimised_species(calc, method, direction='forwards', atoms=f_displaced_atoms)
 
-    if not is_isomorphic(f_displaced_mol.graph, reactant_graph) and not is_isomorphic(f_displaced_mol.graph, product_graph):
+    if not is_isomorphic_ish(f_displaced_mol, reactant_graph) and not is_isomorphic_ish(f_displaced_mol, product_graph):
         logger.warning('Forward displacement does not afford reactants or products')
         return False
 
@@ -279,8 +278,8 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
         logger.info('Backwards displacement lead to products and forwards to reactants')
         return True
 
-    logger.info(f'Forwards displaced edegs {f_displaced_mol.graph.edges}')
-    logger.info(f'Backwards displaced edegs {b_displaced_mol.graph.edges}')
+    logger.info(f'Forwards displaced edges {f_displaced_mol.graph.edges}')
+    logger.info(f'Backwards displaced edges {b_displaced_mol.graph.edges}')
     return False
 
 
@@ -297,7 +296,7 @@ def get_optimised_species(calc, method, direction, atoms):
     try:
         species.set_atoms(atoms=calc.get_final_atoms())
         species.energy = calc.get_energy()
-        mol_graphs.make_graph(species)
+        make_graph(species)
 
     except AtomsNotFound:
         logger.error(f'{direction} displacement calculation failed')

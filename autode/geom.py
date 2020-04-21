@@ -1,7 +1,7 @@
-import numpy as np
 from copy import deepcopy
-from scipy.spatial import distance_matrix
+import numpy as np
 from scipy.spatial.distance import cdist
+from scipy.spatial import distance_matrix
 from autode.log import logger
 
 
@@ -84,7 +84,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     """
 
     h = np.matmul(p_matrix.transpose(), q_matrix)
-    u, s, vh = np.linalg.svd(h)
+    u, _, vh = np.linalg.svd(h)
     d = np.linalg.det(np.matmul(vh.transpose(), u.transpose()))
     int_mat = np.identity(3)
     int_mat[2, 2] = d
@@ -107,10 +107,6 @@ def get_krot_p_q(template_coords, coords_to_fit):
 
     # Get the optimum rotation matrix
     rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
-
-    # Apply to get the new set of coordinates
-    # new_coords = np.array([np.matmul(rot_mat, coord - p_centroid) + q_centroid
-    #                              for coord in coords])
 
     return rot_mat, p_centroid, q_centroid
 
@@ -160,3 +156,10 @@ def get_distance_constraints(species):
             distance_constraints[edge] = species.get_distance(*edge)
 
     return distance_constraints
+
+
+def calc_rmsd(template_coords, coords_to_fit):
+    """Calculate the RMSD between two sets of coordinates"""
+    rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
+    fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords_to_fit])
+    return np.sqrt(np.average(np.square(fitted_coords - template_coords)))

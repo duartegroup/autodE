@@ -1,20 +1,22 @@
-import numpy as np
-from numpy.polynomial import polynomial
 from copy import deepcopy
-from multiprocessing import Pool
-from autode.config import Config
-from autode.units import KcalMol
-from autode.log import logger
+from numpy.polynomial import polynomial
+import numpy as np
+import multiprocessing.pool
+import multiprocessing
+from autode.transition_states.ts_guess import get_ts_guess
 from autode.calculation import Calculation
-from autode.plotting import plot_2dpes
-from autode.transition_states.ts_guess import TSguess
+from autode.config import Config
 from autode.exceptions import AtomsNotFound
-from autode import mol_graphs
-from autode.saddle_points import poly2d_saddlepoints
-from autode.min_energy_pathway import get_sum_energy_mep
+from autode.log import logger
 from autode.methods import high_level_method_names
-from autode.pes import PES
+from autode.min_energy_pathway import get_sum_energy_mep
+from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import make_graph
 from autode.pes import get_point_species
+from autode.pes import PES
+from autode.plotting import plot_2dpes
+from autode.saddle_points import poly2d_saddlepoints
+from autode.units import KcalMol
 
 
 class PES2d(PES):
@@ -39,17 +41,16 @@ class PES2d(PES):
             const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
                                     opt=True, n_cores=Config.n_cores, keywords_list=keywords,
                                     distance_constraints={self.rs_idxs[0]: r1, self.rs_idxs[1]: r2})
-            const_opt.run()
 
             try:
-                species.set_atoms(atoms=const_opt.get_final_atoms())
-                species.energy = const_opt.get_energy()
-
+                species.run_const_opt(const_opt, method, Config.n_cores)
             except AtomsNotFound:
                 logger.error('Constrained optimisation at the saddle point failed')
                 pass
 
-            yield species
+            return species
+
+        return None
 
     def fit(self, polynomial_order):
         """Fit an analytic 2d surface"""
@@ -74,9 +75,9 @@ class PES2d(PES):
 
         for i in range(self.n_points_r1):
             for j in range(self.n_points_r2):
-                mol_graphs.make_graph(self.species[i, j])
+                make_graph(self.species[i, j])
 
-                if mol_graphs.is_isomorphic(graph1=self.species[i, j].graph, graph2=self.product_graph):
+                if is_isomorphic(graph1=self.species[i, j].graph, graph2=self.product_graph):
                     logger.info(f'Products made at ({i}, {j})')
                     return True
 
@@ -117,7 +118,9 @@ class PES2d(PES):
             # The cores for this diagonal are the floored number of total cores divided by the number of calculations
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
-            with Pool(processes=Config.n_cores) as pool:
+            # TODO passing PES in here is really slow with big molecules
+            # Have to use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
+            with NoDaemonPool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
                                                                           cores_per_process)) for p in points]
                 for i, point in enumerate(points):
@@ -231,9 +234,11 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
     pes.fit(polynomial_order=polynomial_order)
     pes.print_plot(name=name)
 
-    # Yield a TSGuess for every saddle point on the surface
-    for species in pes.get_species_saddle_point(name=name, method=method, keywords=keywords):
-        return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
+    # Get a TSGuess for the lowest energy MEP saddle point on the surface
+    species = pes.get_species_saddle_point(name=name, method=method, keywords=keywords)
+
+    if species is not None:
+        return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
 
     logger.error('No possible TSs found on the 2D surface')
     return None
@@ -259,3 +264,23 @@ def polyfit2d(x, y, z, order):
     # row has value x ** m * y ** n with (m,n) = (0,0), (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
     coeff_mat, _, _, _ = np.linalg.lstsq(vander, z, rcond=None)
     return coeff_mat.reshape(deg + 1)
+
+
+class NoDaemonProcess(multiprocessing.Process):
+    @property
+    def daemon(self):
+        return False
+
+    @daemon.setter
+    def daemon(self, value):
+        pass
+
+
+class NoDaemonContext(type(multiprocessing.get_context())):
+    Process = NoDaemonProcess
+
+
+class NoDaemonPool(multiprocessing.pool.Pool):
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super().__init__(*args, **kwargs)

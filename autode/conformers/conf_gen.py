@@ -1,19 +1,18 @@
-import os
-import numpy as np
-from numpy.random import RandomState
 from copy import deepcopy
 from itertools import combinations
-from scipy.optimize import minimize
-from autode.bond_lengths import get_ideal_bond_length_matrix
-from autode.input_output import xyz_file_to_atoms
-from autode.log import logger
-from autode.input_output import atoms_to_xyz_file
-from autode.config import Config
-from autode.mol_graphs import split_mol_across_bond
 from multiprocessing import Pool
-import time
+import numpy as np
+import os
+from scipy.optimize import minimize
+from time import time
 from cconf_gen import v
 from cconf_gen import dvdr
+from autode.bond_lengths import get_ideal_bond_length_matrix
+from autode.config import Config
+from autode.input_output import xyz_file_to_atoms
+from autode.input_output import atoms_to_xyz_file
+from autode.log import logger
+from autode.mol_graphs import split_mol_across_bond
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
@@ -28,13 +27,13 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
     return res.x.reshape(n_atoms, 3)
 
 
-def get_atoms_rotated_stereocentres(species, atoms, theta):
+def get_atoms_rotated_stereocentres(species, atoms, rand):
     """If two stereocentres are bonded, rotate them randomly with respect to each other
 
     Arguments:
         species (autode.species.Species):
         atoms (list(autode.atoms.Atom)):
-        theta (float): Rotation angle in radians
+        rand (np.RandomState): random state
     """
 
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
@@ -48,11 +47,11 @@ def get_atoms_rotated_stereocentres(species, atoms, theta):
                 logger.info('Stereocenters were π bonded – not rotating')
                 continue
 
-            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+            left_idxs, _ = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
 
             # Rotate the left hand side randomly
             rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
-            [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for i in left_idxs]
+            [atoms[i].rotate(axis=rot_axis, theta=2*np.pi*rand.rand(), origin=atoms[atom_i].coord) for i in left_idxs]
 
     return atoms
 
@@ -121,8 +120,8 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
             return xyz_file_to_atoms(filename=filename)
 
     # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
-    rand = RandomState()
-    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), theta=2*np.pi*rand.rand())
+    rand = np.random.RandomState()
+    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), rand=rand)
 
     # Add the distance constraints as fixed bonds
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
@@ -142,10 +141,10 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for i, atom in enumerate(atoms) if i not in non_rand_atom_indexes]
 
     logger.info('Minimising with BFGS...')
-    st = time.time()
+    st = time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
                                     k=1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=fixed_bonds)
-    logger.info(f'                    ... ({time.time()-st:.3f} s)')
+    logger.info(f'                    ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms
     for i, atom in enumerate(atoms):

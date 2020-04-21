@@ -1,7 +1,8 @@
-from autode.log import logger
-from autode.exceptions import XYZfileWrongFormat, XYZfileDidNotExist
-from autode.atoms import Atom
 import os
+from autode.atoms import Atom
+from autode.exceptions import XYZfileDidNotExist
+from autode.exceptions import XYZfileWrongFormat
+from autode.log import logger
 
 
 def xyz_file_to_atoms(filename):
@@ -50,7 +51,7 @@ def xyz_file_to_atoms(filename):
 def atoms_to_xyz_file(atoms, filename, title_line=''):
     """
     Print a standard .xyz file from a set of atoms
-    
+
     Arguments:
         atoms (list(autode.atoms.Atom)): 
         filename (str): 
@@ -61,6 +62,6 @@ def atoms_to_xyz_file(atoms, filename, title_line=''):
         print(len(atoms), title_line, sep='\n', file=xyz_file)
         for atom in atoms:
             x, y, z = atom.coord
-            print(f'{atom.label:<3}{x:^10.5f}{y:^10.5f}{z:^10.5f}', file=xyz_file)
+            print(f'{atom.label:<3} {x:^10.5f} {y:^10.5f} {z:^10.5f}', file=xyz_file)
 
     return None

@@ -1,13 +1,13 @@
-from rdkit import Chem
 import rdkit.Chem.Descriptors
 from rdkit.Chem import AllChem
-from autode.log import logger
-from autode.geom import are_coords_reasonable
-from autode.exceptions import RDKitFailed
-from autode.exceptions import BondsInSMILESAndGraphDontMatch
-from autode.mol_graphs import make_graph
+from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
+from autode.exceptions import RDKitFailed
+from autode.exceptions import BondsInSMILESAndGraphDontMatch
+from autode.geom import are_coords_reasonable
+from autode.log import logger
+from autode.mol_graphs import make_graph
 from autode.smiles_parser import SmilesParser
 
 
@@ -70,6 +70,16 @@ def init_organic_smiles(molecule, smiles):
     # Ensure the SMILES string and the 3D structure have the same bonds
     make_graph(molecule)
 
+    for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
+        molecule.graph.nodes[atom]['stereo'] = True
+
+    for bond in molecule.rdkit_mol_obj.GetBonds():
+        if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
+            molecule.graph.edges[bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()]['pi'] = True
+        if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:
+            molecule.graph.nodes[bond.GetBeginAtomIdx()]['stereo'] = True
+            molecule.graph.nodes[bond.GetEndAtomIdx()]['stereo'] = True
+
     if len(molecule.rdkit_mol_obj.GetBonds()) != molecule.graph.number_of_edges():
         logger.error('Bonds and graph do no match')
 
@@ -97,6 +107,13 @@ def init_smiles(molecule, smiles):
     molecule.set_atoms(atoms=parser.atoms)
 
     make_graph(molecule, bond_list=parser.bonds, allow_invalid_valancies=False)
+
+    for stereocentre in parser.stereocentres:
+        molecule.graph.nodes[stereocentre]['stereo'] = True
+    for bond_index in parser.bond_order_dict.keys():
+        bond = parser.bonds[bond_index]
+        molecule.graph.edges[bond]['pi'] = True
+
     molecule.set_atoms(atoms=get_simanl_atoms(molecule))
 
     # Ensure the SMILES string and the 3D structure have the same bonds

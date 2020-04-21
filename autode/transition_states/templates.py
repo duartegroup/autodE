@@ -1,3 +1,9 @@
+import os
+import pickle
+from autode.config import Config
+from autode.log import logger
+from autode.mol_graphs import is_isomorphic
+
 """
 The idea with templating is to avoid needless PES scans when finding TSs for which similar have already been found.
 
@@ -5,11 +11,6 @@ For instance the TS for the addition of CN- to acetone is going to be perturbed 
 for a CH2CH3 group. It is more efficient to know the forming C–C bond distance in the previous TS, fix it and run
 a constrained optimisation which will hopefully be a good guess of the TS
 """
-import pickle
-import os
-from autode.log import logger
-from autode.config import Config
-from autode.mol_graphs import is_isomorphic
 
 
 def get_ts_templates(folder_path=Config.ts_template_folder_path):

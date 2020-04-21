@@ -1,25 +1,26 @@
-from autode.log import logger
-import numpy as np
 from copy import deepcopy
+import numpy as np
 from scipy.optimize import minimize
-from autode.config import Config
-from autode.substitution import get_cost_rotate_translate
-from autode.bond_rearrangement import get_bond_rearrangs
-from autode.substitution import get_substitution_centres
-from autode.reactions import Substitution, Elimination
+from autode.transition_states.transition_state import get_ts_object
+from autode.transition_states.truncation import get_truncated_complex
+from autode.transition_states.truncation import is_worth_truncating
+from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.bond_lengths import get_avg_bond_length
+from autode.bond_rearrangement import get_bond_rearrangs
+from autode.complex import get_complexes
+from autode.config import Config
+from autode.log import logger
+from autode.methods import get_hmethod
+from autode.methods import get_lmethod
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
 from autode.mol_graphs import reorder_nodes
-from autode.complex import ReactantComplex, ProductComplex
-from autode.transition_states.ts_guess import get_template_ts_guess
-from autode.transition_states.truncation import is_worth_truncating
-from autode.transition_states.truncation import get_truncated_complex
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
-from autode.methods import get_hmethod
-from autode.methods import get_lmethod
-from autode.transition_states.transition_state import TransitionState
+from autode.reactions import Substitution, Elimination
+from autode.substitution import get_cost_rotate_translate
+from autode.substitution import get_substitution_centres
+
 
 
 def find_tss(reaction):
@@ -33,7 +34,7 @@ def find_tss(reaction):
     """
     logger.info('Finding possible transition states')
 
-    reactant, product = ReactantComplex(*reaction.reacs, name='r'), ProductComplex(*reaction.prods, name='p')
+    reactant, product = get_complexes(reaction)
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=reaction.name)
 
     if bond_rearrangs is None:
@@ -72,7 +73,9 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
-    # Ideally use a transition state template, then only a single constrained optimisation need to be run..
+    # Ideally use a transition state template, then only a single constrained optimisation need to be run...
+
+    # TODO currently if there is already a template we still do the truncation first
     yield get_template_ts_guess, (reactant, product, bond_rearr, hmethod, hmethod.keywords.low_opt)
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a transition state guess cheap -> most expensive
@@ -285,13 +288,16 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
         if ts_guess is None:
             continue
 
-        if not ts_guess.could_have_correct_imag_mode(bond_rearrangement=bond_rearrangement):
+        ts_guess.bond_rearrangement = bond_rearrangement
+
+        if not ts_guess.could_have_correct_imag_mode():
             continue
 
         # Form a transition state object and run an OptTS calculation
-        ts = TransitionState(ts_guess, bond_rearrangement=bond_rearrangement)
+        ts = get_ts_object(ts_guess)
         ts.opt_ts()
 
+        # TODO This could give us a ll TS with many imag modes, when a hl one will only have one?
         if not ts.is_true_ts():
             continue
 
@@ -318,9 +324,7 @@ def get_added_bbond_dist(reaction):
     # saddle point,
     # as implicit solvation does not fully stabilise the charged molecule
 
-    # TODO reimplement with explicit solvent like:   if reaction is SolvatedReaction
-
-    if any(mol.charge != 0 for mol in reaction.prods):
+    if any(mol.charge != 0 for mol in reaction.prods) and not (reaction.__class__.__name__ == 'SolvatedReaction'):
         return 2.5
     else:
         return 1.5

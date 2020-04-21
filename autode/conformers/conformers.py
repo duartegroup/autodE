@@ -1,10 +1,10 @@
-from autode.log import logger
+import numpy as np
 from rdkit import Chem
 from autode.atoms import Atom
-from autode.constants import Constants
 from autode.config import Config
-from autode.geom import get_krot_p_q
-import numpy as np
+from autode.constants import Constants
+from autode.geom import calc_rmsd
+from autode.log import logger
 
 
 def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
@@ -88,11 +88,7 @@ def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
         conf_coords = conf.get_coordinates()
         other_conf_coords = other_conf.get_coordinates()
 
-        rot_mat, p, q = get_krot_p_q(template_coords=conf_coords, coords_to_fit=other_conf_coords)
-        fitted_other_conf_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in other_conf_coords])
-
-        rmsd = np.sqrt(np.average(np.square(fitted_other_conf_coords - conf_coords)))
-        if rmsd < rmsd_tol:
+        if calc_rmsd(conf_coords, other_conf_coords) < rmsd_tol:
             return False
 
     return True

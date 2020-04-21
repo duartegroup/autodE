@@ -1,14 +1,14 @@
-import numpy as np
 from copy import deepcopy
+import numpy as np
+from autode.transition_states.ts_guess import get_ts_guess
 from autode.config import Config
 from autode.log import logger
+from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import make_graph
+from autode.plotting import plot_1dpes
 from autode.pes import PES
 from autode.pes import get_point_species
-from autode.transition_states.ts_guess import TSguess
-from autode.plotting import plot_1dpes
 from autode.units import KcalMol
-from autode import mol_graphs
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 
 
 class PES1d(PES):
@@ -38,9 +38,9 @@ class PES1d(PES):
         logger.info('Checking that somewhere on the surface product(s) are made')
 
         for i in range(self.n_points):
-            mol_graphs.make_graph(self.species[i])
+            make_graph(self.species[i])
 
-            if mol_graphs.is_isomorphic(graph1=self.species[i].graph, graph2=self.product_graph):
+            if is_isomorphic(graph1=self.species[i].graph, graph2=self.product_graph):
                 logger.info(f'Products made at point {i} in the 1D surface')
                 return True
 
@@ -114,7 +114,7 @@ def get_ts_guess_1d(reactant, product, active_bond, name, method, keywords, fina
     pes.print_plot(name=name, method_name=method.name)
 
     for species in pes.get_species_saddle_point():
-        return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
+        return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
 
     logger.error('No possible TSs found on the 1D surface')
     return None

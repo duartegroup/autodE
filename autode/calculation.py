@@ -1,16 +1,15 @@
+from copy import deepcopy
 import os
 from subprocess import Popen
-from autode.log import logger
+from autode.solvent.solvents import get_available_solvent_names
+from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import CouldNotGetProperty
-from autode.exceptions import NoInputError
 from autode.exceptions import MethodUnavailable
-from autode.utils import work_in_tmp_dir
-from autode import mol_graphs
-from autode.config import Config
-from autode.solvent.solvents import get_available_solvent_names
+from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
-from copy import deepcopy
+from autode.log import logger
+from autode.utils import work_in_tmp_dir
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
 
@@ -41,12 +40,6 @@ class Calculation:
         for bond in self.bond_ids_to_add:
             active_atoms.add(bond[0])
             active_atoms.add(bond[1])
-
-        # Will set molecule.graph to a NetworkX Graph to find the nearest neighbours
-        if hasattr(molecule, 'graph') and molecule.graph is not None:
-            logger.warning('Molecular graph was set. Not regenerating')
-        else:
-            mol_graphs.make_graph(molecule)
 
         core_atoms = set()
         for active_atom in active_atoms:
@@ -117,7 +110,7 @@ class Calculation:
         charges = self.method.get_atomic_charges(self)
 
         if len(charges) != self.molecule.n_atoms:
-            raise  CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
+            raise CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
 
         return charges
 
@@ -205,7 +198,7 @@ class Calculation:
 
     def __init__(self, name, molecule, method, keywords_list=None, n_cores=1, bond_ids_to_add=None,
                  other_input_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
-                 constraints_already_met=False, grad=False, partial_hessian=None):
+                 constraints_already_met=False, grad=False):
         """
         Arguments:
             name (str): calc name
@@ -223,7 +216,6 @@ class Calculation:
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
             constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for xtb force constant) (default: {False})
             grad (bool): grad calc or not (needed for xtb) (default: {False})
-            partial_hessian (list): list of atoms to use in a partial hessian (default: {None})
         """
 
         # TODO Purge some of these attributes
@@ -237,11 +229,6 @@ class Calculation:
         self.opt = opt
         self.core_atoms = None
         self.grad = grad
-        self.partial_hessian = partial_hessian
-
-        # TODO reimplement this
-        # if molecule.qm_solvent_xyzs is not None:
-        #    self.xyzs += molecule.qm_solvent_xyzs
 
         self.n_cores = n_cores
         self.max_core_mb = Config.max_core        # Maximum memory per core to use

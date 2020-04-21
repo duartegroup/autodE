@@ -54,7 +54,8 @@ def test_gen_conformers():
         mol._generate_conformers()
 
 
-def test_siman_conf_gen():
+def test_siman_conf_gen(tmpdir):
+    os.chdir(tmpdir)
 
     rh_complex = Molecule(name='[RhH(CO)3(ethene)]', smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
     assert are_coords_reasonable(coords=rh_complex.get_coordinates())
