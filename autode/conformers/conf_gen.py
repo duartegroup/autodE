@@ -129,21 +129,25 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     # Add distance constraints across stereocentres e.g. for a Z double bond then modify d0 appropriately
     dist_consts = add_dist_consts_across_stereocentres(species=species, dist_consts=dist_consts)
 
-    fixed_bonds = []
+    constrained_bonds = []
     for bond, length in dist_consts.items():
         i, j = bond
         d0[i, j] = length
         d0[j, i] = length
-        fixed_bonds.append(bond)
+        constrained_bonds.append(bond)
 
     # Randomise coordinates
-    non_rand_atom_indexes = get_non_random_atoms(species=species)
-    [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for i, atom in enumerate(atoms) if i not in non_rand_atom_indexes]
+    fixed_atom_indexes = get_non_random_atoms(species=species)
+    for i, atom in enumerate(atoms):
+        if i in fixed_atom_indexes:
+            continue
 
-    logger.info('Minimising with BFGS...')
+        atom.coord = rand.uniform(-1.0, 1.0, 3)
+
+    logger.info('Minimising species...')
     st = time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=fixed_bonds)
+                                    k=1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
     logger.info(f'                    ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms

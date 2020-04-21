@@ -7,9 +7,37 @@ from autode.exceptions import AtomsNotFound
 from autode.log import logger
 
 
-class G09(ElectronicStructureMethod):
+def modify_keywords_for_point_charges(keywords):
+    """For a list of Gaussian keywords modify to include z-matrix if not already included"""
+    logger.warning('Modifying keywords as point charges are present')
 
-#TODO impliment partial hessian
+    keywords.append('Charge')
+
+    for keyword in keywords:
+        if 'opt' not in keyword.lower():
+            continue
+
+        opt_options = []
+        if '=(' in keyword:
+            # get the individual options
+            unformated_options = keyword[5:-1].split(',')
+            opt_options = [option.lower().strip() for option in unformated_options]
+
+        elif '=' in keyword:
+            opt_options = [keyword[4:]]
+
+        if not any(option.lower() == 'z-matrix' for option in opt_options):
+            opt_options.append('Z-Matrix')
+
+        new_keyword = f'Opt=({", ".join(opt_options)})'
+        keywords.remove(keyword)
+        keywords.append(new_keyword)
+
+    return None
+
+
+class G09(ElectronicStructureMethod):
+    # TODO implement partial hessian
 
     def generate_input(self, calc):
         calc.input_filename = calc.name + '_g09.com'
@@ -19,40 +47,21 @@ class G09(ElectronicStructureMethod):
         if calc.distance_constraints or calc.cartesian_constraints or calc.bond_ids_to_add:
             keywords.append('Geom=ModRedun')
 
-        for keyword in keywords.copy():
-            nosymm = False
-            opt = False
-            if 'nosymm' in keyword.lower():
-                nosymm = True
+        for keyword in keywords:
+
             if 'opt' in keyword.lower():
+                calc.opt = True
+
                 if calc.molecule.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
-                elif hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
-                    options = []
-                    if '=(' in keyword:
-                        # get the individual options
-                        messy_options = keyword[5:-1].split(',')
-                        options = [option.lower().strip()
-                                   for option in messy_options]
-                    elif '=' in keyword:
-                        options = [keyword[4:]]
-                    z_matrix = False
-                    for option in options:
-                        if option.lower() == 'z-matrix':
-                            option = True
-                    if not z_matrix:
-                        options.append('Z-Matrix')
-                    new_keyword = 'Opt=('
-                    new_keyword += ', '.join(options)
-                    new_keyword += ')'
-                    keywords.remove(keyword)
-                    keywords.append(new_keyword)
-                    opt = True
-            if opt and not nosymm:
-                keywords.append('NoSymm')
-        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
-            keywords.append('Charge')
+
+        if calc.point_charges is not None:
+            modify_keywords_for_point_charges(keywords)
+
+        # By default perform all optimisations without symmetry
+        if calc.opt and not any(k.lower() == 'nosymm' for k in keywords):
+            keywords.append('NoSymm')
 
         with open(calc.input_filename, 'w') as inp_file:
             print(f'%mem={calc.max_core_mb}MB', file=inp_file)
@@ -61,7 +70,7 @@ class G09(ElectronicStructureMethod):
 
             print('#', *keywords, file=inp_file, end=' ')
 
-            if calc.solvent_keyword:
+            if calc.solvent_keyword is not None:
                 print(f'scrf=(smd,solvent_name={calc.solvent_keyword})', file=inp_file)
             else:
                 print('', file=inp_file)
@@ -74,11 +83,10 @@ class G09(ElectronicStructureMethod):
                 print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
                       file=inp_file)
 
-            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
-                print('')
-                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
-                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
-                    x, y, z = atom.coord
+            if calc.point_charges is not None:
+                print('', file=inp_file)
+                for charge, coord in calc.point_charges.items():
+                    x, y, z = coord
                     print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
 
             print('', file=inp_file)
@@ -272,7 +280,7 @@ class G09(ElectronicStructureMethod):
 
         for i, line in enumerate(calc.output_file_lines):
 
-            if 'Standard orientation' in line:
+            if 'Standard orientation' in line or 'Input orientation' in line:
 
                 atoms = []
                 xyz_lines = calc.output_file_lines[i+5:i+5+n_atoms]
@@ -295,10 +303,10 @@ class G09(ElectronicStructureMethod):
         charges_section = False
         charges = []
         for line in calc.rev_output_file_lines:
-            if 'Sum of Mulliken charges' in line:
+            if 'sum of mulliken charges' in line.lower():
                 charges_section = True
-            if 'MULLIKEN ATOMIC CHARGES' in line:
-                charges_section = False
+
+            if len(charges) == calc.molecule.n_atoms:
                 return list(reversed(charges))
 
             if charges_section and len(line.split()) == 3:
@@ -310,10 +318,13 @@ class G09(ElectronicStructureMethod):
     def get_gradients(self, calc):
         gradients_section = False
         gradients = []
+        dashed_line = 0
+
         for line in calc.output_file_lines:
 
             if 'Axes restored to original set' in line:
                 gradients_section = True
+                gradients = []
                 dashed_line = 0
 
             if gradients_section and '--------' in line:
@@ -330,6 +341,7 @@ class G09(ElectronicStructureMethod):
         for line in gradients:
             for i in range(3):
                 line[i] *= -1
+
         return gradients
 
     def __init__(self):

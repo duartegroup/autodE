@@ -1,7 +1,6 @@
 from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.calculation import execute_calc
-from autode.calculation import check_molecule_attr
 from autode.molecule import Molecule
 from autode.molecule import SolvatedMolecule
 from autode.exceptions import AtomsNotFound

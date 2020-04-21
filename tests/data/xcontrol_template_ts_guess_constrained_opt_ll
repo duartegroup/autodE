@@ -1,4 +1,4 @@
 $constrain
-force constant=10
+force constant=20
 distance:1, 2, 1.0
 $

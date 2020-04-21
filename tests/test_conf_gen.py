@@ -91,13 +91,15 @@ def test_chiral_rotation(tmpdir):
                                     Atom('H', 1.61975, 1.19877, -0.96823),
                                     Atom('Br', 1.94229, -1.20011, -0.28203)])
 
+    chiral_ethane.print_xyz_file()
+
     chiral_ethane.graph.nodes[0]['stereo'] = True
     chiral_ethane.graph.nodes[1]['stereo'] = True
 
     atoms = conf_gen.get_simanl_atoms(chiral_ethane)
     regen = Molecule(name='regenerated_ethane', charge=0, mult=1, atoms=atoms)
 
-    # regen.print_xyz_file()
+    regen.print_xyz_file()
 
     regen_coords = regen.get_coordinates()
     coords = chiral_ethane.get_coordinates()

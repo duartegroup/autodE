@@ -19,14 +19,6 @@ def execute_calc(calc):
     return calc.execute_calculation()
 
 
-def check_molecule_attr(molecule):
-    assert hasattr(molecule, 'n_atoms')
-    assert hasattr(molecule, 'atoms')
-    assert hasattr(molecule, 'mult')
-    assert hasattr(molecule, 'charge')
-    assert hasattr(molecule, 'solvent')
-
-
 class Calculation:
 
     def _set_core_atoms(self, molecule):
@@ -51,6 +43,30 @@ class Calculation:
 
         self.core_atoms = list(core_atoms)
         return None
+
+    def _check_calc(self):
+        assert hasattr(self.molecule, 'n_atoms')
+        assert hasattr(self.molecule, 'atoms')
+        assert hasattr(self.molecule, 'mult')
+        assert hasattr(self.molecule, 'charge')
+        assert hasattr(self.molecule, 'solvent')
+
+        # Ensure the distance constraint dictionary is of the correct format
+        if self.distance_constraints is not None:
+            assert type(self.distance_constraints) is dict
+            assert all(len(key) == 2 for key in self.distance_constraints.keys())
+
+        # Ensure the point charge dictionary is keyed with point charges and has values of their coordinates
+        if self.point_charges is not None:
+            assert type(self.point_charges) is dict
+
+            for key, value in self.point_charges.items():
+                assert type(key) in (float, int)
+                assert len(value) == 3
+
+        # Key attributes that need to be lists or None
+        assert self.cartesian_constraints is None or type(self.cartesian_constraints) is list
+        assert self.keywords_list is None or type(self.keywords_list) is list
 
     def get_energy(self):
         logger.info(f'Getting energy from {self.output_filename}')
@@ -91,7 +107,7 @@ class Calculation:
         return self.method.get_normal_mode_displacements(self, mode_number)
 
     def get_final_atoms(self):
-        logger.info(f'Getting final xyzs from {self.output_filename}')
+        logger.info(f'Getting final atoms from {self.output_filename}')
 
         if self.output_file_lines is None or self.output_filename is None:
             logger.error('Could not get the final atoms. The output file lines were not set')
@@ -198,7 +214,7 @@ class Calculation:
 
     def __init__(self, name, molecule, method, keywords_list=None, n_cores=1, bond_ids_to_add=None,
                  other_input_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
-                 constraints_already_met=False, grad=False):
+                 grad=False, point_charges=None):
         """
         Arguments:
             name (str): calc name
@@ -214,13 +230,12 @@ class Calculation:
             distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length
                                          to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
-            constraints_already_met (bool): if the constraints are already met, or need optimising to (needed for xtb force constant) (default: {False})
             grad (bool): grad calc or not (needed for xtb) (default: {False})
+            point_charges (dict) keys = float of point charge, value = coordinate as a list of x, y, z coordinates
         """
 
         # TODO Purge some of these attributes
         self.name = name
-        check_molecule_attr(molecule=molecule)
         self.molecule = deepcopy(molecule)
 
         self.method = method
@@ -231,18 +246,18 @@ class Calculation:
         self.grad = grad
 
         self.n_cores = n_cores
-        self.max_core_mb = Config.max_core        # Maximum memory per core to use
+        self.max_core_mb = Config.max_core                   # Maximum memory per core to use
 
         self.bond_ids_to_add = bond_ids_to_add
         self.other_input_block = other_input_block
         self.distance_constraints = distance_constraints
         self.cartesian_constraints = cartesian_constraints
-        self.constraints_already_met = constraints_already_met
+        self.point_charges = point_charges
 
-        # Set in self.generate_input()
-        self.input_filename = None
-        # Set in self.generate_input()
-        self.output_filename = None
+        self._check_calc()
+
+        self.input_filename = None                          # Set in self.generate_input()
+        self.output_filename = None                         # Set in self.generate_input()
 
         self.output_file_exists = False
         self.terminated_normally = False
