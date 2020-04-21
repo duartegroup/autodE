@@ -294,5 +294,3 @@ class SolvatedReaction(Reaction):
         super().__init__(mol1, mol2, mol3, mol4, mol5, mol6, name, solvent_name)
 
         self.solvent_mol = None
-
-        self.make_solvated_mol_objects()

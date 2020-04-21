@@ -74,6 +74,10 @@ class RDKitFailed(Exception):
     pass
 
 
+class InvalidSmilesString(Exception):
+    pass
+
+
 class CouldNotGetProperty(Exception):
 
     def __init__(self, message):

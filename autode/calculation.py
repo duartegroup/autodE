@@ -183,6 +183,9 @@ class Calculation:
                 subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
             subprocess.wait()
             logger.info(f'Calculation {self.output_filename} done')
+            if self.grad:
+                # Need to get the XTB gradients
+                self.get_gradients()
 
         execute_est_method()
         return self.set_output_file_lines()
