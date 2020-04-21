@@ -33,5 +33,7 @@ def test_constrained_opt():
             os.remove(filename)
         if filename.endswith('.png'):
             os.remove(filename)
+    os.remove('xcontrol_template_ts_guess_constrained_opt_ll')
+    os.remove('template_ts_guess_constrained_opt_ll_xtb.xyz')
 
     os.chdir(here)

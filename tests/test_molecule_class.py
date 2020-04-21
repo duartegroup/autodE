@@ -62,6 +62,8 @@ def test_siman_conf_gen(tmpdir):
     assert rh_complex.n_atoms == 14
     assert rh_complex.graph.number_of_edges() == 14
 
+    os.chdir(here)
+
 
 def test_molecule_opt():
 
@@ -76,10 +78,12 @@ def test_molecule_opt():
     opt_coords = mol.get_coordinates()
     assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768      # H2 bond length ~ 0.767 Å at PBE/def2-SVP
 
+    os.remove('H2_opt_orca.inp')
+    os.remove('H2_optimised_orca.xyz')
     os.chdir(here)
 
 
-def calc_mut():
+def calc_mult():
 
     h = Molecule(name='H', smiles='[H]')
     assert calc_multiplicity(h, n_radical_electrons=1) == 2

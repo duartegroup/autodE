@@ -105,4 +105,5 @@ def test_species_single_point():
     mol.single_point(method=orca)
     assert mol.energy == -1.138965730007
 
+    os.remove('H2_sp_orca.inp')
     os.chdir(here)

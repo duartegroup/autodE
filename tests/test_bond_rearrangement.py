@@ -20,6 +20,7 @@ def test_bondrearr_obj():
 
     assert rearrang.n_fbonds == 1
     assert rearrang.n_bbonds == 1
+    assert rearrang.__str__() == '0-1_1-2'
 
     rearrag2 = br.BondRearrangement(forming_bonds=[(0, 1)],
                                     breaking_bonds=[(1, 2)])
