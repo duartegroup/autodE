@@ -45,11 +45,8 @@ def test_conf_class():
     assert h2_conf_broken.atoms is None
     assert h2_conf_broken.n_atoms == 0
 
-    # Clear the generated input file
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith('.inp'):
-            os.remove(filename)
-
+    os.remove('h2_conf_opt_orca.inp')
+    os.remove('h2_conf_broken_opt_orca.inp')
     os.chdir(here)
 
 

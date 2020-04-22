@@ -82,6 +82,7 @@ def test_reaction_identical_reac_prods():
     h2_reaction.locate_transition_state()
     assert h2_reaction.ts is None
 
+    os.rmdir('transition_states')
     os.chdir(here)
 
 

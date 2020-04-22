@@ -113,10 +113,9 @@ def test_fix_angle_error():
     assert calc.output_filename == 'angle_fail_internal_g09.log'
     assert calc.terminated_normally is True
 
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith('.com'):
-            os.remove(filename)
-
+    os.remove('angle_fail_cartesian_g09.com')
+    os.remove('angle_fail_g09.com')
+    os.remove('angle_fail_internal_g09.com')
     os.chdir(here)
 
 
@@ -136,6 +135,8 @@ def test_constraints():
     opt_atoms = calc.get_final_atoms()
     assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1E-3
 
+    os.remove('const_cart_opt_g09.com')
+    os.remove('const_dist_opt_g09.com')
     os.chdir(os.path.join(here))
 
 
@@ -158,6 +159,7 @@ def test_single_atom_opt():
 
     assert n_cores_set
 
+    os.remove('H_g09.com')
     os.chdir(os.path.join(here))
 
 
@@ -200,4 +202,6 @@ def test_point_charge_calc():
                 assert 'z-matrix' in line.lower() and 'nosymm' in line.lower()
                 break
 
+    os.remove('methane_point_charge_g09.com')
+    os.remove('methane_point_charge_o_g09.com')
     os.chdir(os.path.join(here))

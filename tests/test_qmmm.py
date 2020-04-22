@@ -38,8 +38,8 @@ def test_qmmm():
     assert isinstance(qmmm.qmmm_force_obj, CustomExternalForce)
 
     qm_force, qm_energy = qmmm.get_qm_force_energy()
-    assert qm_energy == -18.847923248787
-    assert qm_force[0] == [-0.05682036, -0.50133117, -0.54210066]
+    assert qm_energy == -20.116678835896
+    assert qm_force[0] == [0.05032013, 0.12679953, 0.12377086]
     assert qmmm.step_no == 1
     assert os.path.exists('mol_qmmm_0_step_0_grad_xtb.grad')
     assert os.path.exists('mol_qmmm_0_step_0_grad_xtb.pc')

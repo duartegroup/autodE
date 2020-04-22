@@ -28,12 +28,7 @@ def test_constrained_opt():
                                             product=ProductComplex(mol))
     assert ts_guess.n_atoms == 3
 
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith('.inp'):
-            os.remove(filename)
-        if filename.endswith('.png'):
-            os.remove(filename)
     os.remove('xcontrol_template_ts_guess_constrained_opt_ll')
     os.remove('template_ts_guess_constrained_opt_ll_xtb.xyz')
-
+    os.remove('template_ts_guess_constrained_opt_orca.inp')
     os.chdir(here)
