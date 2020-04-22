@@ -118,7 +118,7 @@ class Calculation:
         logger.info(f'Getting gradients from calculation file {self.output_filename}')
         gradients = self.method.get_gradients(self)
 
-        if len(gradients) != self.molecule.n_atoms:
+        if len(gradients) != self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms):
             raise CouldNotGetProperty(f'Could not get gradients from calculation output file {self.name}')
 
         return gradients
