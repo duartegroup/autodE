@@ -1,6 +1,7 @@
 from autode.smiles_parser import SmilesParser
 from autode.exceptions import InvalidSmilesString
 from autode.atoms import Atom
+from autode.geom import calc_rmsd
 import pytest
 import numpy as np
 
@@ -104,5 +105,34 @@ def test_add_hs():
     assert parser.n_radical_electrons == 1
 
 
-# def test_stereochem():
-#     pass
+def test_stereochem():
+    parser = SmilesParser()
+    parser.parse_smiles('N[C@](Br)(O)C')
+    parser_coords = [atom.coord for atom in parser.atoms][:5]
+    desired_coords = [[1.26597, 0.60740, -0.09729],
+                      [-0.26307, 0.59858, -0.07141],
+                      [-0.91282, 2.25811, 0.01409],
+                      [-0.72365, -0.12709, 1.01313],
+                      [-0.64392, 0.13084, -1.00380]]
+    assert calc_rmsd(parser_coords, desired_coords) < 0.5
+
+    parser = SmilesParser()
+    parser.parse_smiles('N[C@@H](Br)(O)')
+    parser_coords = [atom.coord for atom in parser.atoms][:4] + [parser.atoms[6].coord]
+    desired_coords = [[1.26597, 0.60740, -0.09729],
+                      [-0.26307, 0.59858, -0.07141],
+                      [-0.72365, -0.12709, 1.01313],
+                      [-0.91282, 2.25811, 0.01409],
+                      [-0.64392, 0.13084, -1.00380]]
+    assert calc_rmsd(parser_coords, desired_coords) < 0.5
+
+    parser = SmilesParser()
+    parser.parse_smiles('F/C=C/F')
+    parser_coords = [atom.coord for atom in parser.atoms]
+    desired_coords = [[-4.14679, 1.36072, 0.92663],
+                      [-3.58807, 1.44785, -0.00000],
+                      [-2.26409, 1.31952, 0.00000],
+                      [-1.70538, 1.40665, -0.92663],
+                      [-4.11965, 1.64066, -0.92663],
+                      [-1.73251, 1.12671, 0.92663]]
+    assert calc_rmsd(parser_coords, desired_coords) < 0.5
