@@ -1,4 +1,5 @@
 from copy import deepcopy
+from autode.solvent.qmmm import get_species_point_charges
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
@@ -34,7 +35,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     l_method = get_lmethod()
     ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll', molecule=mol_with_const, method=l_method,
                                keywords_list=l_method.keywords.low_opt, n_cores=Config.n_cores, opt=True,
-                               distance_constraints=distance_consts)
+                               distance_constraints=distance_consts, point_charges=get_species_point_charges(mol_with_const))
     ll_const_opt.run()
 
     # Try and set the atoms, but continue if they're not found as hopefully the other method will be fine(?)
@@ -45,7 +46,8 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
         pass
 
     hl_const_opt = Calculation(name=f'{name}_constrained_opt', molecule=mol_with_const, method=method, opt=True,
-                               keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts)
+                               keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts,
+                               point_charges=get_species_point_charges(mol_with_const))
     hl_const_opt.run()
 
     # Form a transition state guess from the optimised atoms and set the corresponding energy

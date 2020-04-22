@@ -51,7 +51,12 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
             logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
 
             logger.info(f'Copying {filenames_to_copy}')
-            [shutil.copy(filename, tmpdir_path) for filename in filenames_to_copy]
+            for filename in filenames_to_copy:
+                if filename.endswith('_mol.in'):
+                    # MOPAC needs the file to be called this
+                    shutil.move(filename, os.path.join(tmpdir_path, 'mol.in'))
+                else:
+                    shutil.copy(filename, tmpdir_path)
 
             # Move directories and execute
             os.chdir(tmpdir_path)

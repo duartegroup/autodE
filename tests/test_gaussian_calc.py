@@ -169,7 +169,7 @@ def test_point_charge_calc():
 
     calc = Calculation(name='methane_point_charge', molecule=test_mol, method=method,
                        keywords_list=['PBE1PBE/Def2SVP'],
-                       point_charges={1.0: [10.0, 10.0, 10.0]})
+                       point_charges=[[1.0, 10.0, 10.0, 10.0]])
     calc.run()
 
     # Assert that the input file is in the expected configuration
@@ -193,7 +193,7 @@ def test_point_charge_calc():
     for opt_keyword in ['Opt', 'Opt=Tight', 'Opt=(Tight)']:
         calc = Calculation(name='methane_point_charge_o', molecule=test_mol, method=method,
                            keywords_list=['PBE1PBE/Def2SVP', opt_keyword],
-                           point_charges={1.0: [3.0, 3.0, 3.0]})
+                           point_charges=[[1.0, 3.0, 3.0, 3.0]])
         calc.generate_input()
 
         for line in open('methane_point_charge_o_g09.com', 'r').readlines():

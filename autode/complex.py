@@ -122,6 +122,8 @@ class SolvatedReactantComplex(Complex):
 
     def run_const_opt(self, const_opt, method, n_cores):
         """Run a constrained optimisation of the ReactantComplex"""
+        self.qm_solvent_atoms = None
+        self.mm_solvent_atoms = None
         const_opt.run()
 
         atoms = const_opt.get_final_atoms()

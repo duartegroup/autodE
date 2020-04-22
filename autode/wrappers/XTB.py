@@ -13,10 +13,7 @@ class XTB(ElectronicStructureMethod):
 
         calc.input_filename = calc.name + '_xtb.xyz'
 
-        if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
-            calc.molecule.atoms += calc.molecule.qm_solvent_atoms
         calc.molecule.print_xyz_file(filename=calc.input_filename)
-        calc.molecule.atoms = calc.molecule.atoms[:calc.molecule.n_atoms]
 
         calc.output_filename = calc.name + '_xtb.out'
 
@@ -31,7 +28,7 @@ class XTB(ElectronicStructureMethod):
         if calc.solvent_keyword:
             calc.flags += ['--gbsa', calc.solvent_keyword]
 
-        if calc.distance_constraints or calc.cartesian_constraints or (hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None):
+        if calc.distance_constraints or calc.cartesian_constraints or calc.point_charges:
             force_constant = 20
 
             xcontrol_filename = 'xcontrol_' + calc.name
@@ -63,19 +60,17 @@ class XTB(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=',', file=xcontrol_file)
                     print('$', file=xcontrol_file)
 
-                if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+                if calc.point_charges:
                     print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
             calc.flags += ['--input', xcontrol_filename]
             calc.additional_input_files.append(xcontrol_filename)
 
-        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+        if calc.point_charges:
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
-                print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
-                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
-                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
-                    x, y, z = atom.coord
-                    print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} {atom.label:<3}', file=pc_file)
+                print(len(calc.point_charges), file=pc_file)
+                for charge, x, y, z in calc.point_charges:
+                    print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99', file=pc_file)
             calc.additional_input_files.append(f'{calc.name}_xtb.pc')
 
         return None

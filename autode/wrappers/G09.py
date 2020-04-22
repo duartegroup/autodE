@@ -52,11 +52,11 @@ class G09(ElectronicStructureMethod):
             if 'opt' in keyword.lower():
                 calc.opt = True
 
-                if calc.molecule.n_atoms == 1:
+                if calc.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
 
-        if calc.point_charges is not None:
+        if calc.point_charges:
             modify_keywords_for_point_charges(keywords)
 
         # By default perform all optimisations without symmetry
@@ -70,7 +70,7 @@ class G09(ElectronicStructureMethod):
 
             print('#', *keywords, file=inp_file, end=' ')
 
-            if calc.solvent_keyword is not None:
+            if calc.solvent_keyword:
                 print(f'scrf=(smd,solvent_name={calc.solvent_keyword})', file=inp_file)
             else:
                 print('', file=inp_file)
@@ -83,10 +83,9 @@ class G09(ElectronicStructureMethod):
                 print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
                       file=inp_file)
 
-            if calc.point_charges is not None:
+            if calc.point_charges:
                 print('', file=inp_file)
-                for charge, coord in calc.point_charges.items():
-                    x, y, z = coord
+                for charge, x, y, z in calc.point_charges:
                     print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
 
             print('', file=inp_file)
@@ -275,7 +274,6 @@ class G09(ElectronicStructureMethod):
 
     def get_final_atoms(self, calc):
 
-        n_atoms = len(calc.molecule.atoms)
         atoms = None
 
         for i, line in enumerate(calc.output_file_lines):
@@ -283,14 +281,14 @@ class G09(ElectronicStructureMethod):
             if 'Standard orientation' in line or 'Input orientation' in line:
 
                 atoms = []
-                xyz_lines = calc.output_file_lines[i+5:i+5+n_atoms]
+                xyz_lines = calc.output_file_lines[i+5:i+5+calc.n_atoms]
 
                 for xyz_line in xyz_lines:
                     atom_index, _, _, x, y, z = xyz_line.split()
                     atom_index = int(atom_index) - 1
                     atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=float(x), y=float(y), z=float(z)))
 
-                if len(atoms) != n_atoms:
+                if len(atoms) != calc.n_atoms:
                     raise AtomsNotFound
 
         if atoms is None:
@@ -306,7 +304,7 @@ class G09(ElectronicStructureMethod):
             if 'sum of mulliken charges' in line.lower():
                 charges_section = True
 
-            if len(charges) == calc.molecule.n_atoms:
+            if len(charges) == calc.n_atoms:
                 return list(reversed(charges))
 
             if charges_section and len(line.split()) == 3:

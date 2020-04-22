@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from autode.solvent.qmmm import get_species_point_charges
 from autode.atoms import get_atomic_weight
 from autode.calculation import Calculation
 from autode.config import Config
@@ -42,7 +43,8 @@ class TSbase(Species):
         if self.calc is None:
             logger.info('Calculating the hessian..')
             self.calc = Calculation(name=self.name + '_hess', molecule=self, method=method,
-                                    keywords_list=method.keywords.hess, n_cores=Config.n_cores)
+                                    keywords_list=method.keywords.hess, n_cores=Config.n_cores,
+                                    point_charges=get_species_point_charges(self))
             self.calc.run()
 
         imag_freqs = self.calc.get_imag_freqs()

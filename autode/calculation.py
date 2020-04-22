@@ -56,13 +56,11 @@ class Calculation:
             assert type(self.distance_constraints) is dict
             assert all(len(key) == 2 for key in self.distance_constraints.keys())
 
-        # Ensure the point charge dictionary is keyed with point charges and has values of their coordinates
+        # Ensure the point charge is of the correct format
         if self.point_charges is not None:
-            assert type(self.point_charges) is dict
-
-            for key, value in self.point_charges.items():
-                assert type(key) in (float, int)
-                assert len(value) == 3
+            assert type(self.point_charges) is list
+            for point in self.point_charges:
+                assert len(point) == 4
 
         # Key attributes that need to be lists or None
         assert self.cartesian_constraints is None or type(self.cartesian_constraints) is list
@@ -125,7 +123,7 @@ class Calculation:
         logger.info(f'Getting atomic charges from calculation file {self.output_filename}')
         charges = self.method.get_atomic_charges(self)
 
-        if len(charges) != self.molecule.n_atoms:
+        if len(charges) != self.n_atoms:
             raise CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
 
         return charges
@@ -134,12 +132,7 @@ class Calculation:
         logger.info(f'Getting gradients from calculation file {self.output_filename}')
         gradients = self.method.get_gradients(self)
 
-        try:
-            n_atoms = self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms)
-        except:
-            n_atoms = self.molecule.n_atoms
-
-        if len(gradients) != n_atoms:
+        if len(gradients) != self.n_atoms:
             raise CouldNotGetProperty(f'Could not get gradients from calculation output file {self.name}')
 
         return gradients
@@ -239,7 +232,7 @@ class Calculation:
                                          to be fixed at (default: {None})
             cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
             grad (bool): grad calc or not (needed for xtb) (default: {False})
-            point_charges (dict) keys = float of point charge, value = coordinate as a list of x, y, z coordinates
+            point_charges (list): list of float of point charge, x, y, z coordinates for each point charge
         """
 
         # TODO Purge some of these attributes
@@ -288,3 +281,9 @@ class Calculation:
 
         if self.bond_ids_to_add:
             self._set_core_atoms(molecule)
+
+        if hasattr(self.molecule, 'qm_solvent_atoms') and self.molecule.qm_solvent_atoms is not None:
+            self.n_atoms = self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms)
+            self.molecule.atoms += self.molecule.qm_solvent_atoms
+        else:
+            self.n_atoms = self.molecule.n_atoms

@@ -29,13 +29,13 @@ class ORCA(ElectronicStructureMethod):
             if 'opt' in keyword.lower():
                 if keyword.lower() != 'optts':
                     opt_or_sp = True
-                if calc.molecule.n_atoms == 1:
+                if calc.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
             if keyword.lower() == 'sp':
                 opt_or_sp = True
             if keyword.lower() == 'freq':
-                if hasattr(calc.molecule, 'qm_solvent_atoms'):
+                if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms:
                     keywords.remove(keyword)
                     keywords.append('NumFreq')
                     qmmm_freq = True
@@ -57,7 +57,7 @@ class ORCA(ElectronicStructureMethod):
                 if 'maxiter' in calc.other_input_block.lower():
                     max_iter_done = True
                 print(calc.other_input_block, file=inp_file)
-                if calc.core_atoms and calc.molecule.n_atoms > 25 and not qmmm_freq:
+                if calc.core_atoms and calc.n_atoms > 25 and not qmmm_freq:
                     core_atoms_str = ' '.join(map(str, calc.core_atoms))
                     print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
                 print('end', file=inp_file)
@@ -82,7 +82,7 @@ class ORCA(ElectronicStructureMethod):
                  for atom_id in calc.cartesian_constraints]
                 print('    end\nend', file=inp_file)
 
-            if calc.molecule.n_atoms < 33 and not max_iter_done:
+            if calc.n_atoms < 33 and not max_iter_done:
                 print('%geom MaxIter 100 end', file=inp_file)
 
             if qmmm_freq:
@@ -91,12 +91,10 @@ class ORCA(ElectronicStructureMethod):
                 print(*solvent_atoms, file=inp_file, end='')
                 print('} end\nend', file=inp_file)
 
-            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+            if calc.point_charges:
                 with open(f'{calc.name}_orca.pc', 'w') as pc_file:
-                    print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
-                    for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
-                        charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
-                        x, y, z = atom.coord
+                    print(len(calc.point_charges), file=pc_file)
+                    for charge, x, y, z in calc.point_charges:
                         print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
                     calc.additional_input_files.append(f'{calc.name}_orca.pc')
                 print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
@@ -110,10 +108,6 @@ class ORCA(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
-            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
-                for atom in calc.molecule.qm_solvent_atoms:
-                    x, y, z = atom.coord
-                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             print('*', file=inp_file)
 
         return None
@@ -157,11 +151,9 @@ class ORCA(ElectronicStructureMethod):
     def get_imag_freqs(self, calc):
         imag_freqs = []
 
-        n_atoms = calc.molecule.n_atoms
-
         for i, line in enumerate(calc.output_file_lines):
             if 'VIBRATIONAL FREQUENCIES' in line:
-                freq_lines = calc.output_file_lines[i + 5:i + 3 * n_atoms + 5]
+                freq_lines = calc.output_file_lines[i + 5:i + 3 * calc.molecule.n_atoms + 5]
                 freqs = [float(l.split()[1]) for l in freq_lines]
                 imag_freqs = [freq for freq in freqs if freq < 0]
 
@@ -170,8 +162,6 @@ class ORCA(ElectronicStructureMethod):
 
     def get_normal_mode_displacements(self, calc, mode_number):
         normal_mode_section, values_sec, displacements, col = False, False, [], None
-
-        n_atoms = calc.molecule.n_atoms
 
         for j, line in enumerate(calc.output_file_lines):
             if 'NORMAL MODES' in line:
@@ -190,11 +180,11 @@ class ORCA(ElectronicStructureMethod):
                     if mode_number in mode_numbers:
                         col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                         displacements = [float(disp_line.split()[col]) for disp_line in
-                                         calc.output_file_lines[j + 1:j + 3 * n_atoms + 1]]
+                                         calc.output_file_lines[j + 1:j + 3 * calc.molecule.n_atoms + 1]]
 
         displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
 
-        if len(displacements_xyz) != n_atoms:
+        if len(displacements_xyz) != calc.molecule.n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')
             raise NoNormalModesFound
 
@@ -231,7 +221,7 @@ class ORCA(ElectronicStructureMethod):
         for i, line in enumerate(calc.output_file_lines):
             if 'MULLIKEN ATOMIC CHARGES' in line:
                 charges = []
-                for charge_line in calc.output_file_lines[i+2:i+2+calc.molecule.n_atoms]:
+                for charge_line in calc.output_file_lines[i+2:i+2+calc.n_atoms]:
                     charges.append(float(charge_line.split()[-1]))
 
         return charges
@@ -252,8 +242,7 @@ class ORCA(ElectronicStructureMethod):
             if 'CARTESIAN GRADIENT' in line:
                 gradients = []
                 j = i + 3
-                n_atoms = calc.molecule.n_atoms + len(calc.molecule.qm_solvent_atoms)
-                for grad_line in calc.output_file_lines[j:j+calc.molecule.n_atoms]:
+                for grad_line in calc.output_file_lines[j:j+calc.n_atoms]:
                     dadx, dady, dadz = grad_line.split()[-3:]
                     gradients.append([float(dadx), float(dady), float(dadz)])
 
