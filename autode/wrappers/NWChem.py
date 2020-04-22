@@ -18,7 +18,7 @@ class NWChem(ElectronicStructureMethod):
         new_keywords = []
         scf_block = False
         for keyword in keywords:
-            if 'opt' in keyword.lower() and calc.molecule.n_atoms == 1:
+            if 'opt' in keyword.lower() and calc.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
                 old_key = keyword.split()
                 new_keyword = ' '
@@ -68,10 +68,6 @@ class NWChem(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
-            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
-                for atom in calc.molecule.qm_solvent_atoms:
-                    x, y, z = atom.coord
-                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
             if calc.bond_ids_to_add or calc.distance_constraints:
                 print('  zcoord', file=inp_file)
                 if calc.bond_ids_to_add:
@@ -88,9 +84,7 @@ class NWChem(ElectronicStructureMethod):
             print(f'charge {calc.molecule.charge}', file=inp_file)
 
             if calc.distance_constraints or calc.cartesian_constraints:
-                force_constant = 10
-                if calc.constraints_already_met:
-                    force_constant += 90
+                force_constant = 20
                 print('constraints', file=inp_file)
                 if calc.distance_constraints:
                     for atom_ids in calc.distance_constraints.keys():  # nwchem counts from 1 so increment atom ids by 1
@@ -117,11 +111,9 @@ class NWChem(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=' ', file=inp_file)
                 print('end', file=inp_file)
 
-            if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+            if calc.point_charges:
                 print('bq')
-                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
-                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
-                    x, y, z = atom.coord
+                for charge, x, y, z in calc.point_charges:
                     print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
                 print('end')
 
@@ -212,7 +204,7 @@ class NWChem(ElectronicStructureMethod):
                         col = [i for i in range(
                             len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
                         displacements = [float(disp_line.split()[
-                            col]) for disp_line in calc.output_file_lines[j + 4:j + 3 * calc.n_atoms + 4]]
+                            col]) for disp_line in calc.output_file_lines[j + 4:j + 3 * calc.molecule.n_atoms + 4]]
 
         displacements_xyz = [displacements[i:i + 3]
                              for i in range(0, len(displacements), 3)]

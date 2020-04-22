@@ -1,5 +1,6 @@
 import numpy as np
 from autode.conformers.conformers import get_unique_confs
+from autode.solvent.qmmm import get_species_point_charges
 from autode.solvent.solvents import get_solvent
 from autode.calculation import Calculation
 from autode.config import Config
@@ -83,7 +84,8 @@ class Species:
         logger.info(f'Running single point energy evaluation of {self.name}')
 
         sp = Calculation(name=f'{self.name}_sp', molecule=self, method=method,
-                         keywords_list=method.keywords.sp, n_cores=Config.n_cores)
+                         keywords_list=method.keywords.sp, n_cores=Config.n_cores,
+                         point_charges=get_species_point_charges(self))
         sp.run()
         self.energy = sp.get_energy()
 

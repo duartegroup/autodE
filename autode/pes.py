@@ -70,14 +70,14 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
     dimension = len(pes.rs_idxs)
 
     species = get_closest_species(point=point, pes=pes)
+    species.name = f'{name}_scan_{"-".join([str(p) for p in point])}'
     original_species = deepcopy(species)
 
     # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
     distance_constraints = {pes.rs_idxs[i]: pes.rs[point][i] for i in range(dimension)}
 
     # Set up and run the calculation
-    name = f'{name}_scan_{"-".join([str(p) for p in point])}'
-    const_opt = Calculation(name=name, molecule=species, method=method, opt=True, n_cores=n_cores,
+    const_opt = Calculation(name=species.name, molecule=species, method=method, opt=True, n_cores=n_cores,
                             keywords_list=keywords, distance_constraints=distance_constraints)
 
     try:

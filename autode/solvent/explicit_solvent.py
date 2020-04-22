@@ -134,6 +134,7 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
         for filename in os.listdir(os.getcwd()):
             if f'{file_prefix}_step_' in filename:
                 os.remove(filename)
+        os.remove(f'{species.name}_qmmm_{i}.pdb')
         with open(f'{file_prefix}.out', 'w') as output_file:
             print('XYZs', file=output_file)
             for atom in atoms:

@@ -205,7 +205,8 @@ class QMMM:
 
     def get_qm_force_energy(self):
         """Calculate the QM force"""
-        grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, grad=True)
+        grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, grad=True,
+                                point_charges=get_species_point_charges(self.species))
         grad_calc.run()
         qm_grads = grad_calc.get_gradients()  # in Eh/bohr
         qm_forces = []
@@ -266,3 +267,18 @@ def atoms2pdb(atoms, filename):
                 print(f'CONECT{i+3:5d}{i+1:5d}', file=pdb_file)
         print('END', file=pdb_file)
     return None
+
+
+def get_species_point_charges(species):
+    """Gets a list of point charges for a species' mm_solvent_atoms
+    List has the form: float of point charge, x, y, z coordinates"""
+    if not hasattr(species, 'mm_solvent_atoms') or species.mm_solvent_atoms is None:
+        return None
+
+    point_charges = []
+    for i, atom in enumerate(species.mm_solvent_atoms):
+        charge = species.solvent_mol.graph.nodes[i % species.solvent_mol.n_atoms]['charge']
+        x, y, z = atom.coord
+        point_charges.append([charge, x, y, z])
+
+    return point_charges

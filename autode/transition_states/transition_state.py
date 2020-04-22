@@ -4,6 +4,7 @@ from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformer import Conformer
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
+from autode.solvent.qmmm import get_species_point_charges
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
@@ -36,7 +37,8 @@ class TransitionState(TSbase):
                                       n_cores=Config.n_cores,
                                       keywords_list=method.keywords.opt_ts,
                                       bond_ids_to_add=self.bond_rearrangement.all,
-                                      other_input_block=method.keywords.optts_block)
+                                      other_input_block=method.keywords.optts_block,
+                                      point_charges=get_species_point_charges(self))
         self.optts_calc.run()
 
         # Was this intentionally removed?
@@ -51,7 +53,8 @@ class TransitionState(TSbase):
                                                   n_cores=Config.n_cores,
                                                   keywords_list=method.keywords.opt_ts,
                                                   bond_ids_to_add=self.bond_rearrangement.all,
-                                                  other_input_block=method.keywords.optts_block)
+                                                  other_input_block=method.keywords.optts_block,
+                                                  point_charges=get_species_point_charges(self))
                     self.optts_calc.run()
                 else:
                     logger.info('Lost imaginary mode')

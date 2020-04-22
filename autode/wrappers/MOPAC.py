@@ -69,7 +69,7 @@ class MOPAC(ElectronicStructureMethod):
         if calc.grad:
             keywords.append('GRAD')
 
-        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+        if calc.point_charges:
             keywords.append('QMMM')
 
         if calc.solvent_keyword is not None:
@@ -91,7 +91,7 @@ class MOPAC(ElectronicStructureMethod):
         with open(calc.input_filename, 'w') as input_file:
             print(*keywords, '\n\n', file=input_file)
 
-            if calc.distance_constraints is not None:
+            if calc.distance_constraints:
                 # mopac seemingly doesn't have the capability to defined constrained bond lengths, so perform a linear
                 # interpolation to the xyzs then fix the Cartesians
 
@@ -106,10 +106,7 @@ class MOPAC(ElectronicStructureMethod):
                 atoms = calc.molecule.atoms
                 fixed_atoms = []
 
-            if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
-                atoms += calc.molecule.qm_solvent_atoms
-
-            if calc.cartesian_constraints is not None:
+            if calc.cartesian_constraints:
                 fixed_atoms += calc.cartesian_constraints
 
             for i, atom in enumerate(atoms):
@@ -118,15 +115,13 @@ class MOPAC(ElectronicStructureMethod):
                 else:
                     print(f'{atom.label:<3}{atom.coord[0]:^10.5f} 1 {atom.coord[1]:^10.5f} 1 {atom.coord[2]:^10.5f} 1', file=input_file)
 
-        if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
+        if calc.point_charges:
             potentials = []
             for atom in atoms:
                 potential = 0
                 coord = atom.coord
-                for i, charge_atom in enumerate(calc.molecule.mm_solvent_atoms):
-                    charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
-                    charge_coords = charge_atom.coord
-                    distance = np.linalg.norm(coord - charge_coords)
+                for charge, x, y, z in calc.point_charges:
+                    distance = np.linalg.norm(coord - [x, y, z])
                     potential += charge / distance
                 potentials.append(322*potential)
             with open(f'{calc.name}_mol.in', 'w') as pc_file:
@@ -183,7 +178,7 @@ class MOPAC(ElectronicStructureMethod):
                 #    1    C        1.255660629     0.020580974    -0.276235553
 
                 atoms = []
-                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.molecule.n_atoms]
+                xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.n_atoms]
                 for xyz_line in xyz_lines:
                     atom_label, x, y, z = xyz_line.split()[1:]
                     atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
@@ -209,7 +204,7 @@ class MOPAC(ElectronicStructureMethod):
                 gradients.append(value)
         grad_array = np.asarray(gradients)
         grad_array *= Constants.a02ang/Constants.ha2kcalmol
-        grad_array.reshape((calc.molecule.n_atoms, 3))
+        grad_array.reshape((calc.n_atoms, 3))
 
         return grad_array.tolist()
 
