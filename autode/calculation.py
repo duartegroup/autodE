@@ -134,7 +134,12 @@ class Calculation:
         logger.info(f'Getting gradients from calculation file {self.output_filename}')
         gradients = self.method.get_gradients(self)
 
-        if len(gradients) != self.molecule.n_atoms:
+        try:
+            n_atoms = self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms)
+        except:
+            n_atoms = self.molecule.n_atoms
+
+        if len(gradients) != n_atoms:
             raise CouldNotGetProperty(f'Could not get gradients from calculation output file {self.name}')
 
         return gradients
@@ -199,6 +204,9 @@ class Calculation:
                 subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
             subprocess.wait()
             logger.info(f'Calculation {self.output_filename} done')
+            if self.grad:
+                # Need to get the XTB gradients
+                self.get_gradients()
 
         execute_est_method()
         return self.set_output_file_lines()

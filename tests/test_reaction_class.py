@@ -1,3 +1,4 @@
+import os
 from autode import reaction
 from autode.transition_states.transition_state import TransitionState
 from autode.bond_rearrangement import BondRearrangement
@@ -8,7 +9,10 @@ from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from autode.units import KcalMol
 from autode.mol_graphs import make_graph
+from autode.config import Config
 import pytest
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
@@ -30,7 +34,6 @@ def test_reaction_class():
 
     # h + h > mol
     hh_reac = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh_product, name='h2_assoc')
-    hh_reac.solvent_sphere_energy = 0
 
     h1.energy = 2
     h2.energy = 3
@@ -69,6 +72,8 @@ def test_check_rearrangement():
 
 
 def test_reaction_identical_reac_prods():
+    os.chdir(os.path.join(here, 'data'))
+
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
 
@@ -76,6 +81,9 @@ def test_reaction_identical_reac_prods():
 
     h2_reaction.locate_transition_state()
     assert h2_reaction.ts is None
+
+    os.rmdir('transition_states')
+    os.chdir(here)
 
 
 def test_bad_balance():
@@ -118,3 +126,26 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
     assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() / KcalMol.conversion < 0.2 + 1E-6
+
+
+def test_solvated_reaction():
+    os.chdir(os.path.join(here, 'data'))
+
+    Config.lcode = 'xtb'
+    Config.XTB.path = here       # A path that exists
+    Config.ORCA.path = here       # A path that exists
+
+    r = reaction.SolvatedReaction(lin_h3, trig_h3, solvent_name='water')
+    assert r.solvent_mol == None
+
+    r.calc_solvent()
+    assert isinstance(r.solvent_mol, reaction.SolvatedMolecule)
+    assert r.solvent_mol.energy == -3819.765189588065
+    assert all(isinstance(mol, reaction.SolvatedMolecule) for mol in r.reacs + r.prods)
+
+    os.remove('solvent/water_conf0_opt_xtb.xyz')
+    os.remove('solvent/water_opt_orca.inp')
+    os.remove('solvent/water_optimised_orca.xyz')
+    os.remove('solvent/water_sp_orca.inp')
+    os.remove('solvent/water_sp_orca.pc')
+    os.chdir(here)

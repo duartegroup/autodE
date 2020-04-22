@@ -2,8 +2,8 @@ import itertools
 import numpy as np
 from autode.atoms import Atom
 from autode.bond_lengths import get_avg_bond_length
+from autode.exceptions import InvalidSmilesString
 from autode.log import logger
-
 
 
 atoms_and_electrons = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11,
@@ -104,7 +104,7 @@ class SmilesParser:
             self.analyse_bond_ring_string(bond_ring_string)
         elif char_type == 'bracket_atom':
             bracket_string, bond_ring_string = char.split(']')
-            # remove any atom classes, we don't care about them
+            # remove any atom classes, we don't care about them. Also remove preceding '['
             bracket_string = bracket_string[1:].lstrip('0123456789')
             atom_details_string = self.add_atom(bracket_string)
             self.analyse_atom_details(atom_details_string)
@@ -211,7 +211,7 @@ class SmilesParser:
                     hydrogens = 1
             # charge only does up to +-9, shouldn't be an issue?
             elif detail_char == '+':
-                while next_detail_char.isdigit():
+                if next_detail_char.isdigit():
                     charge += int(next_detail_char)
                     next_detail_char = None
                 else:
@@ -466,7 +466,7 @@ class SmilesParser:
         if len(self.ring_dict) != 0:
             # this means a ring number has only been mentioned once, which is invalid
             logger.critical('Invalid SMILES string')
-            exit()
+            raise InvalidSmilesString
 
         self.add_hs()
 

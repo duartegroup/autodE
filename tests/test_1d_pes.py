@@ -84,3 +84,5 @@ def test_1d_pes():
     for filename in os.listdir(os.getcwd()):
         if filename.endswith(('.inp', '.png')):
             os.remove(filename)
+
+    os.chdir(here)

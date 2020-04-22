@@ -123,7 +123,8 @@ def run_qmmm(species, n_qm_solvent_mols, n_solvent_mols, dist_consts, fix_solute
                     if f'{file_prefix}_step_' in filename:
                         os.remove(filename)
                 add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols)
-                qmmm = QMMM(species, dist_consts, method, fix_solute, i)
+                qmmm = QMMM(species, dist_consts, method, i)
+                qmmm.set_up_main_simulation(fix_solute)
                 qmmm.simulate()
                 atoms = species.atoms + species.qm_solvent_atoms + species.mm_solvent_atoms
                 qmmm_energy = species.energy

@@ -14,7 +14,7 @@ class XTB(ElectronicStructureMethod):
         calc.input_filename = calc.name + '_xtb.xyz'
 
         if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms is not None:
-            calc.molecule.atoms += calc.molecule.solvent_atoms
+            calc.molecule.atoms += calc.molecule.qm_solvent_atoms
         calc.molecule.print_xyz_file(filename=calc.input_filename)
         calc.molecule.atoms = calc.molecule.atoms[:calc.molecule.n_atoms]
 
@@ -72,11 +72,11 @@ class XTB(ElectronicStructureMethod):
         if hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None:
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
                 print(len(calc.molecule.mm_solvent_atoms), file=pc_file)
-                for i, atom in calc.molecule.mm_solvent_atoms:
+                for i, atom in enumerate(calc.molecule.mm_solvent_atoms):
                     charge = calc.molecule.solvent_mol.graph.nodes[i % calc.molecule.solvent_mol.n_atoms]['charge']
                     x, y, z = atom.coord
                     print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} {atom.label:<3}', file=pc_file)
-            calc.additional_input_files.append((f'{calc.name}_xtb.pc', f'{calc.name}_xtb.pc'))
+            calc.additional_input_files.append(f'{calc.name}_xtb.pc')
 
         return None
 

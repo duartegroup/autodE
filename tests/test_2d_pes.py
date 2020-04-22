@@ -51,17 +51,17 @@ def test_get_ts_guess_2dscan():
     #       H H               H H
     pes = pes_2d.PES2d(reactant=ReactantComplex(ch3cl_f),
                        product=ProductComplex(ch3f_cl),
-                       r1s=np.linspace(4.0, 1.5, 6), r1_idxs=(0, 2),
-                       r2s=np.linspace(1.78, 4.0, 6), r2_idxs=(1, 2))
+                       r1s=np.linspace(4.0, 1.5, 9), r1_idxs=(0, 2),
+                       r2s=np.linspace(1.78, 4.0, 8), r2_idxs=(1, 2))
 
     pes.calculate(name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt)
 
     assert pes.species[0, 1] is not None
     assert pes.species[0, 1].energy == -13.116895286939
-    assert pes.species.shape == (6, 6)
-    assert pes.rs.shape == (6, 6)
+    assert pes.species.shape == (9, 8)
+    assert pes.rs.shape == (9, 8)
     assert type(pes.rs[0, 1]) == tuple
-    assert pes.rs[1, 1] == (np.linspace(4.0, 1.5, 6)[1], np.linspace(1.78, 4.0, 6)[1])
+    assert pes.rs[1, 1] == (np.linspace(4.0, 1.5, 9)[1], np.linspace(1.78, 4.0, 8)[1])
 
     # Fitting the surface with a 2D polynomial up to order 3 in r1 and r2 i.e. r1^3r2^3
     pes.fit(polynomial_order=3)
@@ -86,7 +86,7 @@ def test_get_ts_guess_2dscan():
     assert 1.99 < ts_guess.get_distance(1, 2) < 2.01
 
     for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png')) or 'animation' in filename or 'xcontrol' in filename:
+        if filename.endswith(('.inp', '.png', '.xyz')) or 'animation' in filename or 'xcontrol' in filename:
             os.remove(filename)
 
     os.chdir(here)

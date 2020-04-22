@@ -51,7 +51,8 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
 
             # Rotate the left hand side randomly
             rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
-            [atoms[i].rotate(axis=rot_axis, theta=2*np.pi*rand.rand(), origin=atoms[atom_i].coord) for i in left_idxs]
+            theta = 2*np.pi*rand.rand()
+            [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for i in left_idxs]
 
     return atoms
 

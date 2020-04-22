@@ -15,7 +15,7 @@ from autode.methods import get_hmethod
 
 class QMMM:
 
-    def set_up_main_simulation(self, fix_solute):
+    def set_up_main_simulation(self, fix_solute, minimise_energy=True):
         """Set up an openmm qmmm simulation, including a qmmm force object ot use for QMMM simulations"""
         atoms2pdb(deepcopy(self.species.qm_solvent_atoms + self.species.mm_solvent_atoms), f'{self.name}.pdb')
         pdb = omapp.PDBFile(f'{self.name}.pdb')
@@ -56,8 +56,10 @@ class QMMM:
         coords_in_nm = coords * 0.1
         self.simulation.context.setPositions(coords_in_nm)
 
-        logger.info('Minimizing solvent energy')
-        self.simulation.minimizeEnergy()
+        if minimise_energy:
+            logger.info('Minimising solvent energy')
+            self.simulation.minimizeEnergy()
+
         self.set_qm_atoms()
 
         for force in self.system.getForces():
@@ -120,8 +122,7 @@ class QMMM:
 
     def run_qmmm_step(self):
         """Run a single QMMM step"""
-        qmmm_force = self.calc_forces_and_energies()
-        self.update_forces(qmmm_force)
+        self.calc_forces_and_energies()
         self.simulation.step(1)
         self.set_qm_atoms()
 
@@ -181,7 +182,7 @@ class QMMM:
                 self.qmmm_force_obj = force
         self.simulation.context.reinitialize(preserveState=True)
 
-        qm_forces, qm_energy = self.get_qm_force_energy(positions)
+        qm_forces, qm_energy = self.get_qm_force_energy()
 
         qmmm_forces = np.zeros((len(positions), 3))
         for i, force in enumerate(qm_forces):
@@ -200,9 +201,9 @@ class QMMM:
         qmmm_energy = full_mm_energy + qm_energy - all_coulomb_energy + mm_coulomb_energy
         self.all_qmmm_energy.append(qmmm_energy)
 
-        return qmmm_forces
+        return None
 
-    def get_qm_force_energy(self, positions):
+    def get_qm_force_energy(self):
         """Calculate the QM force"""
         grad_calc = Calculation(f'{self.name}_step_{self.step_no}_grad', self.species, self.method, self.method.keywords.grad, 1, grad=True)
         grad_calc.run()
@@ -224,7 +225,7 @@ class QMMM:
             self.qmmm_force_obj.setParticleParameters(i, i, force)
         self.qmmm_force_obj.updateParametersInContext(self.simulation.context)
 
-    def __init__(self, species, dist_consts, method, fix_solute, number):
+    def __init__(self, species, dist_consts, method, number):
         self.name = f'{species.name}_qmmm_{number}'
         self.species = species
         self.dist_consts = {} if dist_consts is None else dist_consts
@@ -235,7 +236,6 @@ class QMMM:
         self.system = None
         self.simulation = None
         self.qmmm_force_obj = None
-        self.set_up_main_simulation(fix_solute)
 
         self.all_qmmm_energy = []
         self.step_no = 0
