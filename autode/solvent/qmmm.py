@@ -10,6 +10,7 @@ from autode.calculation import Calculation
 from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
+from autode.point_charges import PointCharge
 from autode.methods import get_hmethod
 
 
@@ -278,7 +279,6 @@ def get_species_point_charges(species):
     point_charges = []
     for i, atom in enumerate(species.mm_solvent_atoms):
         charge = species.solvent_mol.graph.nodes[i % species.solvent_mol.n_atoms]['charge']
-        x, y, z = atom.coord
-        point_charges.append([charge, x, y, z])
+        point_charges.append(PointCharge(charge, coord=atom.coord))
 
     return point_charges

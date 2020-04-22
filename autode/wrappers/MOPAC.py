@@ -110,20 +110,23 @@ class MOPAC(ElectronicStructureMethod):
                 fixed_atoms += calc.cartesian_constraints
 
             for i, atom in enumerate(atoms):
+                x, y, z = atom.coord
                 if i in fixed_atoms:
-                    print(f'{atom.label:<3}{atom.coord[0]:^10.5f} 0 {atom.coord[1]:^10.5f} 0 {atom.coord[2]:^10.5f} 0', file=input_file)
+                    print(f'{atom.label:<3}{x:^10.5f} 0 {y:^10.5f} 0 {z:^10.5f} 0', file=input_file)
                 else:
-                    print(f'{atom.label:<3}{atom.coord[0]:^10.5f} 1 {atom.coord[1]:^10.5f} 1 {atom.coord[2]:^10.5f} 1', file=input_file)
+                    print(f'{atom.label:<3}{x:^10.5f} 1 {y:^10.5f} 1 {z:^10.5f} 1', file=input_file)
 
-        if calc.point_charges:
+        if calc.point_charges is not None:
             potentials = []
             for atom in atoms:
                 potential = 0
                 coord = atom.coord
-                for charge, x, y, z in calc.point_charges:
-                    distance = np.linalg.norm(coord - [x, y, z])
-                    potential += charge / distance
-                potentials.append(322*potential)
+                for point_charge in calc.point_charges:
+                    potential += point_charge.charge / np.linalg.norm(coord - point_charge.coord)
+
+                # Distance in Å need to be converted to a0 and then the energy Ha e^-1 to kcal mol-1 e^-1
+                potentials.append(Constants.ha2kcalmol*Constants.a02ang*potential)
+
             with open(f'{calc.name}_mol.in', 'w') as pc_file:
                 print(f'\n{len(atoms)} 0', file=pc_file)
                 [print(f'0 0 0 0 {potential}', file=pc_file) for potential in potentials]
@@ -181,7 +184,7 @@ class MOPAC(ElectronicStructureMethod):
                 xyz_lines = calc.output_file_lines[n_line+2:n_line+2+calc.n_atoms]
                 for xyz_line in xyz_lines:
                     atom_label, x, y, z = xyz_line.split()[1:]
-                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
 
         return atoms
 

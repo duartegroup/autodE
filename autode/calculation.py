@@ -1,6 +1,7 @@
 from copy import deepcopy
 import os
 from subprocess import Popen
+from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
@@ -56,11 +57,10 @@ class Calculation:
             assert type(self.distance_constraints) is dict
             assert all(len(key) == 2 for key in self.distance_constraints.keys())
 
-        # Ensure the point charge is of the correct format
+        # Ensure the point charges are given as a list of PointCharge objects
         if self.point_charges is not None:
             assert type(self.point_charges) is list
-            for point in self.point_charges:
-                assert len(point) == 4
+            assert all(type(pc) is PointCharge for pc in self.point_charges)
 
         # Key attributes that need to be lists or None
         assert self.cartesian_constraints is None or type(self.cartesian_constraints) is list

@@ -20,14 +20,9 @@ class NWChem(ElectronicStructureMethod):
         for keyword in keywords:
             if 'opt' in keyword.lower() and calc.n_atoms == 1:
                 logger.warning('Cannot do an optimisation for a single atom')
-                old_key = keyword.split()
-                new_keyword = ' '
-                for word in old_key:
-                    if 'opt' in word:
-                        new_keyword += 'energy '
-                    else:
-                        new_keyword += word + ' '
+                new_keyword = keyword.replace('opt', 'energy')
                 new_keywords.append(new_keyword)
+
             elif keyword.lower().startswith('dft'):
                 lines = keyword.split('\n')
                 lines.insert(1, f'  mult {calc.molecule.mult}')
@@ -47,7 +42,7 @@ class NWChem(ElectronicStructureMethod):
                 if calc.solvent_keyword:
                     logger.critical('nwchem only supports solvent for DFT calculations')
                     raise UnsuppportedCalculationInput
-                new_keywords.append(f'scf\n  nopen {calc.mult - 1}\nend')
+                new_keywords.append(f'scf\n  nopen {calc.molecule.mult - 1}\nend')
                 new_keywords.append(keyword)
             else:
                 new_keywords.append(keyword)
@@ -68,6 +63,11 @@ class NWChem(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+            if calc.point_charges is not None:
+                for charge, coord in calc.point_charges:
+                    x, y, z = atom.coord
+                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
+
             if calc.bond_ids_to_add or calc.distance_constraints:
                 print('  zcoord', file=inp_file)
                 if calc.bond_ids_to_add:
@@ -119,9 +119,11 @@ class NWChem(ElectronicStructureMethod):
 
             print(f'memory {Config.max_core} mb', file=inp_file)
 
-            print('property\n  mulliken\nend', file=inp_file)
-
             print(*keywords, sep='\n', file=inp_file)
+
+            # Will used partial an ESP initialisation to generate partial atomic charges - more accurate than
+            # the standard Mulliken analysis (or at least less sensitive to the method)
+            print('task esp', file=inp_file)
 
         return None
 
@@ -152,11 +154,12 @@ class NWChem(ElectronicStructureMethod):
         return False
 
     def optimisation_nearly_converged(self, calc):
+        if self.optimisation_converged(calc):
+            return False
 
         for j, line in enumerate(calc.rev_output_file_lines):
-            if '@' in line:
-                if 'ok' in calc.rev_output_file_lines[j-1]:
-                    return True
+            if '@' in line and 'ok' in calc.rev_output_file_lines[j-1]:
+                return True
 
         return False
 
@@ -231,35 +234,53 @@ class NWChem(ElectronicStructureMethod):
             if xyzs_section and len(line.split()) == 6:
                 if line.split()[0].isdigit():
                     _, atom_label, _, x, y, z = line.split()
-                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
 
         return atoms
 
     def get_atomic_charges(self, calc):
+        """
+        e.g.
+         Atom              Coordinates                           Charge
 
+                                                  ESP
+
+
+        1 C    -0.000814    0.000010    0.001095   -0.266058
+        . .       .            .            .          .
+        """
         charges_section = False
         charges = []
-        for line in calc.rev_output_file_lines:
-            if charges_section and len(line.split()) == 4:
-                charges.append(float(line.split()[2]) - float(line.split()[3]))
-            if '----- Bond indices -----' in line:
+
+        for line in calc.output_file_lines:
+            if len(line.split()) == 3 and 'Atom' in line and 'Coordinates' in line and 'Charge' in line:
                 charges_section = True
-            if 'gross population on atoms' in line:
+                charges = []
+
+            if charges_section and len(line.split()) == 6:
+                charge = line.split()[-1]
+                charges.append(float(charge))
+
+            if charges_section and '------------' in line:
                 charges_section = False
-                return list(reversed(charges))
+
+        print(charges)
+        return charges
 
     def get_gradients(self, calc):
 
         gradients_section = False
         gradients = []
-        for line in calc.rev_output_file_lines:
+        for line in calc.output_file_lines:
             if 'DFT ENERGY GRADIENTS' in line:
                 gradients_section = True
-            if '----------------------------------------' in line:
+                gradients = []
+
+            if '----------------------------------------' in line and gradients_section:
                 gradients_section = False
 
             if gradients_section and len(line.split()) == 8:
-                _, _, _, _, _, x, y, z = line.split()
+                x, y, z = line.split()[5:]
                 gradients.append([float(x), float(y), float(z)])
 
         return gradients

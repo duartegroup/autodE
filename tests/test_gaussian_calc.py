@@ -3,6 +3,7 @@ from autode.calculation import Calculation
 from autode.molecule import Molecule
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
+from autode.point_charges import PointCharge
 import pytest
 import os
 import numpy as np
@@ -169,7 +170,7 @@ def test_point_charge_calc():
 
     calc = Calculation(name='methane_point_charge', molecule=test_mol, method=method,
                        keywords_list=['PBE1PBE/Def2SVP'],
-                       point_charges=[[1.0, 10.0, 10.0, 10.0]])
+                       point_charges=[PointCharge(charge=1.0, x=10.0, y=10.0, z=10.0)])
     calc.run()
 
     # Assert that the input file is in the expected configuration
@@ -193,7 +194,7 @@ def test_point_charge_calc():
     for opt_keyword in ['Opt', 'Opt=Tight', 'Opt=(Tight)']:
         calc = Calculation(name='methane_point_charge_o', molecule=test_mol, method=method,
                            keywords_list=['PBE1PBE/Def2SVP', opt_keyword],
-                           point_charges=[[1.0, 3.0, 3.0, 3.0]])
+                           point_charges=[PointCharge(charge=1.0, x=3.0, y=3.0, z=3.0)])
         calc.generate_input()
 
         for line in open('methane_point_charge_o_g09.com', 'r').readlines():

@@ -91,19 +91,24 @@ class ORCA(ElectronicStructureMethod):
                 print(*solvent_atoms, file=inp_file, end='')
                 print('} end\nend', file=inp_file)
 
-            if calc.point_charges:
+            if calc.point_charges is not None:
                 with open(f'{calc.name}_orca.pc', 'w') as pc_file:
                     print(len(calc.point_charges), file=pc_file)
-                    for charge, x, y, z in calc.point_charges:
-                        print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
+                    for point_charge in calc.point_charges:
+                        x, y, z = point_charge.coord
+                        print(f'{point_charge.charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
                     calc.additional_input_files.append(f'{calc.name}_orca.pc')
                 print(f'% pointcharges "{calc.name}_orca.pc"', file=inp_file)
 
             if calc.n_cores > 1:
                 print('%pal nprocs ' + str(calc.n_cores) + '\nend', file=inp_file)
-            print('%output \nxyzfile=True \nend ', file=inp_file)
-            print('%scf \nmaxiter 250 \nend', file=inp_file)
-            print('% maxcore', calc.max_core_mb, file=inp_file)
+
+            # Default options that
+            print('%output \nxyzfile=True \nend ',
+                  '%scf \nmaxiter 250 \nend',
+                  '%output\nPrint[P_Hirshfeld] = 1\nend',
+                  '% maxcore', calc.max_core_mb, sep='\n', file=inp_file)
+
             print('*xyz', calc.molecule.charge, calc.molecule.mult, file=inp_file)
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
@@ -202,26 +207,30 @@ class ORCA(ElectronicStructureMethod):
             for line_no, line in enumerate(xyz_file):
                 if line_no > 1:
                     atom_label, x, y, z = line.split()
-                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
 
         return atoms
 
     def get_atomic_charges(self, calc):
         """
         e.g.
-        -----------------------
-        MULLIKEN ATOMIC CHARGES
-        -----------------------
-           0 C :   -0.079081
-           1 Cl:   -0.196692
-           . .         .
+
+       .HIRSHFELD ANALYSIS
+        ------------------
+
+        Total integrated alpha density =     12.997461186
+        Total integrated beta density  =     12.997461186
+
+          ATOM     CHARGE      SPIN
+           0 C   -0.006954    0.000000
+           . .      .            .
         """
         charges = []
 
         for i, line in enumerate(calc.output_file_lines):
-            if 'MULLIKEN ATOMIC CHARGES' in line:
+            if 'HIRSHFELD ANALYSIS' in line:
                 charges = []
-                for charge_line in calc.output_file_lines[i+2:i+2+calc.n_atoms]:
+                for charge_line in calc.output_file_lines[i+7:i+7+calc.n_atoms]:
                     charges.append(float(charge_line.split()[-1]))
 
         return charges

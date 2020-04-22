@@ -29,7 +29,7 @@ def test_orca_opt_calculation():
     assert os.path.exists('opt_orca.inp') is True
     assert os.path.exists('opt_orca.out') is True
     assert len(calc.get_final_atoms()) == 5
-    assert calc.get_energy() == -499.730559818596
+    assert -499.735 < calc.get_energy() < -499.730
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
@@ -45,8 +45,10 @@ def test_orca_opt_calculation():
         calc.get_normal_mode_displacements(mode_number=0)
 
     # Should have a partial atomic charge for every atom
-    assert len(calc.get_atomic_charges()) == 5
-    assert type(calc.get_atomic_charges()[0]) == float
+    charges = calc.get_atomic_charges()
+    assert len(charges) == 5
+    assert type(charges[0]) == float
+    assert -1.0 < charges[0] < 1.0
 
     calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
                        keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])

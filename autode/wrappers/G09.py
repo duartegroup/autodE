@@ -83,10 +83,11 @@ class G09(ElectronicStructureMethod):
                 print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
                       file=inp_file)
 
-            if calc.point_charges:
+            if calc.point_charges is not None:
                 print('', file=inp_file)
-                for charge, x, y, z in calc.point_charges:
-                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}', file=inp_file)
+                for point_charge in calc.point_charges:
+                    x, y, z = point_charge.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {point_charge.charge:^12.8f}', file=inp_file)
 
             print('', file=inp_file)
 
@@ -286,7 +287,7 @@ class G09(ElectronicStructureMethod):
                 for xyz_line in xyz_lines:
                     atom_index, _, _, x, y, z = xyz_line.split()
                     atom_index = int(atom_index) - 1
-                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=float(x), y=float(y), z=float(z)))
+                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=x, y=y, z=z))
 
                 if len(atoms) != calc.n_atoms:
                     raise AtomsNotFound

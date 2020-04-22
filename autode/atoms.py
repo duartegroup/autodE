@@ -43,7 +43,7 @@ class Atom:
     def __init__(self, atomic_symbol, x, y, z):
 
         self.label = atomic_symbol
-        self.coord = np.array([x, y, z])
+        self.coord = np.array([float(x), float(y), float(z)])
 
 
 # A set of reasonable valances for anionic/neutral/cationic atoms

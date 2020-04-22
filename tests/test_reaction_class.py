@@ -10,6 +10,7 @@ from autode.exceptions import SolventsDontMatch
 from autode.units import KcalMol
 from autode.mol_graphs import make_graph
 from autode.config import Config
+import shutil
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -82,7 +83,7 @@ def test_reaction_identical_reac_prods():
     h2_reaction.locate_transition_state()
     assert h2_reaction.ts is None
 
-    os.rmdir('transition_states')
+    shutil.rmtree('transition_states')
     os.chdir(here)
 
 
@@ -132,11 +133,12 @@ def test_solvated_reaction():
     os.chdir(os.path.join(here, 'data'))
 
     Config.lcode = 'xtb'
+    Config.n_cores = 1
     Config.XTB.path = here       # A path that exists
     Config.ORCA.path = here       # A path that exists
 
     r = reaction.SolvatedReaction(lin_h3, trig_h3, solvent_name='water')
-    assert r.solvent_mol == None
+    assert r.solvent_mol is None
 
     r.calc_solvent()
     assert isinstance(r.solvent_mol, reaction.SolvatedMolecule)
