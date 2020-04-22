@@ -19,7 +19,7 @@ def get_closest_species(point, pes):
         point (tuple): Index of the current point
 
     Returns:
-        (autode.species.Species):
+        (autode.complex.ReactantComplex):
     """
 
     if all(index == 0 for index in point):

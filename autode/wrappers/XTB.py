@@ -32,10 +32,7 @@ class XTB(ElectronicStructureMethod):
             calc.flags += ['--gbsa', calc.solvent_keyword]
 
         if calc.distance_constraints or calc.cartesian_constraints or (hasattr(calc.molecule, 'mm_solvent_atoms') and calc.molecule.mm_solvent_atoms is not None):
-            force_constant = 10
-
-            if calc.constraints_already_met:
-                force_constant += 90
+            force_constant = 20
 
             xcontrol_filename = 'xcontrol_' + calc.name
             with open(xcontrol_filename, 'w') as xcontrol_file:
