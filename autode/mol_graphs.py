@@ -26,8 +26,8 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valanc
     Edge attributes:
         (1) pi: Is this bond a pi bond. If it is then there should be no rotation the bond axis in conformer generation
         (2) active: Is this bond being made/broken (applies only to TransitionState objects)
-
     Arguments:
+
         species (autode.species.Species):
 
     Keyword Arguments:

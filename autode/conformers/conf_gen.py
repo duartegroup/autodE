@@ -40,19 +40,22 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
 
     # Check on every pair of stereocenters
     for (atom_i, atom_j) in combinations(stereocentres, 2):
-        if (atom_i, atom_j) in species.graph.edges:
+        if (atom_i, atom_j) not in species.graph.edges:
+            continue
 
-            # Don't rotate if the bond connecting the centers is a π-bond
-            if species.graph.edges[atom_i, atom_j]['pi'] is True:
-                logger.info('Stereocenters were π bonded – not rotating')
-                continue
+        # Don't rotate if the bond connecting the centers is a π-bond
+        if species.graph.edges[atom_i, atom_j]['pi'] is True:
+            logger.info('Stereocenters were π bonded – not rotating')
+            continue
 
-            left_idxs, _ = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+        left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
 
-            # Rotate the left hand side randomly
-            rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
-            theta = 2*np.pi*rand.rand()
-            [atoms[i].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for i in left_idxs]
+        # Rotate the left hand side randomly
+        rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
+        theta = 2*np.pi*rand.rand()
+        idxs_to_rotate = left_idxs if atom_i in left_idxs else right_idxs
+
+        [atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for n in idxs_to_rotate if n != atom_i]
 
     return atoms
 
@@ -142,16 +145,12 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
 
     # Randomise coordinates
     fixed_atom_indexes = get_non_random_atoms(species=species)
-    for i, atom in enumerate(atoms):
-        if i in fixed_atom_indexes:
-            continue
-
-        atom.coord = rand.uniform(-10.0, 10.0, 3)
+    [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
 
     logger.info('Minimising species...')
     st = time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=0.1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
+                                    k=1.0, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
     logger.info(f'                    ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms
@@ -162,3 +161,4 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
 
     return atoms
+
