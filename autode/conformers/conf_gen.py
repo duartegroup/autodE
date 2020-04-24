@@ -59,8 +59,8 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
 
 def add_dist_consts_across_stereocentres(species, dist_consts):
     """
-    Add distances constraints across two bonded stereocentres, for example for a Z alkene ensure this will ensure
-    that in the conformer generation this will retain the stereochemistry
+    Add distances constraints across two bonded stereocentres, for example for a Z alkene, (hopefully) ensuring
+    that in the conformer generation the stereochemistry is retained
 
     Arguments:
         species (autode.species.Species):
@@ -74,15 +74,18 @@ def add_dist_consts_across_stereocentres(species, dist_consts):
     # Check on every pair of stereocenters
     for (atom_i, atom_j) in combinations(stereocentres, 2):
 
-        # If they are bonded
-        if (atom_i, atom_j) in species.graph.edges:
+        # If they are not bonded don't alter
+        if (atom_i, atom_j) not in species.graph.edges:
+            continue
 
-            # Add a single distance constraint between the nearest neighbours of each stereocentre
-            atom_i_neighbour = [atom_index for atom_index in species.graph.neighbors(atom_i) if atom_index != atom_j][0]
-            atom_j_neighbour = [atom_index for atom_index in species.graph.neighbors(atom_j) if atom_index != atom_i][0]
+        # Add a single distance constraint between the nearest neighbours of each stereocentre
+        for atom_i_neighbour in species.graph.neighbors(atom_i):
+            for atom_j_neighbour in species.graph.neighbors(atom_j):
+                if atom_i_neighbour != atom_j and atom_j_neighbour != atom_i:
 
-            # Fix the distance to the current value
-            dist_consts[(atom_i_neighbour, atom_j_neighbour)] = species.get_distance(atom_i_neighbour, atom_j_neighbour)
+                    # Fix the distance to the current value
+                    dist_consts[(atom_i_neighbour, atom_j_neighbour)] = species.get_distance(atom_i_neighbour,
+                                                                                             atom_j_neighbour)
 
     logger.info(f'Have {len(dist_consts)} distance constraint(s)')
     return dist_consts
@@ -143,12 +146,12 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
         if i in fixed_atom_indexes:
             continue
 
-        atom.coord = rand.uniform(-1.0, 1.0, 3)
+        atom.coord = rand.uniform(-10.0, 10.0, 3)
 
     logger.info('Minimising species...')
     st = time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
+                                    k=0.1, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
     logger.info(f'                    ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms
