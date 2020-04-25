@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=master)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/master) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=joseph)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/joseph/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/joseph) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ![alt text](autode/common/llogo.png)
 ***
 ## Introduction
@@ -8,26 +9,32 @@ profiles from just SMILES strings of reactant(s) and product(s).
 
 ***
 
-## Installation
-
-If the requirements are already satisfied to install **autodE** as a module
-```
-python setup.py install
-```
 
 ### Dependencies
 * [Python](https://www.python.org/) > v. 3.5
-* [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.1
-* [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/) > v. 6.1
+* One of:
+   * [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.2
+   * [Gaussian09](https://gaussian.com/glossary/g09/)
+   * [NWChem](http://www.nwchem-sw.org/index.php/Main_Page)
+* One of:
+   * [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/) > v. 6.1
+   * [MOPAC](http://openmopac.net/)
 
 The Python dependencies are listed in requirements.txt best satisfied using a conda install (Miniconda or Anaconda) i.e.
 ```
 conda config --append channels conda-forge
-conda create -n autode_env --file requirements.txt
-conda activate autode_env
+conda config --append channels omnia
+conda install --file requirements.txt
 ```
 
 ***
+
+## Installation
+
+Once the requirements are satisfied to install **autodE** as a module
+```
+python setup.py install
+```
 
 ## Usage
 

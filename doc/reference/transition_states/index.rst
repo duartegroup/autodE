@@ -7,10 +7,10 @@ Transition States
 .. toctree::
    :maxdepth: 2
 
+   base
    locate_tss
-   optts
-   template_ts_guess
    templates
    transition_state
+   truncation
    ts_guess
 

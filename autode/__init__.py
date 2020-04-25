@@ -1,4 +1,5 @@
 from autode.reaction import Reaction
+from autode.reaction import SolvatedReaction
 from autode.molecule import Reactant
 from autode.molecule import Product
 from autode.molecule import Molecule
@@ -10,11 +11,12 @@ __version__ = '1.0.0'
 
 
 __all__ = [
+    'Reaction',
+    'SolvatedReaction',
     'Reactant',
     'Product',
     'Molecule',
-    'Reaction',
     'Config',
     'KcalMol',
     'KjMol'
-    ]
+]

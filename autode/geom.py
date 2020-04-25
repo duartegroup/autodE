@@ -1,47 +1,48 @@
+from copy import deepcopy
 import numpy as np
+from scipy.spatial.distance import cdist
+from scipy.spatial import distance_matrix
+from autode.log import logger
 
 
-def xyz2coord(xyzs):
+def length(vec):
+    """Return the length of a vector"""
+    return np.linalg.norm(vec)
+
+
+def are_coords_reasonable(coords):
     """
-    For a set of xyzs in the form e.g [[C, 0.0, 0.0, 0.0], ...] convert to a np array of coordinates, containing just
-    just the x, y, z coordinates
-
+    Determine if a set of coords are reasonable. No distances can be < 0.7 Å and if there are more than 4 atoms ensure
+    they do not all lie in the same plane. The latter possibility arises from RDKit's conformer generation algorithm
+    breaking
     Arguments:
-        xyzs (list(list)): List of xyzs
-
+        coords (np.ndarray): Species coordinates as a n_atoms x 3 array
     Returns:
-        np.array: array of coords
+        bool:
     """
-    if isinstance(xyzs[0], list):
-        return np.array([np.array(line[1:4]) for line in xyzs])
-    else:
-        return np.array(xyzs[1:4])
+
+    n_atoms = len(coords)
+
+    # Generate a n_atoms x n_atoms matrix
+    distance_matrix_unity_diag = distance_matrix(coords, coords) + np.identity(n_atoms)
+
+    if np.min(distance_matrix_unity_diag) < 0.7:
+        logger.warning('There is a distance < 0.7 Å. Structure is *not* sensible')
+        return False
+
+    if n_atoms > 4:
+        if all([coord[2] == 0.0 for coord in coords]):
+            logger.warning('RDKit likely generated a wrong geometry. Structure is *not* sensible')
+            return False
+
+    return True
 
 
-def coords2xyzs(coords, old_xyzs):
-    """Insert a set of coordinates into a set of xyzs to a new list of xyzs
-
-    Arguments:
-        coords (np.array): array of coordinates
-        old_xyzs (list(lists)): list of old xyzs
-
-    Returns:
-        list(list): coords in xyz form
-    """
-    if isinstance(old_xyzs[0], list):
-        assert len(old_xyzs) == len(coords)
-        return [[old_xyzs[n][0]] + coords[n].tolist() for n in range(len(old_xyzs))]
-    else:
-        assert len(old_xyzs) == 4
-        assert len(coords) == 3
-        return [old_xyzs[0]] + coords.tolist()
-
-
-def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
+def get_shifted_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
 
     Arguments:
-        xyzs (list(list)): list of xyzs
+        atoms (list(autode.atoms.Atom)): list of atoms
         bonds (list(tuple)): List of bond ids on for which the final_distances apply
         final_distances (list(float)): List of final bond distances for the bonds
 
@@ -49,7 +50,7 @@ def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
         list(list): shifted xyzs
     """
 
-    coords = xyz2coord(xyzs)
+    coords = np.array([atom.coord for atom in atoms])
     atoms_and_shift_vecs = {}
 
     for n, bond in enumerate(bonds):
@@ -67,47 +68,71 @@ def get_shifted_xyzs_linear_interp(xyzs, bonds, final_distances):
         if n in atoms_and_shift_vecs.keys():
             coord += atoms_and_shift_vecs[n]
 
-    new_xyzs = coords2xyzs(coords, old_xyzs=xyzs)
+        atoms[n].coord = coord
 
-    return new_xyzs
+    return atoms
 
 
-def calc_distance_matrix(xyzs):
-    """Calculate a distance matrix
+def get_rot_mat_kabsch(p_matrix, q_matrix):
+    """
+    Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
+    https://en.wikipedia.org/wiki/Kabsch_algorithm
 
-    Arguments:
-        xyzs (list(list)): list of xyzs
-
-    Returns:
-        np.array: array of distances between all the atoms
+    :param p_matrix: (np.ndarray)
+    :param q_matrix: (np.ndarray)
+    :return: (np.ndarray) rotation matrix
     """
 
-    n_atoms = len(xyzs)
-    coords = xyz2coord(xyzs)
-    distance_matrix = np.zeros([n_atoms, n_atoms])
+    h = np.matmul(p_matrix.transpose(), q_matrix)
+    u, _, vh = np.linalg.svd(h)
+    d = np.linalg.det(np.matmul(vh.transpose(), u.transpose()))
+    int_mat = np.identity(3)
+    int_mat[2, 2] = d
+    rot_matrix = np.matmul(np.matmul(vh.transpose(), int_mat), u.transpose())
 
-    for atom_i in range(n_atoms):
-        for atom_j in range(n_atoms):
-            dist = np.linalg.norm(coords[atom_i] - coords[atom_j])
-            distance_matrix[atom_i, atom_j] = dist
-
-    return distance_matrix
+    return rot_matrix
 
 
-def get_neighbour_list(atom_i, mol):
+def get_krot_p_q(template_coords, coords_to_fit):
+    """Get the optimum rotation matrix and pre & post translations """
+    # Construct the P matrix in the Kabsch algorithm
+    p_mat = deepcopy(coords_to_fit)
+    p_centroid = np.average(p_mat, axis=0)
+    p_mat_trans = get_centered_matrix(p_mat)
+
+    # Construct the P matrix in the Kabsch algorithm
+    q_mat = deepcopy(template_coords)
+    q_centroid = np.average(q_mat, axis=0)
+    q_mat_trans = get_centered_matrix(q_mat)
+
+    # Get the optimum rotation matrix
+    rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
+
+    return rot_mat, p_centroid, q_centroid
+
+
+def get_centered_matrix(mat):
+    """For a list of coordinates n.e. a n_atoms x 3 matrix as a np array translate to the center of the coordinates"""
+    centroid = np.average(mat, axis=0)
+    return np.array([coord - centroid for coord in mat])
+
+
+def get_neighbour_list(species, atom_i):
     """Calculate a neighbour list from atom i as a list of atom labels
 
     Arguments:
         atom_i (int): index of the atom
-        mol (molecule object): Molecule object
+        species (autode.species.Species):
 
     Returns:
         list: list of atom ids in ascending distance away from atom_i
     """
-    distance_vector = mol.distance_matrix[atom_i]
+    coords = species.get_coordinates()
+    distance_vector = cdist(np.array([coords[atom_i]]), coords)[0]
+
     dists_and_atom_labels = {}
     for atom_j, dist in enumerate(distance_vector):
-        dists_and_atom_labels[dist] = mol.xyzs[atom_j][0]
+        dists_and_atom_labels[dist] = species.atoms[atom_j].label
 
     atom_label_neighbour_list = []
     for dist, atom_label in sorted(dists_and_atom_labels.items()):
@@ -116,28 +141,25 @@ def get_neighbour_list(atom_i, mol):
     return atom_label_neighbour_list
 
 
-def calc_rotation_matrix(axis, theta):
-    """Return the rotation matrix associated with counterclockwise rotation about
-    the given axis by theta radians.
+def get_distance_constraints(species):
+    """Set all the distance constraints required in an optimisation as the active bonds"""
+    distance_constraints = {}
 
-    Arguments:
-        axis (np.array}: axis to be rotated about
-        theta (float): angle in radians to be rotated
+    if species.graph is None:
+        logger.warning('Molecular graph was not set cannot find any distance constraints')
+        return None
 
-    Returns:
-        np.array: rotation matrix
-    """
-    axis = np.asarray(axis)
-    axis = axis/np.linalg.norm(axis)
-    a = np.cos(theta/2.0)
-    b, c, d = -axis*np.sin(theta/2.0)
-    aa, bb, cc, dd = a*a, b*b, c*c, d*d
-    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-    return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                     [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                     [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+    # Add the active edges(/bonds) in the molecular graph to the dict, value being the current distance
+    for edge in species.graph.edges:
+
+        if species.graph.edges[edge]['active']:
+            distance_constraints[edge] = species.get_distance(*edge)
+
+    return distance_constraints
 
 
-i = np.array([1.0, 0.0, 0.0])
-j = np.array([0.0, 1.0, 0.0])
-k = np.array([0.0, 0.0, 1.0])
+def calc_rmsd(template_coords, coords_to_fit):
+    """Calculate the RMSD between two sets of coordinates"""
+    rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
+    fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords_to_fit])
+    return np.sqrt(np.average(np.square(fitted_coords - template_coords)))
