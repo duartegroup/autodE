@@ -36,6 +36,7 @@ def calculate_reaction_profile(reaction, units):
                           reacs=reaction.reacs,
                           prods=reaction.prods,
                           ts=reaction.ts,
+                          reaction_name=reaction.name,
                           switched=reaction.switched_reacs_prods)
     return None
 

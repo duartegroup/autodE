@@ -21,9 +21,9 @@ def test_plot_reaction_profile():
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
 
-    plotting.plot_reaction_profile(0.0, 10.0, -10.0, KjMol, reacs=[r], prods=[p], ts=ts)
+    plotting.plot_reaction_profile(0.0, 10.0, -10.0, KjMol, reacs=[r], prods=[p], 'test_reaction', ts=ts)
 
-    assert os.path.exists('reaction_profile.png')
+    assert os.path.exists('test_reaction_reaction_profile.png')
 
-    os.remove('reaction_profile.png')
+    os.remove('test_reaction_reaction_profile.png')
     os.chdir(here)
