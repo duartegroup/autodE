@@ -27,6 +27,7 @@ Documentation
    pes_2d
    pes
    plotting
+   point_charges
    reaction
    reactions
    saddle_points
