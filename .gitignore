@@ -152,3 +152,5 @@ tests/data/pes2d/SN2_PES_scan_7-6_xtb.xyz
 tests/data/template_ts_guess_constrained_opt_ll_xtb.xyz
 
 tests/data/xcontrol_template_ts_guess_constrained_opt_ll
+
+tests/data/opt_nwchem.nw

@@ -60,7 +60,7 @@ class XTB(ElectronicStructureMethod):
                     print(*list_of_ranges, sep=',', file=xcontrol_file)
                     print('$', file=xcontrol_file)
 
-                if calc.point_charges:
+                if calc.point_charges is not None:
                     print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
 
             calc.flags += ['--input', xcontrol_filename]
@@ -69,8 +69,9 @@ class XTB(ElectronicStructureMethod):
         if calc.point_charges:
             with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
                 print(len(calc.point_charges), file=pc_file)
-                for charge, x, y, z in calc.point_charges:
-                    print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99', file=pc_file)
+                for point_charge in calc.point_charges:
+                    x, y, z = point_charge.coord
+                    print(f'{point_charge.charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99', file=pc_file)
             calc.additional_input_files.append(f'{calc.name}_xtb.pc')
 
         return None
@@ -131,7 +132,7 @@ class XTB(ElectronicStructureMethod):
 
                 for xyz_line in calc.output_file_lines[i+4:i+4+n_atoms]:
                     atom_label, x, y, z = xyz_line.split()
-                    atoms.append(Atom(atom_label, x=float(x), y=float(y), z=float(z)))
+                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
 
                 break
 

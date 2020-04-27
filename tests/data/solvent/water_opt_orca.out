@@ -129,22 +129,24 @@ INFO   : the flag for use of LIBINT has been found!
 NAME = water_opt_orca.inp
 |  1> ! Opt PBE0 RIJCOSX D3BJ def2-SVP def2/J
 |  2> %geom MaxIter 100 end
-|  3> %pal nprocs 16
-|  4> end
-|  5> %output 
-|  6> xyzfile=True 
-|  7> end 
-|  8> %scf 
-|  9> maxiter 250 
-| 10> end
-| 11> % maxcore 4000
-| 12> *xyz 0 1
-| 13> O   -0.00100142   0.37900981  -0.00000000 
-| 14> H    0.77320934  -0.18750013   0.00000000 
-| 15> H   -0.77220792  -0.19150969   0.00000000 
-| 16> *
-| 17> 
-| 18>                          ****END OF INPUT****
+|  3> %output 
+|  4> xyzfile=True 
+|  5> end 
+|  6> %scf 
+|  7> maxiter 250 
+|  8> end
+|  9> %output
+| 10> Print[P_Hirshfeld] = 1
+| 11> end
+| 12> % maxcore
+| 13> 4000
+| 14> *xyz 0 1
+| 15> O   -0.00100142   0.37900981  -0.00000000 
+| 16> H    0.77320934  -0.18750013   0.00000000 
+| 17> H   -0.77220792  -0.19150969   0.00000000 
+| 18> *
+| 19> 
+| 20>                          ****END OF INPUT****
 ================================================================================
 
                        *****************************
@@ -246,12 +248,6 @@ There are 2 groups of distinct atoms
 Atom   0O    basis set group =>   1
 Atom   1H    basis set group =>   2
 Atom   2H    basis set group =>   2
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 ------------------------------------------------------------------------------
                            ORCA GTO INTEGRAL CALCULATION
                            -- RI-GTO INTEGRALS CHOSEN --
@@ -284,26 +280,20 @@ Integral package used                  ... LIBINT
  Ordering of the shell pairs             ... done (   0.000 sec) 78 of 78 pairs
  Determination of significant pairs      ... done (   0.000 sec)
  Creation of shell pair data             ... done (   0.000 sec)
- Storage of shell pair data              ... done (   0.016 sec)
- Shell pair data done in (   0.016 sec)
+ Storage of shell pair data              ... done (   0.000 sec)
+ Shell pair data done in (   0.000 sec)
  Computing two index integrals           ... done
  Cholesky decomposition of the V-matrix  ... done
 
 
 Timings:
- Total evaluation time                   ...   0.176 sec (  0.003 min)
- One electron matrix time                ...   0.022 sec (  0.000 min) = 12.6%
- Schwartz matrix evaluation time         ...   0.110 sec (  0.002 min) = 62.4%
- Two index repulsion integral time       ...   0.000 sec (  0.000 min) =  0.2%
- Cholesky decomposition of V             ...   0.001 sec (  0.000 min) =  0.5%
+ Total evaluation time                   ...   0.073 sec (  0.001 min)
+ One electron matrix time                ...   0.002 sec (  0.000 min) =  2.6%
+ Schwartz matrix evaluation time         ...   0.055 sec (  0.001 min) = 75.0%
+ Two index repulsion integral time       ...   0.001 sec (  0.000 min) =  1.2%
+ Cholesky decomposition of V             ...   0.003 sec (  0.000 min) =  4.0%
  Three index repulsion integral time     ...   0.000 sec (  0.000 min) =  0.0%
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 -------------------------------------------------------------------------------
                                  ORCA SCF
 -------------------------------------------------------------------------------
@@ -384,11 +374,11 @@ Convergence Tolerance:
 
 Diagonalization of the overlap matrix:
 Smallest eigenvalue                        ... 3.834e-02
-Time for diagonalization                   ...    0.001 sec
+Time for diagonalization                   ...    0.005 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
 Time for construction of square roots      ...    0.001 sec
-Total time needed                          ...    0.003 sec
+Total time needed                          ...    0.007 sec
 
 -------------------
 DFT GRID GENERATION
@@ -414,14 +404,14 @@ Total number of grid points                  ...     3270
 Total number of batches                      ...       52
 Average number of points per batch           ...       62
 Average number of grid points per atom       ...     1090
-Average number of shells per batch           ...     8.20 (68.33%)
-Average number of basis functions per batch  ...    15.80 (65.83%)
-Average number of large shells per batch     ...     7.40 (90.24%)
-Average number of large basis fcns per batch ...    15.00 (94.94%)
-Maximum spatial batch extension              ...  10.94, 13.67, 21.59 au
-Average spatial batch extension              ...   0.68,  0.85,  1.13 au
+Average number of shells per batch           ...    11.21 (93.40%)
+Average number of basis functions per batch  ...    22.42 (93.40%)
+Average number of large shells per batch     ...    10.75 (95.96%)
+Average number of large basis fcns per batch ...    21.51 (95.96%)
+Maximum spatial batch extension              ...  13.06, 20.95, 21.59 au
+Average spatial batch extension              ...   4.72,  6.12,  6.16 au
 
-Time for grid setup =    0.015 sec
+Time for grid setup =    0.006 sec
 
 ------------------------------
 INITIAL GUESS: MODEL POTENTIAL
@@ -444,7 +434,7 @@ Diagonalizing the Hamiltonian                      ... done (   0.0 sec)
 Back transforming the eigenvectors                 ... done (   0.0 sec)
 Now organizing SCF variables                       ... done
                       ------------------
-                      INITIAL GUESS DONE (   0.2 sec)
+                      INITIAL GUESS DONE (   0.1 sec)
                       ------------------
 --------------------
 COSX GRID GENERATION
@@ -470,12 +460,12 @@ Total number of grid points                  ...     1204
 Total number of batches                      ...       20
 Average number of points per batch           ...       60
 Average number of grid points per atom       ...      401
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  10.31, 12.22, 20.72 au
-Average spatial batch extension              ...   0.78,  0.82,  1.73 au
+Average number of shells per batch           ...    11.29 (94.05%)
+Average number of basis functions per batch  ...    22.71 (94.64%)
+Average number of large shells per batch     ...    11.14 (98.73%)
+Average number of large basis fcns per batch ...    22.38 (98.53%)
+Maximum spatial batch extension              ...  11.33, 20.72, 20.72 au
+Average spatial batch extension              ...   6.26,  8.35, 10.54 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -504,12 +494,12 @@ Total number of grid points                  ...     1580
 Total number of batches                      ...       27
 Average number of points per batch           ...       58
 Average number of grid points per atom       ...      527
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...   8.28, 13.23, 22.67 au
-Average spatial batch extension              ...   0.55,  0.67,  1.38 au
+Average number of shells per batch           ...    11.39 (94.94%)
+Average number of basis functions per batch  ...    22.96 (95.68%)
+Average number of large shells per batch     ...    11.18 (98.12%)
+Average number of large basis fcns per batch ...    22.61 (98.44%)
+Maximum spatial batch extension              ...  12.20, 22.67, 22.67 au
+Average spatial batch extension              ...   5.37,  6.98,  8.65 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -538,12 +528,12 @@ Total number of grid points                  ...     2730
 Total number of batches                      ...       44
 Average number of points per batch           ...       62
 Average number of grid points per atom       ...      910
-Average number of shells per batch           ...     8.25 (68.75%)
-Average number of basis functions per batch  ...    17.25 (71.88%)
-Average number of large shells per batch     ...     7.25 (87.88%)
-Average number of large basis fcns per batch ...    13.75 (79.71%)
-Maximum spatial batch extension              ...  10.35, 13.10, 24.28 au
-Average spatial batch extension              ...   0.64,  0.64,  1.22 au
+Average number of shells per batch           ...    11.42 (95.19%)
+Average number of basis functions per batch  ...    23.07 (96.11%)
+Average number of large shells per batch     ...    10.82 (94.75%)
+Average number of large basis fcns per batch ...    21.67 (93.93%)
+Maximum spatial batch extension              ...  12.33, 19.83, 24.28 au
+Average spatial batch extension              ...   4.57,  6.31,  6.38 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -551,7 +541,7 @@ Inverting numerical overlap    ... done (      0.0 sec)
 Obtaining analytic overlap     ... done (      0.0 sec)
 Final contraction and storage  ... done (      0.0 sec)
 
-Time for X-Grid setup             =    0.094 sec
+Time for X-Grid setup             =    0.061 sec
 --------------
 SCF ITERATIONS
 --------------
@@ -604,12 +594,12 @@ Total number of grid points                  ...    12916
 Total number of batches                      ...      203
 Average number of points per batch           ...       63
 Average number of grid points per atom       ...     4305
-Average number of shells per batch           ...     6.57 (54.76%)
-Average number of basis functions per batch  ...    12.57 (52.38%)
-Average number of large shells per batch     ...     5.36 (81.52%)
-Average number of large basis fcns per batch ...     9.36 (74.43%)
-Maximum spatial batch extension              ...  16.88, 11.55, 13.13 au
-Average spatial batch extension              ...   0.56,  0.53,  0.52 au
+Average number of shells per batch           ...    10.27 (85.62%)
+Average number of basis functions per batch  ...    20.38 (84.93%)
+Average number of large shells per batch     ...     9.73 (94.66%)
+Average number of large basis fcns per batch ...    19.35 (94.95%)
+Maximum spatial batch extension              ...  16.88, 16.88, 21.92 au
+Average spatial batch extension              ...   2.93,  3.43,  3.64 au
 
 Final grid set up in    0.0 sec
 Final integration                            ... done (   0.0 sec)
@@ -620,7 +610,7 @@ Old exchange energy                            =     -2.238987654 Eh
 New exchange energy                            =     -2.239121565 Eh
 Exchange energy change after final integration =     -0.000133911 Eh
 Total energy after final integration           =    -76.276020945 Eh
-Final COS-X integration done in                =     0.026 sec
+Final COS-X integration done in                =     0.038 sec
 
 ----------------
 TOTAL SCF ENERGY
@@ -653,9 +643,9 @@ DFET-embed. en.    :        0.000000000000 Eh
 SCF CONVERGENCE
 ---------------
 
-  Last Energy change         ...    1.5571e-10  Tolerance :   1.0000e-08
-  Last MAX-Density change    ...    1.7764e-15  Tolerance :   1.0000e-07
-  Last RMS-Density change    ...    8.7516e-17  Tolerance :   5.0000e-09
+  Last Energy change         ...    1.5582e-10  Tolerance :   1.0000e-08
+  Last MAX-Density change    ...    1.3323e-15  Tolerance :   1.0000e-07
+  Last RMS-Density change    ...    8.8563e-17  Tolerance :   5.0000e-09
   Last Orbital Gradient      ...    8.3031e-07  Tolerance :   1.0000e-05
   Last Orbital Rotation      ...    4.6449e-07  Tolerance :   1.0000e-05
 
@@ -780,32 +770,47 @@ LOEWDIN REDUCED ORBITAL CHARGES
   Mayer bond orders larger than 0.100000
 B(  0-O ,  1-H ) :   1.0065 B(  0-O ,  2-H ) :   1.0066 
 
+
+------------------
+HIRSHFELD ANALYSIS
+------------------
+
+Total integrated alpha density =      4.999052423
+Total integrated beta density  =      4.999052423
+
+  ATOM     CHARGE      SPIN    
+   0 O   -0.322656    0.000000
+   1 H    0.162280    0.000000
+   2 H    0.162271    0.000000
+
+  TOTAL   0.001895    0.000000
+
 -------
 TIMINGS
 -------
 
 Total SCF time: 0 days 0 hours 0 min 1 sec 
 
-Total time                  ....       1.748 sec
-Sum of individual times     ....       1.474 sec  ( 84.3%)
+Total time                  ....       1.201 sec
+Sum of individual times     ....       1.146 sec  ( 95.4%)
 
-Fock matrix formation       ....       1.182 sec  ( 67.6%)
-  Split-RI-J                ....       0.804 sec  ( 68.0% of F)
-  Chain of spheres X        ....       0.306 sec  ( 25.9% of F)
-  XC integration            ....       0.024 sec  (  2.0% of F)
-    Basis function eval.    ....       0.003 sec  ( 12.2% of XC)
-    Density eval.           ....       0.002 sec  (  6.6% of XC)
-    XC-Functional eval.     ....       0.003 sec  ( 11.7% of XC)
-    XC-Potential eval.      ....       0.001 sec  (  3.7% of XC)
-Diagonalization             ....       0.001 sec  (  0.0%)
-Density matrix formation    ....       0.001 sec  (  0.0%)
-Population analysis         ....       0.001 sec  (  0.1%)
-Initial guess               ....       0.135 sec  (  7.7%)
+Fock matrix formation       ....       0.974 sec  ( 81.1%)
+  Split-RI-J                ....       0.551 sec  ( 56.6% of F)
+  Chain of spheres X        ....       0.353 sec  ( 36.3% of F)
+  XC integration            ....       0.060 sec  (  6.2% of F)
+    Basis function eval.    ....       0.018 sec  ( 29.8% of XC)
+    Density eval.           ....       0.010 sec  ( 17.4% of XC)
+    XC-Functional eval.     ....       0.018 sec  ( 29.7% of XC)
+    XC-Potential eval.      ....       0.009 sec  ( 14.9% of XC)
+Diagonalization             ....       0.000 sec  (  0.0%)
+Density matrix formation    ....       0.000 sec  (  0.0%)
+Population analysis         ....       0.002 sec  (  0.2%)
+Initial guess               ....       0.059 sec  (  4.9%)
 Orbital Transformation      ....       0.000 sec  (  0.0%)
 Orbital Orthonormalization  ....       0.000 sec  (  0.0%)
-DIIS solution               ....       0.001 sec  (  0.0%)
-SOSCF solution              ....       0.001 sec  (  0.0%)
-Grid generation             ....       0.153 sec  (  8.7%)
+DIIS solution               ....       0.001 sec  (  0.1%)
+SOSCF solution              ....       0.002 sec  (  0.2%)
+Grid generation             ....       0.107 sec  (  8.9%)
 
 
 -------------------------------------------------------------------------------
@@ -842,12 +847,6 @@ Dispersion correction           -0.000276814
 FINAL SINGLE POINT ENERGY       -76.276297759429
 -------------------------   --------------------
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 ------------------------------------------------------------------------------
                          ORCA SCF GRADIENT CALCULATION
 ------------------------------------------------------------------------------
@@ -888,13 +887,13 @@ MAX gradient                       ...    0.0106532468
 TIMINGS
 -------
 
-Total SCF gradient time            ...        0.349 sec
+Total SCF gradient time            ...        0.255 sec
 
-One electron gradient       ....       0.003 sec  (  0.8%)
-Prescreening matrices       ....       0.001 sec  (  0.4%)
-RI-J Coulomb gradient       ....       0.058 sec  ( 16.5%)
-COSX gradient               ....       0.028 sec  (  7.9%)
-XC gradient                 ....       0.005 sec  (  1.5%)
+One electron gradient       ....       0.001 sec  (  0.3%)
+Prescreening matrices       ....       0.002 sec  (  0.8%)
+RI-J Coulomb gradient       ....       0.045 sec  ( 17.5%)
+COSX gradient               ....       0.039 sec  ( 15.4%)
+XC gradient                 ....       0.053 sec  ( 20.9%)
 ------------------------------------------------------------------------------
                          ORCA GEOMETRY RELAXATION STEP
 ------------------------------------------------------------------------------
@@ -992,28 +991,16 @@ INTERNAL COORDINATES (A.U.)
  H      1   0   0     1.815183057963     0.00000000     0.00000000
  H      1   2   0     1.815203976790   105.39598354     0.00000000
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
  One Electron integrals                  ... done
  Pre-screening matrix                    ... done
 
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
-
 Diagonalization of the overlap matrix:
 Smallest eigenvalue                        ... 3.798e-02
-Time for diagonalization                   ...    0.002 sec
+Time for diagonalization                   ...    0.000 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
-Time for construction of square roots      ...    0.001 sec
-Total time needed                          ...    0.003 sec
+Time for construction of square roots      ...    0.000 sec
+Total time needed                          ...    0.000 sec
 
 -------------------
 DFT GRID GENERATION
@@ -1039,14 +1026,14 @@ Total number of grid points                  ...     3262
 Total number of batches                      ...       52
 Average number of points per batch           ...       62
 Average number of grid points per atom       ...     1087
-Average number of shells per batch           ...     8.20 (68.33%)
-Average number of basis functions per batch  ...    15.80 (65.83%)
-Average number of large shells per batch     ...     7.40 (90.24%)
-Average number of large basis fcns per batch ...    15.00 (94.94%)
-Maximum spatial batch extension              ...  10.94, 13.67, 21.59 au
-Average spatial batch extension              ...   0.69,  0.85,  1.13 au
+Average number of shells per batch           ...    11.25 (93.71%)
+Average number of basis functions per batch  ...    22.45 (93.55%)
+Average number of large shells per batch     ...    10.75 (95.64%)
+Average number of large basis fcns per batch ...    21.62 (96.30%)
+Maximum spatial batch extension              ...  13.08, 20.95, 21.59 au
+Average spatial batch extension              ...   4.60,  5.80,  6.03 au
 
-Time for grid setup =    0.014 sec
+Time for grid setup =    0.005 sec
 
 --------------------
 COSX GRID GENERATION
@@ -1072,12 +1059,12 @@ Total number of grid points                  ...     1201
 Total number of batches                      ...       20
 Average number of points per batch           ...       60
 Average number of grid points per atom       ...      400
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  10.35, 12.22, 20.72 au
-Average spatial batch extension              ...   0.81,  0.85,  1.73 au
+Average number of shells per batch           ...    11.29 (94.05%)
+Average number of basis functions per batch  ...    22.71 (94.64%)
+Average number of large shells per batch     ...    11.14 (98.73%)
+Average number of large basis fcns per batch ...    22.38 (98.53%)
+Maximum spatial batch extension              ...  11.66, 19.57, 20.72 au
+Average spatial batch extension              ...   6.34,  8.26, 10.21 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1106,12 +1093,12 @@ Total number of grid points                  ...     1575
 Total number of batches                      ...       27
 Average number of points per batch           ...       58
 Average number of grid points per atom       ...      525
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...   8.28, 13.23, 22.67 au
-Average spatial batch extension              ...   0.57,  0.69,  1.38 au
+Average number of shells per batch           ...    11.39 (94.94%)
+Average number of basis functions per batch  ...    22.96 (95.68%)
+Average number of large shells per batch     ...    11.21 (98.43%)
+Average number of large basis fcns per batch ...    22.64 (98.60%)
+Maximum spatial batch extension              ...  12.21, 21.65, 22.67 au
+Average spatial batch extension              ...   5.35,  6.99,  8.62 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1140,12 +1127,12 @@ Total number of grid points                  ...     2726
 Total number of batches                      ...       44
 Average number of points per batch           ...       61
 Average number of grid points per atom       ...      909
-Average number of shells per batch           ...     8.25 (68.75%)
-Average number of basis functions per batch  ...    17.25 (71.88%)
-Average number of large shells per batch     ...     7.25 (87.88%)
-Average number of large basis fcns per batch ...    13.75 (79.71%)
-Maximum spatial batch extension              ...  10.35, 13.12, 24.28 au
-Average spatial batch extension              ...   0.66,  0.64,  1.22 au
+Average number of shells per batch           ...    11.38 (94.81%)
+Average number of basis functions per batch  ...    22.93 (95.56%)
+Average number of large shells per batch     ...    10.76 (94.53%)
+Average number of large basis fcns per batch ...    21.33 (93.02%)
+Maximum spatial batch extension              ...  12.33, 20.15, 24.28 au
+Average spatial batch extension              ...   4.48,  6.05,  6.15 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1153,7 +1140,7 @@ Inverting numerical overlap    ... done (      0.0 sec)
 Obtaining analytic overlap     ... done (      0.0 sec)
 Final contraction and storage  ... done (      0.0 sec)
 
-Time for X-Grid setup             =    0.141 sec
+Time for X-Grid setup             =    0.063 sec
 --------------
 SCF ITERATIONS
 --------------
@@ -1198,12 +1185,12 @@ Total number of grid points                  ...    12911
 Total number of batches                      ...      203
 Average number of points per batch           ...       63
 Average number of grid points per atom       ...     4304
-Average number of shells per batch           ...     6.21 (51.79%)
-Average number of basis functions per batch  ...    11.79 (49.11%)
-Average number of large shells per batch     ...     4.93 (79.31%)
-Average number of large basis fcns per batch ...     8.36 (70.91%)
-Maximum spatial batch extension              ...  16.88, 11.55, 13.13 au
-Average spatial batch extension              ...   0.57,  0.53,  0.53 au
+Average number of shells per batch           ...    10.29 (85.78%)
+Average number of basis functions per batch  ...    20.46 (85.25%)
+Average number of large shells per batch     ...     9.73 (94.48%)
+Average number of large basis fcns per batch ...    19.37 (94.68%)
+Maximum spatial batch extension              ...  16.88, 16.88, 21.92 au
+Average spatial batch extension              ...   3.14,  3.47,  3.67 au
 
 Final grid set up in    0.0 sec
 Final integration                            ... done (   0.0 sec)
@@ -1211,19 +1198,19 @@ Change in XC energy                          ...    -0.000355209
 Integrated number of electrons               ...     9.999975811
 Previous integrated no of electrons          ...     9.997757817
 Old exchange energy                            =     -2.238603370 Eh
-New exchange energy                            =     -2.238777810 Eh
-Exchange energy change after final integration =     -0.000174440 Eh
-Total energy after final integration           =    -76.276306529 Eh
-Final COS-X integration done in                =     0.027 sec
+New exchange energy                            =     -2.238777811 Eh
+Exchange energy change after final integration =     -0.000174442 Eh
+Total energy after final integration           =    -76.276306530 Eh
+Final COS-X integration done in                =     0.038 sec
 Total Energy       :          -76.27630653 Eh           -2075.58382 eV
   Last Energy change         ...   -1.2221e-07  Tolerance :   1.0000e-08
-  Last MAX-Density change    ...    4.4409e-16  Tolerance :   1.0000e-07
+  Last MAX-Density change    ...    8.8818e-16  Tolerance :   1.0000e-07
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
              **** ENERGY FILE WAS UPDATED (water_opt_orca.en.tmp) ****
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
-Total SCF time: 0 days 0 hours 0 min 1 sec 
+Total SCF time: 0 days 0 hours 0 min 0 sec 
 
 
 -------------------------------------------------------------------------------
@@ -1238,15 +1225,9 @@ Dispersion correction           -0.000276851
 
 
 -------------------------   --------------------
-FINAL SINGLE POINT ENERGY       -76.276583380122
+FINAL SINGLE POINT ENERGY       -76.276583381925
 -------------------------   --------------------
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 ------------------------------------------------------------------------------
                          ORCA SCF GRADIENT CALCULATION
 ------------------------------------------------------------------------------
@@ -1272,28 +1253,28 @@ Dispersion correction            ... done
 CARTESIAN GRADIENT
 ------------------
 
-   1   O   :    0.000001120   -0.006153014    0.000000147
+   1   O   :    0.000001032   -0.006153120    0.000000105
    2   H   :    0.001255630    0.003537667   -0.000000001
    3   H   :   -0.001286258    0.003512458   -0.000000001
 
 Difference to translation invariance:
-           :   -0.0000295080    0.0008971106    0.0000001441
+           :   -0.0000295965    0.0008970045    0.0000001024
 
-Norm of the cartesian gradient     ...    0.0081205356
-RMS gradient                       ...    0.0027068452
-MAX gradient                       ...    0.0061530142
+Norm of the cartesian gradient     ...    0.0081206160
+RMS gradient                       ...    0.0027068720
+MAX gradient                       ...    0.0061531203
 
 -------
 TIMINGS
 -------
 
-Total SCF gradient time            ...        0.351 sec
+Total SCF gradient time            ...        0.246 sec
 
-One electron gradient       ....       0.000 sec  (  0.1%)
-Prescreening matrices       ....       0.001 sec  (  0.3%)
-RI-J Coulomb gradient       ....       0.057 sec  ( 16.3%)
-COSX gradient               ....       0.028 sec  (  7.9%)
-XC gradient                 ....       0.006 sec  (  1.6%)
+One electron gradient       ....       0.001 sec  (  0.2%)
+Prescreening matrices       ....       0.002 sec  (  0.7%)
+RI-J Coulomb gradient       ....       0.043 sec  ( 17.5%)
+COSX gradient               ....       0.039 sec  ( 15.7%)
+XC gradient                 ....       0.053 sec  ( 21.7%)
 ------------------------------------------------------------------------------
                          ORCA GEOMETRY RELAXATION STEP
 ------------------------------------------------------------------------------
@@ -1309,24 +1290,24 @@ Transforming gradient to internals      .... done
 Projecting the internal gradient        .... done
 Number of atoms                         ....   3
 Number of internal coordinates          ....   3
-Current Energy                          ....   -76.276583380 Eh
-Current gradient norm                   ....     0.008120536 Eh/bohr
+Current Energy                          ....   -76.276583382 Eh
+Current gradient norm                   ....     0.008120616 Eh/bohr
 Maximum allowed component of the step   ....  0.300
 Current trust radius                    ....  0.300
 Updating the Hessian (BFGS)             .... done
 Forming the augmented Hessian           .... done
 Diagonalizing the augmented Hessian     .... done
-Last element of RFO vector              ....  0.999051964
+Last element of RFO vector              ....  0.999051925
 Lowest eigenvalues of augmented Hessian:
- -0.000269335  0.141489029  0.518196607
-Length of the computed step             ....  0.043574907
-The final length of the internal step   ....  0.043574907
+ -0.000269343  0.141487434  0.518196640
+Length of the computed step             ....  0.043575789
+The final length of the internal step   ....  0.043575789
 Converting the step to cartesian space:
- Initial RMS(Int)=    0.0251579845
+ Initial RMS(Int)=    0.0251584934
 Transforming coordinates:
- Iter   0:  RMS(Cart)=    0.0133010073 RMS(Int)=    0.0251466458
- Iter   1:  RMS(Cart)=    0.0001918818 RMS(Int)=    0.0003491488
- Iter   2:  RMS(Cart)=    0.0000028401 RMS(Int)=    0.0000058912
+ Iter   0:  RMS(Cart)=    0.0133012637 RMS(Int)=    0.0251471541
+ Iter   1:  RMS(Cart)=    0.0001918897 RMS(Int)=    0.0003491629
+ Iter   2:  RMS(Cart)=    0.0000028402 RMS(Int)=    0.0000058916
  Iter   3:  RMS(Cart)=    0.0000000924 RMS(Int)=    0.0000001607
 done
 Storing new coordinates                 .... done
@@ -1335,11 +1316,11 @@ Storing new coordinates                 .... done
           ----------------------|Geometry convergence|-------------------------
           Item                value                   Tolerance       Converged
           ---------------------------------------------------------------------
-          Energy change      -0.0002856207            0.0000050000      NO
-          RMS gradient        0.0035804880            0.0001000000      NO
-          MAX gradient        0.0060561790            0.0003000000      NO
-          RMS step            0.0251579845            0.0020000000      NO
-          MAX step            0.0431760304            0.0040000000      NO
+          Energy change      -0.0002856225            0.0000050000      NO
+          RMS gradient        0.0035805205            0.0001000000      NO
+          MAX gradient        0.0060562300            0.0003000000      NO
+          RMS step            0.0251584934            0.0020000000      NO
+          MAX step            0.0431768927            0.0040000000      NO
           ........................................................
           Max(Bonds)      0.0022      Max(Angles)    2.47
           Max(Dihed)        0.00      Max(Improp)    0.00
@@ -1367,52 +1348,40 @@ CARTESIAN COORDINATES (ANGSTROEM)
 ---------------------------------
   O     -0.001036    0.399895    0.000000
   H      0.753572   -0.197986    0.000000
-  H     -0.752536   -0.201908    0.000000
+  H     -0.752536   -0.201909    0.000000
 
 ----------------------------
 CARTESIAN COORDINATES (A.U.)
 ----------------------------
   NO LB      ZA    FRAG     MASS         X           Y           Z
-   0 O     8.0000    0    15.999   -0.001957    0.755691    0.000000
-   1 H     1.0000    0     1.008    1.424045   -0.374140    0.000000
-   2 H     1.0000    0     1.008   -1.422088   -0.381552    0.000000
+   0 O     8.0000    0    15.999   -0.001957    0.755692    0.000000
+   1 H     1.0000    0     1.008    1.424044   -0.374140    0.000000
+   2 H     1.0000    0     1.008   -1.422087   -0.381552    0.000000
 
 --------------------------------
 INTERNAL COORDINATES (ANGSTROEM)
 --------------------------------
  O      0   0   0     0.000000000000     0.00000000     0.00000000
- H      1   0   0     0.962753398875     0.00000000     0.00000000
- H      1   2   0     0.962766904585   102.92217947     0.00000000
+ H      1   0   0     0.962753401280     0.00000000     0.00000000
+ H      1   2   0     0.962767052225   102.92213007     0.00000000
 
 ---------------------------
 INTERNAL COORDINATES (A.U.)
 ---------------------------
  O      0   0   0     0.000000000000     0.00000000     0.00000000
- H      1   0   0     1.819340258376     0.00000000     0.00000000
- H      1   2   0     1.819365780469   102.92217947     0.00000000
+ H      1   0   0     1.819340262921     0.00000000     0.00000000
+ H      1   2   0     1.819366059467   102.92213007     0.00000000
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
  One Electron integrals                  ... done
  Pre-screening matrix                    ... done
 
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
-
 Diagonalization of the overlap matrix:
 Smallest eigenvalue                        ... 3.761e-02
-Time for diagonalization                   ...    0.001 sec
+Time for diagonalization                   ...    0.000 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
-Time for construction of square roots      ...    0.001 sec
-Total time needed                          ...    0.003 sec
+Time for construction of square roots      ...    0.000 sec
+Total time needed                          ...    0.000 sec
 
 -------------------
 DFT GRID GENERATION
@@ -1438,14 +1407,14 @@ Total number of grid points                  ...     3250
 Total number of batches                      ...       52
 Average number of points per batch           ...       62
 Average number of grid points per atom       ...     1083
-Average number of shells per batch           ...     8.20 (68.33%)
-Average number of basis functions per batch  ...    15.80 (65.83%)
-Average number of large shells per batch     ...     7.40 (90.24%)
-Average number of large basis fcns per batch ...    15.00 (94.94%)
-Maximum spatial batch extension              ...  11.04, 13.67, 21.59 au
-Average spatial batch extension              ...   0.72,  0.85,  1.14 au
+Average number of shells per batch           ...    11.26 (93.87%)
+Average number of basis functions per batch  ...    22.47 (93.63%)
+Average number of large shells per batch     ...    10.74 (95.31%)
+Average number of large basis fcns per batch ...    21.60 (96.14%)
+Maximum spatial batch extension              ...  13.10, 20.95, 21.59 au
+Average spatial batch extension              ...   4.65,  5.81,  5.97 au
 
-Time for grid setup =    0.014 sec
+Time for grid setup =    0.005 sec
 
 --------------------
 COSX GRID GENERATION
@@ -1471,12 +1440,12 @@ Total number of grid points                  ...     1193
 Total number of batches                      ...       20
 Average number of points per batch           ...       59
 Average number of grid points per atom       ...      398
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  10.79, 12.22, 20.72 au
-Average spatial batch extension              ...   0.95,  0.96,  1.72 au
+Average number of shells per batch           ...    11.29 (94.05%)
+Average number of basis functions per batch  ...    22.71 (94.64%)
+Average number of large shells per batch     ...    11.14 (98.73%)
+Average number of large basis fcns per batch ...    22.38 (98.53%)
+Maximum spatial batch extension              ...  11.68, 19.60, 20.72 au
+Average spatial batch extension              ...   6.49,  8.38, 10.19 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1505,12 +1474,12 @@ Total number of grid points                  ...     1567
 Total number of batches                      ...       26
 Average number of points per batch           ...       60
 Average number of grid points per atom       ...      522
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  12.19, 13.23, 22.67 au
-Average spatial batch extension              ...   0.87,  0.78,  1.44 au
+Average number of shells per batch           ...    11.37 (94.75%)
+Average number of basis functions per batch  ...    22.93 (95.52%)
+Average number of large shells per batch     ...    11.19 (98.37%)
+Average number of large basis fcns per batch ...    22.59 (98.55%)
+Maximum spatial batch extension              ...  12.41, 21.68, 22.67 au
+Average spatial batch extension              ...   6.04,  7.45,  8.97 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1539,12 +1508,12 @@ Total number of grid points                  ...     2714
 Total number of batches                      ...       44
 Average number of points per batch           ...       61
 Average number of grid points per atom       ...      905
-Average number of shells per batch           ...     8.25 (68.75%)
-Average number of basis functions per batch  ...    17.25 (71.88%)
-Average number of large shells per batch     ...     7.25 (87.88%)
-Average number of large basis fcns per batch ...    13.75 (79.71%)
-Maximum spatial batch extension              ...  11.98, 13.15, 24.28 au
-Average spatial batch extension              ...   0.80,  0.65,  1.22 au
+Average number of shells per batch           ...    11.40 (95.00%)
+Average number of basis functions per batch  ...    23.04 (96.02%)
+Average number of large shells per batch     ...    10.82 (94.93%)
+Average number of large basis fcns per batch ...    21.76 (94.41%)
+Maximum spatial batch extension              ...  12.34, 19.83, 24.28 au
+Average spatial batch extension              ...   4.72,  6.10,  6.25 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1552,24 +1521,24 @@ Inverting numerical overlap    ... done (      0.0 sec)
 Obtaining analytic overlap     ... done (      0.0 sec)
 Final contraction and storage  ... done (      0.0 sec)
 
-Time for X-Grid setup             =    0.142 sec
+Time for X-Grid setup             =    0.062 sec
 --------------
 SCF ITERATIONS
 --------------
 ITER       Energy         Delta-E        Max-DP      RMS-DP      [F,P]     Damp
                ***  Starting incremental Fock matrix formation  ***
-  0    -76.2756331440   0.000000000000 0.00244063  0.00026413  0.0050863 0.7000
+  0    -76.2756331361   0.000000000000 0.00244068  0.00026413  0.0050864 0.7000
                       *** Initiating the SOSCF procedure ***
                       *** Re-Reading the Fockian *** 
                       *** Removing any level shift *** 
 ITER      Energy       Delta-E        Grad      Rot      Max-DP    RMS-DP
-  1    -76.27566287  -0.0000297300  0.000659  0.000659  0.007091  0.000766
+  1    -76.27566287  -0.0000297312  0.000659  0.000659  0.007091  0.000766
                *** Restarting incremental Fock matrix formation ***
-  2    -76.27573919  -0.0000763159  0.000509  0.000385  0.000992  0.000107
-  3    -76.27573988  -0.0000006890  0.000356  0.000305  0.000589  0.000056
-  4    -76.27574039  -0.0000005095  0.000083  0.000112  0.000223  0.000023
+  2    -76.27573919  -0.0000763190  0.000509  0.000385  0.000992  0.000107
+  3    -76.27573988  -0.0000006891  0.000356  0.000305  0.000589  0.000056
+  4    -76.27574038  -0.0000005095  0.000083  0.000112  0.000223  0.000023
   5    -76.27574040  -0.0000000160  0.000013  0.000006  0.000013  0.000002
-  6    -76.27574041  -0.0000000008  0.000003  0.000001  0.000002  0.000000
+  6    -76.27574040  -0.0000000008  0.000003  0.000001  0.000002  0.000000
                  **** Energy Check signals convergence ****
               ***Rediagonalizing the Fockian in SOSCF/NRSCF***
 
@@ -1600,32 +1569,32 @@ Total number of grid points                  ...    12898
 Total number of batches                      ...      203
 Average number of points per batch           ...       63
 Average number of grid points per atom       ...     4299
-Average number of shells per batch           ...     6.14 (51.19%)
-Average number of basis functions per batch  ...    11.57 (48.21%)
-Average number of large shells per batch     ...     4.21 (68.60%)
-Average number of large basis fcns per batch ...     6.64 (57.41%)
-Maximum spatial batch extension              ...  16.88, 11.55, 13.13 au
-Average spatial batch extension              ...   0.59,  0.53,  0.55 au
+Average number of shells per batch           ...    10.32 (86.03%)
+Average number of basis functions per batch  ...    20.50 (85.42%)
+Average number of large shells per batch     ...     9.68 (93.78%)
+Average number of large basis fcns per batch ...    19.26 (93.95%)
+Maximum spatial batch extension              ...  16.88, 16.88, 21.92 au
+Average spatial batch extension              ...   3.18,  3.43,  3.55 au
 
 Final grid set up in    0.0 sec
 Final integration                            ... done (   0.0 sec)
-Change in XC energy                          ...    -0.000462543
+Change in XC energy                          ...    -0.000462545
 Integrated number of electrons               ...     9.999974699
-Previous integrated no of electrons          ...     9.997346686
-Old exchange energy                            =     -2.237937962 Eh
-New exchange energy                            =     -2.238160027 Eh
-Exchange energy change after final integration =     -0.000222065 Eh
+Previous integrated no of electrons          ...     9.997346679
+Old exchange energy                            =     -2.237937940 Eh
+New exchange energy                            =     -2.238160007 Eh
+Exchange energy change after final integration =     -0.000222066 Eh
 Total energy after final integration           =    -76.276425013 Eh
-Final COS-X integration done in                =     0.026 sec
+Final COS-X integration done in                =     0.038 sec
 Total Energy       :          -76.27642501 Eh           -2075.58705 eV
-  Last Energy change         ...   -1.4963e-10  Tolerance :   1.0000e-08
-  Last MAX-Density change    ...    5.5511e-16  Tolerance :   1.0000e-07
+  Last Energy change         ...   -1.4961e-10  Tolerance :   1.0000e-08
+  Last MAX-Density change    ...    4.4409e-16  Tolerance :   1.0000e-07
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
              **** ENERGY FILE WAS UPDATED (water_opt_orca.en.tmp) ****
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
-Total SCF time: 0 days 0 hours 0 min 1 sec 
+Total SCF time: 0 days 0 hours 0 min 0 sec 
 
 
 -------------------------------------------------------------------------------
@@ -1640,15 +1609,9 @@ Dispersion correction           -0.000276899
 
 
 -------------------------   --------------------
-FINAL SINGLE POINT ENERGY       -76.276701912010
+FINAL SINGLE POINT ENERGY       -76.276701911460
 -------------------------   --------------------
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 ------------------------------------------------------------------------------
                          ORCA SCF GRADIENT CALCULATION
 ------------------------------------------------------------------------------
@@ -1674,28 +1637,28 @@ Dispersion correction            ... done
 CARTESIAN GRADIENT
 ------------------
 
-   1   O   :   -0.000024040    0.000419913   -0.000000211
-   2   H   :   -0.000131508    0.000091235   -0.000000001
-   3   H   :    0.000116622    0.000071089   -0.000000000
+   1   O   :   -0.000023922    0.000420081   -0.000000210
+   2   H   :   -0.000131572    0.000091195   -0.000000001
+   3   H   :    0.000116567    0.000070954   -0.000000000
 
 Difference to translation invariance:
-           :   -0.0000389260    0.0005822367   -0.0000002115
+           :   -0.0000389274    0.0005822304   -0.0000002114
 
-Norm of the cartesian gradient     ...    0.0004702947
-RMS gradient                       ...    0.0001567649
-MAX gradient                       ...    0.0004199126
+Norm of the cartesian gradient     ...    0.0004704155
+RMS gradient                       ...    0.0001568052
+MAX gradient                       ...    0.0004200811
 
 -------
 TIMINGS
 -------
 
-Total SCF gradient time            ...        0.350 sec
+Total SCF gradient time            ...        0.247 sec
 
-One electron gradient       ....       0.000 sec  (  0.1%)
-Prescreening matrices       ....       0.001 sec  (  0.3%)
-RI-J Coulomb gradient       ....       0.057 sec  ( 16.4%)
-COSX gradient               ....       0.026 sec  (  7.4%)
-XC gradient                 ....       0.005 sec  (  1.6%)
+One electron gradient       ....       0.001 sec  (  0.2%)
+Prescreening matrices       ....       0.002 sec  (  0.7%)
+RI-J Coulomb gradient       ....       0.043 sec  ( 17.6%)
+COSX gradient               ....       0.039 sec  ( 15.6%)
+XC gradient                 ....       0.053 sec  ( 21.4%)
 ------------------------------------------------------------------------------
                          ORCA GEOMETRY RELAXATION STEP
 ------------------------------------------------------------------------------
@@ -1711,23 +1674,23 @@ Transforming gradient to internals      .... done
 Projecting the internal gradient        .... done
 Number of atoms                         ....   3
 Number of internal coordinates          ....   3
-Current Energy                          ....   -76.276701912 Eh
-Current gradient norm                   ....     0.000470295 Eh/bohr
+Current Energy                          ....   -76.276701911 Eh
+Current gradient norm                   ....     0.000470416 Eh/bohr
 Maximum allowed component of the step   ....  0.300
 Current trust radius                    ....  0.300
 Updating the Hessian (BFGS)             .... done
 Forming the augmented Hessian           .... done
 Diagonalizing the augmented Hessian     .... done
-Last element of RFO vector              ....  0.999998007
+Last element of RFO vector              ....  0.999998005
 Lowest eigenvalues of augmented Hessian:
- -0.000000598  0.148321867  0.517796199
-Length of the computed step             ....  0.001996443
-The final length of the internal step   ....  0.001996443
+ -0.000000599  0.148323163  0.517796449
+Length of the computed step             ....  0.001997316
+The final length of the internal step   ....  0.001997316
 Converting the step to cartesian space:
- Initial RMS(Int)=    0.0011526467
+ Initial RMS(Int)=    0.0011531510
 Transforming coordinates:
- Iter   0:  RMS(Cart)=    0.0006470708 RMS(Int)=    0.0011526528
- Iter   1:  RMS(Cart)=    0.0000003778 RMS(Int)=    0.0000007398
+ Iter   0:  RMS(Cart)=    0.0006473301 RMS(Int)=    0.0011531571
+ Iter   1:  RMS(Cart)=    0.0000003782 RMS(Int)=    0.0000007404
  Iter   2:  RMS(Cart)=    0.0000000003 RMS(Int)=    0.0000000006
 done
 Storing new coordinates                 .... done
@@ -1736,11 +1699,11 @@ Storing new coordinates                 .... done
           ----------------------|Geometry convergence|-------------------------
           Item                value                   Tolerance       Converged
           ---------------------------------------------------------------------
-          Energy change      -0.0001185319            0.0000050000      NO
-          RMS gradient        0.0001753317            0.0001000000      NO
-          MAX gradient        0.0003013111            0.0003000000      NO
-          RMS step            0.0011526467            0.0020000000      YES
-          MAX step            0.0019947630            0.0040000000      YES
+          Energy change      -0.0001185295            0.0000050000      NO
+          RMS gradient        0.0001753985            0.0001000000      NO
+          MAX gradient        0.0003014377            0.0003000000      NO
+          RMS step            0.0011531510            0.0020000000      YES
+          MAX step            0.0019956297            0.0040000000      YES
           ........................................................
           Max(Bonds)      0.0000      Max(Angles)    0.11
           Max(Dihed)        0.00      Max(Improp)    0.00
@@ -1782,38 +1745,26 @@ CARTESIAN COORDINATES (A.U.)
 INTERNAL COORDINATES (ANGSTROEM)
 --------------------------------
  O      0   0   0     0.000000000000     0.00000000     0.00000000
- H      1   0   0     0.962720353745     0.00000000     0.00000000
- H      1   2   0     0.962738883876   103.03647097     0.00000000
+ H      1   0   0     0.962720356428     0.00000000     0.00000000
+ H      1   2   0     0.962738881011   103.03647123     0.00000000
 
 ---------------------------
 INTERNAL COORDINATES (A.U.)
 ---------------------------
  O      0   0   0     0.000000000000     0.00000000     0.00000000
- H      1   0   0     1.819277812130     0.00000000     0.00000000
- H      1   2   0     1.819312829002   103.03647097     0.00000000
+ H      1   0   0     1.819277817201     0.00000000     0.00000000
+ H      1   2   0     1.819312823588   103.03647123     0.00000000
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
  One Electron integrals                  ... done
  Pre-screening matrix                    ... done
 
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
-
 Diagonalization of the overlap matrix:
 Smallest eigenvalue                        ... 3.763e-02
-Time for diagonalization                   ...    0.001 sec
+Time for diagonalization                   ...    0.000 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
-Time for construction of square roots      ...    0.001 sec
-Total time needed                          ...    0.003 sec
+Time for construction of square roots      ...    0.000 sec
+Total time needed                          ...    0.000 sec
 
 -------------------
 DFT GRID GENERATION
@@ -1839,14 +1790,14 @@ Total number of grid points                  ...     3250
 Total number of batches                      ...       52
 Average number of points per batch           ...       62
 Average number of grid points per atom       ...     1083
-Average number of shells per batch           ...     8.20 (68.33%)
-Average number of basis functions per batch  ...    15.80 (65.83%)
-Average number of large shells per batch     ...     7.40 (90.24%)
-Average number of large basis fcns per batch ...    15.00 (94.94%)
-Maximum spatial batch extension              ...  11.04, 13.67, 21.59 au
-Average spatial batch extension              ...   0.72,  0.85,  1.14 au
+Average number of shells per batch           ...    11.26 (93.87%)
+Average number of basis functions per batch  ...    22.47 (93.63%)
+Average number of large shells per batch     ...    10.74 (95.31%)
+Average number of large basis fcns per batch ...    21.60 (96.14%)
+Maximum spatial batch extension              ...  13.10, 20.95, 21.59 au
+Average spatial batch extension              ...   4.66,  5.81,  5.98 au
 
-Time for grid setup =    0.013 sec
+Time for grid setup =    0.005 sec
 
 --------------------
 COSX GRID GENERATION
@@ -1872,12 +1823,12 @@ Total number of grid points                  ...     1193
 Total number of batches                      ...       20
 Average number of points per batch           ...       59
 Average number of grid points per atom       ...      398
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  10.79, 12.22, 20.72 au
-Average spatial batch extension              ...   0.95,  0.96,  1.72 au
+Average number of shells per batch           ...    11.29 (94.05%)
+Average number of basis functions per batch  ...    22.71 (94.64%)
+Average number of large shells per batch     ...    11.14 (98.73%)
+Average number of large basis fcns per batch ...    22.38 (98.53%)
+Maximum spatial batch extension              ...  11.68, 19.60, 20.72 au
+Average spatial batch extension              ...   6.49,  8.38, 10.19 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1906,12 +1857,12 @@ Total number of grid points                  ...     1567
 Total number of batches                      ...       26
 Average number of points per batch           ...       60
 Average number of grid points per atom       ...      522
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  12.19, 13.23, 22.67 au
-Average spatial batch extension              ...   0.87,  0.80,  1.44 au
+Average number of shells per batch           ...    11.37 (94.75%)
+Average number of basis functions per batch  ...    22.93 (95.52%)
+Average number of large shells per batch     ...    11.19 (98.37%)
+Average number of large basis fcns per batch ...    22.59 (98.55%)
+Maximum spatial batch extension              ...  12.41, 21.68, 22.67 au
+Average spatial batch extension              ...   6.05,  7.49,  8.97 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1940,12 +1891,12 @@ Total number of grid points                  ...     2715
 Total number of batches                      ...       44
 Average number of points per batch           ...       61
 Average number of grid points per atom       ...      905
-Average number of shells per batch           ...     8.25 (68.75%)
-Average number of basis functions per batch  ...    17.25 (71.88%)
-Average number of large shells per batch     ...     7.25 (87.88%)
-Average number of large basis fcns per batch ...    13.75 (79.71%)
-Maximum spatial batch extension              ...  11.98, 13.15, 24.28 au
-Average spatial batch extension              ...   0.78,  0.68,  1.22 au
+Average number of shells per batch           ...    11.40 (95.00%)
+Average number of basis functions per batch  ...    23.04 (96.02%)
+Average number of large shells per batch     ...    10.78 (94.54%)
+Average number of large basis fcns per batch ...    21.71 (94.21%)
+Maximum spatial batch extension              ...  12.34, 19.83, 24.28 au
+Average spatial batch extension              ...   4.75,  6.25,  6.32 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -1953,7 +1904,7 @@ Inverting numerical overlap    ... done (      0.0 sec)
 Obtaining analytic overlap     ... done (      0.0 sec)
 Final contraction and storage  ... done (      0.0 sec)
 
-Time for X-Grid setup             =    0.141 sec
+Time for X-Grid setup             =    0.062 sec
 --------------
 SCF ITERATIONS
 --------------
@@ -1963,10 +1914,10 @@ ITER       Energy         Delta-E        Max-DP      RMS-DP      [F,P]     Damp
                       *** Re-Reading the Fockian *** 
                       *** Removing any level shift *** 
 ITER      Energy       Delta-E        Grad      Rot      Max-DP    RMS-DP
-  0    -76.27574835 -76.2757483462  0.000153  0.000153  0.000387  0.000041
+  0    -76.27574835 -76.2757483461  0.000153  0.000153  0.000387  0.000041
                *** Restarting incremental Fock matrix formation ***
-  1    -76.27574852  -0.0000001772  0.000040  0.000032  0.000094  0.000010
-  2    -76.27574854  -0.0000000136  0.000011  0.000016  0.000035  0.000003
+  1    -76.27574852  -0.0000001774  0.000040  0.000032  0.000094  0.000010
+  2    -76.27574854  -0.0000000137  0.000011  0.000016  0.000035  0.000003
   3    -76.27574853   0.0000000096  0.000013  0.000007  0.000017  0.000002
                  **** Energy Check signals convergence ****
               ***Rediagonalizing the Fockian in SOSCF/NRSCF***
@@ -1998,12 +1949,12 @@ Total number of grid points                  ...    12898
 Total number of batches                      ...      203
 Average number of points per batch           ...       63
 Average number of grid points per atom       ...     4299
-Average number of shells per batch           ...     6.14 (51.19%)
-Average number of basis functions per batch  ...    11.57 (48.21%)
-Average number of large shells per batch     ...     4.21 (68.60%)
-Average number of large basis fcns per batch ...     6.64 (57.41%)
-Maximum spatial batch extension              ...  16.88, 11.55, 13.13 au
-Average spatial batch extension              ...   0.59,  0.53,  0.55 au
+Average number of shells per batch           ...    10.32 (86.03%)
+Average number of basis functions per batch  ...    20.50 (85.42%)
+Average number of large shells per batch     ...     9.68 (93.78%)
+Average number of large basis fcns per batch ...    19.26 (93.95%)
+Maximum spatial batch extension              ...  16.88, 16.88, 21.92 au
+Average spatial batch extension              ...   3.18,  3.43,  3.55 au
 
 Final grid set up in    0.0 sec
 Final integration                            ... done (   0.0 sec)
@@ -2011,19 +1962,19 @@ Change in XC energy                          ...    -0.000457591
 Integrated number of electrons               ...     9.999974705
 Previous integrated no of electrons          ...     9.997364761
 Old exchange energy                            =     -2.237950385 Eh
-New exchange energy                            =     -2.238170315 Eh
+New exchange energy                            =     -2.238170316 Eh
 Exchange energy change after final integration =     -0.000219931 Eh
 Total energy after final integration           =    -76.276426054 Eh
-Final COS-X integration done in                =     0.027 sec
+Final COS-X integration done in                =     0.038 sec
 Total Energy       :          -76.27642605 Eh           -2075.58707 eV
-  Last Energy change         ...   -5.7190e-09  Tolerance :   1.0000e-08
-  Last MAX-Density change    ...    6.6613e-16  Tolerance :   1.0000e-07
+  Last Energy change         ...   -5.7241e-09  Tolerance :   1.0000e-08
+  Last MAX-Density change    ...    8.8818e-16  Tolerance :   1.0000e-07
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
              **** ENERGY FILE WAS UPDATED (water_opt_orca.en.tmp) ****
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
-Total SCF time: 0 days 0 hours 0 min 1 sec 
+Total SCF time: 0 days 0 hours 0 min 0 sec 
 
 
 -------------------------------------------------------------------------------
@@ -2038,15 +1989,9 @@ Dispersion correction           -0.000276897
 
 
 -------------------------   --------------------
-FINAL SINGLE POINT ENERGY       -76.276702951202
+FINAL SINGLE POINT ENERGY       -76.276702951208
 -------------------------   --------------------
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 ------------------------------------------------------------------------------
                          ORCA SCF GRADIENT CALCULATION
 ------------------------------------------------------------------------------
@@ -2072,28 +2017,28 @@ Dispersion correction            ... done
 CARTESIAN GRADIENT
 ------------------
 
-   1   O   :   -0.000019020    0.000197207   -0.000000192
-   2   H   :   -0.000002330    0.000210732   -0.000000001
-   3   H   :   -0.000017296    0.000186660   -0.000000000
+   1   O   :   -0.000019024    0.000197206   -0.000000193
+   2   H   :   -0.000002327    0.000210731   -0.000000001
+   3   H   :   -0.000017294    0.000186662   -0.000000000
 
 Difference to translation invariance:
-           :   -0.0000386459    0.0005945987   -0.0000001933
+           :   -0.0000386455    0.0005945986   -0.0000001934
 
 Norm of the cartesian gradient     ...    0.0003446836
 RMS gradient                       ...    0.0001148945
-MAX gradient                       ...    0.0002107322
+MAX gradient                       ...    0.0002107307
 
 -------
 TIMINGS
 -------
 
-Total SCF gradient time            ...        0.351 sec
+Total SCF gradient time            ...        0.246 sec
 
 One electron gradient       ....       0.001 sec  (  0.2%)
-Prescreening matrices       ....       0.001 sec  (  0.3%)
-RI-J Coulomb gradient       ....       0.057 sec  ( 16.3%)
-COSX gradient               ....       0.026 sec  (  7.3%)
-XC gradient                 ....       0.006 sec  (  1.6%)
+Prescreening matrices       ....       0.002 sec  (  0.7%)
+RI-J Coulomb gradient       ....       0.043 sec  ( 17.5%)
+COSX gradient               ....       0.039 sec  ( 15.7%)
+XC gradient                 ....       0.053 sec  ( 21.4%)
 ------------------------------------------------------------------------------
                          ORCA GEOMETRY RELAXATION STEP
 ------------------------------------------------------------------------------
@@ -2118,13 +2063,13 @@ Forming the augmented Hessian           .... done
 Diagonalizing the augmented Hessian     .... done
 Last element of RFO vector              ....  0.999999998
 Lowest eigenvalues of augmented Hessian:
- -0.000000001  0.152140207  0.519753984
-Length of the computed step             ....  0.000056493
-The final length of the internal step   ....  0.000056493
+ -0.000000001  0.152140585  0.519751463
+Length of the computed step             ....  0.000056499
+The final length of the internal step   ....  0.000056499
 Converting the step to cartesian space:
- Initial RMS(Int)=    0.0000326165
+ Initial RMS(Int)=    0.0000326194
 Transforming coordinates:
- Iter   0:  RMS(Cart)=    0.0000199688 RMS(Int)=    0.0000326165
+ Iter   0:  RMS(Cart)=    0.0000199705 RMS(Int)=    0.0000326194
  Iter   1:  RMS(Cart)=    0.0000000003 RMS(Int)=    0.0000000006
 done
 Storing new coordinates                 .... done
@@ -2133,11 +2078,11 @@ Storing new coordinates                 .... done
           ----------------------|Geometry convergence|-------------------------
           Item                value                   Tolerance       Converged
           ---------------------------------------------------------------------
-          Energy change      -0.0000010392            0.0000050000      YES
-          RMS gradient        0.0000069991            0.0001000000      YES
-          MAX gradient        0.0000092027            0.0003000000      YES
-          RMS step            0.0000326165            0.0020000000      YES
-          MAX step            0.0000554891            0.0040000000      YES
+          Energy change      -0.0000010397            0.0000050000      YES
+          RMS gradient        0.0000069993            0.0001000000      YES
+          MAX gradient        0.0000092035            0.0003000000      YES
+          RMS step            0.0000326194            0.0020000000      YES
+          MAX step            0.0000554943            0.0040000000      YES
           ........................................................
           Max(Bonds)      0.0000      Max(Angles)    0.00
           Max(Dihed)        0.00      Max(Improp)    0.00
@@ -2183,15 +2128,15 @@ CARTESIAN COORDINATES (A.U.)
 INTERNAL COORDINATES (ANGSTROEM)
 --------------------------------
  O      0   0   0     0.000000000000     0.00000000     0.00000000
- H      1   0   0     0.962716501720     0.00000000     0.00000000
- H      1   2   0     0.962734802621   103.03329168     0.00000000
+ H      1   0   0     0.962716501839     0.00000000     0.00000000
+ H      1   2   0     0.962734802587   103.03329163     0.00000000
 
 ---------------------------
 INTERNAL COORDINATES (A.U.)
 ---------------------------
  O      0   0   0     0.000000000000     0.00000000     0.00000000
- H      1   0   0     1.819270532858     0.00000000     0.00000000
- H      1   2   0     1.819305116549   103.03329168     0.00000000
+ H      1   0   0     1.819270533083     0.00000000     0.00000000
+ H      1   2   0     1.819305116484   103.03329163     0.00000000
 
 ---------------------
 BASIS SET INFORMATION
@@ -2215,12 +2160,6 @@ There are 2 groups of distinct atoms
 Atom   0O    basis set group =>   1
 Atom   1H    basis set group =>   2
 Atom   2H    basis set group =>   2
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 ------------------------------------------------------------------------------
                            ORCA GTO INTEGRAL CALCULATION
                            -- RI-GTO INTEGRALS CHOSEN --
@@ -2253,26 +2192,20 @@ Integral package used                  ... LIBINT
  Ordering of the shell pairs             ... done (   0.000 sec) 78 of 78 pairs
  Determination of significant pairs      ... done (   0.000 sec)
  Creation of shell pair data             ... done (   0.000 sec)
- Storage of shell pair data              ... done (   0.026 sec)
- Shell pair data done in (   0.026 sec)
+ Storage of shell pair data              ... done (   0.000 sec)
+ Shell pair data done in (   0.000 sec)
  Computing two index integrals           ... done
  Cholesky decomposition of the V-matrix  ... done
 
 
 Timings:
- Total evaluation time                   ...   0.182 sec (  0.003 min)
- One electron matrix time                ...   0.023 sec (  0.000 min) = 12.4%
- Schwartz matrix evaluation time         ...   0.104 sec (  0.002 min) = 57.1%
- Two index repulsion integral time       ...   0.000 sec (  0.000 min) =  0.2%
- Cholesky decomposition of V             ...   0.001 sec (  0.000 min) =  0.4%
+ Total evaluation time                   ...   0.065 sec (  0.001 min)
+ One electron matrix time                ...   0.002 sec (  0.000 min) =  3.1%
+ Schwartz matrix evaluation time         ...   0.050 sec (  0.001 min) = 77.1%
+ Two index repulsion integral time       ...   0.000 sec (  0.000 min) =  0.3%
+ Cholesky decomposition of V             ...   0.000 sec (  0.000 min) =  0.4%
  Three index repulsion integral time     ...   0.000 sec (  0.000 min) =  0.0%
 
-
-
-           ************************************************************
-           *        Program running with 16 parallel MPI-processes    *
-           *              working on a common directory               *
-           ************************************************************
 -------------------------------------------------------------------------------
                                  ORCA SCF
 -------------------------------------------------------------------------------
@@ -2309,7 +2242,7 @@ General Settings:
  Multiplicity           Mult            ....    1
  Number of Electrons    NEL             ....   10
  Basis Dimension        Dim             ....   24
- Nuclear Repulsion      ENuc            ....      9.1457445721 Eh
+ Nuclear Repulsion      ENuc            ....      9.1457445718 Eh
 
 Convergence Acceleration:
  DIIS                   CNVDIIS         .... on
@@ -2353,11 +2286,11 @@ Convergence Tolerance:
 
 Diagonalization of the overlap matrix:
 Smallest eigenvalue                        ... 3.763e-02
-Time for diagonalization                   ...    0.002 sec
+Time for diagonalization                   ...    0.000 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
-Time for construction of square roots      ...    0.001 sec
-Total time needed                          ...    0.003 sec
+Time for construction of square roots      ...    0.000 sec
+Total time needed                          ...    0.000 sec
 
 ---------------------
 INITIAL GUESS: MOREAD
@@ -2394,14 +2327,14 @@ Total number of grid points                  ...     3250
 Total number of batches                      ...       52
 Average number of points per batch           ...       62
 Average number of grid points per atom       ...     1083
-Average number of shells per batch           ...     8.20 (68.33%)
-Average number of basis functions per batch  ...    15.80 (65.83%)
-Average number of large shells per batch     ...     7.40 (90.24%)
-Average number of large basis fcns per batch ...    15.00 (94.94%)
-Maximum spatial batch extension              ...  11.04, 13.67, 21.59 au
-Average spatial batch extension              ...   0.72,  0.85,  1.14 au
+Average number of shells per batch           ...    11.26 (93.87%)
+Average number of basis functions per batch  ...    22.47 (93.63%)
+Average number of large shells per batch     ...    10.74 (95.31%)
+Average number of large basis fcns per batch ...    21.60 (96.14%)
+Maximum spatial batch extension              ...  13.10, 20.95, 21.59 au
+Average spatial batch extension              ...   4.66,  5.82,  5.96 au
 
-Time for grid setup =    0.014 sec
+Time for grid setup =    0.005 sec
 
 --------------------
 COSX GRID GENERATION
@@ -2427,12 +2360,12 @@ Total number of grid points                  ...     1193
 Total number of batches                      ...       20
 Average number of points per batch           ...       59
 Average number of grid points per atom       ...      398
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  10.79, 12.22, 20.72 au
-Average spatial batch extension              ...   0.95,  0.96,  1.72 au
+Average number of shells per batch           ...    11.29 (94.05%)
+Average number of basis functions per batch  ...    22.71 (94.64%)
+Average number of large shells per batch     ...    11.14 (98.73%)
+Average number of large basis fcns per batch ...    22.38 (98.53%)
+Maximum spatial batch extension              ...  11.68, 19.60, 20.72 au
+Average spatial batch extension              ...   6.49,  8.38, 10.19 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -2461,12 +2394,12 @@ Total number of grid points                  ...     1567
 Total number of batches                      ...       26
 Average number of points per batch           ...       60
 Average number of grid points per atom       ...      522
-Average number of shells per batch           ...     7.67 (63.89%)
-Average number of basis functions per batch  ...    15.67 (65.28%)
-Average number of large shells per batch     ...     7.67 (100.00%)
-Average number of large basis fcns per batch ...    15.67 (100.00%)
-Maximum spatial batch extension              ...  12.19, 13.23, 22.67 au
-Average spatial batch extension              ...   0.87,  0.80,  1.44 au
+Average number of shells per batch           ...    11.37 (94.75%)
+Average number of basis functions per batch  ...    22.93 (95.52%)
+Average number of large shells per batch     ...    11.19 (98.37%)
+Average number of large basis fcns per batch ...    22.59 (98.55%)
+Maximum spatial batch extension              ...  12.41, 21.68, 22.67 au
+Average spatial batch extension              ...   6.05,  7.49,  8.97 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -2495,12 +2428,12 @@ Total number of grid points                  ...     2715
 Total number of batches                      ...       44
 Average number of points per batch           ...       61
 Average number of grid points per atom       ...      905
-Average number of shells per batch           ...     8.25 (68.75%)
-Average number of basis functions per batch  ...    17.25 (71.88%)
-Average number of large shells per batch     ...     7.25 (87.88%)
-Average number of large basis fcns per batch ...    13.75 (79.71%)
-Maximum spatial batch extension              ...  11.98, 13.15, 24.28 au
-Average spatial batch extension              ...   0.78,  0.68,  1.22 au
+Average number of shells per batch           ...    11.40 (95.00%)
+Average number of basis functions per batch  ...    23.04 (96.02%)
+Average number of large shells per batch     ...    10.78 (94.54%)
+Average number of large basis fcns per batch ...    21.71 (94.21%)
+Maximum spatial batch extension              ...  12.34, 19.83, 24.28 au
+Average spatial batch extension              ...   4.75,  6.25,  6.32 au
 
 Overlap Fitting                  UseSFitting ... on
 Constructing numerical overlap ... done (      0.0 sec)
@@ -2508,7 +2441,7 @@ Inverting numerical overlap    ... done (      0.0 sec)
 Obtaining analytic overlap     ... done (      0.0 sec)
 Final contraction and storage  ... done (      0.0 sec)
 
-Time for X-Grid setup             =    0.140 sec
+Time for X-Grid setup             =    0.062 sec
 --------------
 SCF ITERATIONS
 --------------
@@ -2550,12 +2483,12 @@ Total number of grid points                  ...    12898
 Total number of batches                      ...      203
 Average number of points per batch           ...       63
 Average number of grid points per atom       ...     4299
-Average number of shells per batch           ...     6.14 (51.19%)
-Average number of basis functions per batch  ...    11.57 (48.21%)
-Average number of large shells per batch     ...     4.21 (68.60%)
-Average number of large basis fcns per batch ...     6.64 (57.41%)
-Maximum spatial batch extension              ...  16.88, 11.55, 13.13 au
-Average spatial batch extension              ...   0.59,  0.53,  0.55 au
+Average number of shells per batch           ...    10.32 (86.03%)
+Average number of basis functions per batch  ...    20.50 (85.42%)
+Average number of large shells per batch     ...     9.68 (93.78%)
+Average number of large basis fcns per batch ...    19.26 (93.95%)
+Maximum spatial batch extension              ...  16.88, 16.88, 21.92 au
+Average spatial batch extension              ...   3.19,  3.44,  3.55 au
 
 Final grid set up in    0.0 sec
 Final integration                            ... done (   0.0 sec)
@@ -2566,7 +2499,7 @@ Old exchange energy                            =     -2.237951333 Eh
 New exchange energy                            =     -2.238171328 Eh
 Exchange energy change after final integration =     -0.000219994 Eh
 Total energy after final integration           =    -76.276426032 Eh
-Final COS-X integration done in                =     0.026 sec
+Final COS-X integration done in                =     0.038 sec
 
 ----------------
 TOTAL SCF ENERGY
@@ -2590,20 +2523,20 @@ DFT components:
 N(Alpha)           :        4.999987352803 electrons
 N(Beta)            :        4.999987352803 electrons
 N(Total)           :        9.999974705606 electrons
-E(X)               :       -6.701240806670 Eh       
-E(C)               :       -0.331257590723 Eh       
-E(XC)              :       -7.032498397392 Eh       
+E(X)               :       -6.701240806571 Eh       
+E(C)               :       -0.331257590721 Eh       
+E(XC)              :       -7.032498397292 Eh       
 DFET-embed. en.    :        0.000000000000 Eh       
 
 ---------------
 SCF CONVERGENCE
 ---------------
 
-  Last Energy change         ...   -6.2620e-10  Tolerance :   1.0000e-08
-  Last MAX-Density change    ...    1.3323e-15  Tolerance :   1.0000e-07
-  Last RMS-Density change    ...    8.3631e-17  Tolerance :   5.0000e-09
+  Last Energy change         ...   -6.2609e-10  Tolerance :   1.0000e-08
+  Last MAX-Density change    ...    4.4409e-16  Tolerance :   1.0000e-07
+  Last RMS-Density change    ...    4.7457e-17  Tolerance :   5.0000e-09
   Last Orbital Gradient      ...    1.0418e-06  Tolerance :   1.0000e-05
-  Last Orbital Rotation      ...    1.0134e-06  Tolerance :   1.0000e-05
+  Last Orbital Rotation      ...    1.0135e-06  Tolerance :   1.0000e-05
 
              **** THE GBW FILE WAS UPDATED (water_opt_orca.gbw) ****
              **** DENSITY FILE WAS UPDATED (water_opt_orca.scfp) ****
@@ -2650,7 +2583,7 @@ MULLIKEN ATOMIC CHARGES
    0 O :   -0.303718
    1 H :    0.151859
    2 H :    0.151860
-Sum of atomic charges:   -0.0000000
+Sum of atomic charges:    0.0000000
 
 --------------------------------
 MULLIKEN REDUCED ORBITAL CHARGES
@@ -2719,39 +2652,54 @@ LOEWDIN REDUCED ORBITAL CHARGES
   FA   - Mayer's free valence
 
   ATOM       NA         ZA         QA         VA         BVA        FA
-  0 O      8.3037     8.0000    -0.3037     2.0166     2.0166    -0.0000
-  1 H      0.8481     1.0000     0.1519     1.0150     1.0150    -0.0000
-  2 H      0.8481     1.0000     0.1519     1.0150     1.0150    -0.0000
+  0 O      8.3037     8.0000    -0.3037     2.0166     2.0166     0.0000
+  1 H      0.8481     1.0000     0.1519     1.0150     1.0150     0.0000
+  2 H      0.8481     1.0000     0.1519     1.0150     1.0150     0.0000
 
   Mayer bond orders larger than 0.100000
 B(  0-O ,  1-H ) :   1.0083 B(  0-O ,  2-H ) :   1.0083 
+
+
+------------------
+HIRSHFELD ANALYSIS
+------------------
+
+Total integrated alpha density =      4.998682124
+Total integrated beta density  =      4.998682124
+
+  ATOM     CHARGE      SPIN    
+   0 O   -0.317914    0.000000
+   1 H    0.160277    0.000000
+   2 H    0.160273    0.000000
+
+  TOTAL   0.002636    0.000000
 
 -------
 TIMINGS
 -------
 
-Total SCF time: 0 days 0 hours 0 min 1 sec 
+Total SCF time: 0 days 0 hours 0 min 0 sec 
 
-Total time                  ....       1.019 sec
-Sum of individual times     ....       0.682 sec  ( 66.9%)
+Total time                  ....       0.422 sec
+Sum of individual times     ....       0.367 sec  ( 87.0%)
 
-Fock matrix formation       ....       0.476 sec  ( 46.7%)
-  Split-RI-J                ....       0.335 sec  ( 70.4% of F)
-  Chain of spheres X        ....       0.084 sec  ( 17.6% of F)
-  XC integration            ....       0.008 sec  (  1.7% of F)
-    Basis function eval.    ....       0.001 sec  ( 12.1% of XC)
-    Density eval.           ....       0.001 sec  (  6.2% of XC)
-    XC-Functional eval.     ....       0.001 sec  ( 11.9% of XC)
-    XC-Potential eval.      ....       0.000 sec  (  3.8% of XC)
+Fock matrix formation       ....       0.258 sec  ( 61.1%)
+  Split-RI-J                ....       0.137 sec  ( 53.3% of F)
+  Chain of spheres X        ....       0.097 sec  ( 37.6% of F)
+  XC integration            ....       0.023 sec  (  8.9% of F)
+    Basis function eval.    ....       0.007 sec  ( 29.6% of XC)
+    Density eval.           ....       0.004 sec  ( 17.1% of XC)
+    XC-Functional eval.     ....       0.007 sec  ( 30.7% of XC)
+    XC-Potential eval.      ....       0.003 sec  ( 14.6% of XC)
 Diagonalization             ....       0.000 sec  (  0.0%)
 Density matrix formation    ....       0.000 sec  (  0.0%)
-Population analysis         ....       0.002 sec  (  0.2%)
-Initial guess               ....       0.003 sec  (  0.3%)
+Population analysis         ....       0.002 sec  (  0.5%)
+Initial guess               ....       0.000 sec  (  0.1%)
 Orbital Transformation      ....       0.000 sec  (  0.0%)
 Orbital Orthonormalization  ....       0.000 sec  (  0.0%)
 DIIS solution               ....       0.000 sec  (  0.0%)
 SOSCF solution              ....       0.000 sec  (  0.0%)
-Grid generation             ....       0.200 sec  ( 19.7%)
+Grid generation             ....       0.106 sec  ( 25.1%)
 
 
 -------------------------------------------------------------------------------
@@ -2774,7 +2722,7 @@ molecular C6(AA) [au] = 44.533528
  a2 scaling factor         :     4.8593 
  ad hoc parameters k1-k3   :    16.0000     1.3333    -4.0000 
 
- Edisp/kcal,au: -0.173755365750  -0.000276896771 
+ Edisp/kcal,au: -0.173755365751  -0.000276896771 
  E6   /kcal   :  -0.121413517 
  E8   /kcal   :  -0.052341849 
  % E8         :  30.123874684 
@@ -2785,7 +2733,7 @@ Dispersion correction           -0.000276897
 
 
 -------------------------   --------------------
-FINAL SINGLE POINT ENERGY       -76.276702928945
+FINAL SINGLE POINT ENERGY       -76.276702928941
 -------------------------   --------------------
 
                                 *** OPTIMIZATION RUN DONE ***
@@ -2830,7 +2778,7 @@ Rotational spectrum
 --------------------
  
 Rotational constants in cm-1:    26.233783    14.723528     9.430644 
-Rotational constants in MHz : 786469.020782 441400.257601 282723.604605 
+Rotational constants in MHz : 786469.019901 441400.257850 282723.604594 
 
  Dipole components along the rotational axes: 
 x,y,z [a.u.] :     0.000052    -0.798006    -0.000000 
@@ -2840,10 +2788,10 @@ x,y,z [Debye]:     0.000133    -2.028369    -0.000000
 
 Timings for individual modules:
 
-Sum of individual times         ...       24.804 sec (=   0.413 min)
-GTO integral calculation        ...        6.431 sec (=   0.107 min)  25.9 %
-SCF iterations                  ...       12.314 sec (=   0.205 min)  49.6 %
-SCF Gradient evaluation         ...        5.834 sec (=   0.097 min)  23.5 %
-Geometry relaxation             ...        0.226 sec (=   0.004 min)   0.9 %
+Sum of individual times         ...        5.518 sec (=   0.092 min)
+GTO integral calculation        ...        0.421 sec (=   0.007 min)   7.6 %
+SCF iterations                  ...        3.927 sec (=   0.065 min)  71.2 %
+SCF Gradient evaluation         ...        1.092 sec (=   0.018 min)  19.8 %
+Geometry relaxation             ...        0.079 sec (=   0.001 min)   1.4 %
                              ****ORCA TERMINATED NORMALLY****
-TOTAL RUN TIME: 0 days 0 hours 0 minutes 26 seconds 507 msec
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 5 seconds 767 msec
