@@ -62,7 +62,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     return get_ts_guess(species=reactant, reactant=reactant, product=product, name=f'ts_guess_{name}')
 
 
-def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywords, dist_thresh=4.0):
+def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, keywords, dist_thresh=4.0):
     """Get a transition state guess object by searching though the stored TS templates
 
     Arguments:
@@ -85,8 +85,6 @@ def get_template_ts_guess(reactant, product, bond_rearrangement,  method, keywor
     # This will add edges so don't modify in place
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
-
-    name = f'{reactant.name}_template_{bond_rearrangement}'
 
     for ts_template in ts_guess_templates:
 

@@ -22,7 +22,6 @@ from autode.substitution import get_cost_rotate_translate
 from autode.substitution import get_substitution_centres
 
 
-
 def find_tss(reaction):
     """Find all the possible the transition states of a reaction
 
@@ -76,7 +75,7 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
     # Ideally use a transition state template, then only a single constrained optimisation need to be run...
 
     # TODO currently if there is already a template we still do the truncation first
-    yield get_template_ts_guess, (reactant, product, bond_rearr, hmethod, hmethod.keywords.low_opt)
+    yield get_template_ts_guess, (reactant, product, bond_rearr, f'{name}_template_{bond_rearr}', hmethod, hmethod.keywords.low_opt)
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a transition state guess cheap -> most expensive
     if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 1 and reaction.type in (Substitution, Elimination):

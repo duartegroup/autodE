@@ -9,7 +9,7 @@ from autode.geom import get_shifted_atoms_linear_interp
 from autode.log import logger
 
 
-# dielectrics from Gaussian solvent_name list
+# dielectrics from Gaussian solvent list
 solvents_and_dielectrics = {'acetic acid': 6.25, 'acetone': 20.49, 'acetonitrile': 35.69, 'benzene': 2.27, '1-butanol': 17.33,
                             '2-butanone': 18.25, 'carbon tetrachloride': 2.23, 'chlorobenzene': 5.70, 'chloroform': 4.71,
                             'cyclohexane': 2.02, '1,2-dichlorobenzene': 9.99, 'dichloromethane': 8.93, 'n,n-dimethylacetamide': 37.78,
