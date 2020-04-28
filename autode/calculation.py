@@ -155,6 +155,10 @@ class Calculation:
 
     def generate_input(self):
         logger.info(f'Generating input file for {self.name}')
+        if hasattr(self.molecule, 'qm_solvent_atoms') and self.molecule.qm_solvent_atoms is not None:
+            self.n_atoms = self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms)
+            self.molecule.atoms += self.molecule.qm_solvent_atoms
+
         return self.method.generate_input(self)
 
     def execute_calculation(self):
@@ -197,7 +201,7 @@ class Calculation:
                 subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
             subprocess.wait()
             logger.info(f'Calculation {self.output_filename} done')
-            if self.grad:
+            if self.grad and self.method.name == 'xtb':
                 # Need to get the XTB gradients
                 self.get_gradients()
 
@@ -282,8 +286,4 @@ class Calculation:
         if self.bond_ids_to_add:
             self._set_core_atoms(molecule)
 
-        if hasattr(self.molecule, 'qm_solvent_atoms') and self.molecule.qm_solvent_atoms is not None:
-            self.n_atoms = self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms)
-            self.molecule.atoms += self.molecule.qm_solvent_atoms
-        else:
-            self.n_atoms = self.molecule.n_atoms
+        self.n_atoms = self.molecule.n_atoms

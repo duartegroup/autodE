@@ -51,4 +51,6 @@ def test_opt_calc():
     assert len(gradients) == 5
     assert all(-0.1 < np.linalg.norm(g) < 0.1 for g in gradients)
 
+    os.remove('opt_nwchem.nw')
+
     os.chdir(here)

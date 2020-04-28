@@ -11,7 +11,6 @@ from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
 from autode.point_charges import PointCharge
-from autode.methods import get_hmethod
 
 
 class QMMM:
@@ -51,7 +50,11 @@ class QMMM:
         self.simulation = omapp.Simulation(pdb.topology, self.system, GradientDescentMinimizationIntegrator(initial_step_size=1*angstrom))
 
         # Prevent openmm multithreading combined with python multithreading overloading the CPU
-        self.simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
+        try:
+            self.simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
+        except:
+            logger.error('Could not set number of threads')
+
         self.simulation.context.reinitialize(preserveState=True)
 
         coords_in_nm = coords * 0.1
@@ -187,7 +190,7 @@ class QMMM:
 
         qmmm_forces = np.zeros((len(positions), 3))
         for i, force in enumerate(qm_forces):
-            # force for solute, then solvent_name atoms
+            # force for solute, then solvent atoms
             if i < self.species.n_atoms:
                 index = self.n_solvent_atoms + i
             else:

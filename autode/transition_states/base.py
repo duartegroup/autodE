@@ -106,7 +106,7 @@ class TSbase(Species):
         self._init_graph()
 
 
-def ts_has_contribution_from_active_atoms(calc, active_atoms, threshold=0.15):
+def ts_has_contribution_from_active_atoms(calc, active_atoms, threshold=0.1):
     """For a hessian calculation check that the first imaginary mode (number 6) in the final frequency calculation
     contains the correct motion, i.e. contributes more than threshold_contribution in relative terms to the
     magnitude of the sum of the forces

@@ -165,7 +165,7 @@ class TransitionState(TSbase):
         return False
 
     def save_ts_template(self, folder_path=Config.ts_template_folder_path):
-        """Save a transition state template containing the active bond lengths, solvent_name and charge in folder_path
+        """Save a transition state template containing the active bond lengths, solvent and charge in folder_path
 
         Keyword Arguments:
             folder_path (str): folder to save the TS template to (default: {None})

@@ -41,14 +41,12 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
 
     try:
         name_split = name.split('_')
-        bond1 = name_split[-3]
-        bond2 = name_split[-2]
-        bond1_atoms = [int(atom) for atom in bond1.split('-')]
-        bond2_atoms = [int(atom) for atom in bond2.split('-')]
-        xlabel = f'$r_1$({bond1_atoms[0]}, {bond1_atoms[1]}) / Å'
-        ylabel = f'$r_2$({bond2_atoms[0]}, {bond2_atoms[1]}) / Å'
+        bond1_atoms_ids = [int(idx) for idx in name_split[-3].split('-')]
+        bond2_atoms_ids = [int(idx) for idx in name_split[-2].split('-')]
+        xlabel = f'$r_1$({bond1_atoms_ids[0]}, {bond1_atoms_ids[1]}) / Å'
+        ylabel = f'$r_2$({bond2_atoms_ids[0]}, {bond2_atoms_ids[1]}) / Å'
 
-    except IndexError:
+    except (IndexError, ValueError):
         xlabel = '$r_1$ / Å'
         ylabel = '$r_2$ / Å'
 
@@ -99,7 +97,7 @@ def plot_1dpes(rs, rel_energies, method_name, name='1d_scan'):
     return save_plot(plot=plt, filename=f'{name}.png')
 
 
-def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, switched=False):
+def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, reaction_name, switched=False):
     """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
 
     Arguments:
@@ -110,6 +108,7 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, switche
         reacs (list(autode.molecule.Reactant)):
         prods (list(autode.molecule.Product)):
         ts (autode.transtion_states.transtion_state.TranstionState):
+        reaction_name (str):
         switched (bool): flag for a reaction that was initially reversed reactant/products
     """
     logger.info('Plotting reaction profile')
@@ -217,4 +216,4 @@ def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, switche
 
     plt.ylim(min(y_vals) - 0.1*max(y_vals), 1.2 * max(y_vals))
 
-    return save_plot(plt, filename='reaction_profile.png')
+    return save_plot(plt, filename=f'{reaction_name}_reaction_profile.png')
