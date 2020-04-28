@@ -48,7 +48,7 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
         xlabel = f'$r_1$({bond1_atoms[0]}, {bond1_atoms[1]}) / Å'
         ylabel = f'$r_2$({bond2_atoms[0]}, {bond2_atoms[1]}) / Å'
 
-    except IndexError:
+    except (IndexError, ValueError):
         xlabel = '$r_1$ / Å'
         ylabel = '$r_2$ / Å'
 
