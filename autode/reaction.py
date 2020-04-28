@@ -196,7 +196,8 @@ class Reaction:
                                   reacs=reaction.reacs,
                                   prods=reaction.prods,
                                   ts=reaction.ts,
-                                  switched=reaction.switched_reacs_prods)
+                                  switched=reaction.switched_reacs_prods,
+                                  reaction_name=self.name)
             return None
 
         return calculate(self, units)

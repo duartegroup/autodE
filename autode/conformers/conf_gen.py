@@ -1,6 +1,5 @@
 from copy import deepcopy
 from itertools import combinations
-from multiprocessing import Pool
 import numpy as np
 import os
 from scipy.optimize import minimize
@@ -13,6 +12,7 @@ from autode.input_output import xyz_file_to_atoms
 from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
 from autode.mol_graphs import split_mol_across_bond
+from autode.exceptions import CannotSplitAcrossBond
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
@@ -48,7 +48,12 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
             logger.info('Stereocenters were π bonded – not rotating')
             continue
 
-        left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+        try:
+            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+
+        except CannotSplitAcrossBond:
+            logger.error('Splitting across this bond does not give two components - could have a ring')
+            return atoms
 
         # Rotate the left hand side randomly
         rot_axis = atoms[atom_i].coord - atoms[atom_j].coord

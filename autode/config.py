@@ -64,7 +64,7 @@ class Config:
                             opt=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                             opt_ts=['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                             hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
-                            optts_block='%geom\nCalc_Hess true\nRecalc_Hess 30\nTrust -0.1\nMaxIter 100',
+                            optts_block='%geom\nCalc_Hess true\nRecalc_Hess 30\nTrust -0.1\nMaxIter 150\nend',
                             sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP'])
 
     class G09:
