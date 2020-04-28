@@ -11,7 +11,6 @@ from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
 from autode.point_charges import PointCharge
-from autode.methods import get_hmethod
 
 
 class QMMM:
