@@ -108,6 +108,24 @@ def get_non_random_atoms(species):
     return set(non_rand_atoms)
 
 
+def get_atoms_from_generated_file(species, xyz_filename):
+    """Get the atoms from a previously generated  .xyz file, if the atoms match"""
+
+    if not os.path.exists(xyz_filename):
+        return None
+
+    atoms = xyz_file_to_atoms(filename=xyz_filename)
+
+    # Ensure the xyz file has the correct atoms
+    all_atoms_match = all(atoms[i].label == species.atoms[i].label for i in range(species.n_atoms))
+
+    if len(atoms) == species.n_atoms and all_atoms_match:
+        logger.info('Conformer has already been generated')
+        return atoms
+
+    return None
+
+
 def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
 
@@ -121,10 +139,9 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """
     xyz_filename = f'{species.name}_conf{conf_n}_siman.xyz'
 
-    for filename in os.listdir(os.getcwd()):
-        if filename == xyz_filename:
-            logger.info('Conformer has already been generated')
-            return xyz_file_to_atoms(filename=filename)
+    saved_atoms = get_atoms_from_generated_file(species, xyz_filename)
+    if saved_atoms is not None:
+        return saved_atoms
 
     # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
     rand = np.random.RandomState()
@@ -143,15 +160,17 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
         d0[j, i] = length
         constrained_bonds.append(bond)
 
-    # Randomise coordinates
+    # Randomise coordinates that aren't fixed by shifting a maximum of autode.Config.max_atom_displacement in x, y, z
     fixed_atom_indexes = get_non_random_atoms(species=species)
-    [atom.translate(vec=rand.uniform(-1.0, 1.0, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
+
+    factor = Config.max_atom_displacement / np.sqrt(3)
+    [atom.translate(vec=factor * rand.uniform(-1, 1, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
 
     logger.info('Minimising species...')
     st = time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
                                     k=1.0, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
-    logger.info(f'                    ... ({time()-st:.3f} s)')
+    logger.info(f'                 ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms
     for i, atom in enumerate(atoms):

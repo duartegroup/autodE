@@ -40,7 +40,7 @@ def test_basic_attributes():
 def test_gen_conformers():
 
     ethane = Molecule(name='ethane', smiles='CC')
-    ethane._generate_conformers(n_rdkit_confs=2)
+    ethane._generate_conformers(n_confs=2)
 
     assert ethane.rdkit_conf_gen_is_fine
     assert type(ethane.conformers) == list
@@ -70,6 +70,9 @@ def test_molecule_opt():
     os.chdir(os.path.join(here, 'data'))
 
     mol = Molecule(name='H2', smiles='[H][H]')
+
+    # Set the orca path to something that exists
+    orca.path = here
 
     mol.optimise(method=orca)
     assert mol.energy == -1.160687049941

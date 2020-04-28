@@ -40,6 +40,15 @@ class Config:
     # RMSD in angstroms threshold for conformers
     #
     rmsd_threshold = 0.5
+    #
+    # ----------------------------------------------------------------------------------------------
+    # Total number of conformers generated in find_lowest_energy_conformer()
+    #
+    num_conformers = 300
+    # ----------------------------------------------------------------------------------------------
+    # Maximum random displacement in angstroms for conformational searching
+    #
+    max_atom_displacement = 4.0
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:
