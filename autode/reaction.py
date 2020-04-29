@@ -17,30 +17,6 @@ from autode.utils import work_in
 from autode import reactions
 
 
-def calculate_reaction_profile(reaction, units):
-    logger.info('Calculating reaction profile')
-
-    if isinstance(reaction, SolvatedReaction):
-        reaction.calc_solvent()
-
-    reaction.find_lowest_energy_conformers()
-    reaction.optimise_reacs_prods()
-    reaction.locate_transition_state()
-    reaction.find_lowest_energy_ts_conformer()
-    reaction.calculate_single_points()
-
-    plot_reaction_profile(e_reac=0.0,
-                          e_ts=reaction.calc_delta_e_ddagger(units=units),
-                          e_prod=reaction.calc_delta_e(units=units),
-                          units=units,
-                          reacs=reaction.reacs,
-                          prods=reaction.prods,
-                          ts=reaction.ts,
-                          reaction_name=reaction.name,
-                          switched=reaction.switched_reacs_prods)
-    return None
-
-
 class Reaction:
 
     def _check_balance(self):
@@ -199,7 +175,32 @@ class Reaction:
         [mol.single_point(method=get_hmethod()) for mol in molecules if mol is not None]
 
     def calculate_reaction_profile(self, units=KcalMol):
-        return calculate_reaction_profile(self, units=units)
+        logger.info('Calculating reaction profile')
+
+        @work_in(self.name)
+        def calculate(reaction, units):
+
+            if isinstance(reaction, SolvatedReaction):
+                reaction.calc_solvent()
+
+            reaction.find_lowest_energy_conformers()
+            reaction.optimise_reacs_prods()
+            reaction.locate_transition_state()
+            reaction.find_lowest_energy_ts_conformer()
+            reaction.calculate_single_points()
+
+            plot_reaction_profile(e_reac=0.0,
+                                  e_ts=reaction.calc_delta_e_ddagger(units=units),
+                                  e_prod=reaction.calc_delta_e(units=units),
+                                  units=units,
+                                  reacs=reaction.reacs,
+                                  prods=reaction.prods,
+                                  ts=reaction.ts,
+                                  switched=reaction.switched_reacs_prods,
+                                  reaction_name=self.name)
+            return None
+
+        return calculate(self, units)
 
     def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
                  solvent_name=None):

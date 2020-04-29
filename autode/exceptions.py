@@ -82,3 +82,7 @@ class CouldNotGetProperty(Exception):
 
     def __init__(self, message):
         super().__init__(message)
+
+
+class CannotSplitAcrossBond(Exception):
+    """Exception for when a molecule cannot be partitioned by deleting one bond"""

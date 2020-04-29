@@ -10,6 +10,7 @@ from autode.atoms import is_pi_atom
 from autode.bond_lengths import get_avg_bond_length
 from autode.calculation import Calculation
 from autode.log import logger
+from autode.exceptions import CannotSplitAcrossBond
 from autode.methods import get_lmethod
 from autode.units import KcalMol
 
@@ -279,9 +280,6 @@ def get_separate_subgraphs(graph):
     Returns:
         list: list of graphs separate graphs
     """
-
-    # TODO what happens if we've split across a ring?
-
     return [graph.subgraph(c).copy() for c in nx.connected_components(graph)]
 
 
@@ -297,6 +295,9 @@ def split_mol_across_bond(graph, bond):
 
     graph_copy.remove_edge(*bond)
     split_subgraphs = get_separate_subgraphs(graph_copy)
+
+    if len(split_subgraphs) != 2:
+        raise CannotSplitAcrossBond
 
     return [list(graph.nodes) for graph in split_subgraphs]
 

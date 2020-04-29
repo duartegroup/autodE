@@ -50,7 +50,11 @@ class QMMM:
         self.simulation = omapp.Simulation(pdb.topology, self.system, GradientDescentMinimizationIntegrator(initial_step_size=1*angstrom))
 
         # Prevent openmm multithreading combined with python multithreading overloading the CPU
-        self.simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
+        try:
+            self.simulation.context.getPlatform().setPropertyDefaultValue('Threads', '1')
+        except:
+            logger.error('Could not set number of threads')
+
         self.simulation.context.reinitialize(preserveState=True)
 
         coords_in_nm = coords * 0.1

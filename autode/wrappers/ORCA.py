@@ -32,6 +32,7 @@ class ORCA(ElectronicStructureMethod):
                 if calc.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
                     keywords.remove(keyword)
+
             if keyword.lower() == 'sp':
                 opt_or_sp = True
             if keyword.lower() == 'freq':
@@ -57,10 +58,6 @@ class ORCA(ElectronicStructureMethod):
                 if 'maxiter' in calc.other_input_block.lower():
                     max_iter_done = True
                 print(calc.other_input_block, file=inp_file)
-                if calc.core_atoms and calc.n_atoms > 25 and not qmmm_freq:
-                    core_atoms_str = ' '.join(map(str, calc.core_atoms))
-                    print(f'Hybrid_Hess [{core_atoms_str}] end', file=inp_file)
-                print('end', file=inp_file)
 
             if calc.bond_ids_to_add:
                 try:
