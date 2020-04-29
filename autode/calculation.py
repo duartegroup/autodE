@@ -71,9 +71,16 @@ class Calculation:
         if self.terminated_normally:
             return self.method.get_energy(self)
 
-        else:
-            logger.error('Calculation did not terminate normally – not returning the energy')
-            return None
+        logger.error('Calculation did not terminate normally – not returning the energy')
+        return None
+
+    def get_free_energy(self):
+        logger.info(f'Getting Gibbs free energy (G) from {self.output_filename}')
+        return self.method.get_free_energy(self)
+
+    def get_enthalpy(self):
+        logger.info(f'Getting enthalpy (H) from {self.output_filename}')
+        return self.method.get_enthalpy(self)
 
     def optimisation_converged(self):
         logger.info('Checking to see if the geometry converged')

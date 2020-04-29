@@ -34,13 +34,19 @@ def test_xtb_calculation():
     with pytest.raises(NotImplementedError):
         calc.get_normal_mode_displacements(4)
 
-    const_opt = Calculation(name='opt', molecule=test_mol,
-                            method=method, opt=True, distance_constraints={(0, 1): 1.2539792})
-    const_opt.generate_input()
-    assert os.path.exists('xcontrol_opt')
-    assert const_opt.flags == ['--chrg', '0',
-                               '--opt', '--input', 'xcontrol_opt']
+    charges = calc.get_atomic_charges()
+    assert len(charges) == 22
+    assert all(-1.0 < c < 1.0 for c in charges)
 
-    os.remove('opt_xtb.xyz')
-    os.remove('xcontrol_opt')
+    const_opt = Calculation(name='const_opt', molecule=test_mol,
+                            method=method, opt=True, distance_constraints={(0, 1): 1.2539792},
+                            cartesian_constraints=[0])
+
+    const_opt.generate_input()
+    assert os.path.exists('xcontrol_const_opt')
+    assert const_opt.flags == ['--chrg', '0',
+                               '--opt', '--input', 'xcontrol_const_opt']
+
+    os.remove('const_opt_xtb.xyz')
+    os.remove('xcontrol_const_opt')
     os.chdir(here)

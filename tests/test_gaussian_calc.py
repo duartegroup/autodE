@@ -81,6 +81,9 @@ def test_gauss_optts_calc():
     assert calc.optimisation_nearly_converged() is False
     assert len(calc.get_imag_freqs()) == 1
 
+    assert -40.324 < calc.get_free_energy() < -40.322
+    assert -40.301 < calc.get_enthalpy() < -40.299
+
     os.remove('test_ts_reopt_optts_g09.com')
     os.chdir(here)
 
@@ -206,3 +209,4 @@ def test_point_charge_calc():
     os.remove('methane_point_charge_g09.com')
     os.remove('methane_point_charge_o_g09.com')
     os.chdir(os.path.join(here))
+

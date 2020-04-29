@@ -92,6 +92,12 @@ class XTB(ElectronicStructureMethod):
             if 'TOTAL ENERGY' in line:
                 return float(line.split()[-3])
 
+    def get_enthalpy(self, calc):
+        raise NotImplementedError
+
+    def get_free_energy(self, calc):
+        raise NotImplementedError
+
     def optimisation_converged(self, calc):
 
         for line in calc.rev_output_file_lines:

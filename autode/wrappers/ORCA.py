@@ -129,6 +129,36 @@ class ORCA(ElectronicStructureMethod):
             if 'FINAL SINGLE POINT ENERGY' in line:
                 return float(line.split()[4])
 
+    def get_enthalpy(self, calc):
+        """Get the enthalpy (H) from an ORCA calculation output"""
+
+        for line in calc.rev_output_file_lines:
+            if 'Total Enthalpy' in line:
+
+                try:
+                    return float(line.split()[-2])
+
+                except ValueError:
+                    break
+
+        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        return None
+
+    def get_free_energy(self, calc):
+        """Get the Gibbs free energy (G) from an ORCA calculation output"""
+
+        for line in calc.rev_output_file_lines:
+            if 'Final Gibbs free enthalpy' in line:
+
+                try:
+                    return float(line.split()[-2])
+
+                except ValueError:
+                    break
+
+        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        return None
+
     def optimisation_converged(self, calc):
 
         for line in calc.rev_output_file_lines:

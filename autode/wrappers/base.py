@@ -54,6 +54,28 @@ class ElectronicStructureMethod(ABC):
 
     @abstractmethod
     @requires_output()
+    def get_free_energy(self, calc):
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        pass
+
+    @abstractmethod
+    @requires_output()
+    def get_enthalpy(self, calc):
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        pass
+
+    @abstractmethod
+    @requires_output()
     def optimisation_converged(self, calc):
         """
         Function implemented in individual child classes
