@@ -57,7 +57,9 @@ def init_organic_smiles(molecule, smiles):
     bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in molecule.rdkit_mol_obj.GetBonds()]
 
     # Generate a single 3D structure using RDKit's ETKDG conformer generation algorithm
-    AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=AllChem.ETKDGv2())
+    method = AllChem.ETKDGv2()
+    method.randomSeed = 0xf00d
+    AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=method)
     molecule.set_atoms(atoms=get_atoms_from_rdkit_mol_object(molecule.rdkit_mol_obj, conf_id=0))
 
     if not are_coords_reasonable(coords=molecule.get_coordinates()):
