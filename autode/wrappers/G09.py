@@ -187,10 +187,6 @@ class G09(ElectronicStructureMethod):
 
     def get_energy(self, calc):
         for line in calc.rev_output_file_lines:
-            # if 'Sum of electronic and thermal Enthalpies' in line:
-            #     return float(line.split()[-1])
-            if 'Sum of electronic and thermal Free Energies' in line:
-                return float(line.split()[-1])
             if 'SCF Done' in line:
                 return float(line.split()[4])
             if 'E(CORR)' in line:

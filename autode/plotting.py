@@ -40,9 +40,12 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     plt.close()
 
     try:
-        name_split = name.split('_')
-        bond1_atoms_ids = [int(idx) for idx in name_split[-3].split('-')]
-        bond2_atoms_ids = [int(idx) for idx in name_split[-2].split('-')]
+        if '_ll2d' in name:
+            name_split = name.split('_ll2d')[0].split('_')
+        else:
+            name_split = name.split('_hl2d')[0].split('_')
+        bond1_atoms_ids = [int(idx) for idx in name_split[-2].split('-')]
+        bond2_atoms_ids = [int(idx) for idx in name_split[-1].split('-')]
         xlabel = f'$r_1$({bond1_atoms_ids[0]}, {bond1_atoms_ids[1]}) / Å'
         ylabel = f'$r_2$({bond2_atoms_ids[0]}, {bond2_atoms_ids[1]}) / Å'
 
