@@ -189,7 +189,6 @@ class TransitionState(TSbase):
 
         Arguments:
             ts_guess (autode.transition_states.ts_guess.TSguess)
-            bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
         """
         super().__init__(atoms=ts_guess.atoms, reactant=ts_guess.reactant,
                          product=ts_guess.product, name=f'TS_{ts_guess.name}')
@@ -252,6 +251,12 @@ class SolvatedTransitionState(TransitionState):
         return None
 
     def __init__(self, ts_guess):
+        """
+        Solvated TS
+
+        Arguments:
+            ts_guess: autode.transition_states.ts_guess.SolvatedTSguess
+        """
 
         super().__init__(ts_guess=ts_guess)
         self.solvent_mol = ts_guess.solvent_mol

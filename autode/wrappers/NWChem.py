@@ -137,6 +137,12 @@ class NWChem(ElectronicStructureMethod):
             if n_line > 500:
                 return False
 
+    def get_enthalpy(self, calc):
+        raise NotImplementedError
+
+    def get_free_energy(self, calc):
+        raise NotImplementedError
+
     def get_energy(self, calc):
 
         for line in calc.rev_output_file_lines:

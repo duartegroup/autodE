@@ -185,6 +185,26 @@ class G09(ElectronicStructureMethod):
 
         return False
 
+    def get_enthalpy(self, calc):
+        """Get the enthalpy (H) from an g09 calculation output"""
+
+        for line in calc.rev_output_file_lines:
+            if 'Sum of electronic and thermal Enthalpies' in line:
+                return float(line.split()[-1])
+
+        logger.error('Could not get the enthalpy from the calculation. Was a frequency requested?')
+        return None
+
+    def get_free_energy(self, calc):
+        """Get the Gibbs free energy (G) from an g09 calculation output"""
+
+        for line in calc.rev_output_file_lines:
+            if 'Sum of electronic and thermal Free Energies' in line:
+                return float(line.split()[-1])
+
+        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        return None
+
     def get_energy(self, calc):
         for line in calc.rev_output_file_lines:
             if 'SCF Done' in line:
@@ -197,6 +217,8 @@ class G09(ElectronicStructureMethod):
                 return float(line.split()[4])
             if 'E(CIS(D))' in line:
                 return float(line.split()[5])
+
+        return None
 
     def optimisation_converged(self, calc):
         for line in calc.rev_output_file_lines:
