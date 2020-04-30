@@ -1,5 +1,6 @@
 from copy import deepcopy
 import networkx as nx
+from autode.transition_states.ts_guess import has_matching_ts_templates
 from autode.bond_lengths import get_avg_bond_length
 from autode.log import logger
 
@@ -184,6 +185,10 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
     """
     if reactant_complex.__class__.__name__ == 'SolvatedReactantComplex':
         logger.info('Not worth truncating explicitily solvated reaction')
+        return False
+
+    if has_matching_ts_templates(reactant_complex, bond_rearrangement):
+        logger.info('Not truncating a reactant (complex) that has a saved template')
         return False
 
     truncated_complex = get_truncated_complex(reactant_complex, bond_rearrangement)

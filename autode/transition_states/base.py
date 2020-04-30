@@ -262,6 +262,9 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
 
     if not is_isomorphic_ish(f_displaced_mol, reactant_graph) and not is_isomorphic_ish(f_displaced_mol, product_graph):
         logger.warning('Forward displacement does not afford reactants or products')
+        logger.info(f'Forward displaced edges: {f_displaced_mol.graph.edges}')
+        logger.info(f'Reactant edges: {reactant_graph.edges}')
+        logger.info(f'Product edges: {product_graph.edges}')
         return False
 
     # Get the species that is optimised by displacing backwards along the imaginary mode

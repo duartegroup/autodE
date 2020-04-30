@@ -62,14 +62,38 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     return get_ts_guess(species=reactant, reactant=reactant, product=product, name=f'ts_guess_{name}')
 
 
+def has_matching_ts_templates(reactant, bond_rearrangement):
+    """
+    See if there are any templates suitable to get a TS guess from a template
+
+    Arguments:
+        reactant (autode.complex.ReactantComplex):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+
+    Returns:
+        bool:
+    """
+
+    mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
+    ts_guess_templates = get_ts_templates()
+
+    for ts_template in ts_guess_templates:
+
+        if template_matches(reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph):
+            return True
+
+    return False
+
+
 def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, keywords, dist_thresh=4.0):
     """Get a transition state guess object by searching though the stored TS templates
 
     Arguments:
-        reactant (mol object): reactant object
-        bond_rearrangement (list(tuple)):
-        product (mol object): product object
+        reactant (autode.complex.ReactantComplex):
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        product (autode.complex.ProductComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
+        name (str):
         keywords (list(str)): Keywords to use for the ElectronicStructureMethod
 
     Keyword Arguments:
