@@ -73,8 +73,6 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
     # Ideally use a transition state template, then only a single constrained optimisation need to be run...
-
-    # TODO currently if there is already a template we still do the truncation first
     yield get_template_ts_guess, (reactant, product, bond_rearr, f'{name}_template_{bond_rearr}', hmethod, hmethod.keywords.low_opt)
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a transition state guess cheap -> most expensive
@@ -279,7 +277,7 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
     translate_rotate_reactant(reactant, bond_rearrangement,
                               shift_factor=1.5 if reactant.charge == 0 else 2.5)
 
-    # There are multiple methods of finding a transtion state. Iterate through from the cheapest -> most expensive
+    # There are multiple methods of finding a transition state. Iterate through from the cheapest -> most expensive
     for func, params in get_ts_guess_function_and_params(reaction, reactant, product, bond_rearrangement):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)

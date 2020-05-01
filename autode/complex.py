@@ -100,16 +100,11 @@ class Complex(Species):
 class ReactantComplex(Complex):
 
     def run_const_opt(self, const_opt, method=None, n_cores=None):
-        """Run a constrained optimisation of the ReactantComplex"""
+        """Run a constrained optimisation using a const_opt calculation and set the new structure"""
         const_opt.run()
 
-        atoms = const_opt.get_final_atoms()
-        energy = const_opt.get_energy()
-
-        # Set the energy, new set of atoms then make the molecular graph
-        self.energy = energy
-        self.set_atoms(atoms=atoms)
-        make_graph(species=self)
+        self.energy = const_opt.get_energy()
+        self.set_atoms(atoms=const_opt.get_final_atoms())
 
         return None
 
@@ -151,7 +146,9 @@ class SolvatedReactantComplex(Complex):
 
 
 def get_complexes(reaction):
-    """Creates Reactant and Product complexes for the reaction. If it is a SolvatedReaction, a SolvatedReactantComplex is returned"""
+    """Creates Reactant and Product complexes for the reaction. If it is a SolvatedReaction,
+    a SolvatedReactantComplex is returned"""
+
     if reaction.__class__.__name__ == 'SolvatedReaction':
         reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name='r')
     else:
