@@ -52,14 +52,14 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
 
     # Form a transition state guess from the optimised atoms and set the corresponding energy
     try:
-        reactant.run_const_opt(hl_const_opt, method, Config.n_cores)
+        mol_with_const.run_const_opt(hl_const_opt, method, Config.n_cores)
     except AtomsNotFound:
         try:
-            reactant.run_const_opt(ll_const_opt, get_lmethod(), Config.n_cores)
+            mol_with_const.run_const_opt(ll_const_opt, get_lmethod(), Config.n_cores)
         except AtomsNotFound:
             return None
 
-    return get_ts_guess(species=reactant, reactant=reactant, product=product, name=f'ts_guess_{name}')
+    return get_ts_guess(species=mol_with_const, reactant=reactant, product=product, name=f'ts_guess_{name}')
 
 
 def has_matching_ts_templates(reactant, bond_rearrangement):
@@ -106,14 +106,20 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, k
     logger.info('Getting TS guess from stored TS template')
     active_bonds_and_dists_ts = {}
 
+    print(reactant.graph.edges)
+
     # This will add edges so don't modify in place
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
+
+    print(reactant.graph.edges)
 
     for ts_template in ts_guess_templates:
 
         if not template_matches(reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph):
             continue
+
+        print(reactant.graph.edges)
 
         # Get the mapping from the matching template
         mapping = get_mapping_ts_template(larger_graph=mol_graph, smaller_graph=ts_template.graph)

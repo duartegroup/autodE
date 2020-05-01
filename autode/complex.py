@@ -119,12 +119,11 @@ class SolvatedReactantComplex(Complex):
         """Run a constrained optimisation of the ReactantComplex"""
         self.qm_solvent_atoms = None
         self.mm_solvent_atoms = None
+        const_opt.molecule = deepcopy(self)
         const_opt.run()
 
-        atoms = const_opt.get_final_atoms()
-
         # Set the energy, new set of atoms then make the molecular graph
-        self.set_atoms(atoms=atoms)
+        self.set_atoms(atoms=const_opt.get_final_atoms())
 
         for i, charge in enumerate(const_opt.get_atomic_charges()):
             self.graph.nodes[i]['charge'] = charge
@@ -132,7 +131,6 @@ class SolvatedReactantComplex(Complex):
         energy, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=n_cores)
         self.energy = energy
         self.set_atoms(species_atoms)
-        make_graph(species=self)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms
 

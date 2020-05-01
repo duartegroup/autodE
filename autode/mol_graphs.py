@@ -263,7 +263,7 @@ def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
     Returns:
         nx.Graph: graph of the product with each atom indexed as in the reactants
     """
-    prod_graph = reac_graph.copy()
+    prod_graph = deepcopy(reac_graph)
     for fbond in bond_rearrang.fbonds:
         prod_graph.add_edge(*fbond)
     for bbond in bond_rearrang.bbonds:
