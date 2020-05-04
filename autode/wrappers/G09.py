@@ -116,6 +116,9 @@ class G09(ElectronicStructureMethod):
                 return True
 
             if 'Bend failed for angle' in line:
+                if calc.name.endswith('internal_internal_internal_internal'):
+                    # Set a limit on the amount of times we do this
+                    return False
                 logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
                 cart_calc = deepcopy(calc)
                 for keyword in cart_calc.keywords_list.copy():
