@@ -9,6 +9,11 @@ from autode.config import Config
 from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
 from autode.transition_states.base import imag_mode_links_reactant_products
+from autode.transition_states.base import imag_mode_has_correct_displacement
+from autode.transition_states.base import imag_mode_generates_other_bonds
+from autode.species import Species
+from autode.transition_states.base import get_displaced_atoms_along_mode
+from autode.wrappers.G09 import G09
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
@@ -80,3 +85,35 @@ def test_links_reacs_prods():
                                              method=method)
 
     os.chdir(here)
+
+
+def test_correct_imag_mode():
+    os.chdir(os.path.join(here, 'data'))
+
+    bond_rearrangement = BondRearrangement(breaking_bonds=[(4, 1), (4, 18)],
+                                           forming_bonds=[(1, 18)])
+    g09 = G09()
+    g09.available = True
+
+    calc = Calculation(name='tmp', molecule=ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1')), method=g09)
+    calc.output_filename = 'correct_ts_mode_g09.log'
+    calc.set_output_file_lines()
+
+    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=1.0)
+    f_species = Species(name='f_displaced', atoms=f_displaced_atoms, charge=0, mult=1)  # Charge & mult are placeholders
+
+    b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=-1.0)
+    b_species = Species(name='b_displaced', atoms=b_displaced_atoms, charge=0, mult=1)
+
+    # With the correct mode no other bonds are made
+    assert not imag_mode_generates_other_bonds(ts=calc.molecule, f_species=f_species, b_species=b_species,
+                                               bond_rearrangement=bond_rearrangement)
+
+    calc.output_filename = 'incorrect_ts_mode_g09.log'
+    calc.set_output_file_lines()
+
+    assert not imag_mode_has_correct_displacement(calc, bond_rearrangement)
+
+    os.chdir(here)
+
+

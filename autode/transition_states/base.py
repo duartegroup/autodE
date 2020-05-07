@@ -202,6 +202,11 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, d
     b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=-disp_mag)
     b_species = Species(name='b_displaced', atoms=b_displaced_atoms, charge=0, mult=1)
 
+    if imag_mode_generates_other_bonds(ts_species, f_species, b_species, bond_rearrangement):
+        logger.warning('Imaginary mode generates bonds that are not active..')
+        return False
+
+    # Product could be either the forward displaced molecule or the backwards equivalent
     for product in (f_species, b_species):
 
         fbond_bbond_correct_disps = []
@@ -236,6 +241,25 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, d
             return True
 
     logger.warning('Displacement along the imaginary mode did not form and break the correct bonds')
+    return False
+
+
+def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement):
+    """Determine if the forward or backwards displaced molecule break or make bonds that aren't in all the active bonds
+    bond_rearrangement.all. Will be fairly conservative here"""
+
+    for species in (ts, f_species, b_species):
+        make_graph(species, rel_tolerance=0.3)
+
+    for product in (f_species, b_species):
+
+        new_bonds_in_product = set([bond for bond in product.graph.edges if bond not in ts.graph.edges])
+
+        # If there are new bonds in the forward displaced species that are not part of the bond rearrangement
+        if len(new_bonds_in_product.intersection(bond_rearrangement.all)) != 0:
+            return True
+
+    logger.info('Imaginary mode does generate any other unwanted bonds')
     return False
 
 
