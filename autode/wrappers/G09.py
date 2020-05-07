@@ -265,7 +265,7 @@ class G09(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         # mode numbers start at 1, not 6
         mode_number -= 5
-        normal_mode_section, displacements = False, []
+        normal_mode_section, correct_mode_section, displacements = False, False, []
 
         for j, line in enumerate(calc.output_file_lines):
             if 'normal coordinates' in line:
@@ -275,19 +275,16 @@ class G09(ElectronicStructureMethod):
             if 'Thermochemistry' in line:
                 normal_mode_section = False
 
-            if normal_mode_section:
-                if len(line.split()) == 3:
-                    try:
-                        mode_numbers = [int(val) for val in line.split()]
-                        if mode_number in mode_numbers:
-                            start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
-                            for i in range(calc.molecule.n_atoms):
-                                disp_line = calc.output_file_lines[j + 7 + i]
-                                xyz_disp = [float(disp_line.split()[k])
-                                            for k in range(start_col, start_col + 3)]
-                                displacements.append(xyz_disp)
-                    except ValueError:
-                        pass
+            if correct_mode_section and len(line.split()) > 3 and line.split()[0].isdigit():
+                displacements.append([float(line.split()[k]) for k in range(start_col, start_col + 3)])
+
+            if normal_mode_section and len(line.split()) == 3 and line.split()[0].isdigit():
+                mode_numbers = [int(n) for n in line.split()]
+                if mode_number in mode_numbers:
+                    correct_mode_section = True
+                    start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
+                else:
+                    correct_mode_section = False
 
         if len(displacements) != calc.molecule.n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')
