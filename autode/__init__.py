@@ -1,5 +1,6 @@
 from autode.wrappers.keywords import Keywords
 from autode.reaction import Reaction
+from autode.reaction import MultiStepReaction
 from autode.reaction import SolvatedReaction
 from autode.molecule import Reactant
 from autode.molecule import Product
@@ -14,6 +15,7 @@ __version__ = '1.0.0'
 __all__ = [
     'Keywords',
     'Reaction',
+    'MultiStepReaction',
     'SolvatedReaction',
     'Reactant',
     'Product',

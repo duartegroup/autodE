@@ -106,20 +106,14 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, k
     logger.info('Getting TS guess from stored TS template')
     active_bonds_and_dists_ts = {}
 
-    print(reactant.graph.edges)
-
     # This will add edges so don't modify in place
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
-
-    print(reactant.graph.edges)
 
     for ts_template in ts_guess_templates:
 
         if not template_matches(reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph):
             continue
-
-        print(reactant.graph.edges)
 
         # Get the mapping from the matching template
         mapping = get_mapping_ts_template(larger_graph=mol_graph, smaller_graph=ts_template.graph)

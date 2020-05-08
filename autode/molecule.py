@@ -47,7 +47,7 @@ class Molecule(Species):
             logger.info(f'Using RDKit to generate conformers. {n_confs} requested')
 
             method = AllChem.ETKDGv2()
-            method.pruneRmsThresh = 0.5
+            method.pruneRmsThresh = Config.rmsd_threshold
             method.numThreads = Config.n_cores
 
             logger.info('Running conformation generation with RDKit... running')
@@ -151,3 +151,13 @@ class Reactant(Molecule):
 
 class Product(Molecule):
     pass
+
+
+def reactant_to_product(reactant):
+    reactant.__class__ = Product
+    return reactant
+
+
+def product_to_reactant(product):
+    product.__class__ = Reactant
+    return product

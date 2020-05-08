@@ -37,9 +37,10 @@ class Config:
     high_quality_plots = True
     #
     # ----------------------------------------------------------------------------------------------
-    # RMSD in angstroms threshold for conformers
+    # RMSD in angstroms threshold for conformers. Larger values will remove more conformers that
+    # need to be calculated but also reduces the chance that the lowest energy conformer is found
     #
-    rmsd_threshold = 0.5
+    rmsd_threshold = 0.3
     #
     # ----------------------------------------------------------------------------------------------
     # Total number of conformers generated in find_lowest_energy_conformer()
