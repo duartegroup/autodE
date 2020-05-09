@@ -8,7 +8,9 @@ from autode.mol_graphs import union
 from autode.species import Species
 from autode.utils import requires_atoms
 from autode.config import Config
+from autode.methods import get_lmethod
 from autode.conformers import Conformer
+from autode.exceptions import MethodUnavailable
 
 
 class Complex(Species):
@@ -28,6 +30,16 @@ class Complex(Species):
         molecule's COM evenly on the points of a sphere around the first with a random rotation and (3) iterating
         until all molecules in the complex have been added
         """
+        if len(self.molecules) < 2:
+            # Single (or zero) molecule complex only has a single *rigid body* conformer
+            self.conformers = [Conformer(name=f'{self.name}', atoms=self.atoms, charge=self.charge, mult=self.mult)]
+
+            return None
+
+        if len(self.molecules) > 2:
+            # TODO recursive call for > 2 molecules
+            raise NotImplementedError
+
         self.conformers = []
         n = 0
 
@@ -40,7 +52,6 @@ class Complex(Species):
 
         first_mol_coords = np.array([atom.coord for atom in first_mol_atoms])
 
-        # TODO recursive call for > 2 molecules
         mol_centroid = np.average(self.molecules[1].get_coordinates(), axis=0)
 
         for _ in range(Config.num_complex_random_rotations):
@@ -77,6 +88,27 @@ class Complex(Species):
                 n += 1
 
         logger.info(f'Generated {n} conformers')
+        return None
+
+    def populate_conformers(self):
+        """
+        Generate and optimise with a low level method a set of conformers, the number of which is
+        Config.num_complex_sphere_points ×  Config.num_complex_random_rotations × (n molecules in complex - 1)
+        """
+        n_confs = Config.num_complex_sphere_points * Config.num_complex_random_rotations * (len(self.molecules) - 1 )
+        logger.info(f'Generating and optimising {n_confs} conformers of {self.name}')
+
+        self._generate_conformers()
+
+        try:
+            lmethod = get_lmethod()
+            for conformer in self.conformers:
+                conformer.optimise(method=lmethod)
+                conformer.print_xyz_file()
+
+        except MethodUnavailable:
+            logger.error('Could not optimise complex conformers')
+
         return None
 
     @requires_atoms()
@@ -217,8 +249,9 @@ def get_complexes(reaction):
     a SolvatedReactantComplex is returned"""
 
     if reaction.__class__.__name__ == 'SolvatedReaction':
-        reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name='r')
+        reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name=f'{str(reaction)}_reactant')
     else:
-        reac = ReactantComplex(*reaction.reacs, name='r')
-    prod = ProductComplex(*reaction.prods, name='p')
+        reac = ReactantComplex(*reaction.reacs, name=f'{str(reaction)}_reactant')
+
+    prod = ProductComplex(*reaction.prods, name=f'{str(reaction)}_product')
     return reac, prod

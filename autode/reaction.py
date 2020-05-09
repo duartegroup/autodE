@@ -337,9 +337,11 @@ class MultiStepReaction:
 
         def check_reaction(current_reaction, previous_reaction):
             """Check that the reactants of the current reaction are the same as the previous products. NOT exhaustive"""
-            assert len(current_reaction.reacs) == len(previous_reaction.prods)
+            prev_prods = previous_reaction.prods if not prev_reaction.switched_reacs_prods else prev_reaction.reacs
+
+            assert len(current_reaction.reacs) == len(prev_prods)
             n_reacting_atoms = sum(reac.n_atoms for reac in current_reaction.reacs)
-            n_prev_product_atoms = sum(prod.n_atoms for prod in previous_reaction.prods)
+            n_prev_product_atoms = sum(prod.n_atoms for prod in prev_prods)
             assert n_reacting_atoms == n_prev_product_atoms
 
         for i, r in enumerate(self.reactions):
@@ -349,8 +351,9 @@ class MultiStepReaction:
                 calculate(reaction=r, calc_reac_conformers=True)
 
             else:
-                check_reaction(current_reaction=r, previous_reaction=self.reactions[i-1])
-                r.reacs = self.reactions[i-1].prods
+                prev_reaction = self.reactions[i-1]
+                check_reaction(current_reaction=r, previous_reaction=prev_reaction)
+                r.reacs = prev_reaction.prods if not prev_reaction.switched_reacs_prods else prev_reaction.reacs
                 calculate(reaction=r)
 
         # TODO add plotting

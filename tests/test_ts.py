@@ -2,6 +2,7 @@ from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
 from autode.bond_rearrangement import BondRearrangement
+from autode.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
 from autode.molecule import Reactant, Product
 from autode.complex import ReactantComplex, ProductComplex
@@ -18,6 +19,10 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
 method.available = True
+
+# Force ORCA to appear available
+Config.hcode = 'orca'
+Config.ORCA.path = here
 
 ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl', 1.63664, 0.02010, -0.05829),
                                           Atom('C', -0.14524, -0.00136, 0.00498),
@@ -80,8 +85,8 @@ def test_links_reacs_prods():
     tsguess.calc.run()
 
     assert imag_mode_links_reactant_products(calc=tsguess.calc,
-                                             reactant_graph=reac_complex.graph,
-                                             product_graph=product_complex.graph,
+                                             reactant=reac_complex,
+                                             product=product_complex,
                                              method=method)
 
     os.chdir(here)
@@ -117,3 +122,16 @@ def test_correct_imag_mode():
     os.chdir(here)
 
 
+def test_isomorphic_reactant_product():
+
+    r_water = Reactant(name='h2o', smiles='O')
+    r_methane = Reactant(name='methane', smiles='C')
+
+    p_water = Product(name='h2o', smiles='O')
+    p_methane = Product(name='methane', smiles='C')
+
+    # Reaction where the reactant and product complexes are isomorphic should return no TS
+    reaction = Reaction(r_water, r_methane, p_water, p_methane)
+    reaction.locate_transition_state()
+
+    assert reaction.ts is None

@@ -9,9 +9,10 @@ from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoNormalModesFound
 from autode.geom import length
 from autode.log import logger
-from autode.methods import get_hmethod
-from autode.mol_graphs import is_isomorphic_ish
+from autode.methods import get_hmethod, get_lmethod
+from autode.conformers import Conformer
 from autode.mol_graphs import make_graph
+from autode.mol_graphs import species_are_isomorphic
 from autode.species import Species
 
 
@@ -84,7 +85,7 @@ class TSbase(Species):
             return True
 
         # Perform displacements over the imaginary mode to ensure the mode connects reactants and products
-        if imag_mode_links_reactant_products(self.calc, self.reactant.graph, self.product.graph, method=method):
+        if imag_mode_links_reactant_products(self.calc, self.reactant, self.product, method=method):
             logger.info('Imaginary mode does link reactants and products')
             return True
 
@@ -265,13 +266,13 @@ def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement
     return False
 
 
-def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, method, disp_mag=1.0):
+def imag_mode_links_reactant_products(calc, reactant, product, method, disp_mag=1.0):
     """Displaces atoms along the imaginary mode forwards (f) and backwards (b) to see if products and reactants are made
 
     Arguments:
         calc (autode.calculation.Calculation):
-        reactant_graph (networkx.Graph):
-        product_graph (networkx.Graph):
+        reactant (autode.complex.ReactantComplex):
+        product (autode.complex.ProductComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
 
     Keyword Arguments:
@@ -282,15 +283,18 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
     """
     logger.info('Displacing along imag modes to check that the TS links reactants and products')
 
+    reactant.populate_conformers()
+    product.populate_conformers()
+
     # Get the species that is optimised by displacing forwards along the imaginary mode
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=disp_mag)
     f_displaced_mol = get_optimised_species(calc, method, direction='forwards', atoms=f_displaced_atoms)
 
-    if not is_isomorphic_ish(f_displaced_mol, reactant_graph) and not is_isomorphic_ish(f_displaced_mol, product_graph):
+    if not species_are_isomorphic(f_displaced_mol, reactant) and not species_are_isomorphic(f_displaced_mol, product):
         logger.warning('Forward displacement does not afford reactants or products')
-        logger.info(f'Forward displaced edges: {f_displaced_mol.graph.edges}')
-        logger.info(f'Reactant edges: {reactant_graph.edges}')
-        logger.info(f'Product edges: {product_graph.edges}')
+        logger.debug(f'Forward displaced edges: {f_displaced_mol.graph.edges}')
+        logger.debug(f'Reactant edges: {reactant.graph.edges}')
+        logger.debug(f'Product edges: {product.graph.edges}')
         return False
 
     # Get the species that is optimised by displacing backwards along the imaginary mode
@@ -301,11 +305,11 @@ def imag_mode_links_reactant_products(calc, reactant_graph, product_graph, metho
         logger.warning('Atoms not set in the output. Cannot calculate isomorphisms')
         return False
 
-    if is_isomorphic_ish(b_displaced_mol, reactant_graph) and is_isomorphic_ish(f_displaced_mol, product_graph):
+    if species_are_isomorphic(b_displaced_mol, reactant) and species_are_isomorphic(f_displaced_mol, product):
         logger.info('Forwards displacement lead to products and backwards reactants')
         return True
 
-    if is_isomorphic_ish(f_displaced_mol, reactant_graph) and is_isomorphic_ish(b_displaced_mol, product_graph):
+    if species_are_isomorphic(f_displaced_mol, reactant) and species_are_isomorphic(b_displaced_mol, product):
         logger.info('Backwards displacement lead to products and forwards to reactants')
         return True
 
@@ -328,6 +332,7 @@ def get_optimised_species(calc, method, direction, atoms):
         species.set_atoms(atoms=calc.get_final_atoms())
         species.energy = calc.get_energy()
         make_graph(species)
+        species.conformers = [Conformer(name='conf', atoms=species.atoms, charge=species.charge, mult=species.mult)]
 
     except AtomsNotFound:
         logger.error(f'{direction} displacement calculation failed')

@@ -18,6 +18,7 @@ from autode.mol_graphs import reorder_nodes
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
 from autode.reactions import Substitution, Elimination
+from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
 from autode.substitution import get_substitution_centres
 
@@ -34,6 +35,11 @@ def find_tss(reaction):
     logger.info('Finding possible transition states')
 
     reactant, product = get_complexes(reaction)
+
+    if species_are_isomorphic(reactant, product):
+        logger.error('Reactant and product complexes are isomorphic. Cannot find a TS')
+        return None
+
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
 
     if bond_rearrangs is None:
@@ -48,12 +54,12 @@ def find_tss(reaction):
         if ts is not None:
             tss.append(ts)
 
-    if len(tss) > 0:
-        logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
-        return tss
+    if len(tss) == 0:
+        logger.error('Did not find any transition state(s)')
+        return None
 
-    logger.error('Did not find any transition state(s)')
-    return None
+    logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
+    return tss
 
 
 def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
