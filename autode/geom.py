@@ -93,24 +93,6 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     return rot_matrix
 
 
-def get_krot_p_q(template_coords, coords_to_fit):
-    """Get the optimum rotation matrix and pre & post translations """
-    # Construct the P matrix in the Kabsch algorithm
-    p_mat = deepcopy(coords_to_fit)
-    p_centroid = np.average(p_mat, axis=0)
-    p_mat_trans = get_centered_matrix(p_mat)
-
-    # Construct the P matrix in the Kabsch algorithm
-    q_mat = deepcopy(template_coords)
-    q_centroid = np.average(q_mat, axis=0)
-    q_mat_trans = get_centered_matrix(q_mat)
-
-    # Get the optimum rotation matrix
-    rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
-
-    return rot_mat, p_centroid, q_centroid
-
-
 def get_centered_matrix(mat):
     """For a list of coordinates n.e. a n_atoms x 3 matrix as a np array translate to the center of the coordinates"""
     centroid = np.average(mat, axis=0)
@@ -158,8 +140,56 @@ def get_distance_constraints(species):
     return distance_constraints
 
 
-def calc_rmsd(template_coords, coords_to_fit):
-    """Calculate the RMSD between two sets of coordinates"""
-    rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
-    fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords_to_fit])
-    return np.sqrt(np.average(np.square(fitted_coords - template_coords)))
+def calc_rmsd(coords1, coords2):
+    """Calculate the RMSD between two sets of coordinates using the Kabash algorithm"""
+
+    # Construct the P matrix in the Kabsch algorithm
+    p_mat = deepcopy(coords2)
+    p = np.average(p_mat, axis=0)
+    p_mat_trans = get_centered_matrix(p_mat)
+
+    # Construct the P matrix in the Kabsch algorithm
+    q_mat = deepcopy(coords1)
+    q = np.average(q_mat, axis=0)
+    q_mat_trans = get_centered_matrix(q_mat)
+
+    # Get the optimum rotation matrix
+    rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
+
+    fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords2])
+    return np.sqrt(np.average(np.square(fitted_coords - coords1)))
+
+
+def get_points_on_sphere(n_points, r=1):
+    """
+    Find n evenly spaced points on a sphere using the "How to generate equidistributed points on the surface of a
+    sphere" by Markus Deserno, 2004. Will
+
+    Arguments:
+        n_points (int): number of points to generate
+        r (float): radius of the sphere
+
+    Returns:
+        (list(np.ndarray))
+    """
+    points = []
+
+    a = 4.0 * np.pi * r**2 / n_points
+    d = np.sqrt(a)
+    m_theta = int(np.round(np.pi / d))
+    d_theta = np.pi / m_theta
+    d_phi = a / d_theta
+
+    for m in range(m_theta):
+        theta = np.pi * (m + 0.5) / m_theta
+        m_phi = int(np.round(2.0 * np.pi * np.sin(theta)/d_phi))
+
+        for n in range(m_phi):
+            phi = 2.0 * np.pi * n / m_phi
+            point = np.array([r * np.sin(theta) * np.cos(phi),
+                              r * np.sin(theta) * np.sin(phi),
+                              r * np.cos(theta)])
+
+            points.append(point)
+
+    return points

@@ -27,3 +27,7 @@ We suggest you look in the config file to see the format used.
 
 Note: NWChem currently only supports solvents for DFT, other methods must not have a solvent.
 
+
+To set the logging level to one of {INFO, WARNING, ERROR} set the AUTODE_LOG_LEVEL, for example in bash::
+
+    export AUTODE_LOG_LEVEL=INFO

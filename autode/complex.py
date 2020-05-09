@@ -3,10 +3,12 @@ import numpy as np
 from scipy.spatial import distance_matrix
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.log import logger
-from autode.mol_graphs import make_graph
+from autode.geom import get_points_on_sphere
 from autode.mol_graphs import union
 from autode.species import Species
 from autode.utils import requires_atoms
+from autode.config import Config
+from autode.conformers import Conformer
 
 
 class Complex(Species):
@@ -19,6 +21,63 @@ class Complex(Species):
         last_index = sum([mol.n_atoms for mol in self.molecules[:mol_index + 1]])
 
         return list(range(first_index, last_index))
+
+    def _generate_conformers(self):
+        """
+        Generate rigid body conformers of a complex by (1) Fixing the first molecule, (2) initialising the second
+        molecule's COM evenly on the points of a sphere around the first with a random rotation and (3) iterating
+        until all molecules in the complex have been added
+        """
+        self.conformers = []
+        n = 0
+
+        # First molecule is static so get those atoms with the centroid at the origin
+        first_mol_atoms = deepcopy(self.molecules[0].atoms)
+        fist_mol_centroid = np.average(self.molecules[0].get_coordinates(), axis=0)
+
+        for atom in first_mol_atoms:
+            atom.coord -= fist_mol_centroid
+
+        first_mol_coords = np.array([atom.coord for atom in first_mol_atoms])
+
+        # TODO recursive call for > 2 molecules
+        mol_centroid = np.average(self.molecules[1].get_coordinates(), axis=0)
+
+        for _ in range(Config.num_complex_random_rotations):
+            rotated_atoms = deepcopy(self.molecules[1].atoms)
+
+            # Shift the molecule to the origin then rotate randomly
+            theta, axis = np.random.uniform(0.0, 2.0*np.pi), np.random.uniform(-1.0, 1.0, size=3)
+            for atom in rotated_atoms:
+                atom.translate(vec=-mol_centroid)
+                atom.rotate(axis, theta)
+
+            # For every point generated on the surface on a unit sphere
+            for point in get_points_on_sphere(n_points=Config.num_complex_sphere_points):
+                shifted_atoms = deepcopy(rotated_atoms)
+
+                far_enough_apart = False
+
+                # Shift the molecule by 0.1 Å in the direction of the point (which has length 1) until the
+                # minimum distance to the rest of the complex is 2.0 Å
+                while not far_enough_apart:
+
+                    for atom in shifted_atoms:
+                        atom.coord += point * 0.1
+
+                    mol_coords = np.array([atom.coord for atom in shifted_atoms])
+
+                    if np.min(distance_matrix(first_mol_coords, mol_coords)) > 2.0:
+                        far_enough_apart = True
+
+                conformer = Conformer(name=f'{self.name}_conf{n}', atoms=first_mol_atoms+shifted_atoms,
+                                      charge=self.charge, mult=self.mult)
+
+                self.conformers.append(conformer)
+                n += 1
+
+        logger.info(f'Generated {n} conformers')
+        return None
 
     @requires_atoms()
     def translate_mol(self, vec, mol_index):
@@ -79,6 +138,12 @@ class Complex(Species):
     def __init__(self, *args, name='complex'):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
+
+        Arguments:
+            *args (autode.species.Species):
+
+        Keyword Arguments:
+            name (str):
         """
         self.molecules = args
         self.molecule_atom_indexes = []
@@ -93,7 +158,7 @@ class Complex(Species):
 
         super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
 
-        self.solvent = self.molecules[0].solvent
+        self.solvent = self.molecules[0].solvent                      # Solvent should be the same for all species
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 
@@ -141,6 +206,10 @@ class SolvatedReactantComplex(Complex):
         self.solvent_mol = solvent_mol
         self.qm_solvent_atoms = None
         self.mm_solvent_atoms = None
+
+
+class NCIComplex(Complex):
+    pass
 
 
 def get_complexes(reaction):
