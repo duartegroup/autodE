@@ -45,7 +45,7 @@ def get_hmethod():
 
         return method
     else:
-        # See if orca availaible, then Gaussian, then nwchem
+        # See if orca available, then Gaussian, then nwchem
         for method in [orca, g09, nwchem]:
             method.set_availability()
             if method.available:
@@ -63,23 +63,22 @@ def get_lmethod():
     """
     xtb = XTB()
     mopac = MOPAC()
+    orca = ORCA()
+    g09 = G09()
+    nwchem = NWChem()
 
     if Config.lcode is not None:
-        if Config.lcode.lower() == 'xtb':
-            method = xtb
-        elif Config.lcode.lower() == 'mopac':
-            method = mopac
 
-        else:
-            logger.critical('Requested electronic structure code doesn\'t exist')
-            raise MethodUnavailable
+        for method in [xtb, mopac, orca, g09, nwchem]:
+            if method.name == Config.lcode.lower():
 
-        method.set_availability()
-        if not method.available:
-            logger.critical('Requested electronic structure method is not available')
-            raise MethodUnavailable
+                method.set_availability()
+                if method.available:
+                    return method
 
-        return method
+        logger.critical('Requested electronic structure code doesn\'t exist')
+        raise MethodUnavailable
+
     else:
         # See if xtb available, then mopac
         for method in [xtb, mopac]:

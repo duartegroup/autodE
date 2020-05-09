@@ -34,7 +34,7 @@ def find_tss(reaction):
     logger.info('Finding possible transition states')
 
     reactant, product = get_complexes(reaction)
-    bond_rearrangs = get_bond_rearrangs(reactant, product, name=reaction.name)
+    bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
 
     if bond_rearrangs is None:
         logger.error('Could not find a set of forming/breaking bonds')
@@ -68,7 +68,7 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
     Returns:
         (list): updated funcs and params list
     """
-    name = f'{reaction.name}_{"+".join([r.name for r in reaction.reacs])}--{"+".join([p.name for p in reaction.prods])}'
+    name = str(reaction)
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 

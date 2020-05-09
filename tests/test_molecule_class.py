@@ -6,6 +6,7 @@ from autode.smiles import calc_multiplicity
 from autode.wrappers.ORCA import orca
 from autode.molecule import Reactant
 from autode.molecule import Product
+from autode.molecule import reactant_to_product
 from autode.reaction import Reaction
 from autode.conformers import conformers
 from autode.bond_rearrangement import BondRearrangement
@@ -99,3 +100,10 @@ def calc_mult():
     # Diradicals should default to singlets..
     assert calc_multiplicity(h, n_radical_electrons=2) == 1
 
+
+def test_reactant_to_product():
+
+    methane = Reactant(smiles='C', charge=0, mult=1)
+    prod = reactant_to_product(reactant=methane)
+
+    assert type(prod) is Product

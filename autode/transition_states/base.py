@@ -181,7 +181,7 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
     return atoms
 
 
-def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, delta_threshold=0.1):
+def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0, delta_threshold=0.3):
     """
     Check whether the imaginary mode in a calculation with a hessian forms and breaks the correct bonds
 
@@ -256,7 +256,9 @@ def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement
         new_bonds_in_product = set([bond for bond in product.graph.edges if bond not in ts.graph.edges])
 
         # If there are new bonds in the forward displaced species that are not part of the bond rearrangement
-        if len(new_bonds_in_product.intersection(bond_rearrangement.all)) != 0:
+        if any(bond not in bond_rearrangement.all for bond in new_bonds_in_product):
+            logger.warning(f'New bonds in product: {new_bonds_in_product}')
+            logger.warning(f'Bond rearrangement: {bond_rearrangement.all}')
             return True
 
     logger.info('Imaginary mode does generate any other unwanted bonds')
