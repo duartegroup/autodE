@@ -84,6 +84,10 @@ def test_links_reacs_prods():
     # Should find the completed calculation output
     tsguess.calc.run()
 
+    # No need to spoof an xtb install as reactant/product complex optimisation should be skipped
+    Config.lcode = 'xtb'
+    Config.XTB.path = None
+
     assert imag_mode_links_reactant_products(calc=tsguess.calc,
                                              reactant=reac_complex,
                                              product=product_complex,
