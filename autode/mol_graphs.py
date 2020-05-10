@@ -143,6 +143,9 @@ def set_graph_attributes(species):
 
 def union(graphs):
     """Return the union of two graphs. The disjoint union is returned"""
+    if len(graphs) == 0:
+        return nx.Graph()
+
     return nx.disjoint_union_all(graphs)
 
 

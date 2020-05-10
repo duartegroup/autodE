@@ -102,19 +102,21 @@ class Reaction:
         self.prods, self.reacs = self.reacs, self.prods
         self.switched_reacs_prods = True
 
-    def calc_delta_e(self, units=KcalMol):
+    def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
 
         Returns:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        products_energy = sum(filter(None, [p.energy for p in self.prods]))
-        reactants_energy = sum(filter(None, [r.energy for r in self.reacs]))
 
-        return units.conversion * (products_energy - reactants_energy)
+        if any(mol.energy is None for mol in self.reacs + self.prods):
+            logger.error('Cannot calculate ∆Er. At least one required energy was None')
+            return None
 
-    def calc_delta_e_ddagger(self, units=KcalMol):
+        return sum([p.energy for p in self.prods]) - sum([r.energy for r in self.reacs])
+
+    def calc_delta_e_ddagger(self):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
 
         Returns:
@@ -122,13 +124,14 @@ class Reaction:
         """
         logger.info('Calculating ∆E‡')
         if self.ts is None:
+            logger.error('No TS, cannot calculate ∆E‡')
             return None
 
-        if self.ts.energy is None:
-            logger.error('TS had no energy. Setting ∆E‡ = None')
+        if self.ts.energy is None or any(r.energy is None for r in self.reacs):
+            logger.error('TS or a reactant had no energy, cannot calculate ∆E‡')
             return None
 
-        return units.conversion * (self.ts.energy - sum(filter(None, [r.energy for r in self.reacs])))
+        return self.ts.energy - sum([r.energy for r in self.reacs])
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.pes1d choose the lowest energy if there is more than one
@@ -205,15 +208,7 @@ class Reaction:
             reaction.find_lowest_energy_ts_conformer()
             reaction.calculate_single_points()
 
-            plot_reaction_profile(e_reac=0.0,
-                                  e_ts=reaction.calc_delta_e_ddagger(units=units),
-                                  e_prod=reaction.calc_delta_e(units=units),
-                                  units=units,
-                                  reacs=reaction.reacs,
-                                  prods=reaction.prods,
-                                  ts=reaction.ts,
-                                  switched=reaction.switched_reacs_prods,
-                                  reaction_name=self.name)
+            plot_reaction_profile(reactions=[reaction], units=units, name=self.name)
             return None
 
         return calculate(self)
@@ -316,7 +311,7 @@ class SolvatedReaction(Reaction):
 
 class MultiStepReaction:
 
-    def calculate_reaction_profile(self):
+    def calculate_reaction_profile(self, units=KcalMol):
         """Calculate a multistep reaction profile using the products of step 1 as the reactants of step 2 etc."""
         logger.info('Calculating reaction profile')
 
@@ -356,7 +351,7 @@ class MultiStepReaction:
                 r.reacs = prev_reaction.prods if not prev_reaction.switched_reacs_prods else prev_reaction.reacs
                 calculate(reaction=r)
 
-        # TODO add plotting
+        plot_reaction_profile(reactions=self.reactions, units=units, name=self.name)
         return None
 
     def __init__(self, *args, name='reaction'):

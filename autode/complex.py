@@ -190,7 +190,8 @@ class Complex(Species):
 
         super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
 
-        self.solvent = self.molecules[0].solvent                      # Solvent should be the same for all species
+        self.solvent = self.molecules[0].solvent if len(self.molecules) > 0 else None
+
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 

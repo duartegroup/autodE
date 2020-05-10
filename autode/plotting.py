@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
+from scipy import interpolate
 from numpy.polynomial import polynomial
 import numpy as np
 import os
 from scipy.ndimage.filters import gaussian_filter1d
+from scipy.optimize import minimize
 from autode.config import Config
 from autode.log import logger
 from autode.units import KcalMol
@@ -100,123 +102,174 @@ def plot_1dpes(rs, rel_energies, method_name, name='1d_scan'):
     return save_plot(plot=plt, filename=f'{name}.png')
 
 
-def plot_reaction_profile(e_reac, e_ts, e_prod, units, reacs, prods, ts, reaction_name, switched=False):
-    """For a reactant reactants -> ts -> products plot the reaction profile using matplotlib
+def plot_reaction_profile(reactions, units, name):
+    """For a set of reactions plot the reaction profile using matplotlib
 
     Arguments:
-        e_reac (float): Relative reactant energy, usually 0.0
-        e_ts (float): Relative ts energy or None
-        e_prod (float): Relative product energy
+        reactions (list(autode.reaction.Reaction):
         units (autode.units.Units):
-        reacs (list(autode.molecule.Reactant)):
-        prods (list(autode.molecule.Product)):
-        ts (autode.transtion_states.transtion_state.TranstionState):
-        reaction_name (str):
-        switched (bool): flag for a reaction that was initially reversed reactant/products
+        name (str):
     """
     logger.info('Plotting reaction profile')
 
-    if e_ts is None:
-        logger.error('TS is None – assuming barrierless reaction. ∆E‡ = 2 kcal mol-1 above the maximum energy')
-        e_ts = 0.0032 * units.conversion + max(0.0, e_prod)
+    fig, ax = plt.subplots()
 
-    if switched:
-        # Swap the energies of reactants and products
-        e_reac, e_prod = e_prod, e_reac
-        e_ts -= e_reac
-        e_prod -= e_reac
-        e_reac = 0.0
-        reacs, prods = prods, reacs
+    # Get the energies for the reaction profile (y values) plotted against the reaction coordinate (zi_s)
+    energies = calculate_reaction_profile_energies(reactions, units=units)
+    zi_s = np.array(range(len(energies)))
 
-    # Define the plot name
-    name = ' + '.join([r.name for r in reacs]) + ' → ' + ' + '.join([p.name for p in prods])
+    # Minimise a set of spline points so the stationary points have y values given in the energies array
+    result = minimize(error_on_stationary_points, x0=energies, args=(energies,), method='BFGS')
 
-    dg = e_prod - e_reac
-    dgdd = e_ts - e_reac
+    # Use the optimised values to construct a spline function that will be plotted
+    optimised_spline = interpolate.CubicSpline(zi_s, result.x, bc_type='clamped')
 
-    # 0 < x < 1, position of TS along reaction coordinate
-    if dg > 0:
-        if dgdd < dg:
-            x = dgdd/dg
-        else:
-            x = 1 - (dgdd - dg)/(2*dgdd)
-    else:
-        if dgdd < 0:
-            x = dgdd/dg
-        else:
-            x = (dgdd)/(2*(dgdd-dg))
+    # Create more zi values from slightly before the minimum to slightly after the maximum
+    fine_zi_s = np.linspace(min(zi_s) - 0.2, max(zi_s) + 0.2, num=500)
 
-    # make a cubic line from reac to TS, and another from TS to prod
-    # reac to TS
-    a = np.array([[x**3, x**2], [3*x**2, 2*x]])
-    b = np.array([dgdd, 0])
-    reac_to_ts = np.linalg.solve(a, b)
+    # The new zi values are the stationary points of the optimised function
+    zi_s = get_stationary_points(fine_zi_s, optimised_spline.derivative())
 
-    # TS to prod, shift curve so TS at (0,0) to make algebra easier
-    y = 1-x
-    a = np.array([[y**3, y**2], [3*y**2, 2*y]])
-    b = np.array([dg-dgdd, 0])
-    ts_to_prod = np.linalg.solve(a, b)
+    # Plot the function
+    ax.scatter(zi_s, optimised_spline(zi_s), c='b')
+    ax.plot(fine_zi_s, optimised_spline(fine_zi_s), c='k')
 
-    x_vals = np.linspace(-0.2, 1.2, 140)
-    y_vals = []
-    begin_x = 0
-    end_x = len(x_vals)
-    for index, val in enumerate(x_vals):
-        if val < x:
-            a, b = reac_to_ts
-            y = a*val**3 + b*val**2
-
-            # Don't want to go up too far at before reacs
-            if (val < 0) and not (-1 < y < 1):
-                begin_x = index + 1
-            else:
-                y_vals.append(y + e_reac)
-        else:
-            a, b = ts_to_prod
-            shift_val = val - x
-            y = a*shift_val**3 + b*shift_val**2 + dgdd  # shift back TS
-            if (val > 1) and not ((dg - 1) < y < (dg + 1)):
-                end_x = index
-                break
-            else:
-                y_vals.append(y + e_reac)
-
-    _, ax = plt.subplots()
-    ax.plot(x_vals[begin_x: end_x], y_vals, c='k')
-
-    y_range = max(y_vals) - min(y_vals)
-
-    x_label_coords = [-0.035, x-.035, 0.965]
-    y_label_shift = [0.04*y_range, -0.07*y_range, 0.04*y_range]
-    x_point_coords = [0, x, 1]
-    energies = [np.round(e_reac, 1), np.round(e_ts, 1), np.round(e_prod, 1)]
-
+    # Annotate the plot with the relative energies
     for i, energy in enumerate(energies):
-        if ts is None and i == 1:
-            continue
-        ax.annotate(energy, (x_label_coords[i], energy + y_label_shift[i]), fontsize=12)
-        plt.plot(x_point_coords[i], energy, marker='o', markersize=3, color='b')
+        ax.annotate(f'{energy:.1f}', (zi_s[i]-0.05, energy + 0.3), fontsize=12)
 
-    if ts is not None:
-        if len(ts.imaginary_frequencies) != 1:
-            ax.annotate(f'TS has {len(ts.imaginary_frequencies)} imaginary frequency',
-                        (0.5, 0.1*max(y_vals)), ha='center', color='red')
-
-        if ts.optts_calc is not None and not ts.optts_calc.optimisation_converged():
-            ax.annotate('TS is not fully converged',
-                        (0.5, 0.2*max(y_vals)), ha='center', color='red')
-    else:
-        ax.annotate('No TS was found, barrierless reaction assumed', (0.5, 0.3*max(y_vals)), ha='center', color='red')
-
-    plt.title(name, fontdict={'fontsize': 12})
+    plt.ylabel(f'∆$E$ / {units.name}', fontsize=12)
+    plt.ylim(min(energies)-1, max(energies)+1)
     plt.xticks([])
+    plt.subplots_adjust(top=0.95, right=0.95)
+    fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left', fontsize=8, wrap=True)
 
-    if units == KjMol:
-        plt.ylabel('∆$E$ / kJ mol$^{-1}$', fontsize=12)
-    if units == KcalMol:
-        plt.ylabel('∆$E$/ kcal mol$^{-1}$', fontsize=12)
+    return save_plot(plt, filename=f'{name}_reaction_profile.png')
 
-    plt.ylim(min(y_vals) - 0.1*max(y_vals), 1.2 * max(y_vals))
 
-    return save_plot(plt, filename=f'{reaction_name}_reaction_profile.png')
+def get_reaction_profile_warnings(reactions):
+    """Get a string of warnings for a reaction
+
+    Arguments:
+        reactions (list(autode.reaction.Reaction)):
+    """
+    warnings = ''
+
+    for reaction in reactions:
+
+        if reaction.calc_delta_e() is None:
+            warnings += f'∆Er not calculated for {reaction.name}, ∆Er = 0 assumed. '
+
+        if reaction.calc_delta_e_ddagger() is None:
+            warnings += f'∆E‡ not calculated for {reaction.name}, barrierless reaction assumed. '
+
+        if reaction.ts is not None:
+
+            n_imag_freqs = len(reaction.ts.imaginary_frequencies)
+            if n_imag_freqs != 1:
+                warnings += f'TS for {reaction.name} has {n_imag_freqs} imaginary frequencies. '
+
+            if reaction.ts.optts_calc is not None and not reaction.ts.optts_calc.optimisation_converged():
+                warnings += f'TS for {reaction.name} was not fully converged. '
+
+    # If no strings were added then there are no warnings
+    if len(warnings) == 0:
+        warnings = 'None'
+
+    return f'WARNINGS: {warnings}'
+
+
+def calculate_reaction_profile_energies(reactions, units):
+    """Calculate a list of energies comprising the reaction profile
+
+    Arguments:
+        reactions (list(autode.reaction.Reaction)):
+        units (autode.units.Units):
+    """
+    # Populate a list of reaction relative energies [reactants -> TS -> products], all floats.
+    reaction_energies = []
+
+    for reaction in reactions:
+
+        de = reaction.calc_delta_e()
+
+        # If ∆Er cannot be calculated then assume isoenergetic and add a warning to the plot
+        if de is None:
+            de = 0.0
+
+        de_ddagger = reaction.calc_delta_e_ddagger()
+
+        # If there is no TS then a barrierless reaction will be assumed and a warning added to the plot
+        if de_ddagger is None:
+            de_ddagger = 0.0032 + max(0.0, de)
+
+        if not reaction.switched_reacs_prods:
+            reaction_energies.append([0.0, de_ddagger, de])
+
+        else:
+            # If reactants and products have been switched then correct to the forwards ∆E‡, ∆Er
+            reaction_energies.append([0.0, de_ddagger-de, -de])
+
+    # Construct the full list of energies, referenced to the first set of reactants
+    energies = reaction_energies[0]
+
+    for i in range(1, len(reaction_energies)):
+        # Add the energies from the next TS and the next product reaction_energies[i][0] == energies[-1
+        energies += [reaction_energies[i][1] + energies[-1], reaction_energies[i][2] + energies[-1]]
+
+    return units.conversion * np.array(energies)
+
+
+def get_stationary_points(xs, dydx):
+    """
+    Compute the productive of the derivative at points x(i-1) and x(i) which is negative if there is a point x(k)
+    between x(i-1) and x(i) that has dy/dx|_x(k) = 0
+
+    Arguments:
+         xs (np.ndarray):
+         dydx (function):
+    """
+    stationary_points = []
+
+    for i in range(1, len(xs) - 1):
+
+        if dydx(xs[i - 1]) * dydx(xs[i]) < 0:
+            stationary_points.append(xs[i])
+
+    return stationary_points
+
+
+def error_on_stationary_points(x, energies):
+    """
+    Calculate the difference between the stationary points of an interpolated function and those observed
+    (given in the energies array)
+
+      |     .
+    E |.   / \        The points indicate the true stationary points
+      | \_/   \.
+      |_____________
+            zi
+
+    Arguments:
+        x (np.ndarray): Points that will be splined that generate stationary points that ≈ energies
+        energies (np.ndarray): Observed stationary points
+
+    Returns:
+        (float): A measure of the error
+    """
+    # Generate a list of reaction coordinate points - arbitrary units so integers are fine
+    zi_s = np.array(range(len(x)))
+
+    # Spline the energies to get a function that has stationary points
+    spline = interpolate.CubicSpline(zi_s, x, bc_type='clamped')
+
+    # Calculate the energy values at the stationary points of the function with a fine-ish spacing that extrapolates
+    # slightly
+    fine_zi_s = np.linspace(min(zi_s)-0.2, max(zi_s)+0.2, num=100)
+    stationary_points = get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
+    energies_at_stationary_points = [spline(zi) for zi in stationary_points]
+
+    # Return the error as the sum squared difference between the required and the observed stationary point energies
+    energy_difference = energies - np.array(energies_at_stationary_points)
+    return np.sum(np.square(energy_difference))
+

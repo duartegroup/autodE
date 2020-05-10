@@ -46,7 +46,7 @@ def test_reaction_class():
     assert hh_reac.ts is None
     assert hh_reac.tss is None
     assert hh_reac.name == 'h2_assoc'
-    assert hh_reac.calc_delta_e() == KcalMol.conversion * 4
+    assert hh_reac.calc_delta_e() == 4
 
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
@@ -126,7 +126,7 @@ def test_calc_delta_e():
     reac.ts = ts
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
-    assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() / KcalMol.conversion < 0.2 + 1E-6
+    assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
 
 
 def test_solvated_reaction():
