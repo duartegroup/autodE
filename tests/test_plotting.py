@@ -1,4 +1,6 @@
 from autode import plotting
+import matplotlib.pyplot as plt
+from autode.exceptions import CouldNotPlotSmoothProfile
 from autode.molecule import Reactant, Product
 from autode.transition_states.transition_state import TransitionState
 from autode.complex import ReactantComplex, ProductComplex
@@ -8,7 +10,10 @@ from autode.transition_states.ts_guess import TSguess
 from autode.units import KjMol, KcalMol
 from autode.config import Config
 from copy import deepcopy
+from scipy.optimize import minimize
+from scipy import interpolate
 import numpy as np
+import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -55,7 +60,7 @@ def test_error_on_stat_points():
     assert plotting.error_on_stationary_points(energies, energies) < 1E-3
 
 
-def test_calulcate_reaction_profile_energies():
+def test_calculate_reaction_profile_energies():
 
     test_reac = Reactant(name='test', smiles='C')
     test_reac.energy = -1
@@ -100,7 +105,6 @@ def test_calulcate_reaction_profile_energies():
     assert 19 < energies[2] < 21
 
 
-
 def test_reaction_warnings():
     test_reac = Reactant(name='test', smiles='C')
     test_reac.energy = -1
@@ -124,3 +128,36 @@ def test_reaction_warnings():
     reaction.ts = ts
     warnings = plotting.get_reaction_profile_warnings(reactions=[reaction])
     assert 'None' in warnings
+
+
+def test_edge_case_plot():
+
+    # Some inputs cannot be plotted as a smooth profile as optimisation of the
+    # energies to get the correct stationary values removes some stationary points
+
+    with pytest.raises(CouldNotPlotSmoothProfile):
+        energies = np.array([0.0, 4.0, 0.05, -16, 0.3])
+        fig, ax = plt.subplots()
+
+        plotting.plot_smooth_profile(zi_s=np.array([0, 1, 2, 3, 4]),
+                                     energies=energies,
+                                     ax=ax)
+
+
+def test_stat_point_minimisation():
+    # Test that the minimisation works for very shallow minima
+
+    energies_list = [np.array([0.0, 3.8, -9.1, -1.6, 0.3]),
+                     np.array([0.0, 10, -20, 10, -5])]
+
+    for energies in energies_list:
+
+        result = minimize(plotting.error_on_stationary_points, x0=energies,
+                          args=(energies,), method='BFGS', tol=0.1)
+
+        assert result.success
+
+        spline = interpolate.CubicSpline([0, 1, 2, 3, 4], result.x, bc_type='clamped')
+        fine_zi_s = np.linspace(-0.2, 5.2, num=500)
+        stationary_points = plotting.get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
+        assert len(stationary_points) == 5

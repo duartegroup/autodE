@@ -5,12 +5,11 @@ from scipy import interpolate
 from numpy.polynomial import polynomial
 import numpy as np
 import os
+from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.optimize import minimize
 from autode.config import Config
 from autode.log import logger
-from autode.units import KcalMol
-from autode.units import KjMol
 
 
 def save_plot(plot, filename):
@@ -118,21 +117,11 @@ def plot_reaction_profile(reactions, units, name):
     energies = calculate_reaction_profile_energies(reactions, units=units)
     zi_s = np.array(range(len(energies)))
 
-    # Minimise a set of spline points so the stationary points have y values given in the energies array
-    result = minimize(error_on_stationary_points, x0=energies, args=(energies,), method='BFGS')
+    try:
+        plot_smooth_profile(zi_s, energies, ax=ax)
 
-    # Use the optimised values to construct a spline function that will be plotted
-    optimised_spline = interpolate.CubicSpline(zi_s, result.x, bc_type='clamped')
-
-    # Create more zi values from slightly before the minimum to slightly after the maximum
-    fine_zi_s = np.linspace(min(zi_s) - 0.2, max(zi_s) + 0.2, num=500)
-
-    # The new zi values are the stationary points of the optimised function
-    zi_s = get_stationary_points(fine_zi_s, optimised_spline.derivative())
-
-    # Plot the function
-    ax.scatter(zi_s, optimised_spline(zi_s), c='b')
-    ax.plot(fine_zi_s, optimised_spline(fine_zi_s), c='k')
+    except CouldNotPlotSmoothProfile:
+        ax.plot(zi_s, energies, ls='--', c='k', marker='o')
 
     # Annotate the plot with the relative energies
     for i, energy in enumerate(energies):
@@ -147,12 +136,46 @@ def plot_reaction_profile(reactions, units, name):
     return save_plot(plt, filename=f'{name}_reaction_profile.png')
 
 
+def plot_smooth_profile(zi_s, energies, ax):
+    """
+    Plot a smooth reaction profile by spline interpolation and finding the stationary points. This will
+    not afford the correct number of stationary points for some energy arrays, so raise an exception if it fails
+
+    Arguments:
+        zi_s (np.ndarray): Estimate of reaction coordinate points
+        energies (np.ndarray): len(energies) = len(zi_s)
+        ax (matplotlib.axes.Axes):
+    """
+
+    # Minimise a set of spline points so the stationary points have y values given in the energies array
+    result = minimize(error_on_stationary_points, x0=energies, args=(energies,), method='BFGS', tol=0.1)
+
+    # Use the optimised values to construct a spline function that will be plotted
+    optimised_spline = interpolate.CubicSpline(zi_s, result.x, bc_type='clamped')
+
+    # Create more zi values from slightly before the minimum to slightly after the maximum
+    fine_zi_s = np.linspace(min(zi_s) - 0.2, max(zi_s) + 0.2, num=500)
+
+    # The new zi values are the stationary points of the optimised function
+    zi_s = get_stationary_points(fine_zi_s, optimised_spline.derivative())
+
+    if len(zi_s) != len(energies):
+        raise CouldNotPlotSmoothProfile
+
+    # Plot the function
+    ax.plot(fine_zi_s, optimised_spline(fine_zi_s), c='k')
+    ax.scatter(zi_s, optimised_spline(zi_s), c='b')
+
+    return None
+
+
 def get_reaction_profile_warnings(reactions):
     """Get a string of warnings for a reaction
 
     Arguments:
         reactions (list(autode.reaction.Reaction)):
     """
+    logger.info('Getting warnings for reaction profile')
     warnings = ''
 
     for reaction in reactions:
@@ -265,11 +288,17 @@ def error_on_stationary_points(x, energies):
 
     # Calculate the energy values at the stationary points of the function with a fine-ish spacing that extrapolates
     # slightly
-    fine_zi_s = np.linspace(min(zi_s)-0.2, max(zi_s)+0.2, num=100)
+    fine_zi_s = np.linspace(min(zi_s)-0.2, max(zi_s)+0.2, num=500)
     stationary_points = get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
+
+    if len(stationary_points) != len(energies):
+        # TODO make this smooth somehow
+        # Energy penalty for not having the required number of
+        return 10 * np.abs(len(energies) - len(stationary_points))
+
     energies_at_stationary_points = [spline(zi) for zi in stationary_points]
 
     # Return the error as the sum squared difference between the required and the observed stationary point energies
     energy_difference = energies - np.array(energies_at_stationary_points)
-    return np.sum(np.square(energy_difference))
 
+    return np.sum(np.square(energy_difference))
