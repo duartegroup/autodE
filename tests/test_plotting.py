@@ -94,16 +94,6 @@ def test_calculate_reaction_profile_energies():
     assert -0.1 < energies[3] < 0.1
     assert -41 < energies[4] < -39
 
-    # If reactants and products have been switched for a reaction then
-    # the energies in the reaction profile should be the correct order
-    reaction.switched_reacs_prods = True
-
-    energies = plotting.calculate_reaction_profile_energies(reactions=[reaction],
-                                                            units=KcalMol)
-    assert energies[0] == 0
-    assert 39 < energies[1] < 41
-    assert 19 < energies[2] < 21
-
 
 def test_reaction_warnings():
     test_reac = Reactant(name='test', smiles='C')

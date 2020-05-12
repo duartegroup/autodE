@@ -99,8 +99,8 @@ class Reaction:
         logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
         if self.type == reactions.Addition:
             self.type = reactions.Dissociation
+
         self.prods, self.reacs = self.reacs, self.prods
-        self.switched_reacs_prods = True
 
     def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
@@ -174,7 +174,15 @@ class Reaction:
     @work_in('transition_states')
     def locate_transition_state(self):
 
-        self.tss = find_tss(self)
+        # If there are more bonds in the product e.g. an addition reaction then switch as the TS is then easier to find
+        if sum(p.graph.number_of_edges() for p in self.prods) > sum(r.graph.number_of_edges() for r in self.reacs):
+            self.switch_reactants_products()
+            self.tss = find_tss(self)
+            self.switch_reactants_products()
+
+        else:
+            self.tss = find_tss(self)
+
         self.ts = self.find_lowest_energy_ts()
 
     @work_in('transition_states')
@@ -230,11 +238,6 @@ class Reaction:
 
         self._check_solvent()
         self._check_balance()
-
-        self.switched_reacs_prods = False               #: Have the reactants and products been switched
-        # If there are more bonds in the product e.g. an addition reaction then switch as the TS is then easier to find
-        if sum(p.graph.number_of_edges() for p in self.prods) > sum(r.graph.number_of_edges() for r in self.reacs):
-            self.switch_reactants_products()
 
         if self.type == reactions.Rearrangement:
             self._check_rearrangement()
@@ -332,11 +335,10 @@ class MultiStepReaction:
 
         def check_reaction(current_reaction, previous_reaction):
             """Check that the reactants of the current reaction are the same as the previous products. NOT exhaustive"""
-            prev_prods = previous_reaction.prods if not prev_reaction.switched_reacs_prods else prev_reaction.reacs
 
-            assert len(current_reaction.reacs) == len(prev_prods)
+            assert len(current_reaction.reacs) == len(previous_reaction.prods)
             n_reacting_atoms = sum(reac.n_atoms for reac in current_reaction.reacs)
-            n_prev_product_atoms = sum(prod.n_atoms for prod in prev_prods)
+            n_prev_product_atoms = sum(prod.n_atoms for prod in previous_reaction.prods)
             assert n_reacting_atoms == n_prev_product_atoms
 
         for i, r in enumerate(self.reactions):
@@ -346,9 +348,9 @@ class MultiStepReaction:
                 calculate(reaction=r, calc_reac_conformers=True)
 
             else:
-                prev_reaction = self.reactions[i-1]
-                check_reaction(current_reaction=r, previous_reaction=prev_reaction)
-                r.reacs = prev_reaction.prods if not prev_reaction.switched_reacs_prods else prev_reaction.reacs
+                # Set the reactants of this reaction as the previous set of products and don't recalculate conformers
+                check_reaction(current_reaction=r, previous_reaction=self.reactions[i-1])
+                r.reacs = self.reactions[i-1].prods
                 calculate(reaction=r)
 
         plot_reaction_profile(reactions=self.reactions, units=units, name=self.name)
