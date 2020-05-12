@@ -209,7 +209,7 @@ def calculate_reaction_profile_energies(reactions, units):
         reactions (list(autode.reaction.Reaction)):
         units (autode.units.Units):
     """
-    # Populate a list of reaction relative energies [reactants -> TS -> products], all floats.
+    # Populate a list of reaction relative energies [reactants -> TS -> products], all floats
     reaction_energies = []
 
     for reaction in reactions:
@@ -226,12 +226,7 @@ def calculate_reaction_profile_energies(reactions, units):
         if de_ddagger is None:
             de_ddagger = 0.0032 + max(0.0, de)
 
-        if not reaction.switched_reacs_prods:
-            reaction_energies.append([0.0, de_ddagger, de])
-
-        else:
-            # If reactants and products have been switched then correct to the forwards ∆E‡, ∆Er
-            reaction_energies.append([0.0, de_ddagger-de, -de])
+        reaction_energies.append([0.0, de_ddagger, de])
 
     # Construct the full list of energies, referenced to the first set of reactants
     energies = reaction_energies[0]
