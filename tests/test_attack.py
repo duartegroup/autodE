@@ -48,5 +48,5 @@ def test_attack():
     cost_trans_rot = get_cost_rotate_translate(x=np.array(x), reactant=reactant, subst_centres=[subst_centre],
                                                attacking_mol_idx=0)
 
-    # Requires a=1, b=1, c=10, d=1 in the attack_cost() called by get_cost_rotate_translate()
-    assert np.abs(cost_trans_rot - 2.919) < 1E-3
+    # Requires a=1, b=1, c=1, d=10 in the attack_cost() called by get_cost_rotate_translate()
+    assert np.abs(cost_trans_rot - 3.5072) < 1E-3
