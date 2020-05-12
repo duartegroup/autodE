@@ -41,7 +41,7 @@ class ORCA(ElectronicStructureMethod):
                     keywords.append('NumFreq')
                     qmmm_freq = True
 
-        if opt_or_sp and calc.solvent_keyword in vdw_gaussian_solvent_dict.keys():
+        if calc.solvent_keyword in vdw_gaussian_solvent_dict.keys():
             keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
 
         with open(calc.input_filename, 'w') as inp_file:
@@ -50,8 +50,6 @@ class ORCA(ElectronicStructureMethod):
             if calc.solvent_keyword:
                 if calc.solvent_keyword in vdw_gaussian_solvent_dict.keys() and opt_or_sp:
                     print('%cpcm\n surfacetype vdw_gaussian\nend', file=inp_file)
-                else:
-                    print('%cpcm\nsmd true\nSMDsolvent \"' + calc.solvent_keyword + '\"\nend', file=inp_file)
 
             max_iter_done = False
             if calc.other_input_block:
@@ -128,6 +126,36 @@ class ORCA(ElectronicStructureMethod):
         for line in calc.rev_output_file_lines:
             if 'FINAL SINGLE POINT ENERGY' in line:
                 return float(line.split()[4])
+
+    def get_enthalpy(self, calc):
+        """Get the enthalpy (H) from an ORCA calculation output"""
+
+        for line in calc.rev_output_file_lines:
+            if 'Total Enthalpy' in line:
+
+                try:
+                    return float(line.split()[-2])
+
+                except ValueError:
+                    break
+
+        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        return None
+
+    def get_free_energy(self, calc):
+        """Get the Gibbs free energy (G) from an ORCA calculation output"""
+
+        for line in calc.rev_output_file_lines:
+            if 'Final Gibbs free enthalpy' in line:
+
+                try:
+                    return float(line.split()[-2])
+
+                except ValueError:
+                    break
+
+        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        return None
 
     def optimisation_converged(self, calc):
 

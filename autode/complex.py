@@ -3,10 +3,14 @@ import numpy as np
 from scipy.spatial import distance_matrix
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.log import logger
-from autode.mol_graphs import make_graph
+from autode.geom import get_points_on_sphere
 from autode.mol_graphs import union
 from autode.species import Species
 from autode.utils import requires_atoms
+from autode.config import Config
+from autode.methods import get_lmethod
+from autode.conformers import Conformer
+from autode.exceptions import MethodUnavailable
 
 
 class Complex(Species):
@@ -19,6 +23,93 @@ class Complex(Species):
         last_index = sum([mol.n_atoms for mol in self.molecules[:mol_index + 1]])
 
         return list(range(first_index, last_index))
+
+    def _generate_conformers(self):
+        """
+        Generate rigid body conformers of a complex by (1) Fixing the first molecule, (2) initialising the second
+        molecule's COM evenly on the points of a sphere around the first with a random rotation and (3) iterating
+        until all molecules in the complex have been added
+        """
+        if len(self.molecules) < 2:
+            # Single (or zero) molecule complex only has a single *rigid body* conformer
+            self.conformers = [Conformer(name=f'{self.name}', atoms=self.atoms, charge=self.charge, mult=self.mult)]
+
+            return None
+
+        if len(self.molecules) > 2:
+            # TODO recursive call for > 2 molecules
+            raise NotImplementedError
+
+        self.conformers = []
+        n = 0
+
+        # First molecule is static so get those atoms with the centroid at the origin
+        first_mol_atoms = deepcopy(self.molecules[0].atoms)
+        fist_mol_centroid = np.average(self.molecules[0].get_coordinates(), axis=0)
+
+        for atom in first_mol_atoms:
+            atom.coord -= fist_mol_centroid
+
+        first_mol_coords = np.array([atom.coord for atom in first_mol_atoms])
+
+        mol_centroid = np.average(self.molecules[1].get_coordinates(), axis=0)
+
+        for _ in range(Config.num_complex_random_rotations):
+            rotated_atoms = deepcopy(self.molecules[1].atoms)
+
+            # Shift the molecule to the origin then rotate randomly
+            theta, axis = np.random.uniform(0.0, 2.0*np.pi), np.random.uniform(-1.0, 1.0, size=3)
+            for atom in rotated_atoms:
+                atom.translate(vec=-mol_centroid)
+                atom.rotate(axis, theta)
+
+            # For every point generated on the surface on a unit sphere
+            for point in get_points_on_sphere(n_points=Config.num_complex_sphere_points):
+                shifted_atoms = deepcopy(rotated_atoms)
+
+                far_enough_apart = False
+
+                # Shift the molecule by 0.1 Å in the direction of the point (which has length 1) until the
+                # minimum distance to the rest of the complex is 2.0 Å
+                while not far_enough_apart:
+
+                    for atom in shifted_atoms:
+                        atom.coord += point * 0.1
+
+                    mol_coords = np.array([atom.coord for atom in shifted_atoms])
+
+                    if np.min(distance_matrix(first_mol_coords, mol_coords)) > 2.0:
+                        far_enough_apart = True
+
+                conformer = Conformer(name=f'{self.name}_conf{n}', atoms=first_mol_atoms+shifted_atoms,
+                                      charge=self.charge, mult=self.mult)
+
+                self.conformers.append(conformer)
+                n += 1
+
+        logger.info(f'Generated {n} conformers')
+        return None
+
+    def populate_conformers(self):
+        """
+        Generate and optimise with a low level method a set of conformers, the number of which is
+        Config.num_complex_sphere_points ×  Config.num_complex_random_rotations × (n molecules in complex - 1)
+        """
+        n_confs = Config.num_complex_sphere_points * Config.num_complex_random_rotations * (len(self.molecules) - 1 )
+        logger.info(f'Generating and optimising {n_confs} conformers of {self.name}')
+
+        self._generate_conformers()
+
+        try:
+            lmethod = get_lmethod()
+            for conformer in self.conformers:
+                conformer.optimise(method=lmethod)
+                conformer.print_xyz_file()
+
+        except MethodUnavailable:
+            logger.error('Could not optimise complex conformers')
+
+        return None
 
     @requires_atoms()
     def translate_mol(self, vec, mol_index):
@@ -79,6 +170,12 @@ class Complex(Species):
     def __init__(self, *args, name='complex'):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
+
+        Arguments:
+            *args (autode.species.Species):
+
+        Keyword Arguments:
+            name (str):
         """
         self.molecules = args
         self.molecule_atom_indexes = []
@@ -93,23 +190,19 @@ class Complex(Species):
 
         super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
 
-        self.solvent = self.molecules[0].solvent
+        self.solvent = self.molecules[0].solvent if len(self.molecules) > 0 else None
+
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 
 class ReactantComplex(Complex):
 
     def run_const_opt(self, const_opt, method=None, n_cores=None):
-        """Run a constrained optimisation of the ReactantComplex"""
+        """Run a constrained optimisation using a const_opt calculation and set the new structure"""
         const_opt.run()
 
-        atoms = const_opt.get_final_atoms()
-        energy = const_opt.get_energy()
-
-        # Set the energy, new set of atoms then make the molecular graph
-        self.energy = energy
-        self.set_atoms(atoms=atoms)
-        make_graph(species=self)
+        self.energy = const_opt.get_energy()
+        self.set_atoms(atoms=const_opt.get_final_atoms())
 
         return None
 
@@ -124,12 +217,11 @@ class SolvatedReactantComplex(Complex):
         """Run a constrained optimisation of the ReactantComplex"""
         self.qm_solvent_atoms = None
         self.mm_solvent_atoms = None
+        const_opt.molecule = deepcopy(self)
         const_opt.run()
 
-        atoms = const_opt.get_final_atoms()
-
         # Set the energy, new set of atoms then make the molecular graph
-        self.set_atoms(atoms=atoms)
+        self.set_atoms(atoms=const_opt.get_final_atoms())
 
         for i, charge in enumerate(const_opt.get_atomic_charges()):
             self.graph.nodes[i]['charge'] = charge
@@ -137,7 +229,6 @@ class SolvatedReactantComplex(Complex):
         energy, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=n_cores)
         self.energy = energy
         self.set_atoms(species_atoms)
-        make_graph(species=self)
         self.qm_solvent_atoms = qm_solvent_atoms
         self.mm_solvent_atoms = mm_solvent_atoms
 
@@ -150,11 +241,18 @@ class SolvatedReactantComplex(Complex):
         self.mm_solvent_atoms = None
 
 
+class NCIComplex(Complex):
+    pass
+
+
 def get_complexes(reaction):
-    """Creates Reactant and Product complexes for the reaction. If it is a SolvatedReaction, a SolvatedReactantComplex is returned"""
+    """Creates Reactant and Product complexes for the reaction. If it is a SolvatedReaction,
+    a SolvatedReactantComplex is returned"""
+
     if reaction.__class__.__name__ == 'SolvatedReaction':
-        reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name='r')
+        reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name=f'{str(reaction)}_reactant')
     else:
-        reac = ReactantComplex(*reaction.reacs, name='r')
-    prod = ProductComplex(*reaction.prods, name='p')
+        reac = ReactantComplex(*reaction.reacs, name=f'{str(reaction)}_reactant')
+
+    prod = ProductComplex(*reaction.prods, name=f'{str(reaction)}_product')
     return reac, prod

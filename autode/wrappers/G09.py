@@ -185,12 +185,28 @@ class G09(ElectronicStructureMethod):
 
         return False
 
-    def get_energy(self, calc):
+    def get_enthalpy(self, calc):
+        """Get the enthalpy (H) from an g09 calculation output"""
+
         for line in calc.rev_output_file_lines:
-            # if 'Sum of electronic and thermal Enthalpies' in line:
-            #     return float(line.split()[-1])
+            if 'Sum of electronic and thermal Enthalpies' in line:
+                return float(line.split()[-1])
+
+        logger.error('Could not get the enthalpy from the calculation. Was a frequency requested?')
+        return None
+
+    def get_free_energy(self, calc):
+        """Get the Gibbs free energy (G) from an g09 calculation output"""
+
+        for line in calc.rev_output_file_lines:
             if 'Sum of electronic and thermal Free Energies' in line:
                 return float(line.split()[-1])
+
+        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        return None
+
+    def get_energy(self, calc):
+        for line in calc.rev_output_file_lines:
             if 'SCF Done' in line:
                 return float(line.split()[4])
             if 'E(CORR)' in line:
@@ -201,6 +217,8 @@ class G09(ElectronicStructureMethod):
                 return float(line.split()[4])
             if 'E(CIS(D))' in line:
                 return float(line.split()[5])
+
+        return None
 
     def optimisation_converged(self, calc):
         for line in calc.rev_output_file_lines:
@@ -247,7 +265,7 @@ class G09(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         # mode numbers start at 1, not 6
         mode_number -= 5
-        normal_mode_section, displacements = False, []
+        normal_mode_section, correct_mode_section, displacements = False, False, []
 
         for j, line in enumerate(calc.output_file_lines):
             if 'normal coordinates' in line:
@@ -257,19 +275,16 @@ class G09(ElectronicStructureMethod):
             if 'Thermochemistry' in line:
                 normal_mode_section = False
 
-            if normal_mode_section:
-                if len(line.split()) == 3:
-                    try:
-                        mode_numbers = [int(val) for val in line.split()]
-                        if mode_number in mode_numbers:
-                            start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
-                            for i in range(calc.molecule.n_atoms):
-                                disp_line = calc.output_file_lines[j + 7 + i]
-                                xyz_disp = [float(disp_line.split()[k])
-                                            for k in range(start_col, start_col + 3)]
-                                displacements.append(xyz_disp)
-                    except ValueError:
-                        pass
+            if correct_mode_section and len(line.split()) > 3 and line.split()[0].isdigit():
+                displacements.append([float(line.split()[k]) for k in range(start_col, start_col + 3)])
+
+            if normal_mode_section and len(line.split()) == 3 and line.split()[0].isdigit():
+                mode_numbers = [int(n) for n in line.split()]
+                if mode_number in mode_numbers:
+                    correct_mode_section = True
+                    start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
+                else:
+                    correct_mode_section = False
 
         if len(displacements) != calc.molecule.n_atoms:
             logger.error('Something went wrong getting the displacements n != n_atoms')

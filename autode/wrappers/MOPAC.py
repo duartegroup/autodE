@@ -145,6 +145,12 @@ class MOPAC(ElectronicStructureMethod):
 
         return False
 
+    def get_enthalpy(self, calc):
+        raise NotImplementedError
+
+    def get_free_energy(self, calc):
+        raise NotImplementedError
+
     def get_energy(self, calc):
         for line in calc.output_file_lines:
             if 'TOTAL ENERGY' in line:

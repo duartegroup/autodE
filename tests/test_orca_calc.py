@@ -117,6 +117,9 @@ def test_orca_optts_calculation():
     assert len(gradients) == 5
     assert len(gradients[0]) == 3
 
+    assert -599.437 < calc.get_enthalpy() < -599.436
+    assert -599.469 < calc.get_free_energy() < -599.468
+
     os.remove('test_ts_reopt_optts_orca.inp')
     os.chdir(here)
 

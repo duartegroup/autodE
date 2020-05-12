@@ -4,11 +4,11 @@ from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.exceptions import RDKitFailed
-from autode.exceptions import BondsInSMILESAndGraphDontMatch
 from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
 from autode.smiles_parser import SmilesParser
+from copy import deepcopy
 
 
 def calc_multiplicity(molecule, n_radical_electrons):
@@ -57,18 +57,16 @@ def init_organic_smiles(molecule, smiles):
     bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in molecule.rdkit_mol_obj.GetBonds()]
 
     # Generate a single 3D structure using RDKit's ETKDG conformer generation algorithm
-    AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=AllChem.ETKDGv2())
+    method = AllChem.ETKDGv2()
+    method.randomSeed = 0xf00d
+    AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=method)
     molecule.set_atoms(atoms=get_atoms_from_rdkit_mol_object(molecule.rdkit_mol_obj, conf_id=0))
+    make_graph(molecule, bond_list=bonds)
 
     if not are_coords_reasonable(coords=molecule.get_coordinates()):
         logger.warning('RDKit conformer was not reasonable')
         molecule.rdkit_conf_gen_is_fine = False
-
-        make_graph(molecule, bond_list=bonds)
         molecule.set_atoms(atoms=get_simanl_atoms(molecule))
-
-    # Ensure the SMILES string and the 3D structure have the same bonds
-    make_graph(molecule)
 
     for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
         molecule.graph.nodes[atom]['stereo'] = True
@@ -80,8 +78,7 @@ def init_organic_smiles(molecule, smiles):
             molecule.graph.nodes[bond.GetBeginAtomIdx()]['stereo'] = True
             molecule.graph.nodes[bond.GetEndAtomIdx()]['stereo'] = True
 
-    if len(molecule.rdkit_mol_obj.GetBonds()) != molecule.graph.number_of_edges():
-        logger.error('Bonds and graph do no match')
+    check_bonds(molecule, bonds=molecule.rdkit_mol_obj.GetBonds())
 
     return None
 
@@ -106,7 +103,7 @@ def init_smiles(molecule, smiles):
 
     molecule.set_atoms(atoms=parser.atoms)
 
-    make_graph(molecule, bond_list=parser.bonds, allow_invalid_valancies=False)
+    make_graph(molecule, bond_list=parser.bonds)
 
     for stereocentre in parser.stereocentres:
         molecule.graph.nodes[stereocentre]['stereo'] = True
@@ -115,11 +112,23 @@ def init_smiles(molecule, smiles):
         molecule.graph.edges[bond]['pi'] = True
 
     molecule.set_atoms(atoms=get_simanl_atoms(molecule))
+    check_bonds(molecule, bonds=parser.bonds)
 
-    # Ensure the SMILES string and the 3D structure have the same bonds
-    make_graph(molecule, allow_invalid_valancies=False)
+    return None
 
-    if len(parser.bonds) != molecule.graph.number_of_edges():
+
+def check_bonds(molecule, bonds):
+    """
+    Ensure the SMILES string and the 3D structure have the same bonds, but don't override
+
+    Arguments:
+        molecule (autode.molecule.Molecule):
+        bonds (list):
+    """
+    check_molecule = deepcopy(molecule)
+    make_graph(check_molecule)
+
+    if len(bonds) != check_molecule.graph.number_of_edges():
         logger.error('Bonds and graph do no match')
 
     return None

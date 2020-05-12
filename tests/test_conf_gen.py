@@ -113,7 +113,7 @@ def test_chiral_rotation(tmpdir):
         #     regen.print_xyz_file(filename=os.path.join(here, 'regen.xyz'))
 
         # RMSD on the 5 atoms should be < 0.5 Å
-        assert calc_rmsd(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs]) < 0.5
+        assert calc_rmsd(coords1=coords[centre_idxs], coords2=regen_coords[centre_idxs]) < 0.5
 
     os.chdir(here)
 

@@ -5,7 +5,7 @@ class Config:
     # ----------------------------------------------------------------------------------------------
     # Total number of cores available
     #
-    n_cores = 8
+    n_cores = 4
     #
     # ----------------------------------------------------------------------------------------------
     # Per core memory available in MB
@@ -37,18 +37,30 @@ class Config:
     high_quality_plots = True
     #
     # ----------------------------------------------------------------------------------------------
-    # RMSD in angstroms threshold for conformers
+    # RMSD in angstroms threshold for conformers. Larger values will remove more conformers that
+    # need to be calculated but also reduces the chance that the lowest energy conformer is found
     #
-    rmsd_threshold = 0.5
+    rmsd_threshold = 0.3
     #
     # ----------------------------------------------------------------------------------------------
-    # Total number of conformers generated in find_lowest_energy_conformer()
+    # Total number of conformers generated in find_lowest_energy_conformer() for single molecules/TSs
     #
     num_conformers = 300
     # ----------------------------------------------------------------------------------------------
     # Maximum random displacement in angstroms for conformational searching
     #
     max_atom_displacement = 4.0
+    # ----------------------------------------------------------------------------------------------
+    # Number of evenly spaced points on a sphere that will be used to generate NCI and Reactant/
+    # Product complex conformers. Total number of conformers will be:
+    # num_complex_sphere_points × num_complex_random_rotations × (n molecules in complex - 1)
+    #
+    num_complex_sphere_points = 4
+    # ----------------------------------------------------------------------------------------------
+    # Number of random rotations of a molecule that is added to a NCI or Reactant/Product complex;
+    # larger numbers will be slower, but more likely to find the minimum
+    #
+    num_complex_random_rotations = 10
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:

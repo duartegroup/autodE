@@ -18,6 +18,7 @@ from autode.mol_graphs import reorder_nodes
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
 from autode.reactions import Substitution, Elimination
+from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
 from autode.substitution import get_substitution_centres
 
@@ -34,7 +35,12 @@ def find_tss(reaction):
     logger.info('Finding possible transition states')
 
     reactant, product = get_complexes(reaction)
-    bond_rearrangs = get_bond_rearrangs(reactant, product, name=reaction.name)
+
+    if species_are_isomorphic(reactant, product):
+        logger.error('Reactant and product complexes are isomorphic. Cannot find a TS')
+        return None
+
+    bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
 
     if bond_rearrangs is None:
         logger.error('Could not find a set of forming/breaking bonds')
@@ -48,12 +54,12 @@ def find_tss(reaction):
         if ts is not None:
             tss.append(ts)
 
-    if len(tss) > 0:
-        logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
-        return tss
+    if len(tss) == 0:
+        logger.error('Did not find any transition state(s)')
+        return None
 
-    logger.error('Did not find any transition state(s)')
-    return None
+    logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
+    return tss
 
 
 def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
@@ -68,13 +74,11 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
     Returns:
         (list): updated funcs and params list
     """
-    name = f'{reaction.name}_{"+".join([r.name for r in reaction.reacs])}--{"+".join([p.name for p in reaction.prods])}'
+    name = str(reaction)
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
     # Ideally use a transition state template, then only a single constrained optimisation need to be run...
-
-    # TODO currently if there is already a template we still do the truncation first
     yield get_template_ts_guess, (reactant, product, bond_rearr, f'{name}_template_{bond_rearr}', hmethod, hmethod.keywords.low_opt)
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a transition state guess cheap -> most expensive
@@ -279,7 +283,7 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
     translate_rotate_reactant(reactant, bond_rearrangement,
                               shift_factor=1.5 if reactant.charge == 0 else 2.5)
 
-    # There are multiple methods of finding a transtion state. Iterate through from the cheapest -> most expensive
+    # There are multiple methods of finding a transition state. Iterate through from the cheapest -> most expensive
     for func, params in get_ts_guess_function_and_params(reaction, reactant, product, bond_rearrangement):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)

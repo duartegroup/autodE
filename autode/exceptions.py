@@ -86,3 +86,7 @@ class CouldNotGetProperty(Exception):
 
 class CannotSplitAcrossBond(Exception):
     """Exception for when a molecule cannot be partitioned by deleting one bond"""
+
+
+class CouldNotPlotSmoothProfile(Exception):
+    """Exception for when smooth plotting fails"""
