@@ -55,7 +55,7 @@ class Config:
     # Product complex conformers. Total number of conformers will be:
     # num_complex_sphere_points × num_complex_random_rotations × (n molecules in complex - 1)
     #
-    num_complex_sphere_points = 4
+    num_complex_sphere_points = 10
     # ----------------------------------------------------------------------------------------------
     # Number of random rotations of a molecule that is added to a NCI or Reactant/Product complex;
     # larger numbers will be slower, but more likely to find the minimum

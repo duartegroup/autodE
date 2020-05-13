@@ -14,6 +14,7 @@ from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
+from autode.transition_states.templates import template_matches
 from autode.wrappers.G09 import G09
 import os
 here = os.path.dirname(os.path.abspath(__file__))
@@ -84,9 +85,12 @@ def test_links_reacs_prods():
     # Should find the completed calculation output
     tsguess.calc.run()
 
-    # No need to spoof an xtb install as reactant/product complex optimisation should be skipped
+    # Spoof an xtb install as reactant/product complex optimisation
     Config.lcode = 'xtb'
-    Config.XTB.path = None
+    Config.XTB.path = here
+
+    Config.num_complex_sphere_points = 4
+    Config.num_complex_random_rotations = 1
 
     assert imag_mode_links_reactant_products(calc=tsguess.calc,
                                              reactant=reac_complex,
@@ -139,3 +143,52 @@ def test_isomorphic_reactant_product():
     reaction.locate_transition_state()
 
     assert reaction.ts is None
+
+
+def test_find_tss():
+
+    os.chdir(os.path.join(here, 'data', 'locate_ts'))
+    Config.num_conformers = 1
+
+    # Spoof ORCA and XTB installs
+    Config.ORCA.path = here
+    Config.XTB.path = None
+    Config.make_ts_template = False
+    Config.num_complex_sphere_points = 2
+    Config.num_complex_random_rotations = 1
+
+    # Simple rearrangement reaction
+    r = Reactant(smiles='CC[C]([H])[H]', name='r')
+    p1 = Product(smiles='C[C]([H])C', name='p1')
+
+    reaction = Reaction(r, p1, solvent_name='water')
+    # Will work in data/transition_states
+    reaction.locate_transition_state()
+
+    assert reaction.ts is not None
+    os.chdir(os.path.join(here, 'data', 'locate_ts', 'transition_states'))
+    assert reaction.ts.is_true_ts()
+
+    reaction.ts.save_ts_template(folder_path=os.getcwd())
+    assert os.path.exists('template0.obj')
+
+    # There should now be a saved template
+    templates = get_ts_templates(folder_path=os.getcwd())
+    assert len(templates) == 1
+
+    template = templates[0]
+    assert template.solvent.name == 'water'
+    assert template.mult == 2
+    assert template.charge == 0
+
+    # Truncated graph has 7 atoms in
+    assert template.graph.number_of_nodes() == 7
+
+    os.remove('template0.obj')
+    os.chdir(here)
+
+
+def test_ts_templates():
+
+    templates = get_ts_templates(folder_path='/a/path/that/doesnt/exist')
+    assert len(templates) == 0

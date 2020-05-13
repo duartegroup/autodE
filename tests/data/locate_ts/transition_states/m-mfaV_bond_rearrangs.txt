@@ -1,0 +1,5 @@
+fbonds
+2 6
+bbonds
+1 6
+end

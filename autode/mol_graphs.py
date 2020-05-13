@@ -172,9 +172,13 @@ def species_are_isomorphic(species1, species2):
         return False
 
     # Conformers don't necessarily have molecular graphs, so make them all
+    logger.disabled = True
+
     for species in (species1, species2):
         for conformer in species.conformers:
             make_graph(conformer)
+
+    logger.disabled = False
 
     # Check on all the pairwise combinations of species conformers looking for an isomorphism
     for conformer1 in species1.conformers:
