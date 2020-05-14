@@ -64,10 +64,12 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
     return atoms
 
 
-def add_dist_consts_across_stereocentres(species, dist_consts):
+def add_dist_consts_for_stereocentres(species, dist_consts):
     """
     Add distances constraints across two bonded stereocentres, for example for a Z alkene, (hopefully) ensuring
-    that in the conformer generation the stereochemistry is retained
+    that in the conformer generation the stereochemistry is retained. Will also add distance constraints from
+    one nearest neighbour to the other nearest neighbours for that chiral centre
+
     Arguments:
         species (autode.species.Species):
         dist_consts (dict): keyed with tuple of atom indexes and valued with the distance (Å), or None
@@ -76,6 +78,17 @@ def add_dist_consts_across_stereocentres(species, dist_consts):
 
     if dist_consts is None:
         dist_consts = {}
+
+    # Get the stereocentres with 4 bonds as ~ chiral centres
+    chiral_centres = [centre for centre in stereocentres if len(list(species.graph.neighbors(centre))) == 4]
+
+    # Add distance constraints from one atom to the other 3 atoms to fix the configuration
+    for chiral_centre in chiral_centres:
+        neighbors = list(species.graph.neighbors(chiral_centre))
+        atom_i = neighbors[0]
+
+        for atom_j in neighbors[1:]:
+            dist_consts[(atom_i, atom_j)] = species.get_distance(atom_i, atom_j)
 
     # Check on every pair of stereocenters
     for (atom_i, atom_j) in combinations(stereocentres, 2):
@@ -152,7 +165,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
 
     # Add distance constraints across stereocentres e.g. for a Z double bond then modify d0 appropriately
-    dist_consts = add_dist_consts_across_stereocentres(species=species, dist_consts=dist_consts)
+    dist_consts = add_dist_consts_for_stereocentres(species=species, dist_consts=dist_consts)
 
     constrained_bonds = []
     for bond, length in dist_consts.items():

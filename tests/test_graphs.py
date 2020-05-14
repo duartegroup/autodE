@@ -1,14 +1,23 @@
 from autode import mol_graphs
 from autode.bond_rearrangement import BondRearrangement
+from autode.exceptions import NoMolecularGraph
 from autode.species import Species
 from autode.atoms import Atom
+from autode.conformers import Conformer
 import networkx as nx
+import numpy as np
+import pytest
 
 h_a = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)
 h_b = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.7)
 
 h2 = Species(name='H2', atoms=[h_a, h_b], charge=0, mult=1)
 mol_graphs.make_graph(h2)
+
+g = nx.Graph()
+edges = [(0, 1), (1, 2), (2, 0), (0, 3), (3, 4)]
+for edge in edges:
+    g.add_edge(*edge)
 
 
 def test_graph_generation():
@@ -123,27 +132,13 @@ def test_mapping():
     assert type(mapping) == dict
 
 
-def test_approx_isomorphic():
+def test_not_isomorphic():
 
     h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.8)
     h2_b = Species(name='template', charge=0, mult=1, atoms=[h_a, h_c])
     mol_graphs.make_graph(species=h2_b, rel_tolerance=0.3)
 
-    # Long H-H bond should be isomorphic ish
     assert mol_graphs.is_isomorphic(h2.graph, h2_b.graph) is False
-    assert mol_graphs.is_isomorphic_ish(h2_b, graph=h2.graph)
-
-    # Graph with one more bond should be isomorphic ish, any interaction does not check on energy
-    # differences
-    c3_linear = Species(name='c3_lin', charge=0, mult=1,
-                        atoms=[Atom('C', 0, 0, 0), Atom('C', 0, 0, 1.1), Atom('C', 0, 0, 2.2)])
-    mol_graphs.make_graph(c3_linear)
-
-    c3_trig = Species(name='c3_lin', charge=0, mult=1,
-                      atoms=[Atom('C', 0, 0, 0), Atom('C', 0, 0, 1.1), Atom('C', 0, 0.65, 0.45)])
-    mol_graphs.make_graph(c3_trig)
-
-    assert mol_graphs.is_isomorphic_ish(c3_trig, graph=c3_linear.graph, any_interaction=True)
 
 
 def test_not_isomorphic():
@@ -153,12 +148,6 @@ def test_not_isomorphic():
     mol_graphs.make_graph(ch)
 
     assert mol_graphs.is_isomorphic(h2.graph, ch.graph) is False
-
-
-g = nx.Graph()
-edges = [(0, 1), (1, 2), (2, 0), (0, 3), (3, 4)]
-for edge in edges:
-    g.add_edge(*edge)
 
 
 def test_find_cycles():
@@ -206,3 +195,32 @@ def test_set_pi_bonds():
 
     assert acetylene.graph.edges[0, 1]['pi'] is True
     assert acetylene.graph.edges[0, 2]['pi'] is False
+
+
+def test_species_isomorphism():
+
+    h2.graph = None
+    h2_copy = Species(name='H2', atoms=[h_a, h_b], charge=0, mult=1)
+    h2_copy.graph = None
+
+    with pytest.raises(NoMolecularGraph):
+        assert mol_graphs.species_are_isomorphic(h2, h2_copy)
+
+    # With molecular graphs the species should be isomorphic
+    mol_graphs.make_graph(h2)
+    mol_graphs.make_graph(h2_copy)
+
+    assert mol_graphs.species_are_isomorphic(h2, h2_copy)
+
+    # Shift one of the atoms far away and remake the graph
+    h2_copy.atoms[1].translate(vec=np.array([10, 0, 0]))
+    mol_graphs.make_graph(h2_copy)
+
+    assert mol_graphs.species_are_isomorphic(h2, h2_copy) is False
+
+    # Generating a pair of conformers that are isomporhpic should return that the species are
+    # again isomorphic
+    h2.conformers = [Conformer(name='h2_conf', atoms=[h_a, h_b], charge=0, mult=1)]
+    h2_copy.conformers = [Conformer(name='h2_conf', atoms=[h_a, h_b], charge=0, mult=1)]
+
+    assert mol_graphs.species_are_isomorphic(h2, h2_copy)

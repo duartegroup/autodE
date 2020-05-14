@@ -99,22 +99,24 @@ class Reaction:
         logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
         if self.type == reactions.Addition:
             self.type = reactions.Dissociation
-        self.prods, self.reacs = self.reacs, self.prods
-        self.switched_reacs_prods = True
 
-    def calc_delta_e(self, units=KcalMol):
+        self.prods, self.reacs = self.reacs, self.prods
+
+    def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
 
         Returns:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
-        products_energy = sum(filter(None, [p.energy for p in self.prods]))
-        reactants_energy = sum(filter(None, [r.energy for r in self.reacs]))
 
-        return units.conversion * (products_energy - reactants_energy)
+        if any(mol.energy is None for mol in self.reacs + self.prods):
+            logger.error('Cannot calculate ∆Er. At least one required energy was None')
+            return None
 
-    def calc_delta_e_ddagger(self, units=KcalMol):
+        return sum([p.energy for p in self.prods]) - sum([r.energy for r in self.reacs])
+
+    def calc_delta_e_ddagger(self):
         """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
 
         Returns:
@@ -122,13 +124,14 @@ class Reaction:
         """
         logger.info('Calculating ∆E‡')
         if self.ts is None:
+            logger.error('No TS, cannot calculate ∆E‡')
             return None
 
-        if self.ts.energy is None:
-            logger.error('TS had no energy. Setting ∆E‡ = None')
+        if self.ts.energy is None or any(r.energy is None for r in self.reacs):
+            logger.error('TS or a reactant had no energy, cannot calculate ∆E‡')
             return None
 
-        return units.conversion * (self.ts.energy - sum(filter(None, [r.energy for r in self.reacs])))
+        return self.ts.energy - sum([r.energy for r in self.reacs])
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.pes1d choose the lowest energy if there is more than one
@@ -171,7 +174,15 @@ class Reaction:
     @work_in('transition_states')
     def locate_transition_state(self):
 
-        self.tss = find_tss(self)
+        # If there are more bonds in the product e.g. an addition reaction then switch as the TS is then easier to find
+        if sum(p.graph.number_of_edges() for p in self.prods) > sum(r.graph.number_of_edges() for r in self.reacs):
+            self.switch_reactants_products()
+            self.tss = find_tss(self)
+            self.switch_reactants_products()
+
+        else:
+            self.tss = find_tss(self)
+
         self.ts = self.find_lowest_energy_ts()
 
     @work_in('transition_states')
@@ -205,15 +216,7 @@ class Reaction:
             reaction.find_lowest_energy_ts_conformer()
             reaction.calculate_single_points()
 
-            plot_reaction_profile(e_reac=0.0,
-                                  e_ts=reaction.calc_delta_e_ddagger(units=units),
-                                  e_prod=reaction.calc_delta_e(units=units),
-                                  units=units,
-                                  reacs=reaction.reacs,
-                                  prods=reaction.prods,
-                                  ts=reaction.ts,
-                                  switched=reaction.switched_reacs_prods,
-                                  reaction_name=self.name)
+            plot_reaction_profile(reactions=[reaction], units=units, name=self.name)
             return None
 
         return calculate(self)
@@ -235,11 +238,6 @@ class Reaction:
 
         self._check_solvent()
         self._check_balance()
-
-        self.switched_reacs_prods = False               #: Have the reactants and products been switched
-        # If there are more bonds in the product e.g. an addition reaction then switch as the TS is then easier to find
-        if sum(p.graph.number_of_edges() for p in self.prods) > sum(r.graph.number_of_edges() for r in self.reacs):
-            self.switch_reactants_products()
 
         if self.type == reactions.Rearrangement:
             self._check_rearrangement()
@@ -316,7 +314,7 @@ class SolvatedReaction(Reaction):
 
 class MultiStepReaction:
 
-    def calculate_reaction_profile(self):
+    def calculate_reaction_profile(self, units=KcalMol):
         """Calculate a multistep reaction profile using the products of step 1 as the reactants of step 2 etc."""
         logger.info('Calculating reaction profile')
 
@@ -337,6 +335,7 @@ class MultiStepReaction:
 
         def check_reaction(current_reaction, previous_reaction):
             """Check that the reactants of the current reaction are the same as the previous products. NOT exhaustive"""
+
             assert len(current_reaction.reacs) == len(previous_reaction.prods)
             n_reacting_atoms = sum(reac.n_atoms for reac in current_reaction.reacs)
             n_prev_product_atoms = sum(prod.n_atoms for prod in previous_reaction.prods)
@@ -349,11 +348,12 @@ class MultiStepReaction:
                 calculate(reaction=r, calc_reac_conformers=True)
 
             else:
+                # Set the reactants of this reaction as the previous set of products and don't recalculate conformers
                 check_reaction(current_reaction=r, previous_reaction=self.reactions[i-1])
                 r.reacs = self.reactions[i-1].prods
                 calculate(reaction=r)
 
-        # TODO add plotting
+        plot_reaction_profile(reactions=self.reactions, units=units, name=self.name)
         return None
 
     def __init__(self, *args, name='reaction'):

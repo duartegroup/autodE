@@ -71,9 +71,9 @@ class TransitionState(TSbase):
 
         return
 
-    def _generate_conformers(self, n_confs=300):
+    def _generate_conformers(self, n_confs=None):
         """Generate conformers at the TS """
-
+        n_confs = Config.num_conformers if n_confs is None else n_confs
         self.conformers = []
 
         distance_consts = get_distance_constraints(self)
@@ -83,7 +83,8 @@ class TransitionState(TSbase):
             conf_atoms_list = [res.get(timeout=None) for res in results]
 
         for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge, mult=self.mult, atoms=atoms, dist_consts=distance_consts)
+            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge, mult=self.mult, atoms=atoms,
+                             dist_consts=distance_consts)
 
             # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):

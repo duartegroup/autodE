@@ -82,7 +82,7 @@ def get_substitution_centres(reactant, bond_rearrangement, shift_factor):
     return subst_centers
 
 
-def attack_cost(reactant, subst_centres, attacking_mol_idx, a=1.0, b=1.0, c=10.0, d=1.0):
+def attack_cost(reactant, subst_centres, attacking_mol_idx, a=1.0, b=1.0, c=1.0, d=10.0):
     """
     Calculate the 'attack cost' for a molecule attacking in e.g. a substitution or elimination reaction.
 
@@ -145,4 +145,3 @@ def get_cost_rotate_translate(x, reactant, subst_centres, attacking_mol_idx):
     moved_reactant.rotate_mol(axis=x[7:10], theta=x[10], mol_index=attacking_mol_idx)
 
     return attack_cost(moved_reactant, subst_centres, attacking_mol_idx)
-

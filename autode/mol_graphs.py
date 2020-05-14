@@ -11,6 +11,7 @@ from autode.bond_lengths import get_avg_bond_length
 from autode.calculation import Calculation
 from autode.log import logger
 from autode.exceptions import CannotSplitAcrossBond
+from autode.exceptions import NoMolecularGraph
 from autode.methods import get_lmethod
 from autode.units import KcalMol
 
@@ -142,7 +143,51 @@ def set_graph_attributes(species):
 
 def union(graphs):
     """Return the union of two graphs. The disjoint union is returned"""
+    if len(graphs) == 0:
+        return nx.Graph()
+
     return nx.disjoint_union_all(graphs)
+
+
+def species_are_isomorphic(species1, species2):
+    """
+    Check if two complexes are isomorphic in at least one of their conformers
+
+    Arguments:
+        species1 (autode.species.Species):
+        species2 (autode.species.Species):
+
+    Returns:
+        (bool)
+    """
+    logger.info(f'Checking if {species1.name} and {species2.name} are isomorphic')
+    if species1.graph is None or species2.graph is None:
+        raise NoMolecularGraph
+
+    if is_isomorphic(species1.graph, species2.graph):
+        return True
+
+    if species1.conformers is None or species2.conformers is None:
+        logger.warning('Cannot check for isomorphic species conformers')
+        return False
+
+    # Conformers don't necessarily have molecular graphs, so make them all
+    logger.disabled = True
+
+    for species in (species1, species2):
+        for conformer in species.conformers:
+            make_graph(conformer)
+
+    logger.disabled = False
+
+    # Check on all the pairwise combinations of species conformers looking for an isomorphism
+    for conformer1 in species1.conformers:
+        for conformer2 in species2.conformers:
+
+            if is_isomorphic(conformer1.graph, conformer2.graph):
+                return True
+
+    return False
 
 
 def is_subgraph_isomorphic(larger_graph, smaller_graph):
@@ -426,109 +471,6 @@ def get_truncated_active_mol_graph(graph, active_bonds):
 
     logger.info(f'Truncated graph generated. {t_graph.number_of_nodes()} nodes and {t_graph.number_of_edges()} edges')
     return t_graph
-
-
-def is_isomorphic_ish(species, graph, ignore_active_bonds=False, any_interaction=False):
-    """
-    Determine if a species is close to or is isomorphic to
-
-    Arguments:
-        species (autode.species.Species):
-        graph (nx.Graph):
-
-    Keyword Arguments:
-        any_interaction (bool):
-        ignore_active_bonds (bool):
-    """
-
-    if is_isomorphic(species.graph, graph, ignore_active_bonds=ignore_active_bonds):
-        return True
-
-    tight_mol = deepcopy(species)
-    make_graph(species=tight_mol, rel_tolerance=0.1)
-
-    if is_isomorphic(tight_mol.graph, graph, ignore_active_bonds=ignore_active_bonds):
-        return True
-
-    loose_mol = deepcopy(species)
-    make_graph(species=loose_mol, rel_tolerance=0.4)
-
-    if is_isomorphic(loose_mol.graph, graph, ignore_active_bonds=ignore_active_bonds):
-        return True
-
-    if is_isomorphic_wi(species, graph, ignore_ab=ignore_active_bonds, any_inter=any_interaction):
-        return True
-
-    logger.warning('Species is not close to being isomorphic')
-    return False
-
-
-def is_isomorphic_wi(species, graph, any_inter, ignore_ab, wi_threshold=0.0016):
-    """
-    Determine if a species is isomorphic with a graph up to the deletion of a single edge in the molecular graph. The
-    edge needs to be > 5% above it's ideal value and not a covalent bond. This is determined using an energy threshold;
-    if ∆E between two optimisations < threshold then the interaction is weak where the two energies are for the current
-    distance on that edge and +0.2 Å (assumes that no other strain is introduced)
-
-     Arguments:
-        species (autode.species.Species):
-        graph (networkx.Graph):
-        any_inter (bool): Allow any interaction
-        ignore_ab (bool): Ignore the active bonds in the species graph
-
-    Keyword Arguments:
-        wi_threshold (float): Upper energy bound in hartrees for a 'weak interaction' (~2 kcal mol-1)
-    """
-
-    for (i, j) in species.graph.edges:
-
-        # Check that the current distance for a bond is 1.05x it's ideal value, so could be a weak interaction
-        if species.get_distance(i, j) > 1.1 * get_avg_bond_length(species.atoms[i].label, species.atoms[j].label):
-            # Bond is normal
-            continue
-
-        logger.info(f'Found a long "bond" {i, j}')
-
-        # Delete that edge and check for an isomorphism
-        d_graph = deepcopy(species.graph)
-        d_graph.remove_edge(i, j)
-
-        if not is_isomorphic(d_graph, graph, ignore_active_bonds=ignore_ab):
-            continue
-
-        logger.info(f'Deleting a long bond {i, j} leads to an isomorphism')
-
-        # If there is no constraint on the bond energy difference then the species is isomorphic
-        if any_inter:
-            return True
-
-        # Run two constrained optimisations to check if and elongation along this edge is relatively easy
-        curr_dist = species.get_distance(i, j)
-        method = get_lmethod()
-
-        curr_dist_calc = Calculation(name=f'{species.name}_{i}_{j}_curr_dist_{method.name}', molecule=species, opt=True,
-                                     method=method, keywords_list=method.keywords.low_opt,
-                                     distance_constraints={(i, j): curr_dist})
-        curr_dist_calc.run()
-
-        plus_dist_calc = Calculation(name=f'{species.name}_{i}_{j}_+_dist_{method.name}', molecule=species, opt=True,
-                                     method=method, keywords_list=method.keywords.low_opt,
-                                     distance_constraints={(i, j): curr_dist + 0.2})
-        plus_dist_calc.run()
-
-        try:
-            delta_e = plus_dist_calc.get_energy() - curr_dist_calc.get_energy()
-            logger.info(f'∆E = {KcalMol.conversion * delta_e:.1f} kcal mol-1')
-
-            if delta_e < wi_threshold:
-                logger.info('Interaction is weak')
-                return True
-
-        except TypeError:
-            logger.error('Calculation failed to return the energy')
-            pass
-
-    return False
 
 
 def is_chiral_pi_bond(species, bond):

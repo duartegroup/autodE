@@ -2,6 +2,7 @@ from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
 from autode.bond_rearrangement import BondRearrangement
+from autode.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
 from autode.molecule import Reactant, Product
 from autode.complex import ReactantComplex, ProductComplex
@@ -13,11 +14,16 @@ from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
+from autode.transition_states.templates import template_matches
 from autode.wrappers.G09 import G09
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
 method.available = True
+
+# Force ORCA to appear available
+Config.hcode = 'orca'
+Config.ORCA.path = here
 
 ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl', 1.63664, 0.02010, -0.05829),
                                           Atom('C', -0.14524, -0.00136, 0.00498),
@@ -79,9 +85,16 @@ def test_links_reacs_prods():
     # Should find the completed calculation output
     tsguess.calc.run()
 
+    # Spoof an xtb install as reactant/product complex optimisation
+    Config.lcode = 'xtb'
+    Config.XTB.path = here
+
+    Config.num_complex_sphere_points = 4
+    Config.num_complex_random_rotations = 1
+
     assert imag_mode_links_reactant_products(calc=tsguess.calc,
-                                             reactant_graph=reac_complex.graph,
-                                             product_graph=product_complex.graph,
+                                             reactant=reac_complex,
+                                             product=product_complex,
                                              method=method)
 
     os.chdir(here)
@@ -117,3 +130,65 @@ def test_correct_imag_mode():
     os.chdir(here)
 
 
+def test_isomorphic_reactant_product():
+
+    r_water = Reactant(name='h2o', smiles='O')
+    r_methane = Reactant(name='methane', smiles='C')
+
+    p_water = Product(name='h2o', smiles='O')
+    p_methane = Product(name='methane', smiles='C')
+
+    # Reaction where the reactant and product complexes are isomorphic should return no TS
+    reaction = Reaction(r_water, r_methane, p_water, p_methane)
+    reaction.locate_transition_state()
+
+    assert reaction.ts is None
+
+
+def test_find_tss():
+
+    os.chdir(os.path.join(here, 'data', 'locate_ts'))
+    Config.num_conformers = 1
+
+    # Spoof ORCA and XTB installs
+    Config.ORCA.path = here
+    Config.XTB.path = here
+    Config.make_ts_template = False
+    Config.num_complex_sphere_points = 2
+    Config.num_complex_random_rotations = 1
+
+    # Simple rearrangement reaction
+    r = Reactant(smiles='CC[C]([H])[H]', name='r')
+    p1 = Product(smiles='C[C]([H])C', name='p1')
+
+    reaction = Reaction(r, p1, solvent_name='water')
+    # Will work in data/transition_states
+    reaction.locate_transition_state()
+
+    assert reaction.ts is not None
+    os.chdir(os.path.join(here, 'data', 'locate_ts', 'transition_states'))
+    assert reaction.ts.is_true_ts()
+
+    reaction.ts.save_ts_template(folder_path=os.getcwd())
+    assert os.path.exists('template0.obj')
+
+    # There should now be a saved template
+    templates = get_ts_templates(folder_path=os.getcwd())
+    assert len(templates) == 1
+
+    template = templates[0]
+    assert template.solvent.name == 'water'
+    assert template.mult == 2
+    assert template.charge == 0
+
+    # Truncated graph has 7 atoms in
+    assert template.graph.number_of_nodes() == 7
+
+    os.remove('template0.obj')
+    os.chdir(here)
+
+
+def test_ts_templates():
+
+    templates = get_ts_templates(folder_path='/a/path/that/doesnt/exist')
+    assert len(templates) == 0
