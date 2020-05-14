@@ -3,7 +3,6 @@ import numpy as np
 from autode.atoms import Atom
 from autode.bond_lengths import get_avg_bond_length
 from autode.exceptions import InvalidSmilesString
-from autode.geom import calc_td_vol
 from autode.log import logger
 
 
@@ -37,10 +36,8 @@ class SmilesParser:
                      Double bond stereochem, showing the position of an atom relative to the carbon in a double bond (e.g '/', F/C= ==>    C=  )
                                                                                                                                           /
                                                                                                                                          F
-
         Args:
             string_to_divide (str): string to divide
-
         Yields:
             (str, str): part of smiles string, what type of part it is
         """
@@ -95,7 +92,6 @@ class SmilesParser:
 
     def analyse_char(self, char, char_type):
         """Analyse a part of a smiles string, depending on what part it is
-
         Args:
             char (str): the part of a string to analyse
             char_type (str): the type of string
@@ -128,10 +124,8 @@ class SmilesParser:
 
     def add_atom(self, atom_string):
         """Given an string starting with an atom label (e.g Cl), add the atom and return the rest of the string
-
         Args:
             atom_string (str): string starting with an atom label
-
         Returns:
             str: rest of the string, some details about the atom
         """
@@ -150,7 +144,6 @@ class SmilesParser:
 
     def analyse_bond_ring_string(self, bond_ring_string):
         """Given a string containing ring information, add the ring bonds
-
         Args:
             bond_ring_string (str): string of ring information, (e.g 23, labels the atom with rings 2 and 3, to be bonded to wherever these numbers appear again)
         """
@@ -188,7 +181,6 @@ class SmilesParser:
 
     def analyse_atom_details(self, atom_details_string):
         """Given a string of details from a bracket atom, get the charge, number of hydrogens and stereochem
-
         Args:
             atom_details_string (str): string of atom details (e.g H+2@ has one bonded hydrogen, a charge of +2 and '@' stereochem)
         """
@@ -329,11 +321,10 @@ class SmilesParser:
                 else:
                     self.stereochem_dict[atom] = '@@al'
 
-    def add_td_stereochem(self, central_atom):
+    def add_stereochem(self, central_atom):
         """Adds stereochemistry around an atom, by placing atoms are the correct coordinates for the stereochemistry.
            For tetrahedral centres, '@' means looking along the bond from the first atom bonded to the centre, the other atoms go anticlockwise in their index order in the atoms list.
            For alkene centres, '@' means the atoms go anticlockwise in their index order in the atoms list (this works as the same thing is applied to every centre)  
-
         Args:
             central_atom (int): index of the atom having stereochemistry added around it
         """
@@ -342,35 +333,115 @@ class SmilesParser:
                         '@al': np.array(([1.0, 0.0, 0.0], [-0.5, np.sqrt(3)/2, 0], [-0.5, -np.sqrt(3)/2, 0])),
                         '@@al': np.array(([1.0, 0.0, 0.0], [-0.5, -np.sqrt(3)/2, 0], [-0.5, np.sqrt(3)/2, 0]))}
         vectors = vectors_dict[self.stereochem_dict[central_atom]]
+        self.stereocentres.append(central_atom)
+        central_translation = -1 * self.atoms[central_atom].coord
+        self.shift_atom(central_atom, central_translation)
         bonded_atoms = []
-        if 'al' in self.stereochem_dict[central_atom]:
-            return
         for i, bond in enumerate(self.bonds):
             if central_atom in bond:
                 if bond[0] == central_atom:
                     bonded_atom = bond[1]
                 if bond[1] == central_atom:
                     bonded_atom = bond[0]
-                # for tetrahedral centres, this is how the ordering is defined
-                if self.atoms[bonded_atom].label == 'H':
-                    if len(bonded_atoms) > 0 and bonded_atoms[0] < central_atom:
-                        bonded_atoms.insert(1, bonded_atom)
-                    else:
+                if self.stereochem_dict[central_atom] in ['@td', '@@td']:
+                    # for tetrahedral centres, this is how the ordering is defined
+                    if self.atoms[bonded_atom].label == 'H':
+                        if bonded_atoms[0] < central_atom:
+                            bonded_atoms.insert(1, bonded_atom)
+                        else:
+                            bonded_atoms.insert(0, bonded_atom)
+                    elif i in self.ring_closing_bond_list:
                         bonded_atoms.insert(0, bonded_atom)
-                elif i in self.ring_closing_bond_list:
-                    bonded_atoms.insert(0, bonded_atom)
+                    else:
+                        bonded_atoms.append(bonded_atom)
                 else:
                     bonded_atoms.append(bonded_atom)
-        for i, atom_no in enumerate(bonded_atoms):
-            self.atoms[atom_no].coord = vectors[i]
-        if calc_td_vol([self.atoms[atom_no] for atom_no in sorted(bonded_atoms)]) < 0:
-            self.stereochem_dict[central_atom] = '@td'
+        for i, bonded_atom in enumerate(bonded_atoms):
+            if bonded_atom in self.stereocentres:
+                # don't want to lose the orientation around the old stereocentres, so rotate it into the right position
+                self.rotate_stereocluster(central_atom, bonded_atom, vectors[i])
+            bond_length = get_avg_bond_length(self.atoms[central_atom].label, self.atoms[bonded_atom].label)
+            bonded_translation = bond_length*vectors[i] - self.atoms[bonded_atom].coord
+            self.shift_atom(bonded_atom, bonded_translation, central_atom)
+        self.add_cluster([central_atom] + bonded_atoms)
+
+    def shift_atom(self, atom_to_shift, translation, not_to_move=-1, clusters=None):
+        """Shift an atom to its position for stereochemistry purposes. If it is part of another stereocluster, that whole cluster will be moved to keep the stereochemistry
+        Args:
+            atom_to_shift (int): index of the atom to be moved
+            translation (np.array): vector to shift the atom by
+            not_to_move (int, optional): an atom not to be moved, even if it is in a stereocluster being moved. This is due to stereocentres directly bonded to each other being
+                                         treated differently. Defaults to -1.
+            clusters (list(list), optional): list of stereoclusters. Defaults to None.
+        """
+        if clusters is None:
+            clusters = self.stereocentre_clusters
+        self.atoms[atom_to_shift].translate(translation)
+        for cluster in clusters:
+            if atom_to_shift in cluster:
+                other_clusters = clusters.copy()
+                other_clusters.remove(cluster)
+                # need to move the whole cluster to prevent loss of stereochemistry
+                for atom in cluster:
+                    if not atom in [atom_to_shift, not_to_move]:
+                        self.shift_atom(atom, translation, not_to_move, other_clusters)
+
+    def rotate_stereocluster(self, fixed_atom, central_rotating_atom, new_vector):
+        """Rotate a stereocluster, so a certain bond points the correct way for a new stereocentre. Used for bonded stereocentres.
+        Args:
+            fixed_atom (int): Index of the new stereocentre being formed
+            central_rotating_atom (int): Index of the old stereocentre, which is being rotated
+            new_vector (np.array): the bond between fixed_atom and central_rotating_atom is transformed into this vector
+        """
+        for cluster in self.stereocentre_clusters:
+            if central_rotating_atom in cluster:
+                rotating_cluster = cluster
+        current_vector = self.atoms[central_rotating_atom].coord
+        normed_current_vector = current_vector/np.linalg.norm(current_vector)
+        axis = np.cross(normed_current_vector, new_vector)
+        if np.allclose(axis, [0, 0, 0]):
+            # if the vectors are antiparallel, the cross product is zero. rotate one vector a small amount to get a perpendicular vector to rotate about
+            new_desired_vector = np.matmul(np.array(([0.996, -0.0872, 0], [0.0872, 0.996, 0], [0, 0, 1.0])), new_vector)
+            axis = np.cross(new_desired_vector, normed_current_vector)
+        angle = np.arccos(np.dot(new_vector, normed_current_vector))
+        for atom in rotating_cluster:
+            if not atom in [fixed_atom, central_rotating_atom]:
+                self.atoms[atom].rotate(axis, angle, current_vector)
+
+    def add_cluster(self, new_cluster):
+        """After a stereocentre has been added, add its atoms to the stereoclusters list. If any new atom is in another cluster, merge them, as all
+           all the atoms will need to shift together to maintain stereochemistry
+        Args:
+            new_cluster (list): list of atom indexes in the new cluster
+        """
+        merged_cluster = False
+        for i, cluster in enumerate(self.stereocentre_clusters):
+            for atom in new_cluster:
+                if atom in cluster:
+                    cluster_to_merge = i
+                    merged_cluster = True
+                    break
+            if merged_cluster:
+                break
+        if merged_cluster:
+            for atom in new_cluster:
+                if not atom in self.stereocentre_clusters[cluster_to_merge]:
+                    self.stereocentre_clusters[cluster_to_merge].append(atom)
+            new_cluster = self.stereocentre_clusters[cluster_to_merge]
         else:
-            self.stereochem_dict[central_atom] = '@@td'
+            self.stereocentre_clusters.append(new_cluster)
+
+        # stops atoms being on top of each other in different stereochem groups
+        shift = np.random.uniform(-5, 5, 3)
+        # this axis doesn't affect pi bonds, as they are all flat in this dimension
+        axis = [0, 0, 1]
+        theta = np.random.rand() * np.pi * 2
+        for atom in new_cluster:
+            self.atoms[atom].rotate(axis, theta)
+            self.atoms[atom].translate(shift)
 
     def parse_smiles(self, smiles):
         """Parse the given smiles string
-
         Args:
             smiles (str): smiles string to be parsed
         """
@@ -392,7 +463,7 @@ class SmilesParser:
         self.analyse_alkene_stereochem_dict()
 
         for atom_no in sorted(self.stereochem_dict.keys()):
-            self.add_td_stereochem(atom_no)
+            self.add_stereochem(atom_no)
 
     def __init__(self):
 
@@ -400,6 +471,8 @@ class SmilesParser:
         self.prev_atom_no = 0
         self.atoms = []
         self.bonds = []
+        self.stereocentres = []
+        self.stereocentre_clusters = []
         self.ring_closing_bond_list = []
         self.ring_dict = {}
         self.bond_order_dict = {}

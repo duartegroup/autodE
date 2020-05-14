@@ -13,11 +13,9 @@ from autode.smiles_parser import SmilesParser
 
 def calc_multiplicity(molecule, n_radical_electrons):
     """Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
-
     Arguments:
         molecule (autode.molecule.Molecule):
         n_radical_electrons (int):
-
     Returns:
         int: multiplicity of the molecule
     """
@@ -40,7 +38,6 @@ def init_organic_smiles(molecule, smiles):
     """
     Initialise a molecule from a SMILES string, set the charge, multiplicity (if it's not already specified) and the 3D
     geometry using RDKit
-
     Arguments:
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
@@ -91,7 +88,6 @@ def init_organic_smiles(molecule, smiles):
 def init_smiles(molecule, smiles):
     """
     Initialise a molecule from a SMILES string
-
     Arguments:
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
@@ -110,8 +106,8 @@ def init_smiles(molecule, smiles):
 
     make_graph(molecule, bond_list=parser.bonds, allow_invalid_valancies=False)
 
-    for stereocentre, stereochem in parser.stereochem_dict.items():
-        molecule.graph.nodes[stereocentre]['stereo'] = stereochem
+    for stereocentre in parser.stereocentres:
+        molecule.graph.nodes[stereocentre]['stereo'] = True
     for bond_index in parser.bond_order_dict.keys():
         bond = parser.bonds[bond_index]
         molecule.graph.edges[bond]['pi'] = True
