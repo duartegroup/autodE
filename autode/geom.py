@@ -100,7 +100,7 @@ def get_krot_p_q(template_coords, coords_to_fit):
     p_centroid = np.average(p_mat, axis=0)
     p_mat_trans = get_centered_matrix(p_mat)
 
-    # Construct the P matrix in the Kabsch algorithm
+    # Construct the Q matrix in the Kabsch algorithm
     q_mat = deepcopy(template_coords)
     q_centroid = np.average(q_mat, axis=0)
     q_mat_trans = get_centered_matrix(q_mat)
@@ -163,3 +163,12 @@ def calc_rmsd(template_coords, coords_to_fit):
     rot_mat, p, q = get_krot_p_q(template_coords=template_coords, coords_to_fit=coords_to_fit)
     fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords_to_fit])
     return np.sqrt(np.average(np.square(fitted_coords - template_coords)))
+
+
+def calc_td_vol(atoms):
+    """Calc the signed volume of a tetrahedron bounded by four atoms at the vertices"""
+    vector1 = atoms[1].coord - atoms[0].coord
+    vector2 = atoms[2].coord - atoms[0].coord
+    vector3 = atoms[3].coord - atoms[0].coord
+
+    return np.dot(vector1, np.cross(vector2, vector3))

@@ -110,8 +110,8 @@ def init_smiles(molecule, smiles):
 
     make_graph(molecule, bond_list=parser.bonds, allow_invalid_valancies=False)
 
-    for stereocentre in parser.stereocentres:
-        molecule.graph.nodes[stereocentre]['stereo'] = True
+    for stereocentre, stereochem in parser.stereochem_dict.items():
+        molecule.graph.nodes[stereocentre]['stereo'] = stereochem
     for bond_index in parser.bond_order_dict.keys():
         bond = parser.bonds[bond_index]
         molecule.graph.edges[bond]['pi'] = True
