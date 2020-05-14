@@ -11,6 +11,7 @@ from autode.config import Config
 from autode.input_output import xyz_file_to_atoms
 from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
+from autode.geom import are_coords_reasonable
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CannotSplitAcrossBond
 
@@ -75,10 +76,12 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
         species (autode.species.Species):
         dist_consts (dict): keyed with tuple of atom indexes and valued with the distance (Å), or None
     """
-    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+    if not are_coords_reasonable(coords=species.get_coordinates()):
+        # TODO generate a reasonable initial structure: molassembler?
+        logger.error('Cannot constrain stereochemistry if the initial structure is not sensible')
+        return dist_consts
 
-    if dist_consts is None:
-        dist_consts = {}
+    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
     # Get the stereocentres with 4 bonds as ~ chiral centres
     chiral_centres = [centre for centre in stereocentres if len(list(species.graph.neighbors(centre))) == 4]
@@ -168,7 +171,8 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
 
     # Add distance constraints across stereocentres e.g. for a Z double bond then modify d0 appropriately
-    dist_consts = add_dist_consts_for_stereocentres(species=species, dist_consts=dist_consts)
+    dist_consts = add_dist_consts_for_stereocentres(species=species,
+                                                    dist_consts={} if dist_consts is None else dist_consts)
 
     constrained_bonds = []
     for bond, length in dist_consts.items():
@@ -180,13 +184,14 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     # Randomise coordinates that aren't fixed by shifting a maximum of autode.Config.max_atom_displacement in x, y, z
     fixed_atom_indexes = get_non_random_atoms(species=species)
 
-    factor = Config.max_atom_displacement / np.sqrt(3)
+    # Shift by a factor defined in the config file if the coordinates are reasonable but otherwise init in a 10 A cube
+    factor = Config.max_atom_displacement / np.sqrt(3) if are_coords_reasonable(species.get_coordinates()) else 10
     [atom.translate(vec=factor * rand.uniform(-1, 1, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
 
     logger.info('Minimising species...')
     st = time()
     coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=1.0, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
+                                    k=1.0, c=0.01, d0=d0, tol=5E-5, fixed_bonds=constrained_bonds)
     logger.info(f'                 ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms

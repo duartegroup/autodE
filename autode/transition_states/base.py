@@ -10,7 +10,7 @@ from autode.exceptions import NoNormalModesFound
 from autode.geom import length
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
-from autode.conformers import Conformer
+from autode.molecule import Molecule
 from autode.mol_graphs import make_graph
 from autode.mol_graphs import species_are_isomorphic
 from autode.species import Species
@@ -283,6 +283,7 @@ def imag_mode_links_reactant_products(calc, reactant, product, method, disp_mag=
     """
     logger.info('Displacing along imag modes to check that the TS links reactants and products')
 
+    # Generate and optimise conformers with the low level of theory
     reactant.populate_conformers()
     product.populate_conformers()
 
@@ -290,27 +291,18 @@ def imag_mode_links_reactant_products(calc, reactant, product, method, disp_mag=
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=disp_mag)
     f_displaced_mol = get_optimised_species(calc, method, direction='forwards', atoms=f_displaced_atoms)
 
-    if not species_are_isomorphic(f_displaced_mol, reactant) and not species_are_isomorphic(f_displaced_mol, product):
-        logger.warning('Forward displacement does not afford reactants or products')
-        logger.debug(f'Forward displaced edges: {f_displaced_mol.graph.edges}')
-        logger.debug(f'Reactant edges: {reactant.graph.edges}')
-        logger.debug(f'Product edges: {product.graph.edges}')
-        return False
-
     # Get the species that is optimised by displacing backwards along the imaginary mode
     b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=-disp_mag)
     b_displaced_mol = get_optimised_species(calc, method, direction='backwards', atoms=b_displaced_atoms)
 
-    if any(mol.atoms is None for mol in (f_displaced_mol, b_displaced_mol)):
-        logger.warning('Atoms not set in the output. Cannot calculate isomorphisms')
-        return False
-
-    if species_are_isomorphic(b_displaced_mol, reactant) and species_are_isomorphic(f_displaced_mol, product):
-        logger.info('Forwards displacement lead to products and backwards reactants')
+    if forwards_backwards_are_isomorphic_to_reactants_and_products(f_displaced_mol, b_displaced_mol, reactant, product):
         return True
 
-    if species_are_isomorphic(f_displaced_mol, reactant) and species_are_isomorphic(b_displaced_mol, product):
-        logger.info('Backwards displacement lead to products and forwards to reactants')
+    # The high and low level methods may not have the same minima, so optimise and recheck isomorphisms
+    for mol in (f_displaced_mol, b_displaced_mol):
+        mol.optimise(method=get_lmethod(), reset_graph=True)
+
+    if forwards_backwards_are_isomorphic_to_reactants_and_products(f_displaced_mol, b_displaced_mol, reactant, product):
         return True
 
     logger.info(f'Forwards displaced edges {f_displaced_mol.graph.edges}')
@@ -318,10 +310,27 @@ def imag_mode_links_reactant_products(calc, reactant, product, method, disp_mag=
     return False
 
 
+def forwards_backwards_are_isomorphic_to_reactants_and_products(forwards, backwards, reactant, product):
+
+    if any(mol.atoms is None for mol in (forwards, backwards)):
+        logger.warning('Atoms not set in the output. Cannot calculate isomorphisms')
+        return False
+
+    if species_are_isomorphic(backwards, reactant) and species_are_isomorphic(forwards, product):
+        logger.info('Forwards displacement lead to products and backwards reactants')
+        return True
+
+    if species_are_isomorphic(forwards, reactant) and species_are_isomorphic(backwards, product):
+        logger.info('Backwards displacement lead to products and forwards to reactants')
+        return True
+
+    return False
+
+
 def get_optimised_species(calc, method, direction, atoms):
     """Get the species that is optimised from an initial set of atoms"""
 
-    species = Species(name=f'{calc.name}_{direction}', atoms=atoms, charge=calc.molecule.charge, mult=calc.molecule.mult)
+    species = Molecule(name=f'{calc.name}_{direction}', atoms=atoms, charge=calc.molecule.charge, mult=calc.molecule.mult)
 
     # Note that for the surface to be the same the keywords.opt and keywords.hess need to match in the level of theory
     calc = Calculation(name=f'{calc.name}_{direction}', molecule=species, method=method,
@@ -332,7 +341,6 @@ def get_optimised_species(calc, method, direction, atoms):
         species.set_atoms(atoms=calc.get_final_atoms())
         species.energy = calc.get_energy()
         make_graph(species)
-        species.conformers = [Conformer(name='conf', atoms=species.atoms, charge=species.charge, mult=species.mult)]
 
     except AtomsNotFound:
         logger.error(f'{direction} displacement calculation failed')

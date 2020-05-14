@@ -9,12 +9,13 @@ import numpy as np
 def get_bond_matrix(n_atoms, bonds, fixed_bonds):
 
     bond_matrix = np.zeros((n_atoms, n_atoms), dtype=np.intc)
-    for i in range(n_atoms):
-        for j in range(n_atoms):
-            if (i, j) in bonds or (j, i) in bonds:
-                bond_matrix[i, j] = 1
-            if (i, j) in fixed_bonds or (j, i) in fixed_bonds:
-                bond_matrix[i, j] = 2
+
+    for i, j in bonds:
+        bond_matrix[i, j] = 1
+        bond_matrix[j, i] = 1
+    for i, j in fixed_bonds:
+        bond_matrix[i, j] = 2
+        bond_matrix[j, i] = 2
 
     return bond_matrix
 
@@ -82,7 +83,7 @@ cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
                     deriv.data.as_doubles[3*i+2] += bonded * delta_z
 
                 if bond_matrix[i][j] == 2:
-                    fixed = 2.0 * 10 * (1.0 - d0[i][j]/d)
+                    fixed = 20.0 * (1.0 - d0[i][j]/d)
                     deriv.data.as_doubles[3*i] += fixed * delta_x
                     deriv.data.as_doubles[3*i+1] += fixed * delta_y
                     deriv.data.as_doubles[3*i+2] += fixed * delta_z

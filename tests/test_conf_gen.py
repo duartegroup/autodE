@@ -5,6 +5,7 @@ from autode.molecule import Reactant, Product
 from autode.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.geom import calc_rmsd
+from autode.geom import are_coords_reasonable
 from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.transition_state import TransitionState
 from autode.bond_rearrangement import BondRearrangement
@@ -189,8 +190,20 @@ def test_ts_conformer(tmpdir):
 
     # Ensure the making/breaking bonds retain their length
     regen_coords = regen.get_coordinates()
+    assert are_coords_reasonable(regen_coords) is True
 
     assert 1.9 < np.linalg.norm(regen_coords[0] - regen_coords[2]) < 2.1
     assert 2.0 < np.linalg.norm(regen_coords[1] - regen_coords[2]) < 2.2
 
     os.chdir(here)
+
+
+def test_metal_eta_complex():
+    # os.chdir(tmpdir)
+
+    # eta-6 benzene Fe2+ complex used in the molassembler paper
+    m = Molecule(smiles='[C@@H]12[C@H]3[C@H]4[C@H]5[C@H]6[C@@H]1[Fe]265437N(C8=CC=CC=C8)C=CC=[N+]7C9=CC=CC=C9')
+    m.print_xyz_file()
+    assert are_coords_reasonable(coords=m.get_coordinates())
+
+    # os.chdir(here)
