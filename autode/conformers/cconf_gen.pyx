@@ -6,19 +6,6 @@ from libc.math cimport sqrt, pow
 import numpy as np
 
 
-def get_bond_matrix(n_atoms, bonds, fixed_bonds):
-
-    bond_matrix = np.zeros((n_atoms, n_atoms), dtype=np.intc)
-
-    for i, j in bonds:
-        bond_matrix[i, j] = 1
-        bond_matrix[j, i] = 1
-    for i, j in fixed_bonds:
-        bond_matrix[i, j] = 2
-        bond_matrix[j, i] = 2
-
-    return bond_matrix
-
 cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, double[:, :] d0, double c):
 
     cdef int i, j
@@ -91,11 +78,11 @@ cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
     return -np.array(deriv)
 
 
-def dvdr(py_flat_coords, py_bonds, py_k, py_d0, py_c, py_fixed_bonds):
+def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
 
     py_n_atoms = int(len(py_flat_coords) / 3)
     cdef int n_atoms = py_n_atoms
-    cdef int[:, :] bond_matrix = get_bond_matrix(n_atoms=py_n_atoms, bonds=py_bonds, fixed_bonds=py_fixed_bonds)
+    cdef int[:, :] bond_matrix = py_bond_matrix
     cdef double k = py_k
     cdef double[:, :] d0 = py_d0
     cdef double c = py_c
@@ -113,11 +100,11 @@ def dvdr(py_flat_coords, py_bonds, py_k, py_d0, py_c, py_fixed_bonds):
     return calc_deriv(n_atoms, init_array, coords, bond_matrix, k, d0, c)
 
 
-def v(py_flat_coords, py_bonds, py_k, py_d0, py_c, py_fixed_bonds):
+def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
 
     py_n_atoms = int(len(py_flat_coords) / 3)
     cdef int n_atoms = py_n_atoms
-    cdef int[:, :] bond_matrix = get_bond_matrix(n_atoms=py_n_atoms, bonds=py_bonds, fixed_bonds=py_fixed_bonds)
+    cdef int[:, :] bond_matrix = py_bond_matrix
     cdef double k = py_k
     cdef double[:, :] d0 = py_d0
     cdef double c = py_c

@@ -198,12 +198,12 @@ def test_ts_conformer(tmpdir):
     os.chdir(here)
 
 
-def test_metal_eta_complex():
-    # os.chdir(tmpdir)
+def test_metal_eta_complex(tmpdir):
+    os.chdir(tmpdir)
 
     # eta-6 benzene Fe2+ complex used in the molassembler paper
     m = Molecule(smiles='[C@@H]12[C@H]3[C@H]4[C@H]5[C@H]6[C@@H]1[Fe]265437N(C8=CC=CC=C8)C=CC=[N+]7C9=CC=CC=C9')
     m.print_xyz_file()
     assert are_coords_reasonable(coords=m.get_coordinates())
 
-    # os.chdir(here)
+    os.chdir(here)
