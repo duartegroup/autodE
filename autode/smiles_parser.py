@@ -36,10 +36,8 @@ class SmilesParser:
                      Double bond stereochem, showing the position of an atom relative to the carbon in a double bond (e.g '/', F/C= ==>    C=  )
                                                                                                                                           /
                                                                                                                                          F
-
         Args:
             string_to_divide (str): string to divide
-
         Yields:
             (str, str): part of smiles string, what type of part it is
         """
@@ -77,7 +75,7 @@ class SmilesParser:
                     char += next_char
                     next_char = next(smiles_chars, '')
             # get ring/multiple bond information about the atom, which comes after the atom
-            if char_type in ['atom', 'bracket_atom']:
+            if char_type in ['atom', 'bracket_atom', 'branch']:
                 while next_char.isdigit() or next_char == '%':
                     char += next_char
                     next_char = next(smiles_chars, '')
@@ -94,7 +92,6 @@ class SmilesParser:
 
     def analyse_char(self, char, char_type):
         """Analyse a part of a smiles string, depending on what part it is
-
         Args:
             char (str): the part of a string to analyse
             char_type (str): the type of string
@@ -110,7 +107,12 @@ class SmilesParser:
             self.analyse_atom_details(atom_details_string)
             self.analyse_bond_ring_string(bond_ring_string)
         elif char_type == 'branch':
-            branch_smiles = char[1: -1]
+            if char[-1] != ')':
+                bond_ring_string = char.split(')')[-1]
+                branch_smiles = ''.join(char[1:].split(')')[:-1])
+                self.analyse_bond_ring_string(bond_ring_string)
+            else:
+                branch_smiles = char[1: -1]
             before_branch_prev_atom_no = self.prev_atom_no
             # effectively another smiles string, just analyse it was we did the original
             for branch_smiles_char, branch_smiles_char_type in self.divide_smiles(branch_smiles):
@@ -127,10 +129,8 @@ class SmilesParser:
 
     def add_atom(self, atom_string):
         """Given an string starting with an atom label (e.g Cl), add the atom and return the rest of the string
-
         Args:
             atom_string (str): string starting with an atom label
-
         Returns:
             str: rest of the string, some details about the atom
         """
@@ -149,7 +149,6 @@ class SmilesParser:
 
     def analyse_bond_ring_string(self, bond_ring_string):
         """Given a string containing ring information, add the ring bonds
-
         Args:
             bond_ring_string (str): string of ring information, (e.g 23, labels the atom with rings 2 and 3, to be bonded to wherever these numbers appear again)
         """
@@ -187,7 +186,6 @@ class SmilesParser:
 
     def analyse_atom_details(self, atom_details_string):
         """Given a string of details from a bracket atom, get the charge, number of hydrogens and stereochem
-
         Args:
             atom_details_string (str): string of atom details (e.g H+2@ has one bonded hydrogen, a charge of +2 and '@' stereochem)
         """
@@ -331,8 +329,7 @@ class SmilesParser:
     def add_stereochem(self, central_atom):
         """Adds stereochemistry around an atom, by placing atoms are the correct coordinates for the stereochemistry.
            For tetrahedral centres, '@' means looking along the bond from the first atom bonded to the centre, the other atoms go anticlockwise in their index order in the atoms list.
-           For alkene centres, '@' means the atoms go anticlockwise in their index order in the atoms list (this works as the same thing is applied to every centre)  
-
+           For alkene centres, '@' means the atoms go anticlockwise in their index order in the atoms list (this works as the same thing is applied to every centre)
         Args:
             central_atom (int): index of the atom having stereochemistry added around it
         """
@@ -375,7 +372,6 @@ class SmilesParser:
 
     def shift_atom(self, atom_to_shift, translation, not_to_move=-1, clusters=None):
         """Shift an atom to its position for stereochemistry purposes. If it is part of another stereocluster, that whole cluster will be moved to keep the stereochemistry
-
         Args:
             atom_to_shift (int): index of the atom to be moved
             translation (np.array): vector to shift the atom by
@@ -397,7 +393,6 @@ class SmilesParser:
 
     def rotate_stereocluster(self, fixed_atom, central_rotating_atom, new_vector):
         """Rotate a stereocluster, so a certain bond points the correct way for a new stereocentre. Used for bonded stereocentres.
-
         Args:
             fixed_atom (int): Index of the new stereocentre being formed
             central_rotating_atom (int): Index of the old stereocentre, which is being rotated
@@ -421,7 +416,6 @@ class SmilesParser:
     def add_cluster(self, new_cluster):
         """After a stereocentre has been added, add its atoms to the stereoclusters list. If any new atom is in another cluster, merge them, as all
            all the atoms will need to shift together to maintain stereochemistry
-
         Args:
             new_cluster (list): list of atom indexes in the new cluster
         """
@@ -453,7 +447,6 @@ class SmilesParser:
 
     def parse_smiles(self, smiles):
         """Parse the given smiles string
-
         Args:
             smiles (str): smiles string to be parsed
         """

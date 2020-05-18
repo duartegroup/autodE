@@ -6,7 +6,8 @@ from libc.math cimport sqrt, pow
 import numpy as np
 
 
-cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, double[:, :] d0, double c):
+cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, double[:, :] d0, double c,
+                 int exponent):
 
     cdef int i, j
     cdef double delta_x = 0.0
@@ -28,7 +29,7 @@ cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, dou
                 delta_z = coords.data.as_doubles[3*j+2] - coords.data.as_doubles[3*i+2]
                 d = sqrt(delta_x*delta_x + delta_y*delta_y + delta_z*delta_z)
 
-                energy += c / pow(d, 4)
+                energy += c / pow(d, exponent)
 
                 if bond_matrix[i][j] == 1:
                     energy += k * pow((d - d0[i][j]), 2)
@@ -38,7 +39,7 @@ cdef calc_energy(int n_atoms, array coords, int[:, :] bond_matrix, double k, dou
     return energy
 
 cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
-                double k, double[:, :] d0, double c):
+                double k, double[:, :] d0, double c, int exponent):
 
     cdef int i, j
     cdef double delta_x
@@ -50,6 +51,8 @@ cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
     cdef double bonded
     cdef double fixed
 
+    exponent_minus_2 = exponent + 2
+
     for i in range(n_atoms):
         for j in range(n_atoms):
             if i != j:
@@ -58,7 +61,7 @@ cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
                 delta_z = coords.data.as_doubles[3*j+2] - coords.data.as_doubles[3*i+2]
                 d = sqrt(delta_x*delta_x + delta_y*delta_y + delta_z*delta_z)
 
-                repulsion = -4.0 * c / pow(d, 6)
+                repulsion = -exponent * c / pow(d, exponent_minus_2)
                 deriv.data.as_doubles[3*i] += repulsion * delta_x
                 deriv.data.as_doubles[3*i+1] += repulsion * delta_y
                 deriv.data.as_doubles[3*i+2] += repulsion * delta_z
@@ -78,7 +81,7 @@ cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
     return -np.array(deriv)
 
 
-def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
+def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent):
 
     py_n_atoms = int(len(py_flat_coords) / 3)
     cdef int n_atoms = py_n_atoms
@@ -87,6 +90,7 @@ def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
     cdef double[:, :] d0 = py_d0
     cdef double c = py_c
     cdef int i
+    cdef exponent = py_exponent
 
     cdef array coords, template = array('d')
     coords = clone(template, 3*n_atoms, False)
@@ -97,10 +101,10 @@ def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
         init_array[i] = 0.0
         coords[i] = py_flat_coords[i]
 
-    return calc_deriv(n_atoms, init_array, coords, bond_matrix, k, d0, c)
+    return calc_deriv(n_atoms, init_array, coords, bond_matrix, k, d0, c, exponent)
 
 
-def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
+def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent):
 
     py_n_atoms = int(len(py_flat_coords) / 3)
     cdef int n_atoms = py_n_atoms
@@ -108,6 +112,7 @@ def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
     cdef double k = py_k
     cdef double[:, :] d0 = py_d0
     cdef double c = py_c
+    cdef exponent = py_exponent
 
     cdef array coords, template = array('d')
     coords = clone(template, 3*n_atoms, False)
@@ -116,4 +121,4 @@ def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c):
     for i in range(3*n_atoms):
         coords[i] = py_flat_coords[i]
 
-    return calc_energy(n_atoms, coords, bond_matrix, k, d0, c)
+    return calc_energy(n_atoms, coords, bond_matrix, k, d0, c, exponent)

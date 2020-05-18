@@ -44,7 +44,8 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     return bond_matrix
 
 
-def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
+def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8):
+    """Get the coordinates that minimise a FF with a bonds + repulsion FF where the repulsion is c/r^exponent"""
     # TODO divide and conquer?
 
     n_atoms = len(coords)
@@ -52,9 +53,20 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
 
     init_coords = coords.reshape(3 * n_atoms)
     bond_matrix = get_bond_matrix(n_atoms=len(coords), bonds=bonds, fixed_bonds=fixed_bonds)
-    res = minimize(v, x0=init_coords, args=(bond_matrix, k, d0, c), method='CG', tol=tol, jac=dvdr)
+    res = minimize(v, x0=init_coords, args=(bond_matrix, k, d0, c, exponent), method='CG', tol=tol, jac=dvdr)
 
     return res.x.reshape(n_atoms, 3)
+
+
+def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
+    """Get the energy using a bond + repulsion FF where the repulsion is c/r^exponent"""
+    n_atoms = len(coords)
+    os.environ['OMP_NUM_THREADS'] = str(1)
+
+    init_coords = coords.reshape(3 * n_atoms)
+    bond_matrix = get_bond_matrix(n_atoms=len(coords), bonds=bonds, fixed_bonds=fixed_bonds)
+
+    return v(init_coords, bond_matrix, k, d0, c, exponent)
 
 
 def get_atoms_rotated_stereocentres(species, atoms, rand):
@@ -190,18 +202,20 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
         (np.ndarray) n_atoms x 3
     """
     # Minimise atoms with no bonds between them
-    far_coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                        k=0.0, c=0.01, d0=d0, tol=5E-3, fixed_bonds=constrained_bonds)
+    far_coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
+                                        bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+                                        k=0.0, c=0.1, d0=d0, tol=5E-3, exponent=2)
     coords = far_coords[:1]
 
     # Add the atoms one by one to the structure. Thanks to Dr. Cyrille Lavigne for this suggestion!
     for n in range(2, species.n_atoms):
-        coords = get_coords_minimised_v(np.concatenate((coords, far_coords[len(coords):n+1])), bonds=species.graph.edges,
-                                        k=0.1, c=0.1, d0=d0, tol=1E-3, fixed_bonds=constrained_bonds)
+        coords = get_coords_minimised_v(np.concatenate((coords, far_coords[len(coords):n+1])),
+                                        bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+                                        k=0.1, c=0.1, d0=d0, tol=1E-3, exponent=2)
 
     # Perform a final minimisation
-    coords = get_coords_minimised_v(coords=coords, bonds=species.graph.edges,
-                                    k=1.0, c=0.01, d0=d0, tol=1E-5, fixed_bonds=constrained_bonds)
+    coords = get_coords_minimised_v(coords=coords, bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+                                    k=1.0, c=0.01, d0=d0, tol=1E-5)
     return coords
 
 
