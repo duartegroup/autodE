@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-All the examples here can be viewed at `GitHub <https://github.com/duartegroup/autodE/tree/master/example>`_. They have
+All the examples here can be viewed at `GitHub <https://github.com/duartegroup/autodE/tree/master/examples>`_. They have
 been tested using XTB & ORCA electronic structure theory packages.
 
 
@@ -34,17 +34,17 @@ Initalise the reactants and products from their respective SMILES strings
 
 .. code-block:: python
 
-    >>> flouride = Reactant(name='F-', smiles='[F-]', solvent='water')
-    >>> methyl_chloride = Reactant(name='CH3Cl', smiles='ClC', solvent='water')
-    >>> chloride = Product(name='Cl-', smiles='[Cl-]', solvent='water')
-    >>> methyl_flouride = Product(name='CH3F', smiles='CF', solvent='water')
+    >>> flouride = Reactant(name='F-', smiles='[F-]')
+    >>> methyl_chloride = Reactant(name='CH3Cl', smiles='ClC')
+    >>> chloride = Product(name='Cl-', smiles='[Cl-]')
+    >>> methyl_flouride = Product(name='CH3F', smiles='CF')
 
 Here a solvent is also specified, but this may be left unspecified for reactions in the gas phase. Then from the
 reactants and products form a reaction and calculate the reaction profile.
 
 .. code-block:: python
 
-  >>> reaction = Reaction(flouride, methyl_chloride, chloride, methyl_flouride)
+  >>> reaction = Reaction(flouride, methyl_chloride, chloride, methyl_flouride, solvent_name='water')
   >>> reaction.calculate_reaction_profile()
 
 This function call will return a plot something like:
@@ -54,23 +54,3 @@ This function call will return a plot something like:
 where conformers of the reactant and products have been searched and the profile calculated at
 PBE0-D3BJ/def2-TZVP//PBE0-D3BJ/def2-SVP. It should take around 5 minutes to complete on a modern processor.
 
-
-Diels–Alder
------------
-
-For the most simple [4+2] Diels–Alder reaction between ethene and butadiene we have
-
-.. code-block:: python
-
- >>> butadiene = Reactant(name='diene', smiles='C=CC=C')
- >>> ethene = Reactant(name='ethene', smiles='C=C')
- >>> cyclohexene = Product(name='cyclohexene', smiles='C1CC=CCC1')
- >>> da_reaction = Reaction(butadiene, ethene, cyclohexene, name='DA')
- >>> da_reaction.calculate_reaction_profile()
-
-which generates
-
-.. image:: ../examples/common/da_reaction_profile.png
-
-where the reaciton barrier is smaller than would be expected as the entropic penalty for forming the highly organised
-TS is not included.

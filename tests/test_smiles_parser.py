@@ -136,3 +136,13 @@ def test_stereochem():
                       [-4.11965, 1.64066, -0.92663],
                       [-1.73251, 1.12671, 0.92663]]
     assert calc_rmsd(parser_coords, desired_coords) < 0.5
+
+
+def test_alt_ring_branch():
+
+    parser = SmilesParser()
+    parser.parse_smiles(smiles='[H][Rh]12([C]=O)([P+](C3=CC=CC4=C3OC5=C([P+](C6=CC=CC=C6)2C7=CC=CC=C7)'
+                               'C=CC=C5C4(C)C)(C8=CC=CC=C8)C9=CC=CC=C9)CC1')
+
+    # Should be valid and not raise InvalidSmilesString
+    assert len(parser.atoms) == 84

@@ -4,8 +4,8 @@
 ***
 ## Introduction
 
-**autodE** is a Python module designed for the automated calculation of reaction
-profiles from just SMILES strings of reactant(s) and product(s).
+**autodE** is a Python module designed for the automated calculation of reaction profiles from just SMILES strings of 
+reactant(s) and product(s). 
 
 ***
 
@@ -31,15 +31,34 @@ conda install --file requirements.txt
 
 ## Installation
 
-Once the requirements are satisfied to install **autodE** as a module
+Once the requirements are satisfied to install **autodE** 
 ```
 python setup.py install
 ```
 
 ## Usage
 
-Broadly, **autodE** is invoked by first setting appropriate parameters in config.py, or specifying in a python script. 
+Broadly, **autodE** is invoked by first setting appropriate parameters in config.py, or specifying at runtime using Config. 
 Then, initialising _Reactant_ and _Product_ objects, generating a _Reaction_ object from those and invoking a method 
-e.g. _locate_transtion_state()_ or _calculate_reaction_profile()_.
+e.g. _locate_transtion_state()_ or _calculate_reaction_profile()_. For example, the 1,2 hydrogen shift in a propyl radical
 
-See _examples/_ for example usage. Additional documentation is available at [duartegroup.github.io/autodE/](https://duartegroup.github.io/autodE/).
+```
+from autode import *
+Config.n_cores = 8
+
+r = Reactant(name='reactant', smiles='CC[C]([H])[H]')
+p = Product(name='product', smiles='C[C]([H])C')
+
+reaction = Reaction(r, p, name='1-2_shift')
+reaction.calculate_reaction_profile()
+```
+
+See _examples/_ for more examples and [duartegroup.github.io/autodE/](https://duartegroup.github.io/autodE/) for
+additional documentation.
+
+
+## Development
+
+Pull requests are very welcome but must pass all the unit tests prior to being merged. Please write code and tests!
+Bugs and feature requests should be raised on the issue [page](https://github.com/duartegroup/autodE/issues).
+
