@@ -42,7 +42,7 @@ Broadly, **autodE** is invoked by first setting appropriate parameters in config
 Then, initialising _Reactant_ and _Product_ objects, generating a _Reaction_ object from those and invoking a method 
 e.g. _locate_transtion_state()_ or _calculate_reaction_profile()_. For example, the 1,2 hydrogen shift in a propyl radical
 
-```
+```python
 from autode import *
 Config.n_cores = 8
 
