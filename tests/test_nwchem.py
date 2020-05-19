@@ -10,28 +10,28 @@ test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
 method.available = True
 
+opt_keywords = ['driver\n gmax 0.002\n  grms 0.0005\n'
+                '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
+                'basis\n  *   library Def2-SVP\nend',
+                'dft\n   xc xpbe96 cpbe96\nend',
+                'task dft optimize']
+
 
 def test_opt_calc():
     os.chdir(os.path.join(here, 'data'))
-
-    opt_keywords = ['driver\n gmax 0.002\n  grms 0.0005\n'
-                    '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                    'basis\n  *   library Def2-SVP\nend',
-                    'dft\n   xc xpbe96 cpbe96\nend',
-                    'task dft optimize']
 
     calc = Calculation(name='opt', molecule=test_mol, method=method,
                        keywords_list=opt_keywords)
     calc.run()
 
-    assert os.path.exists('opt_nwchem.nw') is True
-    assert os.path.exists('opt_nwchem.out') is True
+    assert os.path.exists('opt_nwchem.nw')
+    assert os.path.exists('opt_nwchem.out')
 
     final_atoms = calc.get_final_atoms()
     assert len(final_atoms) == 5
     assert type(final_atoms[0]) is Atom
     assert -40.4165 < calc.get_energy() < -40.4164
-    assert calc.output_file_exists is True
+    assert calc.output_file_exists
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
     assert calc.get_imag_freqs() == []
@@ -54,3 +54,38 @@ def test_opt_calc():
     os.remove('opt_nwchem.nw')
 
     os.chdir(here)
+
+
+def test_opt_single_atom():
+
+    h = Molecule(name='H', smiles='[H]')
+    calc = Calculation(name='opt_h', molecule=h, method=method, keywords_list=opt_keywords)
+    calc.generate_input()
+
+    # Can't do an optimisation of a hydrogen atom..
+    assert os.path.exists('opt_h_nwchem.nw')
+    input_lines = open('opt_h_nwchem.nw', 'r').readlines()
+    assert 'opt' not in [keyword.lower() for keyword in input_lines[0].split()]
+
+    os.remove('opt_h_nwchem.nw')
+
+
+def test_opt_hf_constraints():
+    os.chdir(os.path.join(here, 'data'))
+
+    keywords = ['driver\n gmax 0.002\n  grms 0.0005\n'
+                '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
+                'basis\n  *   library Def2-SVP\nend',
+                'task scf optimize']
+
+    h2o = Molecule(name='water', smiles='O')
+    calc = Calculation(name='opt_water', molecule=h2o, method=method, keywords_list=keywords,
+                       cartesian_constraints=[0], distance_constraints={(0, 1): 0.95})
+    calc.run()
+    h2o.set_atoms(atoms=calc.get_final_atoms())
+    assert 0.94 < h2o.get_distance(0, 1) < 0.96
+
+    os.chdir(here)
+
+
+

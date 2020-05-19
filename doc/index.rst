@@ -19,10 +19,10 @@ Documentation
 .. toctree::
    :maxdepth: 1
 
-   reference/index
    install
    tutorial
    config
+   reference/index
 
 Indices and tables
 ==================

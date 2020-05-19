@@ -1,6 +1,6 @@
-*************
-Documentation
-*************
+*********
+Reference
+*********
 
 .. toctree::
    :maxdepth: 1
