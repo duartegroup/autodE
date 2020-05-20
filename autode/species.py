@@ -22,8 +22,7 @@ class Species:
     @requires_conformers()
     def _set_lowest_energy_conformer(self):
         """Set the species energy and atoms as those of the lowest energy conformer"""
-
-        lowest_energy = self.energy
+        lowest_energy = None
 
         for conformer in self.conformers:
             if conformer.energy is None:
