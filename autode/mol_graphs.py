@@ -264,6 +264,30 @@ def get_graph_no_active_edges(graph):
     return graph_no_ae
 
 
+def get_graphs_ignoring_active_edges(graph1, graph2):
+    """
+    Remove any active edges that are in either graph1 or graph2 from both graphs
+    Arguments:
+        graph1 (nx.Graph):
+        graph2 (nx.Graph):
+
+    Returns:
+        (tuple(nx.Graph))
+    """
+    graph1_no_ae, graph2_no_ae = graph1.copy(), graph2.copy()
+
+    # Iterate through the pairs removing any active edges from both ga and gb
+    for (ga, gb) in [(graph1_no_ae, graph2_no_ae), (graph2_no_ae, graph1_no_ae)]:
+
+        for (i, j) in [edge for edge in ga.edges if ga.edges[edge]['active'] is True]:
+            ga.remove_edge(i, j)
+
+            if (i, j) in gb.edges:
+                gb.remove_edge(i, j)
+
+    return graph1_no_ae, graph2_no_ae
+
+
 def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
     """Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method
     occasionally gets stuck
@@ -281,7 +305,7 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
     """
 
     if ignore_active_bonds:
-        graph1, graph2 = get_graph_no_active_edges(graph1), get_graph_no_active_edges(graph2)
+        graph1, graph2 = get_graphs_ignoring_active_edges(graph1, graph2)
 
     if isomorphism.faster_could_be_isomorphic(graph1, graph2):
         graph_matcher = isomorphism.GraphMatcher(graph1, graph2,
@@ -429,7 +453,7 @@ def get_fbonds(graph, key):
     return possible_fbonds
 
 
-def get_active_mol_graph(species, active_bonds):
+def set_active_mol_graph(species, active_bonds):
     """
     Get a molecular graph that includes 'active edges' i.e. bonds that are either made or broken in the reaction
 

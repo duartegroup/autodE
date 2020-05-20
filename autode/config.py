@@ -53,7 +53,7 @@ class Config:
     # ----------------------------------------------------------------------------------------------
     # Number of evenly spaced points on a sphere that will be used to generate NCI and Reactant/
     # Product complex conformers. Total number of conformers will be:
-    # num_complex_sphere_points × num_complex_random_rotations × (n molecules in complex - 1)
+    # num_complex_sphere_points × num_complex_random_rotations ^ (n molecules in complex - 1)
     #
     num_complex_sphere_points = 10
     # ----------------------------------------------------------------------------------------------
@@ -61,6 +61,11 @@ class Config:
     # larger numbers will be slower, but more likely to find the minimum
     #
     num_complex_random_rotations = 10
+    # ----------------------------------------------------------------------------------------------
+    # For more than 2 molecules in a complex the conformational space explodes, so limit the maximum
+    # number to this value
+    #
+    max_num_complex_conformers = 300
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:

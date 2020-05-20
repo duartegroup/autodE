@@ -24,6 +24,7 @@ def test_nci_complex():
     assert len(nci_complex.conformers) == 24
 
     for conformer in nci_complex.conformers:
+        # conformer.print_xyz_file()
         assert geom.are_coords_reasonable(coords=conformer.get_coordinates())
 
     # To view the structures generated overlaid
