@@ -79,6 +79,12 @@ class Config:
                             optts_block='%geom\nCalc_Hess true\nRecalc_Hess 30\nTrust -0.1\nMaxIter 150\nend',
                             sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP'])
 
+        # Implicit solvent in ORCA is either treated with CPCM or SMD, the former has support for a
+        # VdW surface construction which provides better geometry convergence (https://doi.org/10.1002/jcc.26139)
+        # SMD is in general more accurate, but does not (yet) have support for the VdW charge scheme
+        # 1. 'cpcm', 2. 'smd'
+        solvation_type = 'cpcm'
+
     class G09:
         # ------------------------------------------------------------------------------------------
         # Parameters for g09                                      https://gaussian.com/glossary/g09/

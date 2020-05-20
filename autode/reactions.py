@@ -25,7 +25,7 @@ def classify(reactants, products):
         logger.info('Classifying reaction as addition')
         return Addition
 
-    elif len(reactants) == 1 and len(products) == 2:
+    elif len(reactants) == 1 and len(products) in [2, 3]:
         logger.info('Classifying reaction as dissociation')
         return Dissociation
 
