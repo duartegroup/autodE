@@ -27,7 +27,8 @@ class UnbalancedReaction(Exception):
 
 
 class UnsuppportedCalculationInput(Exception):
-    pass
+    def __init__(self, message='Parameters not supported'):
+        super().__init__(message)
 
 
 class SolventNotFound(Exception):
