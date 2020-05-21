@@ -9,21 +9,21 @@ For example, to use Gaussian09 and XTB as the high and low level electronic stru
 
 .. code-block:: python
 
-  Config.hcode = 'g09'
-  Config.lcode = 'xtb'
+  >>> Config.hcode = 'g09'
+  >>> Config.lcode = 'xtb'
 
 To set the number of cores available and the memory per core (in MB)
 
 .. code-block:: python
 
-  Config.n_cores = 8
-  Config.max_core = 4000
+  >>> Config.n_cores = 8
+  >>> Config.max_core = 4000
 
 Further, the parameters used in the calculations can be changed, e.g to change how the single point energies are calculated
 
 .. code-block:: python
 
-  Config.ORCA.sp_keywords = ['SP', 'B3LYP', 'def2-TZVP']
+  >>> Config.ORCA.sp_keywords = ['SP', 'B3LYP', 'def2-TZVP']
 
 See the `config file <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_  to see all the options.
 
@@ -33,8 +33,7 @@ See the `config file <https://github.com/duartegroup/autodE/blob/master/autode/c
 Logging
 -------
 
-To set the logging level to one of {INFO, WARNING, ERROR} set the AUTODE_LOG_LEVEL environment variable, in bash
+To set the logging level to one of {INFO, WARNING, ERROR} set the AUTODE_LOG_LEVEL environment variable, in bash::
 
-.. code-block::
+    $ export AUTODE_LOG_LEVEL=INFO
 
-    export AUTODE_LOG_LEVEL=INFO

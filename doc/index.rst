@@ -23,6 +23,7 @@ Documentation
    tutorial
    config
    reference/index
+   troubleshooting
 
 Indices and tables
 ==================

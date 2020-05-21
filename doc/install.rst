@@ -16,19 +16,41 @@ Dependencies
   * `MOPAC <http://openmopac.net/>`_
 
 
-The Python dependencies are listed in requirements.txt best satisfied using a conda install (Miniconda or Anaconda) i.e.
+The Python dependencies are listed in requirements.txt best satisfied using conda
+(`anaconda <https://www.anaconda.com/distribution>`_ or `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_);
+the following guide assumes a conda install.
 
-.. code-block::
+Mac OSX / Linux
+---------------
 
-  conda config --append channels conda-forge
-  conda config --append channels conda-forge --append channels omnia
-  conda activate autode_env
+First clone the repository and ``cd`` there::
 
-Installation
-------------
+    $ git clone https://github.com/duartegroup/autodE.git
+    $ cd autodE
 
-Once the dependencies are satisfied, to install autodE enter the autodE folder then:
 
-.. code-block::
+then, install the appropriate dependencies (you may want to create a new virtual environment)::
 
-  python setup.py install
+    $ conda config --append channels conda-forge --append channels omnia
+    $ conda install --file requirements.txt
+
+finally::
+
+    $ python setup.py install
+
+
+Windows
+--------
+
+On Windows without a ``git`` installation ``autode`` can be installed with `anaconda <https://www.anaconda.com/distribution>`_
+by, on the GitHub `page <https://github.com/duartegroup/autode>`_ using Clone or download → Download ZIP then
+extracting it. Then, open an anaconda command prompt and ``cd`` to the directory and proceed as above e.g.::
+
+    $ cd Downloads/autodE-master/
+    $ conda config --append channels conda-forge
+    $ conda install --file requirements.txt
+    $ python setup.py install
+
+The above commands assume you have extracted the zip to ``C:\Users\yourusername\Downloads`` and you will need a C++
+compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_
+
