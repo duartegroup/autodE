@@ -49,4 +49,5 @@ def test_xtb_calculation():
 
     os.remove('const_opt_xtb.xyz')
     os.remove('xcontrol_const_opt')
+    os.remove('opt_xtb.xyz')
     os.chdir(here)

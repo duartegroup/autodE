@@ -97,6 +97,14 @@ def test_links_reacs_prods():
                                              product=product_complex,
                                              method=method)
 
+    for i in range(4):
+        os.remove(f'complex_conf{i}.xyz')
+        os.remove(f'complex_conf{i}_opt_xtb.xyz')
+
+    os.remove('ts_guess_hess_orca.inp')
+    os.remove('ts_guess_hess_forwards_orca.inp')
+    os.remove('ts_guess_hess_backwards_orca.inp')
+
     os.chdir(here)
 
 
@@ -132,6 +140,8 @@ def test_correct_imag_mode():
 
 def test_isomorphic_reactant_product():
 
+    os.chdir(os.path.join(here, 'data', 'locate_ts'))
+
     r_water = Reactant(name='h2o', smiles='O')
     r_methane = Reactant(name='methane', smiles='C')
 
@@ -141,6 +151,8 @@ def test_isomorphic_reactant_product():
     # Reaction where the reactant and product complexes are isomorphic should return no TS
     reaction = Reaction(r_water, r_methane, p_water, p_methane)
     reaction.locate_transition_state()
+
+    os.chdir(here)
 
     assert reaction.ts is None
 
@@ -162,11 +174,16 @@ def test_find_tss():
     p1 = Product(smiles='C[C]([H])C', name='p1')
 
     reaction = Reaction(r, p1, solvent_name='water')
-    # Will work in data/transition_states
+    # Will work in data/locate_ts/transition_states
     reaction.locate_transition_state()
 
     assert reaction.ts is not None
     os.chdir(os.path.join(here, 'data', 'locate_ts', 'transition_states'))
+
+    for filename in os.listdir(os.getcwd()):
+        if filename.endswith(('.inp', '.png')):
+            os.remove(filename)
+
     assert reaction.ts.is_true_ts()
 
     reaction.ts.save_ts_template(folder_path=os.getcwd())
