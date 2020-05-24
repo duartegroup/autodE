@@ -44,8 +44,8 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     n_conformers = len(conformers)
     delta_e = energy_threshold_kj / Constants.ha2kJmol   # Conformer.energy is in Hartrees
 
-    # The first conformer must be unique
-    unique_conformers = conformers[:1]
+    # The first conformer must be unique, if it has am energy
+    unique_conformers = conformers[:1] if conformers[0].energy is not None else []
 
     for i in range(1, n_conformers):
 

@@ -75,7 +75,7 @@ class SmilesParser:
                     char += next_char
                     next_char = next(smiles_chars, '')
             # get ring/multiple bond information about the atom, which comes after the atom
-            if char_type in ['atom', 'bracket_atom']:
+            if char_type in ['atom', 'bracket_atom', 'branch']:
                 while next_char.isdigit() or next_char == '%':
                     char += next_char
                     next_char = next(smiles_chars, '')
@@ -107,7 +107,12 @@ class SmilesParser:
             self.analyse_atom_details(atom_details_string)
             self.analyse_bond_ring_string(bond_ring_string)
         elif char_type == 'branch':
-            branch_smiles = char[1: -1]
+            if char[-1] != ')':
+                bond_ring_string = char.split(')')[-1]
+                branch_smiles = ''.join(char[1:].split(')')[:-1])
+                self.analyse_bond_ring_string(bond_ring_string)
+            else:
+                branch_smiles = char[1: -1]
             before_branch_prev_atom_no = self.prev_atom_no
             # effectively another smiles string, just analyse it was we did the original
             for branch_smiles_char, branch_smiles_char_type in self.divide_smiles(branch_smiles):
@@ -324,7 +329,7 @@ class SmilesParser:
     def add_stereochem(self, central_atom):
         """Adds stereochemistry around an atom, by placing atoms are the correct coordinates for the stereochemistry.
            For tetrahedral centres, '@' means looking along the bond from the first atom bonded to the centre, the other atoms go anticlockwise in their index order in the atoms list.
-           For alkene centres, '@' means the atoms go anticlockwise in their index order in the atoms list (this works as the same thing is applied to every centre)  
+           For alkene centres, '@' means the atoms go anticlockwise in their index order in the atoms list (this works as the same thing is applied to every centre)
         Args:
             central_atom (int): index of the atom having stereochemistry added around it
         """

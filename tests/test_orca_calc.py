@@ -7,7 +7,9 @@ from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
+from autode.exceptions import UnsuppportedCalculationInput
 from autode.solvent.solvents import Solvent
+from autode.config import Config
 import pytest
 
 import os
@@ -164,3 +166,29 @@ def test_subprocess_to_output():
     os.remove('test_subprocess.py')
     os.remove('test_subprocess.out')
     os.chdir(here)
+
+
+def test_solvation():
+
+    methane = Molecule(name='solvated_methane', smiles='C', solvent_name='water')
+
+    with pytest.raises(UnsuppportedCalculationInput):
+
+        # Should raise on unsupported calculation type
+        Config.ORCA.solvation_type = 'xxx'
+        calc = Calculation(name='broken_solvation', molecule=methane, method=method, keywords_list=['PBE', 'def2-SVP'])
+        calc.run()
+
+    Config.ORCA.solvation_type = 'CPCM'
+    calc = Calculation(name='methane_cpcm', molecule=methane, method=method, keywords_list=['PBE', 'def2-SVP'])
+    calc.generate_input()
+
+    assert any('cpcm' in line.lower() for line in open('methane_cpcm_orca.inp', 'r'))
+    os.remove('methane_cpcm_orca.inp')
+
+    Config.ORCA.solvation_type = 'SMD'
+    calc = Calculation(name='methane_smd', molecule=methane, method=method, keywords_list=['PBE', 'Freq', 'def2-SVP'])
+    calc.generate_input()
+
+    assert any('smd' in line.lower() for line in open('methane_smd_orca.inp', 'r'))
+    os.remove('methane_smd_orca.inp')

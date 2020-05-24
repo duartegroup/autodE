@@ -53,7 +53,7 @@ class Config:
     # ----------------------------------------------------------------------------------------------
     # Number of evenly spaced points on a sphere that will be used to generate NCI and Reactant/
     # Product complex conformers. Total number of conformers will be:
-    # num_complex_sphere_points × num_complex_random_rotations × (n molecules in complex - 1)
+    # num_complex_sphere_points × num_complex_random_rotations ^ (n molecules in complex - 1)
     #
     num_complex_sphere_points = 10
     # ----------------------------------------------------------------------------------------------
@@ -61,6 +61,11 @@ class Config:
     # larger numbers will be slower, but more likely to find the minimum
     #
     num_complex_random_rotations = 10
+    # ----------------------------------------------------------------------------------------------
+    # For more than 2 molecules in a complex the conformational space explodes, so limit the maximum
+    # number to this value
+    #
+    max_num_complex_conformers = 300
     # ----------------------------------------------------------------------------------------------
 
     class ORCA:
@@ -78,6 +83,12 @@ class Config:
                             hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                             optts_block='%geom\nCalc_Hess true\nRecalc_Hess 30\nTrust -0.1\nMaxIter 150\nend',
                             sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP'])
+
+        # Implicit solvent in ORCA is either treated with CPCM or SMD, the former has support for a
+        # VdW surface construction which provides better geometry convergence (https://doi.org/10.1002/jcc.26139)
+        # SMD is in general more accurate, but does not (yet) have support for the VdW charge scheme
+        # 1. 'cpcm', 2. 'smd'
+        solvation_type = 'cpcm'
 
     class G09:
         # ------------------------------------------------------------------------------------------

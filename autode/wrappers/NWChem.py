@@ -4,6 +4,7 @@ from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.log import logger
+from autode.constants import Constants
 
 
 class NWChem(ElectronicStructureMethod):
@@ -63,10 +64,6 @@ class NWChem(ElectronicStructureMethod):
             for atom in calc.molecule.atoms:
                 x, y, z = atom.coord
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
-            if calc.point_charges is not None:
-                for charge, coord in calc.point_charges:
-                    x, y, z = atom.coord
-                    print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=inp_file)
 
             if calc.bond_ids_to_add or calc.distance_constraints:
                 print('  zcoord', file=inp_file)
@@ -88,7 +85,8 @@ class NWChem(ElectronicStructureMethod):
                 print('constraints', file=inp_file)
                 if calc.distance_constraints:
                     for atom_ids in calc.distance_constraints.keys():  # nwchem counts from 1 so increment atom ids by 1
-                        print(f'  spring bond {atom_ids[0] + 1} {atom_ids[1] + 1} {force_constant} {np.round(calc.distance_constraints[atom_ids], 3)}' + str(
+                        dist = calc.distance_constraints[atom_ids] / Constants.a02ang       # Constraints are in Bohr
+                        print(f'  spring bond {atom_ids[0] + 1} {atom_ids[1] + 1} {force_constant} {dist:.3f}' + str(
                             atom_ids[0] + 1), file=inp_file)
 
                 if calc.cartesian_constraints:

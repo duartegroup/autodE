@@ -4,9 +4,13 @@ from autode.exceptions import NoMolecularGraph
 from autode.species import Species
 from autode.atoms import Atom
 from autode.conformers import Conformer
+from autode.input_output import xyz_file_to_atoms
 import networkx as nx
 import numpy as np
 import pytest
+import os
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 h_a = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)
 h_b = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.7)
@@ -141,7 +145,7 @@ def test_not_isomorphic():
     assert mol_graphs.is_isomorphic(h2.graph, h2_b.graph) is False
 
 
-def test_not_isomorphic():
+def test_not_isomorphic2():
 
     c = Atom(atomic_symbol='C', x=0.0, y=0.0, z=0.7)
     ch = Species(name='ch', atoms=[h_a, c], charge=0, mult=2)
@@ -224,3 +228,18 @@ def test_species_isomorphism():
     h2_copy.conformers = [Conformer(name='h2_conf', atoms=[h_a, h_b], charge=0, mult=1)]
 
     assert mol_graphs.species_are_isomorphic(h2, h2_copy)
+
+
+def test_isomorphic_no_active():
+    os.chdir(os.path.join(here, 'data'))
+
+    ts_syn = Conformer(name='syn_ts', charge=-1, mult=0, atoms=xyz_file_to_atoms('E2_ts_syn.xyz'))
+    mol_graphs.make_graph(ts_syn)
+    mol_graphs.set_active_mol_graph(ts_syn, active_bonds=[(8, 5), (0, 5), (1, 2)])
+
+    ts_anti = Conformer(name='anti_ts', charge=-1, mult=0, atoms=xyz_file_to_atoms('E2_ts.xyz'))
+    mol_graphs.make_graph(ts_anti)
+
+    assert mol_graphs.is_isomorphic(ts_syn.graph, ts_anti.graph, ignore_active_bonds=True)
+
+    os.chdir(here)

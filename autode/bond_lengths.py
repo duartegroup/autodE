@@ -18,11 +18,12 @@ def get_ideal_bond_length_matrix(atoms, bonds):
     n_atoms = len(atoms)
     ideal_bond_length_matrix = np.zeros((n_atoms, n_atoms))
 
-    for i in range(n_atoms):
-        for j in range(n_atoms):
-            if (i, j) in bonds or (j, i) in bonds:
-                ideal_bond_length_matrix[i, j] = get_avg_bond_length(atom_i_label=atoms[i].label,
-                                                                     atom_j_label=atoms[j].label)
+    for (i, j) in bonds:
+        bond_length = get_avg_bond_length(atom_i_label=atoms[i].label,  atom_j_label=atoms[j].label)
+
+        ideal_bond_length_matrix[i, j] = bond_length
+        ideal_bond_length_matrix[j, i] = bond_length
+
     return ideal_bond_length_matrix
 
 

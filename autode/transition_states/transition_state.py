@@ -15,7 +15,7 @@ from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.geom import get_distance_constraints
 from autode.log import logger
 from autode.methods import get_hmethod
-from autode.mol_graphs import get_active_mol_graph
+from autode.mol_graphs import set_active_mol_graph
 from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.utils import requires_atoms, requires_graph
 
@@ -25,7 +25,7 @@ class TransitionState(TSbase):
     @requires_graph()
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being made/broken"""
-        get_active_mol_graph(species=self, active_bonds=self.bond_rearrangement.all)
+        set_active_mol_graph(species=self, active_bonds=self.bond_rearrangement.all)
 
         logger.info(f'Molecular graph updated with {len(self.bond_rearrangement.all)} active bonds')
         return None

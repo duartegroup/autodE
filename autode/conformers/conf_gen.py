@@ -11,20 +11,62 @@ from autode.config import Config
 from autode.input_output import xyz_file_to_atoms
 from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
+from autode.geom import are_coords_reasonable
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CannotSplitAcrossBond
 
 
-def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds):
+def get_bond_matrix(n_atoms, bonds, fixed_bonds):
+    """
+    Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and fixed and 0 otherwise. Can support
+    a partial structure with bonds to atoms that don't (yet) exist
+
+    Args:
+        n_atoms (int):
+        bonds (list(tuple)):
+        fixed_bonds (list(tuple)):
+
+    Returns:
+        (np.ndarray): n_atoms x n_atoms
+    """
+
+    bond_matrix = np.zeros((n_atoms, n_atoms), dtype=np.intc)
+
+    for i, j in bonds:
+        if i < n_atoms and j < n_atoms:
+            bond_matrix[i, j] = 1
+            bond_matrix[j, i] = 1
+    for i, j in fixed_bonds:
+        if i < n_atoms and j < n_atoms:
+            bond_matrix[i, j] = 2
+            bond_matrix[j, i] = 2
+
+    return bond_matrix
+
+
+def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8):
+    """Get the coordinates that minimise a FF with a bonds + repulsion FF where the repulsion is c/r^exponent"""
     # TODO divide and conquer?
 
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
 
     init_coords = coords.reshape(3 * n_atoms)
-    res = minimize(v, x0=init_coords, args=(bonds, k, d0, c, fixed_bonds), method='CG', tol=tol, jac=dvdr)
+    bond_matrix = get_bond_matrix(n_atoms=len(coords), bonds=bonds, fixed_bonds=fixed_bonds)
+    res = minimize(v, x0=init_coords, args=(bond_matrix, k, d0, c, exponent), method='CG', tol=tol, jac=dvdr)
 
     return res.x.reshape(n_atoms, 3)
+
+
+def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
+    """Get the energy using a bond + repulsion FF where the repulsion is c/r^exponent"""
+    n_atoms = len(coords)
+    os.environ['OMP_NUM_THREADS'] = str(1)
+
+    init_coords = coords.reshape(3 * n_atoms)
+    bond_matrix = get_bond_matrix(n_atoms=len(coords), bonds=bonds, fixed_bonds=fixed_bonds)
+
+    return v(init_coords, bond_matrix, k, d0, c, exponent)
 
 
 def get_atoms_rotated_stereocentres(species, atoms, rand):
@@ -51,7 +93,7 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
             left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
 
         except CannotSplitAcrossBond:
-            logger.error('Splitting across this bond does not give two components - could have a ring')
+            logger.warning('Splitting across this bond does not give two components - could have a ring')
             return atoms
 
         # Rotate the left hand side randomly
@@ -74,10 +116,12 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
         species (autode.species.Species):
         dist_consts (dict): keyed with tuple of atom indexes and valued with the distance (Å), or None
     """
-    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+    if not are_coords_reasonable(coords=species.get_coordinates()):
+        # TODO generate a reasonable initial structure: molassembler?
+        logger.error('Cannot constrain stereochemistry if the initial structure is not sensible')
+        return dist_consts
 
-    if dist_consts is None:
-        dist_consts = {}
+    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
     # Get the stereocentres with 4 bonds as ~ chiral centres
     chiral_centres = [centre for centre in stereocentres if len(list(species.graph.neighbors(centre))) == 4]
@@ -142,6 +186,38 @@ def get_atoms_from_generated_file(species, xyz_filename):
     return None
 
 
+def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
+    """
+    Generate coordinates where no initial structure is present - this fixes(?) a problem for large molecule where
+    if all the atoms are initially bonded and minimised then high energy minima are often found
+
+    Args:
+        atoms (list(autode.atoms.Atom)):
+        species (autode.species.Species):
+        d0 (np.ndarray):
+        constrained_bonds (list):
+
+    Returns:
+        (np.ndarray) n_atoms x 3
+    """
+    # Minimise atoms with no bonds between them
+    far_coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
+                                        bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+                                        k=0.0, c=0.1, d0=d0, tol=5E-3, exponent=2)
+    coords = far_coords[:1]
+
+    # Add the atoms one by one to the structure. Thanks to Dr. Cyrille Lavigne for this suggestion!
+    for n in range(2, species.n_atoms):
+        coords = get_coords_minimised_v(np.concatenate((coords, far_coords[len(coords):n+1])),
+                                        bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+                                        k=0.1, c=0.1, d0=d0, tol=1E-3, exponent=2)
+
+    # Perform a final minimisation
+    coords = get_coords_minimised_v(coords=coords, bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+                                    k=1.0, c=0.01, d0=d0, tol=1E-5)
+    return coords
+
+
 def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
     Arguments:
@@ -165,7 +241,8 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
 
     # Add distance constraints across stereocentres e.g. for a Z double bond then modify d0 appropriately
-    dist_consts = add_dist_consts_for_stereocentres(species=species, dist_consts=dist_consts)
+    dist_consts = add_dist_consts_for_stereocentres(species=species,
+                                                    dist_consts={} if dist_consts is None else dist_consts)
 
     constrained_bonds = []
     for bond, length in dist_consts.items():
@@ -177,13 +254,25 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     # Randomise coordinates that aren't fixed by shifting a maximum of autode.Config.max_atom_displacement in x, y, z
     fixed_atom_indexes = get_non_random_atoms(species=species)
 
-    factor = Config.max_atom_displacement / np.sqrt(3)
-    [atom.translate(vec=factor * rand.uniform(-1, 1, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
+    # Shift by a factor defined in the config file if the coordinates are reasonable but otherwise init in a 10 A cube
+    initial_coords_are_reasonable = are_coords_reasonable(species.get_coordinates())
+
+    if initial_coords_are_reasonable:
+        factor = Config.max_atom_displacement / np.sqrt(3)
+        [atom.translate(vec=factor * rand.uniform(-1, 1, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
+    else:
+        # Randomise in a 10 Å cubic box
+        [atom.translate(vec=rand.uniform(-5, 5, 3)) for atom in atoms]
 
     logger.info('Minimising species...')
     st = time()
-    coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                    k=1.0, c=0.01, d0=d0, tol=species.n_atoms/5E4, fixed_bonds=constrained_bonds)
+    if initial_coords_are_reasonable:
+        coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
+                                        k=1.0, c=0.01, d0=d0, tol=1E-5, fixed_bonds=constrained_bonds)
+
+    else:
+        coords = get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds)
+
     logger.info(f'                 ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms

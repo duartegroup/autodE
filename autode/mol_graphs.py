@@ -12,6 +12,7 @@ from autode.calculation import Calculation
 from autode.log import logger
 from autode.exceptions import CannotSplitAcrossBond
 from autode.exceptions import NoMolecularGraph
+from autode.atoms import get_atomic_weight
 from autode.methods import get_lmethod
 from autode.units import KcalMol
 
@@ -56,7 +57,7 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valanc
         coordinates = species.get_coordinates()
         dist_mat = distance_matrix(coordinates, coordinates)
 
-        for i in range(species.n_atoms):
+        for i in get_atom_ids_sorted_type(species):
 
             # Iterate through the closest atoms to atom i
             for j in np.argsort(dist_mat[i]):
@@ -79,6 +80,20 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valanc
         remove_bonds_invalid_valancies(species)
 
     return None
+
+
+def get_atom_ids_sorted_type(species):
+    """
+    Get a list of atom ids sorted by increasing atomic weight, useful for when a molecular graph depends on the order
+    of atoms in what will be considered bonded
+
+    Arguments:
+        species (autode.species.Species):
+
+    Returns:
+        (list(int)):
+    """
+    return sorted(list(range(species.n_atoms)), key=lambda i: get_atomic_weight(atom_label=species.atoms[i].label))
 
 
 def remove_bonds_invalid_valancies(species):
@@ -167,7 +182,7 @@ def species_are_isomorphic(species1, species2):
     if is_isomorphic(species1.graph, species2.graph):
         return True
 
-    if species1.conformers is None or species2.conformers is None:
+    if species1.conformers is None and species2.conformers is None:
         logger.warning('Cannot check for isomorphic species conformers')
         return False
 
@@ -175,14 +190,20 @@ def species_are_isomorphic(species1, species2):
     logger.disabled = True
 
     for species in (species1, species2):
+        if species.conformers is None:
+            continue
+
         for conformer in species.conformers:
             make_graph(conformer)
 
     logger.disabled = False
 
     # Check on all the pairwise combinations of species conformers looking for an isomorphism
-    for conformer1 in species1.conformers:
-        for conformer2 in species2.conformers:
+    conformers1 = species1.conformers if species1.conformers is not None else [species1]
+    conformers2 = species2.conformers if species2.conformers is not None else [species2]
+
+    for conformer1 in conformers1:
+        for conformer2 in conformers2:
 
             if is_isomorphic(conformer1.graph, conformer2.graph):
                 return True
@@ -243,6 +264,30 @@ def get_graph_no_active_edges(graph):
     return graph_no_ae
 
 
+def get_graphs_ignoring_active_edges(graph1, graph2):
+    """
+    Remove any active edges that are in either graph1 or graph2 from both graphs
+    Arguments:
+        graph1 (nx.Graph):
+        graph2 (nx.Graph):
+
+    Returns:
+        (tuple(nx.Graph))
+    """
+    graph1_no_ae, graph2_no_ae = graph1.copy(), graph2.copy()
+
+    # Iterate through the pairs removing any active edges from both ga and gb
+    for (ga, gb) in [(graph1_no_ae, graph2_no_ae), (graph2_no_ae, graph1_no_ae)]:
+
+        for (i, j) in [edge for edge in ga.edges if ga.edges[edge]['active'] is True]:
+            ga.remove_edge(i, j)
+
+            if (i, j) in gb.edges:
+                gb.remove_edge(i, j)
+
+    return graph1_no_ae, graph2_no_ae
+
+
 def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
     """Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method
     occasionally gets stuck
@@ -260,7 +305,7 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
     """
 
     if ignore_active_bonds:
-        graph1, graph2 = get_graph_no_active_edges(graph1), get_graph_no_active_edges(graph2)
+        graph1, graph2 = get_graphs_ignoring_active_edges(graph1, graph2)
 
     if isomorphism.faster_could_be_isomorphic(graph1, graph2):
         graph_matcher = isomorphism.GraphMatcher(graph1, graph2,
@@ -408,7 +453,7 @@ def get_fbonds(graph, key):
     return possible_fbonds
 
 
-def get_active_mol_graph(species, active_bonds):
+def set_active_mol_graph(species, active_bonds):
     """
     Get a molecular graph that includes 'active edges' i.e. bonds that are either made or broken in the reaction
 

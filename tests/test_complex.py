@@ -1,4 +1,5 @@
 from autode.complex import Complex
+from autode.config import Config
 from autode.molecule import Molecule
 from autode.atoms import Atom
 import numpy as np
@@ -78,3 +79,36 @@ def test_graph():
     assert hasattr(dimer_shifted, 'graph')
     assert dimer_shifted.graph.number_of_edges() == 0
     assert dimer_shifted.graph.number_of_nodes() == 4
+
+
+def test_conformer_generation():
+
+    Config.num_complex_random_rotations = 2
+    Config.num_complex_sphere_points = 6
+    Config.max_num_complex_conformers = 10000
+
+    trimer._generate_conformers()
+    assert len(trimer.conformers) == 6 ** 2 * 2**2
+
+    # all_atoms = []
+    # for conf in trimer.conformers:
+    #     all_atoms += conf.atoms
+
+    # from autode.input_output import atoms_to_xyz_file
+    # atoms_to_xyz_file(atoms=all_atoms, filename='tmp.xyz')
+
+
+def test_conformer_generation2():
+
+    Config.num_complex_random_rotations = 1
+    Config.num_complex_sphere_points = 6
+    Config.max_num_complex_conformers = 10000
+
+    dimer._generate_conformers()
+    assert len(dimer.conformers) == 6
+
+    Config.num_complex_random_rotations = 2
+    Config.max_num_complex_conformers = 10000
+
+    dimer._generate_conformers()
+    assert len(dimer.conformers) == 6 * 2

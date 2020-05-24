@@ -22,6 +22,14 @@ class Solvent:
         return self.name
 
     def __eq__(self, other):
+        if self is None and other is None:
+            # None == None
+            return True
+
+        if self is None or other is None:
+            # None == Solvent or Solvent == None
+            return False
+
         return self.name == other.name and self.smiles == other.smiles
 
     def __init__(self, name, smiles, aliases, orca=None, g09=None, nwchem=None, xtb=None, mopac=None):

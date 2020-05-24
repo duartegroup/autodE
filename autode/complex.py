@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from itertools import product as iterprod
 from scipy.spatial import distance_matrix
 from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.log import logger
@@ -11,6 +12,66 @@ from autode.config import Config
 from autode.methods import get_lmethod
 from autode.conformers import Conformer
 from autode.exceptions import MethodUnavailable
+
+
+def get_complex_conformer_atoms(molecules, rotations, points):
+    """
+    Generate a conformer of a complex given a set of molecules, rotations for each and points on which to shift
+
+    Arguments:
+        molecules (list(autode.species.Species)):
+        rotations (list(np.ndarray)): List of len 4 np arrays containing the [theta, x, y, z] defining the rotation
+                                      amount and axis
+        points: (list(np.ndarray)): List of length 3 np arrays containing the point to add the molecule with index i
+
+    Returns:
+        (list(autode.atoms.Atom))
+    """
+    assert len(molecules) - 1 == len(rotations) == len(points) > 0
+
+    # First molecule is static so start with those atoms
+    atoms = deepcopy(molecules[0].atoms)
+
+    # For each molecule add it to the current set of atoms with the centroid ~ COM located at the origin
+    for i, molecule in enumerate(molecules[1:]):
+
+        centroid = np.average(np.array([atom.coord for atom in atoms]), axis=0)
+
+        # Shift to the origin and rotate randomly, by the same amount
+        theta, axis = np.random.uniform(-np.pi, np.pi), np.random.uniform(-1, 1, size=3)
+        for atom in atoms:
+            atom.translate(vec=-centroid)
+            atom.rotate(axis, theta)
+
+        coords = np.array([atom.coord for atom in atoms])
+
+        mol_centroid = np.average(molecule.get_coordinates(), axis=0)
+        shifted_mol_atoms = deepcopy(molecule.atoms)
+
+        # Shift the molecule to the origin then rotate randomly
+        theta, axis = rotations[i][0], rotations[i][1:]
+        for atom in shifted_mol_atoms:
+            atom.translate(vec=-mol_centroid)
+            atom.rotate(axis, theta)
+
+        # Shift until the current molecules don't overlap with the current atoms, i.e. aren't far enough apart
+        far_enough_apart = False
+
+        # Shift the molecule by 0.1 Å in the direction of the point (which has length 1) until the
+        # minimum distance to the rest of the complex is 2.0 Å
+        while not far_enough_apart:
+
+            for atom in shifted_mol_atoms:
+                atom.coord += points[i] * 0.1
+
+            mol_coords = np.array([atom.coord for atom in shifted_mol_atoms])
+
+            if np.min(distance_matrix(coords, mol_coords)) > 2.0:
+                far_enough_apart = True
+
+        atoms += shifted_mol_atoms
+
+    return atoms
 
 
 class Complex(Species):
@@ -36,56 +97,27 @@ class Complex(Species):
 
             return None
 
-        if len(self.molecules) > 2:
-            # TODO recursive call for > 2 molecules
-            raise NotImplementedError
-
+        n_molecules = len(self.molecules)       # Number of molecules in the complex
         self.conformers = []
-        n = 0
+        n = 0                                   # Current conformer number
 
-        # First molecule is static so get those atoms with the centroid at the origin
-        first_mol_atoms = deepcopy(self.molecules[0].atoms)
-        fist_mol_centroid = np.average(self.molecules[0].get_coordinates(), axis=0)
+        points_on_sphere = get_points_on_sphere(n_points=Config.num_complex_sphere_points)
 
-        for atom in first_mol_atoms:
-            atom.coord -= fist_mol_centroid
+        for _ in iterprod(range(Config.num_complex_random_rotations), repeat=n_molecules-1):
+            # Generate the rotation thetas and axes
+            rotations = [np.random.uniform(-np.pi, np.pi, size=4) for _ in range(n_molecules - 1)]
 
-        first_mol_coords = np.array([atom.coord for atom in first_mol_atoms])
+            for points in iterprod(points_on_sphere, repeat=n_molecules-1):
 
-        mol_centroid = np.average(self.molecules[1].get_coordinates(), axis=0)
-
-        for _ in range(Config.num_complex_random_rotations):
-            rotated_atoms = deepcopy(self.molecules[1].atoms)
-
-            # Shift the molecule to the origin then rotate randomly
-            theta, axis = np.random.uniform(0.0, 2.0*np.pi), np.random.uniform(-1.0, 1.0, size=3)
-            for atom in rotated_atoms:
-                atom.translate(vec=-mol_centroid)
-                atom.rotate(axis, theta)
-
-            # For every point generated on the surface on a unit sphere
-            for point in get_points_on_sphere(n_points=Config.num_complex_sphere_points):
-                shifted_atoms = deepcopy(rotated_atoms)
-
-                far_enough_apart = False
-
-                # Shift the molecule by 0.1 Å in the direction of the point (which has length 1) until the
-                # minimum distance to the rest of the complex is 2.0 Å
-                while not far_enough_apart:
-
-                    for atom in shifted_atoms:
-                        atom.coord += point * 0.1
-
-                    mol_coords = np.array([atom.coord for atom in shifted_atoms])
-
-                    if np.min(distance_matrix(first_mol_coords, mol_coords)) > 2.0:
-                        far_enough_apart = True
-
-                conformer = Conformer(name=f'{self.name}_conf{n}', atoms=first_mol_atoms+shifted_atoms,
-                                      charge=self.charge, mult=self.mult)
+                conformer = Conformer(name=f'{self.name}_conf{n}', charge=self.charge, mult=self.mult,
+                                      atoms=get_complex_conformer_atoms(self.molecules, rotations, points))
 
                 self.conformers.append(conformer)
                 n += 1
+
+                if n == Config.max_num_complex_conformers:
+                    logger.warning(f'Generated the maximum number of complex conformers ({n})')
+                    return None
 
         logger.info(f'Generated {n} conformers')
         return None

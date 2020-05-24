@@ -3,7 +3,7 @@ import os
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom
 from autode.config import Config
-from autode.exceptions import AtomsNotFound
+from autode.exceptions import UnsuppportedCalculationInput
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoNormalModesFound
 from autode.log import logger
@@ -22,33 +22,51 @@ class ORCA(ElectronicStructureMethod):
         calc.output_filename = calc.name + '_orca.out'
         keywords = calc.keywords_list.copy()
 
-        opt_or_sp = False
+        use_vdw_gaus_solvent = True if Config.ORCA.solvation_type.lower() == 'cpcm' else False
+
+        if any('freq' in keyword.lower() or 'optts' in keyword.lower() for keyword in keywords) and use_vdw_gaus_solvent:
+            logger.error('Cannot do analytical frequencies with gaussian charge scheme - switching off')
+            use_vdw_gaus_solvent = False
+
         qmmm_freq = False
 
         for keyword in keywords:
             if 'opt' in keyword.lower():
-                if keyword.lower() != 'optts':
-                    opt_or_sp = True
                 if calc.n_atoms == 1:
                     logger.warning('Cannot do an optimisation for a single atom')
-                    keywords.remove(keyword)
+                    keywords.remove(keyword)    # ORCA defaults to a single point calculation
 
-            if keyword.lower() == 'sp':
-                opt_or_sp = True
-            if keyword.lower() == 'freq':
+            if keyword.lower() == 'freq' or keyword.lower() == 'optts':
                 if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms:
+                    logger.warning('Cannot do analytical freqencies with point charges')
+
                     keywords.remove(keyword)
                     keywords.append('NumFreq')
                     qmmm_freq = True
 
-        if calc.solvent_keyword in vdw_gaussian_solvent_dict.keys():
-            keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
+        if calc.solvent_keyword is not None:
+            if Config.ORCA.solvation_type.lower() not in ['smd', 'cpcm']:
+                raise UnsuppportedCalculationInput
+
+            if Config.ORCA.solvation_type.lower() == 'smd':
+                keywords.append('CPCM')
+
+            if Config.ORCA.solvation_type.lower() == 'cpcm':
+                if calc.solvent_keyword not in vdw_gaussian_solvent_dict.keys():
+                    raise UnsuppportedCalculationInput(message=f'CPCM solvent with gaussian charge '
+                                                               f'not avalible for {calc.solvent_keyword}')
+
+                keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
 
         with open(calc.input_filename, 'w') as inp_file:
             print('!', *keywords, file=inp_file)
 
-            if calc.solvent_keyword:
-                if calc.solvent_keyword in vdw_gaussian_solvent_dict.keys() and opt_or_sp:
+            if calc.solvent_keyword is not None:
+
+                if Config.ORCA.solvation_type.lower() == 'smd':
+                    print(f'%cpcm\nsmd true\nSMDsolvent \"{calc.solvent_keyword}\"\nend', file=inp_file)
+
+                if use_vdw_gaus_solvent:
                     print('%cpcm\n surfacetype vdw_gaussian\nend', file=inp_file)
 
             max_iter_done = False
@@ -98,7 +116,6 @@ class ORCA(ElectronicStructureMethod):
             if calc.n_cores > 1:
                 print('%pal nprocs ' + str(calc.n_cores) + '\nend', file=inp_file)
 
-            # Default options that
             print('%output \nxyzfile=True \nend ',
                   '%scf \nmaxiter 250 \nend',
                   '%output\nPrint[P_Hirshfeld] = 1\nend',
@@ -264,9 +281,9 @@ class ORCA(ElectronicStructureMethod):
         """
         e.g.
 
-        ------------------
+        #------------------
         CARTESIAN GRADIENT                                            <- i
-        ------------------
+        #------------------
 
            1   C   :   -0.011390275   -0.000447412    0.000552736    <- j
         """
