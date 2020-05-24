@@ -51,13 +51,14 @@ def get_closest_species(point, pes):
     raise NoClosestSpecies
 
 
-def get_point_species(point, pes, name, method, keywords, n_cores, energy_threshold=1):
+def get_point_species(point, species, distance_constraints, name, method, keywords, n_cores, energy_threshold=1):
     """
     On a 2d PES calculate the energy and the structure using a constrained optimisation
 
     Arguments:
         point (tuple):
-        pes (autode.pes.PES):
+        species (autode.complex.ReactantComplex):
+        distance_constraints (dict):
         name (str):
         method (autode.wrappers.base.ElectronicStructureMethod):
         keywords (list(str)):
@@ -67,14 +68,8 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
         energy_threshold (float): Above this energy (Hartrees) the calculation will be disregarded
     """
     logger.info(f'Calculating point {point} on PES surface')
-    dimension = len(pes.rs_idxs)
 
-    species = get_closest_species(point=point, pes=pes)
-    species.name = f'{name}_scan_{"-".join([str(p) for p in point])}'
     original_species = deepcopy(species)
-
-    # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
-    distance_constraints = {pes.rs_idxs[i]: pes.rs[point][i] for i in range(dimension)}
 
     # Set up and run the calculation
     const_opt = Calculation(name=species.name, molecule=species, method=method, opt=True, n_cores=n_cores,
