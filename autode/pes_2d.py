@@ -13,6 +13,7 @@ from autode.min_energy_pathway import get_sum_energy_mep
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
 from autode.pes import get_point_species
+from autode.pes import get_closest_species
 from autode.pes import PES
 from autode.plotting import plot_2dpes
 from autode.saddle_points import poly2d_saddlepoints
@@ -118,11 +119,14 @@ class PES2d(PES):
             # The cores for this diagonal are the floored number of total cores divided by the number of calculations
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
-            # TODO passing PES in here is really slow with big molecules
-            # Use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
+            closest_species = [get_closest_species(p, self) for p in points]
+            dimension = len(self.rs_idxs)
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(dimension)} for p in points]
+
+            # Have to use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
             with NoDaemonPool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
-                                                                          cores_per_process)) for p in points]
+                results = [pool.apply_async(func=get_point_species, args=(p, s, d, name, method, keywords, cores_per_process)) for p, s, d in zip(points, closest_species, distance_constraints)]
                 for i, point in enumerate(points):
                     self.species[point] = results[i].get(timeout=None)
 

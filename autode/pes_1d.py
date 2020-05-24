@@ -6,8 +6,9 @@ from autode.log import logger
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
 from autode.plotting import plot_1dpes
-from autode.pes import PES
+from autode.pes import get_closest_species
 from autode.pes import get_point_species
+from autode.pes import PES
 from autode.units import KcalMol
 
 
@@ -50,7 +51,12 @@ class PES1d(PES):
         """Calculate all the points on the surface in serial using the maximum number of cores available"""
 
         for i in range(self.n_points):
-            self.species[i] = get_point_species((i,), self, name, method, keywords, Config.n_cores)
+            closest_species = get_closest_species((i,), self)
+            dimension = len(self.rs_idxs)
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = {self.rs_idxs[i]: self.rs[(i,)][i] for i in range(dimension)}
+
+            self.species[i] = get_point_species((i,), closest_species, distance_constraints, name, method, keywords, Config.n_cores)
 
         return None
 
