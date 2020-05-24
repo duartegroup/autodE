@@ -17,6 +17,7 @@ from autode.pes import get_closest_species
 from autode.pes import PES
 from autode.plotting import plot_2dpes
 from autode.saddle_points import poly2d_saddlepoints
+from autode.utils import work_in
 from autode.units import KcalMol
 
 
@@ -84,6 +85,7 @@ class PES2d(PES):
 
         return False
 
+    @work_in('pes2d')
     def calculate(self, name, method, keywords):
         """Calculations on the surface with a method using the a decomposition similar to the following
 
@@ -121,12 +123,14 @@ class PES2d(PES):
 
             closest_species = [get_closest_species(p, self) for p in points]
             dimension = len(self.rs_idxs)
-            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2. value
             distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(dimension)} for p in points]
 
-            # Have to use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
+            # Use custom NoDaemonPool here, as there are several multiprocessing events happening within the function
             with NoDaemonPool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(func=get_point_species, args=(p, s, d, name, method, keywords, cores_per_process)) for p, s, d in zip(points, closest_species, distance_constraints)]
+                results = [pool.apply_async(func=get_point_species, args=(p, s, d, name, method, keywords, cores_per_process))
+                           for p, s, d in zip(points, closest_species, distance_constraints)]
+
                 for i, point in enumerate(points):
                     self.species[point] = results[i].get(timeout=None)
 
@@ -186,20 +190,17 @@ class PES2d(PES):
         self.product_graph = product.graph
 
 
-def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method, keywords, final_dist1, final_dist2,
-                    polynomial_order=3, dr=0.1):
+def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, polynomial_order=3, dr=0.1):
     """Scan the distance between two sets of two atoms and return a guess for the TS
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
         product (autode.complex.ProductComplex):
-        active_bond1 (tuple): tuple of atom ids showing the first bond being scanned
-        active_bond2 (tuple): tuple of atom ids showing the second bond being scanned
+        bond1 (autode.pes.ScannedBond):
+        bond2 (autode.pes.ScannedBond):
         name (str): name of reaction
         method (autode.): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
-        final_dist1 (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
-        final_dist2 (float): distance to add onto the current distance of active_bond2 (Å) in n_steps (default: {1.5})
 
     Keyword Arguments:
         polynomial_order (int): order of polynomial to fit the data to (default: {3})
@@ -209,14 +210,11 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
         (autode.transition_states.ts_guess.TSguess)
     """
     logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds '
-                f'{active_bond1} and {active_bond2}')
-
-    curr_dist1 = reactant.get_distance(atom_i=active_bond1[0], atom_j=active_bond1[1])
-    curr_dist2 = reactant.get_distance(atom_i=active_bond2[0], atom_j=active_bond2[1])
+                f'{bond1} and {bond2}')
 
     # Steps of +Δr if the final distance is greater than the current else -Δr. Must be > 0
-    n_steps1 = max(int(np.abs((final_dist1 - curr_dist1) / dr)), 1)
-    n_steps2 = max(int(np.abs((final_dist2 - curr_dist2) / dr)), 1)
+    n_steps1 = max(int(np.abs((bond1.final_dist - bond1.curr_dist) / dr)), 1)
+    n_steps2 = max(int(np.abs((bond2.final_dist - bond2.curr_dist) / dr)), 1)
 
     if method.name in high_level_method_names:
         logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')
@@ -225,8 +223,8 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
 
     # Create a potential energy surface in the two active bonds and calculate
     pes = PES2d(reactant=reactant, product=product,
-                r1s=np.linspace(curr_dist1, final_dist1, n_steps1), r1_idxs=active_bond1,
-                r2s=np.linspace(curr_dist2, final_dist2, n_steps2), r2_idxs=active_bond2)
+                r1s=np.linspace(bond1.curr_dist, bond1.final_dist, n_steps1), r1_idxs=bond1.atom_indexes,
+                r2s=np.linspace(bond2.curr_dist, bond2.final_dist, n_steps2), r2_idxs=bond2.atom_indexes)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 

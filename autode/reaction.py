@@ -150,7 +150,6 @@ class Reaction:
         else:
             return self.tss[0]
 
-    @work_in('conformers')
     def find_lowest_energy_conformers(self, calc_reactants=True, calc_products=True):
         """Try and locate the lowest energy conformation using simulated annealing, then optimise them with xtb, then
         optimise the unique (defined by an energy cut-off) conformers with an electronic structure method"""

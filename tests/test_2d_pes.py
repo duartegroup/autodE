@@ -1,8 +1,10 @@
 import autode.pes_2d as pes_2d
 import numpy as np
-from autode.molecule import Molecule
+from autode.molecule import Reactant, Product
 from autode.atoms import Atom
 from autode.complex import ReactantComplex, ProductComplex
+from autode.pes import FormingBond, BreakingBond
+from autode.reaction import Reaction
 from autode.wrappers.XTB import xtb
 from autode.config import Config
 import os
@@ -28,9 +30,10 @@ def test_polyfit2d():
 
 
 def test_get_ts_guess_2dscan():
-    os.chdir(os.path.join(here, 'data', 'pes2d'))
+    os.chdir(os.path.join(here, 'data'))
+    Config.keep_input_files = False
 
-    ch3cl_f = Molecule(name='CH3Cl_F-', charge=-1, mult=1,
+    ch3cl_f = Reactant(name='CH3Cl_F-', charge=-1, mult=1,
                        atoms=[Atom('F', -4.14292, -0.24015,  0.07872),
                               Atom('Cl',  1.63463,  0.09787, -0.02490),
                               Atom('C', -0.14523, -0.00817,  0.00208),
@@ -38,13 +41,13 @@ def test_get_ts_guess_2dscan():
                               Atom('H', -0.45432, -0.49900,  0.93234),
                               Atom('H', -0.56010,  1.00533, -0.04754)])
 
-    ch3f_cl = Molecule(name='CH3Cl_F-', charge=-1, mult=1,
-                       atoms=[Atom('F',  1.63463,  0.09787, -0.02490),
-                              Atom('Cl', -4.14292, -0.24015,  0.07872),
-                              Atom('C', -0.14523, -0.00817,  0.00208),
-                              Atom('H', -0.47498, -0.59594, -0.86199),
-                              Atom('H', -0.45432, -0.49900,  0.93234),
-                              Atom('H', -0.56010,  1.00533, -0.04754)])
+    ch3f_cl = Product(name='CH3Cl_F-', charge=-1, mult=1,
+                      atoms=[Atom('F',  1.63463,  0.09787, -0.02490),
+                             Atom('Cl', -4.14292, -0.24015,  0.07872),
+                             Atom('C', -0.14523, -0.00817,  0.00208),
+                             Atom('H', -0.47498, -0.59594, -0.86199),
+                             Atom('H', -0.45432, -0.49900,  0.93234),
+                             Atom('H', -0.56010,  1.00533, -0.04754)])
 
     #         H                H
     #   F-   C--Cl     ->   F--C         Cl-
@@ -75,18 +78,28 @@ def test_get_ts_guess_2dscan():
     assert pes.products_made()
 
     # Get the TS guess from this surface calling all the above functions
-    ts_guess = pes_2d.get_ts_guess_2d(reactant=ReactantComplex(ch3cl_f), product=ProductComplex(ch3f_cl),
-                                      active_bond1=(0, 2), active_bond2=(1, 2), final_dist1=1.5, final_dist2=4.0,
-                                      polynomial_order=3, name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt,
+    reactant = ReactantComplex(ch3cl_f)
+    fbond = FormingBond(atom_indexes=(0, 2), species=reactant)
+    fbond.final_dist = 1.5
+
+    bbond = BreakingBond(atom_indexes=(1, 2), species=reactant, reaction=Reaction(ch3cl_f, ch3f_cl))
+    bbond.final_dist = 4.0
+
+    ts_guess = pes_2d.get_ts_guess_2d(reactant=reactant, product=ProductComplex(ch3f_cl),
+                                      bond1=fbond, bond2=bbond, polynomial_order=3,
+                                      name='SN2_PES',
+                                      method=xtb,
+                                      keywords=xtb.keywords.low_opt,
                                       dr=0.3)
     assert ts_guess is not None
     assert ts_guess.n_atoms == 6
     assert ts_guess.energy is None
     assert 2.13 < ts_guess.get_distance(0, 2) < 3.14
-    assert 1.99 < ts_guess.get_distance(1, 2) < 2.01
+    assert 1.9 < ts_guess.get_distance(1, 2) < 2.0
 
     for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png', '.xyz')) or 'animation' in filename or 'xcontrol' in filename:
+        if filename.endswith(('.inp', '.png')) or 'animation' in filename or 'xcontrol' in filename:
             os.remove(filename)
 
     os.chdir(here)
+    Config.keep_input_files = True

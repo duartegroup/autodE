@@ -11,6 +11,7 @@ from autode.log import logger
 from autode.methods import get_lmethod
 from autode.mol_graphs import make_graph
 from autode.utils import requires_atoms
+from autode.utils import work_in
 from autode.utils import requires_conformers
 
 
@@ -95,6 +96,7 @@ class Species:
         """Get the distance between two atoms in the species"""
         return length(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
 
+    @work_in('conformers')
     def find_lowest_energy_conformer(self, low_level_method=None, high_level_method=None):
         """
         For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy

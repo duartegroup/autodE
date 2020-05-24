@@ -1,6 +1,7 @@
 from autode.pes_1d import get_ts_guess_1d, PES1d
 from autode.atoms import Atom
 from autode.molecule import Molecule
+from autode.pes import FormingBond
 from autode.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.ORCA import orca
@@ -29,14 +30,16 @@ prod = ProductComplex(h, hydrogen)
 
 
 def test_get_ts_guess_1dscan():
-    os.chdir(os.path.join(here, 'data', 'pes1d'))
+    os.chdir(os.path.join(here, 'data'))
+
+    fbond = FormingBond(atom_indexes=(1, 2), species=reac)
+    fbond.final_dist = 0.7
 
     ts_guess = get_ts_guess_1d(name='H+H2_H2+H',
                                reactant=reac, product=prod,
-                               active_bond=(1, 2),
+                               bond=fbond,
                                method=orca,
                                keywords=['PBE', 'def2-SVP', 'Opt'],
-                               final_dist=0.7,
                                dr=0.06)
 
     assert ts_guess.n_atoms == 3
@@ -55,7 +58,7 @@ def test_get_ts_guess_1dscan():
 
 def test_1d_pes():
 
-    os.chdir(os.path.join(here, 'data', 'pes1d'))
+    os.chdir(os.path.join(here, 'data'))
 
     pes = PES1d(reactant=reac, product=prod, rs=np.linspace(1.0, 0.7, 5), r_idxs=(1, 2))
 

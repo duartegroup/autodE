@@ -5,7 +5,6 @@ from autode.transition_states.transition_state import get_ts_object
 from autode.transition_states.truncation import get_truncated_complex
 from autode.transition_states.truncation import is_worth_truncating
 from autode.transition_states.ts_guess import get_template_ts_guess
-from autode.bond_lengths import get_avg_bond_length
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.complex import get_complexes
 from autode.config import Config
@@ -15,6 +14,7 @@ from autode.methods import get_lmethod
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
 from autode.mol_graphs import reorder_nodes
+from autode.pes import FormingBond, BreakingBond
 from autode.pes_1d import get_ts_guess_1d
 from autode.pes_2d import get_ts_guess_2d
 from autode.reactions import Substitution, Elimination
@@ -78,98 +78,72 @@ def get_ts_guess_function_and_params(reaction, reactant, product, bond_rearr):
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
-    # Ideally use a transition state template, then only a single constrained optimisation need to be run...
-    yield get_template_ts_guess, (reactant, product, bond_rearr, f'{name}_template_{bond_rearr}', hmethod, hmethod.keywords.low_opt)
+    # Ideally use a transition state template, then only a single constrained optimisation needs to be run...
+    yield get_template_ts_guess, (reactant, product, bond_rearr, f'{name}_template_{bond_rearr}', hmethod)
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a transition state guess cheap -> most expensive
     if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
-        (i, j) = fbond = bond_rearr.fbonds[0]
-        (n, m) = bbond = bond_rearr.bbonds[0]
+        fbond = FormingBond(atom_indexes=bond_rearr.fbonds[0], species=reactant)
+        bbond = BreakingBond(atom_indexes=bond_rearr.bbonds[0], species=reactant, reaction=reaction)
 
-        scan_name = f'{name}_{i}-{j}_{n}-{m}'
-        bbond_final_dist = reactant.get_distance(atom_i=n, atom_j=m) + get_added_bbond_dist(reaction)
-        fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[i].label,
-                                               atom_j_label=reactant.atoms[j].label)
+        scan_name = f'{name}_{str(fbond)}_{str(bbond)}'
 
-        yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_ll2d', lmethod,
-                                lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
+        yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_ll2d', lmethod, lmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_bbond', hmethod,
-                                hmethod.keywords.low_opt, bbond_final_dist)
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_bbond', hmethod, hmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_opt_level_bbond',
-                                hmethod, hmethod.keywords.opt, bbond_final_dist)
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_alt_bbond', hmethod,  hmethod.keywords.opt)
 
     if bond_rearr.n_bbonds > 0 and bond_rearr.n_fbonds == 1:
-        (i, j) = fbond = bond_rearr.fbonds[0]
-        scan_name = f'{name}_{i}-{j}'
+        fbond = FormingBond(bond_rearr.fbonds[0], species=reactant)
+        scan_name = f'{name}_{str(fbond)}'
 
-        fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[i].label,
-                                               atom_j_label=reactant.atoms[j].label)
+        yield get_ts_guess_1d, (reactant, product, fbond, f'{scan_name}_hl1d_fbond', hmethod, hmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (reactant, product, fbond, f'{scan_name}_hl1d_fbond', hmethod,
-                                hmethod.keywords.low_opt, fbond_final_dist)
-
-        yield get_ts_guess_1d, (reactant, product, fbond, f'{scan_name}_hl1d_opt_level_fbond', hmethod,
-                                hmethod.keywords.opt, fbond_final_dist)
+        yield get_ts_guess_1d, (reactant, product, fbond, f'{scan_name}_hl1d_alt_fbond', hmethod, hmethod.keywords.opt)
 
     if bond_rearr.n_bbonds >= 1 and bond_rearr.n_fbonds >= 1:
-        for fbond in bond_rearr.fbonds:
-            for bbond in bond_rearr.bbonds:
-                (i, j) = fbond
-                (n, m) = bbond
+        for fbond_indexes in bond_rearr.fbonds:
+            for bbond_indexes in bond_rearr.bbonds:
+                fbond = FormingBond(atom_indexes=fbond_indexes, species=reactant)
+                bbond = BreakingBond(atom_indexes=bbond_indexes, species=reactant, reaction=reaction)
 
-                scan_name = f'{name}_{i}-{j}_{n}-{m}'
-
-                fbond_final_dist = get_avg_bond_length(atom_i_label=reactant.atoms[i].label,
-                                                       atom_j_label=reactant.atoms[j].label)
-                bbond_final_dist = reactant.get_distance(atom_i=n, atom_j=m) + get_added_bbond_dist(reaction)
+                scan_name = f'{name}_{str(fbond)}_{str(bbond)}'
 
                 yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_ll2d', lmethod,
-                                        lmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
+                                        lmethod.keywords.low_opt)
 
                 yield get_ts_guess_2d, (reactant, product, fbond, bbond, f'{scan_name}_hl2d', hmethod,
-                                        hmethod.keywords.low_opt, fbond_final_dist, bbond_final_dist)
+                                        hmethod.keywords.low_opt)
 
     if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 0:
-        (i, j) = bbond = bond_rearr.bbonds[0]
-        scan_name = f'{name}_{i}-{j}'
+        bbond = BreakingBond(atom_indexes=bond_rearr.bbonds[0], species=reactant, reaction=reaction)
+        scan_name = f'{name}_{str(bbond)}'
 
-        bbond_final_dist = reactant.get_distance(atom_i=i, atom_j=j) + get_added_bbond_dist(reaction)
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d', hmethod, hmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d',
-                                hmethod, hmethod.keywords.low_opt, bbond_final_dist)
-
-        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_opt_level', hmethod,
-                                hmethod.keywords.opt, bbond_final_dist)
+        yield get_ts_guess_1d, (reactant, product, bbond, f'{scan_name}_hl1d_alt', hmethod, hmethod.keywords.opt)
 
     if bond_rearr.n_fbonds == 2:
-        (i, j), (n, m) = bond_rearr.fbonds
-        scan_name = f'{name}_{i}-{j}_{n}-{m}'
+        fbond1 = FormingBond(atom_indexes=bond_rearr.fbonds[0], species=reactant)
+        fbond2 = FormingBond(atom_indexes=bond_rearr.fbonds[1], species=reactant)
+        scan_name = f'{name}_{str(fbond1)}_{str(fbond2)}'
 
-        fbond_final_dist1 = get_avg_bond_length(atom_i_label=reactant.atoms[i].label,
-                                                atom_j_label=reactant.atoms[j].label)
-
-        fbond_final_dist2 = get_avg_bond_length(atom_i_label=reactant.atoms[n].label,
-                                                atom_j_label=reactant.atoms[m].label)
-
-        yield get_ts_guess_2d, (reactant, product, (i, j), (n, m), f'{scan_name}_ll2d_fbonds', lmethod,
-                                lmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
-        yield get_ts_guess_2d, (reactant, product, (i, j), (n, m), f'{scan_name}_hl2d_fbonds', hmethod,
-                                hmethod.keywords.low_opt, fbond_final_dist1, fbond_final_dist2)
+        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, f'{scan_name}_ll2d_fbonds', lmethod,
+                                lmethod.keywords.low_opt)
+        yield get_ts_guess_2d, (reactant, product, fbond1, fbond2, f'{scan_name}_hl2d_fbonds', hmethod,
+                                hmethod.keywords.low_opt)
 
     if bond_rearr.n_bbonds == 2:
-        (i, j), (n, m) = bond_rearr.bbonds
-        scan_name = f'{name}_{i}-{j}_{n}-{m}'
+        bbond1 = BreakingBond(atom_indexes=bond_rearr.bbonds[0], species=reactant, reaction=reaction)
+        bbond2 = BreakingBond(atom_indexes=bond_rearr.bbonds[1], species=reactant, reaction=reaction)
+        scan_name = f'{name}_{str(bbond1)}_{str(bbond2)}'
 
-        bbond1_final_dist = reactant.get_distance(atom_i=i, atom_j=j) + get_added_bbond_dist(reaction)
-        bbond2_final_dist = reactant.get_distance(atom_i=n, atom_j=m) + get_added_bbond_dist(reaction)
+        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, f'{scan_name}_ll2d_bbonds', lmethod,
+                                lmethod.keywords.low_opt)
 
-        yield get_ts_guess_2d, (reactant, product, (i, j), (n, m), f'{scan_name}_ll2d_bbonds', lmethod,
-                                lmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
-
-        yield get_ts_guess_2d, (reactant, product, (i, j), (n, m), f'{scan_name}_hl2d_bbonds', hmethod,
-                                hmethod.keywords.low_opt, bbond1_final_dist, bbond2_final_dist)
+        yield get_ts_guess_2d, (reactant, product, bbond1, bbond2, f'{scan_name}_hl2d_bbonds', hmethod,
+                                hmethod.keywords.low_opt)
 
     return None
 
@@ -318,19 +292,3 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
     return None
 
 
-def get_added_bbond_dist(reaction):
-    """Get the bond length a breaking bond should increase by
-
-    Arguments:
-        reaction (reaction object): reaction being scanned
-
-    Returns:
-        float: distance the bond should increase by
-    """
-    # if there are charged molecules and implicit solvation, the bond length may need to increase by more to get a
-    # saddle point, as implicit solvation does not fully stabilise the charged molecule
-
-    if any(mol.charge != 0 for mol in reaction.prods) and not (reaction.__class__.__name__ == 'SolvatedReaction'):
-        return 2.5
-    else:
-        return 1.5
