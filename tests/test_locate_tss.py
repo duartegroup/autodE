@@ -1,3 +1,4 @@
+import os
 from autode import Reactant, Product, Reaction
 from autode.reactions import Dissociation
 from autode.complex import get_complexes
@@ -19,6 +20,7 @@ def test_one_to_three_dissociation():
     reactant, product = get_complexes(reaction)
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
     assert len(bond_rearrangs) == 1
+    os.remove(f'{str(reaction)}_bond_rearrangs.txt')
 
     # This dissociation breaks two bonds and forms none
     bond_rearrangement = bond_rearrangs[0]
