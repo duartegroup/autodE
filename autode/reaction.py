@@ -342,6 +342,7 @@ class MultiStepReaction:
             assert n_reacting_atoms == n_prev_product_atoms
 
         for i, r in enumerate(self.reactions):
+            r.name = f'{self.name}_step{i}'
 
             if i == 0:
                 # First reaction requires calculating reactant conformers

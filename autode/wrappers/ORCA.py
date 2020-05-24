@@ -22,7 +22,7 @@ class ORCA(ElectronicStructureMethod):
         calc.output_filename = calc.name + '_orca.out'
         keywords = calc.keywords_list.copy()
 
-        use_vdw_gaus_solvent = True if Config.ORCA.solvation_type.lower() == 'cpcm' else False
+        use_vdw_gaus_solvent = Config.ORCA.solvation_type.lower() == 'cpcm' and calc.solvent_keyword is not None
 
         if any('freq' in keyword.lower() or 'optts' in keyword.lower() for keyword in keywords) and use_vdw_gaus_solvent:
             logger.error('Cannot do analytical frequencies with gaussian charge scheme - switching off')
@@ -38,7 +38,7 @@ class ORCA(ElectronicStructureMethod):
 
             if keyword.lower() == 'freq' or keyword.lower() == 'optts':
                 if hasattr(calc.molecule, 'qm_solvent_atoms') and calc.molecule.qm_solvent_atoms:
-                    logger.warning('Cannot do analytical freqencies with point charges')
+                    logger.warning('Cannot do analytical frequencies with point charges')
 
                     keywords.remove(keyword)
                     keywords.append('NumFreq')

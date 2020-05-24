@@ -286,4 +286,3 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
 
     return atoms
-

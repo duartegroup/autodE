@@ -17,7 +17,7 @@ from autode.utils import requires_conformers
 class Species:
 
     def _generate_conformers(self, *args, **kwargs):
-        raise NotImplemented
+        raise NotImplementedError
 
     @requires_conformers()
     def _set_lowest_energy_conformer(self):

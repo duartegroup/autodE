@@ -4,7 +4,6 @@ from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.calculation import Calculation
-from autode.complex import SolvatedReactantComplex
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger

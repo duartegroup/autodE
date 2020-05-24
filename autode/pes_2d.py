@@ -119,7 +119,7 @@ class PES2d(PES):
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
             # TODO passing PES in here is really slow with big molecules
-            # Have to use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
+            # Use custom NoDaemonPool here, as there are several multiprocessing events happening withing the function
             with NoDaemonPool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(func=get_point_species, args=(p, self, name, method, keywords,
                                                                           cores_per_process)) for p in points]
@@ -210,9 +210,9 @@ def get_ts_guess_2d(reactant, product, active_bond1, active_bond2, name, method,
     curr_dist1 = reactant.get_distance(atom_i=active_bond1[0], atom_j=active_bond1[1])
     curr_dist2 = reactant.get_distance(atom_i=active_bond2[0], atom_j=active_bond2[1])
 
-    # Steps of +Δr if the final distance is greater than the current else -Δr
-    n_steps1 = int(np.abs((final_dist1 - curr_dist1) / dr))
-    n_steps2 = int(np.abs((final_dist2 - curr_dist2) / dr))
+    # Steps of +Δr if the final distance is greater than the current else -Δr. Must be > 0
+    n_steps1 = max(int(np.abs((final_dist1 - curr_dist1) / dr)), 1)
+    n_steps2 = max(int(np.abs((final_dist2 - curr_dist2) / dr)), 1)
 
     if method.name in high_level_method_names:
         logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')

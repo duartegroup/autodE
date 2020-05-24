@@ -12,7 +12,7 @@ in Config for e.g. XTB:
     >>> from autode import methods, Config
     >>> methods.get_lmethod()
     autode.exceptions.MethodUnavailable
-    >>> Config.XTB.path='/path/to/xtb/bin/'
+    >>> Config.XTB.path='/path/to/xtb/bin/xtb'
     >>> methods.get_lmethod()
     <autode.wrappers.XTB.XTB object at XXXXXXXXXX>
 
