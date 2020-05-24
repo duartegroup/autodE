@@ -68,7 +68,7 @@ def get_point_species(point, species, distance_constraints, name, method, keywor
         energy_threshold (float): Above this energy (Hartrees) the calculation will be disregarded
     """
     logger.info(f'Calculating point {point} on PES surface')
-
+    species.name = f'{name}_scan_{"-".join([str(p) for p in point])}'
     original_species = deepcopy(species)
 
     # Set up and run the calculation
