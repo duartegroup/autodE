@@ -1,4 +1,3 @@
-import numpy as np
 from rdkit import Chem
 from autode.atoms import Atom
 from autode.config import Config

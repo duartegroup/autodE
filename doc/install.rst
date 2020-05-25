@@ -43,7 +43,7 @@ Windows
 --------
 
 On Windows without a ``git`` installation ``autode`` can be installed with `anaconda <https://www.anaconda.com/distribution>`_
-by, on the GitHub `page <https://github.com/duartegroup/autode>`_ using Clone or download → Download ZIP then
+by: on the GitHub `page <https://github.com/duartegroup/autode>`_ using Clone or download → Download ZIP then
 extracting it. Then, open an anaconda command prompt and ``cd`` to the directory and proceed as above e.g.::
 
     $ cd Downloads/autodE-master/

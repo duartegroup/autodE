@@ -1,6 +1,6 @@
 from autode import *
 
-Config.n_cores = 2
+Config.n_cores = 4
 
 flouride = Reactant(name='F-', smiles='[F-]')
 methyl_chloride = Reactant(name='CH3Cl', smiles='ClC')

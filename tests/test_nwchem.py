@@ -85,7 +85,7 @@ def test_opt_hf_constraints():
     h2o.set_atoms(atoms=calc.get_final_atoms())
     assert 0.94 < h2o.get_distance(0, 1) < 0.96
 
+    os.remove('opt_water_nwchem.nw')
+
     os.chdir(here)
-
-
 

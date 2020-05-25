@@ -6,16 +6,17 @@ from autode.log import logger
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
 from autode.plotting import plot_1dpes
-from autode.pes import PES
+from autode.pes import get_closest_species
 from autode.pes import get_point_species
+from autode.pes import PES
 from autode.units import KcalMol
+from autode.utils import work_in
 
 
 class PES1d(PES):
 
     def get_species_saddle_point(self):
         """Get the possible first order saddle points, which are just the peaks in the PES"""
-
         energies = [self.species[i].energy for i in range(self.n_points)]
 
         # Peaks have lower energies both sides of them
@@ -46,11 +47,17 @@ class PES1d(PES):
 
         return False
 
+    @work_in('pes1d')
     def calculate(self, name, method, keywords):
         """Calculate all the points on the surface in serial using the maximum number of cores available"""
 
         for i in range(self.n_points):
-            self.species[i] = get_point_species((i,), self, name, method, keywords, Config.n_cores)
+            closest_species = get_closest_species((i,), self)
+            dimension = len(self.rs_idxs)
+            # Set up the dict of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = {self.rs_idxs[i]: self.rs[(i,)][i] for i in range(dimension)}
+
+            self.species[i] = get_point_species((i,), closest_species, distance_constraints, name, method, keywords, Config.n_cores)
 
         return None
 
@@ -78,31 +85,29 @@ class PES1d(PES):
         self.product_graph = product.graph
 
 
-def get_ts_guess_1d(reactant, product, active_bond, name, method, keywords, final_dist, dr=0.1):
+def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):
     """Scan the distance between two atoms and return a guess for the TS
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
         product (autode.complex.ProductComplex):
-        active_bond (tuple): tuple of atom ids showing the first bond being scanned
+        bond (autode.pes.ScannedBond):
         name (str): name of reaction
         method (autode.): electronic structure wrapper to use for the calcs
         keywords (list): keywords_list to use in the calcs
-        final_dist (float): distance to add onto the current distance of active_bond1 (Å) in n_steps (default: {1.5})
 
     Keyword Arguments:
-        dr (float): Δr on the surface *absolute value*
+        dr (float): Δr on the surface *absolute value* in angstroms
 
     Returns:
         (autode.transition_states.ts_guess.TSguess)
     """
-    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {active_bond} as the active bond')
-    curr_dist = reactant.get_distance(atom_i=active_bond[0], atom_j=active_bond[1])
+    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {bond.atom_indexes} as the active bond')
 
     # Create a potential energy surface in the active bonds and calculate
     pes = PES1d(reactant=reactant, product=product,
-                rs=np.arange(curr_dist, final_dist, step=dr if final_dist > curr_dist else -dr),
-                r_idxs=active_bond)
+                rs=np.arange(bond.curr_dist, bond.final_dist, step=dr if bond.final_dist > bond.curr_dist else -dr),
+                r_idxs=bond.atom_indexes)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 

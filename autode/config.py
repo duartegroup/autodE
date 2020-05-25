@@ -24,6 +24,11 @@ class Config:
     #
     lcode = None
     #
+    # ---------------------------------------------------------------------------------------------
+    # Setting to keep input files, otherwise they will be removed
+    #
+    keep_input_files = True
+    #
     # ----------------------------------------------------------------------------------------------
     # When a transition state is found save it it /path_to_autode_install/transition_states/lib/
     # if ts_template_folder_path is not set to override it

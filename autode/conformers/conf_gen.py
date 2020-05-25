@@ -71,7 +71,6 @@ def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
 
 def get_atoms_rotated_stereocentres(species, atoms, rand):
     """If two stereocentres are bonded, rotate them randomly with respect to each other
-
     Arguments:
         species (autode.species.Species):
         atoms (list(autode.atoms.Atom)):
@@ -221,12 +220,10 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
 
 def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
-
     Arguments:
         species (autode.species.Species): Species, Molecule, TSguess, TS
         dist_consts (dict): Key = tuple of atom indexes, Value = distance
         conf_n (int): Number of this conformer generated
-
     Returns:
         (np.ndarray): Coordinates of the generated conformer
     """
@@ -286,4 +283,3 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
 
     return atoms
-

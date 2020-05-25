@@ -2,6 +2,7 @@ import pytest
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.molecule import Molecule
+from autode.config import Config
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -49,4 +50,5 @@ def test_xtb_calculation():
 
     os.remove('const_opt_xtb.xyz')
     os.remove('xcontrol_const_opt')
+    os.remove('opt_xtb.xyz')
     os.chdir(here)

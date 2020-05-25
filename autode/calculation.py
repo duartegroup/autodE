@@ -168,6 +168,20 @@ class Calculation:
 
         return self.method.generate_input(self)
 
+    def clean_up(self):
+
+        if Config.keep_input_files:
+            return None
+
+        logger.info('Removing input files')
+        if not self.input_filename.endswith('.xyz'):
+            os.remove(self.input_filename)
+
+        for input_filename in self.additional_input_files:
+            os.remove(input_filename)
+
+        return None
+
     def execute_calculation(self):
         logger.info(f'Running calculation {self.input_filename} using {self.method.name}')
 
@@ -185,10 +199,10 @@ class Calculation:
             self.output_file_exists = True
             self.set_output_file_lines()
 
-        if self.output_file_exists:
-            if self.calculation_terminated_normally():
-                logger.info('Calculation already terminated successfully. Skipping')
-                return
+        if self.output_file_exists and self.calculation_terminated_normally():
+            logger.info('Calculation already terminated successfully. Skipping')
+            self.clean_up()
+            return
 
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
@@ -213,6 +227,8 @@ class Calculation:
                 self.get_gradients()
 
         execute_est_method()
+        self.clean_up()
+
         return self.set_output_file_lines()
 
     def run(self):

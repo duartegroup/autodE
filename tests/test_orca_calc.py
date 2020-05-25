@@ -146,6 +146,7 @@ def test_bad_orca_output():
 def test_subprocess_to_output():
 
     os.chdir(os.path.join(here, 'data'))
+    Config.keep_input_files = True
 
     calc = Calculation(name='test', molecule=test_mol, method=method)
 

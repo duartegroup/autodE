@@ -4,7 +4,6 @@ from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.calculation import Calculation
-from autode.complex import SolvatedReactantComplex
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
@@ -85,7 +84,7 @@ def has_matching_ts_templates(reactant, bond_rearrangement):
     return False
 
 
-def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, keywords, dist_thresh=4.0):
+def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, dist_thresh=4.0):
     """Get a transition state guess object by searching though the stored TS templates
 
     Arguments:
@@ -134,7 +133,7 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, k
                 pass
 
             else:
-                return get_ts_guess_constrained_opt(reactant, method=method, keywords=keywords, name=name,
+                return get_ts_guess_constrained_opt(reactant, method=method, keywords=method.keywords.opt, name=name,
                                                     distance_consts=active_bonds_and_dists_ts, product=product)
 
     logger.info('Could not find a TS guess from a template')

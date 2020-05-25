@@ -13,11 +13,9 @@ from copy import deepcopy
 
 def calc_multiplicity(molecule, n_radical_electrons):
     """Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
-
     Arguments:
         molecule (autode.molecule.Molecule):
         n_radical_electrons (int):
-
     Returns:
         int: multiplicity of the molecule
     """
@@ -40,7 +38,6 @@ def init_organic_smiles(molecule, smiles):
     """
     Initialise a molecule from a SMILES string, set the charge, multiplicity (if it's not already specified) and the 3D
     geometry using RDKit
-
     Arguments:
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
@@ -86,7 +83,6 @@ def init_organic_smiles(molecule, smiles):
 def init_smiles(molecule, smiles):
     """
     Initialise a molecule from a SMILES string
-
     Arguments:
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string

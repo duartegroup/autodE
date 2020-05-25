@@ -21,7 +21,7 @@ def work_in(dir_ext):
             dir_path = os.path.join(here, dir_ext)
 
             if not os.path.isdir(dir_path):
-                logger.info(f'Creating directory to store output files at {dir_path:}')
+                logger.info(f'Creating directory to store files: {dir_path:}')
                 os.mkdir(dir_path)
 
             os.chdir(dir_path)
@@ -66,6 +66,7 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
             logger.info('           ...done')
 
             for filename in os.listdir(tmpdir_path):
+
                 if any([filename.endswith(ext) for ext in kept_file_exts]):
                     logger.info(f'Coping back {filename}')
                     shutil.copy(filename, here)

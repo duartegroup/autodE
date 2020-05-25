@@ -3,6 +3,7 @@ from abc import abstractmethod
 from copy import deepcopy
 import itertools
 import numpy as np
+from autode.bond_lengths import get_avg_bond_length
 from autode.calculation import Calculation
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoClosestSpecies
@@ -51,13 +52,14 @@ def get_closest_species(point, pes):
     raise NoClosestSpecies
 
 
-def get_point_species(point, pes, name, method, keywords, n_cores, energy_threshold=1):
+def get_point_species(point, species, distance_constraints, name, method, keywords, n_cores, energy_threshold=1):
     """
     On a 2d PES calculate the energy and the structure using a constrained optimisation
 
     Arguments:
         point (tuple):
-        pes (autode.pes.PES):
+        species (autode.complex.ReactantComplex):
+        distance_constraints (dict):
         name (str):
         method (autode.wrappers.base.ElectronicStructureMethod):
         keywords (list(str)):
@@ -67,14 +69,9 @@ def get_point_species(point, pes, name, method, keywords, n_cores, energy_thresh
         energy_threshold (float): Above this energy (Hartrees) the calculation will be disregarded
     """
     logger.info(f'Calculating point {point} on PES surface')
-    dimension = len(pes.rs_idxs)
 
-    species = get_closest_species(point=point, pes=pes)
     species.name = f'{name}_scan_{"-".join([str(p) for p in point])}'
     original_species = deepcopy(species)
-
-    # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
-    distance_constraints = {pes.rs_idxs[i]: pes.rs[point][i] for i in range(dimension)}
 
     # Set up and run the calculation
     const_opt = Calculation(name=species.name, molecule=species, method=method, opt=True, n_cores=n_cores,
@@ -113,3 +110,65 @@ class PES(ABC):
     species = None
     rs = None
     rs_idxs = None
+
+
+class ScannedBond:
+
+    def __str__(self):
+        i, j = self.atom_indexes
+        return f'{i}-{j}'
+
+    def __init__(self, atom_indexes):
+        """
+        Bond with a current and final distance which will be scanned over
+
+        Arguments:
+            atom_indexes (tuple(int)): Atom indexes that make this 'bond' e.g. (0, 1)
+        """
+        assert len(atom_indexes) == 2
+
+        self.atom_indexes = atom_indexes
+
+        self.curr_dist = None
+        self.final_dist = None
+
+
+class FormingBond(ScannedBond):
+
+    def __init__(self, atom_indexes, species):
+        """"
+        Forming bond with current and final distances
+
+        Arguments:
+            atom_indexes (tuple(int)):
+            species (autode.species.Species):
+        """
+        super().__init__(atom_indexes)
+
+        i, j = self.atom_indexes
+        self.curr_dist = species.get_distance(atom_i=i, atom_j=j)
+        self.final_dist = get_avg_bond_length(atom_i_label=species.atoms[i].label, atom_j_label=species.atoms[j].label)
+
+
+class BreakingBond(ScannedBond):
+
+    def __init__(self, atom_indexes, species, reaction):
+        """
+        Form a breaking bond with current and final distances
+
+        Arguments:
+            atom_indexes (tuple(int)):
+            species (autode.species.Species):
+            reaction (autode.reaction.Reaction):
+        """
+        super().__init__(atom_indexes)
+
+        self.curr_dist = species.get_distance(*self.atom_indexes)
+
+        # Length a breaking bond should increase by
+        if any(mol.charge != 0 for mol in reaction.prods) and not (reaction.__class__.__name__ == 'SolvatedReaction'):
+            bbond_add_dist = 2.5
+        else:
+            bbond_add_dist = 1.5
+
+        self.final_dist = self.curr_dist + bbond_add_dist

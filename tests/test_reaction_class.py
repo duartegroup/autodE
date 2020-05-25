@@ -145,7 +145,7 @@ def test_solvated_reaction():
     assert r.solvent_mol.energy == -3819.765189588065
     assert all(isinstance(mol, reaction.SolvatedMolecule) for mol in r.reacs + r.prods)
 
-    os.remove('solvent/water_conf0_opt_xtb.xyz')
+    os.remove('solvent/conformers/water_conf0_opt_xtb.xyz')
     os.remove('solvent/water_opt_orca.inp')
     os.remove('solvent/water_optimised_orca.xyz')
     os.remove('solvent/water_sp_orca.inp')
