@@ -212,9 +212,9 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
     logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds '
                 f'{bond1} and {bond2}')
 
-    # Steps of +Δr if the final distance is greater than the current else -Δr. Must be > 0
-    n_steps1 = max(int(np.abs((bond1.final_dist - bond1.curr_dist) / dr)), 1)
-    n_steps2 = max(int(np.abs((bond2.final_dist - bond2.curr_dist) / dr)), 1)
+    # Steps of +Δr if the final distance is greater than the current else -Δr. Run at least a 3x3 PES
+    n_steps1 = max(int(np.abs((bond1.final_dist - bond1.curr_dist) / dr)), 3)
+    n_steps2 = max(int(np.abs((bond2.final_dist - bond2.curr_dist) / dr)), 3)
 
     if method.name in high_level_method_names:
         logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')

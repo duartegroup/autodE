@@ -54,7 +54,8 @@ class ORCA(ElectronicStructureMethod):
             if Config.ORCA.solvation_type.lower() == 'cpcm':
                 if calc.solvent_keyword not in vdw_gaussian_solvent_dict.keys():
                     raise UnsuppportedCalculationInput(message=f'CPCM solvent with gaussian charge '
-                                                               f'not avalible for {calc.solvent_keyword}')
+                                                               f'not avalible for {calc.solvent_keyword}. Available'
+                                                               f'solvents are {vdw_gaussian_solvent_dict.keys()}')
 
                 keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc.solvent_keyword]})')
 
