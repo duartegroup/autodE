@@ -1,10 +1,9 @@
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
-from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformer import Conformer
+from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.atoms import metals
 from autode.calculation import Calculation
 from autode.config import Config
@@ -20,7 +19,8 @@ from autode.utils import requires_atoms
 class Molecule(Species):
 
     def _init_smiles(self, smiles):
-        """Initialise a molecule from a SMILES string using RDKit if it's purely organic"""
+        """Initialise a molecule from a SMILES string using RDKit if it's
+        purely organic"""
 
         if any(metal in smiles for metal in metals):
             init_smiles(self, smiles)
@@ -28,30 +28,36 @@ class Molecule(Species):
         else:
             init_organic_smiles(self, smiles)
 
-        logger.info(f'Initialisation with SMILES successful. Charge={self.charge}, Multiplicity={self.mult}, '
+        logger.info(f'Initialisation with SMILES successful. '
+                    f'Charge={self.charge}, Multiplicity={self.mult}, '
                     f'Num. Atoms={self.n_atoms}')
         return None
 
     @requires_atoms()
     def _generate_conformers(self, n_confs=None):
         """
-        Use a simulated annealing approach to generate conformers for this molecule.
+        Use a simulated annealing approach to generate conformers for this
+        molecule.
 
         Keyword Arguments:
-            n_confs (int): Number of conformers requested if None default to autode.Config.num_conformers
+            n_confs (int): Number of conformers requested if None default to
+            autode.Config.num_conformers
         """
+
         n_confs = n_confs if n_confs is not None else Config.num_conformers
         self.conformers = []
 
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
-            logger.info(f'Using RDKit to generate conformers. {n_confs} requested')
+            logger.info(f'Using RDKit to gen conformers. {n_confs} requested')
 
             method = AllChem.ETKDGv2()
             method.pruneRmsThresh = Config.rmsd_threshold
             method.numThreads = Config.n_cores
 
             logger.info('Running conformation generation with RDKit... running')
-            conf_ids = list(AllChem.EmbedMultipleConfs(self.rdkit_mol_obj, numConfs=n_confs, params=method))
+            conf_ids = list(AllChem.EmbedMultipleConfs(self.rdkit_mol_obj,
+                                                       numConfs=n_confs,
+                                                       params=method))
             logger.info('                                          ... done')
 
             conf_atoms_list = [get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id) for conf_id in conf_ids]
@@ -63,7 +69,10 @@ class Molecule(Species):
                 conf_atoms_list = [res.get(timeout=None) for res in results]
 
         for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge, mult=self.mult, atoms=atoms)
+            conf = Conformer(name=f'{self.name}_conf{i}',
+                             charge=self.charge,
+                             mult=self.mult,
+                             atoms=atoms)
 
             # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):
@@ -78,7 +87,7 @@ class Molecule(Species):
         logger.info(f'Running optimisation of {self.name}')
 
         opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
-                          keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
+                          keywords=method.keywords.opt, n_cores=Config.n_cores)
         opt.run()
         self.energy = opt.get_energy()
         self.set_atoms(atoms=opt.get_final_atoms())
@@ -89,7 +98,8 @@ class Molecule(Species):
 
         return None
 
-    def __init__(self, name='molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1):
+    def __init__(self, name='molecule', smiles=None, atoms=None,
+                 solvent_name=None, charge=0, mult=1):
         """Initialise a Molecule object
 
         Keyword Arguments:
@@ -122,25 +132,10 @@ class SolvatedMolecule(Molecule):
 
     @requires_atoms()
     def optimise(self, method):
-        logger.info(f'Running optimisation of {self.name}')
+        raise NotImplementedError
 
-        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
-                          keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
-        opt.run()
-        self.energy = opt.get_energy()
-        self.set_atoms(atoms=opt.get_final_atoms())
-        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
-        for i, charge in enumerate(opt.get_atomic_charges()):
-            self.graph.nodes[i]['charge'] = charge
-
-        _, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=Config.n_cores)
-        self.set_atoms(species_atoms)
-        self.qm_solvent_atoms = qm_solvent_atoms
-        self.mm_solvent_atoms = mm_solvent_atoms
-
-        return None
-
-    def __init__(self, name='solvated_molecule', smiles=None, atoms=None, solvent_name=None, charge=0, mult=1, solvent_mol=None):
+    def __init__(self, name='solvated_molecule', smiles=None, atoms=None,
+                 solvent_name=None, charge=0, mult=1, solvent_mol=None):
         super().__init__(name, smiles, atoms, solvent_name, charge, mult)
 
         self.solvent_mol = solvent_mol

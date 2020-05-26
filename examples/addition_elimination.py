@@ -1,5 +1,4 @@
 from autode import *
-from autode.molecule import product_to_reactant
 
 Config.n_cores = 8
 
@@ -8,15 +7,17 @@ Config.ORCA.keywords.low_opt = ['PBE0', 'D3BJ', 'LooseOpt', 'ma-def2-SVP']
 Config.ORCA.keywords.hess = ['PBE0', 'D3BJ', 'Freq', 'ma-def2-SVP']
 Config.ORCA.keywords.opt = ['PBE0', 'D3BJ', 'LooseOpt', 'ma-def2-SVP']
 
-# Set up the first step in the hydrolysis of the ester, attack of OH- to get a tetrahedral intermediate
+# Set up the first step in the hydrolysis of the ester, attack of OH- to get a
+# tetrahedral intermediate
 r1 = Reactant(name='ester', smiles='CC(OC)=O')
 r2 = Reactant(name='hydroxide', smiles='[OH-]')
 tet_int = Product(name='tet_intermediate', smiles='CC([O-])(OC)O')
 
 step1 = Reaction(r1, r2, tet_int, solvent_name='water')
 
-# Second step is collapse of the tetrahedral intermediate to the acid and methoxide
-tet_int = product_to_reactant(tet_int)
+# Second step is collapse of the tetrahedral intermediate to the acid and
+# methoxide
+tet_int = Reactant(name='tet_intermediate', smiles='CC([O-])(OC)O')
 p1 = Product(name='acid', smiles='CC(O)=O')
 p2 = Product(name='methodixe', smiles='[O-]C')
 

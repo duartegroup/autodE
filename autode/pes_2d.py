@@ -41,7 +41,7 @@ class PES2d(PES):
             # Perform a constrained optimisation using the analytic saddle point r1, r2 values
             species = deepcopy(self.species[close_point])
             const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
-                                    opt=True, n_cores=Config.n_cores, keywords_list=keywords,
+                                    opt=True, n_cores=Config.n_cores, keywords=keywords,
                                     distance_constraints={self.rs_idxs[0]: r1, self.rs_idxs[1]: r2})
 
             try:
@@ -228,13 +228,13 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
 
     pes.calculate(name=name, method=method, keywords=keywords)
 
-    if not pes.products_made():
-        logger.error('Products were not made on the whole PES')
-        return None
-
     # Fit an analytic 2D PES to the surface and plot using matplotlib
     pes.fit(polynomial_order=polynomial_order)
     pes.print_plot(name=name)
+
+    if not pes.products_made():
+        logger.error('Products were not made on the whole PES')
+        return None
 
     # Get a TSGuess for the lowest energy MEP saddle point on the surface
     species = pes.get_species_saddle_point(name=name, method=method, keywords=keywords)

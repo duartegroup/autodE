@@ -81,7 +81,7 @@ def test_links_reacs_prods():
     os.chdir(os.path.join(here, 'data'))
 
     tsguess.calc = Calculation(name=tsguess.name + '_hess', molecule=tsguess, method=method,
-                               keywords_list=method.keywords.hess, n_cores=Config.n_cores)
+                               keywords=method.keywords.hess, n_cores=Config.n_cores)
     # Should find the completed calculation output
     tsguess.calc.run()
 

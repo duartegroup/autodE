@@ -25,7 +25,7 @@ def test_orca_opt_calculation():
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent_name='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
+                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
     calc.run()
 
     assert os.path.exists('opt_orca.inp') is True
@@ -35,11 +35,11 @@ def test_orca_opt_calculation():
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
-    assert calc.get_imag_freqs() == []
+    assert calc.get_imaginary_freqs() == []
     assert calc.input_filename == 'opt_orca.inp'
     assert calc.output_filename == 'opt_orca.out'
     assert calc.terminated_normally is True
-    assert calc.calculation_terminated_normally() is True
+    assert calc.terminated_normally() is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
 
@@ -53,7 +53,7 @@ def test_orca_opt_calculation():
     assert -1.0 < charges[0] < 1.0
 
     calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
+                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
 
     # If the calculation is not run with calc.run() then there should be no input and the calc should
     # raise that there is no input
@@ -98,7 +98,7 @@ def test_orca_optts_calculation():
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=methane, method=method, opt=True,
                        bond_ids_to_add=[(0, 1)],
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                       keywords=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                        other_input_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
     calc.run()
 
@@ -112,7 +112,7 @@ def test_orca_optts_calculation():
     assert calc.terminated_normally is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
-    assert len(calc.get_imag_freqs()) == 1
+    assert len(calc.get_imaginary_freqs()) == 1
 
     # Gradients should be an n_atom x 3 array
     gradients = calc.get_gradients()
@@ -140,7 +140,7 @@ def test_bad_orca_output():
         calc.execute_calculation()
 
     calc.output_file_lines = None
-    assert calc.calculation_terminated_normally() is False
+    assert calc.terminated_normally() is False
 
 
 def test_subprocess_to_output():
@@ -177,18 +177,18 @@ def test_solvation():
 
         # Should raise on unsupported calculation type
         Config.ORCA.solvation_type = 'xxx'
-        calc = Calculation(name='broken_solvation', molecule=methane, method=method, keywords_list=['PBE', 'def2-SVP'])
+        calc = Calculation(name='broken_solvation', molecule=methane, method=method, keywords=['PBE', 'def2-SVP'])
         calc.run()
 
     Config.ORCA.solvation_type = 'CPCM'
-    calc = Calculation(name='methane_cpcm', molecule=methane, method=method, keywords_list=['PBE', 'def2-SVP'])
+    calc = Calculation(name='methane_cpcm', molecule=methane, method=method, keywords=['PBE', 'def2-SVP'])
     calc.generate_input()
 
     assert any('cpcm' in line.lower() for line in open('methane_cpcm_orca.inp', 'r'))
     os.remove('methane_cpcm_orca.inp')
 
     Config.ORCA.solvation_type = 'SMD'
-    calc = Calculation(name='methane_smd', molecule=methane, method=method, keywords_list=['PBE', 'Freq', 'def2-SVP'])
+    calc = Calculation(name='methane_smd', molecule=methane, method=method, keywords=['PBE', 'Freq', 'def2-SVP'])
     calc.generate_input()
 
     assert any('smd' in line.lower() for line in open('methane_smd_orca.inp', 'r'))

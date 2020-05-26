@@ -1,10 +1,13 @@
 from copy import deepcopy
 import numpy as np
+import os
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.base import execute
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
+from autode.utils import work_in_tmp_dir
 
 
 def modify_keywords_for_point_charges(keywords):
@@ -40,9 +43,8 @@ class G09(ElectronicStructureMethod):
     # TODO implement partial hessian
 
     def generate_input(self, calc):
-        calc.input_filename = calc.name + '_g09.com'
-        calc.output_filename = calc.name + '_g09.log'
-        keywords = calc.keywords_list.copy()
+
+        keywords = calc.keywords.copy()
 
         if calc.distance_constraints or calc.cartesian_constraints or calc.bond_ids_to_add:
             keywords.append('Geom=ModRedun')
@@ -107,6 +109,26 @@ class G09(ElectronicStructureMethod):
 
         return None
 
+    def get_input_filename(self, calc):
+        return f'{calc.name}_g09.com'
+
+    def get_output_filename(self, calc):
+        return f'{calc.name}_g09.log'
+
+    def execute(self, calc):
+
+        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+                         kept_file_exts=('.log', '.com'))
+        def execute_g09():
+            execute(calc, params=[calc.method.path, calc.input.filename])
+
+        execute_g09()
+        return None
+
+    def clean_up(self, calc):
+        os.remove(calc.input.filename)
+        return None
+
     def calculation_terminated_normally(self, calc):
 
         for line in calc.rev_output_file_lines:
@@ -121,9 +143,9 @@ class G09(ElectronicStructureMethod):
                     return False
                 logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
                 cart_calc = deepcopy(calc)
-                for keyword in cart_calc.keywords_list.copy():
+                for keyword in cart_calc.keywords.copy():
                     if keyword.lower().startswith('geom'):
-                        cart_calc.keywords_list.remove(keyword)
+                        cart_calc.keywords.remove(keyword)
                     elif keyword.lower().startswith('opt'):
                         options = []
                         if '=(' in keyword:
@@ -142,8 +164,8 @@ class G09(ElectronicStructureMethod):
                         new_keyword = 'Opt=('
                         new_keyword += ', '.join(options)
                         new_keyword += ')'
-                        cart_calc.keywords_list.remove(keyword)
-                        cart_calc.keywords_list.append(new_keyword)
+                        cart_calc.keywords.remove(keyword)
+                        cart_calc.keywords.append(new_keyword)
 
                 cart_calc.name += '_cartesian'
                 cart_calc.xyzs = calc.get_final_atoms()
@@ -366,7 +388,7 @@ class G09(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='g09', path=Config.G09.path, keywords=Config.G09.keywords)
+        super().__init__(name='g09', path=Config.G09.path, keywords_set=Config.G09.keywords)
 
 
 g09 = G09()

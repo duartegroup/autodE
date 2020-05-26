@@ -75,7 +75,7 @@ def get_point_species(point, species, distance_constraints, name, method, keywor
 
     # Set up and run the calculation
     const_opt = Calculation(name=species.name, molecule=species, method=method, opt=True, n_cores=n_cores,
-                            keywords_list=keywords, distance_constraints=distance_constraints)
+                            keywords=keywords, distance_constraints=distance_constraints)
 
     try:
         species.run_const_opt(const_opt, method, n_cores)

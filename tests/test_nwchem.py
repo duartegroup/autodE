@@ -21,7 +21,7 @@ def test_opt_calc():
     os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='opt', molecule=test_mol, method=method,
-                       keywords_list=opt_keywords)
+                       keywords=opt_keywords)
     calc.run()
 
     assert os.path.exists('opt_nwchem.nw')
@@ -34,11 +34,11 @@ def test_opt_calc():
     assert calc.output_file_exists
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
-    assert calc.get_imag_freqs() == []
+    assert calc.get_imaginary_freqs() == []
     assert calc.input_filename == 'opt_nwchem.nw'
     assert calc.output_filename == 'opt_nwchem.out'
     assert calc.terminated_normally is True
-    assert calc.calculation_terminated_normally() is True
+    assert calc.terminated_normally() is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
 
@@ -59,7 +59,7 @@ def test_opt_calc():
 def test_opt_single_atom():
 
     h = Molecule(name='H', smiles='[H]')
-    calc = Calculation(name='opt_h', molecule=h, method=method, keywords_list=opt_keywords)
+    calc = Calculation(name='opt_h', molecule=h, method=method, keywords=opt_keywords)
     calc.generate_input()
 
     # Can't do an optimisation of a hydrogen atom..
@@ -79,7 +79,7 @@ def test_opt_hf_constraints():
                 'task scf optimize']
 
     h2o = Molecule(name='water', smiles='O')
-    calc = Calculation(name='opt_water', molecule=h2o, method=method, keywords_list=keywords,
+    calc = Calculation(name='opt_water', molecule=h2o, method=method, keywords=keywords,
                        cartesian_constraints=[0], distance_constraints={(0, 1): 0.95})
     calc.run()
     h2o.set_atoms(atoms=calc.get_final_atoms())

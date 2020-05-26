@@ -1,6 +1,5 @@
 from copy import deepcopy
 import os
-from subprocess import Popen
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names
 from autode.config import Config
@@ -9,10 +8,11 @@ from autode.exceptions import CouldNotGetProperty
 from autode.exceptions import MethodUnavailable
 from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
+from autode.exceptions import NoCalculationOutput
 from autode.log import logger
-from autode.utils import work_in_tmp_dir
 
-output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw', '.pc', '.grad')
+output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
+               '.pc', '.grad')
 
 
 # Top level function that can be hashed
@@ -20,193 +20,231 @@ def execute_calc(calc):
     return calc.execute_calculation()
 
 
-class Calculation:
+def get_solvent_name(molecule, method):
+    """
+    Set the solvent keyword to use in the calculation given an QM method
 
-    def _set_core_atoms(self, molecule):
-        """Finds the atoms involved in the reaction, and those bonded to them. These atoms are then
-        calculated exactly in the hybrid hessian, if a full exact hessian is not calculated
+    Arguments:
+        molecule (autode.species.Species)
+        method (autode.wrappers.base.ElectronicStructureMethod):
+    """
+    available_solvents = (f'Available solvents for {method.__name__} are '
+                          f'{get_available_solvent_names(method)}')
 
-        Arguments:
-            molecule (mol obj): the molecule being calculated
-        """
-        active_atoms = set()
-        for bond in self.bond_ids_to_add:
-            active_atoms.add(bond[0])
-            active_atoms.add(bond[1])
-
-        core_atoms = set()
-        for active_atom in active_atoms:
-            bonded_atoms = molecule.graph.neighbors(active_atom)
-            core_atoms.add(active_atom)
-
-            for bonded_atom in bonded_atoms:
-                core_atoms.add(bonded_atom)
-
-        self.core_atoms = list(core_atoms)
+    if molecule.solvent is None:
+        logger.info('Calculation is in the gas phase')
         return None
 
-    def _check_calc(self):
+    solvent_name = getattr(molecule.solvent, method.name)
+    if solvent_name is None:
+        raise SolventUnavailable(message=available_solvents)
+
+    return solvent_name
+
+
+class Calculation:
+
+    def _check(self):
+        """Ensure the calculation and molecule has the required attributes"""
         assert hasattr(self.molecule, 'n_atoms')
         assert hasattr(self.molecule, 'atoms')
         assert hasattr(self.molecule, 'mult')
         assert hasattr(self.molecule, 'charge')
         assert hasattr(self.molecule, 'solvent')
 
-        # Ensure the distance constraint dictionary is of the correct format
-        if self.distance_constraints is not None:
-            assert type(self.distance_constraints) is dict
-            assert all(len(key) == 2 for key in self.distance_constraints.keys())
+        # The molecule must have > 0 atoms
+        if self.molecule.atoms is None or self.molecule.n_atoms == 0:
+            logger.error('Have no atoms. Can\'t form a calculation')
+            raise NoInputError
 
-        # Ensure the point charges are given as a list of PointCharge objects
-        if self.point_charges is not None:
-            assert type(self.point_charges) is list
-            assert all(type(pc) is PointCharge for pc in self.point_charges)
+    def get_energy(self, e=True, h=False, g=False, force=False):
+        """
+        Get the energy from a completed calculation
 
-        # Key attributes that need to be lists or None
-        assert self.cartesian_constraints is None or type(self.cartesian_constraints) is list
-        assert self.keywords_list is None or type(self.keywords_list) is list
+        Keyword Arguments:
+            e (bool): Return the potential energy (E)
+            h (bool): Return the enthalpy (H) at 298 K
+            g (bool): Return the Gibbs free energy (G) at 298 K
+            force (bool): Return the energy even if the calculation errored
 
-    def get_energy(self):
-        logger.info(f'Getting energy from {self.output_filename}')
-        if self.terminated_normally:
-            return self.method.get_energy(self)
+        Returns:
+            (float): Energy in Hartrees, or None
+        """
 
-        logger.error('Calculation did not terminate normally – not returning the energy')
+        logger.info(f'Getting energy from {self.output.filename}')
+        if self.terminated_normally or force:
+
+            if e:
+                return self.method.get_energy(self)
+
+            if h:
+                return self.method.get_enthalpy(self)
+
+            if g:
+                return self.method.get_free_energy(self)
+
+        logger.error('Calculation did not terminate normally. Energy = None')
         return None
 
-    def get_free_energy(self):
-        logger.info(f'Getting Gibbs free energy (G) from {self.output_filename}')
-        return self.method.get_free_energy(self)
-
-    def get_enthalpy(self):
-        logger.info(f'Getting enthalpy (H) from {self.output_filename}')
-        return self.method.get_enthalpy(self)
-
     def optimisation_converged(self):
+        """Check whether a calculation has has converged to within the theshold
+        on energies and graidents specified in the input
+
+        Returns:
+            (bool)
+        """
+
         logger.info('Checking to see if the geometry converged')
         return self.method.optimisation_converged(self)
 
     def optimisation_nearly_converged(self):
-        """Check whether a calculation has nearly converged and may just need more geometry optimisation steps to
-        complete successfully
+        """Check whether a calculation has nearly converged and may just need
+        more geometry optimisation steps to complete successfully
 
         Returns:
-            bool: if the calc is nearly converged or not
+            (bool)
         """
+        logger.info('Checking to see if the geometry nearly converged')
         return self.method.optimisation_nearly_converged(self)
 
-    def get_imag_freqs(self):
-        logger.info('Finding imaginary frequencies in cm-1')
-        return self.method.get_imag_freqs(self)
-
-    def get_normal_mode_displacements(self, mode_number):
-        """Get the displacements along a mode for each of the n_atoms in the structure will return a list of length
-        n_atoms each with 3 components (x, y, z)
-
-        Arguments:
-            mode_number (int): normal mode number. 6 will be the first vibrational mode (indexed from 0 in orca)
+    def get_imaginary_freqs(self):
+        """Get the imaginary frequencies from a calculation output note that
+        they are returned as negative to conform with standard QM codes
 
         Returns:
-            list(list): list of displacement distances for each xyz
+            (list(float)): List of negative frequencies in wavenumbers (cm-1)
         """
-        return self.method.get_normal_mode_displacements(self, mode_number)
+        logger.info(f'Getting imaginary frequencies from {self.name}')
+        return self.method.get_imaginary_freqs(self)
+
+    def get_normal_mode_displacements(self, mode_number):
+        """Get the displacements along a mode for each of the n_atoms in the
+        structure will return a list of length n_atoms each with 3 components
+        (x, y, z)
+
+        Arguments:
+            mode_number (int): Normal mode number. 6 will be the first
+                               vibrational mode as 0->2 are translation and
+                               3->5 rotation
+        Returns:
+            (np.ndarray): Displacement vectors for each atom (Å)
+                          modes.shape = (n_atoms, 3)
+        """
+        modes = self.method.get_normal_mode_displacements(self, mode_number)
+
+        if len(modes) != self.molecule.n_atoms:
+            raise CouldNotGetProperty(name='normal modes')
+
+        return modes
 
     def get_final_atoms(self):
-        logger.info(f'Getting final atoms from {self.output_filename}')
+        """
+        Get the atoms from the final step of a geometry optimisation or the
+        first (only) step of a single point calculation
 
-        if self.output_file_lines is None or self.output_filename is None:
-            logger.error('Could not get the final atoms. The output file lines were not set')
+        Returns:
+            (list(autode.atoms.Atom)):
+        """
+        logger.info(f'Getting final atoms from {self.output.filename}')
+
+        if not self.output.exists():
+            logger.error('No calculation output. Could not get atoms')
             raise AtomsNotFound
 
+        # Extract the atoms from the output file, which is method dependent
         atoms = self.method.get_final_atoms(self)
 
-        if len(atoms) == 0:
-            logger.error(f'Could not get xyzs from calculation file {self.name}')
+        if len(atoms) != self.molecule.n_atoms:
+            logger.error(f'Failed to get atoms from {self.output.filename}')
             raise AtomsNotFound
 
         return atoms
 
     def get_atomic_charges(self):
-        logger.info(f'Getting atomic charges from calculation file {self.output_filename}')
+        """
+        Get the partial atomic charges from a calculation. The method used to
+        calculate them depends on the QM method and are implemented in their
+        respective wrappers
+
+        Returns:
+            (list(float)): Atomic charges in units of e
+        """
+        logger.info(f'Getting atomic charges from {self.output.filename}')
         charges = self.method.get_atomic_charges(self)
 
-        if len(charges) != self.n_atoms:
-            raise CouldNotGetProperty(f'Could not get atomic charges from calculation output file {self.name}')
+        if len(charges) != self.molecule.n_atoms:
+            raise CouldNotGetProperty(name='atomic charges')
 
         return charges
 
     def get_gradients(self):
-        logger.info(f'Getting gradients from calculation file {self.output_filename}')
+        """
+        Get the gradient (dE/dr) with respect to atomic displacement from a
+        calculation
+
+        Returns:
+            (np.ndarray): Gradient vectors for each atom (Å)
+                          gradients.shape = (n_atoms, 3)
+        """
+        logger.info(f'Getting gradients from {self.output.filename}')
         gradients = self.method.get_gradients(self)
 
-        if len(gradients) != self.n_atoms:
-            raise CouldNotGetProperty(f'Could not get gradients from calculation output file {self.name}')
+        if len(gradients) != self.molecule.n_atoms:
+            raise CouldNotGetProperty(name='gradients')
 
         return gradients
 
-    def calculation_terminated_normally(self):
-        logger.info(f'Checking to see if {self.output_filename} terminated normally')
+    def terminated_normally(self):
+        """Determine if the calculation terminated without error"""
+        logger.info(f'Checking for {self.output.filename} normal termination')
 
-        if self.output_file_lines is None:
+        if not self.output.exists():
             logger.warning('Calculation did not generate any output')
             return False
 
-        return self.method.calculation_terminated_normally(self)
-
-    def set_output_file_lines(self):
-
-        self.output_file_lines = [line for line in open(self.output_filename, 'r', encoding="utf-8")]
-        self.rev_output_file_lines = list(reversed(self.output_file_lines))
-
-        return None
-
-    def generate_input(self):
-        logger.info(f'Generating input file for {self.name}')
-        if hasattr(self.molecule, 'qm_solvent_atoms') and self.molecule.qm_solvent_atoms is not None:
-            self.n_atoms = self.molecule.n_atoms + len(self.molecule.qm_solvent_atoms)
-            self.molecule.atoms += self.molecule.qm_solvent_atoms
-
-        return self.method.generate_input(self)
+        if self.method.terminated_normally(self):
+            return True
+        else:
+            return False
 
     def clean_up(self):
+        """Clean up input files, if Config.keep_input_files is False"""
 
         if Config.keep_input_files:
             return None
+        else:
+            return self.method.clean_up(self)
 
-        logger.info('Removing input files')
-        if not self.input_filename.endswith('.xyz'):
-            os.remove(self.input_filename)
-
-        for input_filename in self.additional_input_files:
-            os.remove(input_filename)
-
+    def generate_input(self):
+        """Generate the required input and set the output filename"""
+        self.method.generate_input(self.input, self.molecule, self.n_cores)
         return None
 
     def execute_calculation(self):
-        logger.info(f'Running calculation {self.input_filename} using {self.method.name}')
+        """Execute a calculation if it has not been run or finish correctly"""
+        logger.info(f'Running {self.input.filename} using {self.method.name}')
 
-        if self.input_filename is None:
+        if not self.input.exists():
             raise NoInputError
 
-        if not os.path.exists(self.input_filename):
-            raise NoInputError
-
+        # Check that the method used to execute the calculation is available
         self.method.set_availability()
         if not self.method.available:
             raise MethodUnavailable
 
-        if os.path.exists(self.output_filename):
-            self.output_file_exists = True
-            self.set_output_file_lines()
+        # If the output file already exists set the output lines
+        if os.path.exists(self.output.filename):
+            self.output.set_lines()
 
-        if self.output_file_exists and self.calculation_terminated_normally():
-            logger.info('Calculation already terminated successfully. Skipping')
-            self.clean_up()
-            return
+        if self.output.exists() and self.terminated_normally():
+            logger.info('Calculation already terminated normally. Skipping')
+            return None
 
+
+        """
         logger.info(f'Setting the number of OMP threads to {self.n_cores}')
         os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
-
+        
         @work_in_tmp_dir(filenames_to_copy=[self.input_filename]+self.additional_input_files, kept_file_exts=output_exts)
         def execute_est_method():
 
@@ -225,24 +263,34 @@ class Calculation:
             if self.grad and self.method.name == 'xtb':
                 # Need to get the XTB gradients
                 self.get_gradients()
+        """
 
-        execute_est_method()
-        self.clean_up()
-
-        return self.set_output_file_lines()
-
-    def run(self):
-        logger.info(f'Running calculation of {self.name}')
-
-        self.generate_input()
-        self.execute_calculation()
-        self.terminated_normally = self.calculation_terminated_normally()
+        self.method.execute(self)
+        self.output.set_lines()
 
         return None
 
-    def __init__(self, name, molecule, method, keywords_list=None, n_cores=1, bond_ids_to_add=None,
-                 other_input_block=None, opt=False, distance_constraints=None, cartesian_constraints=None,
-                 grad=False, point_charges=None):
+    def run(self):
+        """Run the calculation using the EST method """
+        logger.info(f'Running calculation {self.name}')
+
+        # Set an input filename and generate the input
+        self.input.filename = self.method.get_input_filename(self)
+        self.generate_input()
+
+        # Set the output filename, run the calculation and clean up the files
+        self.output.filename = self.method.get_output_filename(self)
+        self.execute_calculation()
+        self.clean_up()
+
+        return None
+
+    def __init__(self, name, molecule, method, keywords=None, n_cores=1,
+                 bond_ids_to_add=None,
+                 other_input_block=None,
+                 distance_constraints=None,
+                 cartesian_constraints=None,
+                 point_charges=None):
         """
         Arguments:
             name (str): calc name
@@ -250,63 +298,166 @@ class Calculation:
             method (method object): which electronic structure wrapper to use
 
         Keyword Arguments:
-            keywords_list (list(str)): keywords_list to use in the calc (default: {None})
-            n_cores (int): number of cores available (default: {1})
-            bond_ids_to_add (list(tuples)): list of active bonds (default: {None})
-            other_input_block (list): keywords_list to use when performing a TS search (default: {None})
-            opt (bool): opt calc or not (needed for xtb) (default: {False})
-            distance_constraints (dict): keys = tuple of atom ids for a bond to be kept at fixed length, value = length
-                                         to be fixed at (default: {None})
-            cartesian_constraints (list(int)): list of atom ids to fix at their cartesian coordinates (default: {None})
-            grad (bool): grad calc or not (needed for xtb) (default: {False})
-            point_charges (list): list of float of point charge, x, y, z coordinates for each point charge
-        """
+            keywords (autode.wrappers.keywords.Keywords): Keywords to use
+                                                          (default: {None})
 
-        # TODO Purge some of these attributes
+            n_cores (int): Number of cores available (default: {1})
+
+            bond_ids_to_add (list(tuples)): List of bonds to add to internal
+                                            coordinates (default: {None})
+
+            other_input_block (str): Other input block to add (default: {None})
+
+            distance_constraints (dict): keys = tuple of atom ids for a bond to
+                                         be kept at fixed length, value = dist
+                                         to be fixed at (default: {None})
+
+            cartesian_constraints (list(int)): List of atom ids to fix at their
+                                               cartesian coordinates
+                                               (default: {None})
+            point_charges (list(autode.point_charges.PointCharge)): List of
+                                             float of point charges, x, y, z
+                                             coordinates for each point charge
+        """
         self.name = name
+
+        # ------------------- System specific parameters ----------------------
         self.molecule = deepcopy(molecule)
 
+        self.molecule.constraints = Constraints(distance=distance_constraints,
+                                                cartesian=cartesian_constraints)
+
+        # --------------------- Calculation parameters ------------------------
         self.method = method
-        self.keywords_list = keywords_list
-        self.flags = None
-        self.opt = opt
-        self.core_atoms = None
-        self.grad = grad
+        self.n_cores = int(n_cores)
 
-        self.n_cores = n_cores
-        self.max_core_mb = Config.max_core                   # Maximum memory per core to use
+        # ------------------- Calculation input/output ------------------------
+        self.input = CalculationInput(keywords=keywords,
+                                      solvent=get_solvent_name(molecule, method),
+                                      additional_input_block=other_input_block,
+                                      added_internals=bond_ids_to_add,
+                                      point_charges=point_charges)
 
-        self.bond_ids_to_add = bond_ids_to_add
-        self.other_input_block = other_input_block
-        self.distance_constraints = distance_constraints
-        self.cartesian_constraints = cartesian_constraints
+        self.output = CalculationOutput()
+
+        # Check attribute types and self.molecule
+        self._check()
+
+
+class CalculationOutput:
+
+    def set_lines(self):
+        """
+        Set the output files lines. This may be slow for large files but should
+        not become a bottleneck when running standard DFT/WF calculations
+
+        Returns:
+            (None)
+        """
+
+        if not os.path.exists(self.filename):
+            raise NoCalculationOutput
+
+        self.file_lines = open(self.filename, 'r', encoding="utf-8").readlines()
+        self.rev_file_lines = reversed(self.file_lines)
+
+        return None
+
+    def exists(self):
+        """Does the calculation output exist?"""
+
+        if self.filename is None or self.file_lines is None:
+            return False
+
+        return True
+
+    def __init__(self):
+
+        self.filename = None
+        self.file_lines = None
+        self.rev_file_lines = None
+
+
+class CalculationInput:
+
+    def _check(self):
+        """Check that the input parameters have the expected format"""
+        assert self.keywords is not None
+        assert self.solvent is None or type(self.solvent) is str
+        assert self.other_block is None or type(self.other_block) is str
+
+        # Ensure the point charges are given as a list of PointCharge objects
+        if self.point_charges is not None:
+            assert type(self.point_charges) is list
+            assert all(type(pc) is PointCharge for pc in self.point_charges)
+
+        if self.added_internals is not None:
+            assert type(self.added_internals) is list
+            assert all(len(idxs) == 2 for idxs in self.added_internals)
+
+    def exists(self):
+        """Does the input (files) exist?"""
+
+        if self.filename is None:
+            return False
+
+        return all(os.path.exists(fn) for fn in self.get_input_filenames())
+
+    def get_input_filenames(self):
+        """Return a list of all the input files"""
+        assert self.filename is not None
+        return [self.filename] + self.additional_filenames
+
+    def __init__(self, keywords, solvent, additional_input_block,
+                 added_internals, point_charges):
+        """
+        Args:
+            keywords (autode.wrappers.keywords.Keywords):
+
+            solvent (str): Name of the solvent for this QM method, or None
+
+            additional_input_block (str): Any additional input string to add
+                                          to the input file, or None
+
+            added_internals (list(tuple(int))): Atom indexes to add to the
+                                                internal coordinates, or None
+
+            point_charges (list(autode.point_charges.PointCharge)): list of
+                                 float of point charges, x, y, z
+                                 coordinates for each point charge
+        """
+        self.keywords = keywords
+        self.solvent = solvent
+        self.other_block = additional_input_block
+
+        self.added_internals = added_internals
         self.point_charges = point_charges
 
-        self._check_calc()
+        self.filename = None
+        self.additional_filenames = []
 
-        self.input_filename = None                          # Set in self.generate_input()
-        self.output_filename = None                         # Set in self.generate_input()
+        self._check()
 
-        self.output_file_exists = False
-        self.terminated_normally = False
-        self.output_file_lines = None
-        self.rev_output_file_lines = None
 
-        self.additional_input_files = []
+class Constraints:
 
-        self.solvent_keyword = None
-        if molecule.solvent is not None:
-            if getattr(molecule.solvent, method.name) is None:
-                print(f'Available solvents for {self.method.__name__} are {get_available_solvent_names(self.method)}')
-                raise SolventUnavailable
+    def _check(self):
+        """ Check the constraints have the expected format"""
+        assert type(self.distance) is dict
+        assert all(len(key) == 2 for key in self.distance.keys())
 
-            self.solvent_keyword = getattr(molecule.solvent, method.name)
+        assert type(self.cartesian) is list
+        assert all(type(item) is int for item in self.cartesian)
 
-        if self.molecule.atoms is None or self.molecule.n_atoms == 0:
-            logger.error('Have no xyzs. Can\'t make a calculation')
-            raise NoInputError
+    def __init__(self, distance, cartesian):
+        """
+        Args:
+            distance (dict): Keys of: tuple(int) for two atom indexes and
+                             values of the distance in Å or None
+            cartesian (list(int)): List of atom indexes or None
+        """
 
-        if self.bond_ids_to_add:
-            self._set_core_atoms(molecule)
+        self.distance = distance if distance is not None else {}
+        self.cartesian = cartesian if cartesian is not None else []
 
-        self.n_atoms = self.molecule.n_atoms
+        self._check()

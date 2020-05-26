@@ -2,7 +2,6 @@ from copy import deepcopy
 import numpy as np
 from itertools import product as iterprod
 from scipy.spatial import distance_matrix
-from autode.solvent.explicit_solvent import do_explicit_solvent_qmmm
 from autode.log import logger
 from autode.geom import get_points_on_sphere
 from autode.mol_graphs import union
@@ -229,8 +228,13 @@ class Complex(Species):
 
 class ReactantComplex(Complex):
 
-    def run_const_opt(self, const_opt, method=None, n_cores=None):
-        """Run a constrained optimisation using a const_opt calculation and set the new structure"""
+    def run_const_opt(self, const_opt):
+        """Run a constrained optimisation using a const_opt calculation and
+        set the new structure
+
+        Arguments:
+            const_opt (autode.calculation.Calculation):
+        """
         const_opt.run()
 
         self.energy = const_opt.get_energy()
@@ -247,24 +251,7 @@ class SolvatedReactantComplex(Complex):
 
     def run_const_opt(self, const_opt, method, n_cores):
         """Run a constrained optimisation of the ReactantComplex"""
-        self.qm_solvent_atoms = None
-        self.mm_solvent_atoms = None
-        const_opt.molecule = deepcopy(self)
-        const_opt.run()
-
-        # Set the energy, new set of atoms then make the molecular graph
-        self.set_atoms(atoms=const_opt.get_final_atoms())
-
-        for i, charge in enumerate(const_opt.get_atomic_charges()):
-            self.graph.nodes[i]['charge'] = charge
-
-        energy, species_atoms, qm_solvent_atoms, mm_solvent_atoms = do_explicit_solvent_qmmm(self, method, n_confs=96, n_cores=n_cores)
-        self.energy = energy
-        self.set_atoms(species_atoms)
-        self.qm_solvent_atoms = qm_solvent_atoms
-        self.mm_solvent_atoms = mm_solvent_atoms
-
-        return None
+        raise NotImplementedError
 
     def __init__(self, solvent_mol, *args, name='complex'):
         super().__init__(*args, name=name)
@@ -277,14 +264,17 @@ class NCIComplex(Complex):
     pass
 
 
+def is_solvated_reactant_complex(molecule_complex):
+    return isinstance(molecule_complex, SolvatedReactantComplex)
+
+
 def get_complexes(reaction):
-    """Creates Reactant and Product complexes for the reaction. If it is a SolvatedReaction,
-    a SolvatedReactantComplex is returned"""
+    """Creates Reactant and Product complexes for the reaction"""
 
-    if reaction.__class__.__name__ == 'SolvatedReaction':
-        reac = SolvatedReactantComplex(reaction.solvent_mol, *reaction.reacs, name=f'{str(reaction)}_reactant')
-    else:
-        reac = ReactantComplex(*reaction.reacs, name=f'{str(reaction)}_reactant')
+    if reaction.reacs[0].is_explicitly_solvated():
+        raise NotImplementedError
 
+    reac = ReactantComplex(*reaction.reacs, name=f'{str(reaction)}_reactant')
     prod = ProductComplex(*reaction.prods, name=f'{str(reaction)}_product')
+
     return reac, prod

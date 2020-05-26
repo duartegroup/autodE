@@ -20,7 +20,7 @@ reactant(s) and product(s).
    * [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/) > v. 6.1
    * [MOPAC](http://openmopac.net/)
 
-The Python dependencies are listed in requirements.txt best satisfied using a conda install (Miniconda or Anaconda) i.e.
+The Python dependencies are listed in requirements.txt are best satisfied using a conda install (Miniconda or Anaconda) i.e.
 ```
 conda config --append channels conda-forge
 conda config --append channels omnia
@@ -35,6 +35,7 @@ Once the requirements are satisfied to install **autodE**
 ```
 python setup.py install
 ```
+see the [installation guide](https://duartegroup.github.io/autodE/install.html) for more detailed instructions. 
 
 ## Usage
 

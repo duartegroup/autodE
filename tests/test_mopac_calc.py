@@ -34,12 +34,12 @@ def test_mopac_opt_calculation():
     assert calc.input_filename == 'opt_mopac.mop'
     assert calc.output_filename == 'opt_mopac.out'
     assert calc.terminated_normally is True
-    assert calc.calculation_terminated_normally() is True
+    assert calc.terminated_normally() is True
     assert calc.optimisation_converged() is True
     with pytest.raises(NotImplementedError):
         _ = calc.optimisation_nearly_converged()
     with pytest.raises(NotImplementedError):
-        _ = calc.get_imag_freqs()
+        _ = calc.get_imaginary_freqs()
     with pytest.raises(NotImplementedError):
         _ = calc.get_normal_mode_displacements(4)
 

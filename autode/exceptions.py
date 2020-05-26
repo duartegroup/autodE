@@ -19,7 +19,8 @@ class MethodUnavailable(Exception):
 
 
 class SolventUnavailable(Exception):
-    pass
+    def __init__(self, message):
+        super().__init__(message)
 
 
 class UnbalancedReaction(Exception):
@@ -80,14 +81,13 @@ class InvalidSmilesString(Exception):
 
 
 class CouldNotGetProperty(Exception):
-
-    def __init__(self, message):
-        super().__init__(message)
+    def __init__(self, name):
+        super().__init__(f'Could not get {name}')
 
 
 class CannotSplitAcrossBond(Exception):
-    """Exception for when a molecule cannot be partitioned by deleting one bond"""
+    """A molecule cannot be partitioned by deleting one bond"""
 
 
 class CouldNotPlotSmoothProfile(Exception):
-    """Exception for when smooth plotting fails"""
+    """Smooth plotting fails"""

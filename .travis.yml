@@ -2,7 +2,6 @@ branches:
   only:
     - master
     - joseph
-    - tom
 dist: xenial
 language: python
 python:

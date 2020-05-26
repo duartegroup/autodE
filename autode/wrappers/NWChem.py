@@ -1,10 +1,12 @@
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.base import execute
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.log import logger
 from autode.constants import Constants
+from autode.utils import work_in_tmp_dir
 
 
 class NWChem(ElectronicStructureMethod):
@@ -12,9 +14,7 @@ class NWChem(ElectronicStructureMethod):
     # TODO impliment partial hessian
 
     def generate_input(self, calc):
-        calc.input_filename = calc.name + '_nwchem.nw'
-        calc.output_filename = calc.name + '_nwchem.out'
-        keywords = calc.keywords_list.copy()
+        keywords = calc.keywords.copy()
 
         new_keywords = []
         scf_block = False
@@ -124,6 +124,28 @@ class NWChem(ElectronicStructureMethod):
             print('task esp', file=inp_file)
 
         return None
+
+    def get_input_filename(self, calc):
+        return f'{calc.name}_nwchem.nw'
+
+    def get_output_filename(self, calc):
+        return f'{calc.name}_nwchem.out'
+
+    def execute(self, calc):
+
+        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+                         kept_file_exts=('.nw', '.out'))
+        def execute_nwchem():
+            params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,
+                      calc.input.filename]
+
+            execute(calc, params)
+
+        execute_nwchem()
+        return None
+
+    def clean_up(self, calc):
+        pass
 
     def calculation_terminated_normally(self, calc):
 
@@ -290,7 +312,8 @@ class NWChem(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__('nwchem', path=Config.NWChem.path, keywords=Config.NWChem.keywords, mpirun=True)
+        super().__init__('nwchem', path=Config.NWChem.path,
+                         keywords_set=Config.NWChem.keywords)
 
 
 nwchem = NWChem()

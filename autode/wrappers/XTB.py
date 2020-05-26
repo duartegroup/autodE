@@ -1,32 +1,21 @@
 import numpy as np
 import os
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.base import execute
+from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import AtomsNotFound
+from autode.utils import work_in_tmp_dir
+from autode.log import logger
 
 
 class XTB(ElectronicStructureMethod):
 
     def generate_input(self, calc):
 
-        calc.input_filename = calc.name + '_xtb.xyz'
-
-        calc.molecule.print_xyz_file(filename=calc.input_filename)
-
-        calc.output_filename = calc.name + '_xtb.out'
-
-        calc.flags = ['--chrg', str(calc.molecule.charge)]
-
-        if calc.opt:
-            calc.flags.append('--opt')
-
-        if calc.grad:
-            calc.flags.append('--grad')
-
-        if calc.solvent_keyword:
-            calc.flags += ['--gbsa', calc.solvent_keyword]
+        calc.molecule.print_xyz_file(filename=calc.input.filename)
 
         if calc.distance_constraints or calc.cartesian_constraints or calc.point_charges:
             force_constant = 20
@@ -73,6 +62,46 @@ class XTB(ElectronicStructureMethod):
                     x, y, z = point_charge.coord
                     print(f'{point_charge.charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99', file=pc_file)
             calc.additional_input_files.append(f'{calc.name}_xtb.pc')
+
+        return None
+
+    def get_input_filename(self, calc):
+        return f'{calc.name}_xtb.xyz'
+
+    def get_output_filename(self, calc):
+        return f'{calc.name}_xtb.out'
+
+    def execute(self, calc):
+        """Execute an XTB calculation using the runtime flags"""
+
+        flags = ['--chrg', str(calc.molecule.charge)]
+
+        if isinstance(calc.input.keywords, OptKeywords):
+            flags.append('--opt')
+
+        if isinstance(calc.input.keywords, GradientKeywords):
+            flags.append('--grad')
+
+        if calc.input.solvent is not None:
+            flags += ['--gbsa', calc.input.solvent]
+
+        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+                         kept_file_exts=('.xyz', '.out'))
+        def execute_mopac():
+            logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
+            os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
+
+            execute(calc, params=[calc.method.path, calc.input.filename]+flags)
+
+        execute_mopac()
+        return None
+
+    def clean_up(self, calc):
+        os.remove(calc.input.filename)
+
+        for filename in os.listdir(os.getcwd()):
+            if filename.startswith('xcontrol'):
+                os.remove(filename)
 
         return None
 
@@ -226,10 +255,11 @@ class XTB(ElectronicStructureMethod):
             with open(f'{calc.name}_xtb.grad', 'w') as new_grad_file:
                 [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=new_grad_file) for line in gradients]
             os.remove('gradient')
-        return gradients
+
+        return np.array(gradients)
 
     def __init__(self):
-        super().__init__(name='xtb', path=Config.XTB.path, keywords=Config.XTB.keywords)
+        super().__init__(name='xtb', path=Config.XTB.path, keywords_set=Config.XTB.keywords)
 
 
 xtb = XTB()

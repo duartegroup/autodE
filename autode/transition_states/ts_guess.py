@@ -1,5 +1,4 @@
 from copy import deepcopy
-from autode.solvent.qmmm import get_species_point_charges
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
@@ -18,7 +17,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     Arguments:
         reactant (autode.complex.ReactantComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
-        keywords (autode.wrappers.keywords.Keywords):
+        keywords (autode.wrappers.keywords.KeywordsSet):
         name (str):
         distance_consts (dict): Distance constraints keyed with a tuple of atom indexes and value of the distance
         product (autode.complex.ProductComplex):
@@ -33,8 +32,8 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     # Run a low level constrained optimisation first to prevent the DFT being problematic if there are >1 constraint
     l_method = get_lmethod()
     ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll', molecule=mol_with_const, method=l_method,
-                               keywords_list=l_method.keywords.low_opt, n_cores=Config.n_cores, opt=True,
-                               distance_constraints=distance_consts, point_charges=get_species_point_charges(mol_with_const))
+                               keywords=l_method.keywords.low_opt, n_cores=Config.n_cores,
+                               distance_constraints=distance_consts)
     ll_const_opt.run()
 
     # Try and set the atoms, but continue if they're not found as hopefully the other method will be fine(?)
@@ -45,7 +44,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
         pass
 
     hl_const_opt = Calculation(name=f'{name}_constrained_opt', molecule=mol_with_const, method=method, opt=True,
-                               keywords_list=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts,
+                               keywords=keywords, n_cores=Config.n_cores, distance_constraints=distance_consts,
                                point_charges=get_species_point_charges(mol_with_const))
     hl_const_opt.run()
 
@@ -157,17 +156,10 @@ class TSguess(TSbase):
         super().__init__(name=name, atoms=atoms, reactant=reactant, product=product)
 
 
-class SolvatedTSguess(TSguess):
-
-    def __init__(self, species, reactant, product, name='ts_guess'):
-        super().__init__(species.atoms, reactant, product, name)
-        self.solvent_mol = species.solvent_mol
-        self.qm_solvent_atoms = species.qm_solvent_atoms
-        self.mm_solvent_atoms = species.mm_solvent_atoms
-
-
 def get_ts_guess(species, reactant, product, name):
-    """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess is returned"""
-    if species.__class__.__name__ == 'SolvatedReactantComplex':
-        return SolvatedTSguess(species=species, reactant=reactant, product=product, name=name)
-    return TSguess(atoms=species.atoms, reactant=reactant, product=product, name=name)
+    """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess
+    is returned"""
+    if species.is_explicitly_solvated():
+        raise NotImplementedError
+
+    return TSguess(species.atoms, reactant=reactant, product=product, name=name)

@@ -20,7 +20,7 @@ def test_gauss_opt_calc():
 
     methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent_name='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'])
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
     assert os.path.exists('opt_g09.com') is True
@@ -31,12 +31,12 @@ def test_gauss_opt_calc():
     assert calc.output_file_exists is True
     assert calc.rev_output_file_lines is not None
     assert calc.output_file_lines is not None
-    assert calc.get_imag_freqs() == []
+    assert calc.get_imaginary_freqs() == []
     assert calc.get_normal_mode_displacements(mode_number=1) is None
     assert calc.input_filename == 'opt_g09.com'
     assert calc.output_filename == 'opt_g09.log'
     assert calc.terminated_normally is True
-    assert calc.calculation_terminated_normally() is True
+    assert calc.terminated_normally() is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
 
@@ -58,7 +58,7 @@ def test_gauss_optts_calc():
     os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol, method=method, opt=True,
-                       keywords_list=['PBE1PBE/Def2SVP',
+                       keywords=['PBE1PBE/Def2SVP',
                                       'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)',
                                       'Freq'],
                        bond_ids_to_add=[(0, 1)])
@@ -79,7 +79,7 @@ def test_gauss_optts_calc():
     assert calc.terminated_normally is True
     assert calc.optimisation_converged() is True
     assert calc.optimisation_nearly_converged() is False
-    assert len(calc.get_imag_freqs()) == 1
+    assert len(calc.get_imaginary_freqs()) == 1
 
     assert -40.324 < calc.get_free_energy() < -40.322
     assert -40.301 < calc.get_enthalpy() < -40.299
@@ -109,7 +109,7 @@ def test_fix_angle_error():
     mol = Molecule(smiles='CC/C=C/CO')
 
     calc = Calculation(name='angle_fail', molecule=mol, method=method, opt=True,
-                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'])
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'])
     calc.run()
 
     assert os.path.exists('angle_fail_cartesian_g09.com') is True
@@ -127,14 +127,14 @@ def test_constraints():
     os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='const_dist_opt', molecule=test_mol, method=method, opt=True,
-                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'], distance_constraints={(0, 1): 1.2})
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'], distance_constraints={(0, 1): 1.2})
     calc.run()
     opt_atoms = calc.get_final_atoms()
 
     assert 1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
 
     calc = Calculation(name='const_cart_opt', molecule=test_mol, method=method, opt=True,
-                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'], cartesian_constraints=[0])
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'], cartesian_constraints=[0])
     calc.run()
     opt_atoms = calc.get_final_atoms()
     assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1E-3
@@ -148,7 +148,7 @@ def test_single_atom_opt():
     os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='H', molecule=Molecule(smiles='[H]'), method=method, opt=True,
-                       keywords_list=['PBE1PBE/Def2SVP', 'Opt'], n_cores=2)
+                       keywords=['PBE1PBE/Def2SVP', 'Opt'], n_cores=2)
     calc.generate_input()
     assert os.path.exists('H_g09.com')
 
@@ -172,7 +172,7 @@ def test_point_charge_calc():
     # Methane single point using a point charge with a unit positive charge located at (10, 10, 10)
 
     calc = Calculation(name='methane_point_charge', molecule=test_mol, method=method,
-                       keywords_list=['PBE1PBE/Def2SVP'],
+                       keywords=['PBE1PBE/Def2SVP'],
                        point_charges=[PointCharge(charge=1.0, x=10.0, y=10.0, z=10.0)])
     calc.run()
 
@@ -196,7 +196,7 @@ def test_point_charge_calc():
     # Gaussian needs x-matrix and nosymm in the input line to run optimisations with point charges..
     for opt_keyword in ['Opt', 'Opt=Tight', 'Opt=(Tight)']:
         calc = Calculation(name='methane_point_charge_o', molecule=test_mol, method=method,
-                           keywords_list=['PBE1PBE/Def2SVP', opt_keyword],
+                           keywords=['PBE1PBE/Def2SVP', opt_keyword],
                            point_charges=[PointCharge(charge=1.0, x=3.0, y=3.0, z=3.0)])
         calc.generate_input()
 

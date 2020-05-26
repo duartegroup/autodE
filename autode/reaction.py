@@ -150,31 +150,44 @@ class Reaction:
         else:
             return self.tss[0]
 
-    def find_lowest_energy_conformers(self, calc_reactants=True, calc_products=True):
-        """Try and locate the lowest energy conformation using simulated annealing, then optimise them with xtb, then
-        optimise the unique (defined by an energy cut-off) conformers with an electronic structure method"""
+    def find_lowest_energy_conformers(self, calc_reacs=True, calc_prods=True):
+        """Try and locate the lowest energy conformation using simulated
+        annealing, then optimise them with xtb, then optimise the unique
+        (defined by an energy cut-off) conformers with an electronic structure
+        method"""
 
         molecules = []
-        if calc_reactants:
+        if calc_reacs:
             molecules += self.reacs
-        if calc_products:
+        if calc_prods:
             molecules += self.prods
 
         for mol in molecules:
-            mol.find_lowest_energy_conformer(low_level_method=get_lmethod(), high_level_method=get_hmethod())
+            mol.find_lowest_energy_conformer(lmethod=get_lmethod(),
+                                             hmethod=get_hmethod())
+
+        return None
 
     @work_in('reactants_and_products')
     def optimise_reacs_prods(self):
-        """Perform a geometry optimisation on all the reactants and products using the hcode"""
+        """Perform a geometry optimisation on all the reactants and products
+        using the method"""
         h_method = get_hmethod()
-        logger.info(f'Calculating optimised reactants and products with {h_method.name}')
-        [mol.optimise(method=h_method) for mol in self.reacs + self.prods]
+        logger.info(f'Optimising reactants and products with {h_method.name}')
+
+        for mol in self.reacs + self.prods:
+            mol.optimise(h_method)
+
+        return None
 
     @work_in('transition_states')
     def locate_transition_state(self):
 
-        # If there are more bonds in the product e.g. an addition reaction then switch as the TS is then easier to find
-        if sum(p.graph.number_of_edges() for p in self.prods) > sum(r.graph.number_of_edges() for r in self.reacs):
+        # If there are more bonds in the product e.g. an addition reaction then
+        # switch as the TS is then easier to find
+        if (sum(p.graph.number_of_edges() for p in self.prods)
+                > sum(r.graph.number_of_edges() for r in self.reacs)):
+
             self.switch_reactants_products()
             self.tss = find_tss(self)
             self.switch_reactants_products()
@@ -183,6 +196,7 @@ class Reaction:
             self.tss = find_tss(self)
 
         self.ts = self.find_lowest_energy_ts()
+        return None
 
     @work_in('transition_states')
     def find_lowest_energy_ts_conformer(self):
@@ -196,18 +210,22 @@ class Reaction:
 
     @work_in('single_points')
     def calculate_single_points(self):
-        """Perform a single point energy evaluations on all the reactants and products using the hcode"""
-        molecules = self.reacs + self.prods + [self.ts]
-        [mol.single_point(method=get_hmethod()) for mol in molecules if mol is not None]
+        """Perform a single point energy evaluations on all the reactants and
+        products using the hmethod"""
+        h_method = get_hmethod()
+        logger.info(f'Calculating single points with {h_method.name}')
+
+        for mol in self.reacs + self.prods + [self.ts]:
+            if mol is not None:
+                mol.single_point(h_method)
+
+        return None
 
     def calculate_reaction_profile(self, units=KcalMol):
         logger.info('Calculating reaction profile')
 
         @work_in(self.name)
         def calculate(reaction):
-
-            if isinstance(reaction, SolvatedReaction):
-                reaction.calc_solvent()
 
             reaction.find_lowest_energy_conformers()
             reaction.optimise_reacs_prods()
@@ -220,20 +238,21 @@ class Reaction:
 
         return calculate(self)
 
-    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
-                 solvent_name=None):
+    def __init__(self, *args, name='reaction', solvent_name=None):
         logger.info(f'Generating a Reaction object for {name}')
 
         self.name = name
-        molecules = [mol1, mol2, mol3, mol4, mol5, mol6]
-        self.reacs = [mol for mol in molecules if isinstance(mol, Reactant) and mol is not None]
-        self.prods = [mol for mol in molecules if isinstance(mol, Product) and mol is not None]
+        self.reacs = [mol for mol in args if isinstance(mol, Reactant)]
+        self.prods = [mol for mol in args if isinstance(mol, Product)]
 
         self.ts, self.tss = None, None
 
         self.type = reactions.classify(reactants=self.reacs, products=self.prods)
 
-        self.solvent = get_solvent(solvent_name=solvent_name) if solvent_name is not None else None
+        if solvent_name is not None:
+            self.solvent = get_solvent(solvent_name=solvent_name)
+        else:
+            self.solvent = None
 
         self._check_solvent()
         self._check_balance()
@@ -242,88 +261,20 @@ class Reaction:
             self._check_rearrangement()
 
 
-class SolvatedReaction(Reaction):
-
-    def calc_delta_e_ddagger(self, units=KcalMol):
-        """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
-
-        Returns:
-            float: energy difference in Hartrees
-        """
-        logger.info('Calculating ∆E‡')
-        if self.ts is None:
-            return None
-
-        if self.ts.energy is None:
-            logger.error('TS had no energy. Setting ∆E‡ = None')
-            return None
-
-        return units.conversion * (self.ts.energy - sum(filter(None, [r.energy for r in self.reacs])) + ((len(self.reacs) - 1) * self.solvent_mol.energy))
-
-    def calc_delta_e(self, units=KcalMol):
-        """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
-
-        Returns:
-            float: energy difference in Hartrees
-        """
-        logger.info('Calculating ∆Er')
-        products_energy = sum(filter(None, [p.energy for p in self.prods]))
-        reactants_energy = sum(filter(None, [r.energy for r in self.reacs]))
-
-        return units.conversion * (products_energy - reactants_energy + ((len(self.reacs) - len(self.prods)) * self.solvent_mol.energy))
-
-    @work_in('solvent')
-    def calc_solvent(self):
-        """Calculates the properties of the explicit solvent molecule"""
-        logger.info('Optimising the solvent molecule')
-        self.solvent_mol = SolvatedMolecule(name=self.solvent.name, smiles=self.solvent.smiles)
-        self.solvent_mol.find_lowest_energy_conformer(low_level_method=get_lmethod())
-        self.solvent_mol.optimise(get_hmethod())
-        self.solvent_mol.single_point(method=get_hmethod())
-        self.make_solvated_mol_objects()
-
-    def make_solvated_mol_objects(self):
-        """Converts the Molecule objects in the reaction into SolvatedMolecule objects, and sets the solvent molecule"""
-        solvated_reacs, solvated_prods = [], []
-        for mol in self.reacs:
-            solvated_mol = SolvatedMolecule(name=mol.name, atoms=mol.atoms, charge=mol.charge, mult=mol.mult)
-            solvated_mol.smiles = mol.smiles
-            solvated_mol.rdkit_mol_obj = mol.rdkit_mol_obj
-            solvated_mol.rdkit_conf_gen_is_fine = mol.rdkit_conf_gen_is_fine
-            solvated_mol.graph = deepcopy(mol.graph)
-            solvated_mol.solvent_mol = self.solvent_mol
-            solvated_reacs.append(solvated_mol)
-        self.reacs = solvated_reacs
-        for mol in self.prods:
-            solvated_mol = SolvatedMolecule(name=mol.name, atoms=mol.atoms, charge=mol.charge, mult=mol.mult)
-            solvated_mol.smiles = mol.smiles
-            solvated_mol.rdkit_mol_obj = mol.rdkit_mol_obj
-            solvated_mol.rdkit_conf_gen_is_fine = mol.rdkit_conf_gen_is_fine
-            solvated_mol.graph = deepcopy(mol.graph)
-            solvated_mol.solvent_mol = self.solvent_mol
-            solvated_prods.append(solvated_mol)
-        self.prods = solvated_prods
-
-    def __init__(self, mol1=None, mol2=None, mol3=None, mol4=None, mol5=None, mol6=None, name='reaction',
-                 solvent_name=None):
-        super().__init__(mol1, mol2, mol3, mol4, mol5, mol6, name, solvent_name)
-
-        self.solvent_mol = None
-
-
 class MultiStepReaction:
 
     def calculate_reaction_profile(self, units=KcalMol):
-        """Calculate a multistep reaction profile using the products of step 1 as the reactants of step 2 etc."""
+        """Calculate a multistep reaction profile using the products of step 1
+        as the reactants of step 2 etc."""
         logger.info('Calculating reaction profile')
 
         @work_in(self.name)
         def calculate(reaction, calc_reac_conformers=False):
-            if isinstance(reaction, SolvatedReaction):
-                raise NotImplementedError
 
-            # If the step is > 1 then there is no need to calculate the conformers of the reactants..
-            reaction.find_lowest_energy_conformers(calc_products=True, calc_reactants=calc_reac_conformers)
+            # If the step is > 1 then there is no need to calculate the
+            # conformers of the reactants..
+            reaction.find_lowest_energy_conformers(calc_prods=True,
+                                                   calc_reacs=calc_reac_conformers)
 
             reaction.optimise_reacs_prods()
             reaction.locate_transition_state()
@@ -333,7 +284,8 @@ class MultiStepReaction:
             return None
 
         def check_reaction(current_reaction, previous_reaction):
-            """Check that the reactants of the current reaction are the same as the previous products. NOT exhaustive"""
+            """Check that the reactants of the current reaction are the same
+            as the previous products. NOT exhaustive"""
 
             assert len(current_reaction.reacs) == len(previous_reaction.prods)
             n_reacting_atoms = sum(reac.n_atoms for reac in current_reaction.reacs)
@@ -348,12 +300,14 @@ class MultiStepReaction:
                 calculate(reaction=r, calc_reac_conformers=True)
 
             else:
-                # Set the reactants of this reaction as the previous set of products and don't recalculate conformers
-                check_reaction(current_reaction=r, previous_reaction=self.reactions[i-1])
+                # Set the reactants of this reaction as the previous set of
+                # products and don't recalculate conformers
+                check_reaction(current_reaction=r,
+                               previous_reaction=self.reactions[i-1])
                 r.reacs = self.reactions[i-1].prods
                 calculate(reaction=r)
 
-        plot_reaction_profile(reactions=self.reactions, units=units, name=self.name)
+        plot_reaction_profile(self.reactions, units=units, name=self.name)
         return None
 
     def __init__(self, *args, name='reaction'):
@@ -361,10 +315,10 @@ class MultiStepReaction:
         Reaction with multiple steps
 
         Arguments:
-            *args (autode.reaction.Reaction): Set of reactions to calculate the reaction profile for
+            *args (autode.reaction.Reaction): Set of reactions to calculate the
+                                              reaction profile for
         """
-
         self.name = str(name)
-
         self.reactions = args
+
         assert all(type(reaction) is Reaction for reaction in self.reactions)

@@ -10,8 +10,8 @@ class Conformer(Species):
     def optimise(self, method):
         logger.info(f'Running optimisation of {self.name}')
 
-        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method, keywords_list=method.keywords.low_opt,
-                          n_cores=Config.n_cores, opt=True, distance_constraints=self.dist_consts)
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method, keywords=method.keywords.low_opt,
+                          n_cores=Config.n_cores, distance_constraints=self.dist_consts)
         opt.run()
         self.energy = opt.get_energy()
 

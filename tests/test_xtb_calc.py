@@ -31,7 +31,7 @@ def test_xtb_calculation():
     with pytest.raises(NotImplementedError):
         calc.optimisation_nearly_converged()
     with pytest.raises(NotImplementedError):
-        calc.get_imag_freqs()
+        calc.get_imaginary_freqs()
     with pytest.raises(NotImplementedError):
         calc.get_normal_mode_displacements(4)
 

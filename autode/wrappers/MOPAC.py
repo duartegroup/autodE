@@ -1,12 +1,15 @@
 from copy import deepcopy
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.base import execute
 from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.geom import get_shifted_atoms_linear_interp
 from autode.log import logger
+from autode.utils import work_in_tmp_dir
+import os
 
 
 # dielectrics from Gaussian solvent list
@@ -54,9 +57,6 @@ class MOPAC(ElectronicStructureMethod):
 
     def generate_input(self, calc):
         logger.info(f'Generating mopac input for {calc.name}')
-
-        calc.input_filename = calc.name + '_mopac.mop'
-        calc.output_filename = calc.input_filename.replace('.mop', '.out')
 
         if calc.opt:
             keywords = deepcopy(Config.MOPAC.keywords.low_opt)
@@ -133,6 +133,27 @@ class MOPAC(ElectronicStructureMethod):
             calc.additional_input_files.append(f'{calc.name}_mol.in')
 
         return None
+
+    def get_input_filename(self, calc):
+        return f'{calc.name}_mopac.mop'
+
+    def get_output_filename(self, calc):
+        return f'{calc.name}_mopac.out'
+
+    def execute(self, calc):
+
+        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+                         kept_file_exts=('.mop', '.out'))
+        def execute_mopac():
+            logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
+            os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
+            execute(calc, params=[calc.method.path, calc.input.filename])
+
+        execute_mopac()
+        return None
+
+    def clean_up(self, calc):
+        pass
 
     def calculation_terminated_normally(self, calc):
 
@@ -218,7 +239,7 @@ class MOPAC(ElectronicStructureMethod):
         return grad_array.tolist()
 
     def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path, keywords=Config.MOPAC.keywords)
+        super().__init__(name='mopac', path=Config.MOPAC.path, keywords_set=Config.MOPAC.keywords)
 
 
 mopac = MOPAC()

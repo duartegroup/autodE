@@ -1,6 +1,5 @@
 from copy import deepcopy
 import numpy as np
-from autode.solvent.qmmm import get_species_point_charges
 from autode.atoms import get_atomic_weight
 from autode.calculation import Calculation
 from autode.config import Config
@@ -44,11 +43,11 @@ class TSbase(Species):
         if self.calc is None:
             logger.info('Calculating the hessian..')
             self.calc = Calculation(name=self.name + '_hess', molecule=self, method=method,
-                                    keywords_list=method.keywords.hess, n_cores=Config.n_cores,
-                                    point_charges=get_species_point_charges(self))
+                                    keywords=method.keywords.hess, n_cores=Config.n_cores,
+                                    point_charges=None)
             self.calc.run()
 
-        imag_freqs = self.calc.get_imag_freqs()
+        imag_freqs = self.calc.get_imaginary_freqs()
 
         if len(imag_freqs) == 0:
             logger.warning('Hessian had no imaginary modes')
@@ -334,7 +333,7 @@ def get_optimised_species(calc, method, direction, atoms):
 
     # Note that for the surface to be the same the keywords.opt and keywords.hess need to match in the level of theory
     calc = Calculation(name=f'{calc.name}_{direction}', molecule=species, method=method,
-                       keywords_list=method.keywords.opt, n_cores=Config.n_cores, opt=True)
+                       keywords=method.keywords.opt, n_cores=Config.n_cores, opt=True)
     calc.run()
 
     try:
