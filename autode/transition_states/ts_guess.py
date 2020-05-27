@@ -29,43 +29,42 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     """
     logger.info('Getting TS guess from constrained optimisation')
 
-    mol_with_const = deepcopy(reactant)
+    mol_with_constraints = deepcopy(reactant)
 
     # Run a low level constrained optimisation first to prevent the DFT being
     # problematic if there are >1 constraint
     l_method = get_lmethod()
     ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll',
-                               molecule=mol_with_const, method=l_method,
+                               molecule=mol_with_constraints, method=l_method,
                                keywords=l_method.keywords.low_opt,
                                n_cores=Config.n_cores,
                                distance_constraints=distance_consts)
-    ll_const_opt.run()
 
     # Try and set the atoms, but continue if they're not found as hopefully the
     # other method will be fine(?)
     try:
-        mol_with_const.set_atoms(atoms=ll_const_opt.get_final_atoms())
+        mol_with_constraints.run_const_opt(ll_const_opt)
 
     except AtomsNotFound:
         pass
 
     hl_const_opt = Calculation(name=f'{name}_constrained_opt',
-                               molecule=mol_with_const, method=method,
+                               molecule=mol_with_constraints, method=method,
                                keywords=keywords, n_cores=Config.n_cores,
                                distance_constraints=distance_consts)
 
     # Form a transition state guess from the optimised atoms and set the
     # corresponding energy
     try:
-        mol_with_const.run_const_opt(hl_const_opt)
+        mol_with_constraints.run_const_opt(hl_const_opt)
     except AtomsNotFound:
         # Retrun with the low level
         try:
-            mol_with_const.run_const_opt(ll_const_opt)
+            mol_with_constraints.run_const_opt(ll_const_opt)
         except AtomsNotFound:
             return None
 
-    return get_ts_guess(species=mol_with_const, reactant=reactant,
+    return get_ts_guess(species=mol_with_constraints, reactant=reactant,
                         product=product, name=f'ts_guess_{name}')
 
 

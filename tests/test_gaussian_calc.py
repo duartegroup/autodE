@@ -1,6 +1,7 @@
 from autode.wrappers.G09 import G09
 from autode.calculation import Calculation
 from autode.molecule import Molecule
+from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 from autode.exceptions import NoNormalModesFound
@@ -14,9 +15,12 @@ test_mol = Molecule(name='methane', smiles='C')
 method = G09()
 method.available = True
 
-opt_keywords = ['PBE1PBE/Def2SVP', 'Opt']
-optts_keywords = ['PBE1PBE/Def2SVP', 'Freq',
-                  'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)']
+opt_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Opt'])
+optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
+                              'Opt=(TS, CalcFC, NoEigenTest, '
+                              'MaxCycles=100, MaxStep=10, NoTrustUpdate)'])
+
+sp_keywords = SinglePointKeywords(['PBE1PBE/Def2SVP'])
 
 
 def test_gauss_opt_calc():
@@ -184,7 +188,7 @@ def test_point_charge_calc():
 
     calc = Calculation(name='methane_point_charge', molecule=test_mol,
                        method=method,
-                       keywords=['PBE1PBE/Def2SVP'],
+                       keywords=sp_keywords,
                        point_charges=[PointCharge(charge=1.0, x=10.0, y=10.0, z=10.0)])
     calc.run()
 
@@ -210,7 +214,7 @@ def test_point_charge_calc():
     for opt_keyword in ['Opt', 'Opt=Tight', 'Opt=(Tight)']:
         calc = Calculation(name='methane_point_charge_o', molecule=test_mol,
                            method=method,
-                           keywords=['PBE1PBE/Def2SVP', opt_keyword],
+                           keywords=OptKeywords(['PBE1PBE/Def2SVP', opt_keyword]),
                            point_charges=[PointCharge(charge=1.0, x=3.0, y=3.0, z=3.0)])
         calc.generate_input()
 

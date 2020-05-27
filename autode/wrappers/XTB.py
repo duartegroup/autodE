@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import execute
+from autode.wrappers.base import run_external
 from autode.wrappers.keywords import Keywords
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
@@ -113,7 +113,6 @@ class XTB(ElectronicStructureMethod):
     def execute(self, calc):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
-        assert isinstance(calc.input.keywords, Keywords)
 
         flags = ['--chrg', str(calc.molecule.charge)]
 
@@ -136,18 +135,9 @@ class XTB(ElectronicStructureMethod):
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
-            execute(calc, params=[calc.method.path, calc.input.filename]+flags)
+            run_external(calc, params=[calc.method.path, calc.input.filename] + flags)
 
         execute_xtb()
-        return None
-
-    def clean_up(self, calc):
-        os.remove(calc.input.filename)
-
-        for filename in os.listdir(os.getcwd()):
-            if filename.startswith('xcontrol'):
-                os.remove(filename)
-
         return None
 
     def calculation_terminated_normally(self, calc):

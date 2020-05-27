@@ -91,28 +91,18 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        loose_opt = ['LooseOpt', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
-        grad = ['EnGrad', 'PBE', 'RI', 'D3BJ', 'def2-SVP', 'def2/J']
-        opt = ['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
-        opt_ts = ['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
-        hessian = ['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J']
-
-        single_point = ['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP']
-
-        ts_opt_block = ('%geom\n'
-                        'Calc_Hess true\n' 
-                        'Recalc_Hess 30\n'
-                        'Trust -0.1\n'
-                        'MaxIter 150\n'
-                        'end')
-
-        keywords = KeywordsSet(low_opt=loose_opt,
-                               grad=grad,
-                               opt=opt,
-                               opt_ts=opt_ts,
-                               hess=hessian,
-                               optts_block=ts_opt_block,
-                               sp=single_point)
+        keywords = KeywordsSet(low_opt=['LooseOpt', 'PBE',  'D3BJ', 'def2-SVP'],
+                               grad=['EnGrad', 'PBE', 'D3BJ', 'def2-SVP'],
+                               opt=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                               opt_ts=['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                               hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
+                               sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP'],
+                               optts_block=('%geom\n'
+                                            'Calc_Hess true\n' 
+                                            'Recalc_Hess 30\n'
+                                            'Trust -0.1\n'
+                                            'MaxIter 150\n'
+                                            'end'))
 
         # Implicit solvent in ORCA is either treated with CPCM or SMD, the
         # former has support for a VdW surface construction which provides
@@ -147,7 +137,7 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        svp_basis_block = 'basis\n  *   library Def2-SVP\nend',
+        svp_basis_block = 'basis\n  *   library Def2-SVP\nend'
         tzvp_basis_block = 'basis\n  *   library Def2-TZVP\nend'
         #
         keywords = KeywordsSet(low_opt=['driver\n'

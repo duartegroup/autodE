@@ -1,6 +1,7 @@
 from autode.wrappers.NWChem import NWChem
 from autode.calculation import Calculation
 from autode.molecule import Molecule
+from autode.wrappers.keywords import OptKeywords
 from autode.atoms import Atom
 import numpy as np
 import os
@@ -10,11 +11,11 @@ test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
 method.available = True
 
-opt_keywords = ['driver\n gmax 0.002\n  grms 0.0005\n'
-                '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                'basis\n  *   library Def2-SVP\nend',
-                'dft\n   xc xpbe96 cpbe96\nend',
-                'task dft optimize']
+opt_keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
+                            '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
+                            'basis\n  *   library Def2-SVP\nend',
+                            'dft\n   xc xpbe96 cpbe96\nend',
+                            'task dft optimize'])
 
 
 def test_opt_calc():
@@ -72,10 +73,10 @@ def test_opt_single_atom():
 def test_opt_hf_constraints():
     os.chdir(os.path.join(here, 'data'))
 
-    keywords = ['driver\n gmax 0.002\n  grms 0.0005\n'
-                '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                'basis\n  *   library Def2-SVP\nend',
-                'task scf optimize']
+    keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
+                            '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
+                            'basis\n  *   library Def2-SVP\nend',
+                            'task scf optimize'])
 
     h2o = Molecule(name='water', smiles='O')
     calc = Calculation(name='opt_water', molecule=h2o, method=method,

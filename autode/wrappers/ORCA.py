@@ -1,13 +1,11 @@
 import numpy as np
 import os
-from copy import copy
-from autode.wrappers.base import execute
+from autode.wrappers.base import run_external
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.exceptions import NoCalculationOutput
-from autode.exceptions import NoNormalModesFound
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
 
@@ -32,8 +30,8 @@ def use_vdw_gaussian_solvent(keywords):
         return False
 
     if any('freq' in kw.lower() or 'optts' in kw.lower() for kw in keywords):
-        logger.error('Cannot do analytical frequencies with gaussian charge '
-                     'scheme - switching off')
+        logger.warning('Cannot do analytical frequencies with gaussian charge '
+                       'scheme - switching off')
         return False
 
     return True
@@ -223,20 +221,12 @@ class ORCA(ElectronicStructureMethod):
     def get_output_filename(self, calculation):
         return f'{calculation.name}_orca.out'
 
-    def clean_up(self, calc):
-        """Clean up files post calculation"""
-
-        for filename in calc.input.get_input_filenames():
-            os.remove(filename)
-
-        return None
-
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
                          kept_file_exts=('.out', '.hess', '.xyz', '.inp', '.pc'))
         def execute_orca():
-            execute(calc, params=[calc.method.path, calc.input.filename])
+            run_external(calc, params=[calc.method.path, calc.input.filename])
 
         execute_orca()
         return None

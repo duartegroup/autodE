@@ -1,9 +1,7 @@
 from copy import deepcopy
 import numpy as np
-import os
-from copy import copy
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import execute
+from autode.wrappers.base import run_external
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
@@ -139,7 +137,7 @@ def rerun_angle_failure(calc):
     cart_calc = deepcopy(calc)
 
     # Iterate through a copied set of keywords
-    for keyword in copy(cart_calc.input.keywords):
+    for keyword in cart_calc.input.keywords.copy():
         if keyword.lower().startswith('geom'):
             cart_calc.input.keywords.remove(keyword)
 
@@ -232,13 +230,9 @@ class G09(ElectronicStructureMethod):
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
                          kept_file_exts=('.log', '.com'))
         def execute_g09():
-            execute(calc, params=[calc.method.path, calc.input.filename])
+            run_external(calc, params=[calc.method.path, calc.input.filename])
 
         execute_g09()
-        return None
-
-    def clean_up(self, calc):
-        os.remove(calc.input.filename)
         return None
 
     def calculation_terminated_normally(self, calc, rerun_if_failed=True):
@@ -282,7 +276,7 @@ class G09(ElectronicStructureMethod):
                 return float(line.split()[-1])
 
         logger.error('Could not get the enthalpy from the calculation. '
-                     'Was a frequency requested?')
+                     'A frequency must be requested')
         return None
 
     def get_free_energy(self, calc):
@@ -292,8 +286,8 @@ class G09(ElectronicStructureMethod):
             if 'Sum of electronic and thermal Free Energies' in line:
                 return float(line.split()[-1])
 
-        logger.error('Could not get the free energy from the calculation. '
-                     'Was a frequency requested?')
+        logger.error('Could not get the enthalpy from the calculation. '
+                     'A frequency must be requested')
         return None
 
     def get_energy(self, calc):

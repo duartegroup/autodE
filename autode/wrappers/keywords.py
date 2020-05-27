@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+
 class KeywordsSet:
 
     def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None,
@@ -54,6 +55,12 @@ class Keywords:
         return deepcopy(self.keyword_list)
 
     def append(self, item):
+        assert type(item) is str
+
+        # Don't re-add a keyword that is already there
+        if any(kw.lower() == item.lower() for kw in self.keyword_list):
+            return
+
         self.keyword_list.append(item)
 
     def remove(self, item):
@@ -70,6 +77,9 @@ class Keywords:
             keyword_list (list(str)): List of keywords used in a QM calculation
         """
         self.keyword_list = keyword_list if keyword_list is not None else []
+
+        # Input will break if all the keywords are not strings
+        assert all(type(kw) is str for kw in self.keyword_list)
 
 
 class OptKeywords(Keywords):

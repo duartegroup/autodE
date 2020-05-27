@@ -31,9 +31,10 @@ basis set for optimisations
 
 .. code-block:: python
 
-  >>> Config.ORCA.keywords.opt = ['Opt', 'PBE0', 'D3BJ', 'ma-def2-SVP']
-  >>> Config.ORCA.keywords.hess = ['Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP']
-  >>> Config.ORCA.keywords.opt_ts = ['OptTS', 'Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP']
+  >>> from autode.wrappers.keywords import OptKeywords, HessianKeywords
+  >>> Config.ORCA.keywords.opt = OptKeywords(['Opt', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
+  >>> Config.ORCA.keywords.hess = HessianKeywords(['Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
+  >>> Config.ORCA.keywords.opt_ts = OptKeywords(['OptTS', 'Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
 
 
 See the `config file <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_

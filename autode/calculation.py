@@ -276,13 +276,12 @@ class Calculation:
                  point_charges=None):
         """
         Arguments:
-            name (str): calc name
-            molecule (molecule object): molecule to be calculated
-            method (method object): which electronic structure wrapper to use
+            name (str):
+            molecule (molecule object): Molecule to be calculated
+            method (method object): Electronic structure wrapper to use
+            keywords (autode.wrappers.keywords.Keywords):
 
         Keyword Arguments:
-            keywords (autode.wrappers.keywords.Keywords): Keywords to use
-                                                          (default: {None})
 
             n_cores (int): Number of cores available (default: {1})
 
@@ -363,8 +362,7 @@ class CalculationInput:
     def _check(self):
         """Check that the input parameters have the expected format"""
         if self.keywords is not None:
-            assert (isinstance(self.keywords, Keywords)
-                    or type(self.keywords) is list)
+            assert isinstance(self.keywords, Keywords)
 
         assert self.solvent is None or type(self.solvent) is str
         assert self.other_block is None or type(self.other_block) is str

@@ -1,7 +1,7 @@
 from copy import copy
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import execute
+from autode.wrappers.base import run_external
 from autode.wrappers.keywords import Keywords
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.keywords import GradientKeywords
@@ -202,13 +202,10 @@ class MOPAC(ElectronicStructureMethod):
         def execute_mopac():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
-            execute(calc, params=[calc.method.path, calc.input.filename])
+            run_external(calc, params=[calc.method.path, calc.input.filename])
 
         execute_mopac()
         return None
-
-    def clean_up(self, calc):
-        pass
 
     def calculation_terminated_normally(self, calc):
 

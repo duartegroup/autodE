@@ -7,8 +7,15 @@ from autode.log import logger
 from autode.utils import requires_output
 
 
-def execute(calc, params):
-    """Standard method to run a EST calculation"""
+def run_external(calc, params):
+    """
+    Standard method to run a EST calculation with subprocess writing the
+    output to the calculation output filename
+
+    Arguments:
+        calc (autode.calculation.Calculation):
+        params (list): e.g. [/path/to/method, inputfilename]
+    """
 
     with open(calc.output.filename, 'w') as output_file:
         # /path/to/method input_filename > output_filename
@@ -54,6 +61,19 @@ class ElectronicStructureMethod(ABC):
         """
         raise NotImplementedError
 
+    def clean_up(self, calc):
+        """
+        Remove any input files
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        for filename in calc.input.get_input_filenames():
+            if os.path.exists(filename):
+                os.remove(filename)
+
+        return None
+
     @abstractmethod
     def get_output_filename(self, calc):
         """
@@ -74,15 +94,7 @@ class ElectronicStructureMethod(ABC):
         """
         pass
 
-    @abstractmethod
-    def clean_up(self, calc):
-        """
-        Function implemented in individual child classes
 
-        Arguments:
-            calc (autode.calculation.Calculation):
-        """
-        pass
 
     @abstractmethod
     def execute(self, calc):

@@ -199,8 +199,9 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
         bond1 (autode.pes.ScannedBond):
         bond2 (autode.pes.ScannedBond):
         name (str): name of reaction
-        method (autode.): electronic structure wrapper to use for the calcs
-        keywords (list): keywords_list to use in the calcs
+        method (autode.wrappers.base.ElectronicStructureMethod): electronic
+        structure wrapper to use for the calcs
+        keywords (autode.keywords.Keywords): keywords_list to use in the calcs
 
     Keyword Arguments:
         polynomial_order (int): order of polynomial to fit the data to (default: {3})

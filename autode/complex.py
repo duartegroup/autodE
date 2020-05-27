@@ -228,17 +228,17 @@ class Complex(Species):
 
 class ReactantComplex(Complex):
 
-    def run_const_opt(self, const_opt):
+    def run_const_opt(self, constrained_opt):
         """Run a constrained optimisation using a const_opt calculation and
         set the new structure
 
         Arguments:
-            const_opt (autode.calculation.Calculation):
+            constrained_opt (autode.calculation.Calculation):
         """
-        const_opt.run()
+        constrained_opt.run()
 
-        self.energy = const_opt.get_energy()
-        self.set_atoms(atoms=const_opt.get_final_atoms())
+        self.energy = constrained_opt.get_energy()
+        self.set_atoms(atoms=constrained_opt.get_final_atoms())
 
         return None
 

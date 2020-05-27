@@ -170,6 +170,7 @@ def test_find_tss():
     # Spoof ORCA and XTB installs
     Config.ORCA.path = here
     Config.XTB.path = here
+    Config.ORCA.solvation_type = 'cpcm'
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1

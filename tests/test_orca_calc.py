@@ -8,6 +8,7 @@ from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
+from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
 from autode.config import Config
 import pytest
@@ -18,8 +19,8 @@ test_mol = Molecule(name='methane', smiles='C')
 method = ORCA()
 method.available = True
 
-sp_keywords = ['PBE', 'def2-SVP']
-opt_keywords = ['Opt', 'PBE', 'def2-SVP']
+sp_keywords = SinglePointKeywords(['PBE', 'def2-SVP'])
+opt_keywords = OptKeywords(['Opt', 'PBE', 'def2-SVP'])
 
 
 def test_orca_opt_calculation():

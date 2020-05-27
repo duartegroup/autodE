@@ -1,6 +1,6 @@
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import execute
+from autode.wrappers.base import run_external
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput
@@ -18,8 +18,16 @@ def get_keywords(calc_input, molecule):
     for keyword in calc_input.keywords:
         if 'opt' in keyword.lower() and molecule.n_atoms == 1:
             logger.warning('Cannot do an optimisation for a single atom')
-            new_keyword = keyword.replace('opt', 'energy')
-            new_keywords.append(new_keyword)
+
+            # Replace any 'opt' containing word in this keyword with energy
+            words = []
+            for word in keyword.split():
+                if 'opt' in word:
+                    words.append('energy')
+                else:
+                    words.append(word)
+
+            new_keywords.append(' '.join(words))
 
         elif keyword.lower().startswith('dft'):
             lines = keyword.split('\n')
@@ -126,7 +134,7 @@ class NWChem(ElectronicStructureMethod):
             if calc.input.solvent is not None:
                 print(f'cosmo\n '
                       f'do_cosmo_smd true\n '
-                      f'solvent {calc.solvent_keyword}\n'
+                      f'solvent {calc.input.solvent}\n'
                       f'end', file=inp_file)
 
             print('geometry', end=' ', file=inp_file)
@@ -178,13 +186,10 @@ class NWChem(ElectronicStructureMethod):
             params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,
                       calc.input.filename]
 
-            execute(calc, params)
+            run_external(calc, params)
 
         execute_nwchem()
         return None
-
-    def clean_up(self, calc):
-        pass
 
     def calculation_terminated_normally(self, calc):
 
