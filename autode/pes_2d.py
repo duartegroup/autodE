@@ -122,9 +122,9 @@ class PES2d(PES):
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
             closest_species = [get_closest_species(p, self) for p in points]
-            dimension = len(self.rs_idxs)
-            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2. value
-            distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(dimension)} for p in points]
+
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(2)} for p in points]
 
             # Use custom NoDaemonPool here, as there are several multiprocessing events happening within the function
             with NoDaemonPool(processes=Config.n_cores) as pool:

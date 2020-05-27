@@ -53,9 +53,9 @@ class PES1d(PES):
 
         for i in range(self.n_points):
             closest_species = get_closest_species((i,), self)
-            dimension = len(self.rs_idxs)
-            # Set up the dict of distance constraints keyed with bond indexes and values the current r1, r2.. value
-            distance_constraints = {self.rs_idxs[i]: self.rs[(i,)][i] for i in range(dimension)}
+
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = {self.rs_idxs[0]: self.rs[i][0]}
 
             self.species[i] = get_point_species((i,), closest_species, distance_constraints, name, method, keywords, Config.n_cores)
 
