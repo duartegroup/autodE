@@ -10,7 +10,6 @@ from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
 from autode.calculation import Calculation
 from autode.config import Config
-from autode.constants import Constants
 from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.geom import get_distance_constraints
 from autode.log import logger

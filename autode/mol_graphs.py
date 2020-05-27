@@ -8,13 +8,10 @@ from scipy.spatial import distance_matrix
 from autode.atoms import get_maximal_valance
 from autode.atoms import is_pi_atom
 from autode.bond_lengths import get_avg_bond_length
-from autode.calculation import Calculation
 from autode.log import logger
 from autode.exceptions import CannotSplitAcrossBond
 from autode.exceptions import NoMolecularGraph
 from autode.atoms import get_atomic_weight
-from autode.methods import get_lmethod
-from autode.units import KcalMol
 
 
 def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):

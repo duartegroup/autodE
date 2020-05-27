@@ -1,13 +1,11 @@
 from copy import deepcopy
 import numpy as np
 from openmmtools.integrators import GradientDescentMinimizationIntegrator
-import os
 import simtk.openmm.app as omapp
 import simtk.openmm.openmm as om
-from simtk.unit.unit_definitions import kelvin, angstrom, bohr, hartree, picosecond, nanometer, kilojoule_per_mole, dalton, mole
+from simtk.unit.unit_definitions import angstrom, picosecond, nanometer, kilojoule_per_mole, dalton
 from autode.atoms import get_vdw_radius
 from autode.calculation import Calculation
-from autode.config import Config
 from autode.constants import Constants
 from autode.log import logger
 from autode.point_charges import PointCharge

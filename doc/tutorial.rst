@@ -68,6 +68,6 @@ This function call will return a plot something like:
 .. image:: ../examples/common/sn2_reaction_profile.png
 
 as *sn2_reaction_profile.png* in the current working directory, where conformers of the reactant and products have been
-searched and the profile calculated at PBE0-D3BJ/def2-TZVP//PBE0-D3BJ/def2-SVP using an implicit CPCM water solvent.
+searched and the profile calculated at PBE0-D3BJ/def2-TZVP//PBE0-D3BJ/def2-SVP using an implicit water solvent.
 It should take around 10 minutes to complete on a modern processor.
 

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from math import ceil, floor
+from math import ceil
 from multiprocessing import Pool
 import numpy as np
 import os
