@@ -35,14 +35,13 @@ class ElectronicStructureMethod(ABC):
             self.available = False
 
     @abstractmethod
-    def generate_input(self, calculation_input, molecule, n_cores):
+    def generate_input(self, calculation, molecule):
         """
         Function implemented in individual child classes
 
         Arguments:
-            calculation_input (autode.calculation.CalculationInput):
+            calculation (autode.calculation.Calculation):
             molecule (any):
-            n_cores (int):
         """
         pass
 
@@ -163,7 +162,7 @@ class ElectronicStructureMethod(ABC):
 
     @abstractmethod
     @requires_output()
-    def get_imag_freqs(self, calc):
+    def get_imaginary_freqs(self, calc):
         """
         Function implemented in individual child classes
 

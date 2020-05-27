@@ -2,6 +2,7 @@ import numpy as np
 import os
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.base import execute
+from autode.wrappers.keywords import Keywords
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
@@ -11,57 +12,95 @@ from autode.utils import work_in_tmp_dir
 from autode.log import logger
 
 
+def print_distance_constraints(inp_file, molecule, force_constant=20):
+    """Add distance constraints to the input file"""
+
+    if molecule.constraints.distance is None:
+        return
+
+    for (i, j), dist in molecule.constraints.distance.items():
+        # XTB counts from 1 so increment atom ids by 1
+        print(f'$constrain\n'
+              f'force constant={force_constant}\n'
+              f'distance:{i+1}, {j+1}, {dist:.4f}\n$',
+              file=inp_file)
+    return
+
+
+def print_cartesian_constraints(inp_file, molecule, force_constant=20):
+    """Add cartesian constraints to an xtb input file"""
+
+    if molecule.constraints.cartesian is None:
+        return
+
+    constrained_atom_idxs = [i + 1 for i in molecule.constraints.cartesian]
+    list_of_ranges, used_atoms = [], []
+
+    for i in constrained_atom_idxs:
+        atom_range = []
+        if i not in used_atoms:
+            while i in constrained_atom_idxs:
+                used_atoms.append(i)
+                atom_range.append(i)
+                i += 1
+            if len(atom_range) in (1, 2):
+                list_of_ranges += str(atom_range)
+            else:
+                list_of_ranges.append(f'{atom_range[0]}-{atom_range[-1]}')
+
+    print(f'$constrain\n'
+          f'force constant={force_constant}\n'
+          f'atoms: {",".join(list_of_ranges)}\n'
+          f'$', file=inp_file)
+    return
+
+
+def print_point_charge_file(calc):
+    """Generate a point charge file"""
+
+    if calc.input.point_charges is None:
+        return
+
+    with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
+        print(len(calc.point_charges), file=pc_file)
+        for point_charge in calc.point_charges:
+            x, y, z = point_charge.coord
+            charge = point_charge.charge
+            print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99',
+                  file=pc_file)
+
+    calc.input.additional_input_files.append(f'{calc.name}_xtb.pc')
+    return
+
+
+def print_xcontrol_file(calc, molecule):
+    """Print an XTB input file with constraints and point charges"""
+
+    xcontrol_filename = f'xcontrol_{calc.name}'
+    with open(xcontrol_filename, 'w') as xcontrol_file:
+
+        print_distance_constraints(xcontrol_file, molecule)
+        print_cartesian_constraints(xcontrol_file, molecule)
+
+        if calc.input.point_charges is not None:
+            print_point_charge_file(calc)
+            print(f'$embedding\n'
+                  f'input={calc.name}_xtb.pc\n'
+                  f'input=orca\n'
+                  f'$end', file=xcontrol_file)
+
+    calc.input.additional_filenames.append(xcontrol_filename)
+    return
+
+
 class XTB(ElectronicStructureMethod):
 
-    def generate_input(self, calc):
+    def generate_input(self, calc, molecule):
 
         calc.molecule.print_xyz_file(filename=calc.input.filename)
 
-        if calc.distance_constraints or calc.cartesian_constraints or calc.point_charges:
-            force_constant = 20
-
-            xcontrol_filename = 'xcontrol_' + calc.name
-            with open(xcontrol_filename, 'w') as xcontrol_file:
-                if calc.distance_constraints:
-                    for atom_ids in calc.distance_constraints.keys():  # xtb counts from 1 so increment atom ids by 1
-                        print(f'$constrain\nforce constant={force_constant}\ndistance:' + str(atom_ids[0] + 1) + ', ' + str(
-                            atom_ids[1] + 1) + ', ' + str(np.round(calc.distance_constraints[atom_ids], 3)) + '\n$',
-                            file=xcontrol_file)
-
-                if calc.cartesian_constraints:
-                    constrained_atoms = [i + 1 for i in calc.cartesian_constraints]
-                    list_of_ranges = []
-                    used_atoms = []
-                    for atom in constrained_atoms:
-                        rang = []
-                        if atom not in used_atoms:
-                            while atom in constrained_atoms:
-                                used_atoms.append(atom)
-                                rang.append(atom)
-                                atom += 1
-                            if len(rang) in (1, 2):
-                                list_of_ranges += rang
-                            else:
-                                range_string = str(rang[0]) + '-' + str(rang[-1])
-                                list_of_ranges.append(range_string)
-                    print('$constrain\nforce constant=100\natoms:',
-                          end=' ', file=xcontrol_file)
-                    print(*list_of_ranges, sep=',', file=xcontrol_file)
-                    print('$', file=xcontrol_file)
-
-                if calc.point_charges is not None:
-                    print(f'$embedding\ninput={calc.name}_xtb.pc\ninput=orca\n$end', file=xcontrol_file)
-
-            calc.flags += ['--input', xcontrol_filename]
-            calc.additional_input_files.append(xcontrol_filename)
-
-        if calc.point_charges:
-            with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
-                print(len(calc.point_charges), file=pc_file)
-                for point_charge in calc.point_charges:
-                    x, y, z = point_charge.coord
-                    print(f'{point_charge.charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99', file=pc_file)
-            calc.additional_input_files.append(f'{calc.name}_xtb.pc')
+        if molecule.constraints.any() or calc.input.point_charges:
+            print_xcontrol_file(calc, molecule)
 
         return None
 
@@ -73,6 +112,8 @@ class XTB(ElectronicStructureMethod):
 
     def execute(self, calc):
         """Execute an XTB calculation using the runtime flags"""
+        # XTB calculation keywords must be a class
+        assert isinstance(calc.input.keywords, Keywords)
 
         flags = ['--chrg', str(calc.molecule.charge)]
 
@@ -85,15 +126,19 @@ class XTB(ElectronicStructureMethod):
         if calc.input.solvent is not None:
             flags += ['--gbsa', calc.input.solvent]
 
+        if len(calc.input.additional_filenames) == 1:
+            # XTB allows for an additional xcontrol file
+            flags += ['--input', calc.input.additional_filenames[0]]
+
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
-                         kept_file_exts=('.xyz', '.out'))
-        def execute_mopac():
+                         kept_file_exts=('.xyz', '.out', '.pc'))
+        def execute_xtb():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
             execute(calc, params=[calc.method.path, calc.input.filename]+flags)
 
-        execute_mopac()
+        execute_xtb()
         return None
 
     def clean_up(self, calc):
@@ -107,15 +152,18 @@ class XTB(ElectronicStructureMethod):
 
     def calculation_terminated_normally(self, calc):
 
-        for n_line, line in enumerate(calc.rev_output_file_lines):
+        for n_line, line in enumerate(reversed(calc.output.file_lines)):
             if 'ERROR' in line:
                 return False
             if n_line > 20:
-                # With xtb we will search for there being no '#ERROR!' in the last few lines
+                # With xtb we will search for there being no '#ERROR!' in the
+                # last few lines
                 return True
 
+        return False
+
     def get_energy(self, calc):
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'total E' in line:
                 return float(line.split()[-1])
             if 'TOTAL ENERGY' in line:
@@ -129,7 +177,7 @@ class XTB(ElectronicStructureMethod):
 
     def optimisation_converged(self, calc):
 
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'GEOMETRY OPTIMIZATION CONVERGED' in line:
                 return True
 
@@ -138,7 +186,7 @@ class XTB(ElectronicStructureMethod):
     def optimisation_nearly_converged(self, calc):
         raise NotImplementedError
 
-    def get_imag_freqs(self, calc):
+    def get_imaginary_freqs(self, calc):
         raise NotImplementedError
 
     def get_normal_mode_displacements(self, calc, mode_number):
@@ -161,11 +209,11 @@ class XTB(ElectronicStructureMethod):
         """
         atoms = []
 
-        for i, line in enumerate(calc.output_file_lines):
+        for i, line in enumerate(calc.output.file_lines):
             if 'final structure' in line:
-                n_atoms = int(calc.output_file_lines[i+2].split()[0])
+                n_atoms = int(calc.output.file_lines[i+2].split()[0])
 
-                for xyz_line in calc.output_file_lines[i+4:i+4+n_atoms]:
+                for xyz_line in calc.output.file_lines[i+4:i+4+n_atoms]:
                     atom_label, x, y, z = xyz_line.split()
                     atoms.append(Atom(atom_label, x=x, y=y, z=z))
 
@@ -187,7 +235,7 @@ class XTB(ElectronicStructureMethod):
         atoms = []
         geom_section = False
 
-        for line in calc.output_file_lines:
+        for line in calc.output.file_lines:
 
             if '$coord' in line:
                 geom_section = True
@@ -197,16 +245,22 @@ class XTB(ElectronicStructureMethod):
 
             if len(line.split()) == 4 and geom_section:
                 x, y, z, atom_label = line.split()
-                atoms.append(Atom(atom_label, x=float(x) * Constants.a02ang, y=float(y) * Constants.a02ang,
-                                  z=float(z) * Constants.a02ang))
+
+                atom = Atom(atom_label,
+                            x=float(x) * Constants.a02ang,
+                            y=float(y) * Constants.a02ang,
+                            z=float(z) * Constants.a02ang)
+
+                atoms.append(atom)
+
         return atoms
 
     def get_final_atoms(self, calc):
         atoms = []
 
-        for i, line in enumerate(calc.output_file_lines):
+        for i, line in enumerate(calc.output.file_lines):
 
-            # XTB 6.2.x have a slightly different way of printing the atoms, helpfully
+            # XTB 6.2.x have a slightly different way of printing the atoms
             if 'xtb version' in line and len(line.split()) >= 4:
                 if line.split()[3] == '6.2.3':
                     atoms = self._get_final_atoms_6_2_3(calc)
@@ -216,7 +270,8 @@ class XTB(ElectronicStructureMethod):
                     atoms = self._get_final_atoms_old(calc)
                     break
 
-            # Version is not recognised if we're 50 lines into the output file - try and use the old version
+            # Version is not recognised if we're 50 lines into the output file
+            # - try and use the old version
             if i > 50:
                 atoms = self._get_final_atoms_old(calc)
                 break
@@ -229,7 +284,7 @@ class XTB(ElectronicStructureMethod):
     def get_atomic_charges(self, calc):
         charges_sect = False
         charges = []
-        for line in calc.output_file_lines:
+        for line in calc.output.file_lines:
             if 'Mol.' in line:
                 charges_sect = False
             if charges_sect and len(line.split()) == 7:

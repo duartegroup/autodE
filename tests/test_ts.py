@@ -58,6 +58,10 @@ ts = TransitionState(ts_guess=tsguess)
 def test_ts_guess_class():
     os.chdir(os.path.join(here, 'data'))
 
+    # Force ORCA to appear available
+    Config.hcode = 'orca'
+    Config.ORCA.path = here
+
     assert tsguess.reactant.n_atoms == 6
     assert tsguess.product.n_atoms == 6
 
@@ -116,9 +120,10 @@ def test_correct_imag_mode():
     g09 = G09()
     g09.available = True
 
-    calc = Calculation(name='tmp', molecule=ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1')), method=g09)
-    calc.output_filename = 'correct_ts_mode_g09.log'
-    calc.set_output_file_lines()
+    calc = Calculation(name='tmp', molecule=ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1')),
+                       method=g09, keywords=Config.G09.keywords.opt_ts)
+    calc.output.filename = 'correct_ts_mode_g09.log'
+    calc.output.set_lines()
 
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=1.0)
     f_species = Species(name='f_displaced', atoms=f_displaced_atoms, charge=0, mult=1)  # Charge & mult are placeholders
@@ -130,8 +135,8 @@ def test_correct_imag_mode():
     assert not imag_mode_generates_other_bonds(ts=calc.molecule, f_species=f_species, b_species=b_species,
                                                bond_rearrangement=bond_rearrangement)
 
-    calc.output_filename = 'incorrect_ts_mode_g09.log'
-    calc.set_output_file_lines()
+    calc.output.filename = 'incorrect_ts_mode_g09.log'
+    calc.output.set_lines()
 
     assert not imag_mode_has_correct_displacement(calc, bond_rearrangement)
 

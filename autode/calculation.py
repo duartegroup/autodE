@@ -3,10 +3,12 @@ import os
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names
 from autode.config import Config
+from autode.wrappers.keywords import Keywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import CouldNotGetProperty
 from autode.exceptions import MethodUnavailable
 from autode.exceptions import NoInputError
+from autode.exceptions import NoNormalModesFound
 from autode.exceptions import SolventUnavailable
 from autode.exceptions import NoCalculationOutput
 from autode.log import logger
@@ -15,8 +17,8 @@ output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')
 
 
-# Top level function that can be hashed
 def execute_calc(calc):
+    """ Top level function that can be hashed """
     return calc.execute_calculation()
 
 
@@ -44,8 +46,8 @@ def get_solvent_name(molecule, method):
 
 class Calculation:
 
-    def _check(self):
-        """Ensure the calculation and molecule has the required attributes"""
+    def _check_molecule(self):
+        """Ensure the molecule has the required attributes"""
         assert hasattr(self.molecule, 'n_atoms')
         assert hasattr(self.molecule, 'atoms')
         assert hasattr(self.molecule, 'mult')
@@ -57,7 +59,7 @@ class Calculation:
             logger.error('Have no atoms. Can\'t form a calculation')
             raise NoInputError
 
-    def get_energy(self, e=True, h=False, g=False, force=False):
+    def _get_energy(self, e=False, h=False, g=False, force=False):
         """
         Get the energy from a completed calculation
 
@@ -70,12 +72,9 @@ class Calculation:
         Returns:
             (float): Energy in Hartrees, or None
         """
-
         logger.info(f'Getting energy from {self.output.filename}')
-        if self.terminated_normally or force:
 
-            if e:
-                return self.method.get_energy(self)
+        if self.terminated_normally() or force:
 
             if h:
                 return self.method.get_enthalpy(self)
@@ -83,8 +82,20 @@ class Calculation:
             if g:
                 return self.method.get_free_energy(self)
 
+            if e:
+                return self.method.get_energy(self)
+
         logger.error('Calculation did not terminate normally. Energy = None')
         return None
+
+    def get_energy(self):
+        return self._get_energy(e=True)
+
+    def get_enthalpy(self):
+        return self._get_energy(h=True)
+
+    def get_free_energy(self):
+        return self._get_energy(g=True)
 
     def optimisation_converged(self):
         """Check whether a calculation has has converged to within the theshold
@@ -133,7 +144,7 @@ class Calculation:
         modes = self.method.get_normal_mode_displacements(self, mode_number)
 
         if len(modes) != self.molecule.n_atoms:
-            raise CouldNotGetProperty(name='normal modes')
+            raise NoNormalModesFound
 
         return modes
 
@@ -202,10 +213,7 @@ class Calculation:
             logger.warning('Calculation did not generate any output')
             return False
 
-        if self.method.terminated_normally(self):
-            return True
-        else:
-            return False
+        return self.method.calculation_terminated_normally(self)
 
     def clean_up(self):
         """Clean up input files, if Config.keep_input_files is False"""
@@ -217,7 +225,8 @@ class Calculation:
 
     def generate_input(self):
         """Generate the required input and set the output filename"""
-        self.method.generate_input(self.input, self.molecule, self.n_cores)
+        self.input.filename = self.method.get_input_filename(self)
+        self.method.generate_input(self, self.molecule)
         return None
 
     def execute_calculation(self):
@@ -240,31 +249,6 @@ class Calculation:
             logger.info('Calculation already terminated normally. Skipping')
             return None
 
-
-        """
-        logger.info(f'Setting the number of OMP threads to {self.n_cores}')
-        os.environ['OMP_NUM_THREADS'] = str(self.n_cores)
-        
-        @work_in_tmp_dir(filenames_to_copy=[self.input_filename]+self.additional_input_files, kept_file_exts=output_exts)
-        def execute_est_method():
-
-            with open(self.output_filename, 'w') as output_file:
-
-                if self.method.mpirun:
-                    params = ['mpirun', '-np', str(self.n_cores), self.method.path, self.input_filename]
-                else:
-                    params = [self.method.path, self.input_filename]
-                if self.flags is not None:
-                    params += self.flags
-
-                subprocess = Popen(params, stdout=output_file, stderr=open(os.devnull, 'w'))
-            subprocess.wait()
-            logger.info(f'Calculation {self.output_filename} done')
-            if self.grad and self.method.name == 'xtb':
-                # Need to get the XTB gradients
-                self.get_gradients()
-        """
-
         self.method.execute(self)
         self.output.set_lines()
 
@@ -275,7 +259,6 @@ class Calculation:
         logger.info(f'Running calculation {self.name}')
 
         # Set an input filename and generate the input
-        self.input.filename = self.method.get_input_filename(self)
         self.generate_input()
 
         # Set the output filename, run the calculation and clean up the files
@@ -285,7 +268,7 @@ class Calculation:
 
         return None
 
-    def __init__(self, name, molecule, method, keywords=None, n_cores=1,
+    def __init__(self, name, molecule, method, keywords, n_cores=1,
                  bond_ids_to_add=None,
                  other_input_block=None,
                  distance_constraints=None,
@@ -326,6 +309,7 @@ class Calculation:
 
         self.molecule.constraints = Constraints(distance=distance_constraints,
                                                 cartesian=cartesian_constraints)
+        self._check_molecule()
 
         # --------------------- Calculation parameters ------------------------
         self.method = method
@@ -334,14 +318,11 @@ class Calculation:
         # ------------------- Calculation input/output ------------------------
         self.input = CalculationInput(keywords=keywords,
                                       solvent=get_solvent_name(molecule, method),
-                                      additional_input_block=other_input_block,
+                                      additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
                                       point_charges=point_charges)
 
         self.output = CalculationOutput()
-
-        # Check attribute types and self.molecule
-        self._check()
 
 
 class CalculationOutput:
@@ -354,12 +335,12 @@ class CalculationOutput:
         Returns:
             (None)
         """
+        logger.info('Setting output file lines')
 
         if not os.path.exists(self.filename):
             raise NoCalculationOutput
 
         self.file_lines = open(self.filename, 'r', encoding="utf-8").readlines()
-        self.rev_file_lines = reversed(self.file_lines)
 
         return None
 
@@ -375,14 +356,16 @@ class CalculationOutput:
 
         self.filename = None
         self.file_lines = None
-        self.rev_file_lines = None
 
 
 class CalculationInput:
 
     def _check(self):
         """Check that the input parameters have the expected format"""
-        assert self.keywords is not None
+        if self.keywords is not None:
+            assert (isinstance(self.keywords, Keywords)
+                    or type(self.keywords) is list)
+
         assert self.solvent is None or type(self.solvent) is str
         assert self.other_block is None or type(self.other_block) is str
 
@@ -408,7 +391,7 @@ class CalculationInput:
         assert self.filename is not None
         return [self.filename] + self.additional_filenames
 
-    def __init__(self, keywords, solvent, additional_input_block,
+    def __init__(self, keywords, solvent, additional_input,
                  added_internals, point_charges):
         """
         Args:
@@ -416,7 +399,7 @@ class CalculationInput:
 
             solvent (str): Name of the solvent for this QM method, or None
 
-            additional_input_block (str): Any additional input string to add
+            additional_input (str): Any additional input string to add
                                           to the input file, or None
 
             added_internals (list(tuple(int))): Atom indexes to add to the
@@ -428,7 +411,7 @@ class CalculationInput:
         """
         self.keywords = keywords
         self.solvent = solvent
-        self.other_block = additional_input_block
+        self.other_block = additional_input
 
         self.added_internals = added_internals
         self.point_charges = point_charges
@@ -443,21 +426,26 @@ class Constraints:
 
     def _check(self):
         """ Check the constraints have the expected format"""
-        assert type(self.distance) is dict
-        assert all(len(key) == 2 for key in self.distance.keys())
+        if self.distance is not None:
+            assert type(self.distance) is dict
+            assert all(len(key) == 2 for key in self.distance.keys())
 
-        assert type(self.cartesian) is list
-        assert all(type(item) is int for item in self.cartesian)
+        if self.cartesian is not None:
+            assert type(self.cartesian) is list
+            assert all(type(item) is int for item in self.cartesian)
+
+    def any(self):
+        """Are there any constraints?"""
+        return self.distance is not None or self.cartesian is not None
 
     def __init__(self, distance, cartesian):
         """
         Args:
-            distance (dict): Keys of: tuple(int) for two atom indexes and
+            distance (any): Keys of: tuple(int) for two atom indexes and
                              values of the distance in Å or None
-            cartesian (list(int)): List of atom indexes or None
+            cartesian (any): List of atom indexes or None
         """
-
-        self.distance = distance if distance is not None else {}
-        self.cartesian = cartesian if cartesian is not None else []
+        self.distance = distance
+        self.cartesian = cartesian
 
         self._check()

@@ -1,17 +1,21 @@
 from copy import deepcopy
 import numpy as np
 import os
+from copy import copy
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.base import execute
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
+from autode.calculation import CalculationOutput
+from autode.calculation import Constraints
 from autode.utils import work_in_tmp_dir
 
 
 def modify_keywords_for_point_charges(keywords):
-    """For a list of Gaussian keywords modify to include z-matrix if not already included"""
+    """For a list of Gaussian keywords modify to include z-matrix if not
+    already included. Required if point charges are included in the calc"""
     logger.warning('Modifying keywords as point charges are present')
 
     keywords.append('Charge')
@@ -39,73 +43,181 @@ def modify_keywords_for_point_charges(keywords):
     return None
 
 
+def get_keywords(calc_input, molecule):
+    """Modify the input keywords to try and fix some Gaussian's quirks"""
+
+    keywords = calc_input.keywords.copy()
+
+    # Mod redundant keywords is required if there are any constraints or
+    # modified internal coordinates
+    if molecule.constraints.any():
+        keywords.append('Geom=ModRedun')
+
+    if calc_input.added_internals is not None:
+        keywords.append('Geom=ModRedun')
+
+    # Remove the optimisation keyword if there is only a single atom
+    opt = False
+    for keyword in keywords:
+
+        if 'opt' not in keyword.lower():
+            opt = True
+            continue
+
+        if molecule.n_atoms == 1:
+            logger.warning('Cannot do an optimisation for a single atom')
+            keywords.remove(keyword)
+
+    # Further modification is required if there are surrounding point charges
+    if calc_input.point_charges is not None:
+        modify_keywords_for_point_charges(keywords)
+
+    # By default perform all optimisations without symmetry
+    if opt and not any(kw.lower() == 'nosymm' for kw in keywords):
+        keywords.append('NoSymm')
+
+    return keywords
+
+
+def print_point_charges(inp_file, calc_input):
+    """Add point charges to the input file"""
+
+    if calc_input.point_charges is None:
+        return
+
+    print('', file=inp_file)
+    for point_charge in calc_input.point_charges:
+        x, y, z = point_charge.coord
+        print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {point_charge.charge:^12.8f}',
+              file=inp_file)
+    return
+
+
+def print_added_internals(inp_file, calc_input):
+    """Add any internal coordinates to the input file"""
+
+    if calc_input.added_internals is None:
+        return
+
+    for (i, j) in calc_input.added_internals:
+        # Gaussian indexes atoms from 1
+        print('B', i + 1, j + 1, file=inp_file)
+
+    return
+
+
+def print_constraints(inp_file, molecule):
+    """Add any distance or cartesian constraints to the input file"""
+
+    if molecule.constraints.distance is not None:
+
+        for (i, j), dist in molecule.constraints.distance.items():
+            # Gaussian indexes atoms from 1
+            print('B', i + 1, j + 1, dist, 'B', file=inp_file)
+            print('B', i + 1, j + 1, 'F', file=inp_file)
+
+    if molecule.constraints.cartesian is not None:
+
+        for i in molecule.constraints.cartesian:
+            # Gaussian indexes atoms from 1
+            print('X', i+1, 'F', file=inp_file)
+    return
+
+
+def rerun_angle_failure(calc):
+    """
+    Gaussian will sometimes encounter a 180 degree angle and crash. This
+    function performs a few geometry optimisation cycles in cartesian
+    coordinates then switches back to internals
+
+    Arguments:
+        calc (autode.calculation.Calculation):
+
+    Returns:
+        (autode.calculation.Calculation):
+    """
+    cart_calc = deepcopy(calc)
+
+    # Iterate through a copied set of keywords
+    for keyword in copy(cart_calc.input.keywords):
+        if keyword.lower().startswith('geom'):
+            cart_calc.input.keywords.remove(keyword)
+
+        elif keyword.lower().startswith('opt'):
+            options = []
+            if '=(' in keyword:
+                # get the individual options
+                options = [option.lower().strip()
+                           for option in keyword[5:-1].split(',')]
+
+                for option in options:
+                    if (option.startswith('maxcycles')
+                            or option.startswith('maxstep')):
+                        options.remove(option)
+
+            elif '=' in keyword:
+                options = [keyword[4:]]
+            options += ['maxcycles=3', 'maxstep=1', 'cartesian']
+
+            new_keyword = f'Opt=({", ".join(options)})'
+            cart_calc.input.keywords.remove(keyword)
+            cart_calc.input.keywords.append(new_keyword)
+
+    # Generate the new calculation and run
+    cart_calc.name += '_cartesian'
+    cart_calc.molecule.atoms = calc.get_final_atoms()
+    cart_calc.molecule.constraints = Constraints(distance=None, cartesian=None)
+    cart_calc.input.added_internals = None
+    cart_calc.output = CalculationOutput()
+    cart_calc.run()
+
+    if not cart_calc.terminated_normally():
+        logger.warning('Cartesian calculation did not converge')
+        return None
+
+    logger.info('Returning to internal coordinates')
+
+    # Reset the required parameters for the new calculation
+    fixed_calc = deepcopy(calc)
+    fixed_calc.name += '_internal'
+    fixed_calc.molecule.atoms = cart_calc.get_final_atoms()
+    fixed_calc.output = CalculationOutput()
+    fixed_calc.run()
+
+    return fixed_calc
+
+
 class G09(ElectronicStructureMethod):
-    # TODO implement partial hessian
 
-    def generate_input(self, calc):
+    def generate_input(self, calc, molecule):
+        """Print a Gaussian input file"""
 
-        keywords = calc.keywords.copy()
-
-        if calc.distance_constraints or calc.cartesian_constraints or calc.bond_ids_to_add:
-            keywords.append('Geom=ModRedun')
-
-        for keyword in keywords:
-
-            if 'opt' in keyword.lower():
-                calc.opt = True
-
-                if calc.n_atoms == 1:
-                    logger.warning('Cannot do an optimisation for a single atom')
-                    keywords.remove(keyword)
-
-        if calc.point_charges:
-            modify_keywords_for_point_charges(keywords)
-
-        # By default perform all optimisations without symmetry
-        if calc.opt and not any(k.lower() == 'nosymm' for k in keywords):
-            keywords.append('NoSymm')
-
-        with open(calc.input_filename, 'w') as inp_file:
-            print(f'%mem={calc.max_core_mb}MB', file=inp_file)
+        with open(calc.input.filename, 'w') as inp_file:
+            print(f'%mem={Config.max_core}MB', file=inp_file)
             if calc.n_cores > 1:
                 print(f'%nprocshared={calc.n_cores}', file=inp_file)
 
+            keywords = get_keywords(calc.input, molecule)
             print('#', *keywords, file=inp_file, end=' ')
 
-            if calc.solvent_keyword:
-                print(f'scrf=(smd,solvent={calc.solvent_keyword})', file=inp_file)
+            if calc.input.solvent is not None:
+                print(f'scrf=(smd,solvent={calc.input.solvent})', file=inp_file)
             else:
                 print('', file=inp_file)
 
             print(f'\n {calc.name}\n', file=inp_file)
 
-            print(calc.molecule.charge, calc.molecule.mult, file=inp_file)
+            print(molecule.charge, molecule.mult, file=inp_file)
 
-            for atom in calc.molecule.atoms:
-                print(f'{atom.label:<3} {atom.coord[0]:^12.8f} {atom.coord[1]:^12.8f} {atom.coord[2]:^12.8f}',
+            for atom in molecule.atoms:
+                x, y, z = atom.coord
+                print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}',
                       file=inp_file)
 
-            if calc.point_charges is not None:
-                print('', file=inp_file)
-                for point_charge in calc.point_charges:
-                    x, y, z = point_charge.coord
-                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {point_charge.charge:^12.8f}', file=inp_file)
-
+            print_point_charges(inp_file, calc.input)
             print('', file=inp_file)
-
-            if calc.bond_ids_to_add:
-                for bond_ids in calc.bond_ids_to_add:
-                    print('B', bond_ids[0] + 1, bond_ids[1] + 1, file=inp_file)
-
-            if calc.distance_constraints:
-                for bond_ids in calc.distance_constraints.keys():  # Gaussian counts from 1
-                    print('B', bond_ids[0]+1, bond_ids[1]+1,
-                          calc.distance_constraints[bond_ids], 'B', file=inp_file)
-                    print('B', bond_ids[0]+1, bond_ids[1]+1, 'F', file=inp_file)
-
-            if calc.cartesian_constraints:
-                [print('X', atom_id+1, 'F', file=inp_file)
-                 for atom_id in calc.cartesian_constraints]
+            print_added_internals(inp_file, calc.input)
+            print_constraints(inp_file, molecule)
 
         return None
 
@@ -129,109 +241,63 @@ class G09(ElectronicStructureMethod):
         os.remove(calc.input.filename)
         return None
 
-    def calculation_terminated_normally(self, calc):
+    def calculation_terminated_normally(self, calc, rerun_if_failed=True):
 
-        for line in calc.rev_output_file_lines:
+        termination_strings = ['Normal termination of Gaussian',
+                               'Number of steps exceeded']
 
-            if 'Normal termination of Gaussian' in line or 'Number of steps exceeded' in line:
+        for line in reversed(calc.output.file_lines):
+
+            if any(substring in line for substring in termination_strings):
                 logger.info('Gaussian09 terminated normally')
                 return True
 
             if 'Bend failed for angle' in line:
-                if calc.name.endswith('internal_internal_internal_internal'):
-                    # Set a limit on the amount of times we do this
-                    return False
-                logger.info('Gaussian encountered a 180° angle and crashed, using cartesian coordinates in the optimisation for a few cycles')
-                cart_calc = deepcopy(calc)
-                for keyword in cart_calc.keywords.copy():
-                    if keyword.lower().startswith('geom'):
-                        cart_calc.keywords.remove(keyword)
-                    elif keyword.lower().startswith('opt'):
-                        options = []
-                        if '=(' in keyword:
-                            # get the individual options
-                            messy_options = keyword[5:-1].split(',')
-                            options = [option.lower().strip()
-                                       for option in messy_options]
-                            for option in options:
-                                if option.startswith('maxcycles') or option.startswith('maxstep'):
-                                    options.remove(option)
-                        elif '=' in keyword:
-                            options = [keyword[4:]]
-                        options.append('maxcycles=3')
-                        options.append('maxstep=1')
-                        options.append('cartesian')
-                        new_keyword = 'Opt=('
-                        new_keyword += ', '.join(options)
-                        new_keyword += ')'
-                        cart_calc.keywords.remove(keyword)
-                        cart_calc.keywords.append(new_keyword)
+                logger.warning('Gaussian encountered a 180° angle and crashed')
+                break
 
-                cart_calc.name += '_cartesian'
-                cart_calc.xyzs = calc.get_final_atoms()
-                cart_calc.distance_constraints = None
-                cart_calc.cartesian_constraints = None
-                cart_calc.bond_ids_to_add = None
-                cart_calc.input_filename = None
-                cart_calc.output_filename = None
-                cart_calc.output_file_exists = False
-                cart_calc.terminated_normally = False
-                cart_calc.output_file_lines = None
-                cart_calc.rev_output_file_lines = None
-                cart_calc.run()
-                for line in cart_calc.rev_output_file_lines:
-                    if 'Normal termination of Gaussian' in line:
-                        calc.name = cart_calc.name
-                        calc.output_filename = cart_calc.output_filename
-                        calc.set_output_file_lines()
-                        logger.info('The cartesian optimisation converged')
-                        return True
+        if not rerun_if_failed:
+            return False
 
-                logger.info('Returning to internal coordinates')
+        # Set a limit on the amount of times we do this
+        if calc.name.endswith('internal_internal_internal_internal'):
+            return False
 
-                fixed_angle_calc = deepcopy(calc)
-                fixed_angle_calc.name += '_internal'
-                fixed_angle_calc.xyzs = cart_calc.get_final_atoms()
-                fixed_angle_calc.input_filename = None
-                fixed_angle_calc.output_filename = None
-                fixed_angle_calc.output_file_exists = False
-                fixed_angle_calc.terminated_normally = False
-                fixed_angle_calc.output_file_lines = None
-                fixed_angle_calc.rev_output_file_lines = None
-                fixed_angle_calc.run()
-                if fixed_angle_calc.terminated_normally:
-                    logger.info('The 180° angle issue has been fixed')
-                    calc.output_filename = fixed_angle_calc.output_filename
-                    calc.name = fixed_angle_calc.name
-                    calc.set_output_file_lines()
-                    return True
-                else:
-                    return False
+        fixed_calc = rerun_angle_failure(calc)
+
+        if fixed_calc.terminated_normally():
+            logger.info('The 180° angle issue has been fixed')
+            calc.output = fixed_calc.output
+            calc.name = fixed_calc.name
+            calc.output.set_lines()
+            return True
 
         return False
 
     def get_enthalpy(self, calc):
         """Get the enthalpy (H) from an g09 calculation output"""
 
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'Sum of electronic and thermal Enthalpies' in line:
                 return float(line.split()[-1])
 
-        logger.error('Could not get the enthalpy from the calculation. Was a frequency requested?')
+        logger.error('Could not get the enthalpy from the calculation. '
+                     'Was a frequency requested?')
         return None
 
     def get_free_energy(self, calc):
         """Get the Gibbs free energy (G) from an g09 calculation output"""
 
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'Sum of electronic and thermal Free Energies' in line:
                 return float(line.split()[-1])
 
-        logger.error('Could not get the free energy from the calculation. Was a frequency requested?')
+        logger.error('Could not get the free energy from the calculation. '
+                     'Was a frequency requested?')
         return None
 
     def get_energy(self, calc):
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'SCF Done' in line:
                 return float(line.split()[4])
             if 'E(CORR)' in line:
@@ -246,7 +312,7 @@ class G09(ElectronicStructureMethod):
         return None
 
     def optimisation_converged(self, calc):
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'Optimization completed' in line:
                 return True
 
@@ -255,7 +321,7 @@ class G09(ElectronicStructureMethod):
     def optimisation_nearly_converged(self, calc):
         geom_conv_block = False
 
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if geom_conv_block and 'Item' in line:
                 geom_conv_block = False
             if 'Predicted change in Energy' in line:
@@ -265,11 +331,11 @@ class G09(ElectronicStructureMethod):
                     return True
         return False
 
-    def get_imag_freqs(self, calc):
+    def get_imaginary_freqs(self, calc):
         imag_freqs = []
         normal_mode_section = False
 
-        for line in calc.output_file_lines:
+        for line in calc.output.file_lines:
             if 'normal coordinates' in line:
                 normal_mode_section = True
                 imag_freqs = []
@@ -290,9 +356,11 @@ class G09(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         # mode numbers start at 1, not 6
         mode_number -= 5
-        normal_mode_section, correct_mode_section, displacements = False, False, []
+        start_col = 0
+        normal_mode_section, displacements = False, []
+        correct_mode_section = False
 
-        for j, line in enumerate(calc.output_file_lines):
+        for j, line in enumerate(calc.output.file_lines):
             if 'normal coordinates' in line:
                 normal_mode_section = True
                 displacements = []
@@ -311,29 +379,25 @@ class G09(ElectronicStructureMethod):
                 else:
                     correct_mode_section = False
 
-        if len(displacements) != calc.molecule.n_atoms:
-            logger.error('Something went wrong getting the displacements n != n_atoms')
-            return None
-
         return np.array(displacements)
 
     def get_final_atoms(self, calc):
 
         atoms = None
 
-        for i, line in enumerate(calc.output_file_lines):
+        for i, line in enumerate(calc.output.file_lines):
 
             if 'Standard orientation' in line or 'Input orientation' in line:
 
                 atoms = []
-                xyz_lines = calc.output_file_lines[i+5:i+5+calc.n_atoms]
+                xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
 
                 for xyz_line in xyz_lines:
                     atom_index, _, _, x, y, z = xyz_line.split()
                     atom_index = int(atom_index) - 1
                     atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=x, y=y, z=z))
 
-                if len(atoms) != calc.n_atoms:
+                if len(atoms) != calc.molecule.n_atoms:
                     raise AtomsNotFound
 
         if atoms is None:
@@ -345,11 +409,11 @@ class G09(ElectronicStructureMethod):
 
         charges_section = False
         charges = []
-        for line in calc.rev_output_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'sum of mulliken charges' in line.lower():
                 charges_section = True
 
-            if len(charges) == calc.n_atoms:
+            if len(charges) == calc.molecule.n_atoms:
                 return list(reversed(charges))
 
             if charges_section and len(line.split()) == 3:
@@ -363,7 +427,7 @@ class G09(ElectronicStructureMethod):
         gradients = []
         dashed_line = 0
 
-        for line in calc.output_file_lines:
+        for line in calc.output.file_lines:
 
             if 'Axes restored to original set' in line:
                 gradients_section = True
@@ -388,7 +452,8 @@ class G09(ElectronicStructureMethod):
         return gradients
 
     def __init__(self):
-        super().__init__(name='g09', path=Config.G09.path, keywords_set=Config.G09.keywords)
+        super().__init__(name='g09', path=Config.G09.path,
+                         keywords_set=Config.G09.keywords)
 
 
 g09 = G09()

@@ -304,24 +304,36 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
     if ignore_active_bonds:
         graph1, graph2 = get_graphs_ignoring_active_edges(graph1, graph2)
 
-    if isomorphism.faster_could_be_isomorphic(graph1, graph2):
-        graph_matcher = isomorphism.GraphMatcher(graph1, graph2,
-                                                 node_match=isomorphism.categorical_node_match('atom_label', 'C'))
-
-        manager = mp.Manager()
-        res = manager.dict()
-        p = mp.Process(target=gm_is_isomorphic, args=(graph_matcher, res))
-        p.start()             # Start the process
-        p.join(timeout)       # Wait until the timeout
-
-        if p.is_alive():
-            p.terminate()
-            logger.error('NX graph matching hanging')
-            return False
-
-        return list(res.values())[0]
-    else:
+    if not isomorphism.faster_could_be_isomorphic(graph1, graph2):
         return False
+
+    # Always match on atom types
+    node_match = isomorphism.categorical_node_match('atom_label', 'C')
+
+    if ignore_active_bonds:
+        gm = isomorphism.GraphMatcher(graph1, graph2,
+                                      node_match=node_match)
+
+    else:
+        # Also match on edges
+        edge_match = isomorphism.categorical_edge_match('active', False)
+        gm = isomorphism.GraphMatcher(graph1, graph2,
+                                      node_match=node_match,
+                                      edge_match=edge_match)
+
+    # NX can hang here for not very large graphs, so kill after a timeout
+    manager = mp.Manager()
+    res = manager.dict()
+    p = mp.Process(target=gm_is_isomorphic, args=(gm, res))
+    p.start()             # Start the process
+    p.join(timeout)       # Wait until the timeout
+
+    if p.is_alive():
+        p.terminate()
+        logger.error('NX graph matching hanging')
+        return False
+
+    return list(res.values())[0]
 
 
 def gm_is_isomorphic(gm, result):

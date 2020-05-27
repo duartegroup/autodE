@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 class KeywordsSet:
 
     def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None,
@@ -47,6 +49,15 @@ class Keywords:
 
     def __str__(self):
         return str(self.keyword_list)
+
+    def copy(self):
+        return deepcopy(self.keyword_list)
+
+    def append(self, item):
+        self.keyword_list.append(item)
+
+    def remove(self, item):
+        self.keyword_list.remove(item)
 
     def __getitem__(self, item):
         return self.keyword_list[item]

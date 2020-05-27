@@ -249,7 +249,7 @@ class ProductComplex(Complex):
 
 class SolvatedReactantComplex(Complex):
 
-    def run_const_opt(self, const_opt, method, n_cores):
+    def run_const_opt(self, const_opt):
         """Run a constrained optimisation of the ReactantComplex"""
         raise NotImplementedError
 

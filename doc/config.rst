@@ -24,18 +24,16 @@ how the single point energies are calculated
 
 .. code-block:: python
 
-  >>> from autode.wrappers.keywords import SinglePointKeywords
-  >>> Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
+  >>> Config.ORCA.keywords.sp = ['SP', 'B3LYP', 'def2-TZVP']
 
 To add diffuse functions with the ma scheme to the def2-SVP default optimisation
 basis set for optimisations
 
 .. code-block:: python
 
-  >>> from autode.wrappers.keywords import OptKeywords, HessianKeywords
-  >>> Config.ORCA.keywords.opt = OptKeywords(['Opt', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
-  >>> Config.ORCA.keywords.hess = HessianKeywords(['Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
-  >>> Config.ORCA.keywords.opt_ts = OptKeywords(['OptTS', 'Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
+  >>> Config.ORCA.keywords.opt = ['Opt', 'PBE0', 'D3BJ', 'ma-def2-SVP']
+  >>> Config.ORCA.keywords.hess = ['Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP']
+  >>> Config.ORCA.keywords.opt_ts = ['OptTS', 'Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP']
 
 
 See the `config file <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_

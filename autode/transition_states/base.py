@@ -333,7 +333,7 @@ def get_optimised_species(calc, method, direction, atoms):
 
     # Note that for the surface to be the same the keywords.opt and keywords.hess need to match in the level of theory
     calc = Calculation(name=f'{calc.name}_{direction}', molecule=species, method=method,
-                       keywords=method.keywords.opt, n_cores=Config.n_cores, opt=True)
+                       keywords=method.keywords.opt, n_cores=Config.n_cores)
     calc.run()
 
     try:

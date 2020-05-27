@@ -41,11 +41,11 @@ class PES2d(PES):
             # Perform a constrained optimisation using the analytic saddle point r1, r2 values
             species = deepcopy(self.species[close_point])
             const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
-                                    opt=True, n_cores=Config.n_cores, keywords=keywords,
+                                    n_cores=Config.n_cores, keywords=keywords,
                                     distance_constraints={self.rs_idxs[0]: r1, self.rs_idxs[1]: r2})
 
             try:
-                species.run_const_opt(const_opt, method, Config.n_cores)
+                species.run_const_opt(const_opt)
             except AtomsNotFound:
                 logger.error('Constrained optimisation at the saddle point failed')
                 pass

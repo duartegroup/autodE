@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from copy import copy
 from autode.wrappers.base import execute
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom
@@ -112,8 +113,7 @@ def print_distance_constraints(inp_file, molecule):
         return
 
     print('%geom Constraints', file=inp_file)
-    for (i, j) in molecule.constraints.distance.keys():
-        dist = molecule.constraints.distance[(i, j)]
+    for (i, j), dist in molecule.constraints.distance.items():
         print('{ B', i, j, dist, 'C }', file=inp_file)
     print('    end\nend', file=inp_file)
 
@@ -137,8 +137,13 @@ def print_cartesian_constraints(inp_file, molecule):
 def print_increased_optimisation_steps(inp_file, molecule, calc_input):
     """If there are relatively few atoms increase the number of opt steps"""
 
-    if molecule.n_atoms < 33 and 'maxit' not in calc_input.other_block.lower():
+    if molecule.n_atoms > 33:
+        return
+
+    block = calc_input.other_block
+    if block is None or 'maxit' not in block.lower():
         print('%geom MaxIter 100 end', file=inp_file)
+
     return
 
 
@@ -187,26 +192,26 @@ def print_coordinates(inp_file, molecule):
 
 class ORCA(ElectronicStructureMethod):
 
-    def generate_input(self, calc_input, molecule, n_cores):
+    def generate_input(self, calc, molecule):
 
-        keywords = get_keywords(calc_input, molecule)
+        keywords = get_keywords(calc.input, molecule)
 
-        with open(calc_input.filename, 'w') as inp_file:
+        with open(calc.input.filename, 'w') as inp_file:
             print('!', *keywords, file=inp_file)
 
-            print_solvent(inp_file, calc_input, keywords)
-            print_added_internals(inp_file, calc_input)
+            print_solvent(inp_file, calc.input, keywords)
+            print_added_internals(inp_file, calc.input)
             print_distance_constraints(inp_file, molecule)
             print_cartesian_constraints(inp_file, molecule)
-            print_increased_optimisation_steps(inp_file, molecule, calc_input)
-            print_point_charges(inp_file, calc_input)
+            print_increased_optimisation_steps(inp_file, molecule, calc.input)
+            print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
 
-            if calc_input.other_block is not None:
-                print(calc_input.other_block, file=inp_file)
+            if calc.input.other_block is not None:
+                print(calc.input.other_block, file=inp_file)
 
-            if n_cores > 1:
-                print(f'%pal nprocs {n_cores}\nend', file=inp_file)
+            if calc.n_cores > 1:
+                print(f'%pal nprocs {calc.n_cores}\nend', file=inp_file)
 
             print_coordinates(inp_file, molecule)
 
@@ -241,10 +246,12 @@ class ORCA(ElectronicStructureMethod):
         termination_strings = ['ORCA TERMINATED NORMALLY',
                                'The optimization did not converge']
 
-        for n_line, line in enumerate(calc.output.rev_file_lines):
+        for n_line, line in enumerate(reversed(calc.output.file_lines)):
+
             if any(substring in line for substring in termination_strings):
                 logger.info('orca terminated normally')
                 return True
+
             if n_line > 30:
                 # The above lines are pretty close to the end of the file –
                 # so skip parsing it all
@@ -253,7 +260,7 @@ class ORCA(ElectronicStructureMethod):
         return False
 
     def get_energy(self, calc):
-        for line in calc.output.rev_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'FINAL SINGLE POINT ENERGY' in line:
                 return float(line.split()[4])
 
@@ -262,7 +269,7 @@ class ORCA(ElectronicStructureMethod):
     def get_enthalpy(self, calc):
         """Get the enthalpy (H) from an ORCA calculation output"""
 
-        for line in calc.output.rev_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'Total Enthalpy' in line:
 
                 try:
@@ -278,7 +285,7 @@ class ORCA(ElectronicStructureMethod):
     def get_free_energy(self, calc):
         """Get the Gibbs free energy (G) from an ORCA calculation output"""
 
-        for line in calc.output.rev_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'Final Gibbs free enthalpy' in line:
 
                 try:
@@ -293,7 +300,7 @@ class ORCA(ElectronicStructureMethod):
 
     def optimisation_converged(self, calc):
 
-        for line in calc.output.rev_file_lines:
+        for line in reversed(calc.output.file_lines):
             if 'THE OPTIMIZATION HAS CONVERGED' in line:
                 return True
 
@@ -302,7 +309,7 @@ class ORCA(ElectronicStructureMethod):
     def optimisation_nearly_converged(self, calc):
         geom_conv_block = False
 
-        for line in calc.output.rev_file_lines:
+        for line in reversed(calc.output.file_lines):
             if geom_conv_block and 'Geometry convergence' in line:
                 geom_conv_block = False
             if 'The optimization has not yet converged' in line:
@@ -313,7 +320,7 @@ class ORCA(ElectronicStructureMethod):
 
         return False
 
-    def get_imag_freqs(self, calc):
+    def get_imaginary_freqs(self, calc):
         imag_freqs = []
 
         for i, line in enumerate(calc.output.file_lines):
@@ -360,10 +367,6 @@ class ORCA(ElectronicStructureMethod):
             displacements = [float(d_line.split()[col]) for d_line in d_lines]
 
         displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
-
-        if len(displacements_xyz) != calc.molecule.n_atoms:
-            logger.error('Something went wrong getting the displacements')
-            raise NoNormalModesFound
 
         return np.array(displacements_xyz)
 
@@ -428,10 +431,10 @@ class ORCA(ElectronicStructureMethod):
                     dadx, dady, dadz = grad_line.split()[-3:]
                     gradients.append([float(dadx), float(dady), float(dadz)])
 
-        return np.ndarray(gradients)
+        return np.array(gradients)
 
     def __init__(self):
-        super().__init__(name='orca', path=Config.ORCA.path, keywords_set=Config.ORCA.keywords)
+        super().__init__('orca', Config.ORCA.path, Config.ORCA.keywords)
 
 
 orca = ORCA()
