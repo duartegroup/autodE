@@ -8,6 +8,7 @@ from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
+from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
 from autode.config import Config
 import pytest
@@ -18,29 +19,35 @@ test_mol = Molecule(name='methane', smiles='C')
 method = ORCA()
 method.available = True
 
+sp_keywords = SinglePointKeywords(['PBE', 'def2-SVP'])
+opt_keywords = OptKeywords(['Opt', 'PBE', 'def2-SVP'])
+
 
 def test_orca_opt_calculation():
 
     os.chdir(os.path.join(here, 'data'))
 
-    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent_name='water')
-    calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
+    methylchloride = Molecule(name='CH3Cl',
+                              smiles='[H]C([H])(Cl)[H]',
+                              solvent_name='water')
+
+    calc = Calculation(name='opt', molecule=methylchloride, method=method,
+                       keywords=opt_keywords)
     calc.run()
 
     assert os.path.exists('opt_orca.inp') is True
     assert os.path.exists('opt_orca.out') is True
     assert len(calc.get_final_atoms()) == 5
     assert -499.735 < calc.get_energy() < -499.730
-    assert calc.output_file_exists is True
-    assert calc.rev_output_file_lines is not None
-    assert calc.output_file_lines is not None
-    assert calc.get_imag_freqs() == []
-    assert calc.input_filename == 'opt_orca.inp'
-    assert calc.output_filename == 'opt_orca.out'
-    assert calc.terminated_normally is True
-    assert calc.calculation_terminated_normally() is True
-    assert calc.optimisation_converged() is True
+    assert calc.output.exists()
+    assert calc.output.file_lines is not None
+    assert calc.get_imaginary_freqs() == []
+    assert calc.input.filename == 'opt_orca.inp'
+    assert calc.output.filename == 'opt_orca.out'
+    assert calc.terminated_normally()
+
+    assert calc.optimisation_converged()
+
     assert calc.optimisation_nearly_converged() is False
 
     with pytest.raises(NoNormalModesFound):
@@ -52,11 +59,11 @@ def test_orca_opt_calculation():
     assert type(charges[0]) == float
     assert -1.0 < charges[0] < 1.0
 
-    calc = Calculation(name='opt', molecule=methylchloride, method=method, opt=True,
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'])
+    calc = Calculation(name='opt', molecule=methylchloride, method=method,
+                       keywords=opt_keywords)
 
-    # If the calculation is not run with calc.run() then there should be no input and the calc should
-    # raise that there is no input
+    # If the calculation is not run with calc.run() then there should be no
+    # input and the calc should raise that there is no input
     with pytest.raises(NoInputError):
         execute_calc(calc)
 
@@ -72,7 +79,8 @@ def test_calc_bad_mol():
     mol = Mol()
 
     with pytest.raises(AssertionError):
-        Calculation(name='bad_mol_object', molecule=mol, method=method)
+        Calculation(name='bad_mol_object', molecule=mol, method=method,
+                    keywords=opt_keywords)
 
     mol.atoms = None
     mol.mult = 1
@@ -81,38 +89,41 @@ def test_calc_bad_mol():
     mol.solvent = None
 
     with pytest.raises(NoInputError):
-        Calculation(name='no_atoms_mol', molecule=mol, method=method)
+        Calculation(name='no_atoms_mol', molecule=mol, method=method,
+                    keywords=opt_keywords)
 
-    solvent = Solvent(name='xx', smiles='X', aliases=['X'])
-    mol.solvent = solvent
+    mol = Molecule(name='methane', smiles='C')
+    mol.solvent = Solvent(name='xx', smiles='X', aliases=['X'])
+
     with pytest.raises(SolventUnavailable):
-        Calculation(name='no_atoms_mol', molecule=mol, method=method)
+        Calculation(name='no_atoms_mol', molecule=mol, method=method,
+                    keywords=opt_keywords)
 
 
 def test_orca_optts_calculation():
-    # TODO check the number of atoms etc. matches between mol and the calculation output? i.e break and rewrite test
 
     os.chdir(os.path.join(here, 'data'))
     methane = SolvatedMolecule(name='methane', smiles='C')
     methane.qm_solvent_atoms = []
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=methane, method=method, opt=True,
+    calc = Calculation(name='test_ts_reopt_optts', molecule=methane,
+                       method=method,
                        bond_ids_to_add=[(0, 1)],
-                       keywords_list=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
-                       other_input_block='%geom\nCalc_Hess true\nRecalc_Hess 40\nTrust 0.2\nMaxIter 100\nend')
+                       keywords=opt_keywords,
+                       other_input_block='%geom\n'
+                                         'Calc_Hess true\n'
+                                         'Recalc_Hess 40\n'
+                                         'Trust 0.2\n'
+                                         'MaxIter 100\nend')
     calc.run()
 
     assert os.path.exists('test_ts_reopt_optts_orca.inp')
-    inp_lines = open('test_ts_reopt_optts_orca.inp', 'r').readlines()
-
-    # If the 0, 1 is the active bond in the TS then all the atoms in methane are 'core'
-    assert all(atom_index in calc.core_atoms for atom_index in [0, 1, 2, 3, 4])
 
     assert calc.get_normal_mode_displacements(mode_number=6) is not None
-    assert calc.terminated_normally is True
-    assert calc.optimisation_converged() is True
+    assert calc.terminated_normally()
+    assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
-    assert len(calc.get_imag_freqs()) == 1
+    assert len(calc.get_imaginary_freqs()) == 1
 
     # Gradients should be an n_atom x 3 array
     gradients = calc.get_gradients()
@@ -128,9 +139,10 @@ def test_orca_optts_calculation():
 
 def test_bad_orca_output():
 
-    calc = Calculation(name='no_output', molecule=test_mol, method=method)
-    calc.output_file_lines = []
-    calc.rev_output_file_lines = []
+    calc = Calculation(name='no_output', molecule=test_mol, method=method,
+                       keywords=opt_keywords)
+    calc.output.file_lines = []
+    calc.output.rev_file_lines = []
 
     assert calc.get_energy() is None
     with pytest.raises(AtomsNotFound):
@@ -140,55 +152,33 @@ def test_bad_orca_output():
         calc.execute_calculation()
 
     calc.output_file_lines = None
-    assert calc.calculation_terminated_normally() is False
-
-
-def test_subprocess_to_output():
-
-    os.chdir(os.path.join(here, 'data'))
-    Config.keep_input_files = True
-
-    calc = Calculation(name='test', molecule=test_mol, method=method)
-
-    # Can't execute orca in the CI environment so check at least the subprocess works
-    calc.input_filename = 'test_subprocess.py'
-    with open(calc.input_filename, 'w') as test_file:
-        print("print('hello world')", file=test_file)
-    calc.output_filename = 'test_subprocess.out'
-
-    # Overwrite the orca path
-    calc.method.path = 'python'
-    calc.execute_calculation()
-
-    assert calc.output_file_lines == ['hello world\n']
-    assert len(calc.output_file_lines) == 1
-    assert len(calc.rev_output_file_lines) == 1
-
-    os.remove('test_subprocess.py')
-    os.remove('test_subprocess.out')
-    os.chdir(here)
+    assert calc.terminated_normally() is False
 
 
 def test_solvation():
 
-    methane = Molecule(name='solvated_methane', smiles='C', solvent_name='water')
+    methane = Molecule(name='solvated_methane', smiles='C',
+                       solvent_name='water')
 
     with pytest.raises(UnsuppportedCalculationInput):
 
         # Should raise on unsupported calculation type
         Config.ORCA.solvation_type = 'xxx'
-        calc = Calculation(name='broken_solvation', molecule=methane, method=method, keywords_list=['PBE', 'def2-SVP'])
+        calc = Calculation(name='broken_solvation', molecule=methane,
+                           method=method, keywords=sp_keywords)
         calc.run()
 
     Config.ORCA.solvation_type = 'CPCM'
-    calc = Calculation(name='methane_cpcm', molecule=methane, method=method, keywords_list=['PBE', 'def2-SVP'])
+    calc = Calculation(name='methane_cpcm', molecule=methane,
+                       method=method, keywords=sp_keywords)
     calc.generate_input()
 
     assert any('cpcm' in line.lower() for line in open('methane_cpcm_orca.inp', 'r'))
     os.remove('methane_cpcm_orca.inp')
 
     Config.ORCA.solvation_type = 'SMD'
-    calc = Calculation(name='methane_smd', molecule=methane, method=method, keywords_list=['PBE', 'Freq', 'def2-SVP'])
+    calc = Calculation(name='methane_smd', molecule=methane,
+                       method=method, keywords=sp_keywords)
     calc.generate_input()
 
     assert any('smd' in line.lower() for line in open('methane_smd_orca.inp', 'r'))

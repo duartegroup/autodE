@@ -204,7 +204,7 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
     far_coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
                                         bonds=species.graph.edges, fixed_bonds=constrained_bonds,
                                         k=0.0, c=0.1, d0=d0, tol=5E-3, exponent=2)
-    coords = far_coords[:1]
+    coords = far_coords[:2]
 
     # Add the atoms one by one to the structure. Thanks to Dr. Cyrille Lavigne for this suggestion!
     for n in range(2, species.n_atoms):

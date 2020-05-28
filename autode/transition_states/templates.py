@@ -34,7 +34,7 @@ def get_ts_templates(folder_path=Config.ts_template_folder_path):
         logger.error('Folder does not exist')
         return []
 
-    obj_filenames = [filename for filename in os.listdir(folder_path) if filename.endswith('.obj')]
+    obj_filenames = [fn for fn in os.listdir(folder_path) if fn.endswith('.obj')]
     objects = [pickle.load(open(os.path.join(folder_path, filename), 'rb')) for filename in obj_filenames]
 
     logger.info(f'Have {len(objects)} TS templates')

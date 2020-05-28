@@ -1,6 +1,6 @@
 import numpy as np
 from autode.conformers.conformers import get_unique_confs
-from autode.solvent.qmmm import get_species_point_charges
+from autode.solvent.solvents import ExplicitSolvent
 from autode.solvent.solvents import get_solvent
 from autode.calculation import Calculation
 from autode.config import Config
@@ -48,6 +48,9 @@ class Species:
 
         return None
 
+    def is_explicitly_solvated(self):
+        return isinstance(self.solvent, ExplicitSolvent)
+
     @requires_atoms()
     def translate(self, vec):
         """Translate the molecule by vector (np.ndarray, length 3)"""
@@ -80,12 +83,12 @@ class Species:
 
     @requires_atoms()
     def single_point(self, method):
-        """Calculate the single point energy of the species with a autode.wrappers.base.ElectronicStructureMethod"""
+        """Calculate the single point energy of the species with a
+        autode.wrappers.base.ElectronicStructureMethod"""
         logger.info(f'Running single point energy evaluation of {self.name}')
 
         sp = Calculation(name=f'{self.name}_sp', molecule=self, method=method,
-                         keywords_list=method.keywords.sp, n_cores=Config.n_cores,
-                         point_charges=get_species_point_charges(self))
+                         keywords=method.keywords.sp, n_cores=Config.n_cores)
         sp.run()
         self.energy = sp.get_energy()
 
@@ -97,13 +100,13 @@ class Species:
         return length(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
 
     @work_in('conformers')
-    def find_lowest_energy_conformer(self, low_level_method=None, high_level_method=None):
+    def find_lowest_energy_conformer(self, lmethod=None, hmethod=None):
         """
         For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy
 
         Arguments:
-            low_level_method (autode.wrappers.ElectronicStructureMethod):
-            high_level_method (autode.wrappers.ElectronicStructureMethod):
+            lmethod (autode.wrappers.ElectronicStructureMethod):
+            hmethod (autode.wrappers.ElectronicStructureMethod):
         """
         logger.info('Finding lowest energy conformer')
 
@@ -111,9 +114,9 @@ class Species:
             logger.warning('Cannot have conformers of a species with 2 atoms or fewer')
             return None
 
-        if low_level_method is None:
+        if lmethod is None:
             logger.info('Getting the default low level method')
-            low_level_method = get_lmethod()
+            lmethod = get_lmethod()
 
         try:
             self._generate_conformers()
@@ -122,14 +125,14 @@ class Species:
             return None
 
         # For all the generated conformers optimise with the low level of theory
-        [self.conformers[i].optimise(low_level_method) for i in range(len(self.conformers))]
+        [self.conformers[i].optimise(lmethod) for i in range(len(self.conformers))]
 
         # Strip conformers that are similar based on an energy criteria or don't have an energy
         self.conformers = get_unique_confs(conformers=self.conformers)
 
-        if high_level_method is not None:
+        if hmethod is not None:
             # Re-optimise all the conformers with the higher level of theory to get more accurate energies
-            [self.conformers[i].optimise(high_level_method) for i in range(len(self.conformers))]
+            [self.conformers[i].optimise(hmethod) for i in range(len(self.conformers))]
 
         self._set_lowest_energy_conformer()
 
@@ -145,7 +148,8 @@ class Species:
         return None
 
     def set_coordinates(self, coords):
-        """For coordinates as a np.ndarray with shape Nx3 set the coordinates of each atom"""
+        """For coordinates as a np.ndarray with shape Nx3 set the coordinates
+        of each atom"""
 
         assert coords.shape == (self.n_atoms, 3)
 
@@ -156,13 +160,16 @@ class Species:
 
     def __init__(self, name, atoms, charge, mult, solvent_name=None):
         """
-        A molecular species. A collection of atoms with a charge and spin multiplicity in a solvent (None is gas phase)
+        A molecular species. A collection of atoms with a charge and spin
+        multiplicity in a solvent (None is gas phase)
 
         Arguments:
             name (str): Name of the species
-            atoms (list(autode.atoms.Atom)): List of atoms in the species, or None
+            atoms (list(autode.atoms.Atom)): List of atoms in the species,
+                                              or None
             charge (int): Charge on the species
-            mult (int): Spin multiplicity of the species. 2S+1, where S is the number of unpaired electrons
+            mult (int): Spin multiplicity of the species. 2S+1, where S is the
+                        number of unpaired electrons
 
         Keyword Arguments:
             solvent_name (str): Name of the solvent_name, or None
@@ -174,10 +181,10 @@ class Species:
         self.charge = charge
         self.mult = mult
 
-        self.solvent = get_solvent(solvent_name=solvent_name) if solvent_name is not None else None
+        self.solvent = get_solvent(solvent_name=solvent_name)
 
-        self.energy = None                                              # Total electronic energy in Hartrees (float)
+        self.energy = None        # Total electronic energy in Hartrees (float)
 
-        self.graph = None                                               # NetworkX.Graph object with atoms and bonds
+        self.graph = None         # NetworkX.Graph object with atoms and bonds
 
-        self.conformers = None                                          # List of autode.conformers.conformers.Conformer
+        self.conformers = None    # List autode.conformers.conformers.Conformer

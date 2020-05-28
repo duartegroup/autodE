@@ -1,19 +1,29 @@
 from autode.exceptions import SolventNotFound
 
 
-def get_solvent(solvent_name):
-    """For a named solvent_name return the autode.solvent_name.solvents.Solvent that is one of the aliases """
+def get_solvent(solvent_name, implicit=True, explicit=False):
+    """For a named solvent_name return the autode.solvent_name.solvents.Solvent
+    that is one of the aliases """
+    if solvent_name is None:
+        return None
 
-    for solvent in solvents:
-        if solvent_name.lower() in solvent.aliases:
-            return solvent
+    if implicit:
 
-    raise SolventNotFound
+        for solvent in solvents:
+            if solvent_name.lower() in solvent.aliases:
+                return solvent
+
+        raise SolventNotFound
+
+    if explicit:
+        # Return ExplicitSolvent
+        raise NotImplementedError
 
 
 def get_available_solvent_names(method):
-    """For an autode.wrappers.base.ElectronicStructureMethod return those solvents that are available"""
-    return [solvent.name for solvent in solvents if getattr(solvent, method.name) is not None]
+    """For an autode.wrappers.base.ElectronicStructureMethod return those
+    solvents that are available"""
+    return [s.name for s in solvents if getattr(s, method.name) is not None]
 
 
 class Solvent:
@@ -23,16 +33,15 @@ class Solvent:
 
     def __eq__(self, other):
         if self is None and other is None:
-            # None == None
             return True
 
         if self is None or other is None:
-            # None == Solvent or Solvent == None
             return False
 
         return self.name == other.name and self.smiles == other.smiles
 
-    def __init__(self, name, smiles, aliases, orca=None, g09=None, nwchem=None, xtb=None, mopac=None):
+    def __init__(self, name, smiles, aliases, orca=None, g09=None, nwchem=None,
+                 xtb=None, mopac=None):
 
         self.name = name
         self.smiles = smiles
@@ -42,6 +51,11 @@ class Solvent:
         self.nwchem = nwchem
         self.xtb = xtb
         self.mopac = mopac
+
+
+class ExplicitSolvent(Solvent):
+    # Implement explicit solvation here
+    pass
 
 
 solvents = [Solvent(name='water', smiles='O', aliases=['water', 'h2o'], orca='water', g09='Water', nwchem='water', xtb='Water', mopac='water'),

@@ -41,11 +41,11 @@ class PES2d(PES):
             # Perform a constrained optimisation using the analytic saddle point r1, r2 values
             species = deepcopy(self.species[close_point])
             const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
-                                    opt=True, n_cores=Config.n_cores, keywords_list=keywords,
+                                    n_cores=Config.n_cores, keywords=keywords,
                                     distance_constraints={self.rs_idxs[0]: r1, self.rs_idxs[1]: r2})
 
             try:
-                species.run_const_opt(const_opt, method, Config.n_cores)
+                species.run_const_opt(const_opt)
             except AtomsNotFound:
                 logger.error('Constrained optimisation at the saddle point failed')
                 pass
@@ -122,9 +122,9 @@ class PES2d(PES):
             cores_per_process = Config.n_cores // len(points) if Config.n_cores // len(points) > 1 else 1
 
             closest_species = [get_closest_species(p, self) for p in points]
-            dimension = len(self.rs_idxs)
-            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2. value
-            distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(dimension)} for p in points]
+
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(2)} for p in points]
 
             # Use custom NoDaemonPool here, as there are several multiprocessing events happening within the function
             with NoDaemonPool(processes=Config.n_cores) as pool:
@@ -199,8 +199,9 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
         bond1 (autode.pes.ScannedBond):
         bond2 (autode.pes.ScannedBond):
         name (str): name of reaction
-        method (autode.): electronic structure wrapper to use for the calcs
-        keywords (list): keywords_list to use in the calcs
+        method (autode.wrappers.base.ElectronicStructureMethod): electronic
+        structure wrapper to use for the calcs
+        keywords (autode.keywords.Keywords): keywords_list to use in the calcs
 
     Keyword Arguments:
         polynomial_order (int): order of polynomial to fit the data to (default: {3})
@@ -212,9 +213,9 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
     logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds '
                 f'{bond1} and {bond2}')
 
-    # Steps of +Δr if the final distance is greater than the current else -Δr. Must be > 0
-    n_steps1 = max(int(np.abs((bond1.final_dist - bond1.curr_dist) / dr)), 1)
-    n_steps2 = max(int(np.abs((bond2.final_dist - bond2.curr_dist) / dr)), 1)
+    # Steps of +Δr if the final distance is greater than the current else -Δr. Run at least a 3x3 PES
+    n_steps1 = max(int(np.abs((bond1.final_dist - bond1.curr_dist) / dr)), 3)
+    n_steps2 = max(int(np.abs((bond2.final_dist - bond2.curr_dist) / dr)), 3)
 
     if method.name in high_level_method_names:
         logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')
@@ -228,13 +229,13 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
 
     pes.calculate(name=name, method=method, keywords=keywords)
 
-    if not pes.products_made():
-        logger.error('Products were not made on the whole PES')
-        return None
-
     # Fit an analytic 2D PES to the surface and plot using matplotlib
     pes.fit(polynomial_order=polynomial_order)
     pes.print_plot(name=name)
+
+    if not pes.products_made():
+        logger.error('Products were not made on the whole PES')
+        return None
 
     # Get a TSGuess for the lowest energy MEP saddle point on the surface
     species = pes.get_species_saddle_point(name=name, method=method, keywords=keywords)

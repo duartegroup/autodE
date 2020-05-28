@@ -7,9 +7,7 @@ from autode.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
-from autode.units import KcalMol
 from autode.mol_graphs import make_graph
-from autode.config import Config
 import shutil
 import pytest
 
@@ -34,13 +32,14 @@ def test_reaction_class():
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.7, 0.0, 0.0)])
 
     # h + h > mol
-    hh_reac = reaction.Reaction(mol1=h1, mol2=h2, mol3=hh_product, name='h2_assoc')
+    hh_reac = reaction.Reaction(h1, h2, hh_product, name='h2_assoc')
 
     h1.energy = 2
     h2.energy = 3
     hh_product.energy = 1
 
-    assert hh_reac.type == reaction.reactions.Addition   # Only swap to dissociation in invoking locate_ts()
+    # Only swap to dissociation in invoking locate_ts()
+    assert hh_reac.type == reaction.reactions.Addition
     assert len(hh_reac.prods) == 1
     assert len(hh_reac.reacs) == 2
     assert hh_reac.ts is None
@@ -53,7 +52,8 @@ def test_reaction_class():
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
 
     # h + mol > mol + h
-    h_sub = reaction.Reaction(mol1=h1, mol2=hh_reactant, mol3=h2_product, mol4=hh_product, solvent_name='water')
+    h_sub = reaction.Reaction(h1, hh_reactant, h2_product, hh_product,
+                              solvent_name='water')
 
     assert h_sub.type == reaction.reactions.Substitution
     assert h_sub.name == 'reaction'
@@ -67,7 +67,8 @@ def test_check_rearrangement():
     make_graph(species=trig_h3, allow_invalid_valancies=True)
     reac = reaction.Reaction(lin_h3, trig_h3)
 
-    # Should switch reactants and products if the products have more bonds than the reactants
+    # Should switch reactants and products if the products have more bonds than
+    # the reactants
     assert reac.reacs[0].name == 'h3_trigonal'
     assert reac.prods[0].name == 'h3_linear'
 
@@ -92,7 +93,7 @@ def test_bad_balance():
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
 
     with pytest.raises(UnbalancedReaction):
-        reaction.Reaction(mol1=h1, mol2=hh_product)
+        reaction.Reaction(h1, hh_product)
 
     h_minus = reaction.Reactant(name='h1_minus', atoms=[Atom('H', 0.0, 0.0, 0.0)], charge=-1)
     with pytest.raises(UnbalancedReaction):
@@ -114,7 +115,8 @@ def test_calc_delta_e():
     r2 = reaction.Reactant(name='h', atoms=[Atom('H', 0.0, 0.0, 0.0)])
     r2.energy = -0.5
 
-    tsguess = TSguess(atoms=None, reactant=ReactantComplex(r1), product=ProductComplex(r2))
+    tsguess = TSguess(atoms=None, reactant=ReactantComplex(r1),
+                      product=ProductComplex(r2))
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.8
@@ -127,27 +129,3 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
     assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
-
-
-def test_solvated_reaction():
-    os.chdir(os.path.join(here, 'data'))
-
-    Config.lcode = 'xtb'
-    Config.n_cores = 1
-    Config.XTB.path = here       # A path that exists
-    Config.ORCA.path = here       # A path that exists
-
-    r = reaction.SolvatedReaction(lin_h3, trig_h3, solvent_name='water')
-    assert r.solvent_mol is None
-
-    r.calc_solvent()
-    assert isinstance(r.solvent_mol, reaction.SolvatedMolecule)
-    assert r.solvent_mol.energy == -3819.765189588065
-    assert all(isinstance(mol, reaction.SolvatedMolecule) for mol in r.reacs + r.prods)
-
-    os.remove('solvent/conformers/water_conf0_opt_xtb.xyz')
-    os.remove('solvent/water_opt_orca.inp')
-    os.remove('solvent/water_optimised_orca.xyz')
-    os.remove('solvent/water_sp_orca.inp')
-    os.remove('solvent/water_sp_orca.pc')
-    os.chdir(here)

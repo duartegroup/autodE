@@ -53,9 +53,9 @@ class PES1d(PES):
 
         for i in range(self.n_points):
             closest_species = get_closest_species((i,), self)
-            dimension = len(self.rs_idxs)
-            # Set up the dict of distance constraints keyed with bond indexes and values the current r1, r2.. value
-            distance_constraints = {self.rs_idxs[i]: self.rs[(i,)][i] for i in range(dimension)}
+
+            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            distance_constraints = {self.rs_idxs[0]: self.rs[i][0]}
 
             self.species[i] = get_point_species((i,), closest_species, distance_constraints, name, method, keywords, Config.n_cores)
 
@@ -81,7 +81,8 @@ class PES1d(PES):
         # Tuple of the atom indices scanned in coordinate r
         self.rs_idxs = [r_idxs]
 
-        # Molecular graph of the product. Used to check that the products have been made & find the MEP
+        # Molecular graph of the product. Used to check that the products have
+        # been made & find the MEP
         self.product_graph = product.graph
 
 
@@ -94,7 +95,7 @@ def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):
         bond (autode.pes.ScannedBond):
         name (str): name of reaction
         method (autode.): electronic structure wrapper to use for the calcs
-        keywords (list): keywords_list to use in the calcs
+        keywords (autode.keywords.Keywords): keywords to use in the calcs
 
     Keyword Arguments:
         dr (float): Δr on the surface *absolute value* in angstroms

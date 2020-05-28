@@ -74,11 +74,11 @@ def get_point_species(point, species, distance_constraints, name, method, keywor
     original_species = deepcopy(species)
 
     # Set up and run the calculation
-    const_opt = Calculation(name=species.name, molecule=species, method=method, opt=True, n_cores=n_cores,
-                            keywords_list=keywords, distance_constraints=distance_constraints)
+    const_opt = Calculation(name=species.name, molecule=species, method=method, n_cores=n_cores,
+                            keywords=keywords, distance_constraints=distance_constraints)
 
     try:
-        species.run_const_opt(const_opt, method, n_cores)
+        species.run_const_opt(const_opt)
     except AtomsNotFound:
         logger.error(f'Optimisation failed for {point}')
         return original_species
