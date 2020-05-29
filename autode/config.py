@@ -109,7 +109,7 @@ class Config:
         # better geometry convergence (https://doi.org/10.1002/jcc.26139)  SMD
         # is in general more accurate, but does not (yet) have support for the
         # VdW charge scheme 1. 'cpcm', 2. 'smd'
-        solvation_type = 'cpcm'
+        implicit_solvation_type = 'cpcm'
 
     class G09:
         # ---------------------------------------------------------------------
@@ -128,6 +128,9 @@ class Config:
                                        'NoTrustUpdate)'],
                                hess=['PBE1PBE/Def2SVP', 'Freq'],
                                sp=['PBE1PBE/Def2TZVP'])
+
+        # Only SMD implemented
+        implicit_solvation_type = 'smd'
 
     class NWChem:
         # ---------------------------------------------------------------------
@@ -194,6 +197,9 @@ class Config:
                                sp=[tzvp_basis_block, 'dft\n  xc pbe0\nend',
                                    'task dft energy'])
 
+        # Only SMD implemented
+        implicit_solvation_type = 'smd'
+
     class XTB:
         # ---------------------------------------------------------------------
         # Parameters for xtb                  https://github.com/grimme-lab/xtb
@@ -203,6 +209,9 @@ class Config:
         path = None
         #
         keywords = KeywordsSet()
+        #
+        # Only GBSA implemented
+        implicit_solvation_type = 'gbsa'
 
     class MOPAC:
         # ---------------------------------------------------------------------
@@ -216,3 +225,7 @@ class Config:
         # using the keywords_list specified here. Solvent in mopac is defined
         # by EPS and the dielectric
         keywords = KeywordsSet(low_opt=['PM7', 'PRECISE'])
+        #
+        # Only COSMO implemented
+        implicit_solvation_type = 'cosmo'
+

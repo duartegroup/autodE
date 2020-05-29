@@ -49,7 +49,7 @@ class KeywordsSet:
 class Keywords:
 
     def __str__(self):
-        return str(self.keyword_list)
+        return '_'.join(self.keyword_list)
 
     def copy(self):
         return deepcopy(self.keyword_list)

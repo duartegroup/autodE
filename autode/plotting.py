@@ -26,7 +26,8 @@ def save_plot(plot, filename):
 
 
 def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
-    """For flat lists of r1, r2 and relative energies plot the PES by interpolating on a 50x50 grid after fitting with
+    """For flat lists of r1, r2 and relative energies plot the PES by
+    interpolating on a 50x50 grid after fitting with
     a 2d polynomial function
 
     Arguments:
@@ -35,7 +36,8 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
         coeff_mat (np.array): matrix of polynomial coefficients for the energy surface
 
     Keyword Arguments:
-        mep (list(tuple)): list of coordinates on the grid for the min energy pathway across the surface (default: {None})
+        mep (list(tuple)): list of coordinates on the grid for the min energy
+        pathway across the surface (default: {None})
         name (str): name of the plot (default: {'2d_scan'})
     """
     plt.close()
@@ -60,8 +62,8 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
                          np.linspace(r2.min(), r2.max(), ny))
 
-    # polyval2d gives matrix with element i,j = f(x,y) with f being the polynomial defined by m and
-    # x = xx[i,j] and y = yy[i,j]
+    # polyval2d gives matrix with element i,j = f(x,y) with f being the
+    # polynomial defined by m and x = xx[i,j] and y = yy[i,j]
 
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
     fig = plt.figure(figsize=(12, 4))
@@ -73,8 +75,9 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     ax1.set_ylabel(ylabel)
     ax2 = fig.add_subplot(1, 2, 2)
 
-    pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())), extent=(r1.min(), r1.max(),
-                                                                                          r2.min(), r2.max()),
+    pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())),
+                      extent=(r1.min(), r1.max(),
+                              r2.min(), r2.max()),
                       origin='lower', cmap=plt.get_cmap('plasma'))
 
     if mep is not None:
@@ -113,7 +116,8 @@ def plot_reaction_profile(reactions, units, name):
 
     fig, ax = plt.subplots()
 
-    # Get the energies for the reaction profile (y values) plotted against the reaction coordinate (zi_s)
+    # Get the energies for the reaction profile (y values) plotted against the
+    # reaction coordinate (zi_s)
     energies = calculate_reaction_profile_energies(reactions, units=units)
     zi_s = np.array(range(len(energies)))
 
@@ -131,15 +135,17 @@ def plot_reaction_profile(reactions, units, name):
     plt.ylim(min(energies)-1, max(energies)+1)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
-    fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left', fontsize=8, wrap=True)
+    fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left',
+             fontsize=8, wrap=True)
 
     return save_plot(plt, filename=f'{name}_reaction_profile.png')
 
 
 def plot_smooth_profile(zi_s, energies, ax):
     """
-    Plot a smooth reaction profile by spline interpolation and finding the stationary points. This will
-    not afford the correct number of stationary points for some energy arrays, so raise an exception if it fails
+    Plot a smooth reaction profile by spline interpolation and finding the
+    stationary points. This will not afford the correct number of stationary
+    points for some energy arrays, so raise an exception if it fails
 
     Arguments:
         zi_s (np.ndarray): Estimate of reaction coordinate points
@@ -209,20 +215,23 @@ def calculate_reaction_profile_energies(reactions, units):
         reactions (list(autode.reaction.Reaction)):
         units (autode.units.Units):
     """
-    # Populate a list of reaction relative energies [reactants -> TS -> products], all floats
+    # Populate a list of reaction relative energies
+    # [reactants -> TS -> products], all floats
     reaction_energies = []
 
     for reaction in reactions:
 
         de = reaction.calc_delta_e()
 
-        # If ∆Er cannot be calculated then assume isoenergetic and add a warning to the plot
+        # If ∆Er cannot be calculated then assume isoenergetic and add a
+        # warning to the plot
         if de is None:
             de = 0.0
 
         de_ddagger = reaction.calc_delta_e_ddagger()
 
-        # If there is no TS then a barrierless reaction will be assumed and a warning added to the plot
+        # If there is no TS then a barrierless reaction will be assumed and a
+        # warning added to the plot
         if de_ddagger is None:
             de_ddagger = 0.0032 + max(0.0, de)
 
@@ -240,7 +249,8 @@ def calculate_reaction_profile_energies(reactions, units):
 
 def get_stationary_points(xs, dydx):
     """
-    Compute the productive of the derivative at points x(i-1) and x(i) which is negative if there is a point x(k)
+    Compute the productive of the derivative at points x(i-1) and x(i) which
+    is negative if there is a point x(k)
     between x(i-1) and x(i) that has dy/dx|_x(k) = 0
 
     Arguments:
@@ -259,7 +269,8 @@ def get_stationary_points(xs, dydx):
 
 def error_on_stationary_points(x, energies):
     """
-    Calculate the difference between the stationary points of an interpolated function and those observed
+    Calculate the difference between the stationary points of an interpolated
+    function and those observed
     (given in the energies array)
 
       |     .
@@ -269,19 +280,22 @@ def error_on_stationary_points(x, energies):
             zi
 
     Arguments:
-        x (np.ndarray): Points that will be splined that generate stationary points that ≈ energies
+        x (np.ndarray): Points that will be splined that generate stationary
+         points that ≈ energies
         energies (np.ndarray): Observed stationary points
 
     Returns:
         (float): A measure of the error
     """
-    # Generate a list of reaction coordinate points - arbitrary units so integers are fine
+    # Generate a list of reaction coordinate points - arbitrary units so
+    # integers are fine
     zi_s = np.array(range(len(x)))
 
     # Spline the energies to get a function that has stationary points
     spline = interpolate.CubicSpline(zi_s, x, bc_type='clamped')
 
-    # Calculate the energy values at the stationary points of the function with a fine-ish spacing that extrapolates
+    # Calculate the energy values at the stationary points of the function with
+    # a fine-ish spacing that extrapolates
     # slightly
     fine_zi_s = np.linspace(min(zi_s)-0.2, max(zi_s)+0.2, num=500)
     stationary_points = get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
@@ -293,7 +307,8 @@ def error_on_stationary_points(x, energies):
 
     energies_at_stationary_points = [spline(zi) for zi in stationary_points]
 
-    # Return the error as the sum squared difference between the required and the observed stationary point energies
+    # Return the error as the sum squared difference between the required and
+    # the observed stationary point energies
     energy_difference = energies - np.array(energies_at_stationary_points)
 
     return np.sum(np.square(energy_difference))

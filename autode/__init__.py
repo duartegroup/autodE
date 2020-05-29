@@ -1,4 +1,7 @@
 from autode.wrappers.keywords import KeywordsSet
+from autode.wrappers.keywords import OptKeywords
+from autode.wrappers.keywords import HessianKeywords
+from autode.wrappers.keywords import SinglePointKeywords
 from autode.reaction import Reaction
 from autode.reaction import MultiStepReaction
 from autode.molecule import Reactant
@@ -13,6 +16,9 @@ __version__ = '1.0.0'
 
 __all__ = [
     'KeywordsSet',
+    'OptKeywords',
+    'HessianKeywords',
+    'SinglePointKeywords',
     'Reaction',
     'MultiStepReaction',
     'Reactant',

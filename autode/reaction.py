@@ -1,4 +1,3 @@
-from copy import deepcopy
 import base64
 import hashlib
 from autode.solvent.solvents import get_solvent
@@ -10,7 +9,6 @@ from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 from autode.molecule import Product
 from autode.molecule import Reactant
-from autode.molecule import SolvatedMolecule
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
 from autode.utils import work_in
@@ -20,9 +18,12 @@ from autode import reactions
 class Reaction:
 
     def __str__(self):
-        """Return a very short 6 character hash of the reaction, not guaranteed to be unique"""
+        """Return a very short 6 character hash of the reaction, not guaranteed
+         to be unique"""
 
-        name = f'{self.name}_{"+".join([r.name for r in self.reacs])}--{"+".join([p.name for p in self.prods])}'
+        name = (f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
+                f'{"+".join([p.name for p in self.prods])}')
+
         if self.solvent is not None:
             name += f'_{self.solvent.name}'
 

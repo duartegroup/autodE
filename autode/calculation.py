@@ -1,5 +1,7 @@
 from copy import deepcopy
 import os
+import hashlib
+import base64
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names
 from autode.config import Config
@@ -46,6 +48,14 @@ def get_solvent_name(molecule, method):
 
 class Calculation:
 
+    def __str__(self):
+        """Create a unique string(/hash) of the calculation"""
+        string = (f'{self.name}{self.method.name}{str(self.input.keywords)}'
+                  f'{str(self.molecule)}{self.method.implicit_solvation_type}')
+
+        hasher = hashlib.sha1(string.encode()).digest()
+        return base64.urlsafe_b64encode(hasher).decode()
+
     def _check_molecule(self):
         """Ensure the molecule has the required attributes"""
         assert hasattr(self.molecule, 'n_atoms')
@@ -87,6 +97,64 @@ class Calculation:
 
         logger.error('Calculation did not terminate normally. Energy = None')
         return None
+
+    def _fix_unique(self, register_name='.autode_calculations'):
+        """
+        If a calculation has already been run for this molecule then it
+        shouldn't be run again, unless the input keywords have changed, in
+        which case it should be run while retaining the previous data. This
+        function fixes this problem by checking .self.name files and adding
+        a number to the end of self.name if the calculation input is different
+        """
+        def append_register():
+            with open(register_name, 'a') as register_file:
+                print(self.name, str(self), file=register_file)
+
+        def exists():
+            return any(reg_name == self.name for reg_name in register.keys())
+
+        def is_identical():
+            return any(reg_id == str(self) for reg_id in register.values())
+
+        # If there is no register yet in this folder then create it
+        if not os.path.exists(register_name):
+            logger.info('No calculations have been performed here yet')
+            return append_register()
+
+        # Populate a register of calculation names and their unique identifiers
+        register = {}
+        for line in open(register_name, 'r'):
+            if len(line.split()) == 2:                  # Expecting: name id
+                calc_name, identifier = line.split()
+                register[calc_name] = identifier
+
+        if is_identical():
+            logger.info('Calculation has already been run')
+            return
+
+        # If this calculation doesn't yet appear in the register add it
+        if not exists():
+            logger.info('This calculation has not yet been run')
+            return append_register()
+
+        # If we're here then this calculation - with these input - has not yet
+        # been run. Therefore, add an integer to the calculation name until
+        # either the calculation has been run before and is the same or it's
+        # not been run
+        logger.info('Calculation with this name has been run before but '
+                    'with different input')
+        name, n = self.name, 0
+        while True:
+            self.name = f'{name}{n}'
+            logger.info(f'New calculation name is: {self.name}')
+
+            if is_identical():
+                return
+
+            if not exists():
+                return append_register()
+
+            n += 1
 
     def get_energy(self):
         return self._get_energy(e=True)
@@ -224,9 +292,13 @@ class Calculation:
             return self.method.clean_up(self)
 
     def generate_input(self):
-        """Generate the required input and set the output filename"""
+        """Generate the required input"""
+        logger.info(f'Generating input file(s) for {self.name}')
+
+        self._fix_unique()
         self.input.filename = self.method.get_input_filename(self)
         self.method.generate_input(self, self.molecule)
+
         return None
 
     def execute_calculation(self):
@@ -301,7 +373,7 @@ class Calculation:
                                              float of point charges, x, y, z
                                              coordinates for each point charge
         """
-        self.name = name
+        self.name = f'{name}_{method.name}'
 
         # ------------------- System specific parameters ----------------------
         self.molecule = deepcopy(molecule)

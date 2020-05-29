@@ -105,10 +105,10 @@ class XTB(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_xtb.xyz'
+        return f'{calc.name}.xyz'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_xtb.out'
+        return f'{calc.name}.out'
 
     def execute(self, calc):
         """Execute an XTB calculation using the runtime flags"""
@@ -304,7 +304,9 @@ class XTB(ElectronicStructureMethod):
         return np.array(gradients)
 
     def __init__(self):
-        super().__init__(name='xtb', path=Config.XTB.path, keywords_set=Config.XTB.keywords)
+        super().__init__(name='xtb', path=Config.XTB.path,
+                         keywords_set=Config.XTB.keywords,
+                         implicit_solvation_type=Config.XTB.implicit_solvation_type)
 
 
 xtb = XTB()

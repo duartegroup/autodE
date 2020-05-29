@@ -106,8 +106,8 @@ def test_links_reacs_prods():
         os.remove(f'complex_conf{i}_opt_xtb.xyz')
 
     os.remove('ts_guess_hess_orca.inp')
-    os.remove('ts_guess_hess_forwards_orca.inp')
-    os.remove('ts_guess_hess_backwards_orca.inp')
+    os.remove('ts_guess_hess_orca_forwards_orca.inp')
+    os.remove('ts_guess_hess_orca_backwards_orca.inp')
 
     os.chdir(here)
 
@@ -169,8 +169,8 @@ def test_find_tss():
 
     # Spoof ORCA and XTB installs
     Config.ORCA.path = here
-    Config.XTB.path = here
-    Config.ORCA.solvation_type = 'cpcm'
+    Config.XTB.path = '/home/tom/.local/bin/xtb'# here
+    Config.ORCA.implicit_solvation_type = 'cpcm'
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1

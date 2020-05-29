@@ -173,10 +173,10 @@ class NWChem(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_nwchem.nw'
+        return f'{calc.name}.nw'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_nwchem.out'
+        return f'{calc.name}.out'
 
     def execute(self, calc):
 
@@ -357,7 +357,8 @@ class NWChem(ElectronicStructureMethod):
 
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,
-                         keywords_set=Config.NWChem.keywords)
+                         keywords_set=Config.NWChem.keywords,
+                         implicit_solvation_type=Config.NWChem.implicit_solvation_type)
 
 
 nwchem = NWChem()

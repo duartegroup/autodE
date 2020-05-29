@@ -229,12 +229,13 @@ class ElectronicStructureMethod(ABC):
         """
         pass
 
-    def __init__(self, name, path, keywords_set):
+    def __init__(self, name, path, keywords_set, implicit_solvation_type):
         """
         Arguments:
             name (str): wrapper name. ALSO the name of the executable
             path (str): absolute path to the executable
             keywords_set (autode.wrappers.keywords.KeywordsSet):
+            implicit_solvation_type (str):
 
         """
         self.name = name
@@ -247,3 +248,6 @@ class ElectronicStructureMethod(ABC):
         self.available = False
 
         self.keywords = keywords_set
+
+        assert type(implicit_solvation_type) is str
+        self.implicit_solvation_type = implicit_solvation_type

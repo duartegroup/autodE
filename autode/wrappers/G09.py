@@ -220,10 +220,10 @@ class G09(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_g09.com'
+        return f'{calc.name}.com'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_g09.log'
+        return f'{calc.name}.log'
 
     def execute(self, calc):
 
@@ -447,7 +447,8 @@ class G09(ElectronicStructureMethod):
 
     def __init__(self):
         super().__init__(name='g09', path=Config.G09.path,
-                         keywords_set=Config.G09.keywords)
+                         keywords_set=Config.G09.keywords,
+                         implicit_solvation_type=Config.G09.implicit_solvation_type)
 
 
 g09 = G09()

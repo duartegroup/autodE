@@ -190,10 +190,10 @@ class MOPAC(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_mopac.mop'
+        return f'{calc.name}.mop'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_mopac.out'
+        return f'{calc.name}.out'
 
     def execute(self, calc):
 
@@ -298,7 +298,9 @@ class MOPAC(ElectronicStructureMethod):
         return grad_array.tolist()
 
     def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path, keywords_set=Config.MOPAC.keywords)
+        super().__init__(name='mopac', path=Config.MOPAC.path,
+                         keywords_set=Config.MOPAC.keywords,
+                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type)
 
 
 mopac = MOPAC()

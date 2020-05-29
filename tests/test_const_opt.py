@@ -28,7 +28,7 @@ def test_constrained_opt():
                                             product=ProductComplex(mol))
     assert ts_guess.n_atoms == 3
 
-    os.remove('xcontrol_template_ts_guess_constrained_opt_ll')
+    os.remove('xcontrol_template_ts_guess_constrained_opt_ll_xtb')
     os.remove('template_ts_guess_constrained_opt_ll_xtb.xyz')
     os.remove('template_ts_guess_constrained_opt_orca.inp')
     os.chdir(here)
