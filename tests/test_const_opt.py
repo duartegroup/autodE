@@ -1,6 +1,6 @@
 from autode.transition_states.ts_guess import get_ts_guess_constrained_opt
-from autode.molecule import Molecule
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Molecule
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.atoms import Atom
 from autode.wrappers.ORCA import orca

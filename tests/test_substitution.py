@@ -1,5 +1,5 @@
-from autode.molecule import Reactant
-from autode.complex import ReactantComplex
+from autode.species.molecule import Reactant
+from autode.species.complex import ReactantComplex
 from autode.atoms import Atom
 from autode.bond_rearrangement import BondRearrangement
 from autode import substitution

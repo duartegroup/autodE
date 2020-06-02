@@ -108,7 +108,7 @@ def plot_reaction_profile(reactions, units, name):
     """For a set of reactions plot the reaction profile using matplotlib
 
     Arguments:
-        reactions (list(autode.reaction.Reaction):
+        reactions (list((autode.reaction.Reaction)):
         units (autode.units.Units):
         name (str):
     """
@@ -136,7 +136,7 @@ def plot_reaction_profile(reactions, units, name):
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
     fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left',
-             fontsize=8, wrap=True)
+             fontsize=6, wrap=True)
 
     return save_plot(plt, filename=f'{name}_reaction_profile.png')
 

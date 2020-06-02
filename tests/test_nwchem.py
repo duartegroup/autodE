@@ -1,6 +1,6 @@
 from autode.wrappers.NWChem import NWChem
 from autode.calculation import Calculation
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords
 from autode.atoms import Atom
 import numpy as np

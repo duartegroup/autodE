@@ -1,8 +1,8 @@
 from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.calculation import execute_calc
-from autode.molecule import Molecule
-from autode.molecule import SolvatedMolecule
+from autode.species.molecule import Molecule
+from autode.species.molecule import SolvatedMolecule
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
@@ -10,7 +10,6 @@ from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
-from autode.config import Config
 import pytest
 
 import os

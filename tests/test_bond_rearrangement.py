@@ -1,7 +1,7 @@
 from autode import bond_rearrangement as br
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.bond_rearrangement import BondRearrangement
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph

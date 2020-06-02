@@ -82,6 +82,12 @@ class Config:
     #
     max_num_complex_conformers = 300
     # -------------------------------------------------------------------------
+    # Use the high + low level method to find the lowest energy
+    # conformer, to use energies at the low_opt level of the low level code
+    # set this to False
+    #
+    hmethod_conformers = True
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------

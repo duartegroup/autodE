@@ -5,11 +5,11 @@ from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.geom import get_points_on_sphere
 from autode.mol_graphs import union
-from autode.species import Species
+from autode.species.species import Species
 from autode.utils import requires_atoms
 from autode.config import Config
 from autode.methods import get_lmethod
-from autode.conformers import Conformer
+from autode.conformers.conformer import get_conformer
 from autode.exceptions import MethodUnavailable
 
 
@@ -86,19 +86,21 @@ class Complex(Species):
 
     def _generate_conformers(self):
         """
-        Generate rigid body conformers of a complex by (1) Fixing the first molecule, (2) initialising the second
-        molecule's COM evenly on the points of a sphere around the first with a random rotation and (3) iterating
+        Generate rigid body conformers of a complex by (1) Fixing the first m
+        olecule, (2) initialising the second molecule's COM evenly on the points
+        of a sphere around the first with a random rotation and (3) iterating
         until all molecules in the complex have been added
         """
         if len(self.molecules) < 2:
-            # Single (or zero) molecule complex only has a single *rigid body* conformer
-            self.conformers = [Conformer(name=f'{self.name}', atoms=self.atoms, charge=self.charge, mult=self.mult)]
+            # Single (or zero) molecule complex only has a single *rigid body*
+            # conformer
+            self.conformers = [get_conformer(name=self.name, species=self)]
 
             return None
 
-        n_molecules = len(self.molecules)       # Number of molecules in the complex
+        n_molecules = len(self.molecules)  # Number of molecules in the complex
         self.conformers = []
-        n = 0                                   # Current conformer number
+        n = 0                              # Current conformer number
 
         points_on_sphere = get_points_on_sphere(n_points=Config.num_complex_sphere_points)
 
@@ -108,8 +110,9 @@ class Complex(Species):
 
             for points in iterprod(points_on_sphere, repeat=n_molecules-1):
 
-                conformer = Conformer(name=f'{self.name}_conf{n}', charge=self.charge, mult=self.mult,
-                                      atoms=get_complex_conformer_atoms(self.molecules, rotations, points))
+                conformer = get_conformer(species=self, name=f'{self.name}_conf{n}')
+                atoms = get_complex_conformer_atoms(self.molecules, rotations, points)
+                conformer.set_atoms(atoms)
 
                 self.conformers.append(conformer)
                 n += 1
@@ -123,8 +126,9 @@ class Complex(Species):
 
     def populate_conformers(self):
         """
-        Generate and optimise with a low level method a set of conformers, the number of which is
-        Config.num_complex_sphere_points ×  Config.num_complex_random_rotations × (n molecules in complex - 1)
+        Generate and optimise with a low level method a set of conformers, the
+        number of which is
+        Config.num_complex_sphere_points ×  Config.num_complex_random_rotations ^ (n molecules in complex - 1)
         """
         n_confs = Config.num_complex_sphere_points * Config.num_complex_random_rotations * (len(self.molecules) - 1 )
         logger.info(f'Generating and optimising {n_confs} conformers of {self.name}')
@@ -143,13 +147,29 @@ class Complex(Species):
         return None
 
     @requires_atoms()
+    def run_const_opt(self, constrained_opt):
+        """Run a constrained optimisation using a const_opt calculation and
+        set the new structure
+
+        Arguments:
+            constrained_opt (autode.calculation.Calculation):
+        """
+        constrained_opt.run()
+
+        self.energy = constrained_opt.get_energy()
+        self.set_atoms(atoms=constrained_opt.get_final_atoms())
+
+        return None
+
+    @requires_atoms()
     def translate_mol(self, vec, mol_index):
         """
         Translate a molecule within a complex by a vector
 
         Arguments:
             vec (np.ndarray): Length 3 vector
-            mol_index (int): Index of the molecule to translate. e.g. 2 will translate molecule 1 in the complex
+            mol_index (int): Index of the molecule to translate. e.g. 2 will
+                             translate molecule 1 in the complex
                              they are indexed from 0
 
         """
@@ -169,7 +189,8 @@ class Complex(Species):
             axis (np.ndarray): Length 3 vector
             theta (float): Length 3 vector
             origin (np.ndarray): Length 3 vector
-            mol_index (int): Index of the molecule to translate. e.g. 2 will translate molecule 1 in the complex
+            mol_index (int): Index of the molecule to translate. e.g. 2 will
+                            translate molecule 1 in the complex
                              they are indexed from 0
 
         """
@@ -184,7 +205,8 @@ class Complex(Species):
 
     @requires_atoms()
     def calc_repulsion(self, mol_index):
-        """Calculate the repulsion between a molecule and the rest of the complex"""
+        """Calculate the repulsion between a molecule and the rest of the
+        complex"""
 
         coordinates = self.get_coordinates()
 
@@ -211,7 +233,8 @@ class Complex(Species):
         self.molecules = args
         self.molecule_atom_indexes = []
 
-        # Calculate the overall charge and spin multiplicity on the system and initialise
+        # Calculate the overall charge and spin multiplicity on the system and
+        # initialise
         complex_charge = sum([mol.charge for mol in self.molecules])
         complex_mult = sum([mol.mult for mol in self.molecules]) - (len(self.molecules) - 1)
 
@@ -227,20 +250,7 @@ class Complex(Species):
 
 
 class ReactantComplex(Complex):
-
-    def run_const_opt(self, constrained_opt):
-        """Run a constrained optimisation using a const_opt calculation and
-        set the new structure
-
-        Arguments:
-            constrained_opt (autode.calculation.Calculation):
-        """
-        constrained_opt.run()
-
-        self.energy = constrained_opt.get_energy()
-        self.set_atoms(atoms=constrained_opt.get_final_atoms())
-
-        return None
+    pass
 
 
 class ProductComplex(Complex):

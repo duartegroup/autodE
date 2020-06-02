@@ -1,7 +1,7 @@
 import os
 from autode import Reactant, Product, Reaction
-from autode.reactions import Dissociation
-from autode.complex import get_complexes
+from autode.reactions.reaction_types import Dissociation
+from autode.species.complex import get_complexes
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.transition_states.locate_tss import get_ts_guess_function_and_params
 
@@ -16,8 +16,10 @@ def test_one_to_three_dissociation():
     reaction = Reaction(r, p1, p2, p3, solvent_name='thf')
     assert reaction.type is Dissociation
 
-    # Generate reactants and product complexes then find the single possible bond rearrangement
+    # Generate reactants and product complexes then find the single possible
+    # bond rearrangement
     reactant, product = get_complexes(reaction)
+    reaction.reactant, reaction.product = reactant, product
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
     assert len(bond_rearrangs) == 1
     os.remove(f'{str(reaction)}_bond_rearrangs.txt')
@@ -28,5 +30,6 @@ def test_one_to_three_dissociation():
     assert len(bond_rearrangement.bbonds) == 2
 
     # Ensure there is at least one bond function that could give the TS
-    ts_funcs_params = get_ts_guess_function_and_params(reaction, reactant, product, bond_rearrangement)
+    ts_funcs_params = get_ts_guess_function_and_params(reaction,
+                                                       bond_rearrangement)
     assert len(list(ts_funcs_params)) > 0

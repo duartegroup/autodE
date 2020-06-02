@@ -1,18 +1,20 @@
 import base64
 import hashlib
+from copy import deepcopy
+from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.transition_states.locate_tss import find_tss
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from autode.log import logger
 from autode.methods import get_hmethod
-from autode.methods import get_lmethod
-from autode.molecule import Product
-from autode.molecule import Reactant
+from autode.species.complex import get_complexes
+from autode.species.molecule import Product
+from autode.species.molecule import Reactant
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
 from autode.utils import work_in
-from autode import reactions
+from autode.reactions import reaction_types
 
 
 class Reaction:
@@ -79,29 +81,16 @@ class Reaction:
         logger.info(f'Set the solvent of all species in the reaction to {self.solvent.name}')
         return None
 
-    def _check_rearrangement(self):
-        """Could be an intramolecular addition, so will swap reactants and products if this is the case"""
-
-        logger.info('Reaction classified as rearrangement, checking if it is an intramolecular addition')
-        reac_bonds_list = [mol.graph.number_of_edges() for mol in self.reacs]
-        prod_bonds_list = [mol.graph.number_of_edges() for mol in self.prods]
-        delta_n_bonds = sum(reac_bonds_list) - sum(prod_bonds_list)
-
-        if delta_n_bonds < 0:
-            logger.info('Products have more bonds than the reactants, swapping reacs and prods and going in reverse')
-            self.prods, self.reacs = self.reacs, self.prods
-            self.switched_reacs_prods = True
-        else:
-            logger.info('Does not appear to be an intramolecular addition, continuing')
-
     def switch_reactants_products(self):
-        """Addition reactions are hard to find the TSs for, so swap reactants and products and classify as dissociation
+        """Addition reactions are hard to find the TSs for, so swap reactants
+        and products and classify as dissociation. Likewise for reactions wher
+        the change in the number of bonds is negative
         """
-        logger.info('Reaction classified as addition. Swapping reacs and prods and switching to dissociation')
-        if self.type == reactions.Addition:
-            self.type = reactions.Dissociation
+        logger.info('Swapping reactants and products')
 
         self.prods, self.reacs = self.reacs, self.prods
+        self.product, self.reactant = self.reactant, self.product
+        return None
 
     def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
@@ -151,21 +140,16 @@ class Reaction:
         else:
             return self.tss[0]
 
-    def find_lowest_energy_conformers(self, calc_reacs=True, calc_prods=True):
+    def find_lowest_energy_conformers(self):
         """Try and locate the lowest energy conformation using simulated
         annealing, then optimise them with xtb, then optimise the unique
         (defined by an energy cut-off) conformers with an electronic structure
         method"""
 
-        molecules = []
-        if calc_reacs:
-            molecules += self.reacs
-        if calc_prods:
-            molecules += self.prods
-
-        for mol in molecules:
-            mol.find_lowest_energy_conformer(lmethod=get_lmethod(),
-                                             hmethod=get_hmethod())
+        h_method = get_hmethod() if Config.hmethod_conformers else None
+        for mol in self.reacs + self.prods:
+            # .find_lowest_energy_conformer works in conformers/
+            mol.find_lowest_energy_conformer(hmethod=h_method)
 
         return None
 
@@ -181,8 +165,31 @@ class Reaction:
 
         return None
 
+    @work_in('complexes')
+    def find_complexes(self):
+        self.reactant, self.product = get_complexes(reaction=self)
+        return None
+
+    @work_in('complexes')
+    def calculate_complexes(self):
+        """Find the lowest energy conformers of reactant and product complexes
+        using optimisation and single points"""
+        h_method = get_hmethod()
+        conf_hmethod = h_method if Config.hmethod_conformers else None
+
+        for species in [self.reactant, self.product]:
+            species.find_lowest_energy_conformer(hmethod=conf_hmethod)
+            species.optimise(method=h_method)
+            species.single_point(method=h_method)
+
+        return None
+
     @work_in('transition_states')
     def locate_transition_state(self):
+
+        if self.reactant is None and self.product is None:
+            logger.warning('Reactant & product complexes are None- generating')
+            self.find_complexes()
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
@@ -222,22 +229,79 @@ class Reaction:
 
         return None
 
-    def calculate_reaction_profile(self, units=KcalMol):
+    def _plot_reaction_profile_with_complexes(self, units):
+
+        @work_in(self.name)
+        def calculate_complexes():
+            return self.calculate_complexes()
+
+        calculate_complexes()
+
+        reactions_wc = []
+
+        # If the reactant complex contains more than one molecule then
+        # make a reaction that is separated reactants -> reactant complex
+        if len(self.reacs) > 1:
+            reactant_complex = deepcopy(self.reactant)
+            reactant_complex.__class__ = Product
+            reactions_wc.append(Reaction(*self.reacs, reactant_complex,
+                                         name='reactant_complex'))
+
+        # The elementary reaction is then
+        # reactant complex -> product complex
+        reactant_complex = deepcopy(self.reactant)
+        reactant_complex.__class__ = Reactant
+        product_complex = deepcopy(self.product)
+        product_complex.__class__ = Product
+
+        reaction = Reaction(reactant_complex, product_complex)
+        reaction.ts = self.ts
+
+        reactions_wc.append(reaction)
+
+        # As with the product complex add the dissociation of the product
+        # complex into it's separated components
+        if len(self.prods) > 1:
+            product_complex = deepcopy(self.product)
+            product_complex.__class__ = Reactant
+            reactions_wc.append(Reaction(*self.prods, product_complex,
+                                         name='product_complex'))
+
+        plot_reaction_profile(reactions=reactions_wc,
+                              units=units, name=self.name)
+
+        return None
+
+    def calculate_reaction_profile(self, units=KcalMol, with_complexes=False):
+        """
+        Calculate and plot a reaction profile for this reaction in some units
+
+        Arguments:
+            units (autode.units.Unit):
+            with_complexes (bool): Calculate the lowest energy conformers
+                                   of the reactant and product complexes
+        """
         logger.info('Calculating reaction profile')
 
         @work_in(self.name)
         def calculate(reaction):
-
             reaction.find_lowest_energy_conformers()
             reaction.optimise_reacs_prods()
+            reaction.find_complexes()
             reaction.locate_transition_state()
             reaction.find_lowest_energy_ts_conformer()
             reaction.calculate_single_points()
-
-            plot_reaction_profile(reactions=[reaction], units=units, name=self.name)
             return None
 
-        return calculate(self)
+        calculate(self)
+
+        if not with_complexes:
+            plot_reaction_profile([self], units=units, name=self.name)
+
+        if with_complexes:
+            self._plot_reaction_profile_with_complexes(units=units)
+
+        return None
 
     def __init__(self, *args, name='reaction', solvent_name=None):
         logger.info(f'Generating a Reaction object for {name}')
@@ -246,9 +310,10 @@ class Reaction:
         self.reacs = [mol for mol in args if isinstance(mol, Reactant)]
         self.prods = [mol for mol in args if isinstance(mol, Product)]
 
+        self.reactant, self.product = None, None
         self.ts, self.tss = None, None
 
-        self.type = reactions.classify(reactants=self.reacs, products=self.prods)
+        self.type = reaction_types.classify(reactants=self.reacs, products=self.prods)
 
         if solvent_name is not None:
             self.solvent = get_solvent(solvent_name=solvent_name)
@@ -257,69 +322,3 @@ class Reaction:
 
         self._check_solvent()
         self._check_balance()
-
-        if self.type == reactions.Rearrangement:
-            self._check_rearrangement()
-
-
-class MultiStepReaction:
-
-    def calculate_reaction_profile(self, units=KcalMol):
-        """Calculate a multistep reaction profile using the products of step 1
-        as the reactants of step 2 etc."""
-        logger.info('Calculating reaction profile')
-
-        @work_in(self.name)
-        def calculate(reaction, calc_reac_conformers=False):
-
-            # If the step is > 1 then there is no need to calculate the
-            # conformers of the reactants..
-            reaction.find_lowest_energy_conformers(calc_prods=True,
-                                                   calc_reacs=calc_reac_conformers)
-
-            reaction.optimise_reacs_prods()
-            reaction.locate_transition_state()
-            reaction.find_lowest_energy_ts_conformer()
-            reaction.calculate_single_points()
-
-            return None
-
-        def check_reaction(current_reaction, previous_reaction):
-            """Check that the reactants of the current reaction are the same
-            as the previous products. NOT exhaustive"""
-
-            assert len(current_reaction.reacs) == len(previous_reaction.prods)
-            n_reacting_atoms = sum(reac.n_atoms for reac in current_reaction.reacs)
-            n_prev_product_atoms = sum(prod.n_atoms for prod in previous_reaction.prods)
-            assert n_reacting_atoms == n_prev_product_atoms
-
-        for i, r in enumerate(self.reactions):
-            r.name = f'{self.name}_step{i}'
-
-            if i == 0:
-                # First reaction requires calculating reactant conformers
-                calculate(reaction=r, calc_reac_conformers=True)
-
-            else:
-                # Set the reactants of this reaction as the previous set of
-                # products and don't recalculate conformers
-                check_reaction(current_reaction=r,
-                               previous_reaction=self.reactions[i-1])
-                r.reacs = self.reactions[i-1].prods
-                calculate(reaction=r)
-
-        plot_reaction_profile(self.reactions, units=units, name=self.name)
-        return None
-
-    def __init__(self, *args, name='reaction'):
-        """
-        Reaction with multiple steps
-
-        Arguments:
-            *args (autode.reaction.Reaction): Set of reactions to calculate the
-                                              reaction profile for
-        """
-        self.name = str(name)
-        self.reactions = args
-
-        assert all(type(reaction) is Reaction for reaction in self.reactions)

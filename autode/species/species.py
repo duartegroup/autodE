@@ -27,6 +27,11 @@ class Species:
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
+    def __eq__(self, other):
+        # Strings are a unique identifier so if they are the same then
+        # the species are the same - requires there to be atoms set
+        return str(self) == str(other)
+
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -95,6 +100,22 @@ class Species:
         """Return a np.ndarray of size n_atoms x 3 containing the xyz
         coordinates of the molecule"""
         return np.array([atom.coord for atom in self.atoms])
+
+    @requires_atoms()
+    def optimise(self, method, reset_graph=False):
+        logger.info(f'Running optimisation of {self.name}')
+
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
+                          keywords=method.keywords.opt, n_cores=Config.n_cores)
+        opt.run()
+        self.energy = opt.get_energy()
+        self.set_atoms(atoms=opt.get_final_atoms())
+        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
+
+        if reset_graph:
+            make_graph(self)
+
+        return None
 
     @requires_atoms()
     def single_point(self, method):

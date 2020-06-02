@@ -1,5 +1,5 @@
-from autode.complex import NCIComplex
-from autode.molecule import Molecule
+from autode.species.complex import NCIComplex
+from autode.species.molecule import Molecule
 from autode.wrappers.XTB import XTB
 from autode.config import Config
 from autode import geom

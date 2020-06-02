@@ -1,6 +1,6 @@
 from autode.wrappers.MOPAC import MOPAC
 from autode.calculation import Calculation
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.constants import Constants
 from autode.config import Config
 import os

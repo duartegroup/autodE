@@ -1,6 +1,6 @@
 from autode.wrappers.G09 import G09
 from autode.calculation import Calculation
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError

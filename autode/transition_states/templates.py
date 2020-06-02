@@ -5,16 +5,19 @@ from autode.log import logger
 from autode.mol_graphs import is_isomorphic
 
 """
-The idea with templating is to avoid needless PES scans when finding TSs for which similar have already been found.
+The idea with templating is to avoid needless PES scans when finding TSs for 
+which similar have already been found.
 
-For instance the TS for the addition of CN- to acetone is going to be perturbed only slightly by modifying a methyl
-for a CH2CH3 group. It is more efficient to know the forming C–C bond distance in the previous TS, fix it and run
+For instance the TS for the addition of CN- to acetone is going to be perturbed 
+only slightly by modifying a methyl for a CH2CH3 group. It is more efficient 
+to know the forming C–C bond distance in the previous TS, fix it and run
 a constrained optimisation which will hopefully be a good guess of the TS
 """
 
 
 def get_ts_templates(folder_path=Config.ts_template_folder_path):
-    """Get all the transition state templates from a folder, or the default if folder path is None
+    """Get all the transition state templates from a folder, or the default if
+    folder path is None
 
     Keyword Arguments:
         folder_path (str): /path/to/the/ts/template/library
@@ -43,8 +46,9 @@ def get_ts_templates(folder_path=Config.ts_template_folder_path):
 
 def template_matches(reactant, truncated_graph, ts_template):
     """
-    Determine if a transition state template matches a truncated graph. The truncated graph includes all the active
-    bonds in the reaction and the nearest neighbours to those atoms e.g. for a Diels-Alder reaction
+    Determine if a transition state template matches a truncated graph. The
+    truncated graph includes all the active bonds in the reaction and the
+    nearest neighbours to those atoms e.g. for a Diels-Alder reaction
          H        H
           \      /
         H-C----C-H          where the dotted lines represent active bonds
@@ -107,8 +111,9 @@ class TStemplate:
         """Construct a TS template object
 
         Arguments:
-            graph (nx.Graph): Active bonds in the TS are represented by the edges with attribute active=True, going out
-                              to nearest bonded neighbours
+            graph (nx.Graph): Active bonds in the TS are represented by the
+                  edges with attribute active=True, going out to nearest bonded
+                  neighbours
 
         Keyword Arguments:
             solvent (autode.solvent.solvents.Solvent):  (default: {None})

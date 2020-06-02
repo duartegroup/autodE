@@ -2,19 +2,18 @@ from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
 from autode.bond_rearrangement import BondRearrangement
-from autode.reaction import Reaction
+from autode.reactions.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
-from autode.molecule import Reactant, Product
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Reactant, Product
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
 from autode.transition_states.base import imag_mode_links_reactant_products
 from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
-from autode.species import Species
+from autode.species.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
-from autode.transition_states.templates import template_matches
 from autode.wrappers.G09 import G09
 import os
 here = os.path.dirname(os.path.abspath(__file__))

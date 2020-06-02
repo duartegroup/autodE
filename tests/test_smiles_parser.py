@@ -1,6 +1,5 @@
-from autode.smiles_parser import SmilesParser
+from autode.smiles.smiles_parser import SmilesParser
 from autode.exceptions import InvalidSmilesString
-from autode.atoms import Atom
 from autode.geom import calc_rmsd
 import pytest
 import numpy as np
