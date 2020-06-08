@@ -4,8 +4,10 @@ import hashlib
 import base64
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names
+from autode.solvent.solvents import get_solvent
 from autode.config import Config
 from autode.wrappers.keywords import Keywords
+from autode.solvent.solvents import Solvent
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import CouldNotGetProperty
 from autode.exceptions import MethodUnavailable
@@ -32,8 +34,6 @@ def get_solvent_name(molecule, method):
         molecule (autode.species.Species)
         method (autode.wrappers.base.ElectronicStructureMethod):
     """
-    available_solvents = (f'Available solvents for {method.__name__} are '
-                          f'{get_available_solvent_names(method)}')
 
     if molecule.solvent is None:
         logger.info('Calculation is in the gas phase')
@@ -41,13 +41,21 @@ def get_solvent_name(molecule, method):
 
     if type(molecule.solvent) is str:
         # Solvent could be a string from e.g. cgbind
-        solvent_name = molecule.solvent
+        solvent = get_solvent(solvent_name=molecule.solvent)
+
+    elif isinstance(molecule.solvent, Solvent):
+        # Otherwise expecting a autode.solvents.solvent.Solvent
+        solvent = molecule.solvent
+
     else:
-        # Expecting an autode Solvent object
-        solvent_name = getattr(molecule.solvent, method.name)
+        raise SolventUnavailable('Expecting either a str or Solvent')
+
+    # Get the name of the solvent for this method
+    solvent_name = getattr(solvent, method.name)
 
     if solvent_name is None:
-        raise SolventUnavailable(message=available_solvents)
+        raise SolventUnavailable(f'Available solvents for {method.name} are '
+                                 f'{get_available_solvent_names(method)}')
 
     return solvent_name
 

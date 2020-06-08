@@ -2,7 +2,7 @@
 Molecule
 ********
 
-.. automodule:: autode.molecule
+.. automodule:: autode.species.molecule
    :members:
    :undoc-members:
    :special-members: __init__

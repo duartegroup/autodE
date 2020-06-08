@@ -153,7 +153,7 @@ def get_distance_constraints(species):
 
 
 def calc_rmsd(coords1, coords2):
-    """Calculate the RMSD between two sets of coordinates using the Kabash
+    """Calculate the RMSD between two sets of coordinates using the Kabsch
     algorithm"""
 
     # Construct the P matrix in the Kabsch algorithm

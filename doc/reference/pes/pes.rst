@@ -1,8 +1,8 @@
-******
-Smiles
-******
+***
+PES
+***
 
-.. automodule:: autode.smiles
+.. automodule:: autode.pes.pes
    :members:
    :undoc-members:
    :special-members: __init__
