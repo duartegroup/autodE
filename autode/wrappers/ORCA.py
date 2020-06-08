@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from autode.wrappers.base import run_external
+from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom
 from autode.config import Config
@@ -229,7 +229,8 @@ class ORCA(ElectronicStructureMethod):
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
                          kept_file_exts=('.out', '.hess', '.xyz', '.inp', '.pc'))
         def execute_orca():
-            run_external(calc, params=[calc.method.path, calc.input.filename])
+            run_external(params=[calc.method.path, calc.input.filename],
+                         output_filename=calc.output.filename)
 
         execute_orca()
         return None

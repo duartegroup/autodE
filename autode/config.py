@@ -125,15 +125,15 @@ class Config:
         # path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose'],
-                               grad=['PBEPBE/Def2SVP', 'Force(NoStep)'],
-                               opt=['PBE1PBE/Def2SVP', 'Opt'],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq',
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', 'EmpiricalDispersion=GD3BJ'],
+                               grad=['PBEPBE/Def2SVP', 'Force(NoStep)', 'EmpiricalDispersion=GD3BJ'],
+                               opt=['PBE1PBE/Def2SVP', 'Opt', 'EmpiricalDispersion=GD3BJ'],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ',
                                        'Opt=(TS, CalcFC, NoEigenTest, '
                                        'MaxCycles=100, MaxStep=10, '
                                        'NoTrustUpdate)'],
-                               hess=['PBE1PBE/Def2SVP', 'Freq'],
-                               sp=['PBE1PBE/Def2TZVP'])
+                               hess=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ'],
+                               sp=['PBE1PBE/Def2TZVP', 'EmpiricalDispersion=GD3BJ'])
 
         # Only SMD implemented
         implicit_solvation_type = 'smd'
@@ -149,6 +149,8 @@ class Config:
         svp_basis_block = 'basis\n  *   library Def2-SVP\nend'
         tzvp_basis_block = 'basis\n  *   library Def2-TZVP\nend'
         #
+        # Note that the default NWChem level is PBE0 and PBE rather than
+        # PBE0-D3BJ and PBE-D3BJ as only D3 is available
         keywords = KeywordsSet(low_opt=['driver\n'
                                         '  gmax 0.002\n'
                                         '  grms 0.0005\n'

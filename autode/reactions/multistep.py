@@ -21,17 +21,17 @@ class MultiStepReaction:
             for mol in reaction.reacs + reaction.prods:
 
                 # If this molecule is one of the previous products don't
-                # regenerate conformers and optimise
-                skip_conformers_and_opt = False
+                # regenerate conformers
+                skip_conformers = False
                 for prod in prev_products:
                     if mol == prod:          # Has the same atoms & charge etc.
                         mol = prod
-                        skip_conformers_and_opt = True
+                        skip_conformers = True
 
-                if not skip_conformers_and_opt:
+                if not skip_conformers:
                     mol.find_lowest_energy_conformer(hmethod=h_method if Config.hmethod_conformers else None)
-                    mol.optimise(h_method)
 
+            reaction.optimise_reacs_prods()
             reaction.find_complexes()
             reaction.locate_transition_state()
             reaction.find_lowest_energy_ts_conformer()
@@ -39,6 +39,7 @@ class MultiStepReaction:
 
             return None
 
+        # For all the reactions calculate the reactants, products and TS
         for i, r in enumerate(self.reactions):
             r.name = f'{self.name}_step{i}'
 

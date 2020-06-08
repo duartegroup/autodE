@@ -39,7 +39,13 @@ def get_solvent_name(molecule, method):
         logger.info('Calculation is in the gas phase')
         return None
 
-    solvent_name = getattr(molecule.solvent, method.name)
+    if type(molecule.solvent) is str:
+        # Solvent could be a string from e.g. cgbind
+        solvent_name = molecule.solvent
+    else:
+        # Expecting an autode Solvent object
+        solvent_name = getattr(molecule.solvent, method.name)
+
     if solvent_name is None:
         raise SolventUnavailable(message=available_solvents)
 
@@ -103,7 +109,7 @@ class Calculation:
         If a calculation has already been run for this molecule then it
         shouldn't be run again, unless the input keywords have changed, in
         which case it should be run while retaining the previous data. This
-        function fixes this problem by checking .self.name files and adding
+        function fixes this problem by checking .autode_calculations and adding
         a number to the end of self.name if the calculation input is different
         """
         def append_register():
@@ -373,7 +379,9 @@ class Calculation:
                                              float of point charges, x, y, z
                                              coordinates for each point charge
         """
-        self.name = f'{name}_{method.name}'
+        # Calculation names that start with "-" can break EST methods
+        self.name = (f'{name}_{method.name}' if not name.startswith('-')
+                     else f'_{name}_{method.name}')
 
         # ------------------- System specific parameters ----------------------
         self.molecule = deepcopy(molecule)

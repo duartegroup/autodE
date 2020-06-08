@@ -24,7 +24,7 @@ class TSbase(Species):
         self.graph = self.reactant.graph.copy()
         return None
 
-    def could_have_correct_imag_mode(self, method=None, threshold=-50):
+    def could_have_correct_imag_mode(self, method=None, threshold=-45):
         """
         Determine if a point on the PES could have the correct imaginary mode. This must have
 

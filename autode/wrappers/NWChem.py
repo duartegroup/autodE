@@ -1,6 +1,6 @@
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import run_external
+from autode.utils import run_external_monitored
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput
@@ -186,7 +186,7 @@ class NWChem(ElectronicStructureMethod):
             params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,
                       calc.input.filename]
 
-            run_external(calc, params)
+            run_external_monitored(params, calc.output.filename)
 
         execute_nwchem()
         return None
@@ -198,8 +198,13 @@ class NWChem(ElectronicStructureMethod):
                                                       'Failed to converge in maximum number of steps or available time']):
                 logger.info('nwchem terminated normally')
                 return True
+            if 'MPI_ABORT' in line:
+                return False
+
             if n_line > 500:
                 return False
+
+        return False
 
     def get_enthalpy(self, calc):
         raise NotImplementedError

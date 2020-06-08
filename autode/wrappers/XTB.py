@@ -1,8 +1,7 @@
 import numpy as np
 import os
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import run_external
-from autode.wrappers.keywords import Keywords
+from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
@@ -135,7 +134,8 @@ class XTB(ElectronicStructureMethod):
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
-            run_external(calc, params=[calc.method.path, calc.input.filename] + flags)
+            run_external(params=[calc.method.path, calc.input.filename]+flags,
+                         output_filename=calc.output.filename)
 
         execute_xtb()
         return None

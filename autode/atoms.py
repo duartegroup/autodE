@@ -5,7 +5,8 @@ from autode.log import logger
 class Atom:
 
     def __repr__(self):
-        return f'[{self.label}, {self.coord[0]:.4f}, {self.coord[1]:.4f}, {self.coord[2]:.4f}]'
+        x, y, z = self.coord
+        return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
 
     def translate(self, vec):
         """Translate this atom by a vector (np.ndarray, length 3)"""
@@ -13,9 +14,11 @@ class Atom:
         return None
 
     def rotate(self, axis, theta, origin=None):
-        """Rotate this atom by theta radians (float) in an axis (np.ndarray, length 3)"""
+        """Rotate this atom by theta radians (float) in an axis
+        (np.ndarray, length 3)"""
 
-        # If specified shift so that the origin is at (0, 0, 0), apply the rotation, and shift back
+        # If specified shift so that the origin is at (0, 0, 0), apply the
+        # rotation, and shift back
         if origin is not None:
             self.translate(vec=-origin)
 
@@ -23,7 +26,8 @@ class Atom:
         axis = np.asarray(axis)
         axis = axis / np.linalg.norm(axis)
 
-        # Compute the 3D rotation matrix using https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
+        # Compute the 3D rotation matrix using
+        # https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
         a = np.cos(theta / 2.0)
         b, c, d = -axis * np.sin(theta / 2.0)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d

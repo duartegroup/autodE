@@ -20,11 +20,12 @@ To set the number of cores available and the memory per core (in MB)
   >>> Config.max_core = 4000
 
 Further, the parameters used in the calculations can be changed, e.g to change
-how the single point energies are calculated
+how the single point energies are calculated to B3LYP/def2-TZVP in ORCA
 
 .. code-block:: python
 
-  >>> Config.ORCA.keywords.sp = ['SP', 'B3LYP', 'def2-TZVP']
+  >>> from autode.wrappers.keywords import SinglePointKeywords
+  >>> Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
 
 To add diffuse functions with the ma scheme to the def2-SVP default optimisation
 basis set for optimisations

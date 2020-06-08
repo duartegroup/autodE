@@ -138,7 +138,7 @@ def test_mapping():
 
 def test_not_isomorphic():
 
-    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.9)
+    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.0)
     h2_b = Species(name='template', charge=0, mult=1, atoms=[h_a, h_c])
     mol_graphs.make_graph(species=h2_b, rel_tolerance=0.3)
 
