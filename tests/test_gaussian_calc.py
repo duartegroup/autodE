@@ -1,6 +1,6 @@
 from autode.wrappers.G09 import G09
 from autode.calculation import Calculation
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
@@ -126,14 +126,14 @@ def test_fix_angle_error():
                        keywords=opt_keywords)
     calc.run()
 
-    assert os.path.exists('angle_fail_cartesian_g09.com') is True
-    assert os.path.exists('angle_fail_internal_g09.com') is True
-    assert calc.output.filename == 'angle_fail_internal_g09.log'
+    assert os.path.exists('angle_fail_g09_cartesian.com') is True
+    assert os.path.exists('angle_fail_g09_internal.com') is True
+    assert calc.output.filename == 'angle_fail_g09_internal.log'
     assert calc.terminated_normally()
 
-    os.remove('angle_fail_cartesian_g09.com')
+    os.remove('angle_fail_g09_cartesian.com')
     os.remove('angle_fail_g09.com')
-    os.remove('angle_fail_internal_g09.com')
+    os.remove('angle_fail_g09_internal.com')
     os.chdir(here)
 
 

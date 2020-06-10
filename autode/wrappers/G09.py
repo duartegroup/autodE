@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import run_external
+from autode.utils import run_external
 from autode.atoms import Atom
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
@@ -220,17 +220,18 @@ class G09(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_g09.com'
+        return f'{calc.name}.com'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_g09.log'
+        return f'{calc.name}.log'
 
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
                          kept_file_exts=('.log', '.com'))
         def execute_g09():
-            run_external(calc, params=[calc.method.path, calc.input.filename])
+            run_external(params=[calc.method.path, calc.input.filename],
+                         output_filename=calc.output.filename)
 
         execute_g09()
         return None
@@ -257,7 +258,12 @@ class G09(ElectronicStructureMethod):
         if calc.name.endswith('internal_internal_internal_internal'):
             return False
 
-        fixed_calc = rerun_angle_failure(calc)
+        try:
+            # To fix the calculation requires the atoms to be in the output
+            fixed_calc = rerun_angle_failure(calc)
+
+        except AtomsNotFound:
+            return False
 
         if fixed_calc.terminated_normally():
             logger.info('The 180° angle issue has been fixed')
@@ -447,7 +453,8 @@ class G09(ElectronicStructureMethod):
 
     def __init__(self):
         super().__init__(name='g09', path=Config.G09.path,
-                         keywords_set=Config.G09.keywords)
+                         keywords_set=Config.G09.keywords,
+                         implicit_solvation_type=Config.G09.implicit_solvation_type)
 
 
 g09 = G09()

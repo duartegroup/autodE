@@ -17,12 +17,28 @@ from autode.utils import requires_conformers
 
 class Species:
 
+    def __str__(self):
+        """Unique species identifier"""
+        assert self.atoms is not None
+
+        # Only use the first 100 atoms
+        atoms_str = ''.join([atom.label for atom in self.atoms[:100]])
+        solv_str = self.solvent.name if self.solvent is not None else 'none'
+
+        return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
+
+    def __eq__(self, other):
+        # Strings are a unique identifier so if they are the same then
+        # the species are the same - requires there to be atoms set
+        return str(self) == str(other)
+
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError
 
     @requires_conformers()
     def _set_lowest_energy_conformer(self):
-        """Set the species energy and atoms as those of the lowest energy conformer"""
+        """Set the species energy and atoms as those of the lowest energy
+        conformer"""
         lowest_energy = None
 
         for conformer in self.conformers:
@@ -32,11 +48,13 @@ class Species:
             # Conformers don't have a molecular graph, so make it
             make_graph(conformer)
 
-            if not is_isomorphic(conformer.graph, self.graph, ignore_active_bonds=True):
-                logger.warning('Conformer had a different molecular graph. Ignoring')
+            if not is_isomorphic(conformer.graph, self.graph,
+                                 ignore_active_bonds=True):
+                logger.warning('Conformer had a different graph. Ignoring')
                 continue
 
-            # If the conformer retains the same connectivity, up the the active atoms in the species graph
+            # If the conformer retains the same connectivity, up the the active
+            # atoms in the species graph
 
             if lowest_energy is None:
                 lowest_energy = conformer.energy
@@ -60,7 +78,8 @@ class Species:
 
     @requires_atoms()
     def rotate(self, axis, theta, origin=None):
-        """Rotate the molecule by around an axis (np.ndarray, length 3) an theta radians"""
+        """Rotate the molecule by around an axis (np.ndarray, length 3) an
+        theta radians"""
         for atom in self.atoms:
 
             atom.rotate(axis, theta, origin=origin)
@@ -74,12 +93,29 @@ class Species:
         if filename is None:
             filename = f'{self.name}.xyz'
 
-        return atoms_to_xyz_file(atoms=self.atoms, filename=filename, title_line=title_line)
+        return atoms_to_xyz_file(self.atoms, filename, title_line=title_line)
 
     @requires_atoms()
     def get_coordinates(self):
-        """Return a np.ndarray of size n_atoms x 3 containing the xyz coordinates of the molecule"""
+        """Return a np.ndarray of size n_atoms x 3 containing the xyz
+        coordinates of the molecule"""
         return np.array([atom.coord for atom in self.atoms])
+
+    @requires_atoms()
+    def optimise(self, method, reset_graph=False):
+        logger.info(f'Running optimisation of {self.name}')
+
+        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
+                          keywords=method.keywords.opt, n_cores=Config.n_cores)
+        opt.run()
+        self.energy = opt.get_energy()
+        self.set_atoms(atoms=opt.get_final_atoms())
+        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
+
+        if reset_graph:
+            make_graph(self)
+
+        return None
 
     @requires_atoms()
     def single_point(self, method):
@@ -102,7 +138,8 @@ class Species:
     @work_in('conformers')
     def find_lowest_energy_conformer(self, lmethod=None, hmethod=None):
         """
-        For a molecule object find the lowest conformer in energy and set the molecule.atoms and molecule.energy
+        For a molecule object find the lowest conformer in energy and set the
+        molecule.atoms and molecule.energy
 
         Arguments:
             lmethod (autode.wrappers.ElectronicStructureMethod):
@@ -111,7 +148,8 @@ class Species:
         logger.info('Finding lowest energy conformer')
 
         if self.n_atoms <= 2:
-            logger.warning('Cannot have conformers of a species with 2 atoms or fewer')
+            logger.warning('Cannot have conformers of a species with 2 atoms '
+                           'or fewer')
             return None
 
         if lmethod is None:
@@ -121,17 +159,20 @@ class Species:
         try:
             self._generate_conformers()
         except NotImplementedError:
-            logger.error('Could not generate conformers. _generate_conformers() not implemented')
+            logger.error('Could not generate conformers. generate_conformers() '
+                         'not implemented')
             return None
 
         # For all the generated conformers optimise with the low level of theory
         [self.conformers[i].optimise(lmethod) for i in range(len(self.conformers))]
 
-        # Strip conformers that are similar based on an energy criteria or don't have an energy
+        # Strip conformers that are similar based on an energy criteria or
+        # don't have an energy
         self.conformers = get_unique_confs(conformers=self.conformers)
 
         if hmethod is not None:
-            # Re-optimise all the conformers with the higher level of theory to get more accurate energies
+            # Re-optimise all the conformers with the higher level of theory
+            # to get more accurate energies
             [self.conformers[i].optimise(hmethod) for i in range(len(self.conformers))]
 
         self._set_lowest_energy_conformer()

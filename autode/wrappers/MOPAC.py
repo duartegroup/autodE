@@ -1,7 +1,7 @@
 from copy import copy
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import run_external
+from autode.utils import run_external
 from autode.wrappers.keywords import Keywords
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.keywords import GradientKeywords
@@ -190,10 +190,10 @@ class MOPAC(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_mopac.mop'
+        return f'{calc.name}.mop'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_mopac.out'
+        return f'{calc.name}.out'
 
     def execute(self, calc):
 
@@ -202,7 +202,8 @@ class MOPAC(ElectronicStructureMethod):
         def execute_mopac():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
-            run_external(calc, params=[calc.method.path, calc.input.filename])
+            run_external(params=[calc.method.path, calc.input.filename],
+                         output_filename=calc.output.filename)
 
         execute_mopac()
         return None
@@ -298,7 +299,9 @@ class MOPAC(ElectronicStructureMethod):
         return grad_array.tolist()
 
     def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path, keywords_set=Config.MOPAC.keywords)
+        super().__init__(name='mopac', path=Config.MOPAC.path,
+                         keywords_set=Config.MOPAC.keywords,
+                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type)
 
 
 mopac = MOPAC()

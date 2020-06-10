@@ -3,9 +3,12 @@ from autode import *
 Config.n_cores = 8
 
 # For hydroxide to be not too reactive in solution requires diffuse functions
-Config.ORCA.keywords.low_opt = ['PBE0', 'D3BJ', 'LooseOpt', 'ma-def2-SVP']
-Config.ORCA.keywords.hess = ['PBE0', 'D3BJ', 'Freq', 'ma-def2-SVP']
-Config.ORCA.keywords.opt = ['PBE0', 'D3BJ', 'LooseOpt', 'ma-def2-SVP']
+# set all the optimisation and the hessian keywords to inculde the ma-def2-SVP
+# basis set. This assumes the hmethod is orca
+Config.ORCA.keywords.low_opt = OptKeywords(['PBE0', 'D3BJ', 'LooseOpt', 'ma-def2-SVP'])
+Config.ORCA.keywords.opt = OptKeywords(['PBE0', 'D3BJ', 'LooseOpt', 'ma-def2-SVP'])
+Config.ORCA.keywords.hess = HessianKeywords(['PBE0', 'D3BJ', 'Freq', 'ma-def2-SVP'])
+Config.ORCA.keywords.opt_ts = OptKeywords(['OptTS', 'PBE0', 'D3BJ', 'Freq', 'ma-def2-SVP'])
 
 # Set up the first step in the hydrolysis of the ester, attack of OH- to get a
 # tetrahedral intermediate

@@ -26,7 +26,8 @@ class TransitionState(TSbase):
         return None
 
     def _run_opt_ts_calc(self, method, name_ext):
-        """Run an optts calculation and attempt to set the geometry, energy and normal modes"""
+        """Run an optts calculation and attempt to set the geometry, energy and
+         normal modes"""
 
         self.optts_calc = Calculation(name=f'{self.name}_{name_ext}', molecule=self, method=method,
                                       n_cores=Config.n_cores,
@@ -80,7 +81,8 @@ class TransitionState(TSbase):
             conf_atoms_list = [res.get(timeout=None) for res in results]
 
         for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge, mult=self.mult, atoms=atoms,
+            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge,
+                             mult=self.mult, atoms=atoms,
                              dist_consts=distance_consts)
 
             # If the conformer is unique on an RMSD threshold
@@ -93,7 +95,7 @@ class TransitionState(TSbase):
         return None
 
     @requires_atoms()
-    def opt_ts(self, name_ext='optts'):
+    def optimise(self, name_ext='optts'):
         """Optimise this TS to a true TS """
         logger.info(f'Optimising {self.name} to a transition state')
 
@@ -127,19 +129,23 @@ class TransitionState(TSbase):
         return None
 
     def find_lowest_energy_ts_conformer(self):
-        """Find the lowest energy transition state conformer by performing constrained optimisations"""
-        atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.optts_calc)
+        """Find the lowest energy transition state conformer by performing
+        constrained optimisations"""
+        atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
+        calc = deepcopy(self.optts_calc)
 
-        self.find_lowest_energy_conformer()
+        hmethod = get_hmethod() if Config.hmethod_conformers else None
+        self.find_lowest_energy_conformer(hmethod=hmethod)
 
         if len(self.conformers) == 1:
-            logger.warning('Only found a single conformer. Not rerunning TS optimisation')
+            logger.warning('Only found a single conformer. '
+                           'Not rerunning TS optimisation')
             self.set_atoms(atoms=atoms)
             self.energy = energy
             self.optts_calc = calc
             return None
 
-        self.opt_ts(name_ext='optts_conf')
+        self.optimise(name_ext='optts_conf')
 
         if self.is_true_ts() and self.energy < energy:
             logger.info('Conformer search successful')

@@ -14081,37 +14081,3 @@ task esp
  ==============================================================================
 
 
-
- ------------------------------------------------------------------------
- scf optimize failed                                                                                0
- ------------------------------------------------------------------------
- ------------------------------------------------------------------------
-  current input line : 
-    26: task scf optimize
- ------------------------------------------------------------------------
- ------------------------------------------------------------------------
- This type of error is most commonly associated with calculations not reaching convergence criteria
- ------------------------------------------------------------------------
- For more information see the NWChem manual at http://www.nwchem-sw.org/index.php/NWChem_Documentation
-
-
- For further details see manual section:                                                                                                                                                                                                                                                                
---------------------------------------------------------------------------
-MPI_ABORT was invoked on rank 0 in communicator MPI COMMUNICATOR 3 DUP FROM 0 
-with errorcode -1.
-
-NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
-You may or may not see output from other processes, depending on
-exactly when Open MPI kills them.
---------------------------------------------------------------------------
--------------------------------------------------------
-Primary job  terminated normally, but 1 process returned
-a non-zero exit code.. Per user-direction, the job has been aborted.
--------------------------------------------------------
---------------------------------------------------------------------------
-mpirun detected that one or more processes exited with non-zero status, thus causing
-the job to be terminated. The first process to do so was:
-
-  Process name: [[24622,1],0]
-  Exit code:    255
---------------------------------------------------------------------------

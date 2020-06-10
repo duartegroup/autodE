@@ -24,8 +24,7 @@ jobs:
     - stage: test
       name: Run unit tests
       script:
-        - python -m pytest tests/
-        - python -m pytest --cov-report term --cov autode tests/
+        - py.test --cov-report term --cov autode tests/
       after_success:
         - codecov
     - stage: deploy

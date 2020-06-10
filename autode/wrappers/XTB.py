@@ -1,8 +1,7 @@
 import numpy as np
 import os
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.wrappers.base import run_external
-from autode.wrappers.keywords import Keywords
+from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
@@ -105,10 +104,10 @@ class XTB(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calc):
-        return f'{calc.name}_xtb.xyz'
+        return f'{calc.name}.xyz'
 
     def get_output_filename(self, calc):
-        return f'{calc.name}_xtb.out'
+        return f'{calc.name}.out'
 
     def execute(self, calc):
         """Execute an XTB calculation using the runtime flags"""
@@ -135,7 +134,8 @@ class XTB(ElectronicStructureMethod):
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
-            run_external(calc, params=[calc.method.path, calc.input.filename] + flags)
+            run_external(params=[calc.method.path, calc.input.filename]+flags,
+                         output_filename=calc.output.filename)
 
         execute_xtb()
         return None
@@ -304,7 +304,9 @@ class XTB(ElectronicStructureMethod):
         return np.array(gradients)
 
     def __init__(self):
-        super().__init__(name='xtb', path=Config.XTB.path, keywords_set=Config.XTB.keywords)
+        super().__init__(name='xtb', path=Config.XTB.path,
+                         keywords_set=Config.XTB.keywords,
+                         implicit_solvation_type=Config.XTB.implicit_solvation_type)
 
 
 xtb = XTB()

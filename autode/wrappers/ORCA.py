@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from autode.wrappers.base import run_external
+from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom
 from autode.config import Config
@@ -15,18 +15,19 @@ vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitri
                              'methanol': 'Methanol', '1-octanol': 'Octanol', 'pyridine': 'Pyridine', 'tetrahydrofuran': 'THF', 'toluene': 'Toluene'}
 
 
-def use_vdw_gaussian_solvent(keywords):
+def use_vdw_gaussian_solvent(keywords, implicit_solv_type):
     """
     Determine if the calculation should use the gaussian charge scheme which
     generally affords better convergence for optimiations in implicit solvent
 
     Arguments:
         keywords (autode.wrappers.keywords.Keywords):
+        implicit_solv_type (str):
 
     Returns:
         (bool):
     """
-    if Config.ORCA.solvation_type.lower() != 'cpcm':
+    if implicit_solv_type.lower() != 'cpcm':
         return False
 
     if any('freq' in kw.lower() or 'optts' in kw.lower() for kw in keywords):
@@ -37,14 +38,14 @@ def use_vdw_gaussian_solvent(keywords):
     return True
 
 
-def add_solvent_keyword(calc_input, keywords):
+def add_solvent_keyword(calc_input, keywords, implicit_solv_type):
     """Add a keyword to the input file based on the solvent"""
 
-    if Config.ORCA.solvation_type.lower() not in ['smd', 'cpcm']:
+    if implicit_solv_type.lower() not in ['smd', 'cpcm']:
         raise UnsuppportedCalculationInput
 
     # Use CPCM solvation
-    if (use_vdw_gaussian_solvent(keywords)
+    if (use_vdw_gaussian_solvent(keywords, implicit_solv_type)
             and calc_input.solvent not in vdw_gaussian_solvent_dict.keys()):
 
         err = (f'CPCM solvent with gaussian charge not avalible for '
@@ -57,7 +58,7 @@ def add_solvent_keyword(calc_input, keywords):
     return
 
 
-def get_keywords(calc_input, molecule):
+def get_keywords(calc_input, molecule, implicit_solv_type):
     """Modify the keywords for this calculation with the solvent + fix for
     single atom optimisation calls"""
 
@@ -69,23 +70,23 @@ def get_keywords(calc_input, molecule):
             keywords.remove(keyword)  # ORCA defaults to a SP calc
 
     if calc_input.solvent is not None:
-        add_solvent_keyword(calc_input, keywords)
+        add_solvent_keyword(calc_input, keywords, implicit_solv_type)
 
     return keywords
 
 
-def print_solvent(inp_file, calc_input, keywords):
+def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):
     """Add the solvent block to the input file"""
     if calc_input.solvent is None:
         return
 
-    if Config.ORCA.solvation_type.lower() == 'smd':
+    if implicit_solv_type.lower() == 'smd':
         print(f'%cpcm\n'
               f'smd true\n'
               f'SMDsolvent \"{calc_input.solvent}\"\n'
               f'end', file=inp_file)
 
-    if use_vdw_gaussian_solvent(keywords):
+    if use_vdw_gaussian_solvent(keywords, implicit_solv_type):
         print('%cpcm\n surfacetype vdw_gaussian\nend', file=inp_file)
 
     return
@@ -192,12 +193,14 @@ class ORCA(ElectronicStructureMethod):
 
     def generate_input(self, calc, molecule):
 
-        keywords = get_keywords(calc.input, molecule)
+        keywords = get_keywords(calc.input, molecule,
+                                self.implicit_solvation_type)
 
         with open(calc.input.filename, 'w') as inp_file:
             print('!', *keywords, file=inp_file)
 
-            print_solvent(inp_file, calc.input, keywords)
+            print_solvent(inp_file, calc.input, keywords,
+                          self.implicit_solvation_type)
             print_added_internals(inp_file, calc.input)
             print_distance_constraints(inp_file, molecule)
             print_cartesian_constraints(inp_file, molecule)
@@ -216,17 +219,18 @@ class ORCA(ElectronicStructureMethod):
         return None
 
     def get_input_filename(self, calculation):
-        return f'{calculation.name}_orca.inp'
+        return f'{calculation.name}.inp'
 
     def get_output_filename(self, calculation):
-        return f'{calculation.name}_orca.out'
+        return f'{calculation.name}.out'
 
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
                          kept_file_exts=('.out', '.hess', '.xyz', '.inp', '.pc'))
         def execute_orca():
-            run_external(calc, params=[calc.method.path, calc.input.filename])
+            run_external(params=[calc.method.path, calc.input.filename],
+                         output_filename=calc.output.filename)
 
         execute_orca()
         return None
@@ -424,7 +428,9 @@ class ORCA(ElectronicStructureMethod):
         return np.array(gradients)
 
     def __init__(self):
-        super().__init__('orca', Config.ORCA.path, Config.ORCA.keywords)
+        super().__init__('orca', path=Config.ORCA.path,
+                         keywords_set=Config.ORCA.keywords,
+                         implicit_solvation_type=Config.ORCA.implicit_solvation_type)
 
 
 orca = ORCA()

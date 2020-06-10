@@ -1,8 +1,8 @@
 from autode.atoms import Atom
 from autode.conformers import conf_gen
-from autode.molecule import Molecule
-from autode.molecule import Reactant, Product
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Molecule
+from autode.species.molecule import Reactant, Product
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.geom import calc_rmsd
 from autode.geom import are_coords_reasonable

@@ -7,7 +7,7 @@ from autode.exceptions import RDKitFailed
 from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
-from autode.smiles_parser import SmilesParser
+from autode.smiles.smiles_parser import SmilesParser
 from copy import deepcopy
 
 

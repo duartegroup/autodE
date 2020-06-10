@@ -1,8 +1,8 @@
 ******
-PES 2D
+PES 1D
 ******
 
-.. automodule:: autode.pes_2d
+.. automodule:: autode.pes.pes_1d
    :members:
    :undoc-members:
    :special-members: __init__

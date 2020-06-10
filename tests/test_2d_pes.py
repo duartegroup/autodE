@@ -1,10 +1,10 @@
-import autode.pes_2d as pes_2d
+import autode.pes.pes_2d as pes_2d
 import numpy as np
-from autode.molecule import Reactant, Product
+from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
-from autode.complex import ReactantComplex, ProductComplex
-from autode.pes import FormingBond, BreakingBond
-from autode.reaction import Reaction
+from autode.species.complex import ReactantComplex, ProductComplex
+from autode.pes.pes import FormingBond, BreakingBond
+from autode.reactions.reaction import Reaction
 from autode.wrappers.XTB import xtb
 from autode.config import Config
 import os

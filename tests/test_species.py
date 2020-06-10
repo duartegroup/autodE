@@ -1,4 +1,5 @@
-from autode.species import Species
+from autode.species.species import Species
+from autode.species.molecule import Molecule
 from autode.wrappers.ORCA import orca
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
@@ -107,3 +108,12 @@ def test_species_single_point():
 
     os.remove('H2_sp_orca.inp')
     os.chdir(here)
+
+
+def test_species_equality():
+
+    assert mol == mol
+    assert mol == Molecule(name='H2', smiles='[H][H]')
+    assert mol != Molecule(name='H2', smiles='[H][H]', charge=-1, mult=2)
+    assert mol != Molecule(name='H2', smiles='[H][H]', mult=3)
+

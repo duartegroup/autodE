@@ -1,8 +1,8 @@
 from autode.wrappers.ORCA import ORCA
 from autode.calculation import Calculation
 from autode.calculation import execute_calc
-from autode.molecule import Molecule
-from autode.molecule import SolvatedMolecule
+from autode.species.molecule import Molecule
+from autode.species.molecule import SolvatedMolecule
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
@@ -10,7 +10,6 @@ from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
-from autode.config import Config
 import pytest
 
 import os
@@ -163,12 +162,12 @@ def test_solvation():
     with pytest.raises(UnsuppportedCalculationInput):
 
         # Should raise on unsupported calculation type
-        Config.ORCA.solvation_type = 'xxx'
+        method.implicit_solvation_type = 'xxx'
         calc = Calculation(name='broken_solvation', molecule=methane,
                            method=method, keywords=sp_keywords)
         calc.run()
 
-    Config.ORCA.solvation_type = 'CPCM'
+    method.implicit_solvation_type = 'CPCM'
     calc = Calculation(name='methane_cpcm', molecule=methane,
                        method=method, keywords=sp_keywords)
     calc.generate_input()
@@ -176,7 +175,7 @@ def test_solvation():
     assert any('cpcm' in line.lower() for line in open('methane_cpcm_orca.inp', 'r'))
     os.remove('methane_cpcm_orca.inp')
 
-    Config.ORCA.solvation_type = 'SMD'
+    method.implicit_solvation_type = 'SMD'
     calc = Calculation(name='methane_smd', molecule=methane,
                        method=method, keywords=sp_keywords)
     calc.generate_input()

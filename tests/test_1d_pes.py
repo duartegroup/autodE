@@ -1,8 +1,8 @@
-from autode.pes_1d import get_ts_guess_1d, PES1d
+from autode.pes.pes_1d import get_ts_guess_1d, PES1d
 from autode.atoms import Atom
-from autode.molecule import Molecule
-from autode.pes import FormingBond
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Molecule
+from autode.pes.pes import FormingBond
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import xtb

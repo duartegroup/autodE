@@ -12,8 +12,10 @@ def length(vec):
 
 def are_coords_reasonable(coords):
     """
-    Determine if a set of coords are reasonable. No distances can be < 0.7 Å and if there are more than 4 atoms ensure
-    they do not all lie in the same plane. The latter possibility arises from RDKit's conformer generation algorithm
+    Determine if a set of coords are reasonable. No distances can be < 0.7 Å
+    and if there are more than 4 atoms ensure they do not all lie in the same
+    plane. The latter possibility arises from RDKit's conformer generation
+    algorithm
     breaking
     Arguments:
         coords (np.ndarray): Species coordinates as a n_atoms x 3 array
@@ -23,23 +25,26 @@ def are_coords_reasonable(coords):
 
     n_atoms = len(coords)
 
-    # Generate a n_atoms x n_atoms matrix
-    distance_matrix_unity_diag = distance_matrix(coords, coords) + np.identity(n_atoms)
+    # Generate a n_atoms x n_atoms matrix with ones on the diagonal
+    dist_mat = distance_matrix(coords, coords) + np.identity(n_atoms)
 
-    if np.min(distance_matrix_unity_diag) < 0.7:
-        logger.warning('There is a distance < 0.7 Å. Structure is *not* sensible')
+    if np.min(dist_mat) < 0.7:
+        logger.warning('There is a distance < 0.7 Å. Structure is *not* '
+                       'sensible')
         return False
 
     if n_atoms > 4:
         if all([coord[2] == 0.0 for coord in coords]):
-            logger.warning('RDKit likely generated a wrong geometry. Structure is *not* sensible')
+            logger.warning('RDKit likely generated a wrong geometry. Structure'
+                           ' is *not* sensible')
             return False
 
     return True
 
 
 def get_atoms_linear_interp(atoms, bonds, final_distances):
-    """For a geometry defined by a set of xyzs, set the constrained bonds to the correct lengths
+    """For a geometry defined by a set of xyzs, set the constrained bonds to
+    the correct lengths
 
     Arguments:
         atoms (list(autode.atoms.Atom)): list of atoms
@@ -78,9 +83,12 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
     https://en.wikipedia.org/wiki/Kabsch_algorithm
 
-    :param p_matrix: (np.ndarray)
-    :param q_matrix: (np.ndarray)
-    :return: (np.ndarray) rotation matrix
+    Arguments:
+        p_matrix: (np.ndarray)
+        q_matrix: (np.ndarray)
+
+    Returns:
+        (np.ndarray) rotation matrix
     """
 
     h = np.matmul(p_matrix.transpose(), q_matrix)
@@ -94,7 +102,8 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
 
 
 def get_centered_matrix(mat):
-    """For a list of coordinates n.e. a n_atoms x 3 matrix as a np array translate to the center of the coordinates"""
+    """For a list of coordinates n.e. a n_atoms x 3 matrix as a np array
+    translate to the center of the coordinates"""
     centroid = np.average(mat, axis=0)
     return np.array([coord - centroid for coord in mat])
 
@@ -124,14 +133,17 @@ def get_neighbour_list(species, atom_i):
 
 
 def get_distance_constraints(species):
-    """Set all the distance constraints required in an optimisation as the active bonds"""
+    """Set all the distance constraints required in an optimisation as the
+    active bonds"""
     distance_constraints = {}
 
     if species.graph is None:
-        logger.warning('Molecular graph was not set cannot find any distance constraints')
+        logger.warning('Molecular graph was not set cannot find any distance '
+                       'constraints')
         return None
 
-    # Add the active edges(/bonds) in the molecular graph to the dict, value being the current distance
+    # Add the active edges(/bonds) in the molecular graph to the dict, value
+    # being the current distance
     for edge in species.graph.edges:
 
         if species.graph.edges[edge]['active']:
@@ -141,7 +153,8 @@ def get_distance_constraints(species):
 
 
 def calc_rmsd(coords1, coords2):
-    """Calculate the RMSD between two sets of coordinates using the Kabash algorithm"""
+    """Calculate the RMSD between two sets of coordinates using the Kabsch
+    algorithm"""
 
     # Construct the P matrix in the Kabsch algorithm
     p_mat = deepcopy(coords2)
@@ -162,8 +175,8 @@ def calc_rmsd(coords1, coords2):
 
 def get_points_on_sphere(n_points, r=1):
     """
-    Find n evenly spaced points on a sphere using the "How to generate equidistributed points on the surface of a
-    sphere" by Markus Deserno, 2004. Will
+    Find n evenly spaced points on a sphere using the "How to generate
+    equidistributed points on the surface of a sphere" by Markus Deserno, 2004.
 
     Arguments:
         n_points (int): number of points to generate

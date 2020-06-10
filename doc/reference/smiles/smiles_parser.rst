@@ -1,8 +1,8 @@
 *************
-Saddle Points
+Smiles Parser
 *************
 
-.. automodule:: autode.saddle_points
+.. automodule:: autode.smiles.smiles_parser
    :members:
    :undoc-members:
    :special-members: __init__

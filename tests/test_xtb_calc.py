@@ -1,7 +1,7 @@
 import pytest
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.config import Config
 import os
 here = os.path.dirname(os.path.abspath(__file__))
@@ -48,9 +48,9 @@ def test_xtb_calculation():
                             keywords=Config.XTB.keywords.opt)
 
     const_opt.generate_input()
-    assert os.path.exists('xcontrol_const_opt')
+    assert os.path.exists('xcontrol_const_opt_xtb')
 
     os.remove('const_opt_xtb.xyz')
-    os.remove('xcontrol_const_opt')
+    os.remove('xcontrol_const_opt_xtb')
     os.remove('opt_xtb.xyz')
     os.chdir(here)

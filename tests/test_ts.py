@@ -2,19 +2,18 @@ from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
 from autode.bond_rearrangement import BondRearrangement
-from autode.reaction import Reaction
+from autode.reactions.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
-from autode.molecule import Reactant, Product
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Reactant, Product
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
 from autode.transition_states.base import imag_mode_links_reactant_products
 from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
-from autode.species import Species
+from autode.species.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
-from autode.transition_states.templates import template_matches
 from autode.wrappers.G09 import G09
 import os
 here = os.path.dirname(os.path.abspath(__file__))
@@ -106,8 +105,8 @@ def test_links_reacs_prods():
         os.remove(f'complex_conf{i}_opt_xtb.xyz')
 
     os.remove('ts_guess_hess_orca.inp')
-    os.remove('ts_guess_hess_forwards_orca.inp')
-    os.remove('ts_guess_hess_backwards_orca.inp')
+    os.remove('ts_guess_hess_orca_forwards_orca.inp')
+    os.remove('ts_guess_hess_orca_backwards_orca.inp')
 
     os.chdir(here)
 
@@ -170,7 +169,7 @@ def test_find_tss():
     # Spoof ORCA and XTB installs
     Config.ORCA.path = here
     Config.XTB.path = here
-    Config.ORCA.solvation_type = 'cpcm'
+    Config.ORCA.implicit_solvation_type = 'cpcm'
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1

@@ -9,14 +9,14 @@ from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
 from autode.methods import high_level_method_names
-from autode.min_energy_pathway import get_sum_energy_mep
+from autode.pes.min_energy_pathway import get_sum_energy_mep
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
-from autode.pes import get_point_species
-from autode.pes import get_closest_species
-from autode.pes import PES
+from autode.pes.pes import get_point_species
+from autode.pes.pes import get_closest_species
+from autode.pes.pes import PES
 from autode.plotting import plot_2dpes
-from autode.saddle_points import poly2d_saddlepoints
+from autode.pes.saddle_points import poly2d_saddlepoints
 from autode.utils import work_in
 from autode.units import KcalMol
 

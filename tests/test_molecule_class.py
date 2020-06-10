@@ -1,20 +1,17 @@
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.conformers.conformer import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
-from autode.smiles import calc_multiplicity
+from autode.smiles.smiles import calc_multiplicity
 from autode.wrappers.ORCA import orca
-from autode.molecule import Reactant
-from autode.molecule import Product
-from autode.molecule import reactant_to_product
-from autode.reaction import Reaction
-from autode.conformers import conformers
-from autode.bond_rearrangement import BondRearrangement
+from autode.species.molecule import Reactant
+from autode.species.molecule import Product
+from autode.species.molecule import reactant_to_product
 from rdkit.Chem import Mol
 import numpy as np
 import pytest
 import os
-from autode.mol_graphs import reac_graph_to_prod_graph
+
 here = os.path.dirname(os.path.abspath(__file__))
 
 

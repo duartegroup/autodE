@@ -1,8 +1,8 @@
-****
-QMMM
-****
+******
+Smiles
+******
 
-.. automodule:: autode.solvent.qmmm
+.. automodule:: autode.smiles.smiles
    :members:
    :undoc-members:
    :special-members: __init__

@@ -92,7 +92,8 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
         for i in curr_nodes:
 
             if i in truncated_atom_indexes:
-                # Truncated atoms by definition do not have any neighbours that are not already in the graph
+                # Truncated atoms by definition do not have any neighbours
+                # that are not already in the graph
                 continue
 
             for n_atom_index in s_molecule.graph.neighbors(i):
@@ -104,7 +105,9 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
                 if s_molecule.atoms[n_atom_index].label == 'C' and n_neighbours == 4:
                     truncated_atom_indexes.append(n_atom_index)
 
-                    add_capping_atom(i, n_atom_index, graph=truncated_graph, s_molecule=s_molecule)
+                    add_capping_atom(i, n_atom_index,
+                                     graph=truncated_graph,
+                                     s_molecule=s_molecule)
 
                 else:
                     truncated_graph.add_nodes_from([(n_atom_index, molecule.graph.nodes[n_atom_index])])
@@ -121,58 +124,85 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
     return None
 
 
-def strip_non_core_atoms(molecule, active_atoms):
+def add_remaining_bonds(truncated_graph, full_graph):
+    """Truncation by adding atoms and their nearest neighbours may miss bonds
+    between sections that aren't connected initially, so add them"""
+
+    for (i, j) in full_graph.edges:
+        if i not in truncated_graph.nodes:
+            continue
+        # At least j in the graph
+
+        if j not in truncated_graph.nodes:
+            continue
+
+        # i and j are in the graph
+        if (i, j) in truncated_graph.edges:
+            continue
+
+        # an edge doesn't exist between atoms i ang j - make it
+        truncated_graph.add_edge(i, j)
+
+    return None
+
+
+def get_truncated_complex(r_complex, bond_rearrangement):
     """
+    From a truncated reactant complex by removing non core atoms and adding
+    capping atoms where appropriate
+
+    r_complex -> t_complex
 
     Arguments:
-         molecule (autode.species.Species):
-         active_atoms (list(int)):
-    """
-    s_molecule = deepcopy(molecule)
-
-    logger.info(f'Truncating {molecule.name} with {molecule.n_atoms} atoms around core atoms: {active_atoms}')
-    truncated_graph = nx.Graph()
-
-    # Add all the core active atoms to the graphs, their nearest neighbours and the bonds between them
-    truncated_graph.add_nodes_from([(i, molecule.graph.nodes[i]) for i in active_atoms])
-
-    for i in active_atoms:
-        truncated_graph.add_nodes_from([(j, molecule.graph.nodes[j]) for j in molecule.graph.neighbors(i)])
-        truncated_graph.add_edges_from([(i, j, molecule.graph.edges[(i, j)]) for j in molecule.graph.neighbors(i)])
-
-    # Add all the π bonds that are associated with the core atoms, then close those those etc.
-    curr_nodes = add_core_pi_bonds(molecule, s_molecule, truncated_graph=truncated_graph)
-
-    # Swap all unsaturated carbons and the attached fragment for H
-    logger.warning('Truncation is only implemented over C-C single bonds')
-    add_capping_atoms(molecule, s_molecule, truncated_graph=truncated_graph, curr_nodes=curr_nodes)
-
-    # Delete all atoms not in the truncated graph and reset the graph
-    s_molecule.graph = truncated_graph
-    s_molecule.set_atoms(atoms=[atom for i, atom in enumerate(s_molecule.atoms) if i in sorted(truncated_graph.nodes)])
-
-    # Relabel the nodes so they correspond to the new set of atoms
-    mapping = {node_label: i for i, node_label in enumerate(sorted(truncated_graph.nodes))}
-    s_molecule.graph = nx.relabel_nodes(s_molecule.graph, mapping=mapping)
-
-    logger.info(f'Truncated to {s_molecule.n_atoms} atoms')
-    return s_molecule
-
-
-def get_truncated_complex(complex_, bond_rearrangement):
-    """
-    From a truncated reactant complex
-
-    Arguments:
-        complex_ (autode.complex.ReactantComplex):
+        r_complex (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
 
-    truncated_complex = strip_non_core_atoms(molecule=complex_,
-                                             active_atoms=bond_rearrangement.active_atoms)
-    truncated_complex.name += '_truncated'
+    active_atoms = bond_rearrangement.active_atoms
+    t_complex = deepcopy(r_complex)
 
-    return truncated_complex
+    logger.info(f'Truncating {r_complex.name} with {r_complex.n_atoms} atoms '
+                f'around core atoms: {active_atoms}')
+    t_graph = nx.Graph()
+
+    # Add all the core active atoms to the graphs, their nearest neighbours
+    # and the bonds between them
+    t_graph.add_nodes_from(
+        [(i, r_complex.graph.nodes[i]) for i in active_atoms])
+
+    for i in active_atoms:
+        t_graph.add_nodes_from([(j, r_complex.graph.nodes[j]) for j in
+                                r_complex.graph.neighbors(i)])
+        t_graph.add_edges_from(
+            [(i, j, r_complex.graph.edges[(i, j)]) for j in
+             r_complex.graph.neighbors(i)])
+
+    # Add all the π bonds that are associated with the core atoms, then close
+    # those those etc.
+    curr_nodes = add_core_pi_bonds(r_complex, t_complex, truncated_graph=t_graph)
+
+    # Swap all unsaturated carbons and the attached fragment for H
+    logger.warning('Truncation is only implemented over C-C single bonds')
+    add_capping_atoms(r_complex, t_complex,
+                      truncated_graph=t_graph,
+                      curr_nodes=curr_nodes)
+
+    add_remaining_bonds(t_graph, full_graph=r_complex.graph)
+
+    # Delete all atoms not in the truncated graph and reset the graph
+    t_complex.graph = t_graph
+    t_complex.set_atoms(atoms=[atom for i, atom in enumerate(t_complex.atoms) if
+               i in sorted(t_graph.nodes)])
+
+    # Relabel the nodes so they correspond to the new set of atoms
+    mapping = {node_label: i for i, node_label in enumerate(sorted(t_graph.nodes))}
+
+    t_complex.graph = nx.relabel_nodes(t_complex.graph, mapping=mapping)
+
+    logger.info(f'Truncated to {t_complex.n_atoms} atoms')
+    t_complex.name += '_truncated'
+
+    return t_complex
 
 
 def is_worth_truncating(reactant_complex, bond_rearrangement):
@@ -183,18 +213,17 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
         reactant_complex (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
-    if reactant_complex.__class__.__name__ == 'SolvatedReactantComplex':
-        logger.info('Not worth truncating explicitily solvated reaction')
-        return False
-
     if has_matching_ts_templates(reactant_complex, bond_rearrangement):
-        logger.info('Not truncating a reactant (complex) that has a saved template')
+        logger.info('Not truncating a reactant (complex) that has a saved '
+                    'template')
         return False
 
-    truncated_complex = get_truncated_complex(reactant_complex, bond_rearrangement)
+    truncated_complex = get_truncated_complex(reactant_complex,
+                                              bond_rearrangement)
 
     if reactant_complex.n_atoms - truncated_complex.n_atoms < 10:
-        logger.info('Truncated complex had 10 atoms or fewer than the full complex. Not truncating')
+        logger.info('Truncated complex had 10 atoms or fewer than the full '
+                    'complex. Not truncating')
         return False
 
     logger.info('Complex is worth truncating')

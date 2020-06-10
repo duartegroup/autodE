@@ -1,9 +1,10 @@
 import os
-from autode import reaction
+from autode.reactions import reaction
+from autode.reactions import reaction_types
 from autode.transition_states.transition_state import TransitionState
 from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.ts_guess import TSguess
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
@@ -29,7 +30,8 @@ trig_h3 = reaction.Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.7908
 
 def test_reaction_class():
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
-    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.7, 0.0, 0.0)])
+    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0),
+                                                    Atom('H', 0.7, 0.0, 0.0)])
 
     # h + h > mol
     hh_reac = reaction.Reaction(h1, h2, hh_product, name='h2_assoc')
@@ -39,7 +41,7 @@ def test_reaction_class():
     hh_product.energy = 1
 
     # Only swap to dissociation in invoking locate_ts()
-    assert hh_reac.type == reaction.reactions.Addition
+    assert hh_reac.type == reaction_types.Addition
     assert len(hh_reac.prods) == 1
     assert len(hh_reac.reacs) == 2
     assert hh_reac.ts is None
@@ -55,7 +57,7 @@ def test_reaction_class():
     h_sub = reaction.Reaction(h1, hh_reactant, h2_product, hh_product,
                               solvent_name='water')
 
-    assert h_sub.type == reaction.reactions.Substitution
+    assert h_sub.type == reaction_types.Substitution
     assert h_sub.name == 'reaction'
     assert h_sub.solvent.name == 'water'
     assert h_sub.solvent.smiles == 'O'
@@ -68,9 +70,10 @@ def test_check_rearrangement():
     reac = reaction.Reaction(lin_h3, trig_h3)
 
     # Should switch reactants and products if the products have more bonds than
-    # the reactants
-    assert reac.reacs[0].name == 'h3_trigonal'
-    assert reac.prods[0].name == 'h3_linear'
+    # the reactants, but only when the TS is attempted to be located..
+
+    # assert reac.reacs[0].name == 'h3_trigonal'
+    # assert reac.prods[0].name == 'h3_linear'
 
 
 def test_reaction_identical_reac_prods():

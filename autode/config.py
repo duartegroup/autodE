@@ -82,6 +82,12 @@ class Config:
     #
     max_num_complex_conformers = 300
     # -------------------------------------------------------------------------
+    # Use the high + low level method to find the lowest energy
+    # conformer, to use energies at the low_opt level of the low level code
+    # set this to False
+    #
+    hmethod_conformers = True
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------
@@ -109,7 +115,7 @@ class Config:
         # better geometry convergence (https://doi.org/10.1002/jcc.26139)  SMD
         # is in general more accurate, but does not (yet) have support for the
         # VdW charge scheme 1. 'cpcm', 2. 'smd'
-        solvation_type = 'cpcm'
+        implicit_solvation_type = 'cpcm'
 
     class G09:
         # ---------------------------------------------------------------------
@@ -119,15 +125,18 @@ class Config:
         # path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose'],
-                               grad=['PBEPBE/Def2SVP', 'Force(NoStep)'],
-                               opt=['PBE1PBE/Def2SVP', 'Opt'],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq',
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', 'EmpiricalDispersion=GD3BJ'],
+                               grad=['PBEPBE/Def2SVP', 'Force(NoStep)', 'EmpiricalDispersion=GD3BJ'],
+                               opt=['PBE1PBE/Def2SVP', 'Opt', 'EmpiricalDispersion=GD3BJ'],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ',
                                        'Opt=(TS, CalcFC, NoEigenTest, '
                                        'MaxCycles=100, MaxStep=10, '
                                        'NoTrustUpdate)'],
-                               hess=['PBE1PBE/Def2SVP', 'Freq'],
-                               sp=['PBE1PBE/Def2TZVP'])
+                               hess=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ'],
+                               sp=['PBE1PBE/Def2TZVP', 'EmpiricalDispersion=GD3BJ'])
+
+        # Only SMD implemented
+        implicit_solvation_type = 'smd'
 
     class NWChem:
         # ---------------------------------------------------------------------
@@ -140,6 +149,8 @@ class Config:
         svp_basis_block = 'basis\n  *   library Def2-SVP\nend'
         tzvp_basis_block = 'basis\n  *   library Def2-TZVP\nend'
         #
+        # Note that the default NWChem level is PBE0 and PBE rather than
+        # PBE0-D3BJ and PBE-D3BJ as only D3 is available
         keywords = KeywordsSet(low_opt=['driver\n'
                                         '  gmax 0.002\n'
                                         '  grms 0.0005\n'
@@ -194,6 +205,9 @@ class Config:
                                sp=[tzvp_basis_block, 'dft\n  xc pbe0\nend',
                                    'task dft energy'])
 
+        # Only SMD implemented
+        implicit_solvation_type = 'smd'
+
     class XTB:
         # ---------------------------------------------------------------------
         # Parameters for xtb                  https://github.com/grimme-lab/xtb
@@ -203,6 +217,9 @@ class Config:
         path = None
         #
         keywords = KeywordsSet()
+        #
+        # Only GBSA implemented
+        implicit_solvation_type = 'gbsa'
 
     class MOPAC:
         # ---------------------------------------------------------------------
@@ -216,3 +233,7 @@ class Config:
         # using the keywords_list specified here. Solvent in mopac is defined
         # by EPS and the dielectric
         keywords = KeywordsSet(low_opt=['PM7', 'PRECISE'])
+        #
+        # Only COSMO implemented
+        implicit_solvation_type = 'cosmo'
+

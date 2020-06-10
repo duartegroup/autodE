@@ -1,13 +1,13 @@
-from autode.pes_2d import PES2d
-from autode.pes import get_closest_species
-from autode.complex import ReactantComplex, ProductComplex
+from autode.pes.pes_2d import PES2d
+from autode.pes.pes import get_closest_species
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
-from autode.species import Species
+from autode.species.species import Species
 from autode.mol_graphs import make_graph
 from autode.exceptions import NoClosestSpecies
-from autode.pes import FormingBond, BreakingBond
-from autode.reaction import Reaction
-from autode.molecule import Reactant, Product
+from autode.pes.pes import FormingBond, BreakingBond
+from autode.reactions.reaction import Reaction
+from autode.species.molecule import Reactant, Product
 import pytest
 import numpy as np
 

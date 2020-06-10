@@ -1,5 +1,5 @@
 *************
-Poijt Charges
+Point Charges
 *************
 
 .. automodule:: autode.point_charges

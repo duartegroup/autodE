@@ -1,10 +1,9 @@
-from autode import min_energy_pathway as mep
-from autode.pes_2d import PES2d
-from autode.complex import ReactantComplex, ProductComplex
-from autode.molecule import Molecule
+from autode.pes import min_energy_pathway as mep
+from autode.pes.pes_2d import PES2d
+from autode.species.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Molecule
 from copy import deepcopy
 import numpy as np
-from numpy.polynomial import polynomial
 
 
 def test_sum_mep():

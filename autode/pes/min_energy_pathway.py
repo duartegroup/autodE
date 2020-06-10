@@ -6,14 +6,15 @@ from autode.mol_graphs import is_isomorphic
 
 def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
     """
-    Calculate the sum of the minimum energy path that traverses reactants (r) to products (p) via the saddle point (s)
+    Calculate the sum of the minimum energy path that traverses reactants (r)
+    to products (p) via the saddle point (s)
 
-       |          p
-       |     s
-    r2 |
-       | r
-       ------------
-            r1
+    #        |          p
+    #       |     s
+    #  r2  |
+    #     | r
+    #     ------------
+    #          r1
 
     Arguments:
         saddle_point_r1r2 (tuple(float)):
@@ -24,7 +25,8 @@ def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
     reactant_point = (0, 0)
     product_point, product_energy = None, 9999
 
-    # The saddle point indexes are those that are closest tp the saddle points r1 and r2 distances
+    # The saddle point indexes are those that are closest tp the saddle points
+    # r1 and r2 distances
     saddle_point = (np.argmin(np.abs(pes_2d.r1s - saddle_point_r1r2[0])),
                     np.argmin(np.abs(pes_2d.r2s - saddle_point_r1r2[1])))
 
@@ -44,7 +46,8 @@ def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
             # Find the point where products are made
             if is_isomorphic(graph1=pes_2d.species[i, j].graph, graph2=pes_2d.product_graph):
 
-                # If products have not yet found, or they have and the energy are lower but are still isomorphic
+                # If products have not yet found, or they have and the energy
+                # are lower but are still isomorphic
                 if product_point is None or point_rel_energy < product_energy:
                     product_point = (i, j)
                     product_energy = point_rel_energy
@@ -53,11 +56,13 @@ def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
                 f'products r1={pes_2d.rs[product_point][0]:.4f}, r2={pes_2d.rs[product_point][1]:.4f} Å')
 
     def energy_diff(curr_node, final_node, d):
-        """Energy difference between the twp points on the graph. d is required to satisfy nx. Must only
-           increase in energy to a saddle point so take the magnitude to prevent traversing s mistakenly"""
+        """Energy difference between the twp points on the graph. d is required
+         to satisfy nx. Must only increase in energy to a saddle point so take
+          the magnitude to prevent traversing s mistakenly"""
         return np.abs(energy_graph.nodes[final_node]['energy'] - energy_graph.nodes[curr_node]['energy'])
 
-    # Calculate the energy along the MEP up to the saddle point from reactants and products
+    # Calculate the energy along the MEP up to the saddle point from reactants
+    # and products
     rpath_energy = nx.dijkstra_path_length(energy_graph, source=reactant_point, target=saddle_point, weight=energy_diff)
     ppath_energy = nx.dijkstra_path_length(energy_graph, source=product_point, target=saddle_point, weight=energy_diff)
 

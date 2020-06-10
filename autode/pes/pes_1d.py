@@ -6,9 +6,9 @@ from autode.log import logger
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
 from autode.plotting import plot_1dpes
-from autode.pes import get_closest_species
-from autode.pes import get_point_species
-from autode.pes import PES
+from autode.pes.pes import get_closest_species
+from autode.pes.pes import get_point_species
+from autode.pes.pes import PES
 from autode.units import KcalMol
 from autode.utils import work_in
 
@@ -16,7 +16,8 @@ from autode.utils import work_in
 class PES1d(PES):
 
     def get_species_saddle_point(self):
-        """Get the possible first order saddle points, which are just the peaks in the PES"""
+        """Get the possible first order saddle points, which are just the
+        peaks in the PES"""
         energies = [self.species[i].energy for i in range(self.n_points)]
 
         # Peaks have lower energies both sides of them
@@ -49,12 +50,14 @@ class PES1d(PES):
 
     @work_in('pes1d')
     def calculate(self, name, method, keywords):
-        """Calculate all the points on the surface in serial using the maximum number of cores available"""
+        """Calculate all the points on the surface in serial using the maximum
+         number of cores available"""
 
         for i in range(self.n_points):
             closest_species = get_closest_species((i,), self)
 
-            # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
+            # Set up the dictionary of distance constraints keyed with bond
+            # indexes and values the current r1, r2.. value
             distance_constraints = {self.rs_idxs[0]: self.rs[i][0]}
 
             self.species[i] = get_point_species((i,), closest_species, distance_constraints, name, method, keywords, Config.n_cores)
@@ -103,7 +106,8 @@ def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):
     Returns:
         (autode.transition_states.ts_guess.TSguess)
     """
-    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using {bond.atom_indexes} as the active bond')
+    logger.info(f'Getting TS guess from 1D relaxed potential energy scan using '
+                f'{bond.atom_indexes} as the active bond')
 
     # Create a potential energy surface in the active bonds and calculate
     pes = PES1d(reactant=reactant, product=product,

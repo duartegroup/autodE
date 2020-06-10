@@ -1,30 +1,9 @@
 from abc import ABC
 from abc import abstractmethod
 import os
-from subprocess import Popen
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
-
-
-def run_external(calc, params):
-    """
-    Standard method to run a EST calculation with subprocess writing the
-    output to the calculation output filename
-
-    Arguments:
-        calc (autode.calculation.Calculation):
-        params (list): e.g. [/path/to/method, inputfilename]
-    """
-
-    with open(calc.output.filename, 'w') as output_file:
-        # /path/to/method input_filename > output_filename
-        subprocess = Popen(params,
-                           stdout=output_file,
-                           stderr=open(os.devnull, 'w'))
-        subprocess.wait()
-
-    return None
 
 
 class ElectronicStructureMethod(ABC):
@@ -229,12 +208,13 @@ class ElectronicStructureMethod(ABC):
         """
         pass
 
-    def __init__(self, name, path, keywords_set):
+    def __init__(self, name, path, keywords_set, implicit_solvation_type):
         """
         Arguments:
             name (str): wrapper name. ALSO the name of the executable
             path (str): absolute path to the executable
             keywords_set (autode.wrappers.keywords.KeywordsSet):
+            implicit_solvation_type (str):
 
         """
         self.name = name
@@ -247,3 +227,6 @@ class ElectronicStructureMethod(ABC):
         self.available = False
 
         self.keywords = keywords_set
+
+        assert type(implicit_solvation_type) is str
+        self.implicit_solvation_type = implicit_solvation_type
