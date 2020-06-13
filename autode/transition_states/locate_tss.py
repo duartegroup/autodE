@@ -48,7 +48,7 @@ def find_tss(reaction):
     tss = []
     for bond_rearrangement in bond_rearrangs:
         logger.info(f'Locating transition state using active bonds {bond_rearrangement.all}')
-        ts = get_ts(reaction, reactant, product, bond_rearrangement)
+        ts = get_ts(reaction, reactant, bond_rearrangement)
 
         if ts is not None:
             tss.append(ts)
@@ -199,41 +199,54 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
     return None
 
 
-def get_truncated_ts(reaction, reactant, product, bond_rearr):
+def get_truncated_ts(reaction, bond_rearr):
     """Get the TS of a truncated reactant and product complex"""
 
     # Truncate the reactant and product complex to the core atoms so the full
     # TS can be template-d
-    t_reactant = get_truncated_complex(reactant, bond_rearrangement=bond_rearr)
-    t_product = get_truncated_complex(product, bond_rearrangement=bond_rearr)
+    f_reactant = deepcopy(reaction.reactant)
+    f_product = deepcopy(reaction.product)
 
-    # Re-find the bond rearrangements, which really should exist as it it just
-    # a cut down reactant complex
+    # Set the truncated reactant and product for this reaction
+    reaction.reactant = get_truncated_complex(f_reactant, bond_rearrangement=bond_rearr)
+    reaction.product = get_truncated_complex(f_product, bond_rearrangement=bond_rearr)
+
+    # Re-find the bond rearrangements, which should exist
     reaction.name += '_truncated'
-    bond_rearrangs = get_bond_rearrangs(t_reactant, t_product, name=reaction.name)
+    bond_rearrangs = get_bond_rearrangs(reaction.reactant, reaction.product,
+                                        name=reaction.name)
 
+    if bond_rearrangs is None:
+        logger.error('Truncation generated a complex with 0 rearrangements')
+        return None
+
+    # Find all the possible TSs
     for bond_rearr in bond_rearrangs:
-        get_ts(reaction, t_reactant, t_product, bond_rearr, strip_molecule=False)
+        get_ts(reaction, reaction.reactant, bond_rearr,  strip_molecule=False)
 
-    reaction.name = reaction.name.replace('_truncated', '')
+    # Reset the reactant, product and name of the full reaction
+    reaction.reactant = f_reactant
+    reaction.product = f_product
+    reaction.name = reaction.name.rstrip('_truncated')
 
     logger.info('Done with truncation')
     return None
 
 
-def reorder_product_complex(reactant, product, bond_rearrangement):
+def reorder_product_complex(reactant, product, bond_rearr):
     """
-    Reorder the atoms in the product, and its molecular graph to reflect those in the reactant
+    Reorder the atoms in the product, and its molecular graph to reflect those
+    in the reactant
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
         product (autode.complex.ProductComplex):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        bond_rearr (autode.bond_rearrangement.BondRearrangement):
     """
     reordered_product = deepcopy(product)
 
     mapping = get_mapping(graph=reordered_product.graph,
-                          other_graph=reac_graph_to_prod_graph(reactant.graph, bond_rearrangement))
+                          other_graph=reac_graph_to_prod_graph(reactant.graph, bond_rearr))
 
     reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
     reordered_product.graph = reorder_nodes(graph=reordered_product.graph, mapping={u: v for v, u in mapping.items()})
@@ -241,14 +254,13 @@ def reorder_product_complex(reactant, product, bond_rearrangement):
     return reordered_product
 
 
-def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True):
+def get_ts(reaction, reactant, bond_rearr, strip_molecule=True):
     """For a bond rearrangement run 1d and 2d scans to find a TS
 
     Arguments:
         reaction (autode.reaction.Reaction):
         reactant (autode.complex.ReactantComplex):
-        product (autode.complex.ProductComplex):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        bond_rearr (autode.bond_rearrangement.BondRearrangement):
         strip_molecule (bool, optional): If true then the molecule will try and
               be stripped to make the scan calculations faster. The whole TS
               can the be found from the template made. Defaults to True.
@@ -258,27 +270,28 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
 
     # Reorder the atoms in the product complex so they are equivalent to the
     # reactant
-    product = reorder_product_complex(reactant, product, bond_rearrangement)
+    reaction.product = reorder_product_complex(reactant,
+                                               reaction.product, bond_rearr)
 
     # If specified then strip non-core atoms from the structure
-    if strip_molecule and is_worth_truncating(reactant, bond_rearrangement):
-        get_truncated_ts(reaction, reactant, product, bond_rearrangement)
+    if strip_molecule and is_worth_truncating(reactant, bond_rearr):
+        get_truncated_ts(reaction, bond_rearr)
 
     # If the reaction is a substitution or elimination then the reactants must
     # be orientated correctly
-    translate_rotate_reactant(reactant, bond_rearrangement,
+    translate_rotate_reactant(reactant, bond_rearr,
                               shift_factor=1.5 if reactant.charge == 0 else 2.5)
 
     # There are multiple methods of finding a transition state. Iterate through
     # from the cheapest -> most expensive
-    for func, params in get_ts_guess_function_and_params(reaction, bond_rearrangement):
+    for func, params in get_ts_guess_function_and_params(reaction, bond_rearr):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)
 
         if ts_guess is None:
             continue
 
-        ts_guess.bond_rearrangement = bond_rearrangement
+        ts_guess.bond_rearrangement = bond_rearr
 
         if not ts_guess.could_have_correct_imag_mode():
             continue
@@ -298,5 +311,3 @@ def get_ts(reaction, reactant, product, bond_rearrangement, strip_molecule=True)
         return ts
 
     return None
-
-

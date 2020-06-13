@@ -61,14 +61,14 @@ def print_point_charge_file(calc):
         return
 
     with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
-        print(len(calc.point_charges), file=pc_file)
-        for point_charge in calc.point_charges:
+        print(len(calc.input.point_charges), file=pc_file)
+
+        for point_charge in calc.input.point_charges:
             x, y, z = point_charge.coord
             charge = point_charge.charge
-            print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f} 99',
-                  file=pc_file)
+            print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
 
-    calc.input.additional_input_files.append(f'{calc.name}_xtb.pc')
+    calc.input.additional_filenames.append(f'{calc.name}_xtb.pc')
     return
 
 
@@ -124,9 +124,10 @@ class XTB(ElectronicStructureMethod):
         if calc.input.solvent is not None:
             flags += ['--gbsa', calc.input.solvent]
 
-        if len(calc.input.additional_filenames) == 1:
-            # XTB allows for an additional xcontrol file
-            flags += ['--input', calc.input.additional_filenames[0]]
+        if len(calc.input.additional_filenames) > 0:
+            # XTB allows for an additional xcontrol file, which should be the
+            # last file in the list
+            flags += ['--input', calc.input.additional_filenames[-1]]
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
                          kept_file_exts=('.xyz', '.out', '.pc'))

@@ -1,6 +1,7 @@
 from autode.species.species import Species
 from autode.species.molecule import Molecule
 from autode.wrappers.ORCA import orca
+from autode.wrappers.XTB import xtb
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.exceptions import NoAtomsInMolecule
@@ -117,3 +118,22 @@ def test_species_equality():
     assert mol != Molecule(name='H2', smiles='[H][H]', charge=-1, mult=2)
     assert mol != Molecule(name='H2', smiles='[H][H]', mult=3)
 
+
+def test_find_lowest_energy_conformer():
+
+    os.chdir(os.path.join(here, 'data'))
+
+    # Spoof XTB availability
+    # xtb.path = here
+    xtb.available = True
+
+    propane = Molecule(name='propane', smiles='CCC')
+
+    propane.find_lowest_energy_conformer(lmethod=xtb)
+    assert len(propane.conformers) > 0
+
+    # Finding low energy conformers should set the energy of propane
+    assert propane.energy is not None
+    assert propane.atoms is not None
+
+    os.chdir(here)

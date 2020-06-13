@@ -42,7 +42,8 @@ class TransitionState(TSbase):
                 logger.info('Optimisation nearly converged')
                 self.calc = self.optts_calc
                 if self.could_have_correct_imag_mode():
-                    logger.info('Still have correct imaginary mode, trying more optimisation steps')
+                    logger.info('Still have correct imaginary mode, trying more'
+                                ' optimisation steps')
                     self.set_atoms(atoms=self.optts_calc.get_final_atoms())
                     self.optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt', molecule=self, method=method,
                                                   n_cores=Config.n_cores,
@@ -101,16 +102,19 @@ class TransitionState(TSbase):
 
         self._run_opt_ts_calc(method=get_hmethod(), name_ext=name_ext)
 
-        # A transition state is a first order saddle point i.e. has a single imaginary frequency
+        # A transition state is a first order saddle point i.e. has a single
+        # imaginary frequency
         if len(self.imaginary_frequencies) == 1:
             logger.info('Found a TS with a single imaginary frequency')
             return None
 
         if len(self.imaginary_frequencies) == 0:
-            logger.error('Transition state optimisation did not return any imaginary frequencies')
+            logger.error('Transition state optimisation did not return any '
+                         'imaginary frequencies')
             return None
 
-        # There is more than one imaginary frequency. Will assume that the most negative is the correct mode..
+        # There is more than one imaginary frequency. Will assume that the most
+        # negative is the correct mode..
         for disp_magnitude in [1, -1]:
             dis_name_ext = name_ext + '_dis' if disp_magnitude == 1 else name_ext + '_dis2'
             atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.optts_calc)
@@ -118,7 +122,8 @@ class TransitionState(TSbase):
             self._run_opt_ts_calc(method=get_hmethod(), name_ext=dis_name_ext)
 
             if len(self.imaginary_frequencies) == 1:
-                logger.info('Displacement along second imaginary mode successful. Now have 1 imaginary mode')
+                logger.info('Displacement along second imaginary mode '
+                            'successful. Now have 1 imaginary mode')
                 break
 
             self.optts_calc = calc
@@ -151,28 +156,35 @@ class TransitionState(TSbase):
             logger.info('Conformer search successful')
 
         else:
-            logger.warning(f'Transition state conformer search failed (∆E = {energy - self.energy:.4f} Ha). Reverting')
+            logger.warning(f'Transition state conformer search failed '
+                           f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
             self.set_atoms(atoms=atoms)
             self.energy = energy
             self.optts_calc = calc
+            self.imaginary_frequencies = calc.get_imaginary_freqs()
+
 
         return None
 
     def is_true_ts(self):
-        """Is this TS a 'true' TS i.e. has at least on imaginary mode in the hessian and is the correct mode"""
+        """Is this TS a 'true' TS i.e. has at least on imaginary mode in the
+        hessian and is the correct mode"""
 
         if len(self.imaginary_frequencies) > 0:
             if self.has_correct_imag_mode(calc=self.optts_calc):
-                logger.info('Found a transition state with the correct imaginary mode & links reactants and products')
+                logger.info('Found a transition state with the correct '
+                            'imaginary mode & links reactants and products')
                 return True
 
         return False
 
     def save_ts_template(self, folder_path=Config.ts_template_folder_path):
-        """Save a transition state template containing the active bond lengths, solvent and charge in folder_path
+        """Save a transition state template containing the active bond lengths,
+         solvent and charge in folder_path
 
         Keyword Arguments:
-            folder_path (str): folder to save the TS template to (default: {None})
+            folder_path (str): folder to save the TS template to
+            (default: {None})
         """
         logger.info(f'Saving TS template for {self.name}')
 
@@ -181,7 +193,8 @@ class TransitionState(TSbase):
         for bond in self.bond_rearrangement.all:
             truncated_graph.edges[bond]['distance'] = self.get_distance(*bond)
 
-        ts_template = TStemplate(truncated_graph, solvent=self.solvent,  charge=self.charge, mult=self.mult)
+        ts_template = TStemplate(truncated_graph, solvent=self.solvent,
+                                 charge=self.charge, mult=self.mult)
         ts_template.save_object(folder_path=folder_path)
 
         logger.info('Saved TS template')

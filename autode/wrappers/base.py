@@ -73,8 +73,6 @@ class ElectronicStructureMethod(ABC):
         """
         pass
 
-
-
     @abstractmethod
     def execute(self, calc):
         """

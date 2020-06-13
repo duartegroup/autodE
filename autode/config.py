@@ -157,6 +157,7 @@ class Config:
                                         '  xmax 0.01\n'
                                         '  xrms 0.007\n'
                                         '  eprec 0.00003\n'
+                                        '  maxiter 50\n'
                                         'end',
                                         svp_basis_block,
                                         'dft\n'
@@ -177,6 +178,7 @@ class Config:
                                     '  xmax 0.004\n'
                                     '  xrms 0.002\n'
                                     '  eprec 0.000005\n'
+                                    '  maxiter 100\n'
                                     'end',
                                     svp_basis_block,
                                     'dft\n'

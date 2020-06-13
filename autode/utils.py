@@ -175,7 +175,7 @@ def requires_graph():
 
 
 def requires_conformers():
-    """A function requiring a list of"""
+    """A function requiring the species to have a list of conformers"""
 
     def func_decorator(func):
         @wraps(func)
@@ -199,16 +199,10 @@ def requires_output():
     def func_decorator(func):
         @wraps(func)
         def wrapped_function(*args, **kwargs):
-            # Species must be the first argument
-            assert hasattr(args[0], 'output_filename')
-            if args[0].output_filename is None:
-                raise NoCalculationOutput
+            # Calculation must be the first argument
+            assert hasattr(args[0], 'output')
 
-            assert hasattr(args[0], 'output_file_exists')
-            assert hasattr(args[0], 'output_file_lines')
-            assert hasattr(args[0], 'rev_output_file_lines')
-
-            if args[0].output_file_exists is False or args[0].output_file_lines is None:
+            if args[0].output.file_lines is None:
                 raise NoCalculationOutput
 
             return func(*args, **kwargs)

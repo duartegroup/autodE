@@ -2,6 +2,7 @@ import pytest
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
+from autode.point_charges import PointCharge
 from autode.config import Config
 import os
 here = os.path.dirname(os.path.abspath(__file__))
@@ -53,4 +54,22 @@ def test_xtb_calculation():
     os.remove('const_opt_xtb.xyz')
     os.remove('xcontrol_const_opt_xtb')
     os.remove('opt_xtb.xyz')
+    os.chdir(here)
+
+
+def test_point_charge():
+    os.chdir(os.path.join(here, 'data'))
+    XTB.available = True
+
+    test_mol = Molecule(name='test_mol', smiles='C')
+
+    # Methane with a point charge fairly far away
+    calc = Calculation(name='opt_point_charge',
+                       molecule=test_mol,
+                       method=method,
+                       keywords=Config.XTB.keywords.opt,
+                       point_charges=[PointCharge(charge=1.0, x=10, y=1, z=1)])
+    calc.run()
+
+    assert -4.178 < calc.get_energy() < -4.175
     os.chdir(here)

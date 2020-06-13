@@ -7,8 +7,6 @@
 **autodE** is a Python module designed for the automated calculation of reaction profiles from just SMILES strings of 
 reactant(s) and product(s). 
 
-***
-
 
 ### Dependencies
 * [Python](https://www.python.org/) > v. 3.5
@@ -23,11 +21,8 @@ reactant(s) and product(s).
 The Python dependencies are listed in requirements.txt are best satisfied using a conda install (Miniconda or Anaconda) i.e.
 ```
 conda config --append channels conda-forge
-conda config --append channels omnia
 conda install --file requirements.txt
 ```
-
-***
 
 ## Installation
 
