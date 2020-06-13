@@ -10,6 +10,10 @@ class NoConformers(Exception):
     pass
 
 
+class FitFailed(Exception):
+    pass
+
+
 class NoInputError(Exception):
     pass
 

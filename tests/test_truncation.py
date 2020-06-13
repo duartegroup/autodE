@@ -1,9 +1,15 @@
 from autode.transition_states.truncation import get_truncated_complex
+from autode.transition_states.locate_tss import translate_rotate_reactant
 from autode.bond_rearrangement import BondRearrangement
+from autode.input_output import xyz_file_to_atoms
 from autode.mol_graphs import is_isomorphic
 from autode.species.complex import ReactantComplex
 from autode.species.molecule import Reactant
 from autode.atoms import Atom
+import os
+
+here = os.path.dirname(os.path.abspath(__file__))
+
 
 methane = Reactant(name='methane', charge=0, mult=1,
                    atoms=[Atom('C', 0.93919, -0.81963, 0.00000),
@@ -146,3 +152,20 @@ def test_enone_truncation():
     truncated = get_truncated_complex(reactant, bond_rearr)
     assert truncated.n_atoms == 10
     assert truncated.graph.number_of_edges() == 9
+
+
+def test_large_truncation():
+
+    xyz_path = os.path.join(here, 'data', 'truncation', 'product.xyz')
+    mol = ReactantComplex(Reactant(name='product',
+                                   atoms=xyz_file_to_atoms(xyz_path)))
+
+    bond_rearr = BondRearrangement(breaking_bonds=[(7, 8), (14, 18)])
+
+    assert mol.n_atoms == 50
+
+    truncated = get_truncated_complex(r_complex=mol,
+                                      bond_rearrangement=bond_rearr)
+
+    truncated.print_xyz_file()
+    assert truncated.n_atoms == 44

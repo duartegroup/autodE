@@ -163,12 +163,15 @@ class TransitionState(TSbase):
             self.optts_calc = calc
             self.imaginary_frequencies = calc.get_imaginary_freqs()
 
-
         return None
 
     def is_true_ts(self):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the
         hessian and is the correct mode"""
+
+        if self.energy is None:
+            logger.warning('Cannot be true TS with no energy')
+            return False
 
         if len(self.imaginary_frequencies) > 0:
             if self.has_correct_imag_mode(calc=self.optts_calc):

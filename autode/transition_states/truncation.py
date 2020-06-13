@@ -74,6 +74,11 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
     return None
 
 
+def atom_not_in_small_ring(atom_index, cycles):
+    """Does this atom appear in any of the cycles"""
+    return not any(atom_index in cycle for cycle in cycles if len(cycle) < 6)
+
+
 def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
     """
     Add capping atoms to the graph, truncating over C-C single bonds where appropriate
@@ -85,6 +90,10 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
         curr_nodes (list(int)):
     """
 
+    # Get the rings in the full molecule
+    cycles = nx.cycle_basis(molecule.graph)
+
+    # Set of atom indexes (R) that have been replaced for H
     truncated_atom_indexes = []
 
     while True:
@@ -102,7 +111,12 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
                     continue
 
                 n_neighbours = len(list(s_molecule.graph.neighbors(n_atom_index)))
-                if s_molecule.atoms[n_atom_index].label == 'C' and n_neighbours == 4:
+
+                # Three conditions that must be met for the n_atom_index -> H
+                if all([s_molecule.atoms[n_atom_index].label == 'C',
+                        n_neighbours == 4,
+                        atom_not_in_small_ring(n_atom_index, cycles=cycles)]):
+
                     truncated_atom_indexes.append(n_atom_index)
 
                     add_capping_atom(i, n_atom_index,
@@ -156,6 +170,9 @@ def get_truncated_complex(r_complex, bond_rearrangement):
     Arguments:
         r_complex (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+
+    Returns:
+        (autode.complex.ReactantComplex)
     """
 
     active_atoms = bond_rearrangement.active_atoms
@@ -182,7 +199,7 @@ def get_truncated_complex(r_complex, bond_rearrangement):
     curr_nodes = add_core_pi_bonds(r_complex, t_complex, truncated_graph=t_graph)
 
     # Swap all unsaturated carbons and the attached fragment for H
-    logger.warning('Truncation is only implemented over C-C single bonds')
+    logger.warning('Truncation is only implemented over C-X single bonds')
     add_capping_atoms(r_complex, t_complex,
                       truncated_graph=t_graph,
                       curr_nodes=curr_nodes)
