@@ -275,15 +275,15 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
     reaction.product = reorder_product_complex(reactant,
                                                reaction.product, bond_rearr)
 
-    # If specified then strip non-core atoms from the structure
-    if is_worth_truncating(reactant, bond_rearr) and not is_truncated:
-        get_truncated_ts(reaction, bond_rearr)
-
     # If the reaction is a substitution or elimination then the reactants must
-    # be orientated correctly
+    # be orientated correctly, no need to re-rotate/translate if truncated
     if not is_truncated:
         translate_rotate_reactant(reactant, bond_rearrangement=bond_rearr,
                                   shift_factor=1.5 if reactant.charge == 0 else 2.5)
+
+    # If specified then strip non-core atoms from the structure
+    if is_worth_truncating(reactant, bond_rearr) and not is_truncated:
+        get_truncated_ts(reaction, bond_rearr)
 
     # There are multiple methods of finding a transition state. Iterate through
     # from the cheapest -> most expensive

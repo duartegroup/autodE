@@ -168,3 +168,20 @@ def test_large_truncation():
                                       bond_rearrangement=bond_rearr)
 
     assert truncated.n_atoms == 27
+
+
+def test_two_component_truncation():
+
+    xyz_path = os.path.join(here, 'data', 'truncation', 'RBr.xyz')
+    propylbromide = Reactant(name='RBr', atoms=xyz_file_to_atoms(xyz_path))
+    chloride = Reactant(name='Cl', smiles='[Cl-]')
+
+    mol = ReactantComplex(chloride, propylbromide)
+    bond_rearr = BondRearrangement(forming_bonds=[(0, 3)],
+                                   breaking_bonds=[(3, 4)])
+
+    truncated = get_truncated_complex(r_complex=mol,
+                                      bond_rearrangement=bond_rearr)
+
+    # Should truncate to ethylbromide + Cl-
+    assert truncated.n_atoms == 9

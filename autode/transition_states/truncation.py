@@ -60,7 +60,7 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
         graph (nx.Graph): Current molecular graph of the stripped/truncated molecule
         s_molecule (autode.species.Species): Stripped molecule
     """
-    logger.info(f'Swapping saturated carbon {n_atom_index} next to atom'
+    logger.info(f'Swapping saturated carbon {n_atom_index} next to atom '
                 f'{atom_index} for hydrogen')
 
     graph.add_node(n_atom_index, atom_label='H', stereo=False)

@@ -352,6 +352,10 @@ def find_cycles(graph):
     return nx.cycle_basis(graph)
 
 
+def connected_components(graph):
+    return list(nx.connected_components(graph))
+
+
 def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
     """Makes the graph of the product from the reactant and the bond rearrang, so it has the indices of the reactant
 

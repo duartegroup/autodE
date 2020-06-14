@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from autode.exceptions import FitFailed
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.config import Config
 from autode.log import logger
@@ -19,6 +20,9 @@ class PES1d(PES):
         """Get the possible first order saddle points, which are just the
         peaks in the PES"""
         energies = [self.species[i].energy for i in range(self.n_points)]
+
+        if any(energy is None for energy in energies):
+            raise FitFailed
 
         # Peaks have lower energies both sides of them
         peaks = [i for i in range(1, self.n_points - 1) if energies[i-1] < energies[i] and energies[i+1] < energies[i]]
@@ -123,8 +127,13 @@ def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):
     # Plot the line using matplotlib
     pes.print_plot(name=name, method_name=method.name)
 
-    for species in pes.get_species_saddle_point():
-        return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
+    try:
+        # May want to iterate through all saddle points not just the highest(?)
+        for species in pes.get_species_saddle_point():
+            return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
+
+    except FitFailed:
+        logger.error('Could not find saddle point on 1D surface')
 
     logger.error('No possible TSs found on the 1D surface')
     return None

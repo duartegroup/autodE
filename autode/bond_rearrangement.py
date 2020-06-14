@@ -7,6 +7,7 @@ from autode.log import logger
 from autode.mol_graphs import get_bond_type_list
 from autode.mol_graphs import get_fbonds
 from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import connected_components
 
 
 def get_bond_rearrangs(reactant, product, name):
@@ -348,28 +349,31 @@ class BondRearrangement:
         Get neighbour lists of all the active atoms in the molecule (reactant complex)
 
         Arguments:
-            mol (autode.complex.Complex):
+            mol (autode.species.Species):
             depth (int): Depth of the neighbour list to consider
 
         Returns:
             (list(list(int))):
         """
-        n_molecules = len(mol.molecules)
+        connected_molecules = connected_components(mol.graph)
+        n_molecules = len(connected_molecules)
 
-        # For every molecule in the complex shift so they are far away, thus the neighbour lists only include
-        # atoms in the same molecule
-        shift_vectors = [100 * vec for vec in get_points_on_sphere(n_points=len(mol.molecules)+1)]
+        def shift_molecules(vectors):
+            for i, molecule_nodes in enumerate(connected_molecules):
+                for j in molecule_nodes:
+                    mol.atoms[j].translate(vec=vectors[i])
 
-        for i in range(n_molecules):
-            mol.translate_mol(vec=shift_vectors[i], mol_index=i)
+        # For every molecule in the complex shift so they are far away, thus
+        # the neighbour lists only include atoms in the same molecule
+        shift_vectors = [100 * vec for vec in get_points_on_sphere(n_points=n_molecules+1)]
+        shift_molecules(vectors=shift_vectors)
 
         # Calculate the neighbour lists while the molecules are all far away
         if self.active_atom_nl is None:
             self.active_atom_nl = [get_neighbour_list(species=mol, atom_i=atom)[:depth] for atom in self.active_atoms]
 
         # Shift the molecules back to where they were
-        for i in range(n_molecules):
-            mol.translate_mol(vec=-shift_vectors[i], mol_index=i)
+        shift_molecules(vectors=[-vector for vector in shift_vectors])
 
         return self.active_atom_nl
 
