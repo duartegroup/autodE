@@ -1,5 +1,7 @@
 from copy import deepcopy
 import networkx as nx
+import numpy as np
+from autode.atoms import Atom
 from autode.transition_states.ts_guess import has_matching_ts_templates
 from autode.bond_lengths import get_avg_bond_length
 from autode.log import logger
@@ -58,6 +60,8 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
         graph (nx.Graph): Current molecular graph of the stripped/truncated molecule
         s_molecule (autode.species.Species): Stripped molecule
     """
+    logger.info(f'Swapping saturated carbon {n_atom_index} next to atom'
+                f'{atom_index} for hydrogen')
 
     graph.add_node(n_atom_index, atom_label='H', stereo=False)
 
@@ -74,11 +78,6 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
     return None
 
 
-def atom_not_in_small_ring(atom_index, cycles):
-    """Does this atom appear in any of the cycles"""
-    return not any(atom_index in cycle for cycle in cycles if len(cycle) < 6)
-
-
 def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
     """
     Add capping atoms to the graph, truncating over C-C single bonds where appropriate
@@ -89,35 +88,29 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
         truncated_graph (nx.Graph):
         curr_nodes (list(int)):
     """
-
-    # Get the rings in the full molecule
-    cycles = nx.cycle_basis(molecule.graph)
-
     # Set of atom indexes (R) that have been replaced for H
-    truncated_atom_indexes = []
+    truncated_nodes = []
 
     while True:
 
         for i in curr_nodes:
 
-            if i in truncated_atom_indexes:
+            if i in truncated_nodes:
                 # Truncated atoms by definition do not have any neighbours
                 # that are not already in the graph
                 continue
 
             for n_atom_index in s_molecule.graph.neighbors(i):
 
-                if n_atom_index in curr_nodes:
+                if n_atom_index in curr_nodes or n_atom_index in truncated_nodes:
                     continue
 
                 n_neighbours = len(list(s_molecule.graph.neighbors(n_atom_index)))
 
                 # Three conditions that must be met for the n_atom_index -> H
-                if all([s_molecule.atoms[n_atom_index].label == 'C',
-                        n_neighbours == 4,
-                        atom_not_in_small_ring(n_atom_index, cycles=cycles)]):
+                if s_molecule.atoms[n_atom_index].label == 'C' and n_neighbours == 4:
 
-                    truncated_atom_indexes.append(n_atom_index)
+                    truncated_nodes.append(n_atom_index)
 
                     add_capping_atom(i, n_atom_index,
                                      graph=truncated_graph,
@@ -154,9 +147,51 @@ def add_remaining_bonds(truncated_graph, full_graph):
         if (i, j) in truncated_graph.edges:
             continue
 
+        # Don't alter bonding if the atom has changed e.g. C -> H
+        if any(truncated_graph.nodes[k]['atom_label'] != full_graph.nodes[k]['atom_label'] for k in (i, j)):
+            continue
+
         # an edge doesn't exist between atoms i ang j - make it
         truncated_graph.add_edge(i, j)
 
+    return None
+
+
+def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
+    """Truncation can lead to a split across a C-C bond in a ring where one
+    of the carbons is no longer has 4 nearest neighbours"""
+
+    for i in deepcopy(truncated_graph.nodes):
+
+        # No modification needed if the valency of this atom is retained
+        n_truncated_neighbours = len(list(truncated_graph.neighbors(i)))
+        n_full_neighbours = len(list(full_graph.neighbors(i)))
+
+        if n_truncated_neighbours == n_full_neighbours:
+            continue
+
+        # Only consider non-swapped atoms e.g. not where C -> H
+        if truncated_graph.nodes[i]['atom_label'] != full_graph.nodes[i]['atom_label']:
+            continue
+
+        logger.warning(f'Atom {i} changed valency in truncation')
+        for n in nx.neighbors(full_graph, i):
+
+            if (i, n) in truncated_graph.edges:
+                continue
+
+            # Missing atom n from the truncated graph - probably truncated
+            # X -> H but was also bonded to another atom also in the truncated
+            # graph
+            x, y, z = s_molecule.atoms[n].coord
+            s_molecule.atoms.append(Atom(atomic_symbol='X', x=x, y=y, z=z))
+
+            # Add the capping H atom in place of the X atom just added
+            # will be the last atom index, if it's just been added
+            add_capping_atom(atom_index=i,
+                             n_atom_index=len(s_molecule.atoms)-1,
+                             graph=truncated_graph,
+                             s_molecule=s_molecule)
     return None
 
 
@@ -198,18 +233,19 @@ def get_truncated_complex(r_complex, bond_rearrangement):
     # those those etc.
     curr_nodes = add_core_pi_bonds(r_complex, t_complex, truncated_graph=t_graph)
 
-    # Swap all unsaturated carbons and the attached fragment for H
+    # Swap all saturated carbons and the attached fragment for H
     logger.warning('Truncation is only implemented over C-X single bonds')
     add_capping_atoms(r_complex, t_complex,
                       truncated_graph=t_graph,
                       curr_nodes=curr_nodes)
 
     add_remaining_bonds(t_graph, full_graph=r_complex.graph)
+    add_remaining_atoms(t_graph, full_graph=r_complex.graph, s_molecule=t_complex)
 
     # Delete all atoms not in the truncated graph and reset the graph
     t_complex.graph = t_graph
     t_complex.set_atoms(atoms=[atom for i, atom in enumerate(t_complex.atoms) if
-               i in sorted(t_graph.nodes)])
+                        i in sorted(t_graph.nodes)])
 
     # Relabel the nodes so they correspond to the new set of atoms
     mapping = {node_label: i for i, node_label in enumerate(sorted(t_graph.nodes))}

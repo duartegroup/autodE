@@ -167,5 +167,4 @@ def test_large_truncation():
     truncated = get_truncated_complex(r_complex=mol,
                                       bond_rearrangement=bond_rearr)
 
-    truncated.print_xyz_file()
-    assert truncated.n_atoms == 44
+    assert truncated.n_atoms == 27
