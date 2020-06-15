@@ -152,20 +152,22 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
 
 def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iters=10):
     """
-    Shift a molecule in the reactant complex so that the attacking atoms (a_atoms) are pointing towards the
-    attacked atoms (l_atoms)
+    Shift a molecule in the reactant complex so that the attacking atoms
+    (a_atoms) are pointing towards the attacked atoms (l_atoms)
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
         shift_factor (float):
-        n_iters (int): Number of iterations of translation/rotation to perform to (hopefully) find the global minima
+        n_iters (int): Number of iterations of translation/rotation to perform
+        to (hopefully) find the global minima
     """
     if len(reactant.molecules) < 2:
-        logger.info('Reactant molecule does not need to be translated or rotated')
+        logger.info('Reactant molecule does not need to be translated or '
+                    'rotated')
         return
 
-    logger.info('Rotating/translating the attacking molecule into a reactive conformation... running')
+    logger.info('Rotating/translating into a reactive conformation... running')
 
     subst_centres = get_substitution_centres(reactant, bond_rearrangement, shift_factor=shift_factor)
     attacking_mol = 0 if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0) for sc in subst_centres) else 1
@@ -193,7 +195,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
     reactant.translate_mol(vec=opt_x[4:7], mol_index=attacking_mol)
     reactant.rotate_mol(axis=opt_x[7:10], theta=opt_x[10], mol_index=attacking_mol)
 
-    logger.info('                                                                        ... done')
+    logger.info('                                                 ... done')
     reactant.print_xyz_file()
 
     return None
@@ -222,7 +224,7 @@ def get_truncated_ts(reaction, bond_rearr):
 
     # Find all the possible TSs
     for bond_rearr in bond_rearrangs:
-        get_ts(reaction, reaction.reactant, bond_rearr,  strip_molecule=False)
+        get_ts(reaction, reaction.reactant, bond_rearr,  is_truncated=True)
 
     # Reset the reactant, product and name of the full reaction
     reaction.reactant = f_reactant
@@ -254,16 +256,16 @@ def reorder_product_complex(reactant, product, bond_rearr):
     return reordered_product
 
 
-def get_ts(reaction, reactant, bond_rearr, strip_molecule=True):
+def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
     """For a bond rearrangement run 1d and 2d scans to find a TS
 
     Arguments:
         reaction (autode.reaction.Reaction):
         reactant (autode.complex.ReactantComplex):
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
-        strip_molecule (bool, optional): If true then the molecule will try and
-              be stripped to make the scan calculations faster. The whole TS
-              can the be found from the template made. Defaults to True.
+        is_truncated (bool, optional): If the reactant is already truncated
+                                       then truncation shouldn't be attempted
+                                       and there should be no need to shift
     Returns:
         (autode.transition_states.transition_state.TransitionState):
     """
@@ -273,14 +275,15 @@ def get_ts(reaction, reactant, bond_rearr, strip_molecule=True):
     reaction.product = reorder_product_complex(reactant,
                                                reaction.product, bond_rearr)
 
-    # If specified then strip non-core atoms from the structure
-    if strip_molecule and is_worth_truncating(reactant, bond_rearr):
-        get_truncated_ts(reaction, bond_rearr)
-
     # If the reaction is a substitution or elimination then the reactants must
-    # be orientated correctly
-    translate_rotate_reactant(reactant, bond_rearr,
-                              shift_factor=1.5 if reactant.charge == 0 else 2.5)
+    # be orientated correctly, no need to re-rotate/translate if truncated
+    if not is_truncated:
+        translate_rotate_reactant(reactant, bond_rearrangement=bond_rearr,
+                                  shift_factor=1.5 if reactant.charge == 0 else 2.5)
+
+    # If specified then strip non-core atoms from the structure
+    if is_worth_truncating(reactant, bond_rearr) and not is_truncated:
+        get_truncated_ts(reaction, bond_rearr)
 
     # There are multiple methods of finding a transition state. Iterate through
     # from the cheapest -> most expensive

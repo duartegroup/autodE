@@ -6,6 +6,7 @@ import multiprocessing
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.calculation import Calculation
 from autode.config import Config
+from autode.exceptions import FitFailed
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
 from autode.methods import high_level_method_names
@@ -27,18 +28,21 @@ class PES2d(PES):
         """Get the species at the true saddle point on the surface"""
         saddle_points = poly2d_saddlepoints(coeff_mat=self.coeff_mat, xs=self.r1s, ys=self.r2s)
 
-        logger.info('Sorting the saddle points by their minimum energy path to reactants and products')
+        logger.info('Sorting the saddle points by their minimum energy path to '
+                    'reactants and products')
         saddle_points = sorted(saddle_points, key=lambda s: get_sum_energy_mep(s, self))
 
         for saddle_point in saddle_points:
             r1, r2 = saddle_point
 
-            # Determine the indicies of the point closest to the analytic saddle point to use as a guess
+            # Determine the indicies of the point closest to the analytic
+            # saddle point to use as a guess
             close_point = (np.argmin(np.abs(self.r1s - r1)), np.argmin(np.abs(self.r2s - r2)))
             logger.info(f'Closest point is {close_point} with r1 = {self.rs[close_point][0]:.3f}, '
                         f'r2 = {self.rs[close_point][1]:.3f} Å')
 
-            # Perform a constrained optimisation using the analytic saddle point r1, r2 values
+            # Perform a constrained optimisation using the analytic saddle
+            # point r1, r2 values
             species = deepcopy(self.species[close_point])
             const_opt = Calculation(name=f'{name}_const_opt', molecule=species, method=method,
                                     n_cores=Config.n_cores, keywords=keywords,
@@ -47,7 +51,8 @@ class PES2d(PES):
             try:
                 species.run_const_opt(const_opt)
             except AtomsNotFound:
-                logger.error('Constrained optimisation at the saddle point failed')
+                logger.error('Constrained optimisation at the saddle point '
+                             'failed')
                 pass
 
             return species
@@ -57,11 +62,15 @@ class PES2d(PES):
     def fit(self, polynomial_order):
         """Fit an analytic 2d surface"""
 
+        energies = [species.energy for species in self.species.flatten()]
+        if any(energy is None for energy in energies):
+            raise FitFailed
+
         # Compute a flat list of relative energies to use to fit the polynomial
-        min_energy = min([species.energy for species in self.species.flatten()])
+        min_energy = min(energies)
         rel_energies = [KcalMol.conversion * (species.energy - min_energy) for species in self.species.flatten()]
 
-        # Compute the polynomial_order x polynomial_order matrix of coefficients
+        # Compute a polynomial_order x polynomial_order matrix of coefficients
         self.coeff_mat = polyfit2d(x=[r[0] for r in self.rs.flatten()],
                                    y=[r[1] for r in self.rs.flatten()],
                                    z=rel_energies, order=polynomial_order)
@@ -72,8 +81,9 @@ class PES2d(PES):
         return plot_2dpes(coeff_mat=self.coeff_mat, r1=self.r1s, r2=self.r2s, name=name)
 
     def products_made(self):
-        """Check that somewhere on the surface the molecular graph is isomorphic to the product"""
-        logger.info('Checking that somewhere on the surface product(s) are made')
+        """Check that somewhere on the surface the molecular graph is
+        isomorphic to the product"""
+        logger.info('Checking product(s) are made somewhere on the surface')
 
         for i in range(self.n_points_r1):
             for j in range(self.n_points_r2):
@@ -148,7 +158,8 @@ class PES2d(PES):
                 # Tuple of distances
                 self.rs[i, j] = (r1s[i], r2s[j])
 
-        # Copy of the reactant complex, whose atoms/energy will be set in the scan
+        # Copy of the reactant complex, whose atoms/energy will be set in the
+        # scan
         self.species[0, 0] = deepcopy(reactant)
 
         return None
@@ -186,7 +197,8 @@ class PES2d(PES):
         # Coefficients of the fitted surface
         self.coeff_mat = None
 
-        # Molecular graph of the product. Used to check that the products have been made & find the MEP
+        # Molecular graph of the product. Used to check that the products have
+        # been made & find the MEP
         self.product_graph = product.graph
 
 
@@ -204,33 +216,43 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
         keywords (autode.keywords.Keywords): keywords_list to use in the calcs
 
     Keyword Arguments:
-        polynomial_order (int): order of polynomial to fit the data to (default: {3})
+        polynomial_order (int): order of polynomial to fit the data to
+                                (default: {3})
         dr (float): Δr on the surface *absolute value*
 
     Returns:
         (autode.transition_states.ts_guess.TSguess)
     """
-    logger.info(f'Getting TS guess from 2D relaxed potential energy scan, using active bonds '
-                f'{bond1} and {bond2}')
+    logger.info(f'Getting TS guess from 2D relaxed potential energy scan,'
+                f' using active bonds {bond1} and {bond2}')
 
-    # Steps of +Δr if the final distance is greater than the current else -Δr. Run at least a 3x3 PES
+    # Steps of +Δr if the final distance is greater than the current else -Δr.
+    # Run at least a 3x3 PES
     n_steps1 = max(int(np.abs((bond1.final_dist - bond1.curr_dist) / dr)), 3)
     n_steps2 = max(int(np.abs((bond2.final_dist - bond2.curr_dist) / dr)), 3)
 
     if method.name in high_level_method_names:
-        logger.warning('Limiting the number of steps to a maximum of 8 so <64 high level optimisations have to be done')
+        logger.warning('Limiting the number of steps to a maximum of 8 so <64 '
+                       'high level optimisations have to be done')
         n_steps1 = min(n_steps1, 8)
         n_steps2 = min(n_steps2, 8)
 
     # Create a potential energy surface in the two active bonds and calculate
     pes = PES2d(reactant=reactant, product=product,
-                r1s=np.linspace(bond1.curr_dist, bond1.final_dist, n_steps1), r1_idxs=bond1.atom_indexes,
-                r2s=np.linspace(bond2.curr_dist, bond2.final_dist, n_steps2), r2_idxs=bond2.atom_indexes)
+                r1s=np.linspace(bond1.curr_dist, bond1.final_dist, n_steps1),
+                r1_idxs=bond1.atom_indexes,
+                r2s=np.linspace(bond2.curr_dist, bond2.final_dist, n_steps2),
+                r2_idxs=bond2.atom_indexes)
 
     pes.calculate(name=name, method=method, keywords=keywords)
 
-    # Fit an analytic 2D PES to the surface and plot using matplotlib
-    pes.fit(polynomial_order=polynomial_order)
+    # Try to fit an analytic 2D PES to the surface and plot using matplotlib
+    try:
+        pes.fit(polynomial_order=polynomial_order)
+    except FitFailed:
+        logger.error('PES fit failed')
+        return None
+
     pes.print_plot(name=name)
 
     if not pes.products_made():
@@ -248,8 +270,9 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
 
 
 def polyfit2d(x, y, z, order):
-    """Takes x and y coordinates and their resultant z value, and creates a matrix where element i,j is the coefficient
-    of the desired order polynomial x ** i * y ** j
+    """Takes x and y coordinates and their resultant z value, and creates a
+    matrix where element i,j is the coefficient of the desired order polynomial
+     x ** i * y ** j
 
     Arguments:
         x (np.array): flat array of x coordinates
@@ -263,8 +286,9 @@ def polyfit2d(x, y, z, order):
     logger.info('Fitting 2D surface to polynomial in x and y')
     deg = np.array([int(order), int(order)])
     vander = polynomial.polyvander2d(x, y, deg)
-    # vander matrix is matrix where each row i deals with x=x[i] and y=y[i], and each item in the
-    # row has value x ** m * y ** n with (m,n) = (0,0), (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
+    # vander matrix is matrix where each row i deals with x=x[i] and y=y[i],
+    # and each item in the row has value x ** m * y ** n with (m,n) = (0,0),
+    # (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
     coeff_mat, _, _, _ = np.linalg.lstsq(vander, z, rcond=None)
     return coeff_mat.reshape(deg + 1)
 

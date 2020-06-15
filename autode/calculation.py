@@ -483,17 +483,17 @@ class CalculationInput:
         Args:
             keywords (autode.wrappers.keywords.Keywords):
 
-            solvent (str): Name of the solvent for this QM method, or None
+            solvent (str or None): Name of the solvent for this QM method
 
-            additional_input (str): Any additional input string to add
-                                          to the input file, or None
+            additional_input (str or None): Any additional input string to add
+                                            to the input file, or None
 
-            added_internals (list(tuple(int))): Atom indexes to add to the
-                                                internal coordinates, or None
+            added_internals (list(tuple(int)) or None): Atom indexes to add to
+                                                       the internal coordinates
 
-            point_charges (list(autode.point_charges.PointCharge)): list of
-                                 float of point charges, x, y, z
-                                 coordinates for each point charge
+            point_charges (list(autode.point_charges.PointCharge) or None):
+                          list of float of point charges, x, y, z coordinates
+                          for each point charge
         """
         self.keywords = keywords
         self.solvent = solvent

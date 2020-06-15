@@ -1,5 +1,6 @@
 from autode.wrappers.MOPAC import MOPAC
-from autode.calculation import Calculation
+from autode.wrappers.MOPAC import get_keywords
+from autode.calculation import Calculation, CalculationInput
 from autode.species.molecule import Molecule
 from autode.constants import Constants
 from autode.config import Config
@@ -10,13 +11,13 @@ here = os.path.dirname(os.path.abspath(__file__))
 method = MOPAC()
 method.available = True
 
+methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
+                          solvent_name='water')
+
 
 def test_mopac_opt_calculation():
 
     os.chdir(os.path.join(here, 'data'))
-
-    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
-                              solvent_name='water')
     calc = Calculation(name='opt', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.opt)
     calc.run()
@@ -45,3 +46,23 @@ def test_mopac_opt_calculation():
 
     os.remove('opt_mopac.mop')
     os.chdir(here)
+
+
+def test_mopac_keywords():
+
+    calc_input = CalculationInput(keywords=Config.MOPAC.keywords.sp,
+                                  solvent=None,
+                                  added_internals=None,
+                                  additional_input=None,
+                                  point_charges=None)
+
+    keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
+    assert any('1scf' == kw.lower() for kw in keywords)
+
+    calc_input.keywords = Config.MOPAC.keywords.grad
+    keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
+    assert any('grad' == kw.lower() for kw in keywords)
+
+    h = Molecule(name='H', smiles='[H]')
+    keywords = get_keywords(calc_input=calc_input, molecule=h)
+    assert any('doublet' == kw.lower() for kw in keywords)
