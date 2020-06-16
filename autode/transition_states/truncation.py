@@ -152,7 +152,7 @@ def add_remaining_bonds(truncated_graph, full_graph):
             continue
 
         # an edge doesn't exist between atoms i ang j - make it
-        truncated_graph.add_edge(i, j)
+        truncated_graph.add_edge(i, j, pi=False, active=False)
 
     return None
 
@@ -192,6 +192,14 @@ def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
                              n_atom_index=len(s_molecule.atoms)-1,
                              graph=truncated_graph,
                              s_molecule=s_molecule)
+
+            # Also add the edge between the added atom and the one that changed
+            # valency
+            truncated_graph.add_edge(i, len(s_molecule.atoms)-1,
+                                     pi=False, active=False)
+
+        logger.info(f'New valency is {len(list(truncated_graph.neighbors(i)))}')
+
     return None
 
 
