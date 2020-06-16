@@ -168,6 +168,7 @@ def test_large_truncation():
                                       bond_rearrangement=bond_rearr)
 
     assert truncated.n_atoms == 27
+    assert truncated.graph.number_of_edges() == 28
 
 
 def test_two_component_truncation():
