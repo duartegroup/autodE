@@ -38,16 +38,18 @@ def get_bond_rearrangs(reactant, product, name):
     reac_bond_dict = get_bond_type_list(reactant.graph)
     prod_bond_dict = get_bond_type_list(product.graph)
 
-    # list of lists, shallow level separates by type of bond, deeper level is bonds of those type that can break
+    # list of bonds where this type of bond (e.g C-H) has less bonds in products than reactants
     all_possible_bbonds = []
-    # list of lists, shallow level separates by type of bond, deeper level is bonds of those type that can form
-    all_possible_fbonds = []
-    # list of tuples, shallow level separates by type of bond, tuple is ([bbonds of that type], [fbonds of that type])
-    possible_bbond_and_fbonds = []
-    # list of bonds that can be broken of the type of forming bond
-    fbond_atom_type_bbonds = None
-    # list of bonds that can be formed of the type of breaking bond
+    # list of bonds that can be formed of this bond type. This is only used if there is only one
+    # type of bbond, so can be overwritten for each new type of bbond
     bbond_atom_type_fbonds = None
+    # list of bonds where this type of bond (e.g C-H) has more bonds in products than reactants
+    all_possible_fbonds = []
+    # list of bonds that can be broken of this bond type. This is only used if there is only one
+    # type of fbond, so can be overwritten for each new type of fbond
+    fbond_atom_type_bbonds = None
+    # list of bonds where this type of bond (e.g C-H) has the same number of bonds in products and reactants
+    possible_bbond_and_fbonds = []
 
     for reac_key, reac_bonds in reac_bond_dict.items():
         prod_bonds = prod_bond_dict[reac_key]
@@ -79,7 +81,7 @@ def get_bond_rearrangs(reactant, product, name):
                                             possible_bbond_and_fbonds, bbond_atom_type_fbonds, fbond_atom_type_bbonds)
         if len(possible_bond_rearrangements) > 0:
             logger.info(f'Found a molecular graph rearrangement to products with {func.__name__}')
-            # This function will return with from the first bond rearrangement that leads to products
+            # This function will return with the first bond rearrangement that leads to products
 
             n_bond_rearrangs = len(possible_bond_rearrangements)
             if n_bond_rearrangs > 1:
@@ -213,6 +215,7 @@ def get_fbonds_bbonds_1b(reactant, product, possible_bond_rearrangs, all_possibl
     logger.info('Getting possible 1 breaking bond rearrangements')
 
     for bbond in all_possible_bbonds[0]:
+        # break one bond
         possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[], bbonds=[bbond])
 
     return possible_bond_rearrangs
@@ -222,9 +225,12 @@ def get_fbonds_bbonds_2b(reactant, product, possible_bond_rearrangs, all_possibl
     logger.info('Getting possible 2 breaking bond rearrangements')
 
     if len(all_possible_bbonds) == 1:
+        # break two bonds of the same type
         for bbond1, bbond2 in itertools.combinations(all_possible_bbonds[0], 2):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[], bbonds=[bbond1, bbond2])
+
     elif len(all_possible_bbonds) == 2:
+        # break two bonds of different types
         for bbond1, bbond2 in itertools.product(all_possible_bbonds[0], all_possible_bbonds[1]):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[], bbonds=[bbond1, bbond2])
 
@@ -235,10 +241,12 @@ def get_fbonds_bbonds_1b1f(reactant, product, possible_bond_rearrangs, all_possi
     logger.info('Getting possible 1 breaking and 1 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
+        # make and break a bond of different types
         for fbond, bbond in itertools.product(all_possible_fbonds[0], all_possible_bbonds[0]):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond])
 
     elif len(all_possible_bbonds) == 0 and len(all_possible_fbonds) == 0:
+        # make and break a bond of the same type
         for bbonds, fbonds in possible_bbond_and_fbonds:
             for bbond, fbond in itertools.product(bbonds, fbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond])
@@ -250,18 +258,23 @@ def get_fbonds_bbonds_2b1f(reactant, product, possible_bond_rearrangs, all_possi
     logger.info('Getting possible 2 breaking and 1 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 1:
+        # make a bond and break two bonds, all of different types
         for fbond, bbond1, bbond2 in itertools.product(all_possible_fbonds[0], all_possible_bbonds[0], all_possible_bbonds[1]):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
+        # make a bond of one type, break two bonds of another type
         for fbond, (bbond1, bbond2) in itertools.product(all_possible_fbonds[0], itertools.combinations(all_possible_bbonds[0], 2)):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 0:
         for bbonds, fbonds in possible_bbond_and_fbonds:
+            # make and break a bond of one type, break a bond of a different type
             for fbond, bbond1, bbond2 in itertools.product(fbonds, all_possible_bbonds[0], bbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond1, bbond2])
+
         for fbond, (bbond1, bbond2) in itertools.product(bbond_atom_type_fbonds, itertools.combinations(all_possible_bbonds[0], 2)):
+            # make and break two bonds, all of the same type
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond], bbonds=[bbond1, bbond2])
 
     return possible_bond_rearrangs
@@ -271,33 +284,46 @@ def get_fbonds_bbonds_2b2f(reactant, product, possible_bond_rearrangs, all_possi
     logger.info('Getting possible 2 breaking and 2 forming bond rearrangements')
 
     if len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 2:
+        # make two bonds and break two bonds, all of different types
         for fbond1, fbond2, bbond1, bbond2 in itertools.product(all_possible_fbonds[0], all_possible_fbonds[1], all_possible_bbonds[0], all_possible_bbonds[1]):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 1:
+        # make two bonds of the same type, break two bonds of different types
         for bbond1, bbond2, (fbond1, fbond2) in itertools.product(all_possible_bbonds[0], all_possible_bbonds[1], itertools.combinations(all_possible_fbonds[0], 2)):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 2:
+        # make two bonds of different types, break two bonds of the same type
         for fbond1, fbond2, (bbond1, bbond2) in itertools.product(all_possible_fbonds[0], all_possible_fbonds[1], itertools.combinations(all_possible_bbonds[0], 2)):
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
         for (fbond1, fbond2), (bbond1, bbond2) in itertools.product(itertools.combinations(all_possible_fbonds[0], 2), itertools.combinations(all_possible_bbonds[0], 2)):
+            # make two bonds of the same type, break two bonds of another type
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
+
         for bbonds, fbonds in possible_bbond_and_fbonds:
+            # make one bonds of one type, break one bond of another type, make and break a bond of a third type
             for fbond1, fbond2, bbond1, bbond2 in itertools.product(all_possible_fbonds[0], fbonds, all_possible_bbonds[0], bbonds):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
+
         for fbond1, fbond2, (bbond1, bbond2) in itertools.product(all_possible_fbonds[0], bbond_atom_type_fbonds, itertools.combinations(all_possible_bbonds[0], 2)):
+            # make a bond of one type, make and break two bonds of another type
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
+
         for bbond1, bbond2, (fbond1, fbond2) in itertools.product(all_possible_bbonds[0], fbond_atom_type_bbonds, itertools.combinations(all_possible_fbonds[0], 2)):
+            # break a bond of one type, make two and break one bond of another type
             possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
     elif len(all_possible_bbonds) == 0 and len(all_possible_fbonds) == 0:
         for (bbonds1, fbonds1), (bbonds2, fbonds2) in itertools.combinations(possible_bbond_and_fbonds, 2):
+            # make and break a bond of one type, make and break a bond of another type
             for fbond1, bbond1, fbond2, bbond2 in itertools.product(fbonds1, bbonds1, fbonds2, bbonds2):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
+
         for bbonds, fbonds in possible_bbond_and_fbonds:
+            # make two and break two bonds, all of the same type
             for (fbond1, fbond2), (bbond1, bbond2) in itertools.product(itertools.combinations(fbonds, 2), itertools.combinations(bbonds, 2)):
                 possible_bond_rearrangs = add_bond_rearrangment(possible_bond_rearrangs, reactant, product, fbonds=[fbond1, fbond2], bbonds=[bbond1, bbond2])
 
