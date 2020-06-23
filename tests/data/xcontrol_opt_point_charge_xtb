@@ -1,0 +1,4 @@
+$embedding
+input=opt_point_charge_xtb_xtb.pc
+input=orca
+$end
