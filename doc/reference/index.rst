@@ -6,7 +6,11 @@ Reference
    :maxdepth: 1
 
    conformers/index
+   pes/index
+   reactions/index
+   smiles/index
    solvent/index
+   species/index
    transition_states/index
    wrappers/index
    atoms
@@ -20,20 +24,9 @@ Reference
    input_output
    log
    methods
-   min_energy_pathway
    mol_graphs
-   molecule
-   pes_1d
-   pes_2d
-   pes
    plotting
    point_charges
-   reaction
-   reactions
-   saddle_points
-   smiles_parser
-   smiles
-   species
    substitution
    units
    utils

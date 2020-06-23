@@ -1,7 +1,7 @@
 from autode import bond_rearrangement as br
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
 from autode.bond_rearrangement import BondRearrangement
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
@@ -11,6 +11,23 @@ import os
 
 # Some of the 'reactions' here are not physical, hence for some the graph will be regenerated allowing for
 # invalid hydrogen valencies
+
+
+def test_multiple_possibilities():
+    r1 = Molecule(name='h_dot', smiles='[H]')
+    r2 = Molecule(name='methane', smiles='C')
+    p1 = Molecule(name='h2', smiles='[HH]')
+    p2 = Molecule(name='ch3_dot', smiles='[CH3]')
+
+    reac = ReactantComplex(r1, r2)
+    reac.print_xyz_file()
+
+    rearrs = br.get_bond_rearrangs(reac, ProductComplex(p1, p2),
+                                   name='H_subst')
+    os.remove('H_subst_bond_rearrangs.txt')
+
+    # All H abstractions are the same
+    assert len(rearrs) == 1
 
 
 def test_bondrearr_obj():
@@ -30,7 +47,7 @@ def test_bondrearr_obj():
                                            Atom('H', 0.0, 0.0, -1.0),
                                            Atom('H', 0.0, 0.0, 1.0)])
 
-    active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol=h2_h_mol, depth=1)
+    active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol=ReactantComplex(h2_h_mol), depth=1)
     assert len(active_atom_nl) == 3
     assert active_atom_nl == [['H'], ['H'], ['H']]
 
@@ -86,8 +103,8 @@ def test_two_possibles():
     # There are two possibilities for H migration by they should be considered the same
     assert len(rearrs) == 1
     os.remove('H_migration_bond_rearrangs.txt')
-
-
+    
+    
 def test_add_bond_rearrang():
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0)])
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 10, 0, 0)])

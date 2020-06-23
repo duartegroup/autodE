@@ -8,7 +8,6 @@ Solvent
    :maxdepth: 2
 
    explicit_solvent
-   qmmm
    solvents
 
 

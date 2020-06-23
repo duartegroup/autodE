@@ -1,16 +1,19 @@
-from autode.pes_1d import get_ts_guess_1d, PES1d
+from autode.pes.pes_1d import get_ts_guess_1d, PES1d
 from autode.atoms import Atom
-from autode.molecule import Molecule
-from autode.pes import FormingBond
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Molecule
+from autode.pes.pes import FormingBond
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import xtb
+from autode.wrappers.keywords import OptKeywords
 import numpy as np
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 Config.high_quality_plots = False
+
+opt_keywords = OptKeywords(['PBE', 'def2-SVP', 'Opt'])
 
 # Override the availability of
 orca.available = True
@@ -39,7 +42,7 @@ def test_get_ts_guess_1dscan():
                                reactant=reac, product=prod,
                                bond=fbond,
                                method=orca,
-                               keywords=['PBE', 'def2-SVP', 'Opt'],
+                               keywords=opt_keywords,
                                dr=0.06)
 
     assert ts_guess.n_atoms == 3
@@ -60,12 +63,16 @@ def test_1d_pes():
 
     os.chdir(os.path.join(here, 'data'))
 
-    pes = PES1d(reactant=reac, product=prod, rs=np.linspace(1.0, 0.7, 5), r_idxs=(1, 2))
+    pes = PES1d(reactant=reac, product=prod, rs=np.linspace(1.0, 0.7, 5),
+                r_idxs=(1, 2))
 
     assert pes.n_points == 5
     assert type(pes.rs) is np.ndarray
+    assert pes.rs[0] == 1.0
+    assert pes.rs[-1] == 0.7
 
-    # First point on the surface is the reactant, and others are initialised as None
+    # First point on the surface is the reactant, and others are initialised
+    # as None
     assert type(pes.species[0]) is ReactantComplex
     assert all(s is None for s in pes.species[1:])
 
@@ -74,7 +81,9 @@ def test_1d_pes():
 
     assert pes.products_made()
 
-    pes.calculate(name='H+H2_H2+H', method=orca, keywords=['PBE', 'def2-SVP', 'Opt'])
+    pes.calculate(name='H+H2_H2+H', method=orca,
+                  keywords=opt_keywords)
+
     assert all(s is not None for s in pes.species)
     assert all(hasattr(s, 'energy') for s in pes.species)
     assert all(hasattr(s, 'atoms') for s in pes.species)

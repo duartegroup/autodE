@@ -1,7 +1,8 @@
 import pytest
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
-from autode.molecule import Molecule
+from autode.species.molecule import Molecule
+from autode.point_charges import PointCharge
 from autode.config import Config
 import os
 here = os.path.dirname(os.path.abspath(__file__))
@@ -15,23 +16,25 @@ def test_xtb_calculation():
     os.chdir(os.path.join(here, 'data'))
     XTB.available = True
 
-    test_mol = Molecule(name='test_mol', smiles='O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O')
-    calc = Calculation(name='opt', molecule=test_mol, method=method, opt=True)
+    test_mol = Molecule(name='test_mol',
+                        smiles='O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O')
+    calc = Calculation(name='opt', molecule=test_mol, method=method,
+                       keywords=Config.XTB.keywords.opt)
     calc.run()
 
     assert os.path.exists('opt_xtb.xyz') is True
     assert os.path.exists('opt_xtb.out') is True
     assert len(calc.get_final_atoms()) == 22
     assert calc.get_energy() == -36.990267613593
-    assert calc.output_file_exists is True
-    assert calc.rev_output_file_lines is not None
-    assert calc.output_file_lines is not None
-    assert calc.input_filename == 'opt_xtb.xyz'
-    assert calc.output_filename == 'opt_xtb.out'
+    assert calc.output.exists()
+    assert calc.output.file_lines is not None
+    assert calc.input.filename == 'opt_xtb.xyz'
+    assert calc.output.filename == 'opt_xtb.out'
+
     with pytest.raises(NotImplementedError):
         calc.optimisation_nearly_converged()
     with pytest.raises(NotImplementedError):
-        calc.get_imag_freqs()
+        calc.get_imaginary_freqs()
     with pytest.raises(NotImplementedError):
         calc.get_normal_mode_displacements(4)
 
@@ -40,15 +43,33 @@ def test_xtb_calculation():
     assert all(-1.0 < c < 1.0 for c in charges)
 
     const_opt = Calculation(name='const_opt', molecule=test_mol,
-                            method=method, opt=True, distance_constraints={(0, 1): 1.2539792},
-                            cartesian_constraints=[0])
+                            method=method,
+                            distance_constraints={(0, 1): 1.2539792},
+                            cartesian_constraints=[0],
+                            keywords=Config.XTB.keywords.opt)
 
     const_opt.generate_input()
-    assert os.path.exists('xcontrol_const_opt')
-    assert const_opt.flags == ['--chrg', '0',
-                               '--opt', '--input', 'xcontrol_const_opt']
+    assert os.path.exists('xcontrol_const_opt_xtb')
 
     os.remove('const_opt_xtb.xyz')
-    os.remove('xcontrol_const_opt')
+    os.remove('xcontrol_const_opt_xtb')
     os.remove('opt_xtb.xyz')
+    os.chdir(here)
+
+
+def test_point_charge():
+    os.chdir(os.path.join(here, 'data'))
+    XTB.available = True
+
+    test_mol = Molecule(name='test_mol', smiles='C')
+
+    # Methane with a point charge fairly far away
+    calc = Calculation(name='opt_point_charge',
+                       molecule=test_mol,
+                       method=method,
+                       keywords=Config.XTB.keywords.opt,
+                       point_charges=[PointCharge(charge=1.0, x=10, y=1, z=1)])
+    calc.run()
+
+    assert -4.178 < calc.get_energy() < -4.175
     os.chdir(here)

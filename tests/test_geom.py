@@ -28,7 +28,7 @@ def test_shifted_atoms():
 
     atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.0, 0.0, 2.0)]
 
-    new_atoms = geom.get_shifted_atoms_linear_interp(atoms, bonds=[(0, 1)], final_distances=[1.0])
+    new_atoms = geom.get_atoms_linear_interp(atoms, bonds=[(0, 1)], final_distances=[1.0])
 
     # Linear interpolation of the coordinates should move the atom either end of the bond half way
     assert np.linalg.norm(new_atoms[0].coord - np.array([0.0, 0.0, 0.5])) < 1E-6

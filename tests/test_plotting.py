@@ -1,10 +1,10 @@
 from autode import plotting
 import matplotlib.pyplot as plt
 from autode.exceptions import CouldNotPlotSmoothProfile
-from autode.molecule import Reactant, Product
+from autode.species.molecule import Reactant, Product
 from autode.transition_states.transition_state import TransitionState
-from autode.complex import ReactantComplex, ProductComplex
-from autode.reaction import Reaction
+from autode.species.complex import ReactantComplex, ProductComplex
+from autode.reactions.reaction import Reaction
 from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.ts_guess import TSguess
 from autode.units import KjMol, KcalMol

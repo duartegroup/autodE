@@ -1,6 +1,6 @@
 from autode.transition_states.ts_guess import get_ts_guess_constrained_opt
-from autode.molecule import Molecule
-from autode.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Molecule
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.atoms import Atom
 from autode.wrappers.ORCA import orca
@@ -28,7 +28,7 @@ def test_constrained_opt():
                                             product=ProductComplex(mol))
     assert ts_guess.n_atoms == 3
 
-    os.remove('xcontrol_template_ts_guess_constrained_opt_ll')
+    os.remove('xcontrol_template_ts_guess_constrained_opt_ll_xtb')
     os.remove('template_ts_guess_constrained_opt_ll_xtb.xyz')
     os.remove('template_ts_guess_constrained_opt_orca.inp')
     os.chdir(here)

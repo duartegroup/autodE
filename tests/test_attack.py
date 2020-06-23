@@ -1,5 +1,5 @@
-from autode.complex import ReactantComplex
-from autode.species import Species
+from autode.species.complex import ReactantComplex
+from autode.species.species import Species
 from autode.atoms import Atom
 from autode.substitution import SubstitutionCentre
 from autode.mol_graphs import make_graph

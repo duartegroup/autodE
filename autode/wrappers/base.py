@@ -21,7 +21,60 @@ class ElectronicStructureMethod(ABC):
             self.available = False
 
     @abstractmethod
-    def generate_input(self, calc):
+    def generate_input(self, calculation, molecule):
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calculation (autode.calculation.Calculation):
+            molecule (any):
+        """
+        pass
+
+    def generate_explicitly_solvated_input(self, calculation_input):
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calculation_input (autode.calculation.CalculationInput):
+        """
+        raise NotImplementedError
+
+    def clean_up(self, calc):
+        """
+        Remove any input files
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        for filename in calc.input.get_input_filenames():
+            if os.path.exists(filename):
+                os.remove(filename)
+
+        return None
+
+    @abstractmethod
+    def get_output_filename(self, calc):
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        pass
+
+    @abstractmethod
+    def get_input_filename(self, calc):
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        pass
+
+    @abstractmethod
+    def execute(self, calc):
         """
         Function implemented in individual child classes
 
@@ -98,7 +151,7 @@ class ElectronicStructureMethod(ABC):
 
     @abstractmethod
     @requires_output()
-    def get_imag_freqs(self, calc):
+    def get_imaginary_freqs(self, calc):
         """
         Function implemented in individual child classes
 
@@ -115,7 +168,8 @@ class ElectronicStructureMethod(ABC):
 
         Arguments:
             calc (autode.calculation.Calculation):
-            mode_number (int): Number of the normal mode to ge the displacements along 6 == first imaginary mode
+            mode_number (int): Number of the normal mode to get the
+            displacements along 6 == first imaginary mode
         """
         pass
 
@@ -152,12 +206,13 @@ class ElectronicStructureMethod(ABC):
         """
         pass
 
-    def __init__(self, name, path, keywords, mpirun=False):
+    def __init__(self, name, path, keywords_set, implicit_solvation_type):
         """
         Arguments:
             name (str): wrapper name. ALSO the name of the executable
             path (str): absolute path to the executable
-            keywords (autode.wrappers.keywords.Keywords): keywords_list to use in calculations with this method
+            keywords_set (autode.wrappers.keywords.KeywordsSet):
+            implicit_solvation_type (str):
 
         """
         self.name = name
@@ -169,5 +224,7 @@ class ElectronicStructureMethod(ABC):
         # Availability is set when hlevel and llevel methods are set
         self.available = False
 
-        self.keywords = keywords
-        self.mpirun = mpirun
+        self.keywords = keywords_set
+
+        assert type(implicit_solvation_type) is str
+        self.implicit_solvation_type = implicit_solvation_type

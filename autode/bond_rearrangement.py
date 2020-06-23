@@ -2,10 +2,12 @@ import itertools
 import os
 from autode.atoms import get_maximal_valance
 from autode.geom import get_neighbour_list
+from autode.geom import get_points_on_sphere
 from autode.log import logger
 from autode.mol_graphs import get_bond_type_list
 from autode.mol_graphs import get_fbonds
 from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import connected_components
 
 
 def get_bond_rearrangs(reactant, product, name):
@@ -320,18 +322,18 @@ def strip_equivalent_bond_rearrangs(mol, possible_bond_rearrangs, depth=6):
 
     unique_bond_rearrangements = []
 
-    for bond_rearrang in possible_bond_rearrangs:
+    for bond_rearr in possible_bond_rearrangs:
         bond_rearrang_is_unique = True
 
         # Compare bond_rearrang to all those already considered to be unique,
         for unique_bond_rearrang in unique_bond_rearrangements:
 
             if (unique_bond_rearrang.get_active_atom_neighbour_lists(mol=mol, depth=depth) ==
-                    bond_rearrang.get_active_atom_neighbour_lists(mol=mol, depth=depth)):
+                    bond_rearr.get_active_atom_neighbour_lists(mol=mol, depth=depth)):
                 bond_rearrang_is_unique = False
 
         if bond_rearrang_is_unique:
-            unique_bond_rearrangements.append(bond_rearrang)
+            unique_bond_rearrangements.append(bond_rearr)
 
     logger.info(f'Stripped {len(possible_bond_rearrangs)-len(unique_bond_rearrangements)} bond rearrangements')
     return unique_bond_rearrangements
@@ -343,19 +345,48 @@ class BondRearrangement:
         return '_'.join(f'{bond[0]}-{bond[1]}' for bond in self.all)
 
     def get_active_atom_neighbour_lists(self, mol, depth):
+        """
+        Get neighbour lists of all the active atoms in the molecule (reactant complex)
 
+        Arguments:
+            mol (autode.species.Species):
+            depth (int): Depth of the neighbour list to consider
+
+        Returns:
+            (list(list(int))):
+        """
+        connected_molecules = connected_components(mol.graph)
+        n_molecules = len(connected_molecules)
+
+        def shift_molecules(vectors):
+            for i, molecule_nodes in enumerate(connected_molecules):
+                for j in molecule_nodes:
+                    mol.atoms[j].translate(vec=vectors[i])
+
+        # For every molecule in the complex shift so they are far away, thus
+        # the neighbour lists only include atoms in the same molecule
+        shift_vectors = [100 * vec for vec in get_points_on_sphere(n_points=n_molecules+1)]
+        shift_molecules(vectors=shift_vectors)
+
+        # Calculate the neighbour lists while the molecules are all far away
         if self.active_atom_nl is None:
             self.active_atom_nl = [get_neighbour_list(species=mol, atom_i=atom)[:depth] for atom in self.active_atoms]
 
+        # Shift the molecules back to where they were
+        shift_molecules(vectors=[-vector for vector in shift_vectors])
+
         return self.active_atom_nl
 
-    def _set_list(self, bonds, ls):
+    def _set_active_atom_list(self, bonds, ls):
+
         for bond in bonds:
             for atom in bond:
                 if not atom in ls:
                     ls.append(atom)
                 if not atom in self.active_atoms:
                     self.active_atoms.append(atom)
+
+        return None
 
     def __eq__(self, other):
         return self.fbonds == other.fbonds and self.bbonds == other.bbonds
@@ -374,5 +405,5 @@ class BondRearrangement:
         self.active_atom_nl = None
         self.all = self.fbonds + self.bbonds
 
-        self._set_list(self.fbonds, self.fatoms)
-        self._set_list(self.bbonds, self.batoms)
+        self._set_active_atom_list(self.fbonds, self.fatoms)
+        self._set_active_atom_list(self.bbonds, self.batoms)

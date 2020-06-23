@@ -1,7 +1,7 @@
 from autode import mol_graphs
 from autode.bond_rearrangement import BondRearrangement
 from autode.exceptions import NoMolecularGraph
-from autode.species import Species
+from autode.species.species import Species
 from autode.atoms import Atom
 from autode.conformers import Conformer
 from autode.input_output import xyz_file_to_atoms
@@ -138,7 +138,7 @@ def test_mapping():
 
 def test_not_isomorphic():
 
-    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.9)
+    h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.0)
     h2_b = Species(name='template', charge=0, mult=1, atoms=[h_a, h_c])
     mol_graphs.make_graph(species=h2_b, rel_tolerance=0.3)
 

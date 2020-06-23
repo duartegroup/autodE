@@ -1,5 +1,5 @@
 from autode.solvent import explicit_solvent
-from autode.molecule import SolvatedMolecule
+from autode.species.molecule import SolvatedMolecule
 from autode.atoms import Atom
 import numpy as np
 

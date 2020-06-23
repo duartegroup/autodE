@@ -1,24 +1,26 @@
-from autode import reactions
+from autode.reactions.reaction_types import classify
 from autode.exceptions import ReactionFormationFalied
 import pytest
 
 
 def test_classify():
+    # Can do this with integers are in classify there is no check on their
+    # contents, only their length
 
-    addition = reactions.classify([0, 0], [0])
+    addition = classify([0, 0], [0])
     assert addition.name == 'addition'
 
-    dissociation = reactions.classify([0], [0, 0])
+    dissociation = classify([0], [0, 0])
     assert dissociation.name == 'dissociation'
 
-    substitution = reactions.classify([0, 0], [0, 0])
+    substitution = classify([0, 0], [0, 0])
     assert substitution.name == 'substitution'
 
-    elimination = reactions.classify([0, 0], [0, 0, 0])
+    elimination = classify([0, 0], [0, 0, 0])
     assert elimination.name == 'elimination'
 
-    rearrangement = reactions.classify([0], [0])
+    rearrangement = classify([0], [0])
     assert rearrangement.name == 'rearrangement'
 
     with pytest.raises(ReactionFormationFalied):
-        reactions.classify([], [])
+        classify([], [])

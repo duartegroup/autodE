@@ -1,12 +1,68 @@
 from functools import wraps
 import os
 import shutil
+from subprocess import Popen, DEVNULL, PIPE, STDOUT
 from tempfile import mkdtemp
 from autode.exceptions import NoAtomsInMolecule
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
 from autode.exceptions import NoMolecularGraph
 from autode.log import logger
+
+
+def run_external(params, output_filename):
+    """
+    Standard method to run a EST calculation with subprocess writing the
+    output to the calculation output filename
+
+    Arguments:
+        output_filename (str):
+        params (list(str)): e.g. [/path/to/method, input-filename]
+    """
+
+    with open(output_filename, 'w') as output_file:
+        # /path/to/method input_filename > output_filename
+        process = Popen(params, stdout=output_file, stderr=DEVNULL)
+        process.wait()
+
+    return None
+
+
+def run_external_monitored(params, output_filename, break_word='MPI_ABORT'):
+    """
+    Run an external process monitoring the standard output and error for a
+    word that will terminate the process
+
+    Arguments:
+        params (list(str)):
+        output_filename (str):
+
+    Keyword Arguments:
+        break_word (str): String that if found will terminate the process
+    """
+
+    def output_reader(process, out_file):
+        for line in process.stdout:
+            if break_word in line.decode('utf-8'):
+                raise ChildProcessError
+
+            print(line.decode('utf-8'), end='', file=out_file)
+
+        return None
+
+    with open(output_filename, 'w') as output_file:
+
+        proc = Popen(params, stdout=PIPE, stderr=STDOUT)
+
+        try:
+            output_reader(proc, output_file)
+
+        except ChildProcessError:
+            logger.warning('External terminated')
+            proc.terminate()
+            return
+
+    return None
 
 
 def work_in(dir_ext):
@@ -119,7 +175,7 @@ def requires_graph():
 
 
 def requires_conformers():
-    """A function requiring a list of"""
+    """A function requiring the species to have a list of conformers"""
 
     def func_decorator(func):
         @wraps(func)
@@ -143,16 +199,10 @@ def requires_output():
     def func_decorator(func):
         @wraps(func)
         def wrapped_function(*args, **kwargs):
-            # Species must be the first argument
-            assert hasattr(args[0], 'output_filename')
-            if args[0].output_filename is None:
-                raise NoCalculationOutput
+            # Calculation must be the first argument
+            assert hasattr(args[0], 'output')
 
-            assert hasattr(args[0], 'output_file_exists')
-            assert hasattr(args[0], 'output_file_lines')
-            assert hasattr(args[0], 'rev_output_file_lines')
-
-            if args[0].output_file_exists is False or args[0].output_file_lines is None:
+            if args[0].output.file_lines is None:
                 raise NoCalculationOutput
 
             return func(*args, **kwargs)
