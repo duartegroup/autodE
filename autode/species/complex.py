@@ -147,21 +147,6 @@ class Complex(Species):
         return None
 
     @requires_atoms()
-    def run_const_opt(self, constrained_opt):
-        """Run a constrained optimisation using a const_opt calculation and
-        set the new structure
-
-        Arguments:
-            constrained_opt (autode.calculation.Calculation):
-        """
-        constrained_opt.run()
-
-        self.energy = constrained_opt.get_energy()
-        self.set_atoms(atoms=constrained_opt.get_final_atoms())
-
-        return None
-
-    @requires_atoms()
     def translate_mol(self, vec, mol_index):
         """
         Translate a molecule within a complex by a vector

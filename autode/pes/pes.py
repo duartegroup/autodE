@@ -12,8 +12,8 @@ from autode.log import logger
 
 def get_closest_species(point, pes):
     """
-    Given a point on an n-dimensional potential energy surface defined by indices where the length is the dimension
-    of the surface
+    Given a point on an n-dimensional potential energy surface defined by
+    indices where the length is the dimension of the surface
 
     Arguments:
         pes (autode.pes.PES): Potential energy surface
@@ -27,17 +27,21 @@ def get_closest_species(point, pes):
         logger.info('PES is at the first point')
         return deepcopy(pes.species[point])
 
-    # The indcies of the nearest and second nearest points to e.g. n,m in a 2 dimensional PES
+    # The indcies of the nearest and second nearest points to e.g. n,m in a 2
+    # dimensional PES
     neareast_neighbours = [-1, 0, 1]
     next_nearest_neighbours = [-2, -1, 0, 1, 2]
 
-    # First attempt to find a species that has been calculated in the nearest neighbours
+    # First attempt to find a species that has been calculated in the nearest
+    # neighbours
     for index_array in [neareast_neighbours, next_nearest_neighbours]:
 
-        # Each index array has elements from the most negative to most positive. e.g. (-1, -1), (-1, 0) ... (1, 1)
+        # Each index array has elements from the most negative to most
+        # positive. e.g. (-1, -1), (-1, 0) ... (1, 1)
         for d_indexes in itertools.product(index_array, repeat=len(point)):
 
-            # For e.g. a 2D PES the new index is (n+i, m+j) where i, j = d_indexes
+            # For e.g. a 2D PES the new index is (n+i, m+j) where
+            # i, j = d_indexes
             new_point = tuple(np.array(point) + np.array(d_indexes))
 
             try:
@@ -54,7 +58,8 @@ def get_closest_species(point, pes):
 
 def get_point_species(point, species, distance_constraints, name, method, keywords, n_cores, energy_threshold=1):
     """
-    On a 2d PES calculate the energy and the structure using a constrained optimisation
+    On a 2d PES calculate the energy and the structure using a constrained
+    optimisation
 
     Arguments:
         point (tuple):
@@ -66,7 +71,8 @@ def get_point_species(point, species, distance_constraints, name, method, keywor
         n_cores (int):
 
     Keyword Arguments:
-        energy_threshold (float): Above this energy (Hartrees) the calculation will be disregarded
+        energy_threshold (float): Above this energy (Hartrees) the calculation
+                                  will be disregarded
     """
     logger.info(f'Calculating point {point} on PES surface')
 
@@ -74,20 +80,24 @@ def get_point_species(point, species, distance_constraints, name, method, keywor
     original_species = deepcopy(species)
 
     # Set up and run the calculation
-    const_opt = Calculation(name=species.name, molecule=species, method=method, n_cores=n_cores,
-                            keywords=keywords, distance_constraints=distance_constraints)
-
+    const_opt = Calculation(name=species.name, molecule=species, method=method,
+                            n_cores=n_cores,
+                            keywords=keywords,
+                            distance_constraints=distance_constraints)
     try:
-        species.run_const_opt(const_opt)
+        species.optimise(method=method, calc=const_opt)
+
     except AtomsNotFound:
         logger.error(f'Optimisation failed for {point}')
         return original_species
 
-    # If the energy difference is > 1 Hartree then likely something has gone wrong with the EST method
-    # we need to be not on the first point to compute an energy difference..
+    # If the energy difference is > 1 Hartree then likely something has gone
+    # wrong with the EST method we need to be not on the first point to compute
+    # an energy difference..
     if not all(p == 0 for p in point):
         if species.energy is None or np.abs(original_species.energy - species.energy) > energy_threshold:
-            logger.error(f'PES point had a relative energy > {energy_threshold} Ha. Using the closest')
+            logger.error(f'PES point had a relative energy '
+                         f'> {energy_threshold} Ha. Using the closest')
             return original_species
 
     return species
@@ -123,7 +133,8 @@ class ScannedBond:
         Bond with a current and final distance which will be scanned over
 
         Arguments:
-            atom_indexes (tuple(int)): Atom indexes that make this 'bond' e.g. (0, 1)
+            atom_indexes (tuple(int)): Atom indexes that make this
+            'bond' e.g. (0, 1)
         """
         assert len(atom_indexes) == 2
 
@@ -147,7 +158,8 @@ class FormingBond(ScannedBond):
 
         i, j = self.atom_indexes
         self.curr_dist = species.get_distance(atom_i=i, atom_j=j)
-        self.final_dist = get_avg_bond_length(atom_i_label=species.atoms[i].label, atom_j_label=species.atoms[j].label)
+        self.final_dist = get_avg_bond_length(atom_i_label=species.atoms[i].label,
+                                              atom_j_label=species.atoms[j].label)
 
 
 class BreakingBond(ScannedBond):

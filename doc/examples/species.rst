@@ -24,8 +24,8 @@ a species i.e.
   >>> h2.n_atoms
   2
 
-Atoms can be printed and contain a coordinate as a numpy array (shape = (3,),
-initialised at the origin) and a label
+Atoms contain a coordinate as a numpy array (shape = (3,), initialised at the
+origin) and a label
 
 .. code-block:: python
 
@@ -40,10 +40,10 @@ initialised at the origin) and a label
 Rotation and Translation
 ------------------------
 
-Atoms can also be translated and rotated e.g. to shift the first hydrogen atom
+Atoms can be translated and rotated e.g. to shift the first hydrogen atom
 from the origin along 1 Å in the x axis then rotate in the z-axis
 
-.. image:: ../../examples/common/translation_rotation.png
+.. image:: ../common/translation_rotation.png
 
 .. code-block:: python
 
@@ -74,8 +74,8 @@ Translations and rotations are performed in place so the h2 atoms are modified
 Solvents
 --------
 
-Species also support an implicit solvent which need not be specified for a
-species in the gas phase
+Species also support an solvent which need not be specified for a species in
+the gas phase
 
 .. code-block:: python
 
@@ -91,8 +91,8 @@ For example, to initialise a fluoride ion in dichloromethane
   <autode.solvent.solvents.Solvent object at XxXXXXXX>
 
 Given a solvent name string a :ref:`Solvent <solvents>` is added as an attribute
-to the species. A Solvent contains a set of aliases and names in different
-electronic structure theory packages e.g.
+to the species. A Solvent contains a set of aliases and names of the implicit
+solvent in different electronic structure theory packages e.g.
 
   >>> f.solvent.g09
   'Dichloromethane'
