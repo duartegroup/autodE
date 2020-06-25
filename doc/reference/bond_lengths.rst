@@ -1,6 +1,6 @@
-************
-Bond Lengths
-************
+*****
+Bonds
+*****
 
 .. automodule:: autode.bond_lengths
    :members:

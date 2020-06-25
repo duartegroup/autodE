@@ -11,8 +11,7 @@ optimise (relaxed).
 Unrelaxed
 ---------
 
-For the H\ :sub:`2`\ O dissociation curve to construct it manually at the XTB
-level
+For the O-H dissociation curve in H\ :sub:`2`\ O at the XTB level
 
 .. literalinclude:: ../common/OH_PES_unrelaxed.py
 
@@ -21,7 +20,6 @@ Out (OH_PES_unrelaxed.png):
 .. image:: ../common/OH_PES_unrelaxed.png
 
 For the same O-H 1D PES scan using a selection of different DFT methods
-
 
 .. literalinclude:: ../common/OH_PES_unrelaxed_DFT.py
 

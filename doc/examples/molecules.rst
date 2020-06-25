@@ -10,7 +10,7 @@ strings
 
 .. code-block:: python
 
-  >>> from autode.species import Molecule
+  >>> from autode import Molecule
   >>> molecule = Molecule(name='molecule')
   >>> molecule.charge
   0
@@ -94,7 +94,7 @@ Pairwise distances between atoms in a molecule can be calculated
   >>> water.get_distance(0, 1)
   0.8448
 
-where atoms are indexed from 0, so that r\ :sub:`01`\  is r(O-H).
+where atoms are indexed from 0, so that r\ :sub:`01`\  is r(O-H) in Å.
 
 
 Calculations

@@ -50,9 +50,9 @@ extracting it. Then, open an anaconda command prompt and ``cd`` to the directory
     $ conda config --append channels conda-forge
     $ conda install --file requirements.txt
     $ python setup.py install
-
-The above commands assume you have extracted the zip to ``C:\Users\yourusername\Downloads`` and you will need a C++
-compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_.
+.. note::
+    The above commands assume you have extracted the zip to ``C:\Users\yourusername\Downloads`` and a C++
+    compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ is available.
 
 Installation Check
 ------------------

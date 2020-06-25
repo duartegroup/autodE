@@ -5,6 +5,8 @@ accommodate the changes.
 """
 from autode.species import Species
 from autode.species import Molecule
+from autode.config import Config
+from autode.mol_graphs import split_mol_across_bond
 from autode.atoms import Atom
 import numpy as np
 
@@ -49,3 +51,34 @@ def test_molecule():
     water.translate(vec=-water.atoms[0].coord)
     assert np.linalg.norm(water.atoms[0].coord - np.zeros(3)) < 1E-6
 
+
+def test_manipulation():
+    methane = Molecule(name='CH4', smiles='C')
+    assert methane.n_atoms == 5
+    ch3_nodes, h_nodes = split_mol_across_bond(methane.graph, bond=(0, 1))
+
+    ch3 = Molecule(name='CH3', mult=2,
+                   atoms=[methane.atoms[i] for i in ch3_nodes])
+    assert ch3.n_atoms == 4
+
+    h = Molecule(name='H', mult=2, atoms=[methane.atoms[i] for i in h_nodes])
+    assert h.n_atoms == 1
+
+
+def test_conformers():
+
+    butane = Molecule(name='butane', smiles='CCCC')
+    butane.populate_conformers(n_confs=10)
+
+    n_confs = len(butane.conformers)
+    assert n_confs > 1
+
+    # Lowing the RMSD threshold should afford more conformers
+    Config.rmsd_threshold = 0.01
+    butane.populate_conformers(n_confs=10)
+    assert len(butane.conformers) > n_confs
+
+    # Conformer generation should also work if the RDKit method fails
+    butane.rdkit_conf_gen_is_fine = False
+    butane.populate_conformers(n_confs=10)
+    assert len(butane.conformers) > 1

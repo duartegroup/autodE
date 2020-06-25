@@ -113,3 +113,8 @@ using the io module
   >>>                   atoms=xyz_file_to_atoms('methane.xyz'))
   >>> methane.n_atoms
   5
+
+.. note::
+   Only .xyz files are supported currently. Other molecular file formats can
+   be converted to .xyz with `openbabel <https://anaconda.org/openbabel/openbabel/>`_
+

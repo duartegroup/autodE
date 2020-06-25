@@ -13,9 +13,9 @@ surface (PES) scans and conformational searching.
 
    species
    molecules
+   nci
    manipulation
    pes
    conformers
    rmsd
-   nci
 
