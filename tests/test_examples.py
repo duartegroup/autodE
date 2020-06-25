@@ -9,6 +9,7 @@ from autode.config import Config
 from autode.mol_graphs import split_mol_across_bond
 from autode.atoms import Atom
 import numpy as np
+import os
 
 
 def test_species():
@@ -82,3 +83,10 @@ def test_conformers():
     butane.rdkit_conf_gen_is_fine = False
     butane.populate_conformers(n_confs=10)
     assert len(butane.conformers) > 1
+
+    for fn in os.listdir(os.getcwd()):
+        if fn.startswith('butane_conf'):
+            os.remove(fn)
+
+    # Change RMSD threshold back
+    Config.rmsd_threshold = 0.3
