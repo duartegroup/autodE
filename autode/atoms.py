@@ -9,14 +9,27 @@ class Atom:
         return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
 
     def translate(self, vec):
-        """Translate this atom by a vector (np.ndarray, length 3)"""
+        """
+        Translate this atom by a vector
+
+         Arguments:
+             vec (np.ndarray): Shape = (3,)
+          """
         self.coord += vec
         return None
 
     def rotate(self, axis, theta, origin=None):
-        """Rotate this atom by theta radians (float) in an axis
-        (np.ndarray, length 3)"""
+        """Rotate this atom theta radians around an axis given an origin
 
+        Arguments:
+            axis (np.ndarray): Axis to rotate in. shape = (3,)
+            theta (float): Angle in radians (float)
+
+        Keyword Arguments:
+            origin (np.ndarray): Rotate about this origin. shape = (3,)
+                                 if no origin is specified then the atom
+                                 is rotated without translation.
+        """
         # If specified shift so that the origin is at (0, 0, 0), apply the
         # rotation, and shift back
         if origin is not None:
@@ -44,11 +57,35 @@ class Atom:
 
         return None
 
-    def __init__(self, atomic_symbol, x, y, z):
+    def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
+        """
+        Atom class. Centered at the origin by default
+
+        Arguments:
+            atomic_symbol (str): Symbol of an element e.g. 'C'
+
+        Keyword Arguments:
+            x (float or str): x coordinate in 3D space (Å)
+            y (float or str): y coordinate in 3D space (Å)
+            z (float or str): z coordinate in 3D space (Å)
+        """
+        assert atomic_symbol in elements
 
         self.label = atomic_symbol
         self.coord = np.array([float(x), float(y), float(z)])
 
+
+elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
+            'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr',
+            'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br',
+            'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd',
+            'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La',
+            'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er',
+            'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au',
+            'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th',
+            'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md',
+            'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn',
+            'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']
 
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],
@@ -113,7 +150,8 @@ def get_maximal_valance(atom_label):
     if atom_label in valid_valances.keys():
         return valid_valances[atom_label][-1]
     else:
-        logger.warning(f'Could not find a valid valance for {atom_label}. Guessing at 6')
+        logger.warning(f'Could not find a valid valance for {atom_label}. '
+                       f'Guessing at 6')
         return 6
 
 
@@ -130,7 +168,8 @@ def get_atomic_weight(atom_label):
     if atom_label in atomic_weights.keys():
         return atomic_weights[atom_label]
     else:
-        logger.warning(f'Could not find a valid weight for {atom_label}. Guessing at 70')
+        logger.warning(f'Could not find a valid weight for {atom_label}. '
+                       f'Guessing at 70')
         return 70
 
 
@@ -144,13 +183,15 @@ def get_vdw_radius(atom_label):
     if atom_label in vdw_radii.keys():
         return vdw_radii[atom_label]
     else:
-        logger.error(f'Couldn\'t find the VdV radii for {atom_label}. Guessing at 2.3')
+        logger.error(f'Couldn\'t find the VdV radii for {atom_label}. '
+                     f'Guessing at 2.3')
         return 2.3
 
 
 def is_pi_atom(atom_label, valency):
     """
-    Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or second row element
+    Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or
+    second row element
 
     Arguments;
         atom_label (str):

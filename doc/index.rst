@@ -7,6 +7,9 @@ Overview of autodE_
 
 **autodE** is a Python module designed for the automated calculation of reaction profiles from just SMILES strings of reactant(s) and product(s).
 
+.. warning::
+    **autodE** is still in alpha release.
+
 
 Documentation
 -------------
@@ -24,6 +27,7 @@ Documentation
    config
    reference/index
    troubleshooting
+   examples/index
 
 Indices and tables
 ==================

@@ -7,10 +7,11 @@ from autode.species.species import Species
 
 def get_conformer(species, name):
     """
-    Generate a conformer of a species given a new name
+    Generate a conformer of a species given a new name but with the same
+    atoms
 
-    Args:
-        species (autode.complex.Complex):
+    Arguments:
+        species (autode.species.Species):
         name (str):
 
     Returns:
@@ -27,7 +28,7 @@ def get_conformer(species, name):
 
 class Conformer(Species):
 
-    def optimise(self, method, reset_graph=False):
+    def optimise(self, method, reset_graph=False, calc=None):
         logger.info(f'Running optimisation of {self.name}')
 
         opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,

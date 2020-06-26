@@ -16,18 +16,20 @@ from autode.atoms import get_atomic_weight
 
 def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
     """
-    Make the molecular graph from the 'bonds' determined on a distance criteria or a smiles parser object. All attributes
-    default to false
+    Make the molecular graph from the 'bonds' determined on a distance criteria
+     or a smiles parser object. All attributes default to false
 
     Nodes attributes:
         (0) atom_label: Atomic symbol of this atom
         (1) stereo: Is this atom part of some stereochemistry e.g. R/S or E/Z
 
     Edge attributes:
-        (1) pi: Is this bond a pi bond. If it is then there should be no rotation the bond axis in conformer generation
-        (2) active: Is this bond being made/broken (applies only to TransitionState objects)
-    Arguments:
+        (1) pi: Is this bond a pi bond. If it is then there should be no
+                rotation the bond axis in conformer generation
+        (2) active: Is this bond being made/broken
+                   (applies only to TransitionState objects)
 
+    Arguments:
         species (autode.species.Species):
 
     Keyword Arguments:
@@ -39,7 +41,8 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valanc
 
     graph = nx.Graph()
 
-    # Add the atoms to the graph all are initially assumed not to be stereocenters
+    # Add the atoms to the graph all are initially assumed not to be
+    # stereocenters
     for i in range(species.n_atoms):
         graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
 
@@ -140,15 +143,25 @@ def set_graph_attributes(species):
             species.graph.edges[atom_i, atom_j]['pi'] = True
 
     logger.info('Setting the stereocentres in a species')
+    # List of atom indexes that are rings in the species
+    rings = find_cycles(species.graph)
 
-    for bond in [edge for edge in species.graph.edges if species.graph.edges[edge]['pi'] is True]:
-        if is_chiral_pi_bond(species, bond):
-            species.graph.nodes[bond[0]]['stereo'] = True
-            species.graph.nodes[bond[1]]['stereo'] = True
+    for (i, j) in species.graph.edges:
 
-    for atom in range(species.n_atoms):
-        if is_chiral_atom(species, atom):
-            species.graph.nodes[atom]['stereo'] = True
+        if species.graph.edges[(i, j)]['pi'] is False:
+            continue
+
+        if any(i in ring for ring in rings):
+            # The ring should define the stereochemistry of this pi bond
+            continue
+
+        if is_chiral_pi_bond(species, bond=(i, j)):
+            species.graph.nodes[i]['stereo'] = True
+            species.graph.nodes[j]['stereo'] = True
+
+    for i in range(species.n_atoms):
+        if is_chiral_atom(species, atom_index=i):
+            species.graph.nodes[i]['stereo'] = True
 
     return None
 
@@ -387,12 +400,15 @@ def get_separate_subgraphs(graph):
 
 
 def split_mol_across_bond(graph, bond):
-    """Gets a list of atoms on either side of a bond
+    """Gets a list of atoms on either side of a bond. Should be separable
+    into two graphs
 
     Arguments:
-        graph (nx.Graph): molecular graph
-        bond (tuple): list of bonds to be split across
+        graph (nx.Graph): Molecular graph
+        bond (tuple(int)): Bond to be split across e.g. (0, 1)
 
+    Returns:
+        (list(list(int))): List of atom indexes (as a list of integers)
     """
     graph_copy = graph.copy()
 
@@ -468,7 +484,8 @@ def get_fbonds(graph, key):
 
 def set_active_mol_graph(species, active_bonds):
     """
-    Get a molecular graph that includes 'active edges' i.e. bonds that are either made or broken in the reaction
+    Get a molecular graph that includes 'active edges' i.e. bonds that are
+    either made or broken in the reaction
 
     Arguments:
         species (autode.species.Species):
@@ -480,14 +497,16 @@ def set_active_mol_graph(species, active_bonds):
 
     for bond in active_bonds:
 
-        # The graph has both (i, j) and (j, i) edges such that the order is not important
+        # The graph has both (i, j) and (j, i) edges such that the order is
+        # not important
         if bond in species.graph.edges:
             active_graph.edges[bond]['active'] = True
 
         else:
             active_graph.add_edge(*bond, pi=False, active=True)
 
-    logger.info(f'Modified and added a total of {len(active_bonds)} bonds to the molecular graph')
+    logger.info(f'Modified and added a total of {len(active_bonds)} bonds to '
+                f'the molecular graph')
 
     species.graph = active_graph
     set_graph_attributes(species)
@@ -497,7 +516,8 @@ def set_active_mol_graph(species, active_bonds):
 
 def get_truncated_active_mol_graph(graph, active_bonds):
     """
-    Generate a truncated graph of a graph that only contains the active bond atoms and their nearest neighbours
+    Generate a truncated graph of a graph that only contains the active bond
+    atoms and their nearest neighbours
 
     Arguments:
         graph (nx.Graph):
@@ -519,7 +539,8 @@ def get_truncated_active_mol_graph(graph, active_bonds):
     for atom_index in deepcopy(t_graph.nodes):
         neighbours = graph.neighbors(atom_index)
 
-        # Add nodes and edges for all atoms and bonds to the neighbours that don't already exist in the graph
+        # Add nodes and edges for all atoms and bonds to the neighbours that
+        # don't already exist in the graph
         for n_atom_index in neighbours:
             if n_atom_index not in t_graph.nodes:
                 t_graph.add_node(n_atom_index)
@@ -527,12 +548,14 @@ def get_truncated_active_mol_graph(graph, active_bonds):
             if (atom_index, n_atom_index) not in t_graph.edges:
                 t_graph.add_edge(atom_index, n_atom_index)
 
-    logger.info(f'Truncated graph generated. {t_graph.number_of_nodes()} nodes and {t_graph.number_of_edges()} edges')
+    logger.info(f'Truncated graph generated. {t_graph.number_of_nodes()} '
+                f'nodes and {t_graph.number_of_edges()} edges')
     return t_graph
 
 
 def is_chiral_pi_bond(species, bond):
-    """Determine if a pi bond is chiral, by seeing if either atom has the same group bonded to it twice"""
+    """Determine if a pi bond is chiral, by seeing if either atom has the same
+     group bonded to it twice"""
 
     for i, atom in enumerate(bond):
         neighbours = list(species.graph.neighbors(atom))
@@ -554,9 +577,10 @@ def is_chiral_pi_bond(species, bond):
     return True
 
 
-def is_chiral_atom(species, atom):
-    """Determine if an atom is chiral, by seeing if any of the bonded groups are the same"""
-    neighbours = list(species.graph.neighbors(atom))
+def is_chiral_atom(species, atom_index):
+    """Determine if an atom is chiral, by seeing if any of the bonded groups
+    are the same"""
+    neighbours = list(species.graph.neighbors(atom_index))
 
     if len(neighbours) != 4:
         return False
@@ -564,7 +588,7 @@ def is_chiral_atom(species, atom):
     graphs = []
     for neighbour in neighbours:
         graph = species.graph.copy()
-        graph.remove_edge(atom, neighbour)
+        graph.remove_edge(atom_index, neighbour)
         split_subgraphs = get_separate_subgraphs(graph)
         graphs.append([subgraph for subgraph in split_subgraphs if neighbour in list(subgraph.nodes())][0])
 

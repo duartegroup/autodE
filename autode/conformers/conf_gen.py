@@ -14,6 +14,7 @@ from autode.log import logger
 from autode.geom import are_coords_reasonable
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CannotSplitAcrossBond
+from autode.exceptions import NoMolecularGraph
 
 
 def get_bond_matrix(n_atoms, bonds, fixed_bonds):
@@ -80,28 +81,28 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
     # Check on every pair of stereocenters
-    for (atom_i, atom_j) in combinations(stereocentres, 2):
-        if (atom_i, atom_j) not in species.graph.edges:
+    for (i, j) in combinations(stereocentres, 2):
+        if (i, j) not in species.graph.edges:
             continue
 
         # Don't rotate if the bond connecting the centers is a π-bond
-        if species.graph.edges[atom_i, atom_j]['pi'] is True:
+        if species.graph.edges[i, j]['pi'] is True:
             logger.info('Stereocenters were π bonded – not rotating')
             continue
 
         try:
-            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(atom_i, atom_j))
+            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(i, j))
 
         except CannotSplitAcrossBond:
             logger.warning('Splitting across this bond does not give two components - could have a ring')
             return atoms
 
         # Rotate the left hand side randomly
-        rot_axis = atoms[atom_i].coord - atoms[atom_j].coord
+        rot_axis = atoms[i].coord - atoms[j].coord
         theta = 2*np.pi*rand.rand()
-        idxs_to_rotate = left_idxs if atom_i in left_idxs else right_idxs
+        idxs_to_rotate = left_idxs if i in left_idxs else right_idxs
 
-        [atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[atom_i].coord) for n in idxs_to_rotate if n != atom_i]
+        [atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[i].coord) for n in idxs_to_rotate if n != i]
 
     return atoms
 
@@ -232,6 +233,11 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     saved_atoms = get_atoms_from_generated_file(species, xyz_filename)
     if saved_atoms is not None:
         return saved_atoms
+
+    # To generate the potential requires bonds between atoms defined in a
+    # molecular graph
+    if species.graph is None:
+        raise NoMolecularGraph
 
     # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
     rand = np.random.RandomState()

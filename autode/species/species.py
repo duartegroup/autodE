@@ -102,14 +102,30 @@ class Species:
         return np.array([atom.coord for atom in self.atoms])
 
     @requires_atoms()
-    def optimise(self, method, reset_graph=False):
+    def optimise(self, method, reset_graph=False, calc=None):
+        """
+        Optimise the geometry using a method
+
+        Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            reset_graph (bool): Reset the molecular graph
+            calc (autode.calculation.Calculation): Different e.g. constrained
+                                                   optimisation calculation
+        """
         logger.info(f'Running optimisation of {self.name}')
 
-        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
-                          keywords=method.keywords.opt, n_cores=Config.n_cores)
-        opt.run()
-        self.energy = opt.get_energy()
-        self.set_atoms(atoms=opt.get_final_atoms())
+        if calc is None:
+            calc = Calculation(name=f'{self.name}_opt', molecule=self,
+                               method=method, keywords=method.keywords.opt,
+                               n_cores=Config.n_cores)
+        else:
+            assert isinstance(calc, Calculation)
+
+        calc.run()
+        self.energy = calc.get_energy()
+        self.set_atoms(atoms=calc.get_final_atoms())
         self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
 
         if reset_graph:

@@ -2,7 +2,7 @@ from autode.exceptions import SolventNotFound
 
 
 def get_solvent(solvent_name, implicit=True, explicit=False):
-    """For a named solvent_name return the autode.solvent_name.solvents.Solvent
+    """For a named solvent_name return the autode.solvent.solvents.Solvent
     that is one of the aliases """
     if solvent_name is None:
         return None
@@ -18,6 +18,8 @@ def get_solvent(solvent_name, implicit=True, explicit=False):
     if explicit:
         # Return ExplicitSolvent
         raise NotImplementedError
+
+    return None
 
 
 def get_available_solvent_names(method):
@@ -42,6 +44,25 @@ class Solvent:
 
     def __init__(self, name, smiles, aliases, orca=None, g09=None, nwchem=None,
                  xtb=None, mopac=None):
+        """
+        Solvent class. As electronic structure methods implement implicit
+        solvation without a unique list of solvents there needs to be
+        conversion between them, while also allowing for user specifying
+        one possibility from a list of aliases
+
+        Arguments:
+            name (str): Unique name of the solvent
+            smiles (str): SMILES string
+            aliases (list(str)): DIfferent names for the same solvent e.g.
+                                 water and H2O
+
+        Keyword Arguments:
+            orca (str): Name of the solvent in ORCA, or None
+            g09 (str): Name of the solvent in Gaussian 09, or None
+            nwchem (str): Name of the solvent in NwChem, or None
+            xtb (str): Name of the solvent in XTB, or None
+            mopac (str): Name of the solvent in MOPAC, or None
+        """
 
         self.name = name
         self.smiles = smiles

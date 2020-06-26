@@ -1,6 +1,6 @@
-******
-Config
-******
+*************
+Configuration
+*************
 
 .. automodule:: autode.config
    :members:

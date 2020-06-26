@@ -1,6 +1,6 @@
-*****
-Utils
-*****
+*********
+Utilities
+*********
 
 .. automodule:: autode.utils
    :members:

@@ -11,7 +11,7 @@ from autode.config import Config
 from autode.units import KcalMol
 from autode.units import KjMol
 
-__version__ = '1.0.0'
+__version__ = '1.0.0a'
 
 
 __all__ = [

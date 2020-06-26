@@ -1,6 +1,6 @@
-***
-Log
-***
+*******
+Logging
+*******
 
 .. automodule:: autode.log
    :members:
