@@ -124,7 +124,7 @@ def test_find_lowest_energy_conformer():
     os.chdir(os.path.join(here, 'data'))
 
     # Spoof XTB availability
-    # xtb.path = here
+    xtb.path = here
     xtb.available = True
 
     propane = Molecule(name='propane', smiles='CCC')

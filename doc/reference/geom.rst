@@ -1,6 +1,6 @@
-****
-Geom
-****
+********
+Geometry
+********
 
 .. automodule:: autode.geom
    :members:

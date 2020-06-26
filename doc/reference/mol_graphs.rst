@@ -1,6 +1,6 @@
-**********
-Mol Graphs
-**********
+****************
+Molecular Graphs
+****************
 
 .. automodule:: autode.mol_graphs
    :members:

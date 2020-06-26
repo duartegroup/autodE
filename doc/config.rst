@@ -1,16 +1,16 @@
 Configuration
 =============
 
-The Config file can be modified from the input script for full customization of
+The *Config* can be modified from the input script for full customization of
 the calculations. By default low level optimisations are performed at PBE-D3BJ/def2-SVP,
-optimisations at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP.
+optimisations at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in
+ORCA if it is available.
 
-For example, to use Gaussian09 and XTB as the high and low level electronic structure methods
+For example, to use Gaussian09 as the high level electronic structure method
 
 .. code-block:: python
 
   >>> Config.hcode = 'g09'
-  >>> Config.lcode = 'xtb'
 
 To set the number of cores available and the memory per core (in MB)
 
@@ -19,8 +19,8 @@ To set the number of cores available and the memory per core (in MB)
   >>> Config.n_cores = 8
   >>> Config.max_core = 4000
 
-Further, the parameters used in the calculations can be changed, e.g to change
-how the single point energies are calculated to B3LYP/def2-TZVP in ORCA
+Calculation parameters also can be changed, e.g to use B3LYP/def2-TZVP single point
+energies in ORCA
 
 .. code-block:: python
 
@@ -43,7 +43,7 @@ to see all the options.
 
 .. note::
     NWChem currently only supports solvents for DFT, other methods must not have
-a solvent.
+    a solvent.
 
 Logging
 -------

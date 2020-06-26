@@ -18,7 +18,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     Arguments:
         reactant (autode.complex.ReactantComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
-        keywords (autode.wrappers.keywords.KeywordsSet):
+        keywords (autode.wrappers.keywords.Keywords):
         name (str):
         distance_consts (dict): Distance constraints keyed with a tuple of atom
                                 indexes and value of the distance
@@ -43,7 +43,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     # Try and set the atoms, but continue if they're not found as hopefully the
     # other method will be fine(?)
     try:
-        mol_with_constraints.run_const_opt(ll_const_opt)
+        mol_with_constraints.optimise(method=l_method, calc=ll_const_opt)
 
     except AtomsNotFound:
         pass
@@ -56,7 +56,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     # Form a transition state guess from the optimised atoms and set the
     # corresponding energy
     try:
-        mol_with_constraints.run_const_opt(hl_const_opt)
+        mol_with_constraints.optimise(method=method, calc=hl_const_opt)
     except AtomsNotFound:
         # Retrun with the low level
         try:
@@ -80,19 +80,22 @@ def has_matching_ts_templates(reactant, bond_rearrangement):
         bool:
     """
 
-    mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
+    mol_graph = get_truncated_active_mol_graph(graph=reactant.graph,
+                                               active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
 
     for ts_template in ts_guess_templates:
 
-        if template_matches(reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph):
+        if template_matches(reactant=reactant, ts_template=ts_template,
+                            truncated_graph=mol_graph):
             return True
 
     return False
 
 
 def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, dist_thresh=4.0):
-    """Get a transition state guess object by searching though the stored TS templates
+    """Get a transition state guess object by searching though the stored TS
+    templates
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
@@ -103,8 +106,9 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, d
         keywords (list(str)): Keywords to use for the ElectronicStructureMethod
 
     Keyword Arguments:
-        dist_thresh (float): distance above which a constrained optimisation probably won't work due to the inital
-                             geometry being too far away from the ideal (default: {4.0})
+        dist_thresh (float): distance above which a constrained optimisation
+                             probably won't work due to the initial geometry
+                             being too far away from the ideal (default: {4.0})
 
     Returns:
         TSGuess object: ts guess object
@@ -113,16 +117,19 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, d
     active_bonds_and_dists_ts = {}
 
     # This will add edges so don't modify in place
-    mol_graph = get_truncated_active_mol_graph(graph=reactant.graph, active_bonds=bond_rearrangement.all)
+    mol_graph = get_truncated_active_mol_graph(graph=reactant.graph,
+                                               active_bonds=bond_rearrangement.all)
     ts_guess_templates = get_ts_templates()
 
     for ts_template in ts_guess_templates:
 
-        if not template_matches(reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph):
+        if not template_matches(reactant=reactant, ts_template=ts_template,
+                                truncated_graph=mol_graph):
             continue
 
         # Get the mapping from the matching template
-        mapping = get_mapping_ts_template(larger_graph=mol_graph, smaller_graph=ts_template.graph)
+        mapping = get_mapping_ts_template(larger_graph=mol_graph,
+                                          smaller_graph=ts_template.graph)
 
         for active_bond in bond_rearrangement.all:
             i, j = active_bond

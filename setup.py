@@ -6,7 +6,7 @@ from setuptools.extension import Extension
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx'])]
 
 setup(name='autode',
-      version='v1.0.0-alpha',
+      version='1.0.0a',
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',

@@ -80,6 +80,10 @@ class Molecule(Species):
         logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
         return None
 
+    def populate_conformers(self, n_confs):
+        """Populate self.conformers with a list of Conformer objects"""
+        return self._generate_conformers(n_confs=n_confs)
+
     def __init__(self, name='molecule', smiles=None, atoms=None,
                  solvent_name=None, charge=0, mult=1):
         """Initialise a Molecule object

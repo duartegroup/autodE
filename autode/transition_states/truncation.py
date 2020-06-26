@@ -182,9 +182,9 @@ def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
 
             # Missing atom n from the truncated graph - probably truncated
             # X -> H but was also bonded to another atom also in the truncated
-            # graph
+            # graph.
             x, y, z = s_molecule.atoms[n].coord
-            s_molecule.atoms.append(Atom(atomic_symbol='X', x=x, y=y, z=z))
+            s_molecule.atoms.append(Atom(atomic_symbol='Og', x=x, y=y, z=z))
 
             # Add the capping H atom in place of the X atom just added
             # will be the last atom index, if it's just been added
