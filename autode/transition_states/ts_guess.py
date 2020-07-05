@@ -57,12 +57,9 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     # corresponding energy
     try:
         mol_with_constraints.optimise(method=method, calc=hl_const_opt)
+
     except AtomsNotFound:
-        # Retrun with the low level
-        try:
-            mol_with_constraints.run_const_opt(ll_const_opt)
-        except AtomsNotFound:
-            return None
+        pass
 
     return get_ts_guess(species=mol_with_constraints, reactant=reactant,
                         product=product, name=f'ts_guess_{name}')
