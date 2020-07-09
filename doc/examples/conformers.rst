@@ -60,7 +60,7 @@ Metal Complex
 
 Arbitrary distance constraints can be added in a RR conformer generation. For
 example, to generate conformers of
-`Vaska's complex <https://en.wikipedia.org/wiki/Vaska%27s_complex/>`_
+`Vaska's complex <https://en.wikipedia.org/wiki/Vaska%27s_complex>`_
 while retaining the square planar geometry
 
 
