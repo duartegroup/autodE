@@ -87,7 +87,6 @@ def init_smiles(molecule, smiles):
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
     """
-
     # Assume that the RDKit conformer generation algorithm is not okay for metals
     molecule.rdkit_conf_gen_is_fine = False
 

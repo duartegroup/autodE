@@ -276,7 +276,7 @@ class Calculation:
         calculation
 
         Returns:
-            (np.ndarray): Gradient vectors for each atom (Å)
+            (np.ndarray): Gradient vectors for each atom (Ha Å^-1)
                           gradients.shape = (n_atoms, 3)
         """
         logger.info(f'Getting gradients from {self.output.filename}')

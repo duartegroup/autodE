@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from autode.constants import Constants
 from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom
@@ -423,8 +424,12 @@ class ORCA(ElectronicStructureMethod):
                 first, last = i + 3, i + 3 + calc.molecule.n_atoms
                 for grad_line in calc.output.file_lines[first:last]:
                     dadx, dady, dadz = grad_line.split()[-3:]
-                    gradients.append([float(dadx), float(dady), float(dadz)])
+                    vec = [float(dadx), float(dady), float(dadz)]
 
+                    gradients.append(np.array(vec))
+
+        # Convert from Ha a0^-1 to Ha A-1
+        gradients = [grad / Constants.a02ang for grad in gradients]
         return np.array(gradients)
 
     def __init__(self):
