@@ -12,7 +12,9 @@ from copy import deepcopy
 
 
 def calc_multiplicity(molecule, n_radical_electrons):
-    """Calculate the spin multiplicity 2S + 1 where S is the number of unpaired electrons
+    """Calculate the spin multiplicity 2S + 1 where S is the number of
+    unpaired electrons
+
     Arguments:
         molecule (autode.molecule.Molecule):
         n_radical_electrons (int):
@@ -24,11 +26,13 @@ def calc_multiplicity(molecule, n_radical_electrons):
         return 1
 
     if molecule.mult == 1 and n_radical_electrons == 1:
-        # Cannot have multiplicity = 1 and 1 radical electrons – override default multiplicity
+        # Cannot have multiplicity = 1 and 1 radical electrons – override
+        # default multiplicity
         return 2
 
     if molecule.mult == 1 and n_radical_electrons > 1:
-        logger.warning('Diradicals by default singlets. Set mol.mult if it\'s any different')
+        logger.warning('Diradicals by default singlets. Set mol.mult if it\'s '
+                       'any different')
         return 1
 
     return molecule.mult
@@ -36,8 +40,9 @@ def calc_multiplicity(molecule, n_radical_electrons):
 
 def init_organic_smiles(molecule, smiles):
     """
-    Initialise a molecule from a SMILES string, set the charge, multiplicity (if it's not already specified) and the 3D
-    geometry using RDKit
+    Initialise a molecule from a SMILES string, set the charge, multiplicity (
+    if it's not already specified) and the 3D geometry using RDKit
+
     Arguments:
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
@@ -114,7 +119,8 @@ def init_smiles(molecule, smiles):
 
 def check_bonds(molecule, bonds):
     """
-    Ensure the SMILES string and the 3D structure have the same bonds, but don't override
+    Ensure the SMILES string and the 3D structure have the same bonds,
+    but don't override
 
     Arguments:
         molecule (autode.molecule.Molecule):

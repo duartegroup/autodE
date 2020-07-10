@@ -1,9 +1,11 @@
 import pytest
+from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
 from autode.config import Config
+import numpy as np
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -72,4 +74,57 @@ def test_point_charge():
     calc.run()
 
     assert -4.178 < calc.get_energy() < -4.175
+    os.chdir(here)
+
+
+def test_gradients():
+    os.chdir(os.path.join(here, 'data', 'xtb'))
+
+    h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
+    h2.single_point(method)
+
+    delta_r = 1E-5
+    h2_disp = Molecule(name='h2_disp',
+                       atoms=[Atom('H'), Atom('H', x=1.0 + delta_r)])
+    h2_disp.single_point(method)
+
+    delta_energy = h2_disp.energy - h2.energy   # Ha
+    grad = delta_energy / delta_r               # Ha A^-1
+
+    calc = Calculation(name='h2_grad', molecule=h2,
+                            method=method,
+                            keywords=method.keywords.grad)
+
+    calc.run()
+
+    diff = calc.get_gradients()[1, 0] - grad    # Ha A^-1
+
+    # Difference between the absolute and finite difference approximation
+    assert np.abs(diff) < 1E-5
+
+    # Older xtb version
+    with open('gradient', 'w') as gradient_file:
+        print('$gradient\n'
+              'cycle =      1    SCF energy =    -4.17404780397   |dE/dxyz| =  0.027866\n'
+              '3.63797523123375     -1.13138130908142     -0.00032759661848      C \n'
+              '5.72449332438353     -1.13197561185651      0.00028950521969      H \n'
+              ' 2.94133258016711      0.22776472016180     -1.42078243039077      H \n'
+              ' 2.94175598539510     -0.58111835182372      1.88747566982948      H \n'
+              '2.94180792167968     -3.04156357656436     -0.46665514803992      H \n'
+              '-1.7221823521705E-05   7.9930724499610E-05  -1.1737079840097E-04\n'
+              ' 1.4116296505865E-02  -4.0359524399270E-05   3.9719638516747E-05\n'
+              '-4.7199424681741E-03   9.0086220034949E-03  -9.4114548523723E-03\n'
+              '-4.6956970257351E-03   3.6356853660431E-03   1.2558467871909E-02\n'
+              ' -4.6834351884340E-03  -1.2683878569638E-02  -3.0693618596526E-03\n'
+              '$end', file=gradient_file)
+
+    calc = Calculation(name='methane',
+                       molecule=Molecule(name='methane', smiles='C'),
+                       method=method,
+                       keywords=method.keywords.grad)
+    gradients = method.get_gradients(calc)
+
+    assert gradients.shape == (5, 3)
+    assert np.abs(gradients[0, 0]) < 1E-3
+
     os.chdir(here)

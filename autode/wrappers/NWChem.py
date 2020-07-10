@@ -356,9 +356,11 @@ class NWChem(ElectronicStructureMethod):
 
             if gradients_section and len(line.split()) == 8:
                 x, y, z = line.split()[5:]
-                gradients.append([float(x), float(y), float(z)])
+                gradients.append(np.array([float(x), float(y), float(z)]))
 
-        return gradients
+        # Convert from Ha a0^-1 to Ha A-1
+        gradients = [grad / Constants.a02ang for grad in gradients]
+        return np.array(gradients)
 
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,

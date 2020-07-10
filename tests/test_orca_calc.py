@@ -1,4 +1,5 @@
 from autode.wrappers.ORCA import ORCA
+from autode.atoms import Atom
 from autode.calculation import Calculation
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
@@ -10,6 +11,7 @@ from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
+import numpy as np
 import pytest
 
 import os
@@ -182,3 +184,41 @@ def test_solvation():
 
     assert any('smd' in line.lower() for line in open('methane_smd_orca.inp', 'r'))
     os.remove('methane_smd_orca.inp')
+
+
+def test_gradients():
+    os.chdir(os.path.join(here, 'data', 'orca'))
+
+    h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
+    calc = Calculation(name='h2_grad', molecule=h2,
+                       method=method,
+                       keywords=method.keywords.grad)
+    calc.run()
+    h2.energy = calc.get_energy()
+
+    delta_r = 1E-8
+
+    # Energy of a finite difference approximation
+    h2_disp = Molecule(name='h2_disp',
+                       atoms=[Atom('H'), Atom('H', x=1.0 + delta_r)])
+    calc = Calculation(name='h2_disp', molecule=h2_disp,
+                       method=method,
+                       keywords=method.keywords.grad)
+    calc.run()
+    h2_disp.energy = calc.get_energy()
+
+    delta_energy = h2_disp.energy - h2.energy   # Ha
+    grad = delta_energy / delta_r               # Ha A^-1
+
+    calc = Calculation(name='h2_grad', molecule=h2,
+                            method=method,
+                            keywords=method.keywords.grad)
+
+    calc.run()
+
+    diff = calc.get_gradients()[1, 0] - grad    # Ha A^-1
+
+    # Difference between the absolute and finite difference approximation
+    assert np.abs(diff) < 1E-3
+
+    os.chdir(here)

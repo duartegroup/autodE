@@ -293,7 +293,7 @@ class MOPAC(ElectronicStructureMethod):
                 _, _, _, _, _, _, value, _ = line.split()
                 gradients.append(value)
         grad_array = np.asarray(gradients)
-        grad_array *= Constants.a02ang/Constants.ha2kcalmol
+        grad_array /= Constants.ha2kcalmol  # From kcal mol-1 Å^-1 to Ha Å^-1
         grad_array.reshape((calc.molecule.n_atoms, 3))
 
         return grad_array.tolist()

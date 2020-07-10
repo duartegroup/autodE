@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
@@ -440,16 +441,20 @@ class G09(ElectronicStructureMethod):
                     gradients_section = False
 
             if gradients_section and len(line.split()) == 5:
-                _, _, x, y, z = line.split()
+                _, _, fx, fy, fz = line.split()
                 try:
-                    gradients.append([float(x), float(y), float(z)])
+                    # Ha / a0
+                    force = np.array([float(fx), float(fy), float(fz)])
+
+                    grad = -force / Constants.a02ang
+                    gradients.append(grad)
                 except ValueError:
                     pass
         for line in gradients:
             for i in range(3):
                 line[i] *= -1
 
-        return gradients
+        return np.array(gradients)
 
     def __init__(self):
         super().__init__(name='g09', path=Config.G09.path,

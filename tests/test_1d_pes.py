@@ -97,4 +97,9 @@ def test_1d_pes():
         if filename.endswith(('.inp', '.png')):
             os.remove(filename)
 
+    for filename in os.listdir(os.path.join(here, 'data', 'pes1d')):
+        if filename.endswith('.xyz') and 'optimised' in filename:
+            xyz_path = os.path.join(here, 'data', 'pes1d', filename)
+            os.remove(xyz_path)
+
     os.chdir(here)
