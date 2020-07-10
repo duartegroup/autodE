@@ -46,3 +46,9 @@ tests/.autode_calculations
 tests/data/complex_conf*.xyz
 
 tests/data/*.com
+
+tests/data/conformers/.autode_calculations
+
+tests/data/orca/.autode_calculations
+
+tests/data/xtb/.autode_calculations

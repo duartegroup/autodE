@@ -36,7 +36,6 @@ class TransitionState(TSbase):
                                       other_input_block=method.keywords.optts_block)
         self.optts_calc.run()
 
-        # Was this intentionally removed?
         if not self.optts_calc.optimisation_converged():
             if self.optts_calc.optimisation_nearly_converged():
                 logger.info('Optimisation nearly converged')

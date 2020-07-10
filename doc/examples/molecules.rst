@@ -104,7 +104,8 @@ Calculations
 
 **autodE** provides wrappers around common electronic structure theory packages
 (ORCA, XTB, NWChem, MOPAC, Gaussian09) so geometries may be optimised and
-energies calculated.
+energies calculated. Energies are in atomic Hartrees and gradients in
+Ha / Å.
 
 For example, to optimise the geometry at the XTB level and then perform a
 single point energy evaluation with ORCA

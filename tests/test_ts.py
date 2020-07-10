@@ -152,7 +152,8 @@ def test_isomorphic_reactant_product():
     p_water = Product(name='h2o', smiles='O')
     p_methane = Product(name='methane', smiles='C')
 
-    # Reaction where the reactant and product complexes are isomorphic should return no TS
+    # Reaction where the reactant and product complexes are isomorphic
+    # should return no TS
     reaction = Reaction(r_water, r_methane, p_water, p_methane)
     reaction.locate_transition_state()
 
@@ -205,6 +206,14 @@ def test_find_tss():
 
     # Truncated graph has 7 atoms in
     assert template.graph.number_of_nodes() == 7
+
+    # Tidy the generated files
+    pes_path = os.path.join(here, 'data', 'locate_ts',
+                            'transition_states', 'pes1d')
+
+    for filename in os.listdir(pes_path):
+        if 'optimised' in filename and filename.endswith('.xyz'):
+            os.remove(os.path.join(pes_path, filename))
 
     os.remove('template0.obj')
     os.chdir(here)

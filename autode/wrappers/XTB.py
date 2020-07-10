@@ -130,7 +130,7 @@ class XTB(ElectronicStructureMethod):
             flags += ['--input', calc.input.additional_filenames[-1]]
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
-                         kept_file_exts=('.xyz', '.out', '.pc'))
+                         kept_file_exts=('.xyz', '.out', '.pc', '.grad', 'gradient'))
         def execute_xtb():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
@@ -286,22 +286,32 @@ class XTB(ElectronicStructureMethod):
 
     def get_gradients(self, calc):
         gradients = []
+
         if os.path.exists(f'{calc.name}_xtb.grad'):
             grad_file_name = f'{calc.name}_xtb.grad'
             with open(grad_file_name, 'r') as grad_file:
                 for line in grad_file:
                     x, y, z = line.split()
-                    gradients.append([float(x), float(y), float(z)])
-        else:
+                    gradients.append(np.array([float(x), float(y), float(z)]))
+
+        elif os.path.exists('gradient'):
             with open('gradient', 'r') as grad_file:
                 for line_no, line in enumerate(grad_file):
                     if line_no > 1 and len(line.split()) == 3:
                         x, y, z = line.split()
-                        gradients.append([float(x.replace('D', 'E')), float(y.replace('D', 'E')), float(z.replace('D', 'E'))])
+                        vec = [float(x.replace('D', 'E')),
+                               float(y.replace('D', 'E')),
+                               float(z.replace('D', 'E'))]
+
+                        gradients.append(np.array(vec))
+
             with open(f'{calc.name}_xtb.grad', 'w') as new_grad_file:
-                [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line), file=new_grad_file) for line in gradients]
+                [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line),
+                       file=new_grad_file) for line in gradients]
             os.remove('gradient')
 
+        # Convert from Ha a0^-1 to Ha A-1
+        gradients = [grad / Constants.a02ang for grad in gradients]
         return np.array(gradients)
 
     def __init__(self):
