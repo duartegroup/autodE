@@ -16,26 +16,28 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 Config.n_cores = 1
 
-butane = Molecule(name='butane', charge=0, mult=1, atoms=[Atom('C', -0.63938, -0.83117,  0.06651),
-                                                          Atom('C',  0.89658, -0.77770,  0.06222),
-                                                          Atom('H', -0.95115, -1.71970,  0.65729),
-                                                          Atom('H', -1.01425, -0.95802, -0.97234),
-                                                          Atom('C', -1.28709,  0.40256,  0.69550),
-                                                          Atom('H',  1.27330, -1.74033, -0.34660),
-                                                          Atom('H',  1.27226, -0.67376,  1.10332),
-                                                          Atom('C',  1.46136,  0.35209, -0.79910),
-                                                          Atom('H',  1.10865,  0.25011, -1.84737),
-                                                          Atom('H',  2.57055,  0.30082, -0.79159),
-                                                          Atom('H',  1.16428,  1.34504, -0.40486),
-                                                          Atom('H', -0.93531,  0.53113,  1.74115),
-                                                          Atom('H', -2.38997,  0.27394,  0.70568),
-                                                          Atom('H', -1.05698,  1.31807,  0.11366)])
+butane = Molecule(name='butane', charge=0, mult=1,
+                  atoms=[Atom('C', -0.63938, -0.83117,  0.06651),
+                         Atom('C',  0.89658, -0.77770,  0.06222),
+                         Atom('H', -0.95115, -1.71970,  0.65729),
+                         Atom('H', -1.01425, -0.95802, -0.97234),
+                         Atom('C', -1.28709,  0.40256,  0.69550),
+                         Atom('H',  1.27330, -1.74033, -0.34660),
+                         Atom('H',  1.27226, -0.67376,  1.10332),
+                         Atom('C',  1.46136,  0.35209, -0.79910),
+                         Atom('H',  1.10865,  0.25011, -1.84737),
+                         Atom('H',  2.57055,  0.30082, -0.79159),
+                         Atom('H',  1.16428,  1.34504, -0.40486),
+                         Atom('H', -0.93531,  0.53113,  1.74115),
+                         Atom('H', -2.38997,  0.27394,  0.70568),
+                         Atom('H', -1.05698,  1.31807,  0.11366)])
 
-methane = Molecule(name='methane', charge=0, mult=1, atoms=[Atom('C', 0.70879, 0.95819, -0.92654),
-                                                            Atom('H', 1.81819, 0.95820, -0.92655),
-                                                            Atom('H', 0.33899, 0.14642, -0.26697),
-                                                            Atom('H', 0.33899, 0.79287, -1.95935),
-                                                            Atom('H', 0.33899, 1.93529, -0.55331)])
+methane = Molecule(name='methane', charge=0, mult=1,
+                   atoms=[Atom('C', 0.70879, 0.95819, -0.92654),
+                          Atom('H', 1.81819, 0.95820, -0.92655),
+                          Atom('H', 0.33899, 0.14642, -0.26697),
+                          Atom('H', 0.33899, 0.79287, -1.95935),
+                          Atom('H', 0.33899, 1.93529, -0.55331)])
 
 
 def test_conf_gen(tmpdir):
@@ -63,8 +65,9 @@ def test_conf_gen(tmpdir):
 def test_conf_gen_dist_const(tmpdir):
     os.chdir(tmpdir)
 
-    hydrogen = Molecule(name='H2', charge=0, mult=1, atoms=[Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0),
-                                                            Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.7)])
+    hydrogen = Molecule(name='H2', charge=0, mult=1,
+                        atoms=[Atom(atomic_symbol='H'),
+                               Atom(atomic_symbol='H', z=0.7)])
 
     # H2 at a bond length (r) of 0.7 Å has a bond
     assert len(hydrogen.graph.edges) == 1
@@ -109,8 +112,10 @@ def test_chiral_rotation(tmpdir):
 
     for centre_idxs in [ccclfh, ccclbrh]:
         # Ensure the fragmented centres map almost identically
-        # if calc_rmsd(template_coords=coords[centre_idxs], coords_to_fit=regen_coords[centre_idxs]) > 0.5:
-        #     chiral_ethane.print_xyz_file(filename=os.path.join(here, 'chiral_ethane.xyz'))
+        # if calc_rmsd(template_coords=coords[centre_idxs], coords_to_
+        # fit=regen_coords[centre_idxs]) > 0.5:
+        #     chiral_ethane.print_xyz_file(filename=os.path.join(here,
+        # 'chiral_ethane.xyz'))
         #     regen.print_xyz_file(filename=os.path.join(here, 'regen.xyz'))
 
         # RMSD on the 5 atoms should be < 0.5 Å
@@ -202,7 +207,8 @@ def test_metal_eta_complex(tmpdir):
     os.chdir(tmpdir)
 
     # eta-6 benzene Fe2+ complex used in the molassembler paper
-    m = Molecule(smiles='[C@@H]12[C@H]3[C@H]4[C@H]5[C@H]6[C@@H]1[Fe]265437N(C8=CC=CC=C8)C=CC=[N+]7C9=CC=CC=C9')
+    m = Molecule(smiles='[C@@H]12[C@H]3[C@H]4[C@H]5[C@H]6[C@@H]1[Fe]265437N'
+                        '(C8=CC=CC=C8)C=CC=[N+]7C9=CC=CC=C9')
     m.print_xyz_file()
     assert are_coords_reasonable(coords=m.get_coordinates())
 
@@ -215,3 +221,26 @@ def test_salt():
     assert salt.n_atoms == 2
     assert are_coords_reasonable(coords=salt.get_coordinates())
     os.remove('salt_conf0_siman.xyz')
+
+
+def test_potential():
+
+    # Approximate H2 coordinates
+    bond_length = 0.7
+    coords = np.array([[0.0, 0.0, 0.0],
+                       [0.0, 0.0, bond_length]])
+
+    eq_bond_length = 0.75
+    d0 = np.array([[0.0, eq_bond_length],
+                   [eq_bond_length, 0.0]])
+
+    v = conf_gen.get_v(coords,
+                       bonds=[(0, 1)],
+                       k=0.7,
+                       c=0.3,
+                       d0=d0,
+                       fixed_bonds=[],
+                       exponent=8)
+
+    expected_v = 0.7 * (bond_length - eq_bond_length)**2 + 0.3 / bond_length**8
+    assert np.abs(v - expected_v) < 1E-6

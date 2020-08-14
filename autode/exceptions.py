@@ -94,4 +94,4 @@ class CannotSplitAcrossBond(Exception):
 
 
 class CouldNotPlotSmoothProfile(Exception):
-    """Smooth plotting fails"""
+    pass

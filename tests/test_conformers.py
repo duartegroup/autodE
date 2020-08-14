@@ -6,9 +6,10 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.conformers.conformers import conf_is_unique_rmsd
+from autode.conformers.conformers import get_unique_confs
+from autode.constants import Constants
 import numpy as np
 import os
-from autode.conformers.conformers import get_unique_confs
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -84,6 +85,27 @@ def test_unique_confs():
     assert len(unique_confs) == 1
     assert type(unique_confs[0]) is Conformer
     assert unique_confs[0].energy == 1
+
+
+def test_unique_confs_none():
+
+    conf1 = Conformer()
+    conf1.energy = 0.1
+
+    # Conformer with energy just below the threshold
+    conf2 = Conformer()
+    conf2.energy = 0.1 + (0.9 / Constants.ha2kJmol)
+
+    unique_confs = get_unique_confs(conformers=[conf1, conf2],
+                                    energy_threshold_kj=1)
+    assert len(unique_confs) == 1
+
+    # If the energy is above the threshold there should be two unique
+    # conformers
+    conf2.energy += 0.2 / Constants.ha2kJmol
+    unique_confs = get_unique_confs(conformers=[conf1, conf2],
+                                    energy_threshold_kj=1)
+    assert len(unique_confs) == 2
 
 
 def test_rmsd_confs():

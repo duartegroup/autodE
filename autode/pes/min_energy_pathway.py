@@ -9,15 +9,16 @@ def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
     Calculate the sum of the minimum energy path that traverses reactants (r)
     to products (p) via the saddle point (s)
 
-    #        |          p
-    #       |     s
-    #  r2  |
-    #     | r
-    #     ------------
-    #          r1
+            /          p
+           /     s
+      r2  /
+         /r
+         ------------
+              r1
 
     Arguments:
         saddle_point_r1r2 (tuple(float)):
+
         pes_2d (autode.pes_2d.PES2d):
     """
     logger.info('Finding the total energy along the minimum energy pathway')
@@ -44,7 +45,8 @@ def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
             energy_graph.nodes[i, j]['energy'] = point_rel_energy
 
             # Find the point where products are made
-            if is_isomorphic(graph1=pes_2d.species[i, j].graph, graph2=pes_2d.product_graph):
+            if is_isomorphic(graph1=pes_2d.species[i, j].graph,
+                             graph2=pes_2d.product_graph):
 
                 # If products have not yet found, or they have and the energy
                 # are lower but are still isomorphic
@@ -52,19 +54,27 @@ def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
                     product_point = (i, j)
                     product_energy = point_rel_energy
 
-    logger.info(f'Reactants at r1={pes_2d.r1s[0]:.4f} , r2={pes_2d.r2s[0]:.4f} Å and '
-                f'products r1={pes_2d.rs[product_point][0]:.4f}, r2={pes_2d.rs[product_point][1]:.4f} Å')
+    logger.info(f'Reactants at r1={pes_2d.r1s[0]:.4f} , '
+                f'r2={pes_2d.r2s[0]:.4f} Å and '
+                f'products r1={pes_2d.rs[product_point][0]:.4f}, '
+                f'r2={pes_2d.rs[product_point][1]:.4f} Å')
 
     def energy_diff(curr_node, final_node, d):
         """Energy difference between the twp points on the graph. d is required
          to satisfy nx. Must only increase in energy to a saddle point so take
           the magnitude to prevent traversing s mistakenly"""
-        return np.abs(energy_graph.nodes[final_node]['energy'] - energy_graph.nodes[curr_node]['energy'])
+        return (np.abs(energy_graph.nodes[final_node]['energy']
+                       - energy_graph.nodes[curr_node]['energy']))
 
     # Calculate the energy along the MEP up to the saddle point from reactants
     # and products
-    rpath_energy = nx.dijkstra_path_length(energy_graph, source=reactant_point, target=saddle_point, weight=energy_diff)
-    ppath_energy = nx.dijkstra_path_length(energy_graph, source=product_point, target=saddle_point, weight=energy_diff)
+    path_energy = 0.0
 
-    logger.info(f'Path energy to {saddle_point} is {rpath_energy + ppath_energy:.4f} Hd')
-    return rpath_energy + ppath_energy
+    for point in (reactant_point, product_point):
+        path_energy += nx.dijkstra_path_length(energy_graph,
+                                               source=point,
+                                               target=saddle_point,
+                                               weight=energy_diff)
+
+    logger.info(f'Path energy to {saddle_point} is {path_energy:.4f} Hd')
+    return path_energy

@@ -62,12 +62,12 @@ class Atom:
         Atom class. Centered at the origin by default
 
         Arguments:
-            atomic_symbol (str): Symbol of an element e.g. 'C'
+            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
 
         Keyword Arguments:
-            x (float or str): x coordinate in 3D space (Å)
-            y (float or str): y coordinate in 3D space (Å)
-            z (float or str): z coordinate in 3D space (Å)
+            x (float): x coordinate in 3D space (Å)
+            y (float): y coordinate in 3D space (Å)
+            z (float): z coordinate in 3D space (Å)
         """
         assert atomic_symbol in elements
 

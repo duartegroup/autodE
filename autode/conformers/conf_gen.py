@@ -19,7 +19,8 @@ from autode.exceptions import NoMolecularGraph
 
 def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     """
-    Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and fixed and 0 otherwise. Can support
+    Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and
+    fixed and 0 otherwise. Can support
     a partial structure with bonds to atoms that don't (yet) exist
 
     Args:
@@ -46,32 +47,47 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8):
-    """Get the coordinates that minimise a FF with a bonds + repulsion FF where the repulsion is c/r^exponent"""
+    """Get the coordinates that minimise a FF with a bonds + repulsion FF
+    where the repulsion is c/r^exponent"""
     # TODO divide and conquer?
 
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
 
     init_coords = coords.reshape(3 * n_atoms)
-    bond_matrix = get_bond_matrix(n_atoms=len(coords), bonds=bonds, fixed_bonds=fixed_bonds)
-    res = minimize(v, x0=init_coords, args=(bond_matrix, k, d0, c, exponent), method='CG', tol=tol, jac=dvdr)
+    bond_matrix = get_bond_matrix(n_atoms=len(coords),
+                                  bonds=bonds,
+                                  fixed_bonds=fixed_bonds)
+
+    res = minimize(v, x0=init_coords,
+                   args=(bond_matrix, k, d0, c, exponent),
+                   method='CG',
+                   tol=tol,
+                   jac=dvdr)
 
     return res.x.reshape(n_atoms, 3)
 
 
 def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
-    """Get the energy using a bond + repulsion FF where the repulsion is c/r^exponent"""
+    """Get the energy using a bond + repulsion FF where
+
+    V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
+    """
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
 
     init_coords = coords.reshape(3 * n_atoms)
-    bond_matrix = get_bond_matrix(n_atoms=len(coords), bonds=bonds, fixed_bonds=fixed_bonds)
+    bond_matrix = get_bond_matrix(n_atoms=n_atoms,
+                                  bonds=bonds,
+                                  fixed_bonds=fixed_bonds)
 
     return v(init_coords, bond_matrix, k, d0, c, exponent)
 
 
 def get_atoms_rotated_stereocentres(species, atoms, rand):
-    """If two stereocentres are bonded, rotate them randomly with respect to each other
+    """If two stereocentres are bonded, rotate them randomly with respect
+    to each other
+
     Arguments:
         species (autode.species.Species):
         atoms (list(autode.atoms.Atom)):
@@ -94,7 +110,8 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
             left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(i, j))
 
         except CannotSplitAcrossBond:
-            logger.warning('Splitting across this bond does not give two components - could have a ring')
+            logger.warning('Splitting across this bond does not give two '
+                           'components - could have a ring')
             return atoms
 
         # Rotate the left hand side randomly
@@ -109,17 +126,21 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
 
 def add_dist_consts_for_stereocentres(species, dist_consts):
     """
-    Add distances constraints across two bonded stereocentres, for example for a Z alkene, (hopefully) ensuring
-    that in the conformer generation the stereochemistry is retained. Will also add distance constraints from
-    one nearest neighbour to the other nearest neighbours for that chiral centre
+    Add distances constraints across two bonded stereocentres, for example
+    for a Z alkene, (hopefully) ensuring that in the conformer generation the
+    stereochemistry is retained. Will also add distance constraints from
+    one nearest neighbour to the other nearest neighbours for that chiral
+    centre
 
     Arguments:
         species (autode.species.Species):
-        dist_consts (dict): keyed with tuple of atom indexes and valued with the distance (Å), or None
+        dist_consts (dict): keyed with tuple of atom indexes and valued with
+                    the distance (Å), or None
     """
     if not are_coords_reasonable(coords=species.get_coordinates()):
         # TODO generate a reasonable initial structure: molassembler?
-        logger.error('Cannot constrain stereochemistry if the initial structure is not sensible')
+        logger.error('Cannot constrain stereochemistry if the initial '
+                     'structure is not sensible')
         return dist_consts
 
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
@@ -127,7 +148,8 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
     # Get the stereocentres with 4 bonds as ~ chiral centres
     chiral_centres = [centre for centre in stereocentres if len(list(species.graph.neighbors(centre))) == 4]
 
-    # Add distance constraints from one atom to the other 3 atoms to fix the configuration
+    # Add distance constraints from one atom to the other 3 atoms to fix the
+    # configuration
     for chiral_centre in chiral_centres:
         neighbors = list(species.graph.neighbors(chiral_centre))
         atom_i = neighbors[0]
@@ -142,7 +164,8 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
         if (atom_i, atom_j) not in species.graph.edges:
             continue
 
-        # Add a single distance constraint between the nearest neighbours of each stereocentre
+        # Add a single distance constraint between the nearest neighbours of
+        # each stereocentre
         for atom_i_neighbour in species.graph.neighbors(atom_i):
             for atom_j_neighbour in species.graph.neighbors(atom_j):
                 if atom_i_neighbour != atom_j and atom_j_neighbour != atom_i:
@@ -156,7 +179,8 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
 
 
 def get_non_random_atoms(species):
-    """Get the atoms that won't be randomised in the conformer generation. Stereocentres and nearest neighbours"""
+    """Get the atoms that won't be randomised in the conformer generation.
+    Stereocentres and nearest neighbours"""
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
     non_rand_atoms = deepcopy(stereocentres)
@@ -170,7 +194,8 @@ def get_non_random_atoms(species):
 
 
 def get_atoms_from_generated_file(species, xyz_filename):
-    """Get the atoms from a previously generated  .xyz file, if the atoms match"""
+    """Get the atoms from a previously generated  .xyz file, if the atoms
+     match"""
 
     if not os.path.exists(xyz_filename):
         return None
@@ -189,8 +214,9 @@ def get_atoms_from_generated_file(species, xyz_filename):
 
 def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
     """
-    Generate coordinates where no initial structure is present - this fixes(?) a problem for large molecule where
-    if all the atoms are initially bonded and minimised then high energy minima are often found
+    Generate coordinates where no initial structure is present - this fixes(?)
+     a problem for large molecule where if all the atoms are initially bonded
+     and minimised then high energy minima are often found
 
     Args:
         atoms (list(autode.atoms.Atom)):
@@ -220,7 +246,11 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
 
 
 def get_simanl_atoms(species, dist_consts=None, conf_n=0):
-    """V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
+    """
+
+
+    V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
+
     Arguments:
         species (autode.species.Species): Species, Molecule, TSguess, TS
         dist_consts (dict): Key = tuple of atom indexes, Value = distance
@@ -239,14 +269,19 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     if species.graph is None:
         raise NoMolecularGraph
 
-    # Initialise a new random seed and make a copy of the species' atoms. RandomState is thread safe
+    # Initialise a new random seed and make a copy of the species' atoms.
+    # RandomState is thread safe
     rand = np.random.RandomState()
-    atoms = get_atoms_rotated_stereocentres(species=species, atoms=deepcopy(species.atoms), rand=rand)
+    atoms = get_atoms_rotated_stereocentres(species=species,
+                                            atoms=deepcopy(species.atoms),
+                                            rand=rand)
 
     # Add the distance constraints as fixed bonds
-    d0 = get_ideal_bond_length_matrix(atoms=species.atoms, bonds=species.graph.edges())
+    d0 = get_ideal_bond_length_matrix(atoms=species.atoms,
+                                      bonds=species.graph.edges())
 
-    # Add distance constraints across stereocentres e.g. for a Z double bond then modify d0 appropriately
+    # Add distance constraints across stereocentres e.g. for a Z double bond
+    # then modify d0 appropriately
     dist_consts = add_dist_consts_for_stereocentres(species=species,
                                                     dist_consts={} if dist_consts is None else dist_consts)
 
@@ -257,10 +292,12 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
         d0[j, i] = length
         constrained_bonds.append(bond)
 
-    # Randomise coordinates that aren't fixed by shifting a maximum of autode.Config.max_atom_displacement in x, y, z
+    # Randomise coordinates that aren't fixed by shifting a maximum of
+    # autode.Config.max_atom_displacement in x, y, z
     fixed_atom_indexes = get_non_random_atoms(species=species)
 
-    # Shift by a factor defined in the config file if the coordinates are reasonable but otherwise init in a 10 A cube
+    # Shift by a factor defined in the config file if the coordinates are
+    # reasonable but otherwise init in a 10 A cube
     initial_coords_are_reasonable = are_coords_reasonable(species.get_coordinates())
 
     if initial_coords_are_reasonable:

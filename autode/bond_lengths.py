@@ -30,9 +30,13 @@ def get_ideal_bond_length_matrix(atoms, bonds):
 
 
 def get_avg_bond_length(atom_i_label, atom_j_label):
-    """Get the average bond length from either a molecule and a bond or two
-    atom labels (e.g. atom_i_label = 'C'
-    atom_j_label = 'H')
+    """Get the average bond length between two atoms with their labels (atomic
+    symbols) e.g.
+
+    (atom_i_label='C', atom_j_label ='H') -> 1.1 Å or so
+    (atom_i_label='H', atom_j_label ='C') -> 1.1 Å or so
+
+    ordering invariant.
 
     Keyword Arguments:
         atom_i_label (str): atom label e.g 'C'
@@ -45,8 +49,10 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
 
     if key1 in avg_bond_lengths.keys():
         return avg_bond_lengths[key1]
+
     elif key2 in avg_bond_lengths.keys():
         return avg_bond_lengths[key2]
+
     else:
         logger.warning(f'Couldn\'t find a default bond length for '
                        f'({atom_i_label},{atom_j_label}). Using 1.5 Å')

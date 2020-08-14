@@ -1,8 +1,7 @@
 from copy import deepcopy
 from numpy.polynomial import polynomial
 import numpy as np
-import multiprocessing.pool
-import multiprocessing
+from autode.utils import NoDaemonPool
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.calculation import Calculation
 from autode.config import Config
@@ -137,7 +136,8 @@ class PES2d(PES):
             # Set up the dictionary of distance constraints keyed with bond indexes and values the current r1, r2.. value
             distance_constraints = [{self.rs_idxs[i]: self.rs[p][i] for i in range(2)} for p in points]
 
-            # Use custom NoDaemonPool here, as there are several multiprocessing events happening within the function
+            # Use custom NoDaemonPool here, as there are several
+            # multiprocessing events happening within the function
             with NoDaemonPool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(func=get_point_species, args=(p, s, d, name, method, keywords, cores_per_process))
                            for p, s, d in zip(points, closest_species, distance_constraints)]
@@ -169,10 +169,10 @@ class PES2d(PES):
         """
         A two dimensional potential energy surface
 
-           |
-        r2 |
-           |
-           |___________
+              /
+          r2 /
+            /
+           /___________
                 r1
 
         Arguments:
@@ -294,21 +294,5 @@ def polyfit2d(x, y, z, order):
     return coeff_mat.reshape(deg + 1)
 
 
-class NoDaemonProcess(multiprocessing.Process):
-    @property
-    def daemon(self):
-        return False
-
-    @daemon.setter
-    def daemon(self, value):
-        pass
 
 
-class NoDaemonContext(type(multiprocessing.get_context())):
-    Process = NoDaemonProcess
-
-
-class NoDaemonPool(multiprocessing.pool.Pool):
-    def __init__(self, *args, **kwargs):
-        kwargs['context'] = NoDaemonContext()
-        super().__init__(*args, **kwargs)

@@ -3,6 +3,8 @@ import os
 import shutil
 from subprocess import Popen, DEVNULL, PIPE, STDOUT
 from tempfile import mkdtemp
+import multiprocessing
+import multiprocessing.pool
 from autode.exceptions import NoAtomsInMolecule
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
@@ -210,3 +212,26 @@ def requires_output():
         return wrapped_function
 
     return func_decorator
+
+
+class NoDaemonProcess(multiprocessing.Process):
+    @property
+    def daemon(self):
+        return False
+
+    @daemon.setter
+    def daemon(self, value):
+        pass
+
+
+class NoDaemonContext(type(multiprocessing.get_context())):
+    Process = NoDaemonProcess
+
+
+class NoDaemonPool(multiprocessing.pool.Pool):
+    """Subclass of Pool to allow child multiprocessing"""
+
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super().__init__(*args, **kwargs)
+

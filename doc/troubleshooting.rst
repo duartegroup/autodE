@@ -1,6 +1,20 @@
 Troubleshooting
 ===============
 
+Conda Solve Fails
+-----------------
+
+If conda cannot solve the environment after attempting to install the dependencies create a new
+`virtual environment <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html>`_ with::
+
+   $ conda create -n autode_env
+   $ conda activate autode_env
+
+then install. The autodE environment will need to be activated each time a new shell is opened, with:
+``conda activate autode_env``.
+
+
+
 MethodUnavailable
 -----------------
 

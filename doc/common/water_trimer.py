@@ -11,5 +11,5 @@ water.optimise(method=xtb)
 
 # Make the NCI complex and find the lowest energy structure
 trimer = NCIComplex(water, water, water, name='water_trimer')
-trimer.find_lowest_energy_conformer(low_level_method=xtb)
+trimer.find_lowest_energy_conformer(lmethod=xtb)
 trimer.print_xyz_file()

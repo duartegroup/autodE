@@ -71,3 +71,21 @@ available:
 
 
 If a MethodUnavailable exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
+
+If the high and/or low level methods have been installed for the first time
+it may be useful to check they're installed correctly. To run a quick optimisation
+of H\ :sub:`2`\:
+
+.. code-block:: python
+
+  >>> from autode import methods, Molecule
+  >>> h2 = Molecule(smiles='[H][H]')
+  >>> h2.optimise(method=methods.get_lmethod())
+  >>> h2.optimise(method=methods.get_hmethod())
+  >>> h2.energy
+  -1.164013897947
+  >>> h2.atoms
+  [[H, 0.3805, 0.0000, 0.0000], [H, -0.3805, 0.0000, 0.0000]]
+
+If an AtomsNotFound exception is raised it is likely that the electronic structure
+package is not correctly installed.
