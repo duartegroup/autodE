@@ -1,0 +1,48 @@
+\documentclass[10pt]{article}
+\usepackage{bm}% bold math
+\usepackage{amsmath}
+
+\begin{document}
+
+Nudged elastic band (NEB) approaches to locating transition states are efficient alternatives to evaluating the PES on a uniform grid over some coordinates of interest. The implementation in \emph{autodE} follows that in [Henkelman and H. Jónsson, J. Chem. Phys. 113, 9978 (2000)]
+\\\\
+For an image $i$ in the nudged elastic band
+\begin{equation}
+\boldsymbol{\tau}_i
+\begin{cases}
+\boldsymbol{\tau}_i^+ &\quad\text{if}\quad V_{i-1} < V_i < V_{i+1} \\
+\boldsymbol{\tau}_i^- &\quad\text{if}\quad V_{i+1} < V_i < V_{i-1} \\
+\boldsymbol{\tau}_i^+\Delta V_i^{max} + \boldsymbol{\tau}_i^-\Delta V_i^{min} &\quad\text{if}\quad V_{i-1} <  V_{i+1} \\
+\boldsymbol{\tau}_i^+\Delta V_i^{min} + \boldsymbol{\tau}_i^-\Delta V_i^{max} &\quad\text{if}\quad V_{i+1} < V_{i-1} \\
+\end{cases}
+\end{equation}
+where
+\begin{equation}
+\begin{aligned}
+\boldsymbol{\tau}_i^+ &= \boldsymbol{x}_{i+1} - \boldsymbol{x}_i \\
+\boldsymbol{\tau}_i^- &= \boldsymbol{x}_{i} - \boldsymbol{x}_{i-1}
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+\Delta V_i^{max} &= \max(|V_{i+1} - V_i|, |V_{i-1} - V_i) \\
+\Delta V_i^{min} &= \min(|V_{i+1} - V_i|, |V_{i-1} - V_i)
+\end{aligned}
+\end{equation}
+and $\boldsymbol{x}_i$ are the coordinates of image $i$. The spring force is
+\begin{equation}
+\boldsymbol{F}^s_i|_{\parallel} = (k_i|\boldsymbol{x}_{i+1} - \boldsymbol{x}_i| - k_{i-1}|\boldsymbol{x}_i - \boldsymbol{x}_{i-1}|) \hat{\boldsymbol{\tau}}_i
+\end{equation}
+and the total force on the image
+\begin{equation}
+\boldsymbol{F}_i = \boldsymbol{F}^s_i|_{\parallel} - \nabla V(\boldsymbol{x}_i)|_\perp\cdot\hat{\boldsymbol{\tau}}_i\hat{\boldsymbol{\tau}}_i
+\end{equation}
+where
+\begin{equation}
+\nabla V(\boldsymbol{x}_i)|_\perp = \nabla V(\boldsymbol{x}_i) - \nabla V(\boldsymbol{x}_i)\cdot \hat{\boldsymbol{\tau}}_i\hat{\boldsymbol{\tau}}_i
+\end{equation}
+and finally $\hat{\boldsymbol{\tau}} = \boldsymbol{\tau}_i/|\boldsymbol{\tau}_i|$.
+
+\end{document}
+
