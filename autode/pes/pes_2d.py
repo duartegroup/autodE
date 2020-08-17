@@ -203,8 +203,10 @@ class PES2d(PES):
         self.product_graph = product.graph
 
 
-def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, polynomial_order=3, dr=0.1):
-    """Scan the distance between two sets of two atoms and return a guess for the TS
+def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords,
+                    polynomial_order=3, dr=0.1):
+    """Scan the distance between two sets of two atoms and return a guess for
+    the TS
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
@@ -261,10 +263,11 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords, pol
         return None
 
     # Get a TSGuess for the lowest energy MEP saddle point on the surface
-    species = pes.get_species_saddle_point(name=name, method=method, keywords=keywords)
+    species = pes.get_species_saddle_point(name=name, method=method,
+                                           keywords=keywords)
 
     if species is not None:
-        return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
+        return get_ts_guess(species, reactant, product, name=name)
 
     logger.error('No possible TSs found on the 2D surface')
     return None

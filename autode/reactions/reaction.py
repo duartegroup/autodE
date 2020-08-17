@@ -33,52 +33,60 @@ class Reaction:
         return base64.urlsafe_b64encode(hasher).decode()[:6]
 
     def _check_balance(self):
-        """Check that the number of atoms and charge balances between reactants and products. If they don't exit
+        """Check that the number of atoms and charge balances between reactants
+         and products. If they don't exit
         immediately
         """
+        def total(molecules, attr):
+            return sum([getattr(m, attr) for m in molecules])
 
-        n_reac_atoms, n_prod_atoms = [reac.n_atoms for reac in self.reacs], [prod.n_atoms for prod in self.prods]
-        reac_charges, prod_charges = [r.charge for r in self.reacs], [p.charge for p in self.prods]
-        if sum(n_reac_atoms) != sum(n_prod_atoms):
+        if total(self.reacs, 'n_atoms') != total(self.prods, 'n_atoms'):
             logger.critical('Number of atoms doesn\'t balance')
             raise UnbalancedReaction
 
-        if sum(reac_charges) != sum(prod_charges):
+        if total(self.reacs, 'charge') != total(self.prods, 'charge'):
             logger.critical('Charge doesn\'t balance')
             raise UnbalancedReaction
 
-        self.charge = sum(reac_charges)
+        self.charge = total(self.reacs, 'charge')
+        return None
 
     def _check_solvent(self):
         """Check that all the solvents are the same for reactants and products
         """
+        molecules = self.reacs + self.prods
+
         if self.solvent is None:
-            if all([mol.solvent is None for mol in self.reacs + self.prods]):
+            if all([mol.solvent is None for mol in molecules]):
                 logger.info('Reaction is in the gas phase')
                 return
 
-            elif all([mol.solvent is not None for mol in self.reacs + self.prods]):
-                if not all([mol.solvent == self.reacs[0].solvent for mol in self.reacs + self.prods]):
-                    logger.critical('Solvents in reactants and products don\'t match')
+            elif all([mol.solvent is not None for mol in molecules]):
+                if not all([mol.solvent == self.reacs[0].solvent for mol in molecules]):
+                    logger.critical('Solvents in reactants and products '
+                                    'don\'t match')
                     raise SolventsDontMatch
 
                 else:
-                    logger.info(f'Setting the reaction solvent to {self.reacs[0].solvent}')
+                    logger.info(f'Setting the reaction solvent to '
+                                f'{self.reacs[0].solvent}')
                     self.solvent = self.reacs[0].solvent
 
             else:
-                print([mol.solvent for mol in self.reacs + self.prods])
-                print([mol.name for mol in self.reacs + self.prods])
+                print([mol.solvent for mol in molecules])
+                print([mol.name for mol in molecules])
 
                 raise SolventsDontMatch
 
         if self.solvent is not None:
-            logger.info(f'Setting solvent to {self.solvent.name} for all molecules in the reaction')
+            logger.info(f'Setting solvent to {self.solvent.name} for all '
+                        f'molecules in the reaction')
 
             for mol in self.reacs + self.prods:
                 mol.solvent = self.solvent
 
-        logger.info(f'Set the solvent of all species in the reaction to {self.solvent.name}')
+        logger.info(f'Set the solvent of all species in the reaction to '
+                    f'{self.solvent.name}')
         return None
 
     def switch_reactants_products(self):
@@ -93,21 +101,25 @@ class Reaction:
         return None
 
     def calc_delta_e(self):
-        """Calculate the ∆Er of a reaction defined as    ∆E = E(products) - E(reactants)
+        """Calculate the ∆Er of a reaction defined as
+        ∆E = E(products) - E(reactants)
 
         Returns:
-            float: energy difference in Hartrees
+            (float): Energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
 
         if any(mol.energy is None for mol in self.reacs + self.prods):
-            logger.error('Cannot calculate ∆Er. At least one required energy was None')
+            logger.error('Cannot calculate ∆Er. At least one required energy '
+                         'was None')
             return None
 
-        return sum([p.energy for p in self.prods]) - sum([r.energy for r in self.reacs])
+        return (sum([p.energy for p in self.prods]) -
+                sum([r.energy for r in self.reacs]))
 
     def calc_delta_e_ddagger(self):
-        """Calculate the ∆E‡ of a reaction defined as    ∆E = E(ts) - E(reactants)
+        """Calculate the ∆E‡ of a reaction defined as
+         ∆E = E(ts) - E(reactants)
 
         Returns:
             float: energy difference in Hartrees
@@ -118,14 +130,15 @@ class Reaction:
             return None
 
         if self.ts.energy is None or any(r.energy is None for r in self.reacs):
-            logger.error('TS or a reactant had no energy, cannot calculate ∆E‡')
+            logger.error('TS or reactants had no energy, cannot calculate ∆E‡')
             return None
 
         return self.ts.energy - sum([r.energy for r in self.reacs])
 
     def find_lowest_energy_ts(self):
-        """From all the transition state objects in Reaction.pes1d choose the lowest energy if there is more than one
-        otherwise return the single transtion state or None if there no TS objects.
+        """From all the transition state objects in Reaction.pes1d choose the
+        lowest energy if there is more than one otherwise return the single
+        transtion state or None if there no TS objects.
         """
 
         if self.tss is None:
@@ -313,7 +326,8 @@ class Reaction:
         self.reactant, self.product = None, None
         self.ts, self.tss = None, None
 
-        self.type = reaction_types.classify(reactants=self.reacs, products=self.prods)
+        self.type = reaction_types.classify(reactants=self.reacs,
+                                            products=self.prods)
 
         if solvent_name is not None:
             self.solvent = get_solvent(solvent_name=solvent_name)

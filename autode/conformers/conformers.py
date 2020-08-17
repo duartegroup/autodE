@@ -15,7 +15,7 @@ def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
         conf_id (int): Conformer id to convert to atoms
 
     Returns:
-        atoms (list(autode.atoms.Atom)):
+        (list(autode.atoms.Atom)): Atoms
     """
 
     mol_block_lines = Chem.MolToMolBlock(rdkit_mol_obj,
@@ -37,14 +37,14 @@ def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
 def get_unique_confs(conformers, energy_threshold_kj=1):
     """
     For a list of conformers return those that are unique based on an energy
-    threshold in kJ mol-2
+    threshold in kJ mol^-1
 
     Arguments:
         conformers (list(autode.conformer.Conformer)):
         energy_threshold_kj (float): Energy threshold in kJ mol-1
 
     Returns:
-        (list(autode.conformers.conformers.Conformer))
+        (list(autode.conformers.conformers.Conformer)): List of conformers
     """
     logger.info(f'Stripping conformers with energy ∆E < {energy_threshold_kj} '
                 f'kJ mol-1 to others')
@@ -97,9 +97,12 @@ def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
         rmsd_tol (float): Tolerance for an equivalent structure based on the
                           rmsd in Å. If None then use the default value for
                           autode.Config.rmsd_threshold
+
+    Returns:
+        (bool):
     """
-    # Use the threshold defined in Config by default
     rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
+    logger.info(f'Removing conformers with RMSD < {rmsd_tol} Å to any other')
 
     # Calculate the RMSD between this Conformer and the those in conf_list
     # using the Kabsch algorithm

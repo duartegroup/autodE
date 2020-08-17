@@ -15,7 +15,7 @@ def get_conformer(species, name):
         name (str):
 
     Returns:
-        (autode.conformers.Conformer)
+        (autode.conformers.Conformer): Conformer
     """
     conformer = Conformer(name=name, atoms=species.atoms,
                           charge=species.charge, mult=species.mult)
@@ -29,7 +29,20 @@ def get_conformer(species, name):
 class Conformer(Species):
 
     def optimise(self, method, reset_graph=False, calc=None):
+        """
+        Optimise the geometry of this conformer
+
+        Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            reset_graph (bool):
+            calc (autode.calculation.Calculation):
+        """
         logger.info(f'Running optimisation of {self.name}')
+
+        if calc is not None or reset_graph:
+            raise NotImplementedError
 
         opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
                           keywords=method.keywords.low_opt,
@@ -47,7 +60,9 @@ class Conformer(Species):
 
         return None
 
-    def __init__(self, name='conf', atoms=None, solvent_name=None, charge=0, mult=1, dist_consts=None):
-        super(Conformer, self).__init__(name, atoms, charge, mult, solvent_name=solvent_name)
+    def __init__(self, name='conf', atoms=None, solvent_name=None,
+                 charge=0, mult=1, dist_consts=None):
+        super(Conformer, self).__init__(name, atoms, charge, mult,
+                                        solvent_name=solvent_name)
 
         self.dist_consts = dist_consts

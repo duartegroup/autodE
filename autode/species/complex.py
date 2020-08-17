@@ -15,13 +15,16 @@ from autode.exceptions import MethodUnavailable
 
 def get_complex_conformer_atoms(molecules, rotations, points):
     """
-    Generate a conformer of a complex given a set of molecules, rotations for each and points on which to shift
+    Generate a conformer of a complex given a set of molecules, rotations for
+    each and points on which to shift
 
     Arguments:
         molecules (list(autode.species.Species)):
-        rotations (list(np.ndarray)): List of len 4 np arrays containing the [theta, x, y, z] defining the rotation
+        rotations (list(np.ndarray)): List of len 4 np arrays containing the
+                  [theta, x, y, z] defining the rotation
                                       amount and axis
-        points: (list(np.ndarray)): List of length 3 np arrays containing the point to add the molecule with index i
+        points: (list(np.ndarray)): List of length 3 np arrays containing the
+        point to add the molecule with index i
 
     Returns:
         (list(autode.atoms.Atom))
@@ -31,7 +34,8 @@ def get_complex_conformer_atoms(molecules, rotations, points):
     # First molecule is static so start with those atoms
     atoms = deepcopy(molecules[0].atoms)
 
-    # For each molecule add it to the current set of atoms with the centroid ~ COM located at the origin
+    # For each molecule add it to the current set of atoms with the centroid
+    # ~ COM located at the origin
     for i, molecule in enumerate(molecules[1:]):
 
         centroid = np.average(np.array([atom.coord for atom in atoms]), axis=0)
@@ -53,10 +57,12 @@ def get_complex_conformer_atoms(molecules, rotations, points):
             atom.translate(vec=-mol_centroid)
             atom.rotate(axis, theta)
 
-        # Shift until the current molecules don't overlap with the current atoms, i.e. aren't far enough apart
+        # Shift until the current molecules don't overlap with the current
+        #  atoms, i.e. aren't far enough apart
         far_enough_apart = False
 
-        # Shift the molecule by 0.1 Å in the direction of the point (which has length 1) until the
+        # Shift the molecule by 0.1 Å in the direction of the point
+        # (which has length 1) until the
         # minimum distance to the rest of the complex is 2.0 Å
         while not far_enough_apart:
 
@@ -128,7 +134,8 @@ class Complex(Species):
         """
         Generate and optimise with a low level method a set of conformers, the
         number of which is
-        Config.num_complex_sphere_points ×  Config.num_complex_random_rotations ^ (n molecules in complex - 1)
+        Config.num_complex_sphere_points ×  Config.num_complex_random_rotations
+         ^ (n molecules in complex - 1)
         """
         n_confs = Config.num_complex_sphere_points * Config.num_complex_random_rotations * (len(self.molecules) - 1 )
         logger.info(f'Generating and optimising {n_confs} conformers of {self.name}')
@@ -168,7 +175,8 @@ class Complex(Species):
     @requires_atoms()
     def rotate_mol(self, axis, theta, mol_index, origin=np.zeros(3)):
         """
-        Rotate a molecule within a complex an angle theta about an axis given an origin
+        Rotate a molecule within a complex an angle theta about an axis given
+        an origin
 
         Arguments:
             axis (np.ndarray): Length 3 vector

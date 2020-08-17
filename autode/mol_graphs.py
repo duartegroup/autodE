@@ -4,17 +4,17 @@ import multiprocessing as mp
 from networkx.algorithms import isomorphism
 import networkx as nx
 import numpy as np
+import autode.exceptions as ex
 from scipy.spatial import distance_matrix
 from autode.atoms import get_maximal_valance
 from autode.atoms import is_pi_atom
 from autode.bond_lengths import get_avg_bond_length
 from autode.log import logger
-from autode.exceptions import CannotSplitAcrossBond
-from autode.exceptions import NoMolecularGraph
 from autode.atoms import get_atomic_weight
 
 
-def make_graph(species, rel_tolerance=0.25, bond_list=None, allow_invalid_valancies=False):
+def make_graph(species, rel_tolerance=0.25, bond_list=None,
+               allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria
      or a smiles parser object. All attributes default to false
@@ -187,7 +187,7 @@ def species_are_isomorphic(species1, species2):
     """
     logger.info(f'Checking if {species1.name} and {species2.name} are isomorphic')
     if species1.graph is None or species2.graph is None:
-        raise NoMolecularGraph
+        raise ex.NoMolecularGraph
 
     if is_isomorphic(species1.graph, species2.graph):
         return True
@@ -248,7 +248,11 @@ def get_mapping(graph, other_graph):
     gm = isomorphism.GraphMatcher(graph, other_graph,
                                   node_match=isomorphism.categorical_node_match('atom_label', 'C'))
 
-    mapping = next(gm.match())
+    try:
+        mapping = next(gm.match())
+    except StopIteration:
+        raise ex.NoMapping
+
     return {i: mapping[i] for i in sorted(mapping)}
 
 
@@ -416,7 +420,7 @@ def split_mol_across_bond(graph, bond):
     split_subgraphs = get_separate_subgraphs(graph_copy)
 
     if len(split_subgraphs) != 2:
-        raise CannotSplitAcrossBond
+        raise ex.CannotSplitAcrossBond
 
     return [list(graph.nodes) for graph in split_subgraphs]
 

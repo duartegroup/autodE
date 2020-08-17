@@ -296,8 +296,8 @@ class XTB(ElectronicStructureMethod):
 
         elif os.path.exists('gradient'):
             with open('gradient', 'r') as grad_file:
-                for line_no, line in enumerate(grad_file):
-                    if line_no > 1 and len(line.split()) == 3:
+                for i, line in enumerate(grad_file):
+                    if i > 1 and len(line.split()) == 3:
                         x, y, z = line.split()
                         vec = [float(x.replace('D', 'E')),
                                float(y.replace('D', 'E')),

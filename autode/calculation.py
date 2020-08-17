@@ -363,8 +363,8 @@ class Calculation:
         """
         Arguments:
             name (str):
-            molecule (molecule object): Molecule to be calculated
-            method (method object): Electronic structure wrapper to use
+            molecule (autode.species.Species): Molecule to be calculated
+            method (autode.wrappers.base.ElectronicStructureMethod):
             keywords (autode.wrappers.keywords.Keywords):
 
         Keyword Arguments:
@@ -383,6 +383,7 @@ class Calculation:
             cartesian_constraints (list(int)): List of atom ids to fix at their
                                                cartesian coordinates
                                                (default: {None})
+
             point_charges (list(autode.point_charges.PointCharge)): List of
                                              float of point charges, x, y, z
                                              coordinates for each point charge

@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
 from autode.solvent.solvents import get_solvent
@@ -31,6 +32,9 @@ class Species:
         # Strings are a unique identifier so if they are the same then
         # the species are the same - requires there to be atoms set
         return str(self) == str(other)
+
+    def copy(self):
+        return deepcopy(self)
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError

@@ -95,8 +95,9 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
 
     Arguments:
         filenames_to_copy (list(str)): Filenames to copy to the temp dir
-        kept_file_exts (list(str): Filename extensions to copy back from the temp dir
 
+        kept_file_exts (list(str): Filename extensions to copy back from
+                       the temp dir
     """
 
     def func_decorator(func):

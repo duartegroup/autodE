@@ -20,16 +20,16 @@ from autode.exceptions import NoMolecularGraph
 def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     """
     Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and
-    fixed and 0 otherwise. Can support
-    a partial structure with bonds to atoms that don't (yet) exist
+    fixed and 0 otherwise. Can support a partial structure with bonds to atoms
+     that don't (yet) exist
 
-    Args:
+    Arguments:
         n_atoms (int):
         bonds (list(tuple)):
         fixed_bonds (list(tuple)):
 
     Returns:
-        (np.ndarray): n_atoms x n_atoms
+        (np.ndarray): Bond matrix, shape = (n_atoms, n_atoms)
     """
 
     bond_matrix = np.zeros((n_atoms, n_atoms), dtype=np.intc)
@@ -47,8 +47,22 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
 
 
 def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8):
-    """Get the coordinates that minimise a FF with a bonds + repulsion FF
-    where the repulsion is c/r^exponent"""
+    """
+    Get the coordinates that minimise a FF with a bonds + repulsion FF
+    where the repulsion is c/r^exponent
+
+    Arguments:
+        coords (np.ndarray): Initial coordinates, shape = (n_atoms, 3)
+        bonds (list(tuple(int))): List of bonds
+        fixed_bonds (list(tuple(int))): List of constrained bonds will use 10k
+                    as the harmonic force constant
+        k (float):
+        c (float):
+        exponent (int): Exponent in the repulsive pairwise term
+
+    Returns:
+        (np.ndarray): Optimised coordinates, shape = (n_atoms, 3)
+    """
     # TODO divide and conquer?
 
     n_atoms = len(coords)
@@ -71,7 +85,19 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8
 def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
     """Get the energy using a bond + repulsion FF where
 
-    V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
+    V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^exponent
+
+    Arguments:
+        coords (np.ndarray): shape = (n_atoms, 3)
+        bonds (list(tuple(int))): List of bonds
+        fixed_bonds (list(tuple(int))): List of constrained bonds will use 10k
+                    as the harmonic force constant
+        k (float):
+        c (float):
+        exponent (int): Exponent in the repulsive pairwise term
+
+    Returns:
+        (float): Energy
     """
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
@@ -92,6 +118,9 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
         species (autode.species.Species):
         atoms (list(autode.atoms.Atom)):
         rand (np.RandomState): random state
+
+    Returns:
+        (list(autode.atoms.Atom)): Atoms
     """
 
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
@@ -136,6 +165,9 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
         species (autode.species.Species):
         dist_consts (dict): keyed with tuple of atom indexes and valued with
                     the distance (Å), or None
+
+    Returns:
+        (dict): Distance constraints
     """
     if not are_coords_reasonable(coords=species.get_coordinates()):
         # TODO generate a reasonable initial structure: molassembler?
@@ -179,8 +211,16 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
 
 
 def get_non_random_atoms(species):
-    """Get the atoms that won't be randomised in the conformer generation.
-    Stereocentres and nearest neighbours"""
+    """
+    Get the atoms that won't be randomised in the conformer generation.
+    Stereocentres and nearest neighbours
+
+    Arguments:
+        species (autode.species.Species):
+
+    Returns:
+        (set(int)): Atoms indexes to not randomise
+    """
     stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
 
     non_rand_atoms = deepcopy(stereocentres)
@@ -194,18 +234,29 @@ def get_non_random_atoms(species):
 
 
 def get_atoms_from_generated_file(species, xyz_filename):
-    """Get the atoms from a previously generated  .xyz file, if the atoms
-     match"""
+    """
+    Get atoms from a previously generated  .xyz file, if the atoms match
+
+    Arguments:
+        species (autode.species.Species):
+        xyz_filename (str):
+
+    Returns:
+        (list(autode.atoms.Atoms)) or None: Atoms from file
+    """
 
     if not os.path.exists(xyz_filename):
         return None
 
     atoms = xyz_file_to_atoms(filename=xyz_filename)
 
-    # Ensure the xyz file has the correct atoms
-    all_atoms_match = all(atoms[i].label == species.atoms[i].label for i in range(species.n_atoms))
+    if len(atoms) != species.n_atoms:
+        return None
 
-    if len(atoms) == species.n_atoms and all_atoms_match:
+    all_atoms_match = all(atoms[i].label == species.atoms[i].label
+                          for i in range(species.n_atoms))
+
+    if all_atoms_match:
         logger.info('Conformer has already been generated')
         return atoms
 
@@ -225,7 +276,7 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
         constrained_bonds (list):
 
     Returns:
-        (np.ndarray) n_atoms x 3
+        (np.ndarray): Optimised coordinates, shape = (n_atoms, 3)
     """
     # Minimise atoms with no bonds between them
     far_coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
@@ -233,7 +284,8 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
                                         k=0.0, c=0.1, d0=d0, tol=5E-3, exponent=2)
     coords = far_coords[:2]
 
-    # Add the atoms one by one to the structure. Thanks to Dr. Cyrille Lavigne for this suggestion!
+    # Add the atoms one by one to the structure. Thanks to Dr. Cyrille Lavigne
+    #  for this suggestion!
     for n in range(2, species.n_atoms):
         coords = get_coords_minimised_v(np.concatenate((coords, far_coords[len(coords):n+1])),
                                         bonds=species.graph.edges, fixed_bonds=constrained_bonds,
@@ -247,16 +299,24 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
 
 def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     """
+    Use a bonded + repulsive force field to generate 3D structure for a
+    species. If the initial coordinates are reasonable e.g. from a previously
+    generated 3D structure then add random displacement vectors and minimise
+    to generate a conformer. Otherwise add atoms to the box sequentially
+    until all atoms have been added, which generates a qualitatively reasonable
+    3D geometry which should be optimised using a electronic structure method
 
-
-    V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^4
+    V(x) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^n
 
     Arguments:
-        species (autode.species.Species): Species, Molecule, TSguess, TS
+        species (autode.species.Species):
+
         dist_consts (dict): Key = tuple of atom indexes, Value = distance
-        conf_n (int): Number of this conformer generated
+
+        conf_n (int): Number of this conformer
+
     Returns:
-        (np.ndarray): Coordinates of the generated conformer
+        (list(autode.atoms.Atom)): Atoms
     """
     xyz_filename = f'{species.name}_conf{conf_n}_siman.xyz'
 

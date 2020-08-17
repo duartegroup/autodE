@@ -191,8 +191,10 @@ class BreakingBond(ScannedBond):
         self.curr_dist = species.get_distance(*self.atom_indexes)
 
         # Length a breaking bond should increase by
-        if any(mol.charge != 0 for mol in reaction.prods):
+        if (any(mol.charge != 0 for mol in reaction.prods)
+                or any(mol.charge != 0 for mol in reaction.reacs)):
             bbond_add_dist = 2.5
+
         else:
             bbond_add_dist = 1.5
 
