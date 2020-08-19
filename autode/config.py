@@ -125,15 +125,40 @@ class Config:
         # path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', 'EmpiricalDispersion=GD3BJ'],
-                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', 'EmpiricalDispersion=GD3BJ'],
-                               opt=['PBE1PBE/Def2SVP', 'Opt', 'EmpiricalDispersion=GD3BJ'],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ',
+        disp = 'EmpiricalDispersion=GD3BJ'
+        grid = 'integral=ultrafinegrid'
+
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp, grid],
+                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp, grid],
+                               opt=['PBE1PBE/Def2SVP', 'Opt', disp, grid],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp, grid,
                                        'Opt=(TS, CalcFC, NoEigenTest, '
                                        'MaxCycles=100, MaxStep=10, '
                                        'NoTrustUpdate)'],
-                               hess=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ'],
-                               sp=['PBE1PBE/Def2TZVP', 'EmpiricalDispersion=GD3BJ'])
+                               hess=['PBE1PBE/Def2SVP', 'Freq', disp, grid],
+                               sp=['PBE1PBE/Def2TZVP', disp, grid])
+
+        # Only SMD implemented
+        implicit_solvation_type = 'smd'
+
+    class G16:
+        # ---------------------------------------------------------------------
+        # Parameters for g16                   https://gaussian.com/gaussian16/
+        # ---------------------------------------------------------------------
+        #
+        # path can be unset and will be assigned if it can be found in $PATH
+        path = None
+        #
+        disp = 'EmpiricalDispersion=GD3BJ'
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp],
+                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp],
+                               opt=['PBE1PBE/Def2SVP', 'Opt', disp],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp,
+                                       'Opt=(TS, CalcFC, NoEigenTest, '
+                                       'MaxCycles=100, MaxStep=10, '
+                                       'NoTrustUpdate)'],
+                               hess=['PBE1PBE/Def2SVP', 'Freq', disp],
+                               sp=['PBE1PBE/Def2TZVP', disp])
 
         # Only SMD implemented
         implicit_solvation_type = 'smd'
