@@ -1,7 +1,7 @@
 from autode.log import logger
 from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
-from autode.utils import work_in, work_in_tmp_dir
+from autode.utils import work_in
 from scipy.optimize import minimize
 from multiprocessing import Pool
 from copy import deepcopy
@@ -57,7 +57,7 @@ def total_energy(flat_coords, images, method, n_cores):
     return sum(rel_energies)
 
 
-def get_force(im_l, im, im_r, k=0.01):
+def get_force(im_l, im, im_r, k=0.005):
     """
     Compute F_i. Notation from:
     Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
@@ -134,6 +134,7 @@ def derivative(flat_coords, images, method, n_cores):
     forces = np.append(forces, images[-1].grad)
 
     # dV/dx is negative of the force
+    logger.info(f'|F| = {np.linalg.norm(forces):.4f} Ha Å-1')
     return -forces
 
 
@@ -256,13 +257,20 @@ class NEB:
 
         # Minimise the total energy across the path initial -> final points
         # with respect to the coordinates of all the intermediate images
+        init_coords = self.images.coords()
+
+        # Gradient tolerance is dependent on the total number of forces e.g.
+        # an ~RMS rather than simply the norm
+        gtol = len(self.images) * len(init_coords)/100 / 2E3
+        logger.info(f'Minimising to |F|<{gtol:.4f} Ha Å-1 on NEB coordinates')
+
         result = minimize(total_energy,
-                          x0=self.images.coords(),
+                          x0=init_coords,
                           method='BFGS',
                           jac=derivative,
                           args=(self.images, method, n_cores),
-                          tol=0.01,
-                          options={'gtol': 1E-4, 'maxiter': 50})
+                          tol=0.001,
+                          options={'gtol': gtol, 'maxiter': 30})
 
         logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
 
@@ -287,19 +295,45 @@ class NEB:
 
         return None
 
-    def __init__(self, initial_species=None, final_species=None, num=8):
+    def _init_from_species_list(self, s_list):
+        """Initialise from a list of species rather than just end points"""
+
+        self.images = Images(num=len(s_list))
+
+        for i, image in enumerate(self.images):
+            image.species = s_list[i]
+
+        return None
+
+    def _init_from_end_points(self, initial, final):
+        """Initialise from the start and finish points of the NEB"""
+
+        self.images[0].species = initial
+        self.images[-1].species = final
+
+        return None
+
+    def __init__(self, initial_species=None, final_species=None, num=8,
+                 species_list=None):
         """
         Nudged elastic band class
 
-        :param initial_species: (autode.species.Species)
-        :param final_species: (autode.species.Species)
-        :param num: (int) Number of images in the NEB
+        Arguments:
+            initial_species (autode.species.Species):
+            final_species (autode.species.Species):
+            num (int): Number of images in the NEB
+            species_list (list(autode.species.Species)): Intermediate images
+                         along the NEB
         """
-        # Number of images must be even for successful decomposition
-        assert num % 2 == 0
-
         self.images = Images(num=num)
 
-        # Set the end points on the NEB
-        self.images[0].species = initial_species
-        self.images[-1].species = final_species
+        if species_list is not None:
+            self._init_from_species_list(species_list)
+
+        else:
+            self._init_from_end_points(initial_species, final_species)
+
+        # Number of images must be even for successful decomposition
+        assert len(self.images) % 2 == 0
+
+        logger.info(f'Initialised a NEB with {num} images')

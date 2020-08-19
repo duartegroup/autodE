@@ -106,7 +106,7 @@ class Species:
         return np.array([atom.coord for atom in self.atoms])
 
     @requires_atoms()
-    def optimise(self, method, reset_graph=False, calc=None):
+    def optimise(self, method=None, reset_graph=False, calc=None):
         """
         Optimise the geometry using a method
 
@@ -121,6 +121,8 @@ class Species:
         logger.info(f'Running optimisation of {self.name}')
 
         if calc is None:
+            assert method is not None
+
             calc = Calculation(name=f'{self.name}_opt', molecule=self,
                                method=method, keywords=method.keywords.opt,
                                n_cores=Config.n_cores)

@@ -83,8 +83,9 @@ def work_in(dir_ext):
                 os.mkdir(dir_path)
 
             os.chdir(dir_path)
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
             os.chdir(here)
+            return result
 
         return wrapped_function
     return func_decorator
@@ -121,7 +122,7 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
             os.chdir(tmpdir_path)
 
             logger.info('Function   ...running')
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
             logger.info('           ...done')
 
             for filename in os.listdir(tmpdir_path):
@@ -134,6 +135,7 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
 
             logger.info('Removing temporary directory')
             shutil.rmtree(tmpdir_path)
+            return result
 
         return wrapped_function
     return func_decorator

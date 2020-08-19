@@ -141,6 +141,9 @@ class ScannedBond:
         i, j = self.atom_indexes
         return f'{i}-{j}'
 
+    def __getitem__(self, item):
+        return self.atom_indexes[item]
+
     def __init__(self, atom_indexes):
         """
         Bond with a current and final distance which will be scanned over
@@ -177,7 +180,7 @@ class FormingBond(ScannedBond):
 
 class BreakingBond(ScannedBond):
 
-    def __init__(self, atom_indexes, species, reaction):
+    def __init__(self, atom_indexes, species, reaction=None):
         """
         Form a breaking bond with current and final distances
 
@@ -190,12 +193,15 @@ class BreakingBond(ScannedBond):
 
         self.curr_dist = species.get_distance(*self.atom_indexes)
 
-        # Length a breaking bond should increase by
-        if (any(mol.charge != 0 for mol in reaction.prods)
-                or any(mol.charge != 0 for mol in reaction.reacs)):
-            bbond_add_dist = 2.5
+        # Length a breaking bond should increase by (Å)
+        bbond_add_dist = 1.5
 
-        else:
-            bbond_add_dist = 1.5
+        # If a reaction is specified and any component is charged then use a
+        # larger ∆r shift as the interaction range is likely further
+        if reaction is not None:
+            if (any(mol.charge != 0 for mol in reaction.prods)
+                    or any(mol.charge != 0 for mol in reaction.reacs)):
+
+                bbond_add_dist = 2.5
 
         self.final_dist = self.curr_dist + bbond_add_dist
