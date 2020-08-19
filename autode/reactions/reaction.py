@@ -89,6 +89,36 @@ class Reaction:
                     f'{self.solvent.name}')
         return None
 
+    def _init_from_smiles(self, reaction_smiles):
+        """
+        Initialise from a SMILES string of the whole reaction e.g.
+
+                    CC(C)=O.[C-]#N>>CC([O-])(C#N)C
+
+        for the addition of cyanide to acetone
+
+        Arguments:
+            reaction_smiles (str):
+        """
+        try:
+            reacs_smiles, prods_smiles = reaction_smiles.split('>>')
+        except ValueError:
+            raise UnbalancedReaction('Could not decompose to reacs & prods')
+
+        def name(smiles):
+            """A more readable string as a name"""
+            return ''.join([a for a in smiles if a.isalpha()])
+
+        # Add all the reactants and products
+        for reac_smiles in reacs_smiles.split('.'):
+            self.reacs.append(Reactant(name=name(reac_smiles),
+                                       smiles=reac_smiles))
+
+        for prod_smiles in prods_smiles.split('.'):
+            self.prods.append(Product(name=name(prod_smiles),
+                                      smiles=prod_smiles))
+        return None
+
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
         and products and classify as dissociation. Likewise for reactions wher
@@ -316,23 +346,40 @@ class Reaction:
 
         return None
 
-    def __init__(self, *args, name='reaction', solvent_name=None):
+    def __init__(self, *args, name='reaction', solvent_name=None, smiles=None):
+        """
+        Reaction containing reactants and products. reaction.reactant is the
+        reactant complex which is the same as reacs[0] if there is only
+        reactant
+
+        Arguments:
+             args (autode.species.Molecule) or (str): Reactant and Product
+                  objects or a SMILES string of the whole reaction
+
+            name (str):
+
+            solvent_name (str):
+
+            smiles (str):
+        """
         logger.info(f'Generating a Reaction object for {name}')
 
         self.name = name
         self.reacs = [mol for mol in args if isinstance(mol, Reactant)]
         self.prods = [mol for mol in args if isinstance(mol, Product)]
 
+        # If there is only one string argument assume it's a SMILES
+        if len(args) == 1 and type(args[0]) is str:
+            smiles = args[0]
+
+        if smiles is not None:
+            self._init_from_smiles(smiles)
+
         self.reactant, self.product = None, None
         self.ts, self.tss = None, None
 
-        self.type = reaction_types.classify(reactants=self.reacs,
-                                            products=self.prods)
-
-        if solvent_name is not None:
-            self.solvent = get_solvent(solvent_name=solvent_name)
-        else:
-            self.solvent = None
+        self.type = reaction_types.classify(self.reacs, self.prods)
+        self.solvent = get_solvent(solvent_name=solvent_name)
 
         self._check_solvent()
         self._check_balance()

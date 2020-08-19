@@ -132,3 +132,18 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
     assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
+
+
+def test_from_smiles():
+    # Chemdraw can generate a reaction with reactants and products
+    addition = reaction.Reaction(smiles='CC(C)=O.[C-]#N>>CC([O-])(C#N)C')
+
+    assert len(addition.reacs) == 2
+    assert len(addition.prods) == 1
+
+    # Should be readable ish names
+    for reac in addition.reacs:
+        assert reac.name != 'molecule'
+
+    with pytest.raises(UnbalancedReaction):
+        _ = reaction.Reaction('CC(C)=O.[C-]#N')
