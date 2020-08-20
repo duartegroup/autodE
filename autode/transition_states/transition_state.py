@@ -22,14 +22,17 @@ class TransitionState(TSbase):
         made/broken"""
         set_active_mol_graph(species=self, active_bonds=self.bond_rearrangement.all)
 
-        logger.info(f'Molecular graph updated with {len(self.bond_rearrangement.all)} active bonds')
+        logger.info(f'Molecular graph updated with '
+                    f'{len(self.bond_rearrangement.all)} active bonds')
         return None
 
     def _run_opt_ts_calc(self, method, name_ext):
         """Run an optts calculation and attempt to set the geometry, energy and
          normal modes"""
 
-        self.optts_calc = Calculation(name=f'{self.name}_{name_ext}', molecule=self, method=method,
+        self.optts_calc = Calculation(name=f'{self.name}_{name_ext}',
+                                      molecule=self,
+                                      method=method,
                                       n_cores=Config.n_cores,
                                       keywords=method.keywords.opt_ts,
                                       bond_ids_to_add=self.bond_rearrangement.all,
@@ -41,10 +44,13 @@ class TransitionState(TSbase):
                 logger.info('Optimisation nearly converged')
                 self.calc = self.optts_calc
                 if self.could_have_correct_imag_mode():
-                    logger.info('Still have correct imaginary mode, trying more'
-                                ' optimisation steps')
+                    logger.info('Still have correct imaginary mode, trying '
+                                'more  optimisation steps')
+
                     self.set_atoms(atoms=self.optts_calc.get_final_atoms())
-                    self.optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt', molecule=self, method=method,
+                    self.optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt',
+                                                  molecule=self,
+                                                  method=method,
                                                   n_cores=Config.n_cores,
                                                   keywords=method.keywords.opt_ts,
                                                   bond_ids_to_add=self.bond_rearrangement.all,
@@ -117,7 +123,11 @@ class TransitionState(TSbase):
         for disp_magnitude in [1, -1]:
             dis_name_ext = name_ext + '_dis' if disp_magnitude == 1 else name_ext + '_dis2'
             atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.optts_calc)
-            self.atoms = get_displaced_atoms_along_mode(self.optts_calc, mode_number=7, disp_magnitude=disp_magnitude)
+
+            self.atoms = get_displaced_atoms_along_mode(self.optts_calc,
+                                                        mode_number=7,
+                                                        disp_magnitude=disp_magnitude)
+
             self._run_opt_ts_calc(method=get_hmethod(), name_ext=dis_name_ext)
 
             if len(self.imaginary_frequencies) == 1:
@@ -190,7 +200,8 @@ class TransitionState(TSbase):
         """
         logger.info(f'Saving TS template for {self.name}')
 
-        truncated_graph = get_truncated_active_mol_graph(self.graph, active_bonds=self.bond_rearrangement.all)
+        truncated_graph = get_truncated_active_mol_graph(self.graph,
+                                                         active_bonds=self.bond_rearrangement.all)
 
         for bond in self.bond_rearrangement.all:
             truncated_graph.edges[bond]['distance'] = self.get_distance(*bond)

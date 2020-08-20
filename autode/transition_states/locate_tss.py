@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
+from autode.atoms import metals
 from autode.transition_states.transition_state import get_ts_object
 from autode.transition_states.truncation import get_truncated_complex
 from autode.transition_states.truncation import is_worth_truncating
@@ -94,9 +95,15 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     yield get_template_ts_guess, (r, p, bond_rearr,
                                   f'{name}_template_{bond_rearr}', hmethod)
 
-    # Otherwise try a nudged elastic band calculation
-    yield get_ts_guess_neb, (r, p, lmethod, fbonds, bbonds, f'{name}_ll_neb_{bond_rearr}')
-    yield get_ts_guess_neb, (r, p, hmethod, fbonds, bbonds, f'{name}_hl_neb_{bond_rearr}')
+    # Otherwise try a nudged elastic band calculation, don't use the low level
+    # method if there are any metals..
+    if not any(atom.label in metals for atom in r.atoms):
+        yield get_ts_guess_neb, (r, p, lmethod, fbonds, bbonds,
+                                 f'{name}_ll_neb_{bond_rearr}')
+
+    # Always attempt a high-level NEB
+    yield get_ts_guess_neb, (r, p, hmethod, fbonds, bbonds,
+                             f'{name}_hl_neb_{bond_rearr}')
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a
     # transition state guess cheap -> most expensive
@@ -134,8 +141,8 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
         yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d', hmethod,
                                 hmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_alt', hmethod,
-                                hmethod.keywords.opt)
+        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_alt',
+                                hmethod, hmethod.keywords.opt)
 
     if len(fbonds) == 2:
         yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
@@ -157,7 +164,8 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     return None
 
 
-def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iters=10):
+def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
+                              n_iters=10):
     """
     Shift a molecule in the reactant complex so that the attacking atoms
     (a_atoms) are pointing towards the attacked atoms (l_atoms)

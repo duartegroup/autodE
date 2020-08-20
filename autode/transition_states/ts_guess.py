@@ -171,6 +171,9 @@ class TSguess(TSbase):
 def get_ts_guess(species, reactant, product, name):
     """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess
     is returned"""
+    if species is None:
+        return None
+
     if species.is_explicitly_solvated():
         raise NotImplementedError
 

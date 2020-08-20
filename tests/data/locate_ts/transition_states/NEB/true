@@ -1,0 +1,144 @@
+autode.log  : INFO     Running calculation 1_8_xtb
+autode.log  : INFO     Generating input file(s) for 1_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 1_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 1_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 1_8_xtb.out
+autode.log  : INFO     Getting energy from 1_8_xtb.out
+autode.log  : INFO     Checking for 1_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 2_8_xtb
+autode.log  : INFO     Generating input file(s) for 2_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 2_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 2_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 2_8_xtb.out
+autode.log  : INFO     Getting energy from 2_8_xtb.out
+autode.log  : INFO     Checking for 2_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 3_8_xtb
+autode.log  : INFO     Generating input file(s) for 3_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 3_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 3_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 3_8_xtb.out
+autode.log  : INFO     Getting energy from 3_8_xtb.out
+autode.log  : INFO     Checking for 3_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 4_8_xtb
+autode.log  : INFO     Generating input file(s) for 4_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 4_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 4_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 4_8_xtb.out
+autode.log  : INFO     Getting energy from 4_8_xtb.out
+autode.log  : INFO     Checking for 4_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 5_8_xtb
+autode.log  : INFO     Generating input file(s) for 5_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 5_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 5_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 5_8_xtb.out
+autode.log  : INFO     Getting energy from 5_8_xtb.out
+autode.log  : INFO     Checking for 5_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 6_8_xtb
+autode.log  : INFO     Generating input file(s) for 6_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 6_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 6_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 6_8_xtb.out
+autode.log  : INFO     Getting energy from 6_8_xtb.out
+autode.log  : INFO     Checking for 6_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 7_8_xtb
+autode.log  : INFO     Generating input file(s) for 7_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 7_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 7_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 7_8_xtb.out
+autode.log  : INFO     Getting energy from 7_8_xtb.out
+autode.log  : INFO     Checking for 7_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 8_8_xtb
+autode.log  : INFO     Generating input file(s) for 8_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 8_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 8_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 8_8_xtb.out
+autode.log  : INFO     Getting energy from 8_8_xtb.out
+autode.log  : INFO     Checking for 8_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 9_8_xtb
+autode.log  : INFO     Generating input file(s) for 9_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 9_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 9_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 9_8_xtb.out
+autode.log  : INFO     Getting energy from 9_8_xtb.out
+autode.log  : INFO     Checking for 9_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 10_8_xtb
+autode.log  : INFO     Generating input file(s) for 10_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 10_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 10_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 10_8_xtb.out
+autode.log  : INFO     Getting energy from 10_8_xtb.out
+autode.log  : INFO     Checking for 10_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 11_8_xtb
+autode.log  : INFO     Generating input file(s) for 11_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 11_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 11_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 11_8_xtb.out
+autode.log  : INFO     Getting energy from 11_8_xtb.out
+autode.log  : INFO     Checking for 11_8_xtb.out normal termination
+autode.log  : INFO     Running calculation 12_8_xtb
+autode.log  : INFO     Generating input file(s) for 12_8_xtb
+autode.log  : INFO     Calculation has already been run
+autode.log  : INFO     Running 12_8_xtb.xyz using xtb
+autode.log  : INFO     Setting the availability of XTB
+autode.log  : INFO     XTB is available
+autode.log  : INFO     Setting output file lines
+autode.log  : INFO     Checking for 12_8_xtb.out normal termination
+autode.log  : INFO     Calculation already terminated normally. Skipping
+autode.log  : INFO     Getting gradients from 12_8_xtb.out
+autode.log  : INFO     Getting energy from 12_8_xtb.out
+autode.log  : INFO     Checking for 12_8_xtb.out normal termination

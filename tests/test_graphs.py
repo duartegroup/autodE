@@ -243,3 +243,26 @@ def test_isomorphic_no_active():
     assert mol_graphs.is_isomorphic(ts_syn.graph, ts_anti.graph, ignore_active_bonds=True)
 
     os.chdir(here)
+
+
+def test_timeout():
+
+    # Generate a large-ish graph
+    graph = nx.Graph()
+    for i in range(10000):
+        graph.add_node(i)
+
+    for _ in range(5000):
+        (i, j) = np.random.randint(0, 1000, size=2)
+
+        if (i, j) not in graph.edges:
+            graph.add_edge(i, j)
+
+    node_perm = np.random.permutation(list(graph.nodes))
+    mapping = {u: v for (u, v) in zip(graph.nodes, node_perm)}
+
+    isomorphic_graph = nx.relabel_nodes(graph, mapping=mapping, copy=True)
+
+    # With a short timeout this should return False - not sure this is the
+    # optimal behavior
+    assert not mol_graphs.is_isomorphic(graph, isomorphic_graph, timeout=1)

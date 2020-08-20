@@ -170,16 +170,21 @@ def test_find_tss():
     # Spoof ORCA and XTB installs
     Config.ORCA.path = here
     Config.XTB.path = here
+
     Config.ORCA.implicit_solvation_type = 'cpcm'
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1
 
-    # Simple rearrangement reaction
-    r = Reactant(smiles='CC[C]([H])[H]', name='r')
-    p1 = Product(smiles='C[C]([H])C', name='p1')
+    # SN2 example
+    flouride = Reactant(name='F-', smiles='[F-]')
+    methyl_chloride = Reactant(name='CH3Cl', smiles='ClC')
+    chloride = Product(name='Cl-', smiles='[Cl-]')
+    methyl_flouride = Product(name='CH3F', smiles='CF')
 
-    reaction = Reaction(r, p1, solvent_name='water')
+    reaction = Reaction(flouride, methyl_chloride, chloride, methyl_flouride,
+                        name='sn2', solvent_name='water')
+
     # Will work in data/locate_ts/transition_states
     reaction.locate_transition_state()
 
@@ -201,11 +206,10 @@ def test_find_tss():
 
     template = templates[0]
     assert template.solvent.name == 'water'
-    assert template.mult == 2
-    assert template.charge == 0
+    assert template.mult == 1
+    assert template.charge == -1
 
-    # Truncated graph has 7 atoms in
-    assert template.graph.number_of_nodes() == 7
+    assert template.graph.number_of_nodes() == 6
 
     # Tidy the generated files
     pes_path = os.path.join(here, 'data', 'locate_ts',

@@ -1,6 +1,6 @@
 from copy import deepcopy
 import itertools
-import multiprocessing as mp
+import signal
 from networkx.algorithms import isomorphism
 import networkx as nx
 import numpy as np
@@ -339,18 +339,21 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
                                       edge_match=edge_match)
 
     # NX can hang here for not very large graphs, so kill after a timeout
-    manager = mp.Manager()
-    res = manager.dict()
-    p = mp.Process(target=gm_is_isomorphic, args=(gm, res))
-    p.start()             # Start the process
-    p.join(timeout)       # Wait until the timeout
 
-    if p.is_alive():
-        p.terminate()
+    def handler(signum, frame):
+        raise TimeoutError
+
+    signal.signal(signal.SIGALRM, handler)
+    signal.alarm(int(timeout))
+    try:
+        result = gm.is_isomorphic()
+        # Cancel the timer
+        signal.alarm(0)
+        return result
+
+    except TimeoutError:
         logger.error('NX graph matching hanging')
         return False
-
-    return list(res.values())[0]
 
 
 def gm_is_isomorphic(gm, result):

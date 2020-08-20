@@ -73,9 +73,7 @@ class Reaction:
                     self.solvent = self.reacs[0].solvent
 
             else:
-                print([mol.solvent for mol in molecules])
-                print([mol.name for mol in molecules])
-
+                logger.critical('Some species solvated and some not!')
                 raise SolventsDontMatch
 
         if self.solvent is not None:

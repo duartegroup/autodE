@@ -128,3 +128,19 @@ def test_gradients():
     assert np.abs(gradients[0, 0]) < 1E-3
 
     os.chdir(here)
+
+
+def test_xtb_6_3_2():
+
+    mol = Molecule(name='CH3Cl', smiles='ClC')
+    calc = Calculation(name='test',
+                       molecule=mol,
+                       method=method,
+                       keywords=method.keywords.opt)
+
+    out_path = os.path.join(here, 'data', 'xtb', 'xtb_6_3_2_opt.out')
+
+    calc.output.filename = out_path
+    calc.output.file_lines = open(out_path, 'r').readlines()
+
+    assert len(calc.get_final_atoms()) == 5

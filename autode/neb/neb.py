@@ -37,7 +37,7 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
     """
     logger.info('Generating a TS guess using a nudged elastic band')
 
-    if generate_final_species:
+    if generate_final_species and fbonds is not None and bbonds is not None:
 
         try:
             species_list = get_interpolated(reactant, fbonds, bbonds,

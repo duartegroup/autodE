@@ -259,18 +259,17 @@ class NEB:
         # with respect to the coordinates of all the intermediate images
         init_coords = self.images.coords()
 
-        # Gradient tolerance is dependent on the total number of forces e.g.
-        # an ~RMS rather than simply the norm
-        gtol = len(self.images) * len(init_coords)/100 / 2E3
-        logger.info(f'Minimising to |F|<{gtol:.4f} Ha Å-1 on NEB coordinates')
+        # Energy tolerance is ~1 kcal mol-1 per image
+        etol = 0.0015 * len(self.images)
+        logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
 
         result = minimize(total_energy,
                           x0=init_coords,
-                          method='BFGS',
+                          method='L-BFGS-B',
                           jac=derivative,
                           args=(self.images, method, n_cores),
-                          tol=0.001,
-                          options={'gtol': gtol, 'maxiter': 30})
+                          tol=etol,
+                          options={'maxfun': 30})
 
         logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
 
@@ -280,7 +279,10 @@ class NEB:
         return None
 
     def get_species_saddle_point(self):
-        """Generate a TS guess for this NEB """
+        """Yield a TS guesses for this NEB from all saddle points"""
+        if any(image.energy is None for image in self.images):
+            logger.error('Optimisation of at least one image failed')
+            return None
 
         def is_saddle(j):
             """Is an image j amn approximate saddle point in the surface?"""
@@ -316,7 +318,7 @@ class NEB:
     def __init__(self, initial_species=None, final_species=None, num=8,
                  species_list=None):
         """
-        Nudged elastic band class
+        Nudged elastic band
 
         Arguments:
             initial_species (autode.species.Species):
