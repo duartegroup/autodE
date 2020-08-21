@@ -64,8 +64,12 @@ class PES1d(PES):
             # indexes and values the current r1, r2.. value
             distance_constraints = {self.rs_idxs[0]: self.rs[i][0]}
 
-            self.species[i] = get_point_species((i,), closest_species, distance_constraints, name, method, keywords, Config.n_cores)
-
+            self.species[i] = get_point_species((i,), closest_species,
+                                                distance_constraints,
+                                                name,
+                                                method,
+                                                keywords,
+                                                Config.n_cores)
         return None
 
     def __init__(self, reactant, product, rs, r_idxs):

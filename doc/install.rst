@@ -9,6 +9,7 @@ Dependencies
 
   * `ORCA <https://sites.google.com/site/orcainputlibrary/home/>`_ > v. 4.1
   * `Gaussian09 <https://gaussian.com/glossary/g09/>`_
+  * `Gaussian16 <https://gaussian.com/gaussian16/>`_
   * `NWChem <http://www.nwchem-sw.org/index.php/Main_Page>`_
 * One of:
 
@@ -55,7 +56,7 @@ extracting it. Then, open an anaconda command prompt and ``cd`` to the directory
     compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ is available.
 
 Installation Check
-------------------
+******************
 
 **autodE** will pick up any electronic structure theory packages with implemented wrappers (ORCA, NWChem, Gaussian09, XTB
 and MOPAC) that are available from your *PATH* environment variable. To check the expected high and low level methods are
@@ -71,3 +72,24 @@ available:
 
 
 If a MethodUnavailable exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
+
+Quick test
+**********
+
+If the high and/or low level methods have been installed for the first time
+it may be useful to check they're installed correctly. To run a quick optimisation
+of H\ :sub:`2`\:
+
+.. code-block:: python
+
+  >>> from autode import methods, Molecule
+  >>> h2 = Molecule(smiles='[H][H]')
+  >>> h2.optimise(method=methods.get_lmethod())
+  >>> h2.optimise(method=methods.get_hmethod())
+  >>> h2.energy
+  -1.164013897947
+  >>> h2.atoms
+  [[H, 0.3805, 0.0000, 0.0000], [H, -0.3805, 0.0000, 0.0000]]
+
+If an AtomsNotFound exception is raised it is likely that the electronic structure
+package is not correctly installed.

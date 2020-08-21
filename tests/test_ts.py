@@ -16,6 +16,7 @@ from autode.species.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.wrappers.G09 import G09
 import os
+import shutil
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
 method.available = True
@@ -167,19 +168,29 @@ def test_find_tss():
     os.chdir(os.path.join(here, 'data', 'locate_ts'))
     Config.num_conformers = 1
 
-    # Spoof ORCA and XTB installs
+    # Spoof ORCA install
     Config.ORCA.path = here
-    Config.XTB.path = here
+
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
+
+    Config.XTB.path = shutil.which('xtb')
+
     Config.ORCA.implicit_solvation_type = 'cpcm'
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1
 
-    # Simple rearrangement reaction
-    r = Reactant(smiles='CC[C]([H])[H]', name='r')
-    p1 = Product(smiles='C[C]([H])C', name='p1')
+    # SN2 example
+    flouride = Reactant(name='F-', smiles='[F-]')
+    methyl_chloride = Reactant(name='CH3Cl', smiles='ClC')
+    chloride = Product(name='Cl-', smiles='[Cl-]')
+    methyl_flouride = Product(name='CH3F', smiles='CF')
 
-    reaction = Reaction(r, p1, solvent_name='water')
+    reaction = Reaction(flouride, methyl_chloride, chloride, methyl_flouride,
+                        name='sn2', solvent_name='water')
+
     # Will work in data/locate_ts/transition_states
     reaction.locate_transition_state()
 
@@ -201,20 +212,12 @@ def test_find_tss():
 
     template = templates[0]
     assert template.solvent.name == 'water'
-    assert template.mult == 2
-    assert template.charge == 0
+    assert template.mult == 1
+    assert template.charge == -1
 
-    # Truncated graph has 7 atoms in
-    assert template.graph.number_of_nodes() == 7
+    assert template.graph.number_of_nodes() == 6
 
     # Tidy the generated files
-    pes_path = os.path.join(here, 'data', 'locate_ts',
-                            'transition_states', 'pes1d')
-
-    for filename in os.listdir(pes_path):
-        if 'optimised' in filename and filename.endswith('.xyz'):
-            os.remove(os.path.join(pes_path, filename))
-
     os.remove('template0.obj')
     os.chdir(here)
 

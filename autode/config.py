@@ -44,7 +44,7 @@ class Config:
     # Whether or not to create and save transition state templates
     make_ts_template = True
     # -------------------------------------------------------------------------
-    # Save plots with dpi = 1000
+    # Save plots with dpi = 400
     high_quality_plots = True
     #
     # -------------------------------------------------------------------------
@@ -98,7 +98,7 @@ class Config:
         path = None
 
         keywords = KeywordsSet(low_opt=['LooseOpt', 'PBE',  'D3BJ', 'def2-SVP'],
-                               grad=['EnGrad', 'PBE', 'D3BJ', 'def2-SVP'],
+                               grad=['EnGrad', 'PBE0', 'D3BJ', 'def2-SVP'],
                                opt=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                                opt_ts=['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
                                hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
@@ -112,9 +112,9 @@ class Config:
 
         # Implicit solvent in ORCA is either treated with CPCM or SMD, the
         # former has support for a VdW surface construction which provides
-        # better geometry convergence (https://doi.org/10.1002/jcc.26139)  SMD
+        # better geometry convergence (https://doi.org/10.1002/jcc.26139) SMD
         # is in general more accurate, but does not (yet) have support for the
-        # VdW charge scheme 1. 'cpcm', 2. 'smd'
+        # VdW charge scheme. Use either 1. 'cpcm', 2. 'smd'
         implicit_solvation_type = 'cpcm'
 
     class G09:
@@ -125,15 +125,40 @@ class Config:
         # path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', 'EmpiricalDispersion=GD3BJ'],
-                               grad=['PBEPBE/Def2SVP', 'Force(NoStep)', 'EmpiricalDispersion=GD3BJ'],
-                               opt=['PBE1PBE/Def2SVP', 'Opt', 'EmpiricalDispersion=GD3BJ'],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ',
+        disp = 'EmpiricalDispersion=GD3BJ'
+        grid = 'integral=ultrafinegrid'
+
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp, grid],
+                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp, grid],
+                               opt=['PBE1PBE/Def2SVP', 'Opt', disp, grid],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp, grid,
                                        'Opt=(TS, CalcFC, NoEigenTest, '
                                        'MaxCycles=100, MaxStep=10, '
                                        'NoTrustUpdate)'],
-                               hess=['PBE1PBE/Def2SVP', 'Freq', 'EmpiricalDispersion=GD3BJ'],
-                               sp=['PBE1PBE/Def2TZVP', 'EmpiricalDispersion=GD3BJ'])
+                               hess=['PBE1PBE/Def2SVP', 'Freq', disp, grid],
+                               sp=['PBE1PBE/Def2TZVP', disp, grid])
+
+        # Only SMD implemented
+        implicit_solvation_type = 'smd'
+
+    class G16:
+        # ---------------------------------------------------------------------
+        # Parameters for g16                   https://gaussian.com/gaussian16/
+        # ---------------------------------------------------------------------
+        #
+        # path can be unset and will be assigned if it can be found in $PATH
+        path = None
+        #
+        disp = 'EmpiricalDispersion=GD3BJ'
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp],
+                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp],
+                               opt=['PBE1PBE/Def2SVP', 'Opt', disp],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp,
+                                       'Opt=(TS, CalcFC, NoEigenTest, '
+                                       'MaxCycles=100, MaxStep=10, '
+                                       'NoTrustUpdate, RecalcFC=30)'],
+                               hess=['PBE1PBE/Def2SVP', 'Freq', disp],
+                               sp=['PBE1PBE/Def2TZVP', disp])
 
         # Only SMD implemented
         implicit_solvation_type = 'smd'
@@ -169,7 +194,7 @@ class Config:
                                      '  *   library Def2-SVP\n'
                                      'end',
                                      'dft\n'
-                                     '  xc xpbe96 cpbe96\n'
+                                     '  xc pbe0\n'
                                      'end',
                                      'task dft gradient'],
                                opt=['driver\n'

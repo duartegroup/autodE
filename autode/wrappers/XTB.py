@@ -183,7 +183,7 @@ class XTB(ElectronicStructureMethod):
     def get_normal_mode_displacements(self, calc, mode_number):
         raise NotImplementedError
 
-    def _get_final_atoms_6_2_3(self, calc):
+    def _get_final_atoms_6_2_above(self, calc):
         """
         e.g.
 
@@ -253,8 +253,8 @@ class XTB(ElectronicStructureMethod):
 
             # XTB 6.2.x have a slightly different way of printing the atoms
             if 'xtb version' in line and len(line.split()) >= 4:
-                if line.split()[3] == '6.2.3':
-                    atoms = self._get_final_atoms_6_2_3(calc)
+                if line.split()[3] == '6.2.3' or '6.3' in line.split()[3]:
+                    atoms = self._get_final_atoms_6_2_above(calc)
                     break
 
                 elif line.split()[3] == '6.2.2' or '6.1' in line.split()[3]:
@@ -296,8 +296,8 @@ class XTB(ElectronicStructureMethod):
 
         elif os.path.exists('gradient'):
             with open('gradient', 'r') as grad_file:
-                for line_no, line in enumerate(grad_file):
-                    if line_no > 1 and len(line.split()) == 3:
+                for i, line in enumerate(grad_file):
+                    if i > 1 and len(line.split()) == 3:
                         x, y, z = line.split()
                         vec = [float(x.replace('D', 'E')),
                                float(y.replace('D', 'E')),

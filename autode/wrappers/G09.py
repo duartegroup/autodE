@@ -456,10 +456,20 @@ class G09(ElectronicStructureMethod):
 
         return np.array(gradients)
 
-    def __init__(self):
-        super().__init__(name='g09', path=Config.G09.path,
-                         keywords_set=Config.G09.keywords,
-                         implicit_solvation_type=Config.G09.implicit_solvation_type)
+    def __init__(self, name='g09', path=None, keywords_set=None,
+                 implicit_solvation_type=None):
+        """Gaussian 09"""
+
+        if keywords_set is None:
+            keywords_set = Config.G09.keywords
+
+        if implicit_solvation_type is None:
+            implicit_solvation_type = Config.G09.implicit_solvation_type
+
+        super().__init__(name=name,
+                         path=Config.G09.path if path is None else path,
+                         keywords_set=keywords_set,
+                         implicit_solvation_type=implicit_solvation_type)
 
 
 g09 = G09()

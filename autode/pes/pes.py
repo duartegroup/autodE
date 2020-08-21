@@ -46,7 +46,8 @@ def get_closest_species(point, pes):
 
             try:
                 if pes.species[new_point] is not None:
-                    logger.info(f'Closest point in the PES has indices {new_point}')
+                    logger.info(f'Closest point in the PES has indices '
+                                f'{new_point}')
                     return deepcopy(pes.species[new_point])
 
             except IndexError:
@@ -56,19 +57,28 @@ def get_closest_species(point, pes):
     raise NoClosestSpecies
 
 
-def get_point_species(point, species, distance_constraints, name, method, keywords, n_cores, energy_threshold=1):
+def get_point_species(point, species, distance_constraints, name, method,
+                      keywords, n_cores, energy_threshold=1):
     """
     On a 2d PES calculate the energy and the structure using a constrained
     optimisation
 
     Arguments:
-        point (tuple):
-        species (autode.complex.ReactantComplex):
-        distance_constraints (dict):
+        point (tuple(int)): Index of this point e.g. (0, 0) for the first point
+                            on a 2D surface
+
+        species (autode.species.Species):
+
+        distance_constraints (dict): Keyed with atom indexes and the constraint
+                             value as the value
+
         name (str):
+
         method (autode.wrappers.base.ElectronicStructureMethod):
-        keywords (list(str)):
-        n_cores (int):
+
+        keywords (autode.wrappers.keywords.Keywords):
+
+        n_cores (int): Number of cores to used for this calculation
 
     Keyword Arguments:
         energy_threshold (float): Above this energy (Hartrees) the calculation
@@ -107,14 +117,17 @@ class PES(ABC):
 
     @abstractmethod
     def get_species_saddle_point(self, *args):
+        """Return the autode.species.Species at the saddle point"""
         pass
 
     @abstractmethod
     def products_made(self):
+        """Have the products been made somewhere on the surface?"""
         pass
 
     @abstractmethod
     def calculate(self, name, method, keywords):
+        """Calculate all energies and optimised geometries on the surface"""
         pass
 
     species = None
@@ -127,6 +140,9 @@ class ScannedBond:
     def __str__(self):
         i, j = self.atom_indexes
         return f'{i}-{j}'
+
+    def __getitem__(self, item):
+        return self.atom_indexes[item]
 
     def __init__(self, atom_indexes):
         """
@@ -158,13 +174,13 @@ class FormingBond(ScannedBond):
 
         i, j = self.atom_indexes
         self.curr_dist = species.get_distance(atom_i=i, atom_j=j)
-        self.final_dist = get_avg_bond_length(atom_i_label=species.atoms[i].label,
-                                              atom_j_label=species.atoms[j].label)
+        self.final_dist = get_avg_bond_length(species.atoms[i].label,
+                                              species.atoms[j].label)
 
 
 class BreakingBond(ScannedBond):
 
-    def __init__(self, atom_indexes, species, reaction):
+    def __init__(self, atom_indexes, species, reaction=None):
         """
         Form a breaking bond with current and final distances
 
@@ -177,10 +193,15 @@ class BreakingBond(ScannedBond):
 
         self.curr_dist = species.get_distance(*self.atom_indexes)
 
-        # Length a breaking bond should increase by
-        if any(mol.charge != 0 for mol in reaction.prods) and not (reaction.__class__.__name__ == 'SolvatedReaction'):
-            bbond_add_dist = 2.5
-        else:
-            bbond_add_dist = 1.5
+        # Length a breaking bond should increase by (Å)
+        bbond_add_dist = 1.5
+
+        # If a reaction is specified and any component is charged then use a
+        # larger ∆r shift as the interaction range is likely further
+        if reaction is not None:
+            if (any(mol.charge != 0 for mol in reaction.prods)
+                    or any(mol.charge != 0 for mol in reaction.reacs)):
+
+                bbond_add_dist = 2.5
 
         self.final_dist = self.curr_dist + bbond_add_dist

@@ -62,12 +62,12 @@ class Atom:
         Atom class. Centered at the origin by default
 
         Arguments:
-            atomic_symbol (str): Symbol of an element e.g. 'C'
+            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
 
         Keyword Arguments:
-            x (float or str): x coordinate in 3D space (Å)
-            y (float or str): y coordinate in 3D space (Å)
-            z (float or str): z coordinate in 3D space (Å)
+            x (float): x coordinate in 3D space (Å)
+            y (float): y coordinate in 3D space (Å)
+            z (float): z coordinate in 3D space (Å)
         """
         assert atomic_symbol in elements
 
@@ -175,8 +175,10 @@ def get_atomic_weight(atom_label):
 
 def get_vdw_radius(atom_label):
     """Get the van der waal's radius of an atom
+
     Arguments:
         atom_label (str): atom label e.g. C or Pd
+
     Returns:
         (float): van der waal's radius of the atom
     """
@@ -193,7 +195,7 @@ def is_pi_atom(atom_label, valency):
     Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or
     second row element
 
-    Arguments;
+    Arguments:
         atom_label (str):
         valency (int):
 

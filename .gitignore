@@ -35,6 +35,12 @@ htmlcov/
 
 tests/data/pes2d/*.xyz
 
+tests/data/pes2d/xcontrol*
+
+tests/data/locate_ts/transition_states/NEB_init_path/*
+
+tests/data/locate_ts/transition_states/NEB/*
+
 tests/data/template_ts_guess_constrained_opt_ll_xtb.xyz
 
 tests/data/xcontrol_template_ts_guess_constrained_opt_ll
@@ -52,3 +58,4 @@ tests/data/conformers/.autode_calculations
 tests/data/orca/.autode_calculations
 
 tests/data/xtb/.autode_calculations
+

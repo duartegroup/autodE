@@ -63,7 +63,7 @@ should take around 10 minutes to complete on a modern processor.
 
 .. note::
     **autodE** has default DFT methods set for optimisation and single point
-    calculations. Therefore, by default structures are optimised at
+    calculations. Therefore, by default, structures are optimised at
     PBE0-D3BJ/def2-SVP and single points calculations performed at
     PBE0-D3BJ/def2-TZVP. To use other methods see the
     :doc:`config page <config>`.

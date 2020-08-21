@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
 from autode.solvent.solvents import get_solvent
@@ -31,6 +32,9 @@ class Species:
         # Strings are a unique identifier so if they are the same then
         # the species are the same - requires there to be atoms set
         return str(self) == str(other)
+
+    def copy(self):
+        return deepcopy(self)
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError
@@ -102,7 +106,7 @@ class Species:
         return np.array([atom.coord for atom in self.atoms])
 
     @requires_atoms()
-    def optimise(self, method, reset_graph=False, calc=None):
+    def optimise(self, method=None, reset_graph=False, calc=None):
         """
         Optimise the geometry using a method
 
@@ -117,6 +121,8 @@ class Species:
         logger.info(f'Running optimisation of {self.name}')
 
         if calc is None:
+            assert method is not None
+
             calc = Calculation(name=f'{self.name}_opt', molecule=self,
                                method=method, keywords=method.keywords.opt,
                                n_cores=Config.n_cores)
@@ -175,12 +181,13 @@ class Species:
         try:
             self._generate_conformers()
         except NotImplementedError:
-            logger.error('Could not generate conformers. generate_conformers() '
-                         'not implemented')
+            logger.error('Could not generate conformers. generate_conformers()'
+                         ' not implemented')
             return None
 
-        # For all the generated conformers optimise with the low level of theory
-        [self.conformers[i].optimise(lmethod) for i in range(len(self.conformers))]
+        # For all generated conformers optimise with the low level of theory
+        for conformer in self.conformers:
+            conformer.optimise(lmethod)
 
         # Strip conformers that are similar based on an energy criteria or
         # don't have an energy
@@ -189,7 +196,8 @@ class Species:
         if hmethod is not None:
             # Re-optimise all the conformers with the higher level of theory
             # to get more accurate energies
-            [self.conformers[i].optimise(hmethod) for i in range(len(self.conformers))]
+            for conformer in self.conformers:
+                conformer.optimise(hmethod)
 
         self._set_lowest_energy_conformer()
 
@@ -235,8 +243,8 @@ class Species:
 
         self.atoms = atoms
         self.n_atoms = 0 if atoms is None else len(atoms)
-        self.charge = charge
-        self.mult = mult
+        self.charge = int(charge)
+        self.mult = int(mult)
 
         self.solvent = get_solvent(solvent_name=solvent_name)
 

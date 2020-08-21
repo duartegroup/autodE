@@ -1,6 +1,7 @@
-from copy import deepcopy
 import numpy as np
 from scipy.optimize import minimize
+from autode.exceptions import NoMapping
+from autode.atoms import metals
 from autode.transition_states.transition_state import get_ts_object
 from autode.transition_states.truncation import get_truncated_complex
 from autode.transition_states.truncation import is_worth_truncating
@@ -16,6 +17,7 @@ from autode.mol_graphs import reorder_nodes
 from autode.pes.pes import FormingBond, BreakingBond
 from autode.pes.pes_1d import get_ts_guess_1d
 from autode.pes.pes_2d import get_ts_guess_2d
+from autode.neb.neb import get_ts_guess_neb
 from autode.reactions.reaction_types import Substitution, Elimination
 from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
@@ -39,15 +41,17 @@ def find_tss(reaction):
                      ' find a TS')
         return None
 
-    bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
+    bond_rearrs = get_bond_rearrangs(reactant, product, name=str(reaction))
 
-    if bond_rearrangs is None:
+    if bond_rearrs is None:
         logger.error('Could not find a set of forming/breaking bonds')
         return None
 
     tss = []
-    for bond_rearrangement in bond_rearrangs:
-        logger.info(f'Locating transition state using active bonds {bond_rearrangement.all}')
+    for bond_rearrangement in bond_rearrs:
+        logger.info(f'Locating transition state using active bonds '
+                    f'{bond_rearrangement.all}')
+
         ts = get_ts(reaction, reactant, bond_rearrangement)
 
         if ts is not None:
@@ -62,95 +66,106 @@ def find_tss(reaction):
 
 
 def get_ts_guess_function_and_params(reaction, bond_rearr):
-    """Get the functions (1dscan or 2dscan) and parameters required for the function for a TS scan
+    """Get the functions (1dscan or 2dscan) and parameters required for the
+    function for a TS scan
 
-    Args:
+    Arguments:
         reaction (autode.reaction.Reaction):
-        reactant (autode.complex.ReactantComplex):
-        product (autode.complex.ProductComplex):
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Returns:
         (list): updated funcs and params list
     """
     name = str(reaction)
+    scan_name = name
+
     r, p = reaction.reactant, reaction.product
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
+    # Bonds with initial and final distances
+    bbonds = [BreakingBond(pair, r, reaction) for pair in bond_rearr.bbonds]
+    scan_name += "_".join(str(bb) for bb in bbonds)
+
+    fbonds = [FormingBond(pair, r) for pair in bond_rearr.fbonds]
+    scan_name += "_".join(str(fb) for fb in fbonds)
+
     # Ideally use a transition state template, then only a single constrained
     # optimisation needs to be run...
-    yield get_template_ts_guess, (r, p, bond_rearr, f'{name}_template_{bond_rearr}', hmethod)
+    yield get_template_ts_guess, (r, p, bond_rearr,
+                                  f'{name}_template_{bond_rearr}', hmethod)
+
+    # Otherwise try a nudged elastic band calculation, don't use the low level
+    # method if there are any metals..
+    if not any(atom.label in metals for atom in r.atoms):
+        yield get_ts_guess_neb, (r, p, lmethod, fbonds, bbonds,
+                                 f'{name}_ll_neb_{bond_rearr}')
+
+    # Always attempt a high-level NEB
+    yield get_ts_guess_neb, (r, p, hmethod, fbonds, bbonds,
+                             f'{name}_hl_neb_{bond_rearr}')
 
     # Otherwise run 1D or 2D potential energy surface scans to generate a
     # transition state guess cheap -> most expensive
-    if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 1 and reaction.type in (Substitution, Elimination):
-        fbond = FormingBond(atom_indexes=bond_rearr.fbonds[0], species=r)
-        bbond = BreakingBond(atom_indexes=bond_rearr.bbonds[0], species=r, reaction=reaction)
+    if len(bbonds) == 1 and len(fbonds) == 1 and reaction.type in (Substitution, Elimination):
+        yield get_ts_guess_2d, (r, p, fbonds[0], bbonds[0], f'{scan_name}_ll2d',
+                                lmethod, lmethod.keywords.low_opt)
 
-        scan_name = f'{name}_{str(fbond)}_{str(bbond)}'
+        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_bbond',
+                                hmethod, hmethod.keywords.low_opt)
 
-        yield get_ts_guess_2d, (r, p, fbond, bbond, f'{scan_name}_ll2d', lmethod, lmethod.keywords.low_opt)
+        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_alt_bbond',
+                                hmethod,  hmethod.keywords.opt)
 
-        yield get_ts_guess_1d, (r, p, bbond, f'{scan_name}_hl1d_bbond', hmethod, hmethod.keywords.low_opt)
+    if len(bbonds) > 0 and len(fbonds) == 1:
+        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_fbond',
+                                hmethod, hmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (r, p, bbond, f'{scan_name}_hl1d_alt_bbond', hmethod,  hmethod.keywords.opt)
+        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_alt_fbond',
+                                hmethod, hmethod.keywords.opt)
 
-    if bond_rearr.n_bbonds > 0 and bond_rearr.n_fbonds == 1:
-        fbond = FormingBond(bond_rearr.fbonds[0], species=r)
-        scan_name = f'{name}_{str(fbond)}'
+    if len(bbonds) >= 1 and len(fbonds) >= 1:
+        for fbond in fbonds:
+            for bbond in bbonds:
 
-        yield get_ts_guess_1d, (r, p, fbond, f'{scan_name}_hl1d_fbond', hmethod, hmethod.keywords.low_opt)
-
-        yield get_ts_guess_1d, (r, p, fbond, f'{scan_name}_hl1d_alt_fbond', hmethod, hmethod.keywords.opt)
-
-    if bond_rearr.n_bbonds >= 1 and bond_rearr.n_fbonds >= 1:
-        for fbond_indexes in bond_rearr.fbonds:
-            for bbond_indexes in bond_rearr.bbonds:
-                fbond = FormingBond(atom_indexes=fbond_indexes, species=r)
-                bbond = BreakingBond(atom_indexes=bbond_indexes, species=r, reaction=reaction)
-
-                scan_name = f'{name}_{str(fbond)}_{str(bbond)}'
-
-                yield get_ts_guess_2d, (r, p, fbond, bbond, f'{scan_name}_ll2d', lmethod,
+                yield get_ts_guess_2d, (r, p, fbond, bbond,
+                                        f'{scan_name}_ll2d', lmethod,
                                         lmethod.keywords.low_opt)
 
-                yield get_ts_guess_2d, (r, p, fbond, bbond, f'{scan_name}_hl2d', hmethod,
+                yield get_ts_guess_2d, (r, p, fbond, bbond,
+                                        f'{scan_name}_hl2d', hmethod,
                                         hmethod.keywords.low_opt)
 
-    if bond_rearr.n_bbonds == 1 and bond_rearr.n_fbonds == 0:
-        bbond = BreakingBond(atom_indexes=bond_rearr.bbonds[0], species=r, reaction=reaction)
-        scan_name = f'{name}_{str(bbond)}'
+    if len(bbonds) == 1 and len(fbonds) == 0:
 
-        yield get_ts_guess_1d, (r, p, bbond, f'{scan_name}_hl1d', hmethod, hmethod.keywords.low_opt)
-
-        yield get_ts_guess_1d, (r, p, bbond, f'{scan_name}_hl1d_alt', hmethod, hmethod.keywords.opt)
-
-    if bond_rearr.n_fbonds == 2:
-        fbond1 = FormingBond(atom_indexes=bond_rearr.fbonds[0], species=r)
-        fbond2 = FormingBond(atom_indexes=bond_rearr.fbonds[1], species=r)
-        scan_name = f'{name}_{str(fbond1)}_{str(fbond2)}'
-
-        yield get_ts_guess_2d, (r, p, fbond1, fbond2, f'{scan_name}_ll2d_fbonds', lmethod,
-                                lmethod.keywords.low_opt)
-        yield get_ts_guess_2d, (r, p, fbond1, fbond2, f'{scan_name}_hl2d_fbonds', hmethod,
+        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d', hmethod,
                                 hmethod.keywords.low_opt)
 
-    if bond_rearr.n_bbonds == 2:
-        bbond1 = BreakingBond(atom_indexes=bond_rearr.bbonds[0], species=r, reaction=reaction)
-        bbond2 = BreakingBond(atom_indexes=bond_rearr.bbonds[1], species=r, reaction=reaction)
-        scan_name = f'{name}_{str(bbond1)}_{str(bbond2)}'
+        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_alt',
+                                hmethod, hmethod.keywords.opt)
 
-        yield get_ts_guess_2d, (r, p, bbond1, bbond2, f'{scan_name}_ll2d_bbonds', lmethod,
+    if len(fbonds) == 2:
+        yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
+                                f'{scan_name}_ll2d_fbonds', lmethod,
+                                lmethod.keywords.low_opt)
+        yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
+                                f'{scan_name}_hl2d_fbonds', hmethod,
+                                hmethod.keywords.low_opt)
+
+    if len(bbonds) == 2:
+        yield get_ts_guess_2d, (r, p, bbonds[0], bbonds[1],
+                                f'{scan_name}_ll2d_bbonds', lmethod,
                                 lmethod.keywords.low_opt)
 
-        yield get_ts_guess_2d, (r, p, bbond1, bbond2, f'{scan_name}_hl2d_bbonds', hmethod,
+        yield get_ts_guess_2d, (r, p, bbonds[0], bbonds[1],
+                                f'{scan_name}_hl2d_bbonds', hmethod,
                                 hmethod.keywords.low_opt)
 
     return None
 
 
-def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iters=10):
+def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
+                              n_iters=10):
     """
     Shift a molecule in the reactant complex so that the attacking atoms
     (a_atoms) are pointing towards the attacked atoms (l_atoms)
@@ -162,6 +177,10 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
         n_iters (int): Number of iterations of translation/rotation to perform
         to (hopefully) find the global minima
     """
+    if not hasattr(reactant, 'molecules'):
+        logger.warning('Cannot rotate/translate component, not a Complex')
+        return
+
     if len(reactant.molecules) < 2:
         logger.info('Reactant molecule does not need to be translated or '
                     'rotated')
@@ -169,8 +188,14 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
 
     logger.info('Rotating/translating into a reactive conformation... running')
 
-    subst_centres = get_substitution_centres(reactant, bond_rearrangement, shift_factor=shift_factor)
-    attacking_mol = 0 if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0) for sc in subst_centres) else 1
+    subst_centres = get_substitution_centres(reactant,
+                                             bond_rearrangement,
+                                             shift_factor=shift_factor)
+
+    if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0) for sc in subst_centres):
+        attacking_mol = 0
+    else:
+        attacking_mol = 1
 
     # Disable the logger to prevent rotation/translations printing
     logger.disabled = True
@@ -179,7 +204,10 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
     min_cost, opt_x = None, None
 
     for _ in range(n_iters):
-        res = minimize(get_cost_rotate_translate, x0=np.random.random(11), method='BFGS', tol=0.1,
+        res = minimize(get_cost_rotate_translate,
+                       x0=np.random.random(11),
+                       method='BFGS',
+                       tol=0.1,
                        args=(reactant, subst_centres, attacking_mol))
 
         if min_cost is None or res.fun < min_cost:
@@ -206,12 +234,12 @@ def get_truncated_ts(reaction, bond_rearr):
 
     # Truncate the reactant and product complex to the core atoms so the full
     # TS can be template-d
-    f_reactant = deepcopy(reaction.reactant)
-    f_product = deepcopy(reaction.product)
+    f_reactant = reaction.reactant.copy()
+    f_product = reaction.product.copy()
 
     # Set the truncated reactant and product for this reaction
-    reaction.reactant = get_truncated_complex(f_reactant, bond_rearrangement=bond_rearr)
-    reaction.product = get_truncated_complex(f_product, bond_rearrangement=bond_rearr)
+    reaction.reactant = get_truncated_complex(f_reactant, bond_rearr)
+    reaction.product = get_truncated_complex(f_product, bond_rearr)
 
     # Re-find the bond rearrangements, which should exist
     reaction.name += '_truncated'
@@ -235,7 +263,7 @@ def get_truncated_ts(reaction, bond_rearr):
     return None
 
 
-def reorder_product_complex(reactant, product, bond_rearr):
+def reorder_product(reactant, product, bond_rearr):
     """
     Reorder the atoms in the product, and its molecular graph to reflect those
     in the reactant
@@ -245,14 +273,15 @@ def reorder_product_complex(reactant, product, bond_rearr):
         product (autode.complex.ProductComplex):
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
     """
-    reordered_product = deepcopy(product)
+    reordered_product = product.copy()
 
     mapping = get_mapping(graph=reordered_product.graph,
                           other_graph=reac_graph_to_prod_graph(reactant.graph, bond_rearr))
 
     reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
-    reordered_product.graph = reorder_nodes(graph=reordered_product.graph, mapping={u: v for v, u in mapping.items()})
 
+    reordered_product.graph = reorder_nodes(graph=reordered_product.graph,
+                                            mapping={u: v for v, u in mapping.items()})
     return reordered_product
 
 
@@ -267,13 +296,21 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
                                        then truncation shouldn't be attempted
                                        and there should be no need to shift
     Returns:
-        (autode.transition_states.transition_state.TransitionState):
+        (autode.transition_states.transition_state.TransitionState): TS
     """
+    if reaction.product is None or reaction.reactant is None:
+        logger.warning('Reaction had no complexes - generating')
+        reaction.find_complexes()
 
     # Reorder the atoms in the product complex so they are equivalent to the
     # reactant
-    reaction.product = reorder_product_complex(reactant,
-                                               reaction.product, bond_rearr)
+    try:
+        reaction.product = reorder_product(reactant,
+                                           reaction.product,
+                                           bond_rearr)
+    except NoMapping:
+        logger.warning('Could not find the expected bijection R -> P')
+        return None
 
     # If the reaction is a substitution or elimination then the reactants must
     # be orientated correctly, no need to re-rotate/translate if truncated

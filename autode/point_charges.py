@@ -8,12 +8,12 @@ class PointCharge:
         Point charge
 
         Arguments:
-            charge (any): Charge in units of e
+            charge (float): Charge in units of e
 
         Keyword Arguments:
-            x (any): x coordinate in
-            y (any):
-            z (any):
+            x (float): x coordinate (Å)
+            y (float): y coordinate (Å)
+            z (float): z coordinate (Å)
             coord (np.ndarray): Length 3 array of x, y, z coordinates or None
         """
         self.charge = float(charge)

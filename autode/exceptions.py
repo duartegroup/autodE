@@ -23,8 +23,7 @@ class MethodUnavailable(Exception):
 
 
 class SolventUnavailable(Exception):
-    def __init__(self, message):
-        super().__init__(message)
+    pass
 
 
 class UnbalancedReaction(Exception):
@@ -64,6 +63,10 @@ class NoClosestSpecies(Exception):
     pass
 
 
+class NoMapping(Exception):
+    pass
+
+
 class NoNormalModesFound(Exception):
     pass
 
@@ -94,4 +97,4 @@ class CannotSplitAcrossBond(Exception):
 
 
 class CouldNotPlotSmoothProfile(Exception):
-    """Smooth plotting fails"""
+    pass

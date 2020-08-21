@@ -52,7 +52,7 @@ def get_atoms_linear_interp(atoms, bonds, final_distances):
         final_distances (list(float)): List of final bond distances for the bonds
 
     Returns:
-        list(list): shifted xyzs
+        (list(autode.atoms.Atom)): Shifted atoms
     """
 
     coords = np.array([atom.coord for atom in atoms])
@@ -61,13 +61,13 @@ def get_atoms_linear_interp(atoms, bonds, final_distances):
     for n, bond in enumerate(bonds):
         atom_a, atom_b = bond
         ab_vec = coords[atom_b] - coords[atom_a]
-        ab_dist = np.linalg.norm(ab_vec)
-        ab_final_dist = final_distances[n]
+        d_crr = np.linalg.norm(ab_vec)
+        d_final = final_distances[n]
 
-        ab_norm_vec = ab_vec / ab_dist
+        ab_norm_vec = ab_vec / d_crr
 
-        atoms_and_shift_vecs[atom_b] = 0.5 * (ab_final_dist - ab_dist) * ab_norm_vec
-        atoms_and_shift_vecs[atom_a] = -0.5 * (ab_final_dist - ab_dist) * ab_norm_vec
+        atoms_and_shift_vecs[atom_b] = 0.5 * (d_final - d_crr) * ab_norm_vec
+        atoms_and_shift_vecs[atom_a] = -0.5 * (d_final - d_crr) * ab_norm_vec
 
     for n, coord in enumerate(coords):
         if n in atoms_and_shift_vecs.keys():
@@ -116,7 +116,7 @@ def get_neighbour_list(species, atom_i):
         species (autode.species.Species):
 
     Returns:
-        list: list of atom ids in ascending distance away from atom_i
+        (list(int)): list of atom ids in ascending distance away from atom_i
     """
     coords = species.get_coordinates()
     distance_vector = cdist(np.array([coords[atom_i]]), coords)[0]
@@ -134,7 +134,15 @@ def get_neighbour_list(species, atom_i):
 
 def get_distance_constraints(species):
     """Set all the distance constraints required in an optimisation as the
-    active bonds"""
+    active bonds
+
+    Arguments:
+        species (autode.species.Species):
+
+    Returns:
+        (dict): Keyed with atom indexes for the active atoms (tuple) and
+                equal to the constrained value
+    """
     distance_constraints = {}
 
     if species.graph is None:
@@ -154,7 +162,15 @@ def get_distance_constraints(species):
 
 def calc_rmsd(coords1, coords2):
     """Calculate the RMSD between two sets of coordinates using the Kabsch
-    algorithm"""
+    algorithm
+
+    Arguments:
+        coords1 (np.ndarray): shape = (n, 3)
+        coords2 (np.ndarray): shape = (n ,3)
+
+    Returns:
+        (float): Root mean squared distance
+    """
 
     # Construct the P matrix in the Kabsch algorithm
     p_mat = deepcopy(coords2)

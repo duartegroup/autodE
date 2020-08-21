@@ -12,8 +12,8 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-h1 = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)
-h2 = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.0)
+h1 = Atom('H')
+h2 = Atom('H', z=1.0)
 
 mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
 
@@ -137,3 +137,20 @@ def test_find_lowest_energy_conformer():
     assert propane.atoms is not None
 
     os.chdir(here)
+
+
+def test_species_copy():
+
+    species = Species(name='h', charge=0, mult=2, atoms=[Atom('H')])
+
+    species_copy = species.copy()
+    species_copy.charge = 1
+
+    assert species.charge != species_copy.charge
+
+    species_copy.mult = 3
+    assert species.mult != species_copy.mult
+
+    atom = species_copy.atoms[0]
+    atom.translate(vec=np.array([1.0, 1.0, 1.0]))
+    assert np.linalg.norm(species.atoms[0].coord - atom.coord) > 1

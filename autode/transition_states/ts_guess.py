@@ -29,7 +29,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
     """
     logger.info('Getting TS guess from constrained optimisation')
 
-    mol_with_constraints = deepcopy(reactant)
+    mol_with_constraints = reactant.copy()
 
     # Run a low level constrained optimisation first to prevent the DFT being
     # problematic if there are >1 constraint
@@ -171,6 +171,9 @@ class TSguess(TSbase):
 def get_ts_guess(species, reactant, product, name):
     """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess
     is returned"""
+    if species is None:
+        return None
+
     if species.is_explicitly_solvated():
         raise NotImplementedError
 

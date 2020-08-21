@@ -3,6 +3,7 @@ from autode.reactions import reaction
 from autode.reactions import reaction_types
 from autode.transition_states.transition_state import TransitionState
 from autode.bond_rearrangement import BondRearrangement
+from autode.species import Reactant, Product
 from autode.transition_states.ts_guess import TSguess
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
@@ -76,6 +77,19 @@ def test_check_rearrangement():
     # assert reac.prods[0].name == 'h3_linear'
 
 
+def test_check_solvent():
+
+    r = Reactant(name='r', solvent_name='water')
+    p = Product(name='p')
+
+    with pytest.raises(SolventsDontMatch):
+        _ = reaction.Reaction(r, p)
+
+    p = Product(name='p', solvent_name='water')
+    reaction_check = reaction.Reaction(r, p)
+    assert reaction_check.solvent.name == 'water'
+
+
 def test_reaction_identical_reac_prods():
     os.chdir(os.path.join(here, 'data'))
 
@@ -89,6 +103,20 @@ def test_reaction_identical_reac_prods():
 
     shutil.rmtree('transition_states')
     os.chdir(here)
+
+
+def test_swap_reacs_prods():
+
+    reactant = Reactant(name='r')
+    product = Product(name='p')
+
+    swapped_reaction = reaction.Reaction(reactant, product)
+    assert swapped_reaction.reacs[0].name == 'r'
+    assert swapped_reaction.prods[0].name == 'p'
+
+    swapped_reaction.switch_reactants_products()
+    assert swapped_reaction.reacs[0].name == 'p'
+    assert swapped_reaction.prods[0].name == 'r'
 
 
 def test_bad_balance():
@@ -132,3 +160,18 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.calc_delta_e() < 1E-6
     assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
+
+
+def test_from_smiles():
+    # Chemdraw can generate a reaction with reactants and products
+    addition = reaction.Reaction(smiles='CC(C)=O.[C-]#N>>CC([O-])(C#N)C')
+
+    assert len(addition.reacs) == 2
+    assert len(addition.prods) == 1
+
+    # Should be readable ish names
+    for reac in addition.reacs:
+        assert reac.name != 'molecule'
+
+    with pytest.raises(UnbalancedReaction):
+        _ = reaction.Reaction('CC(C)=O.[C-]#N')

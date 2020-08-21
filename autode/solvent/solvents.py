@@ -69,6 +69,10 @@ class Solvent:
         self.aliases = aliases
         self.orca = orca
         self.g09 = g09
+
+        # Gaussian 09 and Gaussian 16 solvents are named the same
+        self.g16 = g09
+
         self.nwchem = nwchem
         self.xtb = xtb
         self.mopac = mopac
