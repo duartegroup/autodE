@@ -1,3 +1,7 @@
+"""
+The theory behind this original NEB implementation is taken from
+Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
+"""
 from autode.log import logger
 from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
@@ -334,8 +338,5 @@ class NEB:
 
         else:
             self._init_from_end_points(initial_species, final_species)
-
-        # Number of images must be even for successful decomposition
-        assert len(self.images) % 2 == 0
 
         logger.info(f'Initialised a NEB with {num} images')

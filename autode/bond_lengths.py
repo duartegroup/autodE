@@ -11,7 +11,8 @@ def get_ideal_bond_length_matrix(atoms, bonds):
         bonds (list(tuple)): List of bonds defined by tuples of atom ids
 
     Returns:
-        np.array: Matrix of ideal bond lengths (Å). n_atoms x n_atoms
+        (np.array): Matrix of average (ideal) bond lengths (Å).
+                    shape = (n_atoms, n_atoms)
     """
 
     logger.info('Getting ideal bond length matrix')
@@ -33,8 +34,8 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
     """Get the average bond length between two atoms with their labels (atomic
     symbols) e.g.
 
-    (atom_i_label='C', atom_j_label ='H') -> 1.1 Å or so
-    (atom_i_label='H', atom_j_label ='C') -> 1.1 Å or so
+    (atom_i_label='C', atom_j_label ='H') -> 1.1 Å
+    (atom_i_label='H', atom_j_label ='C') -> 1.1 Å
 
     ordering invariant.
 
@@ -43,7 +44,7 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
         atom_j_label (str): atom label e.g 'C'
 
     Returns:
-        float: avg bond length of the bond in Å
+        (float): Average bond length of the bond (Å)
     """
     key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
 

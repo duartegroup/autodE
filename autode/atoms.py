@@ -175,8 +175,10 @@ def get_atomic_weight(atom_label):
 
 def get_vdw_radius(atom_label):
     """Get the van der waal's radius of an atom
+
     Arguments:
         atom_label (str): atom label e.g. C or Pd
+
     Returns:
         (float): van der waal's radius of the atom
     """
@@ -193,7 +195,7 @@ def is_pi_atom(atom_label, valency):
     Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or
     second row element
 
-    Arguments;
+    Arguments:
         atom_label (str):
         valency (int):
 

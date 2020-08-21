@@ -18,4 +18,5 @@ surface (PES) scans and conformational searching.
    pes
    conformers
    rmsd
+   tss
 

@@ -13,7 +13,7 @@ def xyz_file_to_atoms(filename):
         filename (str): .xyz filename
 
     Returns:
-        (list(autode.atoms.Atom)):
+        (list(autode.atoms.Atom)): Atoms
     """
     logger.info(f'Getting atoms from {filename}')
 

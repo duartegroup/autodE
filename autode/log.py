@@ -14,6 +14,13 @@ $AUTODE_LOG_FILE = filename
 
 
 def get_log_level():
+    """
+    Get the logger level from the $AUTODE_LOG_LEVEL environment variable
+
+    Returns:
+        (int): Log level. Default is logging.CRITICAL == 50
+    """
+
     try:
         log_level_str = os.environ['AUTODE_LOG_LEVEL']
     except KeyError:
@@ -32,6 +39,13 @@ def get_log_level():
 
 
 def log_to_log_file():
+    """
+    Should the log be piped into a file? Looks for $AUTODE_LOG_FILE being
+    set and writes logs to that file
+
+    Returns:
+        (bool):
+    """
 
     try:
         _ = os.environ['AUTODE_LOG_FILE']

@@ -9,6 +9,7 @@ Dependencies
 
   * `ORCA <https://sites.google.com/site/orcainputlibrary/home/>`_ > v. 4.1
   * `Gaussian09 <https://gaussian.com/glossary/g09/>`_
+  * `Gaussian16 <https://gaussian.com/gaussian16/>`_
   * `NWChem <http://www.nwchem-sw.org/index.php/Main_Page>`_
 * One of:
 
@@ -55,7 +56,7 @@ extracting it. Then, open an anaconda command prompt and ``cd`` to the directory
     compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ is available.
 
 Installation Check
-------------------
+******************
 
 **autodE** will pick up any electronic structure theory packages with implemented wrappers (ORCA, NWChem, Gaussian09, XTB
 and MOPAC) that are available from your *PATH* environment variable. To check the expected high and low level methods are
@@ -71,6 +72,9 @@ available:
 
 
 If a MethodUnavailable exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
+
+Quick test
+**********
 
 If the high and/or low level methods have been installed for the first time
 it may be useful to check they're installed correctly. To run a quick optimisation

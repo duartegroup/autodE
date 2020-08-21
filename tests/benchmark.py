@@ -39,7 +39,8 @@ int1_xyz = os.path.join(data_path, 'INT1.xyz')
 int2_xyz = os.path.join(data_path, 'INT2.xyz')
 
 mig_insert = Reaction(Reactant(name='INT1', atoms=xyz_file_to_atoms(int1_xyz)),
-                      Product(name='INT2', atoms=xyz_file_to_atoms(int2_xyz)))
+                      Product(name='INT2', atoms=xyz_file_to_atoms(int2_xyz)),
+                      name='h_insert')
 
 print(f'Name            v_imag / cm-1       Time / min         Success')
 for reaction in [sn2, cope, da, h_shift, mig_insert]:

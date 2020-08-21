@@ -74,7 +74,8 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
 
 @work_in('NEB_init_path')
-def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None):
+def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
+                     stop_thresh=0.02):
     """
     Generate the end point on the NEB by running a 1D scan, using by default a
     low-level method. Supprorts using different methods for the starting and
@@ -91,6 +92,10 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None):
 
     Keyword Arguments:
         method (autode.wrappers.base.ElectronicStructureMethod):
+        stop_thresh (float): Energy threshold in Ha to terminate the
+                    interpolation if ∆E between two adjacent points is > this
+                    and there is a peak in the surface, return the points.
+                    default is ~ 10 kcal mol-1
 
     Returns:
         (list(autode.species.Species)): Set of intermediate species between
@@ -136,17 +141,20 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None):
 
         # Set the optimised atoms - can raise AtomsNotFound
         species.optimise(method=method, calc=opt)
-
         species_set.append(species)
 
-        # Early stopping if a ~saddle point has already been traversed
-        # if (i > 1 and contains_peak(species_set)
-        #         and species_set[i-1].energy < species.energy):
-        #     logger.warning(f'Path contained a peak in the energy and the point'
-        #                    f'before this one had a lower energy - stopping the'
-        #                    f'interpolation on step {i}')
+        # Early stopping if a ~saddle point has already been traversed, must be
+        # in the second half of the scan and above an energy threshold for ∆E
+        if all((i > 1,
+                i > max_n//2,
+                contains_peak(species_set),
+                species.energy - species_set[i-1].energy > stop_thresh)):
 
-        #     return species_set
+            logger.warning(f'Path contained an energy peak and the point '
+                           f'before this one had a lower energy - stopping the'
+                           f' interpolation on step {i}')
+
+            return species_set
 
     logger.info('Generated initial NEB path')
     return species_set
@@ -155,7 +163,21 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None):
 def active_bonds_no_rings(initial_species, fbonds, bbonds):
     """
     From forming and breaking bonds determine which should be used as the
-    set of active bonds that define bond constraints -
+    set of active bonds that define bond constraints. Any breaking bonds that
+    form rings with forming bonds in should be removed to try and avoid very
+    high energy points in the potential. For example:
+
+               H
+    forming-> / \  <-breaking
+             C--C
+               ^
+               |
+             normal
+
+    by default the breaking bonds final distance will be the current x1.5 or so
+    which will push the H too far away (as it's migrating rather than leaving).
+    A much better strategy is to only scan the forming C-H bond and leave the
+    breaking bond to do it's own thing.
 
     Arguments:
         initial_species (autode.species.Species):
@@ -199,7 +221,6 @@ def contains_peak(species_list):
     """
     Does this list of species contain a peak in the energy?
 
-
     Arguments:
         species_list (list(autode.species.Species):
 
@@ -242,6 +263,4 @@ def calc_n_images(fbonds, bbonds, average_spacing=0.15):
     differences = [(b.final_dist - b.curr_dist) for b in fbonds + bbonds]
     average_abs_difference = np.average(np.abs(np.array(differences)))
 
-    ideal = int(average_abs_difference / average_spacing)
-    # Return the closest even number smaller than the ideal
-    return ideal - (ideal % 2)
+    return int(average_abs_difference / average_spacing)

@@ -156,7 +156,7 @@ class Config:
                                opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp,
                                        'Opt=(TS, CalcFC, NoEigenTest, '
                                        'MaxCycles=100, MaxStep=10, '
-                                       'NoTrustUpdate)'],
+                                       'NoTrustUpdate, RecalcFC=30)'],
                                hess=['PBE1PBE/Def2SVP', 'Freq', disp],
                                sp=['PBE1PBE/Def2TZVP', disp])
 

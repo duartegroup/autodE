@@ -22,7 +22,7 @@ def get_hmethod():
     """Get the high-level electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod):
+        (autode.wrappers.base.ElectronicStructureMethod): Method
     """
     orca = ORCA()
     g09 = G09()
@@ -60,7 +60,7 @@ def get_first_available_method(possibilities):
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod):
+        (autode.wrappers.base.ElectronicStructureMethod): Method
     """
     for method in possibilities:
 
@@ -81,7 +81,7 @@ def get_defined_method(name, possibilities):
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod):
+        (autode.wrappers.base.ElectronicStructureMethod): Method
     """
 
     for method in possibilities:

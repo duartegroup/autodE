@@ -37,7 +37,6 @@ def test_removing_active_bonds():
     n_images = neb.calc_n_images(fbonds=[fbond], bbonds=[bbond],
                                  average_spacing=0.1)
     assert 0 < n_images < 20
-    assert n_images % 2 == 0
 
 
 def test_contains_peak():
@@ -110,7 +109,7 @@ def test_get_ts_guess_neb():
 
     ts_guess = neb.get_ts_guess_neb(reactant, product,
                                     method=xtb, n=10)
-    ts_guess.print_xyz_file(filename='tmp.xyz')
+
     assert ts_guess is not None
     # Approximate distances at the TS guess
     assert 1.8 < ts_guess.get_distance(0, 2) < 2.2      # C-F

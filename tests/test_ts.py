@@ -16,6 +16,7 @@ from autode.species.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.wrappers.G09 import G09
 import os
+import shutil
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
 method.available = True
@@ -167,9 +168,14 @@ def test_find_tss():
     os.chdir(os.path.join(here, 'data', 'locate_ts'))
     Config.num_conformers = 1
 
-    # Spoof ORCA and XTB installs
+    # Spoof ORCA install
     Config.ORCA.path = here
-    Config.XTB.path = here
+
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
+
+    Config.XTB.path = shutil.which('xtb')
 
     Config.ORCA.implicit_solvation_type = 'cpcm'
     Config.make_ts_template = False
@@ -212,13 +218,6 @@ def test_find_tss():
     assert template.graph.number_of_nodes() == 6
 
     # Tidy the generated files
-    pes_path = os.path.join(here, 'data', 'locate_ts',
-                            'transition_states', 'pes1d')
-
-    for filename in os.listdir(pes_path):
-        if 'optimised' in filename and filename.endswith('.xyz'):
-            os.remove(os.path.join(pes_path, filename))
-
     os.remove('template0.obj')
     os.chdir(here)
 

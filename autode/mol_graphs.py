@@ -17,7 +17,7 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
                allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria
-     or a smiles parser object. All attributes default to false
+    or a smiles parser object. All attributes default to false
 
     Nodes attributes:
         (0) atom_label: Atomic symbol of this atom
@@ -84,7 +84,8 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
 
 def get_atom_ids_sorted_type(species):
     """
-    Get a list of atom ids sorted by increasing atomic weight, useful for when a molecular graph depends on the order
+    Get a list of atom ids sorted by increasing atomic weight, useful for when
+     a molecular graph depends on the order
     of atoms in what will be considered bonded
 
     Arguments:
@@ -98,8 +99,8 @@ def get_atom_ids_sorted_type(species):
 
 def remove_bonds_invalid_valancies(species):
     """
-    Remove invalid valencies for atoms that exceed their maximum valencies e.g. H should have
-    no more than 1 'bond'
+    Remove invalid valencies for atoms that exceed their maximum valencies e.g.
+    H should have no more than 1 'bond'
 
     Arguments:
         species (autode.species.Species):
@@ -303,14 +304,14 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
 
 
 def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
-    """Check whether two NX graphs are isomorphic. Contains a timeout because the gm.is_isomorphic() method
-    occasionally gets stuck
+    """Check whether two NX graphs are isomorphic. Contains a timeout because
+    the gm.is_isomorphic() method occasionally gets stuck
 
     Arguments:
         graph1 (nx.Graph): graph 1
         graph2 (nx.Graph): graph 2
 
-    Keywords Arguments:
+    Keyword Arguments:
         ignore_active_bonds (bool):
         timeout (float): Timeout in seconds
 
@@ -377,11 +378,13 @@ def connected_components(graph):
 
 
 def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
-    """Makes the graph of the product from the reactant and the bond rearrang, so it has the indices of the reactant
+    """Makes the graph of the product from the reactant and the bond rearrang,
+    so it has the indices of the reactant
 
     Arguments:
         reac_graph (nx.Graph): graph of the reactant
-        bond_rearrang (autode.bond_rearrangement.BondRearrangement): the bond rearrang linking reacs and prods
+        bond_rearrang (autode.bond_rearrangement.BondRearrangement): the bond
+                       rearrang linking reacs and prods
 
     Returns:
         nx.Graph: graph of the product with each atom indexed as in the reactants

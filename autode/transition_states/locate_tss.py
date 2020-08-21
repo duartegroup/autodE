@@ -177,6 +177,10 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
         n_iters (int): Number of iterations of translation/rotation to perform
         to (hopefully) find the global minima
     """
+    if not hasattr(reactant, 'molecules'):
+        logger.warning('Cannot rotate/translate component, not a Complex')
+        return
+
     if len(reactant.molecules) < 2:
         logger.info('Reactant molecule does not need to be translated or '
                     'rotated')
@@ -294,6 +298,9 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
     Returns:
         (autode.transition_states.transition_state.TransitionState): TS
     """
+    if reaction.product is None or reaction.reactant is None:
+        logger.warning('Reaction had no complexes - generating')
+        reaction.find_complexes()
 
     # Reorder the atoms in the product complex so they are equivalent to the
     # reactant
