@@ -75,6 +75,14 @@ class Atom:
         self.coord = np.array([float(x), float(y), float(z)])
 
 
+class DummyAtom(Atom):
+
+    def __init__(self, x, y, z):
+        super().__init__('H', x, y, z)
+
+        self.label = 'D'
+
+
 elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
             'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr',
             'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br',
