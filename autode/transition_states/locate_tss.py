@@ -175,7 +175,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
         shift_factor (float):
         n_iters (int): Number of iterations of translation/rotation to perform
-        to (hopefully) find the global minima
+                       to (hopefully) find the global minima
     """
     if not hasattr(reactant, 'molecules'):
         logger.warning('Cannot rotate/translate component, not a Complex')
@@ -188,6 +188,8 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
 
     logger.info('Rotating/translating into a reactive conformation... running')
 
+    # This function can add dummy atoms for e.g. SN2' reactions where there
+    # is not a A -- C -- Xattern for the substitution centre
     subst_centres = get_substitution_centres(reactant,
                                              bond_rearrangement,
                                              shift_factor=shift_factor)
@@ -225,6 +227,10 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
 
     logger.info('                                                 ... done')
     reactant.print_xyz_file()
+
+    # Remove any dummy atoms that may have been added
+    # in alt_substitution_centres
+    reactant.set_atoms([atom for atom in reactant.atoms if atom.label != 'D'])
 
     return None
 
