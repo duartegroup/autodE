@@ -40,6 +40,12 @@ finally::
     $ python setup.py install
 
 
+Setup video tutorial
+***************
+
+A Linux installation tutorial is available through the following link: https://youtu.be/ZUweT1Sc02s
+
+
 Windows
 --------
 
