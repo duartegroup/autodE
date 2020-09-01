@@ -93,3 +93,8 @@ of H\ :sub:`2`\:
 
 If an AtomsNotFound exception is raised it is likely that the electronic structure
 package is not correctly installed.
+
+Set up tutorial
+***************
+
+A Linux installation tutorial is available through the following link: https://youtu.be/ZUweT1Sc02s
