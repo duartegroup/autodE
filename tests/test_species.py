@@ -154,3 +154,8 @@ def test_species_copy():
     atom = species_copy.atoms[0]
     atom.translate(vec=np.array([1.0, 1.0, 1.0]))
     assert np.linalg.norm(species.atoms[0].coord - atom.coord) > 1
+
+
+def test_species_formula():
+
+    assert mol.formula() == 'H2'
