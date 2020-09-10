@@ -1,4 +1,4 @@
-from autode.input_output import xyz_file_to_atoms
+from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.exceptions import XYZfileDidNotExist, XYZfileWrongFormat
 from autode.atoms import Atom
 import pytest
@@ -29,3 +29,56 @@ def test_xyz_file_to_atoms():
         xyz_file_to_atoms(filename='opt_orca.out')
 
     os.chdir(here)
+
+
+def test_xyz_file_incorrect_n_atoms():
+
+    with open('test.xyz', 'w') as xyz_file:
+        print('2',
+              'wrongly declared number of atoms',
+              'H   0.0   0.0   0.0',
+              sep='\n', file=xyz_file)
+
+    with pytest.raises(XYZfileWrongFormat):
+        _ = xyz_file_to_atoms('test.xyz')
+
+    os.remove('test.xyz')
+
+
+def test_xyz_file_incorrect_first_line():
+    with open('test.xyz', 'w') as xyz_file:
+        print('XXX',
+              'wrong first line',
+              'H   0.0   0.0   0.0',
+              sep='\n', file=xyz_file)
+
+    with pytest.raises(XYZfileWrongFormat):
+        _ = xyz_file_to_atoms('test.xyz')
+
+    os.remove('test.xyz')
+
+
+def test_making_xyz_file():
+
+    atoms = [Atom('H'), Atom('H')]
+
+    atoms_to_xyz_file(atoms, filename='test.xyz')
+    atoms_to_xyz_file(atoms, filename='test.xyz', append=False)
+
+    xyz_lines = open('test.xyz', 'r').readlines()
+    assert len(xyz_lines) == 4
+
+    # With append should add the next set of atoms to the same file
+    atoms_to_xyz_file(atoms, filename='test.xyz', append=True)
+
+    xyz_lines = open('test.xyz', 'r').readlines()
+    assert len(xyz_lines) == 8
+
+    with pytest.raises(AssertionError):
+        # Requires some atoms
+        atoms_to_xyz_file(atoms=None, filename='test.xyz')
+
+        # Needs .xyz extension
+        atoms_to_xyz_file(atoms, filename='test')
+
+    os.remove('test.xyz')

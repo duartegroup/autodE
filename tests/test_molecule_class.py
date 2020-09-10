@@ -104,3 +104,15 @@ def test_reactant_to_product():
     prod = reactant_to_product(reactant=methane)
 
     assert type(prod) is Product
+
+
+def test_molecule_from_xyz():
+
+    os.chdir(os.path.join(here, 'data'))
+
+    h2 = Molecule('h2_conf0.xyz')
+    assert h2.name == 'h2_conf0'
+    assert h2.n_atoms == 2
+    assert h2.formula() == 'H2'
+
+    os.chdir(here)
