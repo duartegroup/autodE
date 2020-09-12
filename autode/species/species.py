@@ -36,12 +36,12 @@ class Species:
 
         symbols = [atom.label for atom in self.atoms]
 
-        formula = ''
+        formula_str = ''
         for symbol in sorted(set(symbols)):
             num = symbols.count(symbol)
-            formula += f'{symbol}{num if num > 1 else ""}'
+            formula_str += f'{symbol}{num if num > 1 else ""}'
 
-        return formula
+        return formula_str
 
     def copy(self):
         return deepcopy(self)

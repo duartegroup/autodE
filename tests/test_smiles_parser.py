@@ -29,6 +29,44 @@ def test_divide_smiles():
                               ('/', 'double_bond_stereochem'),
                               ('C1=2', 'atom')]
 
+    # Invalid characters divide into characters
+    divided_smiles = list(divide_smiles('££££'))
+    assert len(divided_smiles) == 4
+
+
+def test_double_bonds_in_ring():
+
+    parser = SmilesParser()
+    parser.parse_smiles('C1=C=C=1')
+
+    assert len(parser.bonds) == 3
+    assert parser.charge == 0
+
+
+def test_charge():
+
+    parser = SmilesParser()
+    parser.parse_smiles('C[O-]')
+    assert parser.charge == -1
+
+    parser.parse_smiles('[O-]S(=O)([O-])=O')
+    # TODO fix this
+    # assert parser.charge == -2
+
+    parser.parse_smiles('C[N-2]')
+    # TODO fix this
+    # assert parser.charge == -2
+
+
+def test_alkene_stereochem():
+
+    parser = SmilesParser()
+    parser.parse_smiles('C/C=C/C')
+    assert len(parser.alkene_stero_dict.keys()) > 0
+
+    parser.parse_smiles('C/C=C/C#C')
+    assert len(parser.alkene_stero_dict.keys()) > 0
+
 
 def test_analyse_char():
     parser = SmilesParser()
