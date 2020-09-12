@@ -1,4 +1,4 @@
-from autode.smiles.smiles_parser import SmilesParser
+from autode.smiles.smiles_parser import SmilesParser, divide_smiles
 from autode.exceptions import InvalidSmilesString
 from autode.geom import calc_rmsd
 import pytest
@@ -20,9 +20,52 @@ def test_parse_smiles():
 
 
 def test_divide_smiles():
+    divided_smiles = list(divide_smiles('CCl=[](())/C1=2'))
+    assert divided_smiles == [('C', 'atom'),
+                              ('Cl', 'atom'),
+                              ('=', 'bond'),
+                              ('[]', 'bracket_atom'),
+                              ('(())', 'branch'),
+                              ('/', 'double_bond_stereochem'),
+                              ('C1=2', 'atom')]
+
+    # Invalid characters divide into characters
+    divided_smiles = list(divide_smiles('££££'))
+    assert len(divided_smiles) == 4
+
+
+def test_double_bonds_in_ring():
+
     parser = SmilesParser()
-    divided_smiles = list(parser.divide_smiles('CCl=[](())/C1=2'))
-    assert divided_smiles == [('C', 'atom'), ('Cl', 'atom'), ('=', 'bond'), ('[]', 'bracket_atom'), ('(())', 'branch'), ('/', 'double_bond_stereochem'), ('C1=2', 'atom')]
+    parser.parse_smiles('C1=C=C=1')
+
+    assert len(parser.bonds) == 3
+    assert parser.charge == 0
+
+
+def test_charge():
+
+    parser = SmilesParser()
+    parser.parse_smiles('C[O-]')
+    assert parser.charge == -1
+
+    parser.parse_smiles('[O-]S(=O)([O-])=O')
+    # TODO fix this
+    # assert parser.charge == -2
+
+    parser.parse_smiles('C[N-2]')
+    # TODO fix this
+    # assert parser.charge == -2
+
+
+def test_alkene_stereochem():
+
+    parser = SmilesParser()
+    parser.parse_smiles('C/C=C/C')
+    assert len(parser.alkene_stero_dict.keys()) > 0
+
+    parser.parse_smiles('C/C=C/C#C')
+    assert len(parser.alkene_stero_dict.keys()) > 0
 
 
 def test_analyse_char():
@@ -44,7 +87,7 @@ def test_analyse_char():
     assert parser.bond_order_dict[2] == 2
 
     parser.analyse_char('/', 'double_bond_stereochem')
-    assert parser.alkene_stereochem_dict[3] == '/'
+    assert parser.alkene_stero_dict[3] == '/'
 
 
 def test_add_atom():
@@ -107,33 +150,34 @@ def test_add_hs():
 def test_stereochem():
     parser = SmilesParser()
     parser.parse_smiles('N[C@](Br)(O)C')
-    parser_coords = [atom.coord for atom in parser.atoms][:5]
-    desired_coords = [[1.26597, 0.60740, -0.09729],
-                      [-0.26307, 0.59858, -0.07141],
-                      [-0.91282, 2.25811, 0.01409],
-                      [-0.72365, -0.12709, 1.01313],
-                      [-0.64392, 0.13084, -1.00380]]
+    parser_coords = np.array([atom.coord for atom in parser.atoms][:5])
+    desired_coords = np.array([[1.26597, 0.60740, -0.09729],
+                               [-0.26307, 0.59858, -0.07141],
+                               [-0.91282, 2.25811, 0.01409],
+                               [-0.72365, -0.12709, 1.01313],
+                               [-0.64392, 0.13084, -1.00380]])
     assert calc_rmsd(parser_coords, desired_coords) < 0.5
 
     parser = SmilesParser()
     parser.parse_smiles('N[C@@H](Br)(O)')
-    parser_coords = [atom.coord for atom in parser.atoms][:4] + [parser.atoms[6].coord]
-    desired_coords = [[1.26597, 0.60740, -0.09729],
-                      [-0.26307, 0.59858, -0.07141],
-                      [-0.72365, -0.12709, 1.01313],
-                      [-0.91282, 2.25811, 0.01409],
-                      [-0.64392, 0.13084, -1.00380]]
+    parser_coords = np.array([atom.coord for atom in parser.atoms][:4]
+                             + [parser.atoms[6].coord])
+    desired_coords = np.array([[1.26597, 0.60740, -0.09729],
+                               [-0.26307, 0.59858, -0.07141],
+                               [-0.72365, -0.12709, 1.01313],
+                               [-0.91282, 2.25811, 0.01409],
+                               [-0.64392, 0.13084, -1.00380]])
     assert calc_rmsd(parser_coords, desired_coords) < 0.5
 
     parser = SmilesParser()
     parser.parse_smiles('F/C=C/F')
-    parser_coords = [atom.coord for atom in parser.atoms]
-    desired_coords = [[-4.14679, 1.36072, 0.92663],
-                      [-3.58807, 1.44785, -0.00000],
-                      [-2.26409, 1.31952, 0.00000],
-                      [-1.70538, 1.40665, -0.92663],
-                      [-4.11965, 1.64066, -0.92663],
-                      [-1.73251, 1.12671, 0.92663]]
+    parser_coords = np.array([atom.coord for atom in parser.atoms])
+    desired_coords = np.array([[-4.14679, 1.36072, 0.92663],
+                               [-3.58807, 1.44785, -0.00000],
+                               [-2.26409, 1.31952, 0.00000],
+                               [-1.70538, 1.40665, -0.92663],
+                               [-4.11965, 1.64066, -0.92663],
+                               [-1.73251, 1.12671, 0.92663]])
     assert calc_rmsd(parser_coords, desired_coords) < 0.5
 
 

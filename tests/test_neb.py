@@ -33,6 +33,10 @@ def test_removing_active_bonds():
     assert len(bonds) == 1
     assert isinstance(bonds[0], FormingBond)
 
+    # If there's only the breaking bond then it should not be removed
+    bonds = neb.active_bonds_no_rings(mol, bbonds=[bbond], fbonds=[])
+    assert len(bonds) == 1
+
     # Also check that the number of images to generate are somewhat reasonable
     n_images = neb.calc_n_images(fbonds=[fbond], bbonds=[bbond],
                                  average_spacing=0.1)
@@ -54,6 +58,9 @@ def test_contains_peak():
     species_list[2].energy = 5
     assert neb.contains_peak(species_list)
 
+    species_list[2].energy = None
+    assert not neb.contains_peak(species_list)
+
 
 def test_full_calc_with_xtb():
 
@@ -69,7 +76,7 @@ def test_full_calc_with_xtb():
     xtb = XTB()
 
     # Don't run the NEB without a working XTB install
-    if shutil.which('xtb') is None or  not shutil.which('xtb').endswith('xtb'):
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
         return
 
     xtb.path = shutil.which('xtb')

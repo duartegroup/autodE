@@ -81,6 +81,7 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
 class Complex(Species):
 
+
     def get_atom_indexes(self, mol_index):
         """Get the first and last atom indexes of a molecule in a Complex"""
         assert mol_index < len(self.molecules)

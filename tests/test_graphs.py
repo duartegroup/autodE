@@ -1,7 +1,8 @@
 from autode import mol_graphs
 from autode.bond_rearrangement import BondRearrangement
-from autode.exceptions import NoMolecularGraph
+from autode.exceptions import NoMolecularGraph, NoMapping
 from autode.species.species import Species
+from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.conformers import Conformer
 from autode.input_output import xyz_file_to_atoms
@@ -266,3 +267,31 @@ def test_timeout():
     # With a short timeout this should return False - not sure this is the
     # optimal behavior
     assert not mol_graphs.is_isomorphic(graph, isomorphic_graph, timeout=1)
+
+
+def test_species_conformers_isomorphic():
+    h2_a = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=0.7)])
+
+    h2_b = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=1.5)])
+
+    assert not mol_graphs.species_are_isomorphic(h2_a, h2_b)
+
+    # Should raise an exception for two non-isomorphic graphs
+    with pytest.raises(NoMapping):
+        mol_graphs.get_mapping(h2_a.graph, h2_b.graph)
+
+    h2_a.conformers = None
+    h2_b.conformers = [Conformer(name='H2', atoms=[Atom('H'), Atom('H', x=0.7)])]
+
+    assert mol_graphs.species_are_isomorphic(h2_a, h2_b)
+
+
+def test_graph_without_active_edges():
+
+    mol = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=0.7)])
+    mol.graph.edges[(0, 1)]['active'] = True
+
+    graph = mol_graphs.get_graph_no_active_edges(mol.graph)
+    # Should now have no edges if the one bond was defined as active
+    assert graph.number_of_edges() == 0
+

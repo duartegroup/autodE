@@ -97,12 +97,17 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', 'PBE',  'D3BJ', 'def2-SVP'],
+        keywords = KeywordsSet(low_opt=['LooseOpt', 'PBE',  'D3BJ',
+                                        'def2-SVP'],
                                grad=['EnGrad', 'PBE0', 'D3BJ', 'def2-SVP'],
-                               opt=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
-                               opt_ts=['OptTS', 'Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
-                               hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2-SVP', 'def2/J'],
-                               sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J', 'def2-TZVP'],
+                               opt=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ',
+                                    'def2-SVP', 'def2/J'],
+                               opt_ts=['OptTS', 'Freq', 'PBE0', 'RIJCOSX',
+                                       'D3BJ', 'def2-SVP', 'def2/J'],
+                               hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ',
+                                     'def2-SVP', 'def2/J'],
+                               sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J',
+                                   'def2-TZVP'],
                                optts_block=('%geom\n'
                                             'Calc_Hess true\n' 
                                             'Recalc_Hess 30\n'
@@ -127,14 +132,17 @@ class Config:
         #
         disp = 'EmpiricalDispersion=GD3BJ'
         grid = 'integral=ultrafinegrid'
+        ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
+                  'NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp, grid],
-                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp, grid],
-                               opt=['PBE1PBE/Def2SVP', 'Opt', disp, grid],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp, grid,
-                                       'Opt=(TS, CalcFC, NoEigenTest, '
-                                       'MaxCycles=100, MaxStep=10, '
-                                       'NoTrustUpdate)'],
+        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose',
+                                        disp, grid],
+                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)',
+                                     disp, grid],
+                               opt=['PBE1PBE/Def2SVP', 'Opt',
+                                    disp, grid],
+                               opt_ts=['PBE1PBE/Def2SVP', 'Freq',
+                                       disp, grid, ts_str],
                                hess=['PBE1PBE/Def2SVP', 'Freq', disp, grid],
                                sp=['PBE1PBE/Def2TZVP', disp, grid])
 
@@ -176,60 +184,50 @@ class Config:
         #
         # Note that the default NWChem level is PBE0 and PBE rather than
         # PBE0-D3BJ and PBE-D3BJ as only D3 is available
-        keywords = KeywordsSet(low_opt=['driver\n'
-                                        '  gmax 0.002\n'
-                                        '  grms 0.0005\n'
-                                        '  xmax 0.01\n'
-                                        '  xrms 0.007\n'
-                                        '  eprec 0.00003\n'
-                                        '  maxiter 50\n'
-                                        'end',
+        loose_opt_block = ('driver\n'
+                           '  gmax 0.002\n'
+                           '  grms 0.0005\n'
+                           '  xmax 0.01\n'
+                           '  xrms 0.007\n'
+                           '  eprec 0.00003\n'
+                           '  maxiter 50\n'
+                           'end')
+
+        opt_block = ('driver\n'
+                     '  gmax 0.0003\n'
+                     '  grms 0.0001\n'
+                     '  xmax 0.004\n'
+                     '  xrms 0.002\n'
+                     '  eprec 0.000005\n'
+                     '  maxiter 100\n'
+                     'end')
+
+        pbe_block = 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend'
+        pbe0_block = 'dft\n  xc pbe0\nend'
+
+        keywords = KeywordsSet(low_opt=[loose_opt_block,
                                         svp_basis_block,
-                                        'dft\n'
-                                        '  maxiter 100\n'
-                                        '  xc xpbe96 cpbe96\n'
-                                        'end',
+                                        pbe_block,
                                         'task dft optimize'],
-                               grad=['basis\n'
-                                     '  *   library Def2-SVP\n'
-                                     'end',
-                                     'dft\n'
-                                     '  xc pbe0\n'
-                                     'end',
+                               grad=[svp_basis_block,
+                                     pbe0_block,
                                      'task dft gradient'],
-                               opt=['driver\n'
-                                    '  gmax 0.0003\n'
-                                    '  grms 0.0001\n'
-                                    '  xmax 0.004\n'
-                                    '  xrms 0.002\n'
-                                    '  eprec 0.000005\n'
-                                    '  maxiter 100\n'
-                                    'end',
+                               opt=[opt_block,
                                     svp_basis_block,
-                                    'dft\n'
-                                    '  maxiter 100\n'
-                                    '  xc pbe0\n'
-                                    'end',
+                                    pbe0_block,
                                     'task dft optimize',
                                     'task dft property'],
-                               opt_ts=['driver\n'
-                                       '  maxiter 100\n'
-                                       '  gmax 0.0003\n'
-                                       '  grms 0.0001\n'
-                                       '  xmax 0.004\n'
-                                       '  xrms 0.002\n'
-                                       '  eprec 0.000005\n'
-                                       'end',
+                               opt_ts=[opt_block,
                                        svp_basis_block,
-                                       'dft\n'
-                                       '  xc pbe0\n'
-                                       'end',
+                                       pbe0_block,
                                        'task dft saddle',
                                        'task dft freq',
                                        'task dft property'],
-                               hess=[svp_basis_block, 'dft\n  xc pbe0\nend',
+                               hess=[svp_basis_block,
+                                     pbe0_block,
                                      'task dft freq'],
-                               sp=[tzvp_basis_block, 'dft\n  xc pbe0\nend',
+                               sp=[tzvp_basis_block,
+                                   pbe0_block,
                                    'task dft energy'])
 
         # Only SMD implemented
@@ -263,4 +261,3 @@ class Config:
         #
         # Only COSMO implemented
         implicit_solvation_type = 'cosmo'
-

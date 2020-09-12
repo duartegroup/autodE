@@ -31,6 +31,8 @@ def test_species_class():
     assert mol.mult == 1
     assert mol.name == 'H2'
 
+    assert not mol.is_explicitly_solvated()
+
 
 def test_species_xyz_file():
 
@@ -104,19 +106,12 @@ def test_species_single_point():
 
     os.chdir(os.path.join(here, 'data'))
 
+    orca.available = True
     mol.single_point(method=orca)
     assert mol.energy == -1.138965730007
 
     os.remove('H2_sp_orca.inp')
     os.chdir(here)
-
-
-def test_species_equality():
-
-    assert mol == mol
-    assert mol == Molecule(name='H2', smiles='[H][H]')
-    assert mol != Molecule(name='H2', smiles='[H][H]', charge=-1, mult=2)
-    assert mol != Molecule(name='H2', smiles='[H][H]', mult=3)
 
 
 def test_find_lowest_energy_conformer():
@@ -159,3 +154,12 @@ def test_species_copy():
 def test_species_formula():
 
     assert mol.formula() == 'H2'
+    
+    mol_no_atoms = Molecule()
+    assert mol_no_atoms.formula() is None
+
+
+def test_generate_conformers():
+
+    with pytest.raises(NotImplementedError):
+        mol._generate_conformers()

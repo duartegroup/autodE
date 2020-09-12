@@ -28,11 +28,6 @@ class Species:
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
-    def __eq__(self, other):
-        # Strings are a unique identifier so if they are the same then
-        # the species are the same - requires there to be atoms set
-        return str(self) == str(other)
-
     def formula(self):
         """Return the molecular formula of this species"""
 
@@ -41,12 +36,12 @@ class Species:
 
         symbols = [atom.label for atom in self.atoms]
 
-        formula = ''
+        formula_str = ''
         for symbol in sorted(set(symbols)):
             num = symbols.count(symbol)
-            formula += f'{symbol}{num if num > 1 else ""}'
+            formula_str += f'{symbol}{num if num > 1 else ""}'
 
-        return formula
+        return formula_str
 
     def copy(self):
         return deepcopy(self)
