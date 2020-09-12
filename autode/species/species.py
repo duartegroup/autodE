@@ -43,6 +43,21 @@ class Species:
 
         return formula_str
 
+    def formula(self):
+        """Return the molecular formula of this species"""
+
+        if self.atoms is None:
+            return None
+
+        symbols = [atom.label for atom in self.atoms]
+
+        formula = ''
+        for symbol in sorted(set(symbols)):
+            num = symbols.count(symbol)
+            formula += f'{symbol}{num if num > 1 else ""}'
+
+        return formula
+
     def copy(self):
         return deepcopy(self)
 

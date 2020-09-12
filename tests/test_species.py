@@ -154,7 +154,7 @@ def test_species_copy():
 def test_species_formula():
 
     assert mol.formula() == 'H2'
-
+    
     mol_no_atoms = Molecule()
     assert mol_no_atoms.formula() is None
 
