@@ -1,9 +1,10 @@
 from abc import ABC
 from abc import abstractmethod
-import os
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
+from copy import deepcopy
+import os
 
 
 class ElectronicStructureMethod(ABC):
@@ -224,7 +225,7 @@ class ElectronicStructureMethod(ABC):
         # Availability is set when hlevel and llevel methods are set
         self.available = False
 
-        self.keywords = keywords_set
+        self.keywords = deepcopy(keywords_set)
 
         assert type(implicit_solvation_type) is str
         self.implicit_solvation_type = implicit_solvation_type
