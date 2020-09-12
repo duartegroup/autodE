@@ -20,7 +20,6 @@ def test_parse_smiles():
 
 
 def test_divide_smiles():
-    parser = SmilesParser()
     divided_smiles = list(divide_smiles('CCl=[](())/C1=2'))
     assert divided_smiles == [('C', 'atom'),
                               ('Cl', 'atom'),

@@ -42,7 +42,6 @@ def divide_smiles(string_to_divide):
     its type."""
 
     while True:
-        char_type = 'other'
         """Take a look at the next two characters to help identify the section 
         of a SMILES string it is. We add the next character onto the first 
         if they are part of the same section, so sometimes the next char will 
@@ -78,7 +77,7 @@ def divide_smiles(string_to_divide):
             char_type = 'double_bond_stereochem'
 
         else:
-            raise InvalidSmilesString
+            char_type = 'other'
 
         if char_type in ['bracket_atom', 'branch']:
             # want to get the whole contents of the a bracket, so add

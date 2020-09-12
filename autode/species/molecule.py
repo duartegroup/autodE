@@ -17,9 +17,6 @@ from autode.utils import requires_atoms
 
 class Molecule(Species):
 
-    def __eq__(self, other):
-        raise NotImplementedError
-
     def _init_smiles(self, smiles):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic"""

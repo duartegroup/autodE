@@ -13,9 +13,6 @@ from autode.species.species import Species
 
 class TSbase(Species):
 
-    def __eq__(self, other):
-        raise NotImplementedError
-
     def _init_graph(self):
         """Set the molecular graph for this TS object from the reactant"""
         logger.warning(f'Setting the graph of {self.name} from reactants')
