@@ -53,7 +53,6 @@ class PES2d(PES):
             except AtomsNotFound:
                 logger.error('Constrained optimisation at the saddle point '
                              'failed')
-                pass
 
             return species
 

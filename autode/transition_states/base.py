@@ -1,12 +1,8 @@
 from copy import deepcopy
-import numpy as np
-from autode.atoms import get_atomic_weight
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
-from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoNormalModesFound
-from autode.geom import length
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.species.molecule import Molecule
@@ -16,6 +12,9 @@ from autode.species.species import Species
 
 
 class TSbase(Species):
+
+    def __eq__(self, other):
+        raise NotImplementedError
 
     def _init_graph(self):
         """Set the molecular graph for this TS object from the reactant"""

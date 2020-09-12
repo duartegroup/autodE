@@ -133,7 +133,8 @@ class Calculation:
         # If there is no register yet in this folder then create it
         if not os.path.exists(register_name):
             logger.info('No calculations have been performed here yet')
-            return append_register()
+            append_register()
+            return
 
         # Populate a register of calculation names and their unique identifiers
         register = {}
@@ -149,7 +150,8 @@ class Calculation:
         # If this calculation doesn't yet appear in the register add it
         if not exists():
             logger.info('This calculation has not yet been run')
-            return append_register()
+            append_register()
+            return
 
         # If we're here then this calculation - with these input - has not yet
         # been run. Therefore, add an integer to the calculation name until
@@ -166,7 +168,8 @@ class Calculation:
                 return
 
             if not exists():
-                return append_register()
+                append_register()
+                return
 
             n += 1
 

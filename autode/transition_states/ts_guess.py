@@ -1,4 +1,3 @@
-from copy import deepcopy
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
@@ -11,7 +10,9 @@ from autode.mol_graphs import get_mapping_ts_template
 from autode.mol_graphs import get_truncated_active_mol_graph
 
 
-def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_consts, product):
+def get_ts_guess_constrained_opt(reactant, method, keywords, name,
+                                 distance_consts,
+                                 product):
     """Get a TS guess from a constrained optimisation with the active atoms
     fixed at values defined in distance_consts
 
@@ -46,7 +47,7 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
         mol_with_constraints.optimise(method=l_method, calc=ll_const_opt)
 
     except AtomsNotFound:
-        pass
+        logger.error('Failed to optimise with the low level method')
 
     hl_const_opt = Calculation(name=f'{name}_constrained_opt',
                                molecule=mol_with_constraints, method=method,
@@ -59,26 +60,26 @@ def get_ts_guess_constrained_opt(reactant, method, keywords, name, distance_cons
         mol_with_constraints.optimise(method=method, calc=hl_const_opt)
 
     except AtomsNotFound:
-        pass
+        logger.error('Failed to optimise with the high level method')
 
     return get_ts_guess(species=mol_with_constraints, reactant=reactant,
                         product=product, name=f'ts_guess_{name}')
 
 
-def has_matching_ts_templates(reactant, bond_rearrangement):
+def has_matching_ts_templates(reactant, bond_rearr):
     """
     See if there are any templates suitable to get a TS guess from a template
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Returns:
         bool:
     """
 
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph,
-                                               active_bonds=bond_rearrangement.all)
+                                               active_bonds=bond_rearr.all)
     ts_guess_templates = get_ts_templates()
 
     for ts_template in ts_guess_templates:
@@ -90,13 +91,14 @@ def has_matching_ts_templates(reactant, bond_rearrangement):
     return False
 
 
-def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, dist_thresh=4.0):
+def get_template_ts_guess(reactant, product, bond_rearr, name, method,
+                          dist_thresh=4.0):
     """Get a transition state guess object by searching though the stored TS
     templates
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        bond_rearr (autode.bond_rearrangement.BondRearrangement):
         product (autode.complex.ProductComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
         name (str):
@@ -115,7 +117,7 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, d
 
     # This will add edges so don't modify in place
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph,
-                                               active_bonds=bond_rearrangement.all)
+                                               active_bonds=bond_rearr.all)
     ts_guess_templates = get_ts_templates()
 
     for ts_template in ts_guess_templates:
@@ -128,24 +130,28 @@ def get_template_ts_guess(reactant, product, bond_rearrangement, name, method, d
         mapping = get_mapping_ts_template(larger_graph=mol_graph,
                                           smaller_graph=ts_template.graph)
 
-        for active_bond in bond_rearrangement.all:
+        for active_bond in bond_rearr.all:
             i, j = active_bond
             try:
-                active_bonds_and_dists_ts[active_bond] = ts_template.graph.edges[mapping[i],
-                                                                                 mapping[j]]['distance']
+                dist = ts_template.graph.edges[mapping[i], mapping[j]]['distance']
+                active_bonds_and_dists_ts[active_bond] = dist
+
             except KeyError:
                 logger.warning(f'Couldn\'t find a mapping for bond {i}-{j}')
 
-        if len(active_bonds_and_dists_ts) == len(bond_rearrangement.all):
+        if len(active_bonds_and_dists_ts) == len(bond_rearr.all):
             logger.info('Found a TS guess from a template')
 
-            if any([reactant.get_distance(*bond) > dist_thresh for bond in bond_rearrangement.all]):
-                logger.info(f'TS template has => 1 active bond distance larger than {dist_thresh}. Passing')
-                pass
+            if any([reactant.get_distance(*bond) > dist_thresh for bond in bond_rearr.all]):
+                logger.info(f'TS template has => 1 active bond distance larger '
+                            f'than {dist_thresh}. Passing')
 
             else:
-                return get_ts_guess_constrained_opt(reactant, method=method, keywords=method.keywords.opt, name=name,
-                                                    distance_consts=active_bonds_and_dists_ts, product=product)
+                return get_ts_guess_constrained_opt(reactant, method=method,
+                                                    keywords=method.keywords.opt,
+                                                    name=name,
+                                                    distance_consts=active_bonds_and_dists_ts,
+                                                    product=product)
 
     logger.info('Could not find a TS guess from a template')
     return None
@@ -165,7 +171,8 @@ class TSguess(TSbase):
         Keyword Arguments:
             name (str): name of ts guess (default: {'ts_guess'})
         """
-        super().__init__(name=name, atoms=atoms, reactant=reactant, product=product)
+        super().__init__(name=name, atoms=atoms, reactant=reactant,
+                         product=product)
 
 
 def get_ts_guess(species, reactant, product, name):
@@ -177,4 +184,5 @@ def get_ts_guess(species, reactant, product, name):
     if species.is_explicitly_solvated():
         raise NotImplementedError
 
-    return TSguess(species.atoms, reactant=reactant, product=product, name=name)
+    return TSguess(species.atoms, reactant=reactant, product=product,
+                   name=name)

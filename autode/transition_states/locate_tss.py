@@ -281,8 +281,8 @@ def reorder_product(reactant, product, bond_rearr):
     """
     reordered_product = product.copy()
 
-    mapping = get_mapping(graph=reordered_product.graph,
-                          other_graph=reac_graph_to_prod_graph(reactant.graph, bond_rearr))
+    mapping = get_mapping(graph1=reordered_product.graph,
+                          graph2=reac_graph_to_prod_graph(reactant.graph, bond_rearr))
 
     reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
 

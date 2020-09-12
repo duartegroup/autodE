@@ -48,7 +48,9 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
 
     # If bonds are specified then add edges to the graph and return
     if bond_list is not None:
-        [graph.add_edge(bond[0], bond[1], pi=False, active=False) for bond in bond_list]
+        for bond in bond_list:
+            graph.add_edge(bond[0], bond[1], pi=False, active=False)
+
         species.graph = graph
         return None
 
@@ -66,11 +68,15 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
                     # Don't bond atoms to themselves
                     continue
 
-                avg_bond_length = get_avg_bond_length(atom_i_label=species.atoms[i].label,
-                                                      atom_j_label=species.atoms[j].label)
+                # Get r_avg for this X-Y bond e.g. C-C -> 1.5
+                avg_bond_length = get_avg_bond_length(species.atoms[i].label,
+                                                      species.atoms[j].label)
 
-                # If the distance between atoms i and j are less or equal to 1.2x average length add a 'bond'
-                if dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance) and (i, j) not in graph.edges:
+                # If the distance between atoms i and j are less or equal to
+                # 1.25x average length add a 'bond'
+                if (dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
+                        and (i, j) not in graph.edges):
+
                     graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
@@ -94,7 +100,13 @@ def get_atom_ids_sorted_type(species):
     Returns:
         (list(int)):
     """
-    return sorted(list(range(species.n_atoms)), key=lambda i: get_atomic_weight(atom_label=species.atoms[i].label))
+    atom_idxs = list(range(species.n_atoms))
+
+    def weight(idx):
+        """Given an atom index return the molecular weight in amu"""
+        return get_atomic_weight(atom_label=species.atoms[idx].label)
+
+    return sorted(atom_idxs, key=weight)
 
 
 def remove_bonds_invalid_valancies(species):
@@ -118,7 +130,8 @@ def remove_bonds_invalid_valancies(species):
         logger.warning(f'Atom {i} exceeds its maximal valence removing edges')
 
         # Get the atom indexes sorted by the closest to atom i
-        closest_atoms = sorted(neighbours, key=lambda j: species.get_distance(i, j))
+        closest_atoms = sorted(neighbours,
+                               key=lambda k: species.get_distance(i, k))
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
         for j in closest_atoms[max_valance:]:
@@ -129,18 +142,22 @@ def remove_bonds_invalid_valancies(species):
 
 def set_graph_attributes(species):
     """
-    For a molecular species set the π bonds and stereocentres in the molecular graph.
+    For a molecular species set the π bonds and stereocentres in the molecular
+    graph.
 
     Arguments:
         species (autode.species.Species):
     """
     logger.info('Setting the π bonds in a species')
 
+    def is_idx_pi_atom(idx):
+        return is_pi_atom(atom_label=species.atoms[idx].label,
+                          valency=species.graph.degree[idx])
+
     for bond in species.graph.edges:
         atom_i, atom_j = bond
 
-        if all([is_pi_atom(atom_label=species.atoms[atom].label, valency=species.graph.degree[atom]) for atom in bond]):
-            # TODO fix this for alternating single and double bonds, currently all shown as pi
+        if all(is_idx_pi_atom(i) for i in bond):
             species.graph.edges[atom_i, atom_j]['pi'] = True
 
     logger.info('Setting the stereocentres in a species')
@@ -184,9 +201,11 @@ def species_are_isomorphic(species1, species2):
         species2 (autode.species.Species):
 
     Returns:
-        (bool)
+        (bool):
     """
-    logger.info(f'Checking if {species1.name} and {species2.name} are isomorphic')
+    logger.info(f'Checking if {species1.name} and {species2.name} are '
+                f'isomorphic')
+
     if species1.graph is None or species2.graph is None:
         raise ex.NoMolecularGraph
 
@@ -209,12 +228,19 @@ def species_are_isomorphic(species1, species2):
 
     logger.disabled = False
 
-    # Check on all the pairwise combinations of species conformers looking for an isomorphism
-    conformers1 = species1.conformers if species1.conformers is not None else [species1]
-    conformers2 = species2.conformers if species2.conformers is not None else [species2]
+    # Check on all the pairwise combinations of species conformers looking for
+    #  an isomorphism
+    def conformers_or_self(species):
+        """If there are no conformers for this species return itself otherwise
+        the list of conformers"""
+        if species.conformers is None:
+            return [species]
 
-    for conformer1 in conformers1:
-        for conformer2 in conformers2:
+        return species.conformers
+
+    # Check on all pairs of conformers between the two species
+    for conformer1 in conformers_or_self(species1):
+        for conformer2 in conformers_or_self(species2):
 
             if is_isomorphic(conformer1.graph, conformer2.graph):
                 return True
@@ -222,32 +248,85 @@ def species_are_isomorphic(species1, species2):
     return False
 
 
+def graph_matcher(graph1, graph2):
+    """
+    Generate a networkX graph matcher between two graphs, matching on atom
+    types and active bonds
+
+    Arguments:
+        graph1 (nx.Graph):
+        graph2 (nx.Graph):
+
+    Returns:
+        (nx.GraphMatcher)
+    """
+    # Match based on atom type with a default of carbon if unassigned
+    node_match = isomorphism.categorical_node_match('atom_label', 'C')
+
+    # Match on active edges too, with the default being false
+    edge_match = isomorphism.categorical_edge_match('active', False)
+
+    gm = isomorphism.GraphMatcher(graph1, graph2,
+                                  node_match=node_match,
+                                  edge_match=edge_match)
+    return gm
+
+
 def is_subgraph_isomorphic(larger_graph, smaller_graph):
+    """
+    Is the smaller graph subgraph isomorphic to the larger graph?
+
+    Arguments:
+        larger_graph (nx.Graph):
+        smaller_graph (nx.Graph):
+
+    Returns:
+        (bool)
+    """
     logger.info('Running subgraph isomorphism')
-    graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
-                                             node_match=isomorphism.categorical_node_match('atom_label', 'C'),
-                                             edge_match=isomorphism.categorical_edge_match('active', False))
-    if graph_matcher.subgraph_is_isomorphic():
+
+    gm = graph_matcher(larger_graph, smaller_graph)
+    if gm.subgraph_is_isomorphic():
         return True
 
     return False
 
 
 def get_mapping_ts_template(larger_graph, smaller_graph):
+    """
+    Find the mapping for a graph onto a TS template (smaller). Can raise
+    StopIteration with no match!
+
+    Arguments:
+        larger_graph (nx.Graph):
+        smaller_graph (nx.Graph):
+
+    Returns:
+        (dict): Mapping
+    """
     logger.info('Getting mapping of molecule onto the TS template')
+
+    gm = graph_matcher(larger_graph, smaller_graph)
+
+    return next(gm.match())
+
+
+def get_mapping(graph1, graph2):
+    """
+    Get a sorted mapping of nodes between two graphs
+
+    Arguments:
+        graph1 (nx.Graph):
+        graph2 (nx.Graph):
+
+    Returns:
+        (dict)
+    """
     logger.info('Running isomorphism')
-    graph_matcher = isomorphism.GraphMatcher(larger_graph, smaller_graph,
-                                             node_match=isomorphism.categorical_node_match('atom_label', 'C'),
-                                             edge_match=isomorphism.categorical_edge_match('active', False))
-    return next(graph_matcher.match())
 
-
-def get_mapping(graph, other_graph):
-    """Return a sorted mapping"""
-
-    logger.info('Running isomorphism')
-    gm = isomorphism.GraphMatcher(graph, other_graph,
-                                  node_match=isomorphism.categorical_node_match('atom_label', 'C'))
+    node_match = isomorphism.categorical_node_match('atom_label', 'C')
+    gm = isomorphism.GraphMatcher(graph1, graph2,
+                                  node_match=node_match)
 
     try:
         mapping = next(gm.match())
@@ -258,8 +337,20 @@ def get_mapping(graph, other_graph):
 
 
 def reorder_nodes(graph, mapping):
-    # NetworkX uses the inverse mapping so the dict is swapped before the nodes are relabeled
-    return nx.relabel_nodes(graph, mapping={u: v for v, u in mapping.items()}, copy=True)
+    """
+    Reorder the nodes in a graph using a mapping. NetworkX uses the inverse
+    mapping so the dict is swapped before the nodes are relabeled
+
+    Arguments:
+        graph (nx.Graph):
+        mapping (dict):
+
+    Returns:
+        (nx.Graph)
+    """
+    return nx.relabel_nodes(graph,
+                            mapping={u: v for v, u in mapping.items()},
+                            copy=True)
 
 
 def get_graph_no_active_edges(graph):
@@ -267,21 +358,27 @@ def get_graph_no_active_edges(graph):
     Get a molecular graph without the active edges
 
     Arguments:
-        graph (np.Graph):
+        graph (nx.Graph):
+
+    Returns:
+        (nx.Graph):
     """
 
     graph_no_ae = graph.copy()
-    active_edges = [edge for edge in graph.edges if graph.edges[edge]['active'] is True]
+    active_edges = [edge for edge in graph.edges
+                    if graph.edges[edge]['active'] is True]
 
-    for (atom_i, atom_j) in active_edges:
-        graph_no_ae.remove_edge(atom_i, atom_j)
+    for (i, j) in active_edges:
+        graph_no_ae.remove_edge(i, j)
 
     return graph_no_ae
 
 
 def get_graphs_ignoring_active_edges(graph1, graph2):
     """
-    Remove any active edges that are in either graph1 or graph2 from both graphs
+    Remove any active edges that are in either graph1 or graph2 from both
+    graphs
+
     Arguments:
         graph1 (nx.Graph):
         graph2 (nx.Graph):
@@ -289,18 +386,23 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     Returns:
         (tuple(nx.Graph))
     """
-    graph1_no_ae, graph2_no_ae = graph1.copy(), graph2.copy()
+    g1, g2 = graph1.copy(), graph2.copy()
 
     # Iterate through the pairs removing any active edges from both ga and gb
-    for (ga, gb) in [(graph1_no_ae, graph2_no_ae), (graph2_no_ae, graph1_no_ae)]:
+    for (ga, gb) in [(g1, g2), (g2, g1)]:
 
-        for (i, j) in [edge for edge in ga.edges if ga.edges[edge]['active'] is True]:
+        for edge in ga.edges:
+
+            if ga.edges[edge]['active'] is False:
+                continue
+
+            i, j = edge
             ga.remove_edge(i, j)
 
             if (i, j) in gb.edges:
                 gb.remove_edge(i, j)
 
-    return graph1_no_ae, graph2_no_ae
+    return g1, g2
 
 
 def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
@@ -374,26 +476,31 @@ def find_cycles(graph):
 
 
 def connected_components(graph):
+    """Connected sections of the nx.Graph"""
     return list(nx.connected_components(graph))
 
 
 def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
-    """Makes the graph of the product from the reactant and the bond rearrang,
-    so it has the indices of the reactant
+    """Makes the graph of the product from the reactant and the bond
+    rearrangement, so it has the indices of the reactant
 
     Arguments:
-        reac_graph (nx.Graph): graph of the reactant
-        bond_rearrang (autode.bond_rearrangement.BondRearrangement): the bond
-                       rearrang linking reacs and prods
+        reac_graph (nx.Graph): Graph of the reactant
+        bond_rearrang (autode.bond_rearrangement.BondRearrangement): The bond
+                       rearrangement linking reactants and products
 
     Returns:
-        nx.Graph: graph of the product with each atom indexed as in the reactants
+        (nx.Graph): Graph of the product with each atom indexed as in the
+                    reactants
     """
     prod_graph = deepcopy(reac_graph)
+
     for fbond in bond_rearrang.fbonds:
         prod_graph.add_edge(*fbond)
+
     for bbond in bond_rearrang.bbonds:
         prod_graph.remove_edge(*bbond)
+
     return prod_graph
 
 
@@ -438,7 +545,8 @@ def get_bond_type_list(graph):
         graph (nx.Graph): Molecular graph
 
     Returns:
-        bond_list_dict (dict): key = bond type, value = list of bonds of this type
+        bond_list_dict (dict): key = bond type, value = list of bonds of this
+                               type
     """
     bond_list_dict = {}
     atom_types = set()
@@ -478,16 +586,20 @@ def get_fbonds(graph, key):
     """
     possible_fbonds = []
     bonds = list(graph.edges)
-    for atom_i in graph.nodes:
-        for atom_j in graph.nodes:
-            if atom_i < atom_j:
-                if not (atom_i, atom_j) in bonds and not (atom_j, atom_i) in bonds:
-                    bond = (atom_i, atom_j)
-                    atom_i_label = graph.nodes[bond[0]]['atom_label']
-                    atom_j_label = graph.nodes[bond[1]]['atom_label']
-                    key1, key2 = atom_i_label + atom_j_label, atom_j_label + atom_i_label
-                    if key1 == key or key2 == key:
-                        possible_fbonds.append(bond)
+    for i in graph.nodes:
+        for j in graph.nodes:
+            if i > j:
+                continue
+
+            if not (i, j) in bonds and not (j, i) in bonds:
+                bond = (i, j)
+                label_i = graph.nodes[bond[0]]['atom_label']
+                label_j = graph.nodes[bond[1]]['atom_label']
+
+                key1, key2 = label_i + label_j, label_j + label_i
+
+                if key1 == key or key2 == key:
+                    possible_fbonds.append(bond)
 
     return possible_fbonds
 

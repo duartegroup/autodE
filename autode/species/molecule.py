@@ -17,6 +17,9 @@ from autode.utils import requires_atoms
 
 class Molecule(Species):
 
+    def __eq__(self, other):
+        raise NotImplementedError
+
     def _init_smiles(self, smiles):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic"""
@@ -133,21 +136,6 @@ class Molecule(Species):
 
         elif atoms is not None:
             make_graph(self)
-
-
-class SolvatedMolecule(Molecule):
-
-    @requires_atoms()
-    def optimise(self, method):
-        raise NotImplementedError
-
-    def __init__(self, name='solvated_molecule', smiles=None, atoms=None,
-                 solvent_name=None, charge=0, mult=1, solvent_mol=None):
-        super().__init__(name, smiles, atoms, solvent_name, charge, mult)
-
-        self.solvent_mol = solvent_mol
-        self.qm_solvent_atoms = None
-        self.mm_solvent_atoms = None
 
 
 class Reactant(Molecule):
