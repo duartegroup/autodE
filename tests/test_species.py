@@ -114,9 +114,9 @@ def test_species_single_point():
 def test_species_equality():
 
     assert mol == mol
-    assert mol == Molecule(name='H2', smiles='[H][H]')
-    assert mol != Molecule(name='H2', smiles='[H][H]', charge=-1, mult=2)
-    assert mol != Molecule(name='H2', smiles='[H][H]', mult=3)
+    assert mol == Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+    assert mol != Species(name='H2', atoms=[h1, h2], charge=-1, mult=2)
+    assert mol != Species(name='H2', atoms=[h1, h2], charge=0, mult=3)
 
 
 def test_find_lowest_energy_conformer():
