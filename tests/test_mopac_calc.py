@@ -174,6 +174,24 @@ def test_grad():
     # Difference between the absolute and finite difference approximation
     assert np.abs(gradients[1, 0] - grad) < 1E-1
 
+    # Broken gradient file
+    grad_calc.output.filename = 'h2_grad_broken.out'
+    grad_calc.output.file_lines = open('h2_grad_broken.out', 'r').readlines()
+    
+    with pytest.raises(CouldNotGetProperty):
+        _ = grad_calc.get_gradients()
+
+
+def test_termination_short():
+
+    calc = Calculation(name='test', molecule=methylchloride,
+                       method=method, keywords=Config.MOPAC.keywords.sp)
+
+    calc.output.filename = 'test.out'
+    calc.output.file_lines = ['JOB ENDED NORMALLY', 'another line']
+
+    assert calc.terminated_normally()
+
 
 def test_mopac_keywords():
 
