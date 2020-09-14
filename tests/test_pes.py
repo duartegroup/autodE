@@ -11,8 +11,7 @@ from autode.species.molecule import Reactant, Product
 import pytest
 import numpy as np
 
-mol = Species(name='H2', charge=0, mult=1, atoms=[Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0),
-                                                  Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.0)])
+mol = Species(name='H2', charge=0, mult=1, atoms=[Atom('H'), Atom('H', z=1.0)])
 make_graph(mol)
 reactant = ReactantComplex(mol, mol)
 product = ProductComplex(mol, mol)

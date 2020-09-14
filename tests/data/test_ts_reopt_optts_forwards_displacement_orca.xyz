@@ -1,8 +1,0 @@
-6
-Coordinates from ORCA-job test_ts_reopt_optts_forwards_displacement_orca
-F -1.0 0.0 0.0
-C 0.0 0.0 0.0
-Cl 3.0 0.0 0.0
-H -0.4 -0.5 -0.9
-H -0.4 -0.5 0.9
-H -0.5 1.0 0.0

@@ -6,6 +6,7 @@ from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.exceptions import NoAtomsInMolecule
 from copy import deepcopy
+from . import testutils
 import numpy as np
 import pytest
 import os
@@ -39,8 +40,12 @@ def test_species_xyz_file():
     mol.print_xyz_file()
     assert os.path.exists('H2.xyz')
     xyz_file_lines = open('H2.xyz', 'r').readlines()
-    assert int(xyz_file_lines[0].split()[0]) == 2  # First item in the xyz file needs to be the number of atoms
-    assert len(xyz_file_lines[2].split()) == 4  # Third line needs to be in the format H, x, y, z
+
+    # First item in the xyz file needs to be the number of atoms
+    assert int(xyz_file_lines[0].split()[0]) == 2
+
+    # Third line needs to be in the format H, x, y, z
+    assert len(xyz_file_lines[2].split()) == 4
 
     os.remove('H2.xyz')
 
@@ -61,7 +66,8 @@ def test_species_translate():
 
 def test_species_rotate():
     mol_copy = deepcopy(mol)
-    mol_copy.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)     # Rotation about the y axis 180 degrees (π radians)
+    # Rotation about the y axis 180 degrees (π radians)
+    mol_copy.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
 
     assert np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
     assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, -1.0])) < 1E-9
@@ -102,21 +108,16 @@ def test_species_solvent():
     assert type(solvated_mol.solvent) == Solvent
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_species_single_point():
-
-    os.chdir(os.path.join(here, 'data'))
 
     orca.available = True
     mol.single_point(method=orca)
     assert mol.energy == -1.138965730007
 
-    os.remove('H2_sp_orca.inp')
-    os.chdir(here)
 
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_find_lowest_energy_conformer():
-
-    os.chdir(os.path.join(here, 'data'))
 
     # Spoof XTB availability
     xtb.path = here
@@ -130,8 +131,6 @@ def test_find_lowest_energy_conformer():
     # Finding low energy conformers should set the energy of propane
     assert propane.energy is not None
     assert propane.atoms is not None
-
-    os.chdir(here)
 
 
 def test_species_copy():

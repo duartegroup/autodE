@@ -7,6 +7,8 @@ from autode.config import Config
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import xtb
 from autode.wrappers.keywords import OptKeywords
+from . import testutils
+from autode.utils import work_in
 import numpy as np
 import os
 
@@ -32,8 +34,9 @@ reac = ReactantComplex(hydrogen, h)
 prod = ProductComplex(h, hydrogen)
 
 
+@testutils.unzip_dir(os.path.join(here, 'data', 'pes1d.zip'))
+@work_in(os.path.join(here, 'data'))
 def test_get_ts_guess_1dscan():
-    os.chdir(os.path.join(here, 'data'))
 
     fbond = FormingBond(atom_indexes=(1, 2), species=reac)
     fbond.final_dist = 0.7
@@ -49,19 +52,13 @@ def test_get_ts_guess_1dscan():
 
     # Peak in the PES is at r = 0.85 Å
     assert 0.84 < ts_guess.get_distance(1, 2) < 0.86
-
     assert os.path.exists('H+H2_H2+H.png')
-
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png')):
-            os.remove(filename)
-
-    os.chdir(here)
+    os.remove('H+H2_H2+H.png')
 
 
+@testutils.unzip_dir(os.path.join(here, 'data', 'pes1d.zip'))
+@work_in(os.path.join(here, 'data'))
 def test_1d_pes():
-
-    os.chdir(os.path.join(here, 'data'))
 
     pes = PES1d(reactant=reac, product=prod, rs=np.linspace(1.0, 0.7, 5),
                 r_idxs=(1, 2))
@@ -91,15 +88,4 @@ def test_1d_pes():
     # Make the plot and ensure the file exists
     pes.print_plot(method_name='orca', name='H+H2_H2+H')
     assert os.path.exists('H+H2_H2+H.png')
-
-    # Tidy the generated files
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png')):
-            os.remove(filename)
-
-    for filename in os.listdir(os.path.join(here, 'data', 'pes1d')):
-        if filename.endswith('.xyz') and 'optimised' in filename:
-            xyz_path = os.path.join(here, 'data', 'pes1d', filename)
-            os.remove(xyz_path)
-
-    os.chdir(here)
+    os.remove('H+H2_H2+H.png')

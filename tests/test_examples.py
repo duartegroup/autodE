@@ -11,6 +11,8 @@ from autode.atoms import Atom
 import numpy as np
 import os
 
+here = os.path.dirname(os.path.abspath(__file__))
+
 
 def test_species():
 
@@ -66,7 +68,8 @@ def test_manipulation():
     assert h.n_atoms == 1
 
 
-def test_conformers():
+def test_conformers(tmpdir):
+    os.chdir(tmpdir)
 
     butane = Molecule(name='butane', smiles='CCCC')
     butane.populate_conformers(n_confs=10)
@@ -84,9 +87,7 @@ def test_conformers():
     butane.populate_conformers(n_confs=10)
     assert len(butane.conformers) > 1
 
-    for fn in os.listdir(os.getcwd()):
-        if fn.startswith('butane_conf'):
-            os.remove(fn)
-
     # Change RMSD threshold back
     Config.rmsd_threshold = 0.3
+
+    os.chdir(here)

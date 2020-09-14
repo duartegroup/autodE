@@ -21,8 +21,6 @@ Config.high_quality_plots = False
 
 
 def test_plot_reaction_profile():
-    # only tests the file is created with the right name
-    os.chdir(os.path.join(here, 'data'))
 
     r = Reactant(name='reactant', smiles='C')
     p = Product(name='product', smiles='C')
@@ -35,9 +33,7 @@ def test_plot_reaction_profile():
     plotting.plot_reaction_profile(reactions=[reaction], units=KjMol, name='test_reaction')
 
     assert os.path.exists('test_reaction_reaction_profile.png')
-
     os.remove('test_reaction_reaction_profile.png')
-    os.chdir(here)
 
 
 def test_stat_points():
@@ -55,8 +51,8 @@ def test_error_on_stat_points():
 
     energies = np.array([0, 10, 0])
 
-    # Symmetric energy array shpuld give very low difference between the required energies
-    # and those obtained at the splined stationary points
+    # Symmetric energy array shpuld give very low difference between the
+    # required energies and those obtained at the splined stationary points
     assert plotting.error_on_stationary_points(energies, energies) < 1E-3
 
 
@@ -68,7 +64,10 @@ def test_calculate_reaction_profile_energies():
     test_prod = Product(name='test', smiles='C')
     test_prod.energy = -1.03187251
 
-    tsguess = TSguess(atoms=test_reac.atoms, reactant=ReactantComplex(test_reac), product=ProductComplex())
+    tsguess = TSguess(atoms=test_reac.atoms,
+                      reactant=ReactantComplex(test_reac),
+                      product=ProductComplex())
+
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.96812749
@@ -102,7 +101,9 @@ def test_reaction_warnings():
     test_prod = Product(name='test', smiles='C')
     test_prod.energy = -1.03187251
 
-    tsguess = TSguess(atoms=test_reac.atoms, reactant=ReactantComplex(test_reac), product=ProductComplex())
+    tsguess = TSguess(atoms=test_reac.atoms,
+                      reactant=ReactantComplex(test_reac),
+                      product=ProductComplex())
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.98
@@ -114,7 +115,8 @@ def test_reaction_warnings():
     # Should be some warning with no TS
     assert len(plotting.get_reaction_profile_warnings(reactions=[reaction])) > 10
 
-    # Should be no warnings  with a TS that exists and has an energy and one imaginary freq
+    # Should be no warnings  with a TS that exists and has an energy and one
+    # imaginary freq
     reaction.ts = ts
     warnings = plotting.get_reaction_profile_warnings(reactions=[reaction])
     assert 'None' in warnings
@@ -123,7 +125,8 @@ def test_reaction_warnings():
 def test_edge_case_plot():
 
     # Some inputs cannot be plotted as a smooth profile as optimisation of the
-    # energies to get the correct stationary values removes some stationary points
+    # energies to get the correct stationary values removes some stationary
+    # points
 
     with pytest.raises(CouldNotPlotSmoothProfile):
         energies = np.array([0.0, 4.0, 0.05, -16, 0.3])

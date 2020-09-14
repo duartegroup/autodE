@@ -158,13 +158,14 @@ class Config:
         path = None
         #
         disp = 'EmpiricalDispersion=GD3BJ'
+        ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
+                  'NoTrustUpdate, RecalcFC=30)')
+
         keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp],
                                grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp],
                                opt=['PBE1PBE/Def2SVP', 'Opt', disp],
                                opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp,
-                                       'Opt=(TS, CalcFC, NoEigenTest, '
-                                       'MaxCycles=100, MaxStep=10, '
-                                       'NoTrustUpdate, RecalcFC=30)'],
+                                       ts_str],
                                hess=['PBE1PBE/Def2SVP', 'Freq', disp],
                                sp=['PBE1PBE/Def2TZVP', disp])
 

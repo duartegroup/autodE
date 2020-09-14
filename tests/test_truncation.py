@@ -1,11 +1,11 @@
 from autode.transition_states.truncation import get_truncated_complex
-from autode.transition_states.locate_tss import translate_rotate_reactant
 from autode.bond_rearrangement import BondRearrangement
 from autode.input_output import xyz_file_to_atoms
 from autode.mol_graphs import is_isomorphic
 from autode.species.complex import ReactantComplex
 from autode.species.molecule import Reactant
 from autode.atoms import Atom
+from . import testutils
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -154,11 +154,11 @@ def test_enone_truncation():
     assert truncated.graph.number_of_edges() == 9
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'truncation.zip'))
 def test_large_truncation():
 
-    xyz_path = os.path.join(here, 'data', 'truncation', 'product.xyz')
     mol = ReactantComplex(Reactant(name='product',
-                                   atoms=xyz_file_to_atoms(xyz_path)))
+                                   atoms=xyz_file_to_atoms('product.xyz')))
 
     bond_rearr = BondRearrangement(breaking_bonds=[(7, 8), (14, 18)])
 
@@ -171,10 +171,10 @@ def test_large_truncation():
     assert truncated.graph.number_of_edges() == 28
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'truncation.zip'))
 def test_two_component_truncation():
 
-    xyz_path = os.path.join(here, 'data', 'truncation', 'RBr.xyz')
-    propylbromide = Reactant(name='RBr', atoms=xyz_file_to_atoms(xyz_path))
+    propylbromide = Reactant(name='RBr', atoms=xyz_file_to_atoms('RBr.xyz'))
     chloride = Reactant(name='Cl', smiles='[Cl-]')
 
     mol = ReactantComplex(chloride, propylbromide)

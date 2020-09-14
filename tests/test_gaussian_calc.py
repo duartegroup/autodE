@@ -9,6 +9,7 @@ from autode.point_charges import PointCharge
 import pytest
 import os
 import numpy as np
+from . import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
@@ -23,11 +24,11 @@ optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
 sp_keywords = SinglePointKeywords(['PBE1PBE/Def2SVP'])
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_opt_calc():
 
-    os.chdir(os.path.join(here, 'data'))
-
-    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]', solvent_name='water')
+    methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
+                              solvent_name='water')
     calc = Calculation(name='opt', molecule=methylchloride, method=method,
                        keywords=opt_keywords)
     calc.run()
@@ -35,7 +36,6 @@ def test_gauss_opt_calc():
     assert os.path.exists('opt_g09.com')
     assert os.path.exists('opt_g09.log')
     assert len(calc.get_final_atoms()) == 5
-    assert os.path.exists('opt_g09.xyz')
     assert calc.get_energy() == -499.729222331
     assert calc.output.exists()
     assert calc.output.file_lines is not None
@@ -63,13 +63,9 @@ def test_gauss_opt_calc():
     # Should be no large forces for an optimised molecule
     assert sum(gradients[0]) < 0.1
 
-    os.remove('opt_g09.com')
-    os.chdir(here)
 
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_optts_calc():
-
-    os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol,
                        method=method, keywords=optts_keywords,
@@ -97,9 +93,6 @@ def test_gauss_optts_calc():
     assert -40.324 < calc.get_free_energy() < -40.322
     assert -40.301 < calc.get_enthalpy() < -40.299
 
-    os.remove('test_ts_reopt_optts_g09.com')
-    os.chdir(here)
-
 
 def test_bad_gauss_output():
 
@@ -116,9 +109,10 @@ def test_bad_gauss_output():
         calc.execute_calculation()
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_fix_angle_error():
 
-    os.chdir(os.path.join(here, 'data'))
+    os.chdir(os.path.join(here, 'data', 'g09'))
 
     mol = Molecule(smiles='CC/C=C/CO')
 
@@ -131,14 +125,9 @@ def test_fix_angle_error():
     assert calc.output.filename == 'angle_fail_g09_internal.log'
     assert calc.terminated_normally()
 
-    os.remove('angle_fail_g09_cartesian.com')
-    os.remove('angle_fail_g09.com')
-    os.remove('angle_fail_g09_internal.com')
-    os.chdir(here)
 
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_constraints():
-    os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='const_dist_opt', molecule=test_mol, method=method,
                        keywords=opt_keywords, distance_constraints={(0, 1): 1.2})
@@ -153,13 +142,9 @@ def test_constraints():
     opt_atoms = calc.get_final_atoms()
     assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1E-3
 
-    os.remove('const_cart_opt_g09.com')
-    os.remove('const_dist_opt_g09.com')
-    os.chdir(os.path.join(here))
 
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_single_atom_opt():
-    os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='H', molecule=Molecule(smiles='[H]'), method=method,
                        keywords=opt_keywords, n_cores=2)
@@ -177,12 +162,9 @@ def test_single_atom_opt():
 
     assert n_cores_set
 
-    os.remove('H_g09.com')
-    os.chdir(os.path.join(here))
 
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_point_charge_calc():
-    os.chdir(os.path.join(here, 'data'))
     # Methane single point using a point charge with a unit positive charge
     # located at (10, 10, 10)
 
@@ -223,7 +205,3 @@ def test_point_charge_calc():
                 assert 'charge' in line.lower()
                 assert 'z-matrix' in line.lower() and 'nosymm' in line.lower()
                 break
-
-    os.remove('methane_point_charge_g09.com')
-    os.remove('methane_point_charge_o_g09.com')
-    os.chdir(os.path.join(here))

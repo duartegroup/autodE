@@ -3,7 +3,7 @@ from autode.species.complex import ReactantComplex
 from autode.atoms import Atom
 from autode.bond_rearrangement import BondRearrangement
 from autode import substitution
-from autode.input_output import xyz_file_to_atoms
+from autode.substitution import get_substitution_centres
 import os
 
 
@@ -38,22 +38,33 @@ def test_subst_centre():
     # The attacking flouride ion doesn't have any nearest neighbours
     assert len(sc.a_atom_nn) == 0
 
-    # The attacking atom to substitution centre atom ideal bond length should be ~ 3 Å
+    # The attacking atom to substitution centre atom ideal bond length
+    # should be ~ 3 Å
     assert type(sc.r0_ac) is float
     assert 2.0 < sc.r0_ac < 5.0
 
 
 def test_attack_cost():
 
-    subst_centers = substitution.get_substitution_centres(reactant=reac_complex,
-                                                          bond_rearrangement=bond_rearr,
-                                                          shift_factor=2)
+    subst_centers = get_substitution_centres(reactant=reac_complex,
+                                             bond_rearrangement=bond_rearr,
+                                             shift_factor=2)
+
+    atoms = [Atom('F' , -2.99674, -0.35248,  0.17493),
+             Atom('Cl',  1.63664,  0.02010, -0.05829),
+             Atom('C' , -0.14524, -0.00136,  0.00498),
+             Atom('H' , -0.52169, -0.54637, -0.86809),
+             Atom('H' , -0.45804, -0.50420,  0.92747),
+             Atom('H' , -0.51166,  1.03181, -0.00597)]
 
     ideal_complex = ReactantComplex(f, ch3cl)
-    ideal_complex.set_atoms(atoms=xyz_file_to_atoms(os.path.join(here, 'data', 'sn2_reac_complex.xyz')))
+    ideal_complex.set_atoms(atoms)
 
-    attack_cost = substitution.attack_cost(reac_complex, subst_centers, attacking_mol_idx=0)
-    ideal_attack_cost = substitution.attack_cost(ideal_complex, subst_centers, attacking_mol_idx=0)
+    attack_cost = substitution.attack_cost(reac_complex, subst_centers,
+                                           attacking_mol_idx=0)
+    ideal_attack_cost = substitution.attack_cost(ideal_complex, subst_centers,
+                                                 attacking_mol_idx=0)
 
-    # The cost function should be larger for the randomly located reaction complex compared to the ideal
+    # The cost function should be larger for the randomly located reaction
+    # complex compared to the ideal
     assert attack_cost > ideal_attack_cost

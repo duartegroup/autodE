@@ -1,9 +1,14 @@
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.MOPAC import get_keywords
+from autode.exceptions import CouldNotGetProperty, UnsuppportedCalculationInput
 from autode.calculation import Calculation, CalculationInput
 from autode.species.molecule import Molecule
+from autode.atoms import Atom
 from autode.constants import Constants
 from autode.config import Config
+from autode.point_charges import PointCharge
+from . import testutils
+import numpy as np
 import os
 import pytest
 
@@ -15,9 +20,9 @@ methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
                           solvent_name='water')
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_mopac_opt_calculation():
 
-    os.chdir(os.path.join(here, 'data'))
     calc = Calculation(name='opt', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.opt)
     calc.run()
@@ -37,6 +42,9 @@ def test_mopac_opt_calculation():
     assert calc.terminated_normally()
     assert calc.optimisation_converged() is True
 
+    with pytest.raises(CouldNotGetProperty):
+        _ = calc.get_gradients()
+
     with pytest.raises(NotImplementedError):
         _ = calc.optimisation_nearly_converged()
     with pytest.raises(NotImplementedError):
@@ -44,8 +52,145 @@ def test_mopac_opt_calculation():
     with pytest.raises(NotImplementedError):
         _ = calc.get_normal_mode_displacements(4)
 
-    os.remove('opt_mopac.mop')
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_mopac_with_pc():
+
+    calc = Calculation(name='opt_pc', molecule=methylchloride,
+                       method=method,
+                       keywords=Config.MOPAC.keywords.opt,
+                       point_charges=[PointCharge(1, x=4, y=4, z=4)])
+    calc.run()
+
+    assert os.path.exists('opt_pc_mopac.mop') is True
+    assert os.path.exists('opt_pc_mopac.out') is True
+    assert len(calc.get_final_atoms()) == 5
+
+    # Actual energy in Hartrees without any point charges
+    energy = Constants.eV2ha * -430.43191
+    assert np.abs(calc.get_energy() - energy) > 0.0001
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_other_spin_states():
+
+    calc = Calculation(name='O_singlet',
+                       molecule=Molecule(atoms=[Atom('O')], mult=1),
+                       method=method,
+                       keywords=Config.MOPAC.keywords.sp)
+    calc.run()
+    singlet_energy = calc.get_energy()
+
+    calc = Calculation(name='O_triplet',
+                       molecule=Molecule(atoms=[Atom('O')], mult=3),
+                       method=method,
+                       keywords=Config.MOPAC.keywords.sp)
+    calc.run()
+    triplet_energy = calc.get_energy()
+
+    assert triplet_energy < singlet_energy
+
+    calc = Calculation(name='h',
+                       molecule=Molecule(atoms=[Atom('H')], mult=2),
+                       method=method,
+                       keywords=Config.MOPAC.keywords.sp)
+    calc.run()
+
+    # Open shell doublet should work
+    assert calc.get_energy() is not None
+
+    with pytest.raises(UnsuppportedCalculationInput):
+        calc = Calculation(name='h',
+                           molecule=Molecule(atoms=[Atom('H')], mult=5),
+                           method=method,
+                           keywords=Config.MOPAC.keywords.sp)
+        calc.run()
+
     os.chdir(here)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_bad_geometry():
+
+    # Calculation with the wrong spin state should fail
+    calc = Calculation(name='h2_overlap_opt',
+                       molecule=Molecule(atoms=[Atom('H'), Atom('H')]),
+                       method=method,
+                       keywords=Config.MOPAC.keywords.opt)
+
+    calc.output.filename = 'h2_overlap_opt_mopac.out'
+    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
+    assert not calc.terminated_normally()
+    assert calc.get_energy() is None
+    assert not calc.optimisation_converged()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_constrained_opt():
+
+    methane = Molecule(name='methane', smiles='C')
+
+    calc = Calculation(name='methane_opt', molecule=methane,
+                       method=method,
+                       keywords=Config.MOPAC.keywords.opt)
+    calc.run()
+    opt_energy = calc.get_energy()
+
+    # Constrained optimisation with a C–H distance of 1.2 Å
+    # (carbon is the first atom in the file)
+    const = Calculation(name='methane_const', molecule=methane,
+                        method=method,
+                        keywords=Config.MOPAC.keywords.opt,
+                        distance_constraints={(0, 1): 1.2})
+    const.run()
+
+    assert opt_energy < const.get_energy()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_grad():
+
+    h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=0.5)])
+
+    grad_calc = Calculation(name='h2_grad',
+                            molecule=h2,
+                            method=method,
+                            keywords=Config.MOPAC.keywords.grad)
+    grad_calc.run()
+    energy = grad_calc.get_energy()
+    assert energy is not None
+
+    gradients = grad_calc.get_gradients()
+    assert gradients.shape == (2, 3)
+
+    delta_r = 1E-5
+    h2_disp = Molecule(name='h2_disp',
+                       atoms=[Atom('H'), Atom('H', x=0.5 + delta_r)])
+    h2_disp.single_point(method)
+
+    delta_energy = h2_disp.energy - energy      # Ha]
+    grad = delta_energy / delta_r               # Ha A^-1
+
+    # Difference between the absolute and finite difference approximation
+    assert np.abs(gradients[1, 0] - grad) < 1E-1
+
+    # Broken gradient file
+    grad_calc.output.filename = 'h2_grad_broken.out'
+    grad_calc.output.file_lines = open('h2_grad_broken.out', 'r').readlines()
+    
+    with pytest.raises(CouldNotGetProperty):
+        _ = grad_calc.get_gradients()
+
+
+def test_termination_short():
+
+    calc = Calculation(name='test', molecule=methylchloride,
+                       method=method, keywords=Config.MOPAC.keywords.sp)
+
+    calc.output.filename = 'test.out'
+    calc.output.file_lines = ['JOB ENDED NORMALLY', 'another line']
+
+    assert calc.terminated_normally()
 
 
 def test_mopac_keywords():

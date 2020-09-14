@@ -8,6 +8,7 @@ from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import get_unique_confs
 from autode.constants import Constants
+from . import testutils
 import numpy as np
 import os
 
@@ -16,9 +17,8 @@ here = os.path.dirname(os.path.abspath(__file__))
 orca.available = True
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'conformers.zip'))
 def test_conf_class():
-
-    os.chdir(os.path.join(here, 'data', 'conformers'))
 
     h2_conf = Conformer(name='h2_conf', charge=0, mult=1,
                         atoms=[Atom('H', 0.0, 0.0, 0.0),
@@ -36,8 +36,8 @@ def test_conf_class():
     assert h2_conf.atoms is not None
     assert h2_conf.n_atoms == 2
 
-    # Check that if the conformer calculation does not complete successfully then
-    # don't raise an exception for a conformer
+    # Check that if the conformer calculation does not complete successfully
+    # then don't raise an exception for a conformer
     h2_conf_broken = Conformer(name='h2_conf_broken', charge=0, mult=1,
                                atoms=[Atom('H', 0.0, 0.0, 0.0),
                                       Atom('H', 0.0, 0.0, 0.7)])
@@ -45,10 +45,6 @@ def test_conf_class():
 
     assert h2_conf_broken.atoms is None
     assert h2_conf_broken.n_atoms == 0
-
-    os.remove('h2_conf_opt_orca.inp')
-    os.remove('h2_conf_broken_opt_orca.inp')
-    os.chdir(here)
 
 
 def test_rdkit_atoms():
@@ -125,4 +121,5 @@ def test_rmsd_confs():
                                 Atom('H', -1.51612, -0.67068,  0.30205)])
 
     # Methane but rotated should have an RMSD ~ 0 Angstroms
-    assert conf_is_unique_rmsd(conf=methane2, conf_list=[methane1], rmsd_tol=0.1) is False
+    assert not conf_is_unique_rmsd(conf=methane2, conf_list=[methane1],
+                                   rmsd_tol=0.1)

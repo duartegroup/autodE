@@ -5,23 +5,18 @@ from autode.atoms import Atom
 from autode.pes.pes import BreakingBond, FormingBond
 from autode.input_output import xyz_file_to_atoms
 from autode.methods import XTB
+from . import testutils
 import shutil
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-data_path = os.path.join(here, 'data', 'neb')
 
-init_xyz = os.path.join(data_path, 'sn2_init.xyz')
-final_xyz = os.path.join(data_path, 'sn2_final.xyz')
-
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
 def test_removing_active_bonds():
 
-    filepath = os.path.join(here, 'data', 'neb', 'co_complex.xyz')
-
     mol = Molecule(name='co_complex',
-                   atoms=xyz_file_to_atoms(filepath))
+                   atoms=xyz_file_to_atoms('co_complex.xyz'))
 
     bbond = BreakingBond(atom_indexes=(1, 2), species=mol)
     fbond = FormingBond(atom_indexes=(3, 1), species=mol)
@@ -62,15 +57,15 @@ def test_contains_peak():
     assert not neb.contains_peak(species_list)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
 def test_full_calc_with_xtb():
 
     sn2_neb = neb.NEB(initial_species=Species(name='inital', charge=-1, mult=0,
-                                              atoms=xyz_file_to_atoms(init_xyz)),
+                                              atoms=xyz_file_to_atoms('sn2_init.xyz')),
                       final_species=Species(name='final', charge=-1, mult=0,
-                                            atoms=xyz_file_to_atoms(final_xyz)),
+                                            atoms=xyz_file_to_atoms('sn2_final.xyz')),
                       num=14)
 
-    os.chdir(data_path)
     sn2_neb.interpolate_geometries()
 
     xtb = XTB()
@@ -92,19 +87,15 @@ def test_full_calc_with_xtb():
 
     assert 0.35 < path_energy < 0.45
 
-    if os.path.exists('NEB'):
-        shutil.rmtree('NEB')
 
-    os.chdir(here)
-
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
 def test_get_ts_guess_neb():
 
     reactant = Reactant(name='inital', charge=-1, mult=0, solvent_name='water',
-                        atoms=xyz_file_to_atoms(init_xyz))
+                        atoms=xyz_file_to_atoms('sn2_init.xyz'))
 
     product = Reactant(name='final', charge=-1, mult=0, solvent_name='water',
-                       atoms=xyz_file_to_atoms(final_xyz))
+                       atoms=xyz_file_to_atoms('sn2_final.xyz'))
 
     xtb = XTB()
 

@@ -50,6 +50,9 @@ def test_get_lmethod():
     method4 = methods.get_lmethod()
     assert method4.name == 'mopac'
 
+    # Back to default
+    Config.lcode = None
+
 
 def test_method_unavalible():
 
@@ -62,7 +65,8 @@ def test_method_unavalible():
     with pytest.raises(MethodUnavailable):
         methods.get_hmethod()
 
-    # Specifying a method that with an executable that doesn't exist should raise an error
+    # Specifying a method that with an executable that doesn't exist should
+    # raise an error
     Config.hcode = 'ORCA'
 
     with pytest.raises(MethodUnavailable):

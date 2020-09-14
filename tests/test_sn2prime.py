@@ -12,6 +12,7 @@ from autode.substitution import get_substitution_centres
 from autode.input_output import xyz_file_to_atoms
 from autode.species.complex import get_complexes
 from autode.transition_states.locate_tss import translate_rotate_reactant
+from . import testutils
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -36,11 +37,11 @@ def test_detection():
     os.remove('SN2_bond_rearrangs.txt')
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sn2prime.zip'))
 def test_subst():
 
-    xyz_path = os.path.join(here, 'data', 'sn2prime', 'reactant.xyz')
     reactant = Reactant(name='sn2_r',
-                        atoms=xyz_file_to_atoms(xyz_path))
+                        atoms=xyz_file_to_atoms('reactant.xyz'))
 
     # SN2' bond rearrangement
     bond_rearr = BondRearrangement(forming_bonds=[(0, 1)],
@@ -56,14 +57,13 @@ def test_subst():
     assert len(reactant.atoms) == 11
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sn2prime.zip'))
 def test_translate_rotate():
-
-    xyz_path = os.path.join(here, 'data', 'sn2prime', 'alkene.xyz')
 
     reactant = ReactantComplex(Reactant(name='F-', charge=-1,
                                         atoms=[Atom('F')]),
                                Reactant(name='alkeneCl',
-                                        atoms=xyz_file_to_atoms(xyz_path)))
+                                        atoms=xyz_file_to_atoms('alkene.xyz')))
 
     assert len(reactant.molecules) == 2
 

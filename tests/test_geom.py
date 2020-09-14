@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.spatial import distance_matrix
 from autode import geom
 from autode.atoms import Atom
 
@@ -21,16 +20,18 @@ def test_are_coords_reasonable():
 
 
 def test_length():
-    assert geom.length(np.array([1.0, 1.0, 1.0])) == np.linalg.norm(np.array([1.0, 1.0, 1.0]))
+    assert geom.length(np.ones(3)) == np.linalg.norm(np.ones(3))
 
 
 def test_shifted_atoms():
 
     atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.0, 0.0, 2.0)]
 
-    new_atoms = geom.get_atoms_linear_interp(atoms, bonds=[(0, 1)], final_distances=[1.0])
+    new_atoms = geom.get_atoms_linear_interp(atoms, bonds=[(0, 1)],
+                                             final_distances=[1.0])
 
-    # Linear interpolation of the coordinates should move the atom either end of the bond half way
+    # Linear interpolation of the coordinates should move the atom either
+    # end of the bond half way
     assert np.linalg.norm(new_atoms[0].coord - np.array([0.0, 0.0, 0.5])) < 1E-6
     assert np.linalg.norm(new_atoms[1].coord - np.array([0.0, 0.0, 1.5])) < 1E-6
 

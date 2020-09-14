@@ -1,14 +1,14 @@
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.exceptions import XYZfileDidNotExist, XYZfileWrongFormat
 from autode.atoms import Atom
+from . import testutils
 import pytest
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'input_output.zip'))
 def test_xyz_file_to_atoms():
-
-    os.chdir(os.path.join(here, 'data'))
 
     atoms = xyz_file_to_atoms(filename='opt_orca.xyz')
     assert len(atoms) == 5
@@ -26,9 +26,7 @@ def test_xyz_file_to_atoms():
         xyz_file_to_atoms(filename='opt_orca_broken2.xyz')
 
     with pytest.raises(XYZfileWrongFormat):
-        xyz_file_to_atoms(filename='opt_orca.out')
-
-    os.chdir(here)
+        xyz_file_to_atoms(filename='wrong_ext.mol')
 
 
 def test_xyz_file_incorrect_n_atoms():

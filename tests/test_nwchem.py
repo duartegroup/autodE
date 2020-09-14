@@ -3,6 +3,7 @@ from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords
 from autode.atoms import Atom
+from . import testutils
 import numpy as np
 import os
 
@@ -18,8 +19,8 @@ opt_keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
                             'task dft optimize'])
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_opt_calc():
-    os.chdir(os.path.join(here, 'data'))
 
     calc = Calculation(name='opt', molecule=test_mol, method=method,
                        keywords=opt_keywords)
@@ -50,10 +51,6 @@ def test_opt_calc():
     assert len(gradients) == 5
     assert all(-0.1 < np.linalg.norm(g) < 0.1 for g in gradients)
 
-    os.remove('opt_nwchem.nw')
-
-    os.chdir(here)
-
 
 def test_opt_single_atom():
 
@@ -70,8 +67,8 @@ def test_opt_single_atom():
     os.remove('opt_h_nwchem.nw')
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_opt_hf_constraints():
-    os.chdir(os.path.join(here, 'data'))
 
     keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
                             '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
@@ -86,8 +83,3 @@ def test_opt_hf_constraints():
     calc.run()
     h2o.set_atoms(atoms=calc.get_final_atoms())
     assert 0.94 < h2o.get_distance(0, 1) < 0.96
-
-    os.remove('opt_water_nwchem.nw')
-
-    os.chdir(here)
-
