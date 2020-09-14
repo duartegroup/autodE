@@ -23,7 +23,6 @@ methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_mopac_opt_calculation():
 
-    os.chdir(os.path.join(here, 'data', 'mopac'))
     calc = Calculation(name='opt', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.opt)
     calc.run()
@@ -53,15 +52,9 @@ def test_mopac_opt_calculation():
     with pytest.raises(NotImplementedError):
         _ = calc.get_normal_mode_displacements(4)
 
-    os.remove('opt_mopac.mop')
-    os.chdir(here)
-
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_mopac_with_pc():
-
-    os.chdir(os.path.join(here, 'data', 'mopac'))
-    method.path = '/opt/mopac/MOPAC2016.exe'
 
     calc = Calculation(name='opt_pc', molecule=methylchloride,
                        method=method,
@@ -77,12 +70,9 @@ def test_mopac_with_pc():
     energy = Constants.eV2ha * -430.43191
     assert np.abs(calc.get_energy() - energy) > 0.0001
 
-    os.chdir(here)
-
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_other_spin_states():
-    os.chdir(os.path.join(here, 'data', 'mopac'))
 
     calc = Calculation(name='O_singlet',
                        molecule=Molecule(atoms=[Atom('O')], mult=1),
@@ -122,8 +112,6 @@ def test_other_spin_states():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_bad_geometry():
 
-    os.chdir(os.path.join(here, 'data', 'mopac'))
-
     # Calculation with the wrong spin state should fail
     calc = Calculation(name='h2_overlap_opt',
                        molecule=Molecule(atoms=[Atom('H'), Atom('H')]),
@@ -136,12 +124,9 @@ def test_bad_geometry():
     assert calc.get_energy() is None
     assert not calc.optimisation_converged()
 
-    os.chdir(here)
-
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_constrained_opt():
-    os.chdir(os.path.join(here, 'data', 'mopac'))
 
     methane = Molecule(name='methane', smiles='C')
 
@@ -160,12 +145,10 @@ def test_constrained_opt():
     const.run()
 
     assert opt_energy < const.get_energy()
-    os.chdir(here)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_grad():
-    os.chdir(os.path.join(here, 'data', 'mopac'))
 
     h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=0.5)])
 
@@ -190,7 +173,6 @@ def test_grad():
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(gradients[1, 0] - grad) < 1E-1
-    os.chdir(here)
 
 
 def test_mopac_keywords():

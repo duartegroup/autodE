@@ -7,7 +7,6 @@ from autode.pes.pes import FormingBond, BreakingBond
 from autode.reactions.reaction import Reaction
 from autode.wrappers.XTB import xtb
 from autode.config import Config
-from autode.utils import work_in
 from . import testutils
 import os
 
@@ -31,8 +30,7 @@ def test_polyfit2d():
     assert -0.005 < coeff_mat[1, 1] < 0.005
 
 
-@testutils.unzip_dir(os.path.join(here, 'data', 'pes2d.zip'))
-@work_in(os.path.join(here, 'data'))
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'pes2d.zip'))
 def test_get_ts_guess_2dscan():
 
     ch3cl_f = Reactant(name='CH3Cl_F-', charge=-1, mult=1,
@@ -61,9 +59,8 @@ def test_get_ts_guess_2dscan():
 
     pes.calculate(name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt)
 
-    os.chdir('pes2d')
     assert pes.species[0, 1] is not None
-    assert pes.species[0, 1].energy == -13.116895286939
+    assert  -13.13 < pes.species[0, 1].energy < -13.11
     assert pes.species.shape == (9, 8)
     assert pes.rs.shape == (9, 8)
     assert type(pes.rs[0, 1]) == tuple
@@ -103,5 +100,5 @@ def test_get_ts_guess_2dscan():
     assert ts_guess is not None
     assert ts_guess.n_atoms == 6
     assert ts_guess.energy is None
-    assert 2.13 < ts_guess.get_distance(0, 2) < 3.14
+    assert 1.9 < ts_guess.get_distance(0, 2) < 2.1
     assert 1.9 < ts_guess.get_distance(1, 2) < 2.0

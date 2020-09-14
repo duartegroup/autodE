@@ -13,7 +13,11 @@ def test_multistep_reaction():
 
     Config.num_conformers = 1
 
-    # Spoof ORCA install
+    # Spoof installs
+    Config.lcode = 'xtb'
+    Config.XTB.path = here
+
+    Config.hcode = 'orca'
     Config.ORCA.path = here
 
     # Don't run the calculation without a working XTB install

@@ -50,6 +50,9 @@ def test_get_lmethod():
     method4 = methods.get_lmethod()
     assert method4.name == 'mopac'
 
+    # Back to default
+    Config.lcode = None
+
 
 def test_method_unavalible():
 
