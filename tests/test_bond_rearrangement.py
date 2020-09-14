@@ -9,8 +9,8 @@ import networkx as nx
 import os
 
 
-# Some of the 'reactions' here are not physical, hence for some the graph will be regenerated allowing for
-# invalid hydrogen valencies
+# Some of the 'reactions' here are not physical, hence for some the graph will
+# be regenerated allowing for invalid hydrogen valencies
 
 
 def test_multiple_possibilities():
@@ -70,7 +70,8 @@ def test_get_bond_rearrangs():
 
     assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='test') == [br.BondRearrangement(breaking_bonds=[(0, 1)])]
 
-    # Rerunning the get function should read test_bond_rearrangs.txt, so modify it, swapping 0 and 1 in the breaking
+    # Rerunning the get function should read test_bond_rearrangs.txt, so modify
+    #  it, swapping 0 and 1 in the breaking
     # bond then reopen
     with open('test_bond_rearrangs.txt', 'w') as rearr_file:
         print('fbond\n'
@@ -78,12 +79,14 @@ def test_get_bond_rearrangs():
               '1 0\n'
               'end', file=rearr_file)
 
-    rearr = br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='test')[0]
+    rearr = br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod),
+                                  name='test')[0]
     assert rearr == BondRearrangement(breaking_bonds=[(1, 0)])
 
     assert br.get_bond_rearrangs(ReactantComplex(prod), ProductComplex(reac), name='test2') is None
 
-    # If reactants and products are identical then the rearrangement is undetermined
+    # If reactants and products are identical then the rearrangement is
+    # undetermined
     assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(reac), name='test3') is None
 
     os.remove('test_bond_rearrangs.txt')
@@ -100,7 +103,8 @@ def test_two_possibles():
     rearrs = br.get_bond_rearrangs(ReactantComplex(ch2ch3f), ProductComplex(ch3ch2f),
                                    name='H_migration')
 
-    # There are two possibilities for H migration by they should be considered the same
+    # There are two possibilities for H migration by they should be considered
+    # the same
     assert len(rearrs) == 1
     os.remove('H_migration_bond_rearrangs.txt')
     

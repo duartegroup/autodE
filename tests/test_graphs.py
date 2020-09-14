@@ -6,6 +6,7 @@ from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.conformers import Conformer
 from autode.input_output import xyz_file_to_atoms
+from . import testutils
 import networkx as nx
 import numpy as np
 import pytest
@@ -35,7 +36,8 @@ def test_graph_generation():
 def test_edge_cases():
     h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.6)
 
-    # For H3 with a slightly longer bond on one side there should only be 1 'bond'
+    # For H3 with a slightly longer bond on one side there should only be
+    # 1 'bond'
     h3 = Species(name='H2', atoms=[h_a, h_b, h_c], charge=0, mult=1)
     mol_graphs.make_graph(h3)
 
@@ -223,27 +225,28 @@ def test_species_isomorphism():
 
     assert mol_graphs.species_are_isomorphic(h2, h2_copy) is False
 
-    # Generating a pair of conformers that are isomporhpic should return that the species are
-    # again isomorphic
+    # Generating a pair of conformers that are isomporhpic should return that
+    # the species are again isomorphic
     h2.conformers = [Conformer(name='h2_conf', atoms=[h_a, h_b], charge=0, mult=1)]
     h2_copy.conformers = [Conformer(name='h2_conf', atoms=[h_a, h_b], charge=0, mult=1)]
 
     assert mol_graphs.species_are_isomorphic(h2, h2_copy)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'e2_tss.zip'))
 def test_isomorphic_no_active():
-    os.chdir(os.path.join(here, 'data'))
 
-    ts_syn = Conformer(name='syn_ts', charge=-1, mult=0, atoms=xyz_file_to_atoms('E2_ts_syn.xyz'))
+    ts_syn = Conformer(name='syn_ts', charge=-1, mult=0,
+                       atoms=xyz_file_to_atoms('E2_ts_syn.xyz'))
     mol_graphs.make_graph(ts_syn)
     mol_graphs.set_active_mol_graph(ts_syn, active_bonds=[(8, 5), (0, 5), (1, 2)])
 
-    ts_anti = Conformer(name='anti_ts', charge=-1, mult=0, atoms=xyz_file_to_atoms('E2_ts.xyz'))
+    ts_anti = Conformer(name='anti_ts', charge=-1, mult=0,
+                        atoms=xyz_file_to_atoms('E2_ts.xyz'))
     mol_graphs.make_graph(ts_anti)
 
-    assert mol_graphs.is_isomorphic(ts_syn.graph, ts_anti.graph, ignore_active_bonds=True)
-
-    os.chdir(here)
+    assert mol_graphs.is_isomorphic(ts_syn.graph, ts_anti.graph,
+                                    ignore_active_bonds=True)
 
 
 def test_timeout():

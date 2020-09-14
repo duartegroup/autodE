@@ -8,6 +8,7 @@ from autode.species.molecule import Reactant
 from autode.species.molecule import Product
 from autode.species.molecule import reactant_to_product
 from rdkit.Chem import Mol
+from . import testutils
 import numpy as np
 import pytest
 import os
@@ -42,7 +43,9 @@ def test_gen_conformers():
 
     assert ethane.rdkit_conf_gen_is_fine
     assert type(ethane.conformers) == list
-    assert len(ethane.conformers) >= 1          # Even though two conformers have been requested they are pruned on RMSD
+
+    # Even though two conformers have been requested they are pruned on RMSD
+    assert len(ethane.conformers) >= 1
     assert type(ethane.conformers[0]) == Conformer
     assert ethane.conformers[0].energy is None
     assert ethane.conformers[0].n_atoms == 8
@@ -55,17 +58,17 @@ def test_gen_conformers():
 def test_siman_conf_gen(tmpdir):
     os.chdir(tmpdir)
 
-    rh_complex = Molecule(name='[RhH(CO)3(ethene)]', smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
+    rh_complex = Molecule(name='[RhH(CO)3(ethene)]',
+                          smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
     assert are_coords_reasonable(coords=rh_complex.get_coordinates())
     assert rh_complex.n_atoms == 14
-    assert 12 < rh_complex.graph.number_of_edges() < 15     # What is a bond even
+    assert 12 < rh_complex.graph.number_of_edges() < 15  # What is a bond even
 
     os.chdir(here)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'molecule.zip'))
 def test_molecule_opt():
-
-    os.chdir(os.path.join(here, 'data'))
 
     mol = Molecule(name='H2', smiles='[H][H]')
 
@@ -77,11 +80,8 @@ def test_molecule_opt():
     assert mol.n_atoms == 2
 
     opt_coords = mol.get_coordinates()
-    assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768      # H2 bond length ~ 0.767 Å at PBE/def2-SVP
-
-    os.remove('H2_opt_orca.inp')
-    os.remove('H2_optimised_orca.xyz')
-    os.chdir(here)
+    # H2 bond length ~ 0.767 Å at PBE/def2-SVP
+    assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768
 
 
 def calc_mult():
@@ -89,7 +89,8 @@ def calc_mult():
     h = Molecule(name='H', smiles='[H]')
     assert calc_multiplicity(h, n_radical_electrons=1) == 2
 
-    # Setting the multiplicity manually should override the number of radical electrons derived from the SMILES string
+    # Setting the multiplicity manually should override the number of radical
+    # electrons derived from the SMILES string
     # note: H with M=3 is obviously not possible
     h.mult = 3
     assert calc_multiplicity(h, n_radical_electrons=1) == 3
@@ -106,13 +107,10 @@ def test_reactant_to_product():
     assert type(prod) is Product
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'molecule.zip'))
 def test_molecule_from_xyz():
-
-    os.chdir(os.path.join(here, 'data'))
 
     h2 = Molecule('h2_conf0.xyz')
     assert h2.name == 'h2_conf0'
     assert h2.n_atoms == 2
     assert h2.formula() == 'H2'
-
-    os.chdir(here)

@@ -5,6 +5,7 @@ from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
 from autode.config import Config
+from . import testutils
 import numpy as np
 import os
 here = os.path.dirname(os.path.abspath(__file__))
@@ -13,9 +14,10 @@ method = XTB()
 method.available = True
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_xtb_calculation():
 
-    os.chdir(os.path.join(here, 'data'))
+    os.chdir(os.path.join(here, 'data', 'xtb'))
     XTB.available = True
 
     test_mol = Molecule(name='test_mol',
@@ -59,8 +61,9 @@ def test_xtb_calculation():
     os.chdir(here)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_point_charge():
-    os.chdir(os.path.join(here, 'data'))
+    os.chdir(os.path.join(here, 'data', 'xtb'))
     XTB.available = True
 
     test_mol = Molecule(name='test_mol', smiles='C')
@@ -77,6 +80,7 @@ def test_point_charge():
     os.chdir(here)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_gradients():
     os.chdir(os.path.join(here, 'data', 'xtb'))
 
@@ -130,6 +134,7 @@ def test_gradients():
     os.chdir(here)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_xtb_6_3_2():
 
     mol = Molecule(name='CH3Cl', smiles='ClC')
@@ -138,9 +143,7 @@ def test_xtb_6_3_2():
                        method=method,
                        keywords=method.keywords.opt)
 
-    out_path = os.path.join(here, 'data', 'xtb', 'xtb_6_3_2_opt.out')
-
-    calc.output.filename = out_path
-    calc.output.file_lines = open(out_path, 'r').readlines()
+    calc.output.filename = 'xtb_6_3_2_opt.out'
+    calc.output.file_lines = open('xtb_6_3_2_opt.out', 'r').readlines()
 
     assert len(calc.get_final_atoms()) == 5

@@ -407,7 +407,7 @@ class Calculation:
         self.n_cores = int(n_cores)
 
         # ------------------- Calculation input/output ------------------------
-        self.input = CalculationInput(keywords=keywords,
+        self.input = CalculationInput(keywords=deepcopy(keywords),
                                       solvent=get_solvent_name(molecule, method),
                                       additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,

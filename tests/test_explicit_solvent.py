@@ -6,7 +6,7 @@ import numpy as np
 
 def test_add_solvent_mols():
     species = SolvatedMolecule(atoms=[Atom('C', 0.0, 0.0, 0.0)])
-    species.solvent_mol = SolvatedMolecule(atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('O', 0.7, 0.0, 0.0)])
+    species.solvent_mol = SolvatedMolecule(atoms=[Atom('H'), Atom('O', 0.7)])
     explicit_solvent.add_solvent_molecules(species, 5, 10)
 
     assert len(species.qm_solvent_atoms) == 10

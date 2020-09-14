@@ -15,8 +15,11 @@ from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.species.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.wrappers.G09 import G09
+from . import testutils
 import os
 import shutil
+
+
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
 method.available = True
@@ -55,8 +58,8 @@ tsguess.bond_rearrangement = BondRearrangement(breaking_bonds=[(2, 1)],
 ts = TransitionState(ts_guess=tsguess)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
 def test_ts_guess_class():
-    os.chdir(os.path.join(here, 'data'))
 
     # Force ORCA to appear available
     Config.hcode = 'orca'
@@ -78,11 +81,9 @@ def test_ts_guess_class():
     assert tsguess.could_have_correct_imag_mode(method=method)
     assert tsguess.has_correct_imag_mode()
 
-    os.chdir(here)
 
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
 def test_links_reacs_prods():
-    os.chdir(os.path.join(here, 'data'))
 
     tsguess.calc = Calculation(name=tsguess.name + '_hess', molecule=tsguess, method=method,
                                keywords=method.keywords.hess, n_cores=Config.n_cores)
@@ -91,7 +92,7 @@ def test_links_reacs_prods():
 
     # Spoof an xtb install as reactant/product complex optimisation
     Config.lcode = 'xtb'
-    Config.XTB.path = here
+    # Config.XTB.path = here
 
     Config.num_complex_sphere_points = 4
     Config.num_complex_random_rotations = 1
@@ -101,22 +102,12 @@ def test_links_reacs_prods():
                                              product=product_complex,
                                              method=method)
 
-    for i in range(4):
-        os.remove(f'complex_conf{i}.xyz')
-        os.remove(f'complex_conf{i}_opt_xtb.xyz')
 
-    os.remove('ts_guess_hess_orca.inp')
-    os.remove('ts_guess_hess_orca_forwards_orca.inp')
-    os.remove('ts_guess_hess_orca_backwards_orca.inp')
-
-    os.chdir(here)
-
-
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mode_checking.zip'))
 def test_correct_imag_mode():
-    os.chdir(os.path.join(here, 'data'))
 
-    bond_rearrangement = BondRearrangement(breaking_bonds=[(4, 1), (4, 18)],
-                                           forming_bonds=[(1, 18)])
+    bond_rearr = BondRearrangement(breaking_bonds=[(4, 1), (4, 18)],
+                                   forming_bonds=[(1, 18)])
     g09 = G09()
     g09.available = True
 
@@ -125,27 +116,31 @@ def test_correct_imag_mode():
     calc.output.filename = 'correct_ts_mode_g09.log'
     calc.output.set_lines()
 
-    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=1.0)
-    f_species = Species(name='f_displaced', atoms=f_displaced_atoms, charge=0, mult=1)  # Charge & mult are placeholders
+    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
+                                                       disp_magnitude=1.0)
+    # Charge & mult are placeholders
+    f_species = Species(name='f_displaced', atoms=f_displaced_atoms,
+                        charge=0, mult=1)
 
-    b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6, disp_magnitude=-1.0)
-    b_species = Species(name='b_displaced', atoms=b_displaced_atoms, charge=0, mult=1)
+    b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
+                                                       disp_magnitude=-1.0)
+    b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
+                        charge=0, mult=1)
 
     # With the correct mode no other bonds are made
-    assert not imag_mode_generates_other_bonds(ts=calc.molecule, f_species=f_species, b_species=b_species,
-                                               bond_rearrangement=bond_rearrangement)
+    assert not imag_mode_generates_other_bonds(ts=calc.molecule,
+                                               f_species=f_species,
+                                               b_species=b_species,
+                                               bond_rearrangement=bond_rearr)
 
     calc.output.filename = 'incorrect_ts_mode_g09.log'
     calc.output.set_lines()
 
-    assert not imag_mode_has_correct_displacement(calc, bond_rearrangement)
-
-    os.chdir(here)
+    assert not imag_mode_has_correct_displacement(calc, bond_rearr)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'locate_ts.zip'))
 def test_isomorphic_reactant_product():
-
-    os.chdir(os.path.join(here, 'data', 'locate_ts'))
 
     r_water = Reactant(name='h2o', smiles='O')
     r_methane = Reactant(name='methane', smiles='C')
@@ -158,14 +153,12 @@ def test_isomorphic_reactant_product():
     reaction = Reaction(r_water, r_methane, p_water, p_methane)
     reaction.locate_transition_state()
 
-    os.chdir(here)
-
     assert reaction.ts is None
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'locate_ts.zip'))
 def test_find_tss():
 
-    os.chdir(os.path.join(here, 'data', 'locate_ts'))
     Config.num_conformers = 1
 
     # Spoof ORCA install
@@ -195,11 +188,7 @@ def test_find_tss():
     reaction.locate_transition_state()
 
     assert reaction.ts is not None
-    os.chdir(os.path.join(here, 'data', 'locate_ts', 'transition_states'))
-
-    for filename in os.listdir(os.getcwd()):
-        if filename.endswith(('.inp', '.png')):
-            os.remove(filename)
+    os.chdir(os.path.join('transition_states'))
 
     assert reaction.ts.is_true_ts()
 
@@ -216,10 +205,6 @@ def test_find_tss():
     assert template.charge == -1
 
     assert template.graph.number_of_nodes() == 6
-
-    # Tidy the generated files
-    os.remove('template0.obj')
-    os.chdir(here)
 
 
 def test_ts_templates():

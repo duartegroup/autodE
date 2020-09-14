@@ -62,7 +62,8 @@ def test_method_unavalible():
     with pytest.raises(MethodUnavailable):
         methods.get_hmethod()
 
-    # Specifying a method that with an executable that doesn't exist should raise an error
+    # Specifying a method that with an executable that doesn't exist should
+    # raise an error
     Config.hcode = 'ORCA'
 
     with pytest.raises(MethodUnavailable):

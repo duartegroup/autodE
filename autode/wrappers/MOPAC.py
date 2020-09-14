@@ -1,4 +1,4 @@
-from copy import copy
+from copy import deepcopy
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
@@ -12,6 +12,7 @@ from autode.exceptions import UnsuppportedCalculationInput
 from autode.geom import get_atoms_linear_interp
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
+from autode.exceptions import CouldNotGetProperty
 import os
 
 
@@ -62,7 +63,7 @@ def get_keywords(calc_input, molecule):
     # needs to be a subclass of Keywords
     assert isinstance(calc_input.keywords, Keywords)
 
-    keywords = copy(calc_input.keywords)
+    keywords = deepcopy(calc_input.keywords)
     if isinstance(calc_input.keywords, SinglePointKeywords):
         # Single point calculation add the 1SCF keyword to prevent opt
         if not any('1scf' in kw.lower() for kw in keywords):
@@ -72,6 +73,10 @@ def get_keywords(calc_input, molecule):
         # Gradient calculation needs GRAD
         if not any('grad' in kw.lower() for kw in keywords):
             keywords.append('GRAD')
+
+        # Gradient calculation add the 1SCF keyword to prevent opt
+        if not any('1scf' in kw.lower() for kw in keywords):
+            keywords.append('1SCF')
 
     if calc_input.point_charges is not None:
         keywords.append('QMMM')
@@ -87,9 +92,7 @@ def get_keywords(calc_input, molecule):
         if molecule.mult == 2:
             keywords.append('DOUBLET')
         elif molecule.mult == 3:
-            keywords.append('TRIPLET')
-        elif molecule.mult == 4:
-            keywords.append('QUARTET')
+            keywords.append('OPEN(2,2)')
         else:
             logger.critical('Unsupported spin multiplicity')
             raise UnsuppportedCalculationInput
@@ -152,7 +155,7 @@ def print_point_charges(calc, atoms):
     for atom in atoms:
         potential = 0
         coord = atom.coord
-        for point_charge in calc.point_charges:
+        for point_charge in calc.input.point_charges:
             # V = q/r_ij
             potential += (point_charge.charge
                           / np.linalg.norm(coord - point_charge.coord))
@@ -167,7 +170,7 @@ def print_point_charges(calc, atoms):
         for potential in potentials:
             print(f'0 0 0 0 {potential}', file=pc_file)
 
-    calc.additional_input_files.append(f'{calc.name}_mol.in')
+    calc.input.additional_filenames.append(f'{calc.name}_mol.in')
     return
 
 
@@ -210,12 +213,25 @@ class MOPAC(ElectronicStructureMethod):
 
     def calculation_terminated_normally(self, calc):
 
+        normal_termination = False
+        n_errors = 0
+
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
             if 'JOB ENDED NORMALLY' in line:
+                normal_termination = True
+
+            if 'Error' in line:
+                n_errors += 1
+
+            if n_line == 50 and normal_termination and n_errors == 0:
                 return True
+
             if n_line > 50:
                 # Normal termination string is close to the end of the file
                 return False
+
+        if normal_termination and n_errors == 0:
+            return True
 
         return False
 
@@ -229,7 +245,7 @@ class MOPAC(ElectronicStructureMethod):
         for line in calc.output.file_lines:
             if 'TOTAL ENERGY' in line:
                 # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return Constants.eV2ha * float(line.split()[-2])
+                return Constants.eV2ha * float(line.split()[3])
 
         return None
 
@@ -291,12 +307,20 @@ class MOPAC(ElectronicStructureMethod):
 
             if gradients_section and len(line.split()) == 8:
                 _, _, _, _, _, _, value, _ = line.split()
-                gradients.append(value)
-        grad_array = np.asarray(gradients)
-        grad_array /= Constants.ha2kcalmol  # From kcal mol-1 Å^-1 to Ha Å^-1
-        grad_array.reshape((calc.molecule.n_atoms, 3))
+                try:
+                    gradients.append(float(value))
 
-        return grad_array.tolist()
+                except ValueError:
+                    raise CouldNotGetProperty(name='gradients')
+
+        if len(gradients) != 3 * calc.molecule.n_atoms:
+            raise CouldNotGetProperty(name='gradients')
+
+        # Convert flat array of gradients from kcal mol-1 Å^-1 to Ha Å^-1
+        grad_array = np.array(gradients) / Constants.ha2kcalmol
+        grad_array = grad_array.reshape((calc.molecule.n_atoms, 3))
+
+        return grad_array
 
     def __init__(self):
         super().__init__(name='mopac', path=Config.MOPAC.path,

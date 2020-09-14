@@ -11,6 +11,7 @@ from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
+from . import testutils
 import numpy as np
 import pytest
 
@@ -24,9 +25,8 @@ sp_keywords = SinglePointKeywords(['PBE', 'def2-SVP'])
 opt_keywords = OptKeywords(['Opt', 'PBE', 'def2-SVP'])
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
 def test_orca_opt_calculation():
-
-    os.chdir(os.path.join(here, 'data'))
 
     methylchloride = Molecule(name='CH3Cl',
                               smiles='[H]C([H])(Cl)[H]',
@@ -68,9 +68,6 @@ def test_orca_opt_calculation():
     with pytest.raises(NoInputError):
         execute_calc(calc)
 
-    os.remove('opt_orca.inp')
-    os.chdir(here)
-
 
 def test_calc_bad_mol():
 
@@ -101,9 +98,9 @@ def test_calc_bad_mol():
                     keywords=opt_keywords)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
 def test_orca_optts_calculation():
 
-    os.chdir(os.path.join(here, 'data'))
     methane = SolvatedMolecule(name='methane', smiles='C')
     methane.qm_solvent_atoms = []
 
@@ -133,9 +130,6 @@ def test_orca_optts_calculation():
 
     assert -599.437 < calc.get_enthalpy() < -599.436
     assert -599.469 < calc.get_free_energy() < -599.468
-
-    os.remove('test_ts_reopt_optts_orca.inp')
-    os.chdir(here)
 
 
 def test_bad_orca_output():
@@ -186,8 +180,8 @@ def test_solvation():
     os.remove('methane_smd_orca.inp')
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
 def test_gradients():
-    os.chdir(os.path.join(here, 'data', 'orca'))
 
     h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
     calc = Calculation(name='h2_grad', molecule=h2,
@@ -220,5 +214,3 @@ def test_gradients():
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1E-3
-
-    os.chdir(here)

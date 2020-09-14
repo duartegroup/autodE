@@ -24,7 +24,9 @@ class MultiStepReaction:
                 # regenerate conformers
                 skip_conformers = False
                 for prod in prev_products:
-                    if mol == prod:          # Has the same atoms & charge etc.
+
+                    # Has the same atoms & charge etc. as in the unique string
+                    if str(mol) == str(prod):
                         mol = prod
                         skip_conformers = True
 

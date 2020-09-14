@@ -1,11 +1,7 @@
 from autode.species.complex import NCIComplex
 from autode.species.molecule import Molecule
-from autode.wrappers.XTB import XTB
 from autode.config import Config
 from autode import geom
-
-xtb = XTB()
-xtb.available = True
 
 
 def test_nci_complex():
