@@ -12,6 +12,37 @@ atoms_and_electrons = {symbol: i+1 for i, symbol in enumerate(elements)}
 bond_order_symbol_dict = {'-': 1, '=': 2, '#': 3, '$': 4}
 
 
+def parse_smiles(smiles):
+    """Parse the given smiles string
+    Args:
+        smiles (str): smiles string to be parsed
+    """
+
+    logger.info(f'Parsing SMILES string: {smiles}')
+
+    parser = SmilesParser()
+
+    for char, char_type in divide_smiles(smiles):
+        parser.analyse_char(char, char_type)
+
+    if len(parser.ring_dict) != 0:
+        # This means a ring number has only been mentioned once, which is
+        # invalid
+        logger.critical('Invalid SMILES string')
+        raise InvalidSmilesString
+
+    parser.add_hs()
+
+    parser.charge = sum(parser.charge_dict.values())
+
+    parser.analyse_alkene_stereochem_dict()
+
+    for atom_no in sorted(parser.stereochem_dict.keys()):
+        parser.add_stereochem(atom_no)
+
+    return parser
+
+
 def divide_smiles(string_to_divide):
     """Divides a SMILES string into its constituent sections. These are:
 
@@ -654,34 +685,6 @@ class SmilesParser:
         for atom in new_cluster:
             self.atoms[atom].rotate(axis, theta)
             self.atoms[atom].translate(shift)
-
-    def parse_smiles(self, smiles):
-        """Parse the given smiles string
-        Args:
-            smiles (str): smiles string to be parsed
-        """
-
-        logger.info(f'Parsing SMILES string: {smiles}')
-
-        self.__init__()
-
-        for char, char_type in divide_smiles(smiles):
-            self.analyse_char(char, char_type)
-
-        if len(self.ring_dict) != 0:
-            # This means a ring number has only been mentioned once, which is
-            # invalid
-            logger.critical('Invalid SMILES string')
-            raise InvalidSmilesString
-
-        self.add_hs()
-
-        self.charge = sum(self.charge_dict.values())
-
-        self.analyse_alkene_stereochem_dict()
-
-        for atom_no in sorted(self.stereochem_dict.keys()):
-            self.add_stereochem(atom_no)
 
     def __init__(self):
 
