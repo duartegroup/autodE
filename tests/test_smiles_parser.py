@@ -50,12 +50,10 @@ def test_charge():
     assert parser.charge == -1
 
     parser.parse_smiles('[O-]S(=O)([O-])=O')
-    # TODO fix this
-    # assert parser.charge == -2
+    assert parser.charge == -2
 
     parser.parse_smiles('C[N-2]')
-    # TODO fix this
-    # assert parser.charge == -2
+    assert parser.charge == -2
 
 
 def test_alkene_stereochem():
