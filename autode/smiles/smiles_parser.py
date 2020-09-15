@@ -663,6 +663,8 @@ class SmilesParser:
 
         logger.info(f'Parsing SMILES string: {smiles}')
 
+        self.__init__()
+
         for char, char_type in divide_smiles(smiles):
             self.analyse_char(char, char_type)
 
