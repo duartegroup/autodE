@@ -1,7 +1,9 @@
 from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
+from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.transition_states.ts_guess import TSguess
 from autode.bond_rearrangement import BondRearrangement
+from autode.solvent.solvents import get_solvent
 from autode.reactions.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
 from autode.species.molecule import Reactant, Product
@@ -9,6 +11,7 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
+from autode.wrappers.XTB import XTB
 from autode.transition_states.base import imag_mode_links_reactant_products
 from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
@@ -80,6 +83,44 @@ def test_ts_guess_class():
 
     assert tsguess.could_have_correct_imag_mode(method=method)
     assert tsguess.has_correct_imag_mode()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_guess.zip'))
+def test_ts_template():
+
+    # Spoof XTB install
+    Config.XTB.path = here
+    Config.ts_template_folder_path = os.path.join(here, 'data', 'ts_guess')
+
+    bond_rearr = BondRearrangement(breaking_bonds=[(2, 1)],
+                                   forming_bonds=[(0, 2)])
+
+    reac_shift = reac_complex.copy()
+    reac_shift.solvent = get_solvent(solvent_name='water')
+
+    reac_shift.set_atoms(atoms=[Atom('F', -3.0587, -0.8998, -0.2180),
+                                Atom('Cl', 0.3842, 0.86572,-1.65507),
+                                Atom('C', -1.3741, -0.0391, -0.9719),
+                                Atom('H', -1.9151, -0.0163, -1.9121),
+                                Atom('H', -1.6295,  0.6929, -0.2173),
+                                Atom('H', -0.9389, -0.9786, -0.6534)])
+    reac_shift.print_xyz_file()
+
+    templates = get_ts_templates()
+    assert len(templates) == 1
+    assert templates[0].graph.number_of_nodes() == 6
+    assert templates[0].solvent is not None
+
+    tsg_template = get_template_ts_guess(reac_shift, product_complex,
+                                         name='template',
+                                         bond_rearr=bond_rearr,
+                                         method=XTB(),
+                                         dist_thresh=4.0)
+
+    # Reset the folder path to the default
+    Config.ts_template_folder_path = None
+
+    assert tsg_template is not None
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))

@@ -132,6 +132,8 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
 
         for active_bond in bond_rearr.all:
             i, j = active_bond
+            logger.info(f'Mapping active bond {i}-{j}')
+
             try:
                 dist = ts_template.graph.edges[mapping[i], mapping[j]]['distance']
                 active_bonds_and_dists_ts[active_bond] = dist
@@ -139,19 +141,20 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
             except KeyError:
                 logger.warning(f'Couldn\'t find a mapping for bond {i}-{j}')
 
-        if len(active_bonds_and_dists_ts) == len(bond_rearr.all):
-            logger.info('Found a TS guess from a template')
+        if len(active_bonds_and_dists_ts) != len(bond_rearr.all):
+            continue
 
-            if any([reactant.get_distance(*bond) > dist_thresh for bond in bond_rearr.all]):
-                logger.info(f'TS template has => 1 active bond distance larger '
-                            f'than {dist_thresh}. Passing')
+        logger.info('Found a TS guess from a template')
+        if any([reactant.get_distance(*bond) > dist_thresh for bond in bond_rearr.all]):
+            logger.info(f'TS template has => 1 active bond distance larger '
+                        f'than {dist_thresh}. Passing')
 
-            else:
-                return get_ts_guess_constrained_opt(reactant, method=method,
-                                                    keywords=method.keywords.opt,
-                                                    name=name,
-                                                    distance_consts=active_bonds_and_dists_ts,
-                                                    product=product)
+        else:
+            return get_ts_guess_constrained_opt(reactant, method=method,
+                                                keywords=method.keywords.opt,
+                                                name=name,
+                                                distance_consts=active_bonds_and_dists_ts,
+                                                product=product)
 
     logger.info('Could not find a TS guess from a template')
     return None

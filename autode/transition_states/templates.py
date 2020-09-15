@@ -15,7 +15,7 @@ a constrained optimisation which will hopefully be a good guess of the TS
 """
 
 
-def get_ts_templates(folder_path=Config.ts_template_folder_path):
+def get_ts_templates(folder_path=None):
     """Get all the transition state templates from a folder, or the default if
     folder path is None
 
@@ -28,8 +28,16 @@ def get_ts_templates(folder_path=Config.ts_template_folder_path):
     """
 
     if folder_path is None:
-        logger.info('Folder path is not set – getting TS templates from the default path')
-        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib')
+        logger.info('Folder path is not set – getting TS templates from the '
+                    'default path')
+
+        if Config.ts_template_folder_path is not None:
+            logger.info('Configuration ts_template_folder_path is set')
+            folder_path = Config.ts_template_folder_path
+
+        else:
+            ts_dir_path = os.path.dirname(os.path.abspath(__file__))
+            folder_path = os.path.join(ts_dir_path, 'lib')
 
     logger.info(f'Getting TS templates from {folder_path}')
 
@@ -38,7 +46,8 @@ def get_ts_templates(folder_path=Config.ts_template_folder_path):
         return []
 
     obj_filenames = [fn for fn in os.listdir(folder_path) if fn.endswith('.obj')]
-    objects = [pickle.load(open(os.path.join(folder_path, filename), 'rb')) for filename in obj_filenames]
+    objects = [pickle.load(open(os.path.join(folder_path, filename), 'rb'))
+               for filename in obj_filenames]
 
     logger.info(f'Have {len(objects)} TS templates')
     return objects
