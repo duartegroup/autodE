@@ -7,7 +7,7 @@ from autode.exceptions import RDKitFailed
 from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
-from autode.smiles.smiles_parser import SmilesParser
+from autode.smiles.smiles_parser import parse_smiles
 from copy import deepcopy
 
 
@@ -92,14 +92,15 @@ def init_smiles(molecule, smiles):
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
     """
-    # Assume that the RDKit conformer generation algorithm is not okay for metals
+    # Assume that the RDKit conformer generation algorithm is not okay for
+    # metals
     molecule.rdkit_conf_gen_is_fine = False
 
-    parser = SmilesParser()
-    parser.parse_smiles(smiles)
+    parser = parse_smiles(smiles)
 
     molecule.charge = parser.charge
-    molecule.mult = calc_multiplicity(molecule=molecule, n_radical_electrons=parser.n_radical_electrons)
+    molecule.mult = calc_multiplicity(molecule=molecule,
+                                      n_radical_electrons=parser.n_radical_electrons)
 
     molecule.set_atoms(atoms=parser.atoms)
 

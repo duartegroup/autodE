@@ -17,7 +17,6 @@ method.available = True
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_xtb_calculation():
 
-    os.chdir(os.path.join(here, 'data', 'xtb'))
     XTB.available = True
 
     test_mol = Molecule(name='test_mol',
@@ -53,12 +52,11 @@ def test_xtb_calculation():
                             keywords=Config.XTB.keywords.opt)
 
     const_opt.generate_input()
+    assert os.path.exists('const_opt_xtb.xyz')
     assert os.path.exists('xcontrol_const_opt_xtb')
 
-    os.remove('const_opt_xtb.xyz')
-    os.remove('xcontrol_const_opt_xtb')
-    os.remove('opt_xtb.xyz')
-    os.chdir(here)
+    const_opt.clean_up(force=True)
+    assert not os.path.exists('xcontrol_const_opt_xtb')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -147,3 +145,4 @@ def test_xtb_6_3_2():
     calc.output.file_lines = open('xtb_6_3_2_opt.out', 'r').readlines()
 
     assert len(calc.get_final_atoms()) == 5
+
