@@ -300,10 +300,11 @@ class Calculation:
 
         return self.method.calculation_terminated_normally(self)
 
-    def clean_up(self):
+    def clean_up(self, force=False):
         """Clean up input files, if Config.keep_input_files is False"""
 
-        if Config.keep_input_files:
+        if Config.keep_input_files and not force:
+            logger.info('Keeping input files')
             return None
         else:
             return self.method.clean_up(self)
