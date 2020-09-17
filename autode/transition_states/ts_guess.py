@@ -122,7 +122,8 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
 
     for ts_template in ts_guess_templates:
 
-        if not template_matches(reactant=reactant, ts_template=ts_template,
+        if not template_matches(reactant=reactant,
+                                ts_template=ts_template,
                                 truncated_graph=mol_graph):
             continue
 
