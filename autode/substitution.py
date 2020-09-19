@@ -25,16 +25,18 @@ class SubstitutionCentre:
 
     def __init__(self, a_atom_idx, c_atom_idx, x_atom_idx, a_atom_nn_idxs):
         """
-        Substitution centre has the following structure
+        Substitution centre has the following structure::
 
-        H            H  H
-         \            \/
-          N-- H       C -- Cl
-         /           /
-        H           H
+            H            H  H
+             \            \/
+              N-- H       C -- Cl
+             /           /
+            H           H
 
 
-        where a_atom = N
+        where::
+        
+              a_atom = N
               c_atom = C
               x_atom = Cl
               a_atom_nn = H, H, H (bonded to N)
@@ -182,16 +184,18 @@ def attack_cost(reactant, subst_centres, attacking_mol_idx,
                 a=1.0, b=1.0, c=1.0, d=10.0):
     """
     Calculate the 'attack cost' for a molecule attacking in e.g. a
-    substitution or elimination reaction.
+    substitution or elimination reaction::
 
-    C = Σ_ac a * (r_ac - r^0_ac)^2  +  Σ_acx b * (1 - cos(θ))  +
-              Σ_acx c*(1 + cos(φ))  +  Σ_ij d/r_ij^4
+        C = Σ_ac a * (r_ac - r^0_ac)^2  +  Σ_acx b * (1 - cos(θ))  +
+                  Σ_acx c*(1 + cos(φ))  +  Σ_ij d/r_ij^4
 
-    where cos(θ) = (v_ann • v_cx / |v_ann||v_cx|)
-          cos(φ) = (v_ca • v_cx / |v_ca||v_cx|)
+    where::
+
+        cos(θ) = (v_ann • v_cx / |v_ann||v_cx|)
+        cos(φ) = (v_ca • v_cx / |v_ca||v_cx|)
 
     Returns:
-        (float):
+        (float): Cost
     """
     coords = reactant.get_coordinates()
     cost = 0

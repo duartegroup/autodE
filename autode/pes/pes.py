@@ -20,7 +20,7 @@ def get_closest_species(point, pes):
         point (tuple): Index of the current point
 
     Returns:
-        (autode.complex.ReactantComplex):
+        (autode.species.Species): Species
     """
 
     if all(index == 0 for index in point):
@@ -81,8 +81,11 @@ def get_point_species(point, species, distance_constraints, name, method,
         n_cores (int): Number of cores to used for this calculation
 
     Keyword Arguments:
-        energy_threshold (float): Above this energy (Hartrees) the calculation
+        energy_threshold (float): Above this energy (Ha) the calculation
                                   will be disregarded
+
+    Returns:
+        (autode.species.Species): Species
     """
     logger.info(f'Calculating point {point} on PES surface')
 
@@ -163,7 +166,7 @@ class ScannedBond:
 class FormingBond(ScannedBond):
 
     def __init__(self, atom_indexes, species):
-        """"
+        """
         Forming bond with current and final distances
 
         Arguments:

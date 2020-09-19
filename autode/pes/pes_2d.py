@@ -96,19 +96,20 @@ class PES2d(PES):
 
     @work_in('pes2d')
     def calculate(self, name, method, keywords):
-        """Calculations on the surface with a method using the a decomposition similar to the following
+        """Calculations on the surface with a method using the a decomposition
+        similar to the following::
 
-        Calculation order            Indexes
+            Calculation order            Indexes
 
-           4  5  6  7          .        .        .
+               4  5  6  7          .        .        .
 
-           3  4  5  6        (0, 2)     .        .
+               3  4  5  6        (0, 2)     .        .
 
-           2  3  4  5        (0, 1)  (1, 1)      .
+               2  3  4  5        (0, 1)  (1, 1)      .
 
-           1  2  3  4        (0, 0)  (1, 0)    (2, 0)
-                                ↖       ↖         ↖
-                            sum = 0   sum = 1    sum = 2
+               1  2  3  4        (0, 0)  (1, 0)    (2, 0)
+                                    ↖       ↖         ↖
+                                sum = 0   sum = 1    sum = 2
 
         Arguments:
             name (str):
@@ -166,13 +167,13 @@ class PES2d(PES):
 
     def __init__(self, reactant, product, r1s, r1_idxs, r2s, r2_idxs):
         """
-        A two dimensional potential energy surface
+        A two dimensional potential energy surface::
 
-              /
-          r2 /
-            /
-           /___________
-                r1
+                  /
+              r2 /
+                /
+               /___________
+                    r1
 
         Arguments:
             reactant (autode.complex.ReactantComplex): Species at r1s[0] and r2s[0]

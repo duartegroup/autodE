@@ -19,11 +19,13 @@ def poly2d_saddlepoints(coeff_mat, xs, ys):
 
     stationary_points = []
 
-    # Optimise the derivatives over a uniform grid in x, y. 10x10 should find all the unique stationary points
+    # Optimise the derivatives over a uniform grid in x, y. 10x10 should find
+    # all the unique stationary points
     for x in np.linspace(min_x, max_x, num=10):
         for y in np.linspace(min_y, max_y, num=10):
 
-            # Minimise (df/dx)^2 + (dy/dx)^2 with bounds ensuring the saddle points are within the surface
+            # Minimise (df/dx)^2 + (dy/dx)^2 with bounds ensuring the saddle
+            # points are within the surface
             opt = minimize(sum_squared_xy_derivative,
                            x0=np.array([x, y]), args=(coeff_mat,),
                            method='TNC',
@@ -31,7 +33,8 @@ def poly2d_saddlepoints(coeff_mat, xs, ys):
                                          ub=np.array([max_x, max_y])))
             opt_x, opt_y = opt.x
 
-            # Check that we're still inside the bounds and the optimisation has converged reasonably
+            # Check that we're still inside the bounds and the optimisation
+            # has converged reasonably
             if min_x < opt_x < max_x and min_y < opt_y < max_y and opt.fun < 1E-1:
                 stationary_points.append(opt.x)
 
@@ -47,7 +50,8 @@ def poly2d_saddlepoints(coeff_mat, xs, ys):
 
 
 def get_sorted_saddlepoints(saddle_points, xs, ys):
-    """Get the list of saddle points ordered by their distance from the (x, y) mid-point"""
+    """Get the list of saddle points ordered by their distance from the (x, y)
+    mid-point"""
 
     mid_x, mid_y = np.average(xs), np.average(ys)
 
@@ -62,7 +66,8 @@ def get_unique_stationary_points(stationary_points, dist_threshold=0.1):
 
     for stat_point in stationary_points[1:]:
 
-        # Assume the point in unique and determine if it is close to any of the point already in the list
+        # Assume the point in unique and determine if it is close to any of
+        # the point already in the list
         unique = True
 
         for unique_stat_point in unique_stationary_points:
@@ -73,12 +78,15 @@ def get_unique_stationary_points(stationary_points, dist_threshold=0.1):
         if unique:
             unique_stationary_points.append(stat_point)
 
-    logger.info(f'Stripped {len(stationary_points) - len(unique_stationary_points)} stationary points')
+    logger.info(f'Stripped '
+                f'{len(stationary_points) - len(unique_stationary_points)} '
+                f'stationary points')
     return unique_stationary_points
 
 
 def sum_squared_xy_derivative(xy_point, coeff_mat):
-    """For a coordinate, and function, finds df/dx and df/dy and returns the sum of the squares
+    """For a coordinate, and function, finds df/dx and df/dy and returns the
+    sum of the squares
 
     Arguments:
         xy_point (tuple): (x,y)
@@ -108,7 +116,8 @@ def is_saddle_point(xy_point, coeff_mat):
     delta = ((d2f/dx2)*(d2f/dy2) - (d2f/dxdy)**2)
 
     Arguments:
-        coeff_mat (np.array): Matrix of the coefficients of the n order polynomial (n x n)
+        coeff_mat (np.array): Matrix of the coefficients of the n order
+                              polynomial (n x n)
         xy_point (tuple): the stationary point to be examined
 
     Returns:

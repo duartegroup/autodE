@@ -636,7 +636,7 @@ def set_active_mol_graph(species, active_bonds):
     return None
 
 
-def get_truncated_active_mol_graph(graph, active_bonds):
+def get_truncated_active_mol_graph(graph, active_bonds=None):
     """
     Generate a truncated graph of a graph that only contains the active bond
     atoms and their nearest neighbours
@@ -646,29 +646,43 @@ def get_truncated_active_mol_graph(graph, active_bonds):
         active_bonds (list(tuple(int)):
     """
 
+    if active_bonds is None:
+        # Molecular graph may already define the active edges
+        active_bonds = [pair for pair in graph.edges
+                        if graph.edges[pair]['active']]
+
+    if len(active_bonds) == 0:
+        raise ValueError('Could not generate truncated active molecular '
+                         'graph with no active bonds')
+
     t_graph = nx.Graph()
 
     # Add all nodes that connect active bonds
     for bond in active_bonds:
 
-        for atom_index in bond:
-            if atom_index not in t_graph.nodes:
-                t_graph.add_node(atom_index)
+        for idx in bond:
+            if idx not in t_graph.nodes:
 
-        t_graph.add_edge(*bond, active=True)
+                label = graph.nodes[idx]['atom_label']
+                t_graph.add_node(idx,  atom_label=label)
+
+        t_graph.add_edge(*bond, active=True, pi=False)
 
     # For every active atom add the nearest neighbours
-    for atom_index in deepcopy(t_graph.nodes):
-        neighbours = graph.neighbors(atom_index)
+    for idx in deepcopy(t_graph.nodes):
+        neighbours = graph.neighbors(idx)
 
         # Add nodes and edges for all atoms and bonds to the neighbours that
         # don't already exist in the graph
         for n_atom_index in neighbours:
             if n_atom_index not in t_graph.nodes:
-                t_graph.add_node(n_atom_index)
+                label = graph.nodes[idx]['atom_label']
+                t_graph.add_node(n_atom_index, atom_label=label)
 
-            if (atom_index, n_atom_index) not in t_graph.edges:
-                t_graph.add_edge(atom_index, n_atom_index)
+            if (idx, n_atom_index) not in t_graph.edges:
+                t_graph.add_edge(idx, n_atom_index,
+                                 pi=False,
+                                 active=False)
 
     logger.info(f'Truncated graph generated. {t_graph.number_of_nodes()} '
                 f'nodes and {t_graph.number_of_edges()} edges')

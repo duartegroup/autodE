@@ -1,9 +1,3 @@
-"""
-Notes:
-
-Bond rearrangement = br
-"""
-
 import itertools
 import os
 from autode.atoms import get_maximal_valance

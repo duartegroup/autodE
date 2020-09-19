@@ -188,12 +188,13 @@ def test_find_tss():
     reaction.locate_transition_state()
 
     assert reaction.ts is not None
-    os.chdir(os.path.join('transition_states'))
-
+    os.chdir('transition_states')
     assert reaction.ts.is_true_ts()
+    os.chdir('..')
 
+    print(os.getcwd())
     reaction.ts.save_ts_template(folder_path=os.getcwd())
-    assert os.path.exists('template0.obj')
+    assert os.path.exists('template0.txt')
 
     # There should now be a saved template
     templates = get_ts_templates(folder_path=os.getcwd())
@@ -207,7 +208,3 @@ def test_find_tss():
     assert template.graph.number_of_nodes() == 6
 
 
-def test_ts_templates():
-
-    templates = get_ts_templates(folder_path='/a/path/that/doesnt/exist')
-    assert len(templates) == 0

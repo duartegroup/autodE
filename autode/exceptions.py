@@ -98,3 +98,7 @@ class CannotSplitAcrossBond(Exception):
 
 class CouldNotPlotSmoothProfile(Exception):
     pass
+
+
+class TemplateLoadingFailed(Exception):
+    pass

@@ -83,7 +83,9 @@ class TransitionState(TSbase):
         distance_consts = get_distance_constraints(self)
 
         with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(get_simanl_atoms, (self, distance_consts, i)) for i in range(n_confs)]
+            results = [pool.apply_async(get_simanl_atoms, (self, distance_consts, i))
+                       for i in range(n_confs)]
+
             conf_atoms_list = [res.get(timeout=None) for res in results]
 
         for i, atoms in enumerate(conf_atoms_list):
@@ -190,7 +192,7 @@ class TransitionState(TSbase):
 
         return False
 
-    def save_ts_template(self, folder_path=Config.ts_template_folder_path):
+    def save_ts_template(self, folder_path=None):
         """Save a transition state template containing the active bond lengths,
          solvent and charge in folder_path
 
@@ -200,15 +202,13 @@ class TransitionState(TSbase):
         """
         logger.info(f'Saving TS template for {self.name}')
 
-        truncated_graph = get_truncated_active_mol_graph(self.graph,
-                                                         active_bonds=self.bond_rearrangement.all)
+        truncated_graph = get_truncated_active_mol_graph(self.graph)
 
         for bond in self.bond_rearrangement.all:
             truncated_graph.edges[bond]['distance'] = self.get_distance(*bond)
 
-        ts_template = TStemplate(truncated_graph, solvent=self.solvent,
-                                 charge=self.charge, mult=self.mult)
-        ts_template.save_object(folder_path=folder_path)
+        ts_template = TStemplate(truncated_graph, species=self)
+        ts_template.save(folder_path=folder_path)
 
         logger.info('Saved TS template')
         return None

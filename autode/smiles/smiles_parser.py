@@ -59,7 +59,7 @@ def divide_smiles(string_to_divide):
                   the carbon in a double bond (e.g '/', F/C= ==>    C=  )
                                                                     /
                                                                    F
-    Args:
+    Arguments:
         string_to_divide (str): string to divide
     Yields:
         (str, str): section of smiles string, what type of section it is
