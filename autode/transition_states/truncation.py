@@ -8,7 +8,8 @@ from autode.log import logger
 
 def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
     """
-    Add π bonds that are nearest neighbours to the current atoms in the truncated graph
+    Add π bonds that are nearest neighbours to the current atoms in the
+     truncated graph
 
     Arguments:
         molecule (autode.species.Species):
@@ -48,15 +49,14 @@ def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
 
 def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
     """
-    Add a capping atom, e.g.
+    Add a capping atom. Example::
 
-
-              H
-             /
-     C_a---C_b - H   ->   C_a--H          where C_a is numbered atom_index,
-            \                             C_b is numbered n_atom_index
-             \
-              H
+                  H
+                 /
+         C_a---C_b - H   ->   C_a--H          where C_a is numbered atom_index,
+                \                             C_b is numbered n_atom_index
+                 \
+                  H
 
     Arguments:
         atom_index (int):

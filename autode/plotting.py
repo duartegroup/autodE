@@ -270,14 +270,13 @@ def get_stationary_points(xs, dydx):
 def error_on_stationary_points(x, energies):
     """
     Calculate the difference between the stationary points of an interpolated
-    function and those observed
-    (given in the energies array)
+    function and those observed (given in the energies array). Example::
 
-      |     .
-    E |.   / \        The points indicate the true stationary points
-      | \_/   \.
-      |_____________
-            zi
+          |     .
+        E |.   / \        The points indicate the true stationary points
+          | \_/   \.
+          |_____________
+                zi
 
     Arguments:
         x (np.ndarray): Points that will be splined that generate stationary

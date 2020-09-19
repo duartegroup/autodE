@@ -7,19 +7,22 @@ from autode.mol_graphs import is_isomorphic
 def get_sum_energy_mep(saddle_point_r1r2, pes_2d):
     """
     Calculate the sum of the minimum energy path that traverses reactants (r)
-    to products (p) via the saddle point (s)
+    to products (p) via the saddle point (s)::
 
-            /          p
-           /     s
-      r2  /
-         /r
-         ------------
-              r1
+                /          p
+               /     s
+          r2  /
+             /r
+             ------------
+                  r1
 
     Arguments:
         saddle_point_r1r2 (tuple(float)):
 
         pes_2d (autode.pes_2d.PES2d):
+
+    Returns:
+        (float): Path energy (Ha)
     """
     logger.info('Finding the total energy along the minimum energy pathway')
 

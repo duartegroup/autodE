@@ -112,7 +112,7 @@ def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):
         dr (float): Δr on the surface *absolute value* in angstroms
 
     Returns:
-        (autode.transition_states.ts_guess.TSguess)
+        (autode.transition_states.ts_guess.TSguess): TS guess
     """
     logger.info(f'Getting TS guess from 1D relaxed potential energy scan using '
                 f'{bond.atom_indexes} as the active bond')
