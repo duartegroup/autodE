@@ -29,7 +29,7 @@ def get_ts_template_folder_path(folder_path):
         folder_path: (str or None)
 
     Returns:
-        (str) Path to the
+        (str): Path to the folder containing TS templates
     """
 
     if folder_path is not None:
@@ -50,13 +50,14 @@ def get_ts_templates(folder_path=None):
     """Get all the transition state templates from a folder, or the default if
     folder path is None. Transition state templates should be .txt files with
     at least a charge, multiplicity, solvent, and a graph with some active
-    edge including distances
+    edge including distances.
 
     Keyword Arguments:
-        folder_path (str): /path/to/the/ts/template/library
+        folder_path (str): e.g. '/path/to/the/ts/template/library'
 
     Returns:
-        (list(autode.transition_states.templates.TStemplate))
+        (list(autode.transition_states.templates.TStemplate)): List of
+        templates
     """
     folder_path = get_ts_template_folder_path(folder_path)
     logger.info(f'Getting TS templates from {folder_path}')
@@ -89,21 +90,29 @@ def template_matches(reactant, truncated_graph, ts_template):
     """
     Determine if a transition state template matches a truncated graph. The
     truncated graph includes all the active bonds in the reaction and the
-    nearest neighbours to those atoms e.g. for a Diels-Alder reaction
-         H        H
-          \      /
-        H-C----C-H          where the dotted lines represent active bonds
-          .    .
-      H  .      .   H
-       \.        . /
-    H - C        C - H
-         \      /
-          C    C
+    nearest neighbours to those atoms e.g. for a Diels-Alder reaction::
 
+             H        H
+              \      /
+            H-C----C-H          where the dotted lines represent active bonds
+              .    .
+          H  .      .   H
+           \.        . /
+        H - C        C - H
+             \      /
+              C    C
+
+    where the full reaction is between ethene and butadiene.
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.complex.ReactantComplex):
+
         truncated_graph (nx.Graph):
+
         ts_template (autode.transition_states.templates.TStemplate):
+
+    Returns:
+        (bool): Template matches
     """
 
     if reactant.charge != ts_template.charge or reactant.mult != ts_template.mult:
@@ -123,12 +132,29 @@ def get_value_from_file(key, file_lines):
     """
     Get the value given a key from a list of file lines i.e. a saved template
 
+    Example::
+
+        Input:
+        file_lines=
+        _________________________
+        .
+        multiplicity: 1
+        .
+        ------------------------
+        key='multiplicity'
+
+        Output:
+        1
+
     Arguments:
         key (str):
         file_lines (list(str)):
 
     Returns:
-         (str) Value or raises a TemplateLoadingFailed exception if not found
+         (str): Value
+
+    Raise:
+        (autode.exceptions.TemplateLoadingFailed): If values not found
     """
 
     for i, line in enumerate(file_lines):
@@ -140,36 +166,43 @@ def get_value_from_file(key, file_lines):
             _, value = line.split()
             return value
 
-        except TypeError:
+        except (TypeError, ValueError):
             raise TemplateLoadingFailed(f'Incorrectly formatted line {i}')
-
 
     raise TemplateLoadingFailed(f'Did not find a {key} template')
 
 
 def get_values_dict_from_file(key, file_lines):
     """
-    Get the value given a key from a list of file lines i.e. a saved template
-    Example:
-    _________________________
-    .
-    .
-    multiplicity: 1
-    nodes:
-        - 0: atom_label=F
-        - 2: atom_label=C
-           .
-           .
-    ------------------------
+    Get the value given a key from a list of file lines i.e. a saved template.
+    Example::
 
-    with key='nodes' -> {0: {'atom_label': 'C'}, 2: {'atom_label': 'F'}, ..}
+        Input:
+        file_lines=
+        _________________________
+        .
+        .
+        multiplicity: 1
+        nodes:
+            0: atom_label=F
+            2: atom_label=C
+                 .
+                 .
+        ------------------------
+        key='nodes'
+
+        Output:
+        {0: {'atom_label': 'F'}, 2: {'atom_label': 'C'}, ..}
 
     Arguments:
         key (str):
         file_lines (list(str)):
 
     Returns:
-         (dict) Value or raises a TemplateLoadingFailed exception if not found
+         (dict): Value
+
+    Raise:
+          (autode.exceptions.TemplateLoadingFailed): If values not found
     """
     key_lines = [line for line in file_lines if line.startswith(key)]
 
@@ -194,7 +227,7 @@ def get_values_dict_from_file(key, file_lines):
             raise TemplateLoadingFailed(f'Key error on line {i}')
 
         # This key in the value dictionary is the first item in the line with
-        # the whitespace removed and the final colon
+        # the whitespace and final colon removed
         v_key = items[0][:-1]
 
         # If the key is e.g. 0-1 as an edge then split it to the tuple (0, 1)
@@ -276,10 +309,17 @@ class TStemplate:
     def graph_has_correct_structure(self):
         """Check that the graph has some active edges and distances"""
 
+        if self.graph is None:
+            logger.warning('Incorrect TS template stricture - it was None!')
+            return False
+
         n_active_edges = 0
         for edge in self.graph.edges:
 
             if 'active' not in self.graph.edges[edge].keys():
+                continue
+
+            if not self.graph.edges[edge]['active']:
                 continue
 
             if (self.graph.edges[edge]['active']
@@ -298,7 +338,17 @@ class TStemplate:
             return False
 
     def save(self, basename='template', folder_path=None):
-        """Save the TS template object"""
+        """
+        Save the TS template object in a plain text .txt file. With folder_path
+        =None then the template will be saved to the default directory
+        (see get_ts_template_folder_path). The name of the file will be
+        basenamei.txt where i is an integer iterated until the file doesn't
+        already exist.
+
+        Keyword Arguments:
+            basename (str):
+            folder_path (str or None):
+        """
 
         folder_path = get_ts_template_folder_path(folder_path)
         logger.info(f'Saving TS template to {folder_path}')
@@ -329,6 +379,9 @@ class TStemplate:
 
         Arguments:
             filename (str):
+
+        Raise:
+            (autode.exceptions.TemplateLoadingFailed):
         """
         template_lines = open(filename, 'r').readlines()
 
@@ -344,6 +397,9 @@ class TStemplate:
 
         self.charge = int(get_value_from_file('charge', template_lines))
         self.mult = int(get_value_from_file('multiplicity', template_lines))
+
+        # Set the template graph by adding nodes and edges with atoms labels
+        # and active/pi/distance attributes respectively
         self.graph = nx.Graph()
 
         nodes = get_values_dict_from_file('nodes', template_lines)
@@ -351,8 +407,6 @@ class TStemplate:
             self.graph.add_node(idx, **data)
 
         edges = get_values_dict_from_file('edges', template_lines)
-
-        print(edges)
 
         for pair, data in edges.items():
             self.graph.add_edge(*pair, **data)
@@ -364,16 +418,22 @@ class TStemplate:
 
     def __init__(self, graph=None, charge=None, mult=None, solvent=None,
                  species=None, filename=None):
-        """Construct a TS template object
+        """
+        TS template
 
         Keyword Arguments:
             graph (nx.Graph): Active bonds in the TS are represented by the
                   edges with attribute active=True, going out to nearest bonded
                   neighbours
-            solvent (autode.solvent.solvents.Solvent):  (default: {None})
+
+            solvent (autode.solvent.solvents.Solvent):
+
             charge (int):
+
             mult (int):
+
             species (autode.species.Species):
+
             filename (str): Saved template to load
         """
 

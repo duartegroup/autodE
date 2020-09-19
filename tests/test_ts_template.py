@@ -8,9 +8,10 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
+from autode.transition_states.templates import get_value_from_file
+from autode.transition_states.templates import get_values_dict_from_file
 from autode.transition_states.templates import TStemplate
 from autode.mol_graphs import get_truncated_active_mol_graph
-from autode.solvent.solvents import get_solvent
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.wrappers.XTB import XTB
 here = os.path.dirname(os.path.abspath(__file__))
@@ -111,7 +112,44 @@ def test_ts_template():
     assert tsg_template is not None
 
 
+def test_ts_template_parse():
+
+    # No value
+    with pytest.raises(TemplateLoadingFailed):
+        _ = get_value_from_file('solvent', file_lines=['solvent:'])
+
+    # Key doesn't exist
+    with pytest.raises(TemplateLoadingFailed):
+        _ = get_value_from_file('charge', file_lines=['solvent:'])
+        _ = get_values_dict_from_file('charge', file_lines=['solvent:'])
+
+    # Incorrectly formatted values section
+    with pytest.raises(TemplateLoadingFailed):
+        _ = get_values_dict_from_file('nodes',
+                                      file_lines=['0 C', '1 F'])
+
+
 def test_ts_templates_find():
 
     templates = get_ts_templates(folder_path='/a/path/that/doesnt/exist')
     assert len(templates) == 0
+
+    # Create a incorrectly formatted file, i.e. blank
+    open('wrong_template.txt', 'w').close()
+    templates = get_ts_templates(folder_path=os.getcwd())
+    assert len(templates) == 0
+
+    os.remove('wrong_template.txt')
+
+
+def test_inactive_graph():
+
+    # Should fail to get a active graph from a graph with no active edges
+    with pytest.raises(ValueError):
+        _ = get_truncated_active_mol_graph(ch3f.graph)
+
+    template = TStemplate()
+    assert not template.graph_has_correct_structure()
+
+    template.graph = ch3f.graph.copy()
+    assert not template.graph_has_correct_structure()
