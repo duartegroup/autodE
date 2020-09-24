@@ -160,6 +160,25 @@ def get_distance_constraints(species):
     return distance_constraints
 
 
+def calc_heavy_atom_rmsd(atoms1, atoms2):
+    """
+    Calculate the RMSD between two sets of atoms considering only the 'heavy'
+    atoms, i.e. the non-hydrogen atoms
+
+    :param atoms1: (list(autode.atoms.Atom))
+    :param atoms2: (list(autode.atoms.Atom))
+    :return: (float) RMSD between the two sets
+    """
+    if len(atoms1) != len(atoms2):
+        raise ValueError('RMSD must be computed between atom lists of the'
+                         f'same length: {len(atoms1)} =/= {len(atoms2)}')
+
+    coords1 = np.array([atom.coord for atom in atoms1 if atom.label != 'H'])
+    coords2 = np.array([atom.coord for atom in atoms2 if atom.label != 'H'])
+
+    return calc_rmsd(coords1, coords2)
+
+
 def calc_rmsd(coords1, coords2):
     """Calculate the RMSD between two sets of coordinates using the Kabsch
     algorithm
@@ -171,14 +190,15 @@ def calc_rmsd(coords1, coords2):
     Returns:
         (float): Root mean squared distance
     """
+    assert coords1.shape == coords2.shape
 
     # Construct the P matrix in the Kabsch algorithm
-    p_mat = deepcopy(coords2)
+    p_mat = np.array(coords2, copy=True)
     p = np.average(p_mat, axis=0)
     p_mat_trans = get_centered_matrix(p_mat)
 
     # Construct the P matrix in the Kabsch algorithm
-    q_mat = deepcopy(coords1)
+    q_mat = np.array(coords1, copy=True)
     q = np.average(q_mat, axis=0)
     q_mat_trans = get_centered_matrix(q_mat)
 

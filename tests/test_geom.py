@@ -1,6 +1,7 @@
 import numpy as np
 from autode import geom
 from autode.atoms import Atom
+import pytest
 
 
 def test_are_coords_reasonable():
@@ -50,3 +51,40 @@ def test_points_on_sphere():
     # 3 points on a sphere equally spaced should be roughly the diameter
     assert len(points) == 3
     assert np.abs(np.linalg.norm(points[0] - points[1]) - np.sqrt(3)) < 1E-6
+
+
+def test_calc_rmsd():
+
+    atoms = [Atom('C', 0.0009, 0.0041, -0.0202),
+             Atom('H', -0.6577, -0.8481, -0.3214),
+             Atom('H', -0.4585, 0.9752, -0.3061),
+             Atom('H', 0.0853, -0.0253, 1.0804),
+             Atom('H', 1.0300, -0.1058, -0.4327)]
+
+    atoms_rot = [Atom('C', -0.0009, -0.0041, -0.0202),
+                 Atom('H', 0.6577, 0.8481, -0.3214),
+                 Atom('H', 0.4585, -0.9752, -0.3061),
+                 Atom('H', -0.0853, 0.0253, 1.0804),
+                 Atom('H', -1.0300, 0.1058, -0.4327)]
+
+    coords1 = np.array([atom.coord for atom in atoms])
+    coords2 = np.array([atom.coord for atom in atoms_rot])
+
+    # Rotated coordinates should have almost 0 RMSD between them
+    assert geom.calc_rmsd(coords1, coords2) < 1E-5
+
+    # Coordinates need to have the same shape to calculate the RMSD
+    with pytest.raises(AssertionError):
+        _ = geom.calc_rmsd(coords1, coords2[1:])
+
+    assert geom.calc_heavy_atom_rmsd(atoms, atoms_rot) < 1E-5
+
+    # Permuting two hydrogens should generate a larger RMSD
+    atoms_rot[2], atoms_rot[3] = atoms_rot[3], atoms_rot[2]
+    rmsd = geom.calc_rmsd(coords1=np.array([atom.coord for atom in atoms]),
+                          coords2=np.array([atom.coord for atom in atoms_rot]))
+
+    assert rmsd > 0.1
+
+    # While the heavy atom RMSD should remain unchanged
+    assert geom.calc_heavy_atom_rmsd(atoms, atoms_rot) < 1E-6

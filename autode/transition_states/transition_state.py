@@ -7,6 +7,7 @@ from autode.calculation import Calculation
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.geom import get_distance_constraints
+from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.mol_graphs import set_active_mol_graph
@@ -144,7 +145,7 @@ class TransitionState(TSbase):
 
         return None
 
-    def find_lowest_energy_ts_conformer(self):
+    def find_lowest_energy_ts_conformer(self, rmsd_threshold=None):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""
         atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
@@ -153,26 +154,31 @@ class TransitionState(TSbase):
         hmethod = get_hmethod() if Config.hmethod_conformers else None
         self.find_lowest_energy_conformer(hmethod=hmethod)
 
-        if len(self.conformers) == 1:
-            logger.warning('Only found a single conformer. '
-                           'Not rerunning TS optimisation')
-            self.set_atoms(atoms=atoms)
-            self.energy = energy
-            self.optts_calc = calc
-            return None
+        # Remove similar TS conformer that are similar to this TS based on root
+        # mean squared differences in their structures
+        thresh = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
+        self.conformers = [conf for conf in self.conformers if
+                           calc_heavy_atom_rmsd(conf.atoms, atoms) > thresh]
 
-        self.optimise(name_ext='optts_conf')
+        logger.info(f'Generated {len(self.conformers)} unique (RMSD < '
+                    f'{thresh} Å) TS conformer(s)')
 
-        if self.is_true_ts() and self.energy < energy:
-            logger.info('Conformer search successful')
+        # Optimise the lowest energy conformer to a transition state
+        if len(self.conformers) > 1:
+            self.optimise(name_ext='optts_conf')
 
-        else:
+            if self.is_true_ts() and self.energy < energy:
+                logger.info('Conformer search successful')
+                return None
+
             logger.warning(f'Transition state conformer search failed '
                            f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
-            self.set_atoms(atoms=atoms)
-            self.energy = energy
-            self.optts_calc = calc
-            self.imaginary_frequencies = calc.get_imaginary_freqs()
+
+        logger.info('Reverting to previously found TS')
+        self.set_atoms(atoms=atoms)
+        self.energy = energy
+        self.optts_calc = calc
+        self.imaginary_frequencies = calc.get_imaginary_freqs()
 
         return None
 
