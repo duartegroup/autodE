@@ -103,18 +103,17 @@ class Reaction:
         except ValueError:
             raise UnbalancedReaction('Could not decompose to reacs & prods')
 
-        def name(smiles):
-            """A more readable string as a name"""
-            return ''.join([a for a in smiles if a.isalpha()])
+        # Add all the reactants and products with interpretable names
+        for i, reac_smiles in enumerate(reacs_smiles.split('.')):
+            reac = Reactant(smiles=reac_smiles)
+            reac.name = f'r{i}_{reac.formula()}'
+            self.reacs.append(reac)
 
-        # Add all the reactants and products
-        for reac_smiles in reacs_smiles.split('.'):
-            self.reacs.append(Reactant(name=name(reac_smiles),
-                                       smiles=reac_smiles))
+        for i, prod_smiles in enumerate(prods_smiles.split('.')):
+            prod = Product(smiles=prod_smiles)
+            prod.name = f'p{i}_{prod.formula()}'
+            self.prods.append(prod)
 
-        for prod_smiles in prods_smiles.split('.'):
-            self.prods.append(Product(name=name(prod_smiles),
-                                      smiles=prod_smiles))
         return None
 
     def switch_reactants_products(self):

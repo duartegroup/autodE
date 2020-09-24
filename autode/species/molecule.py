@@ -134,6 +134,10 @@ class Molecule(Species):
         elif atoms is not None:
             make_graph(self)
 
+        # If the name is unassigned use a more interpretable chemical formula
+        if name == 'molecule' and self.atoms is not None:
+            self.name = self.formula()
+
 
 class SolvatedMolecule(Molecule):
 
