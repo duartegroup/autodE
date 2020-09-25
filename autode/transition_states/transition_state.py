@@ -162,6 +162,8 @@ class TransitionState(TSbase):
     def find_lowest_energy_ts_conformer(self, rmsd_threshold=None):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""
+        logger.info('Finding lowest energy TS conformer')
+
         atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
         calc = deepcopy(self.optts_calc)
 
@@ -174,10 +176,10 @@ class TransitionState(TSbase):
         self.conformers = [conf for conf in self.conformers if
                            calc_heavy_atom_rmsd(conf.atoms, atoms) > thresh]
 
-        logger.info(f'Generated {len(self.conformers)} unique (RMSD < '
+        logger.info(f'Generated {len(self.conformers)} unique (RMSD > '
                     f'{thresh} Å) TS conformer(s)')
 
-        # Optimise the lowest energy conformer to a transition state will
+        # Optimise the lowest energy conformer to a transition state - will
         # .find_lowest_energy_conformer will have updated self.atoms etc.
         if len(self.conformers) > 0:
             self.optimise(name_ext='optts_conf')

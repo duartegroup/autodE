@@ -67,6 +67,7 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
     # Yield all peaks?
     for peak_species in neb.get_species_saddle_point():
+        logger.info('Found peak in optimised NEB - using as TS guess')
         return get_ts_guess(peak_species, reactant, product, name=name)
 
     logger.warning('NEB did not generate a saddle point')
