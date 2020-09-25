@@ -19,9 +19,12 @@ class TSbase(Species):
             logger.warning(f'Setting the graph of {self.name} from reactants')
             self.graph = self.reactant.graph.copy()
 
-        if self.atoms is not None:
+        elif self.atoms is not None:
             logger.warning(f'Setting the graph of {self.name} from atoms')
             make_graph(self)
+
+        else:
+            logger.warning('Have no TS graph')
 
         return None
 

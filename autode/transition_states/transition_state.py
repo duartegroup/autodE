@@ -177,8 +177,9 @@ class TransitionState(TSbase):
         logger.info(f'Generated {len(self.conformers)} unique (RMSD < '
                     f'{thresh} Å) TS conformer(s)')
 
-        # Optimise the lowest energy conformer to a transition state
-        if len(self.conformers) > 1:
+        # Optimise the lowest energy conformer to a transition state will
+        # .find_lowest_energy_conformer will have updated self.atoms etc.
+        if len(self.conformers) > 0:
             self.optimise(name_ext='optts_conf')
 
             if self.is_true_ts() and self.energy < energy:
