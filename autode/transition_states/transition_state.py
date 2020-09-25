@@ -21,22 +21,36 @@ class TransitionState(TSbase):
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being
         made/broken"""
-        set_active_mol_graph(species=self, active_bonds=self.bond_rearrangement.all)
+        if self.bond_rearrangement is None:
+            logger.warning('Bond rearrangement not set - molecular graph '
+                           'updating with no active bonds')
+            active_bonds = []
 
-        logger.info(f'Molecular graph updated with '
-                    f'{len(self.bond_rearrangement.all)} active bonds')
+        else:
+            active_bonds = self.bond_rearrangement.all
+
+        set_active_mol_graph(species=self, active_bonds=active_bonds)
+
+        logger.info(f'Molecular graph updated with active bonds')
         return None
 
     def _run_opt_ts_calc(self, method, name_ext):
         """Run an optts calculation and attempt to set the geometry, energy and
          normal modes"""
+        if self.bond_rearrangement is None:
+            logger.warning('Cannot add redundant internal coordinates for the '
+                           'active bonds with no bond rearrangement')
+            bond_ids = None
+
+        else:
+            bond_ids = self.bond_rearrangement.all
 
         self.optts_calc = Calculation(name=f'{self.name}_{name_ext}',
                                       molecule=self,
                                       method=method,
                                       n_cores=Config.n_cores,
                                       keywords=method.keywords.opt_ts,
-                                      bond_ids_to_add=self.bond_rearrangement.all,
+                                      bond_ids_to_add=bond_ids,
                                       other_input_block=method.keywords.optts_block)
         self.optts_calc.run()
 
@@ -54,7 +68,7 @@ class TransitionState(TSbase):
                                                   method=method,
                                                   n_cores=Config.n_cores,
                                                   keywords=method.keywords.opt_ts,
-                                                  bond_ids_to_add=self.bond_rearrangement.all,
+                                                  bond_ids_to_add=bond_ids,
                                                   other_input_block=method.keywords.optts_block)
                     self.optts_calc.run()
                 else:
@@ -206,6 +220,10 @@ class TransitionState(TSbase):
             folder_path (str): folder to save the TS template to
             (default: {None})
         """
+        if self.bond_rearrangement is None:
+            raise ValueError('Cannot save a TS template without a bond '
+                             'rearrangement')
+
         logger.info(f'Saving TS template for {self.name}')
 
         truncated_graph = get_truncated_active_mol_graph(self.graph)
@@ -224,10 +242,14 @@ class TransitionState(TSbase):
         Transition State
 
         Arguments:
-            ts_guess (autode.transition_states.ts_guess.TSguess)
+            ts_guess (autode.transition_states.ts_guess.TSguess):
         """
-        super().__init__(atoms=ts_guess.atoms, reactant=ts_guess.reactant,
-                         product=ts_guess.product, name=f'TS_{ts_guess.name}')
+        super().__init__(atoms=ts_guess.atoms,
+                         reactant=ts_guess.reactant,
+                         product=ts_guess.product,
+                         name=f'TS_{ts_guess.name}',
+                         charge=ts_guess.charge,
+                         mult=ts_guess.mult)
 
         self.bond_rearrangement = ts_guess.bond_rearrangement
         self.conformers = None

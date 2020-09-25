@@ -22,7 +22,7 @@ output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
 
 
 def execute_calc(calc):
-    """ Top level function that can be hashed """
+    """ Top level function that can be hashed"""
     return calc.execute_calculation()
 
 
@@ -485,7 +485,7 @@ class CalculationInput:
     def __init__(self, keywords, solvent, additional_input,
                  added_internals, point_charges):
         """
-        Args:
+        Arguments:
             keywords (autode.wrappers.keywords.Keywords):
 
             solvent (str or None): Name of the solvent for this QM method
@@ -531,7 +531,7 @@ class Constraints:
 
     def __init__(self, distance, cartesian):
         """
-        Args:
+        Arguments:
             distance (any): Keys of: tuple(int) for two atom indexes and
                              values of the distance in Å or None
             cartesian (any): List of atom indexes or None
