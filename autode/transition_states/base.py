@@ -52,7 +52,8 @@ class TSbase(Species):
 
         if self.calc is None:
             logger.info('Calculating the hessian..')
-            self.calc = Calculation(name=self.name + '_hess', molecule=self,
+            self.calc = Calculation(name=self.name + '_hess',
+                                    molecule=self,
                                     method=method,
                                     keywords=method.keywords.hess,
                                     n_cores=Config.n_cores)
