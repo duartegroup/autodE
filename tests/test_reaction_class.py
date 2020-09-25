@@ -50,9 +50,11 @@ def test_reaction_class():
     assert hh_reac.name == 'h2_assoc'
     assert hh_reac.calc_delta_e() == -4
 
-    h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
-    hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
-    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
+    h1 = reaction.Reactant(name='h1', atoms=[Atom('H')])
+    hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
+                                                      Atom('H', x=1.0)])
+    hh_product = reaction.Product(name='hh', atoms=[Atom('H'),
+                                                    Atom('H', x=1.0)])
 
     # h + mol > mol + h
     h_sub = reaction.Reaction(h1, hh_reactant, h2_product, hh_product,
@@ -93,8 +95,10 @@ def test_check_solvent():
 def test_reaction_identical_reac_prods():
     os.chdir(os.path.join(here, 'data'))
 
-    hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
-    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
+    hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
+                                                      Atom('H', x=1.0)])
+    hh_product = reaction.Product(name='hh', atoms=[Atom('H'),
+                                                    Atom('H', x=1.0)])
 
     h2_reaction = reaction.Reaction(hh_reactant, hh_product)
 
@@ -121,18 +125,22 @@ def test_swap_reacs_prods():
 
 def test_bad_balance():
 
-    hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
+    hh_product = reaction.Product(name='hh',
+                                  atoms=[Atom('H'), Atom('H', x=1.0)])
 
     with pytest.raises(UnbalancedReaction):
         reaction.Reaction(h1, hh_product)
 
-    h_minus = reaction.Reactant(name='h1_minus', atoms=[Atom('H', 0.0, 0.0, 0.0)], charge=-1)
+    h_minus = reaction.Reactant(name='h1_minus', atoms=[Atom('H')], charge=-1)
     with pytest.raises(UnbalancedReaction):
         reaction.Reaction(h1, h_minus, hh_product)
 
-    h1_water = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)], solvent_name='water')
-    h2_water = reaction.Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)], solvent_name='water')
-    hh_thf = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)], solvent_name='thf')
+    h1_water = reaction.Reactant(name='h1', atoms=[Atom('H')],
+                                 solvent_name='water')
+    h2_water = reaction.Reactant(name='h2', atoms=[Atom('H', x=1.0)],
+                                 solvent_name='water')
+    hh_thf = reaction.Product(name='hh', atoms=[Atom('H'), Atom('H', x=1.0)],
+                              solvent_name='thf')
 
     with pytest.raises(SolventsDontMatch):
         reaction.Reaction(h1_water, h2_water, hh_thf)
@@ -140,10 +148,10 @@ def test_bad_balance():
 
 def test_calc_delta_e():
 
-    r1 = reaction.Reactant(name='h', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+    r1 = reaction.Reactant(name='h', atoms=[Atom('H')])
     r1.energy = -0.5
 
-    r2 = reaction.Reactant(name='h', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+    r2 = reaction.Reactant(name='h', atoms=[Atom('H')])
     r2.energy = -0.5
 
     tsguess = TSguess(atoms=None, reactant=ReactantComplex(r1),
@@ -152,7 +160,7 @@ def test_calc_delta_e():
     ts = TransitionState(tsguess)
     ts.energy = -0.8
 
-    p = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0), Atom('H', 1.0, 0.0, 0.0)])
+    p = reaction.Product(name='hh', atoms=[Atom('H'), Atom('H', x=1.0)])
     p.energy = -1.0
 
     reac = reaction.Reaction(r1, r2, p)
@@ -169,7 +177,7 @@ def test_from_smiles():
     assert len(addition.reacs) == 2
     assert len(addition.prods) == 1
 
-    # Should be readable ish names
+    # Should be readable-ish names
     for reac in addition.reacs:
         assert reac.name != 'molecule'
 

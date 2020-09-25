@@ -163,7 +163,8 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
 
 class TSguess(TSbase):
 
-    def __init__(self, atoms, reactant, product, name='ts_guess'):
+    def __init__(self, atoms, reactant=None, product=None, name='ts_guess',
+                 charge=0, mult=1):
         """
         Transition state guess
 
@@ -173,10 +174,12 @@ class TSguess(TSbase):
             product (autode.complex.ProductComplex):
 
         Keyword Arguments:
-            name (str): name of ts guess (default: {'ts_guess'})
+            name (str):
+            charge (int):
+            mult (int):
         """
         super().__init__(name=name, atoms=atoms, reactant=reactant,
-                         product=product)
+                         product=product, charge=charge, mult=mult)
 
 
 def get_ts_guess(species, reactant, product, name):

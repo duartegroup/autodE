@@ -4,6 +4,7 @@ from autode.transition_states.ts_guess import TSguess
 from autode.bond_rearrangement import BondRearrangement
 from autode.reactions.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
+from autode.input_output import xyz_file_to_atoms
 from autode.species.molecule import Reactant, Product
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
@@ -16,6 +17,7 @@ from autode.species.species import Species
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.wrappers.G09 import G09
 from . import testutils
+import pytest
 import os
 import shutil
 
@@ -28,11 +30,12 @@ method.available = True
 Config.hcode = 'orca'
 Config.ORCA.path = here
 
-ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl', 1.63664, 0.02010, -0.05829),
-                                          Atom('C', -0.14524, -0.00136, 0.00498),
-                                          Atom('H', -0.52169, -0.54637, -0.86809),
-                                          Atom('H', -0.45804, -0.50420, 0.92747),
-                                          Atom('H', -0.51166, 1.03181, -0.00597)])
+ch3cl = Reactant(charge=0, mult=1,
+                 atoms=[Atom('Cl', 1.63664, 0.02010, -0.05829),
+                        Atom('C', -0.14524, -0.00136, 0.00498),
+                        Atom('H', -0.52169, -0.54637, -0.86809),
+                        Atom('H', -0.45804, -0.50420, 0.92747),
+                        Atom('H', -0.51166, 1.03181, -0.00597)])
 f = Reactant(charge=-1, mult=1, atoms=[Atom('F', 4.0, 0.0, 0.0)])
 reac_complex = ReactantComplex(f, ch3cl)
 
@@ -208,3 +211,22 @@ def test_find_tss():
     assert template.graph.number_of_nodes() == 6
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
+def test_optts_no_reactants_products():
+
+    da_ts_guess = TSguess(atoms=xyz_file_to_atoms('da_TS_guess.xyz'))
+    da_ts = TransitionState(da_ts_guess)
+    da_ts.optimise()
+
+    assert len(da_ts.imaginary_frequencies) == 1
+    imag_freq = da_ts.imaginary_frequencies[0]
+
+    assert -500 < imag_freq < -300      # cm-1
+
+    # Should raise exceptions for TSs not initialised with reactants and
+    # products
+    with pytest.raises(ValueError):
+        _ = da_ts.could_have_correct_imag_mode()
+
+    with pytest.raises(ValueError):
+        _ = da_ts.has_correct_imag_mode()

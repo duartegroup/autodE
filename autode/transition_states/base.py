@@ -15,10 +15,24 @@ class TSbase(Species):
 
     def _init_graph(self):
         """Set the molecular graph for this TS object from the reactant"""
-        logger.warning(f'Setting the graph of {self.name} from reactants')
+        if self.reactant is not None:
+            logger.warning(f'Setting the graph of {self.name} from reactants')
+            self.graph = self.reactant.graph.copy()
 
-        self.graph = self.reactant.graph.copy()
+        elif self.atoms is not None:
+            logger.warning(f'Setting the graph of {self.name} from atoms')
+            make_graph(self)
+
+        else:
+            logger.warning('Have no TS graph')
+
         return None
+
+    def _check_reactants_products(self):
+        """Ensure that reactants and products are set"""
+        if self.reactant is None or self.product is None:
+            raise ValueError('Could not check imaginary mode – reactants '
+                             ' and/or products not set ')
 
     def could_have_correct_imag_mode(self, method=None, threshold=-45):
         """
@@ -34,13 +48,15 @@ class TSbase(Species):
         Returns:
             (bool):
         """
+        self._check_reactants_products()
         # By default the high level method is used to check imaginary modes
         if method is None:
             method = get_hmethod()
 
         if self.calc is None:
             logger.info('Calculating the hessian..')
-            self.calc = Calculation(name=self.name + '_hess', molecule=self,
+            self.calc = Calculation(name=self.name + '_hess',
+                                    molecule=self,
                                     method=method,
                                     keywords=method.keywords.hess,
                                     n_cores=Config.n_cores)
@@ -81,6 +97,7 @@ class TSbase(Species):
     def has_correct_imag_mode(self, calc=None, method=None):
         """Check that the imaginary mode is 'correct' set the calculation
         (hessian or optts)"""
+        self._check_reactants_products()
         self.calc = calc if calc is not None else self.calc
 
         # By default the high level method is used to check imaginary modes
@@ -105,10 +122,29 @@ class TSbase(Species):
         logger.warning('Species does *not* have the correct imaginary mode')
         return False
 
-    def __init__(self, atoms, reactant, product, name='ts_guess'):
+    def __init__(self, atoms, reactant=None, product=None, name='ts_guess',
+                 charge=0, mult=1):
+        """
+        Parent transition state class
 
-        super().__init__(name=name, atoms=atoms, charge=reactant.charge, mult=reactant.mult)
-        self.solvent = reactant.solvent
+        Arguments:
+            atoms (list(autode.atoms.Atom)):
+
+        Keyword Arguments:
+            reactant (autode.species.Species): If None then mode checking will
+                                               not be available
+            product (autode.species.Species): If None then mode checking will
+                                             not be available
+            name (str):
+            charge (int):
+            mult (int):
+        """
+        super().__init__(name=name,
+                         atoms=atoms,
+                         charge=charge if reactant is None else reactant.charge,
+                         mult=mult if reactant is None else reactant.mult)
+
+        self.solvent = None if reactant is None else reactant.solvent
         self.atoms = atoms
 
         self.reactant = reactant
@@ -185,7 +221,7 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
                         charge=0, mult=1)
 
     if imag_mode_generates_other_bonds(ts_species, f_species, b_species, bond_rearrangement):
-        logger.warning('Imaginary mode generates bonds that are not active..')
+        logger.warning('Imaginary mode generates bonds that are not active')
         return False
 
     # Product could be either the forward displaced molecule or the backwards
@@ -247,19 +283,22 @@ def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement
 
     for product in (f_species, b_species):
 
-        new_bonds_in_product = set([bond for bond in product.graph.edges if bond not in ts.graph.edges])
+        new_bonds_in_product = set([bond for bond in product.graph.edges
+                                    if bond not in ts.graph.edges])
 
-        # If there are new bonds in the forward displaced species that are not part of the bond rearrangement
+        # If there are new bonds in the forward displaced species that are not
+        # part of the bond rearrangement
         if any(bond not in bond_rearrangement.all for bond in new_bonds_in_product):
             logger.warning(f'New bonds in product: {new_bonds_in_product}')
             logger.warning(f'Bond rearrangement: {bond_rearrangement.all}')
             return True
 
-    logger.info('Imaginary mode does generate any other unwanted bonds')
+    logger.info('Imaginary mode does not generate any other unwanted bonds')
     return False
 
 
-def imag_mode_links_reactant_products(calc, reactant, product, method, disp_mag=1.0):
+def imag_mode_links_reactant_products(calc, reactant, product, method,
+                                      disp_mag=1.0):
     """Displaces atoms along the imaginary mode forwards (f) and backwards (b)
     to see if products and reactants are made
 

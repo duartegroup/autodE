@@ -2,7 +2,7 @@ from rdkit import Chem
 from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
-from autode.geom import calc_rmsd
+from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 import numpy as np
 
@@ -87,7 +87,7 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
 def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
     """
     Determine if a conformer is unique based on an root mean squared
-    displacement RMSD threshold
+    displacement RMSD threshold based on heavy atoms
 
     Arguments:
         conf (autode.conformer.Conformer):
@@ -97,7 +97,6 @@ def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
         rmsd_tol (float): Tolerance for an equivalent structure based on the
                           rmsd in Å. If None then use the default value for
                           autode.Config.rmsd_threshold
-
     Returns:
         (bool):
     """
@@ -107,10 +106,8 @@ def conf_is_unique_rmsd(conf, conf_list, rmsd_tol=None):
     # Calculate the RMSD between this Conformer and the those in conf_list
     # using the Kabsch algorithm
     for other_conf in conf_list:
-        conf_coords = conf.get_coordinates()
-        other_conf_coords = other_conf.get_coordinates()
 
-        if calc_rmsd(conf_coords, other_conf_coords) < rmsd_tol:
+        if calc_heavy_atom_rmsd(conf.atoms, other_conf.atoms) < rmsd_tol:
             return False
 
     return True

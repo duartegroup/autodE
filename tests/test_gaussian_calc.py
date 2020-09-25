@@ -115,6 +115,7 @@ def test_fix_angle_error():
     os.chdir(os.path.join(here, 'data', 'g09'))
 
     mol = Molecule(smiles='CC/C=C/CO')
+    mol.name = 'molecule'
 
     calc = Calculation(name='angle_fail', molecule=mol, method=method,
                        keywords=opt_keywords)
@@ -146,7 +147,12 @@ def test_constraints():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_single_atom_opt():
 
-    calc = Calculation(name='H', molecule=Molecule(smiles='[H]'), method=method,
+    mol = Molecule(smiles='[H]')
+    mol.name = 'molecule'
+
+    calc = Calculation(name='H',
+                       molecule=mol,
+                       method=method,
                        keywords=opt_keywords, n_cores=2)
     calc.generate_input()
     assert os.path.exists('H_g09.com')

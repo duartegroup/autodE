@@ -7,6 +7,7 @@ from autode.calculation import Calculation
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, NoNormalModesFound
 from autode.geom import get_distance_constraints
+from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.mol_graphs import set_active_mol_graph
@@ -20,22 +21,36 @@ class TransitionState(TSbase):
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being
         made/broken"""
-        set_active_mol_graph(species=self, active_bonds=self.bond_rearrangement.all)
+        if self.bond_rearrangement is None:
+            logger.warning('Bond rearrangement not set - molecular graph '
+                           'updating with no active bonds')
+            active_bonds = []
 
-        logger.info(f'Molecular graph updated with '
-                    f'{len(self.bond_rearrangement.all)} active bonds')
+        else:
+            active_bonds = self.bond_rearrangement.all
+
+        set_active_mol_graph(species=self, active_bonds=active_bonds)
+
+        logger.info(f'Molecular graph updated with active bonds')
         return None
 
     def _run_opt_ts_calc(self, method, name_ext):
         """Run an optts calculation and attempt to set the geometry, energy and
          normal modes"""
+        if self.bond_rearrangement is None:
+            logger.warning('Cannot add redundant internal coordinates for the '
+                           'active bonds with no bond rearrangement')
+            bond_ids = None
+
+        else:
+            bond_ids = self.bond_rearrangement.all
 
         self.optts_calc = Calculation(name=f'{self.name}_{name_ext}',
                                       molecule=self,
                                       method=method,
                                       n_cores=Config.n_cores,
                                       keywords=method.keywords.opt_ts,
-                                      bond_ids_to_add=self.bond_rearrangement.all,
+                                      bond_ids_to_add=bond_ids,
                                       other_input_block=method.keywords.optts_block)
         self.optts_calc.run()
 
@@ -53,7 +68,7 @@ class TransitionState(TSbase):
                                                   method=method,
                                                   n_cores=Config.n_cores,
                                                   keywords=method.keywords.opt_ts,
-                                                  bond_ids_to_add=self.bond_rearrangement.all,
+                                                  bond_ids_to_add=bond_ids,
                                                   other_input_block=method.keywords.optts_block)
                     self.optts_calc.run()
                 else:
@@ -144,35 +159,43 @@ class TransitionState(TSbase):
 
         return None
 
-    def find_lowest_energy_ts_conformer(self):
+    def find_lowest_energy_ts_conformer(self, rmsd_threshold=None):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""
+        logger.info('Finding lowest energy TS conformer')
+
         atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
         calc = deepcopy(self.optts_calc)
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
         self.find_lowest_energy_conformer(hmethod=hmethod)
 
-        if len(self.conformers) == 1:
-            logger.warning('Only found a single conformer. '
-                           'Not rerunning TS optimisation')
-            self.set_atoms(atoms=atoms)
-            self.energy = energy
-            self.optts_calc = calc
-            return None
+        # Remove similar TS conformer that are similar to this TS based on root
+        # mean squared differences in their structures
+        thresh = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
+        self.conformers = [conf for conf in self.conformers if
+                           calc_heavy_atom_rmsd(conf.atoms, atoms) > thresh]
 
-        self.optimise(name_ext='optts_conf')
+        logger.info(f'Generated {len(self.conformers)} unique (RMSD > '
+                    f'{thresh} Å) TS conformer(s)')
 
-        if self.is_true_ts() and self.energy < energy:
-            logger.info('Conformer search successful')
+        # Optimise the lowest energy conformer to a transition state - will
+        # .find_lowest_energy_conformer will have updated self.atoms etc.
+        if len(self.conformers) > 0:
+            self.optimise(name_ext='optts_conf')
 
-        else:
+            if self.is_true_ts() and self.energy < energy:
+                logger.info('Conformer search successful')
+                return None
+
             logger.warning(f'Transition state conformer search failed '
                            f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
-            self.set_atoms(atoms=atoms)
-            self.energy = energy
-            self.optts_calc = calc
-            self.imaginary_frequencies = calc.get_imaginary_freqs()
+
+        logger.info('Reverting to previously found TS')
+        self.set_atoms(atoms=atoms)
+        self.energy = energy
+        self.optts_calc = calc
+        self.imaginary_frequencies = calc.get_imaginary_freqs()
 
         return None
 
@@ -200,6 +223,10 @@ class TransitionState(TSbase):
             folder_path (str): folder to save the TS template to
             (default: {None})
         """
+        if self.bond_rearrangement is None:
+            raise ValueError('Cannot save a TS template without a bond '
+                             'rearrangement')
+
         logger.info(f'Saving TS template for {self.name}')
 
         truncated_graph = get_truncated_active_mol_graph(self.graph)
@@ -218,10 +245,14 @@ class TransitionState(TSbase):
         Transition State
 
         Arguments:
-            ts_guess (autode.transition_states.ts_guess.TSguess)
+            ts_guess (autode.transition_states.ts_guess.TSguess):
         """
-        super().__init__(atoms=ts_guess.atoms, reactant=ts_guess.reactant,
-                         product=ts_guess.product, name=f'TS_{ts_guess.name}')
+        super().__init__(atoms=ts_guess.atoms,
+                         reactant=ts_guess.reactant,
+                         product=ts_guess.product,
+                         name=f'TS_{ts_guess.name}',
+                         charge=ts_guess.charge,
+                         mult=ts_guess.mult)
 
         self.bond_rearrangement = ts_guess.bond_rearrangement
         self.conformers = None

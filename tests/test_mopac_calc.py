@@ -74,15 +74,21 @@ def test_mopac_with_pc():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_other_spin_states():
 
+    o_singlet = Molecule(atoms=[Atom('O')], mult=1)
+    o_singlet.name = 'molecule'
+
     calc = Calculation(name='O_singlet',
-                       molecule=Molecule(atoms=[Atom('O')], mult=1),
+                       molecule=o_singlet,
                        method=method,
                        keywords=Config.MOPAC.keywords.sp)
     calc.run()
     singlet_energy = calc.get_energy()
 
+    o_triplet = Molecule(atoms=[Atom('O')], mult=3)
+    o_triplet.name = 'molecule'
+
     calc = Calculation(name='O_triplet',
-                       molecule=Molecule(atoms=[Atom('O')], mult=3),
+                       molecule=o_triplet,
                        method=method,
                        keywords=Config.MOPAC.keywords.sp)
     calc.run()
@@ -90,8 +96,11 @@ def test_other_spin_states():
 
     assert triplet_energy < singlet_energy
 
+    h_doublet = Molecule(atoms=[Atom('H')], mult=2)
+    h_doublet.name = 'molecule'
+
     calc = Calculation(name='h',
-                       molecule=Molecule(atoms=[Atom('H')], mult=2),
+                       molecule=h_doublet,
                        method=method,
                        keywords=Config.MOPAC.keywords.sp)
     calc.run()
@@ -99,9 +108,12 @@ def test_other_spin_states():
     # Open shell doublet should work
     assert calc.get_energy() is not None
 
+    h_quin = Molecule(atoms=[Atom('H')], mult=5)
+    h_quin.name = 'molecule'
+
     with pytest.raises(UnsuppportedCalculationInput):
         calc = Calculation(name='h',
-                           molecule=Molecule(atoms=[Atom('H')], mult=5),
+                           molecule=h_quin,
                            method=method,
                            keywords=Config.MOPAC.keywords.sp)
         calc.run()
