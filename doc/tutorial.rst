@@ -36,7 +36,7 @@ this calculation
 
 
 Initialise reactants and products from their respective SMILES strings giving
-a name to each, which will be used in calculation file names
+a name to each, which will be used as the calculation file names
 
 .. code-block:: python
 

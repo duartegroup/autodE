@@ -1,12 +1,16 @@
 ### Running
 
-To run the tests:
+To run the tests in this directory ensure the requirements are satisfied
+
+```bash
+conda install --file requirements.txt
+```
+
+then run the tests
 
 ```bash
 py.test 
 ```
-in this directory. 
-
 
 ### Benchmark
 In addition to the tests there is a benchmark of calculations (benchmark.py) to

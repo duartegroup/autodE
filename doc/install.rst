@@ -62,7 +62,7 @@ extracting it. Then, open an anaconda command prompt and ``cd`` to the directory
     compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ is available.
 
 Installation Check
-******************
+------------------
 
 **autodE** will pick up any electronic structure theory packages with implemented wrappers (ORCA, NWChem, Gaussian09, XTB
 and MOPAC) that are available from your *PATH* environment variable. To check the expected high and low level methods are
@@ -80,7 +80,7 @@ available:
 If a MethodUnavailable exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
 
 Quick test
-**********
+----------
 
 If the high and/or low level methods have been installed for the first time
 it may be useful to check they're installed correctly. To run a quick optimisation

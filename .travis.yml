@@ -17,6 +17,7 @@ install:
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - source activate test-env
   - conda install xtb
+  - conda install --file tests/requirements.txt
   - python setup.py install
 jobs:
   include:
