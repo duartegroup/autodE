@@ -75,6 +75,17 @@ class ElectronicStructureMethod(ABC):
         pass
 
     @abstractmethod
+    def get_version(self, calc):
+        """
+        Get the version of the method e.g. ORCA v. 4.2.1. Function implemented
+        in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+        """
+        pass
+
+    @abstractmethod
     def execute(self, calc):
         """
         Function implemented in individual child classes
@@ -207,17 +218,31 @@ class ElectronicStructureMethod(ABC):
         """
         pass
 
-    def __init__(self, name, path, keywords_set, implicit_solvation_type):
+    def doi_str(self):
+        return " ".join(self.doi_list)
+
+    def __init__(self, name, path, keywords_set, implicit_solvation_type,
+                 doi=None, doi_list=None):
         """
         Arguments:
             name (str): wrapper name. ALSO the name of the executable
             path (str): absolute path to the executable
             keywords_set (autode.wrappers.keywords.KeywordsSet):
-            implicit_solvation_type (str):
+            implicit_solvation_type (autode.wrappers.
+                                     keywords.ImplicitSolventType):
 
         """
         self.name = name
         self.__name__ = self.__class__.__name__
+
+        # Digital object identifier(s) of the method/or paper describing the
+        # method
+        self.doi_list = []
+        if doi_list is not None:
+            self.doi_list += doi_list
+
+        if doi is not None:
+            self.doi_list.append(doi)
 
         # If the path is not set in config.py or input script search in $PATH
         self.path = path if path is not None else which(name)
@@ -227,5 +252,4 @@ class ElectronicStructureMethod(ABC):
 
         self.keywords = deepcopy(keywords_set)
 
-        assert type(implicit_solvation_type) is str
         self.implicit_solvation_type = implicit_solvation_type

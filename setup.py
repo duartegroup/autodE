@@ -1,12 +1,13 @@
 from setuptools import setup
 from Cython.Build import cythonize
 from setuptools.extension import Extension
+import autode
 
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx'])]
 
 setup(name='autode',
-      version='1.0.0a2',
+      version=autode.__version__,
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',
@@ -16,6 +17,7 @@ setup(name='autode',
                 'autode.species',
                 'autode.wrappers',
                 'autode.transition_states',
+                'autode.log',
                 'autode.solvent'],
       include_package_data=True,
       package_data={'autode.transition_states': ['lib/*.txt']},

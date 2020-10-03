@@ -1,4 +1,9 @@
+import autode.wrappers.implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet
+from autode.wrappers.basis_sets import def2svp, def2tzvp
+from autode.wrappers.functionals import pbe, pbe0
+from autode.wrappers.dispersion import d3bj
+from autode.wrappers.ri import rijcosx
 
 
 class Config:
@@ -97,17 +102,17 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', 'PBE',  'D3BJ',
-                                        'def2-SVP'],
-                               grad=['EnGrad', 'PBE0', 'D3BJ', 'def2-SVP'],
-                               opt=['Opt', 'PBE0', 'RIJCOSX', 'D3BJ',
-                                    'def2-SVP', 'def2/J'],
-                               opt_ts=['OptTS', 'Freq', 'PBE0', 'RIJCOSX',
-                                       'D3BJ', 'def2-SVP', 'def2/J'],
-                               hess=['Freq', 'PBE0', 'RIJCOSX', 'D3BJ',
-                                     'def2-SVP', 'def2/J'],
-                               sp=['SP', 'PBE0', 'RIJCOSX', 'D3BJ', 'def2/J',
-                                   'def2-TZVP'],
+        keywords = KeywordsSet(low_opt=['LooseOpt', pbe,  d3bj, def2svp],
+                               grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
+                                     'AutoAux'],
+                               opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
+                                    'AutoAux'],
+                               opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj,
+                                       def2svp, 'AutoAux'],
+                               hess=['Freq', pbe0, rijcosx, d3bj, def2svp,
+                                     'AutoAux'],
+                               sp=['SP', pbe0, rijcosx, d3bj, def2tzvp,
+                                   'AutoAux'],
                                optts_block=('%geom\n'
                                             'Calc_Hess true\n' 
                                             'Recalc_Hess 30\n'
@@ -120,7 +125,7 @@ class Config:
         # better geometry convergence (https://doi.org/10.1002/jcc.26139) SMD
         # is in general more accurate, but does not (yet) have support for the
         # VdW charge scheme. Use either 1. 'cpcm', 2. 'smd'
-        implicit_solvation_type = 'cpcm'
+        implicit_solvation_type = solv.cpcm
 
     class G09:
         # ---------------------------------------------------------------------
@@ -147,7 +152,7 @@ class Config:
                                sp=['PBE1PBE/Def2TZVP', disp, grid])
 
         # Only SMD implemented
-        implicit_solvation_type = 'smd'
+        implicit_solvation_type = solv.smd
 
     class G16:
         # ---------------------------------------------------------------------
@@ -170,7 +175,7 @@ class Config:
                                sp=['PBE1PBE/Def2TZVP', disp])
 
         # Only SMD implemented
-        implicit_solvation_type = 'smd'
+        implicit_solvation_type = solv.smd
 
     class NWChem:
         # ---------------------------------------------------------------------
@@ -232,7 +237,7 @@ class Config:
                                    'task dft energy'])
 
         # Only SMD implemented
-        implicit_solvation_type = 'smd'
+        implicit_solvation_type = solv.smd
 
     class XTB:
         # ---------------------------------------------------------------------
@@ -245,7 +250,7 @@ class Config:
         keywords = KeywordsSet()
         #
         # Only GBSA implemented
-        implicit_solvation_type = 'gbsa'
+        implicit_solvation_type = solv.gbsa
 
     class MOPAC:
         # ---------------------------------------------------------------------
@@ -261,4 +266,4 @@ class Config:
         keywords = KeywordsSet(low_opt=['PM7', 'PRECISE'])
         #
         # Only COSMO implemented
-        implicit_solvation_type = 'cosmo'
+        implicit_solvation_type = solv.cosmo

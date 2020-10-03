@@ -2,19 +2,13 @@ from copy import deepcopy
 import os
 import hashlib
 import base64
+import autode.wrappers.keywords as kws
+import autode.exceptions as ex
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names
 from autode.solvent.solvents import get_solvent
 from autode.config import Config
-from autode.wrappers.keywords import Keywords
 from autode.solvent.solvents import Solvent
-from autode.exceptions import AtomsNotFound
-from autode.exceptions import CouldNotGetProperty
-from autode.exceptions import MethodUnavailable
-from autode.exceptions import NoInputError
-from autode.exceptions import NoNormalModesFound
-from autode.exceptions import SolventUnavailable
-from autode.exceptions import NoCalculationOutput
 from autode.log import logger
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
@@ -48,16 +42,15 @@ def get_solvent_name(molecule, method):
         solvent = molecule.solvent
 
     else:
-        raise SolventUnavailable('Expecting either a str or Solvent')
+        raise ex.SolventUnavailable('Expecting either a str or Solvent')
 
-    # Get the name of the solvent for this method
-    solvent_name = getattr(solvent, method.name)
+    try:
+        # Get the name of the solvent for this method
+        return getattr(solvent, method.name)
 
-    if solvent_name is None:
-        raise SolventUnavailable(f'Available solvents for {method.name} are '
-                                 f'{get_available_solvent_names(method)}')
-
-    return solvent_name
+    except AttributeError:
+        raise ex.SolventUnavailable(f'Available solvents for {method.name} are'
+                                    f' {get_available_solvent_names(method)}')
 
 
 class Calculation:
@@ -81,7 +74,7 @@ class Calculation:
         # The molecule must have > 0 atoms
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             logger.error('Have no atoms. Can\'t form a calculation')
-            raise NoInputError
+            raise ex.NoInputError
 
     def _get_energy(self, e=False, h=False, g=False, force=False):
         """
@@ -173,6 +166,40 @@ class Calculation:
 
             n += 1
 
+    def _add_to_comp_methods(self):
+        """Add the methods used in this calculation to the used methods list"""
+        from autode.log.methods import methods
+        string = ''
+
+        # Type of calculation ----
+        if isinstance(self.input.keywords, kws.SinglePointKeywords):
+            string += 'Single point '
+
+        if isinstance(self.input.keywords, kws.OptKeywords):
+            string += 'Optimisation '
+
+        # Code used ----
+        string += (f'calculations were performed using {self.method.name} v. '
+                   f'{self.method.get_version(self)} '
+                   f'({self.method.doi_str()})')
+
+        # Level of theory ----
+        string += f' at the {self.input.keywords.method_string()} level'
+
+        basis = self.input.keywords.basis_set()
+        if basis is not None:
+            string += (f' in combination with the {str(basis)} '
+                       f'({basis.doi_str()}) basis set')
+
+        if self.input.solvent is not None:
+            solv_type = self.method.implicit_solvation_type
+            string += (f' and {solv_type.upper()} ({solv_type.doi_str()}) '
+                       f'solvation, with parameters appropriate for '
+                       f'{self.input.solvent}')
+
+        methods += f'{string}.'
+        return None
+
     def get_energy(self):
         return self._get_energy(e=True)
 
@@ -229,7 +256,7 @@ class Calculation:
         modes = self.method.get_normal_mode_displacements(self, mode_number)
 
         if len(modes) != self.molecule.n_atoms:
-            raise NoNormalModesFound
+            raise ex.NoNormalModesFound
 
         return modes
 
@@ -245,14 +272,14 @@ class Calculation:
 
         if not self.output.exists():
             logger.error('No calculation output. Could not get atoms')
-            raise AtomsNotFound
+            raise ex.AtomsNotFound
 
         # Extract the atoms from the output file, which is method dependent
         atoms = self.method.get_final_atoms(self)
 
         if len(atoms) != self.molecule.n_atoms:
             logger.error(f'Failed to get atoms from {self.output.filename}')
-            raise AtomsNotFound
+            raise ex.AtomsNotFound
 
         return atoms
 
@@ -269,7 +296,7 @@ class Calculation:
         charges = self.method.get_atomic_charges(self)
 
         if len(charges) != self.molecule.n_atoms:
-            raise CouldNotGetProperty(name='atomic charges')
+            raise ex.CouldNotGetProperty(name='atomic charges')
 
         return charges
 
@@ -286,7 +313,7 @@ class Calculation:
         gradients = self.method.get_gradients(self)
 
         if len(gradients) != self.molecule.n_atoms:
-            raise CouldNotGetProperty(name='gradients')
+            raise ex.CouldNotGetProperty(name='gradients')
 
         return gradients
 
@@ -324,12 +351,12 @@ class Calculation:
         logger.info(f'Running {self.input.filename} using {self.method.name}')
 
         if not self.input.exists():
-            raise NoInputError
+            raise ex.NoInputError('Input did not exist')
 
         # Check that the method used to execute the calculation is available
         self.method.set_availability()
         if not self.method.available:
-            raise MethodUnavailable
+            raise ex.MethodUnavailable
 
         # If the output file already exists set the output lines
         if os.path.exists(self.output.filename):
@@ -355,6 +382,7 @@ class Calculation:
         self.output.filename = self.method.get_output_filename(self)
         self.execute_calculation()
         self.clean_up()
+        self._add_to_comp_methods()
 
         return None
 
@@ -430,7 +458,7 @@ class CalculationOutput:
         logger.info('Setting output file lines')
 
         if not os.path.exists(self.filename):
-            raise NoCalculationOutput
+            raise ex.NoCalculationOutput
 
         self.file_lines = open(self.filename, 'r', encoding="utf-8").readlines()
 
@@ -455,7 +483,7 @@ class CalculationInput:
     def _check(self):
         """Check that the input parameters have the expected format"""
         if self.keywords is not None:
-            assert isinstance(self.keywords, Keywords)
+            assert isinstance(self.keywords, kws.Keywords)
 
         assert self.solvent is None or type(self.solvent) is str
         assert self.other_block is None or type(self.other_block) is str

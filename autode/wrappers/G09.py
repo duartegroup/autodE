@@ -226,6 +226,17 @@ class G09(ElectronicStructureMethod):
     def get_output_filename(self, calc):
         return f'{calc.name}.log'
 
+    def get_version(self, calc):
+        """Get the version of Gaussian used in this calculation"""
+
+        for line in calc.output.file_lines:
+
+            if line.startswith('Gaussian ') and 'Revision' in line:
+                return line.lstrip('Gaussian ')
+
+        logger.warning('Could not find the Gaussian version number')
+        return '???'
+
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
@@ -469,7 +480,8 @@ class G09(ElectronicStructureMethod):
         super().__init__(name=name,
                          path=Config.G09.path if path is None else path,
                          keywords_set=keywords_set,
-                         implicit_solvation_type=implicit_solvation_type)
+                         implicit_solvation_type=implicit_solvation_type,
+                         doi='http://gaussian.com/citation/')
 
 
 g09 = G09()

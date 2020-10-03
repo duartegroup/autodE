@@ -178,6 +178,17 @@ class NWChem(ElectronicStructureMethod):
     def get_output_filename(self, calc):
         return f'{calc.name}.out'
 
+    def get_version(self, calc):
+        """Get the NWChem version from the output file"""
+        for line in calc.output.file_lines:
+
+            if '(NWChem)' in line:
+                # e.g. Northwest Computational Chemistry Package (NWChem) 6.6
+                return line.split()[-1]
+
+        logger.warning('Could not find the NWChem version')
+        return '???'
+
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
@@ -365,7 +376,8 @@ class NWChem(ElectronicStructureMethod):
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,
                          keywords_set=Config.NWChem.keywords,
-                         implicit_solvation_type=Config.NWChem.implicit_solvation_type)
+                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
+                         doi='10.1063/5.0004997')
 
 
 nwchem = NWChem()

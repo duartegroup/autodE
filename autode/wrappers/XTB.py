@@ -109,6 +109,17 @@ class XTB(ElectronicStructureMethod):
     def get_output_filename(self, calc):
         return f'{calc.name}.out'
 
+    def get_version(self, calc):
+        """Get the XTB version from the output file"""
+
+        for line in calc.output.file_lines:
+            if 'xtb version' in line and len(line.split()) >= 4:
+                # e.g.   * xtb version 6.2.3 (830e466) compiled by ....
+                return line.split()[3]
+
+        logger.warning('Could not find the XTB version in the output file')
+        return '???'
+
     def execute(self, calc):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
@@ -317,7 +328,8 @@ class XTB(ElectronicStructureMethod):
     def __init__(self):
         super().__init__(name='xtb', path=Config.XTB.path,
                          keywords_set=Config.XTB.keywords,
-                         implicit_solvation_type=Config.XTB.implicit_solvation_type)
+                         implicit_solvation_type=Config.XTB.implicit_solvation_type,
+                         doi_list=['10.1002/wcms.1493'])
 
 
 xtb = XTB()

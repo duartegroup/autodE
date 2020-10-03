@@ -50,7 +50,7 @@ def add_solvent_keyword(calc_input, keywords, implicit_solv_type):
             and calc_input.solvent not in vdw_gaussian_solvent_dict.keys()):
 
         err = (f'CPCM solvent with gaussian charge not avalible for '
-               f'{calc_input.solvent}.Available solvents are '
+               f'{calc_input.solvent}. Available solvents are '
                f'{vdw_gaussian_solvent_dict.keys()}')
 
         raise UnsuppportedCalculationInput(message=err)
@@ -88,8 +88,9 @@ def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):
               f'end', file=inp_file)
 
     if use_vdw_gaussian_solvent(keywords, implicit_solv_type):
-        print('%cpcm\n surfacetype vdw_gaussian\nend', file=inp_file)
-
+        print('%cpcm\n'
+              'surfacetype vdw_gaussian\n'
+              'end', file=inp_file)
     return
 
 
@@ -224,6 +225,16 @@ class ORCA(ElectronicStructureMethod):
 
     def get_output_filename(self, calculation):
         return f'{calculation.name}.out'
+
+    def get_version(self, calc):
+        """Get the version of ORCA used to execute this calculation"""
+
+        for line in calc.output.file_lines:
+            if 'Program Version' in line and len(line.split()) >= 3:
+                return line.split()[2]
+
+        logger.warning('Could not find the ORCA version number')
+        return '???'
 
     def execute(self, calc):
 
@@ -435,7 +446,8 @@ class ORCA(ElectronicStructureMethod):
     def __init__(self):
         super().__init__('orca', path=Config.ORCA.path,
                          keywords_set=Config.ORCA.keywords,
-                         implicit_solvation_type=Config.ORCA.implicit_solvation_type)
+                         implicit_solvation_type=Config.ORCA.implicit_solvation_type,
+                         doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])
 
 
 orca = ORCA()
