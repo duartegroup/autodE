@@ -169,6 +169,11 @@ class Calculation:
     def _add_to_comp_methods(self):
         """Add the methods used in this calculation to the used methods list"""
         from autode.log.methods import methods
+
+        methods.add(f'Calculations were performed using {self.method.name} v. '
+                    f'{self.method.get_version(self)} '
+                    f'({self.method.doi_str()}).')
+
         string = ''
 
         # Type of calculation ----
@@ -178,13 +183,15 @@ class Calculation:
         if isinstance(self.input.keywords, kws.OptKeywords):
             string += 'Optimisation '
 
-        # Code used ----
-        string += (f'calculations were performed using {self.method.name} v. '
-                   f'{self.method.get_version(self)} '
-                   f'({self.method.doi_str()})')
+        if isinstance(self.input.keywords, kws.GradientKeywords):
+            string += 'Gradient '
+
+        if isinstance(self.input.keywords, kws.HessianKeywords):
+            string += 'Hessian '
 
         # Level of theory ----
-        string += f' at the {self.input.keywords.method_string()} level'
+        string += (f'calculations performed at the '
+                   f'{self.input.keywords.method_string()} level')
 
         basis = self.input.keywords.basis_set()
         if basis is not None:
@@ -197,7 +204,7 @@ class Calculation:
                        f'solvation, with parameters appropriate for '
                        f'{self.input.solvent}')
 
-        methods += f'{string}.'
+        methods += f'{string}.\n'
         return None
 
     def get_energy(self):

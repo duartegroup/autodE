@@ -4,8 +4,6 @@ import numpy as np
 import os
 from scipy.optimize import minimize
 from time import time
-from cconf_gen import v
-from cconf_gen import dvdr
 from autode.bond_lengths import get_ideal_bond_length_matrix
 from autode.config import Config
 from autode.input_output import xyz_file_to_atoms
@@ -64,6 +62,8 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8
         (np.ndarray): Optimised coordinates, shape = (n_atoms, 3)
     """
     # TODO divide and conquer?
+    from cconf_gen import v
+    from cconf_gen import dvdr
 
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
@@ -99,6 +99,8 @@ def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
     Returns:
         (float): Energy
     """
+    from cconf_gen import v
+
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
 

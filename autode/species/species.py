@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
 from autode.solvent.solvents import get_solvent
@@ -178,6 +179,7 @@ class Species:
             hmethod (autode.wrappers.ElectronicStructureMethod):
         """
         logger.info('Finding lowest energy conformer')
+        methods.add('Low energy conformers located with the')
 
         if self.n_atoms <= 2:
             logger.warning('Cannot have conformers of a species with 2 atoms '
@@ -196,6 +198,11 @@ class Species:
             return None
 
         # For all generated conformers optimise with the low level of theory
+        method_string = f'and optimised using {lmethod.name}'
+        if hmethod is not None:
+            method_string += f'then at {hmethod.name}'
+        methods.add(f'{method_string}.')
+
         for conformer in self.conformers:
             conformer.optimise(lmethod)
 

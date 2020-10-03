@@ -19,10 +19,14 @@ class ComputationalMethods:
         """String of the computational methods used in this initialisation
         of autodE prepended with the current version"""
         import autode
-        autode_str = (f'All calculations were performed with autodE '
+        autode_str = (f'All calculations were performed in autodE '
                       f'v. {autode.__version__}. ')
 
         return autode_str + " ".join(self._list)
+
+    def add(self, other):
+        """Add a string to the methods"""
+        return self.__add__(other)
 
     def clear(self):
         """Clear the current string"""

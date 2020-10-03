@@ -1,14 +1,20 @@
 from copy import deepcopy
+from autode.log import logger
 
 
 class KeywordsSet:
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
-        assert type(functional) is Functional
-
         for attr in ('opt', 'opt_ts', 'grad', 'hess'):
             getattr(self, attr).set_functional(functional)
+
+        return None
+
+    def set_opt_basis_set(self, basis_set):
+        """Set the basis set for all optimisation and gradient calculations"""
+        for attr in ('opt', 'opt_ts', 'grad', 'hess'):
+            getattr(self, attr).set_basis_set(basis_set)
 
         return None
 
@@ -70,16 +76,27 @@ class Keywords:
     def __str__(self):
         return '_'.join([str(kw) for kw in self.keyword_list])
 
-    def set_functional(self, functional):
-        """Set the functional in a set of keywords"""
-        assert type(functional) is Functional
+    def _set_keyword(self, keyword, keyword_type):
+        """Set a keyword. A keyword of the same type must exist"""
+        if type(keyword) is str:
+            keyword = Functional(name=keyword)
 
-        for i, keyword in enumerate(self.keyword_list):
-            if isinstance(keyword, Functional):
-                self.keyword_list[i] = functional
+        assert type(keyword) is keyword_type
+
+        for i, keyword_in_list in enumerate(self.keyword_list):
+            if isinstance(keyword_in_list, keyword_type):
+                self.keyword_list[i] = keyword
                 return
 
-        raise ValueError('Could not set the functional - none recognised')
+        raise ValueError('Could not set the keyword - none recognised')
+
+    def set_functional(self, functional):
+        """Set the functional in a set of keywords"""
+        return self._set_keyword(functional, keyword_type=Functional)
+
+    def set_basis_set(self, basis_set):
+        """Set the functional in a set of keywords"""
+        return self._set_keyword(basis_set, keyword_type=BasisSet)
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""
@@ -105,6 +122,10 @@ class Keywords:
         wf = self.wf_method()
         if wf is not None:
             string += f'{str(wf)}({wf.doi_str()})'
+
+        if len(string) == 0:
+            logger.warning('Unkown method')
+            string = '???'
 
         return string
 

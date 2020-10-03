@@ -2,7 +2,7 @@ import rdkit.Chem.Descriptors
 from rdkit.Chem import AllChem
 from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
-from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
+from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.exceptions import RDKitFailed
 from autode.geom import are_coords_reasonable
 from autode.log import logger
@@ -62,7 +62,7 @@ def init_organic_smiles(molecule, smiles):
     method = AllChem.ETKDGv2()
     method.randomSeed = 0xf00d
     AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=method)
-    molecule.set_atoms(atoms=get_atoms_from_rdkit_mol_object(molecule.rdkit_mol_obj, conf_id=0))
+    molecule.set_atoms(atoms=atoms_from_rdkit_mol(molecule.rdkit_mol_obj, conf_id=0))
     make_graph(molecule, bond_list=bonds)
 
     if not are_coords_reasonable(coords=molecule.get_coordinates()):
