@@ -180,14 +180,13 @@ class Calculation:
         if isinstance(self.input.keywords, kws.SinglePointKeywords):
             string += 'Single point '
 
-        if isinstance(self.input.keywords, kws.OptKeywords):
+        elif isinstance(self.input.keywords, kws.OptKeywords):
             string += 'Optimisation '
 
-        if isinstance(self.input.keywords, kws.GradientKeywords):
-            string += 'Gradient '
-
-        if isinstance(self.input.keywords, kws.HessianKeywords):
-            string += 'Hessian '
+        else:
+            logger.warning('Not adding gradient or hessian to methods section '
+                           'anticipating that they will be the same as opt')
+            return
 
         # Level of theory ----
         string += (f'calculations performed at the '
@@ -349,6 +348,17 @@ class Calculation:
 
         self._fix_unique()
         self.input.filename = self.method.get_input_filename(self)
+
+        # Check that if the keyword is a autode.wrappers.keywords.Keyword then
+        # it has the required name in the method used for this calculation
+        for keyword in self.input.keywords:
+            if not isinstance(keyword, kws.Keyword):
+                continue
+
+            if not hasattr(keyword, self.method.name):
+                raise ex.UnsuppportedCalculationInput(f'Keyword: {keyword} :'
+                                                      f'not supported')
+
         self.method.generate_input(self, self.molecule)
 
         return None

@@ -200,7 +200,7 @@ class Species:
         # For all generated conformers optimise with the low level of theory
         method_string = f'and optimised using {lmethod.name}'
         if hmethod is not None:
-            method_string += f'then at {hmethod.name}'
+            method_string += f' then with {hmethod.name}'
         methods.add(f'{method_string}.')
 
         for conformer in self.conformers:

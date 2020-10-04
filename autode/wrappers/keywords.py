@@ -123,8 +123,12 @@ class Keywords:
         if wf is not None:
             string += f'{str(wf)}({wf.doi_str()})'
 
+        ri = self._get_keyword(keyword_type=RI)
+        if ri is not None:
+            string += f'({ri.upper()}, {ri.doi_str()})'
+
         if len(string) == 0:
-            logger.warning('Unkown method')
+            logger.warning('Unknown method')
             string = '???'
 
         return string

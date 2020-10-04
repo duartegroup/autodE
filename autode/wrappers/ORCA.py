@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
@@ -63,17 +64,23 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
     """Modify the keywords for this calculation with the solvent + fix for
     single atom optimisation calls"""
 
-    keywords = calc_input.keywords.copy()
+    new_keywords = []
 
-    for keyword in keywords:
+    for keyword in calc_input.keywords.copy():
         if 'opt' in keyword.lower() and molecule.n_atoms == 1:
             logger.warning('Can\'t optimise a single atom')
-            keywords.remove(keyword)  # ORCA defaults to a SP calc
+            continue
+
+        if isinstance(keyword, kws.Keyword):
+            new_keywords.append(keyword.orca)
+
+        else:
+            new_keywords.append(keyword)
 
     if calc_input.solvent is not None:
-        add_solvent_keyword(calc_input, keywords, implicit_solv_type)
+        add_solvent_keyword(calc_input, new_keywords, implicit_solv_type)
 
-    return keywords
+    return new_keywords
 
 
 def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):

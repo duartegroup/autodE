@@ -135,21 +135,20 @@ class Config:
         # path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        disp = 'EmpiricalDispersion=GD3BJ'
         grid = 'integral=ultrafinegrid'
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose',
-                                        disp, grid],
-                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)',
-                                     disp, grid],
-                               opt=['PBE1PBE/Def2SVP', 'Opt',
-                                    disp, grid],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq',
-                                       disp, grid, ts_str],
-                               hess=['PBE1PBE/Def2SVP', 'Freq', disp, grid],
-                               sp=['PBE1PBE/Def2TZVP', disp, grid])
+        keywords = KeywordsSet(low_opt=[pbe, def2svp, 'Opt=Loose',
+                                        d3bj, grid],
+                               grad=[pbe0, def2svp, 'Force(NoStep)',
+                                     d3bj, grid],
+                               opt=[pbe0, def2svp, 'Opt',
+                                    d3bj, grid],
+                               opt_ts=[pbe0, def2svp, 'Freq',
+                                       d3bj, grid, ts_str],
+                               hess=[pbe0, def2svp, 'Freq', d3bj, grid],
+                               sp=[pbe0, def2tzvp, d3bj, grid])
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -162,17 +161,16 @@ class Config:
         # path can be unset and will be assigned if it can be found in $PATH
         path = None
         #
-        disp = 'EmpiricalDispersion=GD3BJ'
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate, RecalcFC=30)')
 
-        keywords = KeywordsSet(low_opt=['PBEPBE/Def2SVP', 'Opt=Loose', disp],
-                               grad=['PBE1PBE/Def2SVP', 'Force(NoStep)', disp],
-                               opt=['PBE1PBE/Def2SVP', 'Opt', disp],
-                               opt_ts=['PBE1PBE/Def2SVP', 'Freq', disp,
+        keywords = KeywordsSet(low_opt=[pbe, def2svp, 'Opt=Loose', d3bj],
+                               grad=[pbe0, def2svp, 'Force(NoStep)', d3bj],
+                               opt=[pbe0, def2svp, 'Opt', d3bj],
+                               opt_ts=[pbe0, def2svp, 'Freq', d3bj,
                                        ts_str],
-                               hess=['PBE1PBE/Def2SVP', 'Freq', disp],
-                               sp=['PBE1PBE/Def2TZVP', disp])
+                               hess=[pbe0, def2svp, 'Freq', d3bj],
+                               sp=[pbe0, def2tzvp, d3bj])
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -184,9 +182,6 @@ class Config:
         #
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
-        #
-        svp_basis_block = 'basis\n  *   library Def2-SVP\nend'
-        tzvp_basis_block = 'basis\n  *   library Def2-TZVP\nend'
         #
         # Note that the default NWChem level is PBE0 and PBE rather than
         # PBE0-D3BJ and PBE-D3BJ as only D3 is available
@@ -208,32 +203,20 @@ class Config:
                      '  maxiter 100\n'
                      'end')
 
-        pbe_block = 'dft\n  maxiter 100\n  xc xpbe96 cpbe96\nend'
-        pbe0_block = 'dft\n  xc pbe0\nend'
-
-        keywords = KeywordsSet(low_opt=[loose_opt_block,
-                                        svp_basis_block,
-                                        pbe_block,
+        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe,
                                         'task dft optimize'],
-                               grad=[svp_basis_block,
-                                     pbe0_block,
+                               grad=[def2svp, pbe0,
                                      'task dft gradient'],
-                               opt=[opt_block,
-                                    svp_basis_block,
-                                    pbe0_block,
+                               opt=[opt_block, def2svp, pbe0,
                                     'task dft optimize',
                                     'task dft property'],
-                               opt_ts=[opt_block,
-                                       svp_basis_block,
-                                       pbe0_block,
+                               opt_ts=[opt_block, def2svp, pbe0,
                                        'task dft saddle',
                                        'task dft freq',
                                        'task dft property'],
-                               hess=[svp_basis_block,
-                                     pbe0_block,
+                               hess=[def2svp, pbe0,
                                      'task dft freq'],
-                               sp=[tzvp_basis_block,
-                                   pbe0_block,
+                               sp=[def2tzvp, pbe0,
                                    'task dft energy'])
 
         # Only SMD implemented
