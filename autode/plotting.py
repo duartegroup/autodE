@@ -139,10 +139,10 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
     except CouldNotPlotSmoothProfile:
         ax.plot(zi_s, energies, ls='--', c='k', marker='o')
 
-        # Annotate the plot with the relative energies
-        for i, energy in enumerate(energies):
-            ax.annotate(f'{np.round(energy, 1)}', (zi_s[i], energy + 0.7),
-                        fontsize=12, ha='center')
+    # Annotate the plot with the relative energies
+    for i, energy in enumerate(energies):
+        ax.annotate(f'{np.round(energy, 1)}', (zi_s[i], energy + 0.7),
+                    fontsize=12, ha='center')
 
     ec = 'E'
     if free_energy:

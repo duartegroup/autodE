@@ -10,6 +10,8 @@ from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from autode.mol_graphs import make_graph
+from autode.plotting import plot_reaction_profile
+from autode.units import KcalMol
 from autode.methods import get_hmethod
 from autode.config import Config
 from autode.constants import Constants
@@ -248,6 +250,12 @@ def test_free_energy_profile():
 
     dh_r = rxn.calc_delta_h()
     assert -13.6 < dh_r * Constants.ha2kcalmol < -12.6
+
+    # Should be able to plot an enthalpy profile
+    plot_reaction_profile([rxn], units=KcalMol, name='enthalpy',
+                          enthalpy=True)
+    assert os.path.exists('enthalpy_reaction_profile.png')
+    os.remove('enthalpy_reaction_profile.png')
 
     # Reset the configuration to the default values
     Config.hcode = None
