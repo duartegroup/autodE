@@ -258,8 +258,10 @@ class Species:
 
         self.solvent = get_solvent(solvent_name=solvent_name)
 
-        self.energy = None        # Total electronic energy in Hartrees (float)
+        self.energy = None      # Total electronic energy in Hartrees (float)
+        self.h_cont = None      # Enthalpic contribution to the energy in Ha
+        self.g_cont = None      # Gibbs energy contribution to the energy in Ha
 
-        self.graph = None         # NetworkX.Graph object with atoms and bonds
+        self.graph = None       # NetworkX.Graph object with atoms and bonds
 
-        self.conformers = None    # List autode.conformers.conformers.Conformer
+        self.conformers = None  # List autode.conformers.conformers.Conformer

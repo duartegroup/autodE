@@ -10,6 +10,7 @@ from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from autode.mol_graphs import make_graph
+from autode.config import Config
 import shutil
 import pytest
 
@@ -183,3 +184,27 @@ def test_from_smiles():
 
     with pytest.raises(UnbalancedReaction):
         _ = reaction.Reaction('CC(C)=O.[C-]#N')
+
+
+def test_single_points():
+
+    # Spoof ORCA install
+    Config.ORCA.path = here
+
+    rxn = reaction.Reaction(Reactant(smiles='O'), Product(smiles='O'))
+
+    # calculate_single_points should be pretty tolerant.. not raising
+    # exceptions if the energy is already None
+    rxn.calculate_single_points()
+    assert rxn.reacs[0].energy is None
+
+    overlapping_h2 = Reactant(atoms=[Atom('H'), Atom('H')])
+    overlapping_h2.energy = -1
+    rxn.reacs = [overlapping_h2]
+
+    # Shouldn't calculate a single point for a molecule that is not
+    # 'reasonable'
+    rxn.calculate_single_points()
+    assert rxn.reacs[0].energy == -1
+
+    Config.ORCA.path = None

@@ -4,13 +4,13 @@ from copy import deepcopy
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.transition_states.locate_tss import find_tss
-from autode.exceptions import UnbalancedReaction
-from autode.exceptions import SolventsDontMatch
+from autode.exceptions import UnbalancedReaction, SolventsDontMatch
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.species.complex import get_complexes
 from autode.species.molecule import Product
 from autode.species.molecule import Reactant
+from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
 from autode.utils import work_in
@@ -220,7 +220,6 @@ class Reaction:
         for species in [self.reactant, self.product]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)
             species.optimise(method=h_method)
-            species.single_point(method=h_method)
 
         return None
 
@@ -263,20 +262,47 @@ class Reaction:
         h_method = get_hmethod()
         logger.info(f'Calculating single points with {h_method.name}')
 
-        for mol in self.reacs + self.prods + [self.ts]:
-            if mol is not None:
-                mol.single_point(h_method)
+        reacs_prods = self.reacs + self.prods
+        for mol in reacs_prods + [self.ts, self.reactant, self.product]:
+
+            if mol is None:
+                logger.warning(f'Could not calculate single point: mol=None')
+                continue
+
+            warn_str = f'Not calculating a single point for {mol.name}'
+            if mol.energy is None:
+                logger.warning(f'{warn_str} current energy was None')
+                continue
+
+            if not are_coords_reasonable(mol.get_coordinates()):
+                logger.warning(f'{warn_str} coordinates not reasonable')
+                continue
+
+            mol.single_point(h_method)
 
         return None
 
+    @work_in('thermal')
+    def calculate_thermochemical_cont(self, free_energy=False, enthalpy=False):
+        """
+        Add thermochemical contributions to the energies
+
+        Keyword Arguments
+            free_energy (bool):
+            enthalpy (bool):
+        """
+        logger.info('Calculating thermochemical contributions')
+
+        if not (free_energy or enthalpy):
+            logger.info('Nothing to be done – neither G or H requested')
+            return None
+
+        # TODO implement this
+
+        raise NotImplementedError
+
     def _plot_reaction_profile_with_complexes(self, units):
-
-        @work_in(self.name)
-        def calculate_complexes():
-            return self.calculate_complexes()
-
-        calculate_complexes()
-
+        """Plot a reaction profile with the association complexes of R, P"""
         reactions_wc = []
 
         # If the reactant complex contains more than one molecule then
@@ -309,17 +335,19 @@ class Reaction:
 
         plot_reaction_profile(reactions=reactions_wc,
                               units=units, name=self.name)
-
         return None
 
-    def calculate_reaction_profile(self, units=KcalMol, with_complexes=False):
+    def calculate_reaction_profile(self, units=KcalMol, with_complexes=False,
+                                   free_energy=False, enthalpy=False):
         """
         Calculate and plot a reaction profile for this reaction in some units
 
-        Arguments:
+        Keyword Arguments:
             units (autode.units.Unit):
             with_complexes (bool): Calculate the lowest energy conformers
                                    of the reactant and product complexes
+            free_energy (bool): Calculate the free energy profile (G)
+            enthalpy (bool): Calculate the enthalpic profile (H)
         """
         logger.info('Calculating reaction profile')
 
@@ -330,6 +358,10 @@ class Reaction:
             reaction.find_complexes()
             reaction.locate_transition_state()
             reaction.find_lowest_energy_ts_conformer()
+            if with_complexes:
+                reaction.calculate_complexes()
+            reaction.calculate_thermochemical_cont(free_energy=free_energy,
+                                                   enthalpy=enthalpy)
             reaction.calculate_single_points()
             return None
 
