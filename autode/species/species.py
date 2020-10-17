@@ -9,7 +9,7 @@ from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
 from autode.geom import length
 from autode.log import logger
-from autode.methods import get_lmethod
+from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
 from autode.utils import requires_atoms
 from autode.utils import work_in
@@ -48,6 +48,19 @@ class Species:
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError
+
+    def _run_hess_calculation(self, method, temp):
+        """Run a Hessian calculation on this species"""
+        method = method if method is not None else get_hmethod()
+
+        calc = Calculation(name=f'{self.name}_hess',
+                           molecule=self,
+                           method=method,
+                           keywords=method.keywords.hess,
+                           n_cores=Config.n_cores,
+                           temp=temp)
+        calc.run()
+        return calc
 
     @requires_conformers()
     def _set_lowest_energy_conformer(self):
@@ -133,8 +146,10 @@ class Species:
         if calc is None:
             assert method is not None
 
-            calc = Calculation(name=f'{self.name}_opt', molecule=self,
-                               method=method, keywords=method.keywords.opt,
+            calc = Calculation(name=f'{self.name}_opt',
+                               molecule=self,
+                               method=method,
+                               keywords=method.keywords.opt,
                                n_cores=Config.n_cores)
         else:
             assert isinstance(calc, Calculation)
@@ -147,6 +162,40 @@ class Species:
         if reset_graph:
             make_graph(self)
 
+        return None
+
+    @requires_atoms()
+    def calc_g_cont(self, method=None, calc=None, temp=298.15):
+        """Calculate the free energy contribution for a species"""
+        assert self.energy is not None
+
+        if calc is None:
+            calc = self._run_hess_calculation(method=method, temp=temp)
+
+        free_energy = calc.get_free_energy()
+
+        if free_energy is None:
+            logger.error('Could not calculate g_cont, free energy not found')
+            return
+
+        self.g_cont = free_energy - self.energy
+        return None
+
+    @requires_atoms()
+    def calc_h_cont(self, method=None, calc=None, temp=298.15):
+        """Calculate the free energy contribution for a species"""
+        assert self.energy is not None
+
+        if calc is None:
+            calc = self._run_hess_calculation(method=method, temp=temp)
+
+        enthalpy = calc.get_enthalpy()
+
+        if enthalpy is None:
+            logger.error(f'Could not calculate H for {self.name}, not h_cont')
+            return
+
+        self.h_cont = enthalpy - self.energy
         return None
 
     @requires_atoms()

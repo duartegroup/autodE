@@ -17,6 +17,34 @@ from autode.utils import work_in
 from autode.reactions import reaction_types
 
 
+def calc_delta(attr, left, right):
+    """Calculate the difference (∆) for a molecular attribute for some L → R"""
+    if any(mol is None for mol in left + right):
+        logger.error('Could not calculate ∆, a molecule was None')
+        return None
+
+    if any(getattr(mol, attr) is None for mol in left + right):
+        logger.error('Cannot calculate ∆. At least one required attribute'
+                     ' was None')
+        return None
+
+    return (sum([getattr(mol, attr) for mol in right]) -
+            sum([getattr(mol, attr) for mol in left]))
+
+
+def calc_delta_with_cont(left, right, cont):
+    """Calculate a ∆H or ∆G by adding a contribution to ∆E"""
+    de = calc_delta(attr='energy', left=left, right=right)
+    d_cont = calc_delta(attr=cont, left=left, right=right)
+
+    if de is None or d_cont is None:
+        logger.warning('Could not calculate ∆ either the energy or thermal '
+                       'contribution was None')
+        return None
+
+    return de + d_cont
+
+
 class Reaction:
 
     def __str__(self):
@@ -116,6 +144,29 @@ class Reaction:
 
         return None
 
+    def _reasonable_components_with_energy(self):
+        """Generator for components of a reaction that have sensible geometries
+        and also energies"""
+
+        reacs_prods = self.reacs + self.prods
+        for mol in reacs_prods + [self.ts, self.reactant, self.product]:
+
+            if mol is None:
+                logger.warning('mol=None')
+                continue
+
+            if mol.energy is None:
+                logger.warning(f'{mol.name} current energy was None')
+                continue
+
+            if not are_coords_reasonable(mol.get_coordinates()):
+                logger.warning(f'{mol.name} coordinates not reasonable')
+                continue
+
+            yield mol
+
+        return None
+
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
         and products and classify as dissociation. Likewise for reactions wher
@@ -135,14 +186,27 @@ class Reaction:
             (float): Energy difference in Hartrees
         """
         logger.info('Calculating ∆Er')
+        return calc_delta(attr='energy', left=self.reacs, right=self.prods)
 
-        if any(mol.energy is None for mol in self.reacs + self.prods):
-            logger.error('Cannot calculate ∆Er. At least one required energy '
-                         'was None')
-            return None
+    def calc_delta_h(self):
+        """Calculate ∆H_r = H(products) - H(reactants)
 
-        return (sum([p.energy for p in self.prods]) -
-                sum([r.energy for r in self.reacs]))
+        Returns:
+            (float): Energy difference in Hartrees
+        """
+        logger.info('Calculating ∆Hr')
+        return calc_delta_with_cont(left=self.reacs, right=self.prods,
+                                    cont='h_cont')
+
+    def calc_delta_g(self):
+        """Calculate ∆G_r = G(products) - G(reactants)
+
+        Returns:
+            (float): Energy difference in Hartrees
+        """
+        logger.info('Calculating ∆Hr')
+        return calc_delta_with_cont(left=self.reacs, right=self.prods,
+                                    cont='g_cont')
 
     def calc_delta_e_ddagger(self):
         """Calculate the ∆E‡ of a reaction defined as
@@ -152,15 +216,19 @@ class Reaction:
             float: energy difference in Hartrees
         """
         logger.info('Calculating ∆E‡')
-        if self.ts is None:
-            logger.error('No TS, cannot calculate ∆E‡')
-            return None
+        return calc_delta(attr='energy', left=self.reacs, right=[self.ts])
 
-        if self.ts.energy is None or any(r.energy is None for r in self.reacs):
-            logger.error('TS or reactants had no energy, cannot calculate ∆E‡')
-            return None
+    def calc_delta_h_ddagger(self):
+        """Calculate ∆H‡ in Hartrees"""
+        logger.info('Calculating ∆H‡')
+        return calc_delta_with_cont(left=self.reacs, right=[self.ts],
+                                    cont='h_cont')
 
-        return self.ts.energy - sum([r.energy for r in self.reacs])
+    def calc_delta_g_ddagger(self):
+        """Calculate ∆G‡ in Hartrees"""
+        logger.info('Calculating ∆G‡')
+        return calc_delta_with_cont(left=self.reacs, right=[self.ts],
+                                    cont='g_cont')
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.pes1d choose the
@@ -262,22 +330,7 @@ class Reaction:
         h_method = get_hmethod()
         logger.info(f'Calculating single points with {h_method.name}')
 
-        reacs_prods = self.reacs + self.prods
-        for mol in reacs_prods + [self.ts, self.reactant, self.product]:
-
-            if mol is None:
-                logger.warning(f'Could not calculate single point: mol=None')
-                continue
-
-            warn_str = f'Not calculating a single point for {mol.name}'
-            if mol.energy is None:
-                logger.warning(f'{warn_str} current energy was None')
-                continue
-
-            if not are_coords_reasonable(mol.get_coordinates()):
-                logger.warning(f'{warn_str} coordinates not reasonable')
-                continue
-
+        for mol in self._reasonable_components_with_energy():
             mol.single_point(h_method)
 
         return None
@@ -285,7 +338,7 @@ class Reaction:
     @work_in('thermal')
     def calculate_thermochemical_cont(self, free_energy=False, enthalpy=False):
         """
-        Add thermochemical contributions to the energies
+        Calculate thermochemical contributions to the energies
 
         Keyword Arguments
             free_energy (bool):
@@ -297,14 +350,25 @@ class Reaction:
             logger.info('Nothing to be done – neither G or H requested')
             return None
 
-        # TODO implement this
+        # Calculate G and H contributions for all components
+        for mol in self._reasonable_components_with_energy():
+            if free_energy:
+                mol.calc_g_cont(temp=self.temp)
 
-        raise NotImplementedError
+            if enthalpy:
+                mol.calc_h_cont(temp=self.temp)
 
-    def _plot_reaction_profile_with_complexes(self, units):
+        return None
+
+    def _plot_reaction_profile_with_complexes(self, units, free_energy,
+                                              enthalpy):
         """Plot a reaction profile with the association complexes of R, P"""
         reactions_wc = []
 
+        if free_energy or enthalpy:
+            raise NotImplementedError('Significant likelihood of very low'
+                                      ' frequency harmonic modes – G and H not'
+                                      'implemented')
         # If the reactant complex contains more than one molecule then
         # make a reaction that is separated reactants -> reactant complex
         if len(self.reacs) > 1:
@@ -334,7 +398,9 @@ class Reaction:
                                          name='product_complex'))
 
         plot_reaction_profile(reactions=reactions_wc,
-                              units=units, name=self.name)
+                              units=units, name=self.name,
+                              free_energy=free_energy,
+                              enthalpy=enthalpy)
         return None
 
     def calculate_reaction_profile(self, units=KcalMol, with_complexes=False,
@@ -368,14 +434,17 @@ class Reaction:
         calculate(self)
 
         if not with_complexes:
-            plot_reaction_profile([self], units=units, name=self.name)
+            plot_reaction_profile([self], units=units, name=self.name,
+                                  free_energy=free_energy, enthalpy=enthalpy)
 
         if with_complexes:
-            self._plot_reaction_profile_with_complexes(units=units)
-
+            self._plot_reaction_profile_with_complexes(units=units,
+                                                       free_energy=free_energy,
+                                                       enthalpy=enthalpy)
         return None
 
-    def __init__(self, *args, name='reaction', solvent_name=None, smiles=None):
+    def __init__(self, *args, name='reaction', solvent_name=None, smiles=None,
+                 temp=298.15):
         """
         Reaction containing reactants and products. reaction.reactant is the
         reactant complex which is the same as reacs[0] if there is only
@@ -390,6 +459,8 @@ class Reaction:
             solvent_name (str):
 
             smiles (str):
+
+            temp (float): Temperature in Kelvin
         """
         logger.info(f'Generating a Reaction object for {name}')
 
@@ -409,6 +480,7 @@ class Reaction:
 
         self.type = reaction_types.classify(self.reacs, self.prods)
         self.solvent = get_solvent(solvent_name=solvent_name)
+        self.temp = float(temp)
 
         self._check_solvent()
         self._check_balance()
