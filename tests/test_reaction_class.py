@@ -10,7 +10,10 @@ from autode.atoms import Atom
 from autode.exceptions import UnbalancedReaction
 from autode.exceptions import SolventsDontMatch
 from autode.mol_graphs import make_graph
+from autode.methods import get_hmethod
 from autode.config import Config
+from autode.constants import Constants
+from .testutils import work_in_zipped_dir
 import shutil
 import pytest
 
@@ -208,3 +211,46 @@ def test_single_points():
     assert rxn.reacs[0].energy == -1
 
     Config.ORCA.path = None
+
+
+@work_in_zipped_dir(os.path.join(here, 'data', 'free_energy_profile.zip'))
+def test_free_energy_profile():
+
+    # Use a spoofed Gaussian09 and XTB install
+    Config.lcode = 'xtb'
+    Config.XTB.path = here
+
+    Config.hcode = 'g09'
+    Config.G09.path = here
+
+    Config.ts_template_folder_path = os.getcwd()
+
+    method = get_hmethod()
+    assert method.name == 'g09'
+
+    rxn = reaction.Reaction(Reactant(name='F-', smiles='[F-]'),
+                            Reactant(name='CH3Cl', smiles='ClC'),
+                            Product(name='Cl-', smiles='[Cl-]'),
+                            Product(name='CH3F', smiles='CF'),
+                            name='sn2', solvent_name='water')
+    rxn.calculate_reaction_profile(free_energy=True)
+
+    # Allow ~0.5 kcal mol-1 either side of the true value
+
+    dg_ts = rxn.calc_delta_g_ddagger()
+    assert 17 < dg_ts * Constants.ha2kcalmol < 18
+
+    dg_r = rxn.calc_delta_g()
+    assert -13.2 < dg_r * Constants.ha2kcalmol < -12.3
+
+    dh_ts = rxn.calc_delta_h_ddagger()
+    assert 9.2 < dh_ts * Constants.ha2kcalmol < 10.3
+
+    dh_r = rxn.calc_delta_h()
+    assert -13.6 < dh_r * Constants.ha2kcalmol < -12.6
+
+    # Reset the configuration to the default values
+    Config.hcode = None
+    Config.G09.path = None
+    Config.lcode = None
+    Config.XTB.path = None

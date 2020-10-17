@@ -213,7 +213,9 @@ def calc_atom_entropy(atom_label, temp):
     v_eff = k_b * temp / atm_to_pa
     q_trans = ((2.0 * np.pi * mass * k_b * temp / h**2)**1.5 * v_eff)
 
-    return k_b * n_a * (np.log(q_trans) + 2.5)
+    s = k_b * n_a * (np.log(q_trans) + 2.5)
+    # Convert from J K-1 mol-1 to K-1 Ha
+    return s / (Constants.ha2kJmol * 1000)
 
 
 class ORCA(ElectronicStructureMethod):
@@ -314,13 +316,14 @@ class ORCA(ElectronicStructureMethod):
                            'atom, returning the correct G in 1 atm')
             h = self.get_enthalpy(calc)
             s = calc_atom_entropy(atom_label=calc.molecule.atoms[0].label,
-                                  temp=calc.input.temp) # J K-1 mol-1
+                                  temp=calc.input.temp)  # J K-1 mol-1
 
             # Calculate H - TS, the latter term from Jmol-1 -> Ha
-            return h - (s * calc.input.temp / (Constants.ha2kJmol * 1000))
+            return h - s * calc.input.temp
 
         for line in reversed(calc.output.file_lines):
-            if 'Final Gibbs free energy' in line:
+            if ('Final Gibbs free energy' in line
+                    or 'Final Gibbs free enthalpy' in line):
 
                 try:
                     return float(line.split()[-2])

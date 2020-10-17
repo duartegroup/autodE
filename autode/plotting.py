@@ -141,7 +141,7 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
 
         # Annotate the plot with the relative energies
         for i, energy in enumerate(energies):
-            ax.annotate(f'{energy:.1f}', (zi_s[i], energy + 0.7),
+            ax.annotate(f'{np.round(energy, 1)}', (zi_s[i], energy + 0.7),
                         fontsize=12, ha='center')
 
     ec = 'E'
@@ -248,7 +248,7 @@ def get_reaction_profile_warnings(reactions):
 
 
 def calculate_reaction_profile_energies(reactions, units, free_energy=False,
-                          enthalpy=False):
+                                        enthalpy=False):
     """Calculate a list of energies comprising the reaction profile
 
     Arguments:

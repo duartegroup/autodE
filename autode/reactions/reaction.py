@@ -336,7 +336,7 @@ class Reaction:
         return None
 
     @work_in('thermal')
-    def calculate_thermochemical_cont(self, free_energy=False, enthalpy=False):
+    def calculate_thermochemical_cont(self, free_energy=True, enthalpy=True):
         """
         Calculate thermochemical contributions to the energies
 
@@ -426,8 +426,9 @@ class Reaction:
             reaction.find_lowest_energy_ts_conformer()
             if with_complexes:
                 reaction.calculate_complexes()
-            reaction.calculate_thermochemical_cont(free_energy=free_energy,
-                                                   enthalpy=enthalpy)
+            # Calculate both G and H if either are requested
+            if free_energy or enthalpy:
+                reaction.calculate_thermochemical_cont()
             reaction.calculate_single_points()
             return None
 
