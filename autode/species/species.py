@@ -47,7 +47,8 @@ class Species:
         return deepcopy(self)
 
     def _generate_conformers(self, *args, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError('Could not generate conformers. '
+                                  'generate_conformers() not implemented')
 
     def _run_hess_calculation(self, method, temp):
         """Run a Hessian calculation on this species"""
@@ -237,12 +238,7 @@ class Species:
             logger.info('Getting the default low level method')
             lmethod = get_lmethod()
 
-        try:
-            self._generate_conformers()
-        except NotImplementedError:
-            logger.error('Could not generate conformers. generate_conformers()'
-                         ' not implemented')
-            return None
+        self._generate_conformers()
 
         # For all generated conformers optimise with the low level of theory
         for conformer in self.conformers:
