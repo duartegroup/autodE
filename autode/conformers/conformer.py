@@ -28,7 +28,7 @@ def get_conformer(species, name):
 
 class Conformer(Species):
 
-    def optimise(self, method, reset_graph=False, calc=None):
+    def optimise(self, method=None, reset_graph=False, calc=None):
         """
         Optimise the geometry of this conformer
 

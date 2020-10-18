@@ -159,6 +159,16 @@ class TransitionState(TSbase):
 
         return None
 
+    def calc_g_cont(self, method=None, calc=None, temp=None):
+        """Calculate the free energy (G) contribution"""
+        return super().calc_g_cont(method=method, calc=self.optts_calc,
+                                   temp=temp)
+
+    def calc_h_cont(self, method=None, calc=None, temp=None):
+        """Calculate the enthalpy (H) contribution"""
+        return super().calc_h_cont(method=method, calc=self.optts_calc,
+                                   temp=temp)
+
     def find_lowest_energy_ts_conformer(self, rmsd_threshold=None):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""

@@ -2,6 +2,7 @@ from autode.species.species import Species
 from autode.species.molecule import Molecule
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import xtb
+from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.exceptions import NoAtomsInMolecule
@@ -33,6 +34,16 @@ def test_species_class():
     assert mol.name == 'H2'
 
     assert not mol.is_explicitly_solvated()
+
+    # A not very sensible water geometry!
+    water = Species(name='H2O', charge=0, mult=1,
+                    atoms=[Atom('O'), Atom('H', z=-1), Atom('H', z=1)])
+
+    # Base class for molecules and TSs and complexes shouldn't have a
+    # implemented conformer method – needs to do different things based on the
+    # type of species to find conformers
+    with pytest.raises(NotImplementedError):
+        water.find_lowest_energy_conformer(lmethod=xtb)
 
 
 def test_species_xyz_file():
@@ -162,3 +173,52 @@ def test_generate_conformers():
 
     with pytest.raises(NotImplementedError):
         mol._generate_conformers()
+
+
+def test_set_lowest_energy_conformer():
+
+    from autode.mol_graphs import make_graph
+
+    hb = Atom('H', z=0.7)
+    hydrogen = Species(name='H2', atoms=[h1, hb], charge=0, mult=1)
+    make_graph(hydrogen)
+
+    hydrogen_wo_e = Species(name='H2', atoms=[h1, hb], charge=0, mult=1)
+
+    hydrogen_with_e = Species(name='H2', atoms=[h1, hb], charge=0, mult=1)
+    hydrogen_with_e.energy = -1
+
+    hydrogen.conformers = [hydrogen_wo_e, hydrogen_with_e]
+    hydrogen._set_lowest_energy_conformer()
+
+    # Conformers without energy should be skipped
+    assert hydrogen.energy == -1
+
+    # Conformers with a different molecular graph should be skipped
+    h_atom = Species(name='H', atoms=[Atom('H')], charge=0, mult=1)
+    h_atom.energy = -2
+    hydrogen.conformers = [hydrogen_with_e, h_atom]
+
+    assert hydrogen.energy == -1
+
+
+def test_thermal_cont_without_hess_run():
+
+    calc = Calculation(name='test',
+                       molecule=mol,
+                       method=orca,
+                       keywords=orca.keywords.hess,
+                       temp=298)
+
+    # Some blank output that exists
+    calc.output.filename = 'test'
+    calc.output.file_lines = []
+
+    # Calculating the free energy contribution without a correct Hessian
+    # calculation should not raise an exception(?)
+    mol.calc_g_cont(calc=calc)
+    assert mol.g_cont is None
+
+    # and similarly with the enthalpic contribution
+    mol.calc_h_cont(calc=calc)
+    assert mol.h_cont is None
