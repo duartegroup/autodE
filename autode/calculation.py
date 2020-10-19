@@ -408,7 +408,8 @@ class Calculation:
                  other_input_block=None,
                  distance_constraints=None,
                  cartesian_constraints=None,
-                 point_charges=None):
+                 point_charges=None,
+                 temp=None):
         """
         Arguments:
             name (str):
@@ -436,6 +437,9 @@ class Calculation:
             point_charges (list(autode.point_charges.PointCharge)): List of
                                              float of point charges, x, y, z
                                              coordinates for each point charge
+
+            temp (float): Temperature to perform the calculation at in K, or
+                          None
         """
         # Calculation names that start with "-" can break EST methods
         self.name = (f'{name}_{method.name}' if not name.startswith('-')
@@ -457,7 +461,8 @@ class Calculation:
                                       solvent=get_solvent_name(molecule, method),
                                       additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
-                                      point_charges=point_charges)
+                                      point_charges=point_charges,
+                                      temp=temp)
 
         self.output = CalculationOutput()
 
@@ -528,7 +533,7 @@ class CalculationInput:
         return [self.filename] + self.additional_filenames
 
     def __init__(self, keywords, solvent, additional_input,
-                 added_internals, point_charges):
+                 added_internals, point_charges, temp):
         """
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
@@ -544,9 +549,13 @@ class CalculationInput:
             point_charges (list(autode.point_charges.PointCharge) or None):
                           list of float of point charges, x, y, z coordinates
                           for each point charge
+
+            temp (float): Temperature to perform the calculation at in K, or
+                  None
         """
         self.keywords = keywords
         self.solvent = solvent
+        self.temp = temp
         self.other_block = additional_input
 
         self.added_internals = added_internals

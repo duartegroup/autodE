@@ -1,5 +1,6 @@
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
+from autode.wrappers.ORCA import calc_atom_entropy
 from autode.calculation import Calculation
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
@@ -214,3 +215,12 @@ def test_gradients():
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1E-3
+
+
+def test_calc_entropy():
+
+    f_entropy_g09 = 0.011799 / 298.15   # TS from g09
+    f_entropy = calc_atom_entropy(atom_label='F', temp=298.15)
+
+    # Ensure the calculated and 'actual' from Gaussian09 are close
+    assert np.abs(f_entropy_g09 - f_entropy) < 2E-5

@@ -211,7 +211,8 @@ def test_mopac_keywords():
                                   solvent=None,
                                   added_internals=None,
                                   additional_input=None,
-                                  point_charges=None)
+                                  point_charges=None,
+                                  temp=298)
 
     keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
     assert any('1scf' == kw.lower() for kw in keywords)

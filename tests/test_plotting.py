@@ -24,16 +24,19 @@ def test_plot_reaction_profile():
 
     r = Reactant(name='reactant', smiles='C')
     p = Product(name='product', smiles='C')
-    tsguess = TSguess(atoms=r.atoms, reactant=ReactantComplex(r), product=ProductComplex(p))
+    tsguess = TSguess(atoms=r.atoms, reactant=ReactantComplex(r),
+                      product=ProductComplex(p))
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     reaction = Reaction(r, p)
     reaction.ts = ts
 
-    plotting.plot_reaction_profile(reactions=[reaction], units=KjMol, name='test_reaction')
+    plotting.plot_reaction_profile(reactions=[reaction], units=KjMol,
+                                   name='test')
 
-    assert os.path.exists('test_reaction_reaction_profile.png')
-    os.remove('test_reaction_reaction_profile.png')
+    assert os.path.exists('test_reaction_profile.png')
+    os.remove('test_reaction_profile.png')
+    return None
 
 
 def test_stat_points():
