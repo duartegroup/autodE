@@ -60,6 +60,9 @@ class Calculation:
         string = (f'{self.name}{self.method.name}{str(self.input.keywords)}'
                   f'{str(self.molecule)}{self.method.implicit_solvation_type}')
 
+        if self.input.temp is not None:
+            string += str(self.input.temp)
+
         hasher = hashlib.sha1(string.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()
 
@@ -268,8 +271,7 @@ class Calculation:
 
     def get_final_atoms(self):
         """
-        Get the atoms from the final step of a geometry optimisation or the
-        first (only) step of a single point calculation
+        Get the atoms from the final step of a geometry optimisation
 
         Returns:
             (list(autode.atoms.Atom)):

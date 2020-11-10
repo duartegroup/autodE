@@ -76,6 +76,16 @@ class Keywords:
     def __str__(self):
         return '_'.join([str(kw) for kw in self.keyword_list])
 
+    def _string(self, prefix):
+        """Return a string defining the keywords, with or without a prefix"""
+        from autode.config import Config
+        base_str = '_'.join([str(kw) for kw in self.keyword_list])
+
+        if Config.keyword_prefixes:
+            return f'{prefix}({base_str})'
+        else:
+            return base_str
+
     def _set_keyword(self, keyword, keyword_type):
         """Set a keyword. A keyword of the same type must exist"""
         if type(keyword) is str:
@@ -180,29 +190,25 @@ class Keywords:
 class OptKeywords(Keywords):
 
     def __str__(self):
-        base_str = super().__str__()
-        return f'OptKeywords({base_str})'
+        return self._string(prefix='OptKeywords')
 
 
 class HessianKeywords(Keywords):
 
     def __str__(self):
-        base_str = super().__str__()
-        return f'HessKeywords({base_str})'
+        return self._string(prefix='HessKeywords')
 
 
 class GradientKeywords(Keywords):
 
     def __str__(self):
-        base_str = super().__str__()
-        return f'GradKeywords({base_str})'
+        return self._string(prefix='GradKeywords')
 
 
 class SinglePointKeywords(Keywords):
 
     def __str__(self):
-        base_str = super().__str__()
-        return f'SPKeywords({base_str})'
+        return self._string(prefix='SPKeywords')
 
 
 class Keyword:
