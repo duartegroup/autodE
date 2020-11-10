@@ -222,7 +222,8 @@ class MOPAC(ElectronicStructureMethod):
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
-                         kept_file_exts=('.mop', '.out'))
+                         kept_file_exts=('.mop', '.out'),
+                         use_ll_tmp=True)
         def execute_mopac():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)

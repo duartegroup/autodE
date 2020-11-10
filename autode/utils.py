@@ -85,13 +85,19 @@ def work_in(dir_ext):
             os.chdir(dir_path)
             result = func(*args, **kwargs)
             os.chdir(here)
+
+            if len(os.listdir(dir_path)) == 0:
+                logger.warning(f'Worked in {dir_path} but made no files '
+                               f'- deleting')
+                os.rmdir(dir_path)
+
             return result
 
         return wrapped_function
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
+def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
     """Execute a function in a temporary directory.
 
     Arguments:
@@ -100,12 +106,18 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
         kept_file_exts (list(str): Filename extensions to copy back from
                        the temp dir
     """
+    from autode.config import Config
 
     def func_decorator(func):
 
         @wraps(func)
         def wrapped_function(*args, **kwargs):
             here = os.getcwd()
+
+            base_dir = Config.ll_tmp_dir if use_ll_tmp else None
+
+            if base_dir is not None:
+                assert os.path.exists(base_dir)
 
             tmpdir_path = mkdtemp()
             logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
@@ -128,7 +140,7 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts):
             for filename in os.listdir(tmpdir_path):
 
                 if any([filename.endswith(ext) for ext in kept_file_exts]):
-                    logger.info(f'Coping back {filename}')
+                    logger.info(f'Copying back {filename}')
                     shutil.copy(filename, here)
 
             os.chdir(here)

@@ -41,13 +41,22 @@ class Config:
     keep_input_files = True
     #
     # -------------------------------------------------------------------------
+    # Use a different base directory for calculations with low-level methods
+    # e.g. /dev/shm with a low level method, if None then will use the default
+    # in tempfile.mkdtemp
+    #
+    ll_tmp_dir = None
+    #
+    # -------------------------------------------------------------------------
     # By default templates are saved to /path/to/autode/transition_states/lib/
     # unless ts_template_folder_path is set
     #
     ts_template_folder_path = None
     #
     # Whether or not to create and save transition state templates
+    #
     make_ts_template = True
+    #
     # -------------------------------------------------------------------------
     # Save plots with dpi = 400
     high_quality_plots = True
@@ -250,3 +259,10 @@ class Config:
         #
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
+
+    # -------------------------------------------------------------------------
+    # Use keyword naming prefixes. False to maintain backwards compatibility
+    #
+    keyword_prefixes = True
+    #
+    # -------------------------------------------------------------------------
