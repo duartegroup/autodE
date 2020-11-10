@@ -14,6 +14,7 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 Config.high_quality_plots = False
+Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE', 'def2-SVP', 'Opt'])
 

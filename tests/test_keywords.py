@@ -3,10 +3,12 @@ from autode.wrappers.keywords import GradientKeywords
 from autode.wrappers.keywords import OptKeywords
 from autode.wrappers.keywords import HessianKeywords
 from autode.wrappers.keywords import SinglePointKeywords
+from autode.config import Config
 
 
 def test_keywords():
 
+    Config.keyword_prefixes = True
     keywords = Keywords(keyword_list=None)
     assert keywords.keyword_list == []
 
@@ -27,3 +29,4 @@ def test_keywords():
     assert 'hess' in str(HessianKeywords(None)).lower()
     assert 'grad' in str(GradientKeywords(None)).lower()
     assert 'sp' in str(SinglePointKeywords(None)).lower()
+    Config.keyword_prefixes = False

@@ -1,6 +1,7 @@
 from autode.atoms import Atom
 from autode.conformers.conformer import Conformer
 from autode.wrappers.ORCA import orca
+from autode.config import Config
 from scipy.spatial import distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -13,6 +14,7 @@ import numpy as np
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.keyword_prefixes = False
 
 orca.available = True
 

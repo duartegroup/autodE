@@ -6,6 +6,7 @@ from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.exceptions import NoAtomsInMolecule
+from autode.config import Config
 from copy import deepcopy
 from . import testutils
 import numpy as np
@@ -13,6 +14,7 @@ import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.keyword_prefixes = False
 
 h1 = Atom('H')
 h2 = Atom('H', z=1.0)
@@ -130,7 +132,7 @@ def test_species_single_point():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_find_lowest_energy_conformer():
 
-    # Spoof XTB availability
+     # Spoof XTB availability
     xtb.path = here
     xtb.available = True
 
@@ -209,6 +211,7 @@ def test_thermal_cont_without_hess_run():
                        method=orca,
                        keywords=orca.keywords.hess,
                        temp=298)
+    mol.energy = -1
 
     # Some blank output that exists
     calc.output.filename = 'test'

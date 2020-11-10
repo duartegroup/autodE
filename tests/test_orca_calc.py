@@ -12,6 +12,7 @@ from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.solvent.solvents import Solvent
+from autode.config import Config
 from . import testutils
 import numpy as np
 import pytest
@@ -21,6 +22,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = ORCA()
 method.available = True
+Config.keyword_prefixes = False
 
 sp_keywords = SinglePointKeywords(['PBE', 'def2-SVP'])
 opt_keywords = OptKeywords(['Opt', 'PBE', 'def2-SVP'])

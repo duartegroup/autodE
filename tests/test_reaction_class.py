@@ -20,6 +20,7 @@ import shutil
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.keyword_prefixes = False
 
 h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
@@ -111,7 +112,6 @@ def test_reaction_identical_reac_prods():
     h2_reaction.locate_transition_state()
     assert h2_reaction.ts is None
 
-    shutil.rmtree('transition_states')
     os.chdir(here)
 
 

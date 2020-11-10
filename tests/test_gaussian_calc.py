@@ -6,6 +6,7 @@ from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 from autode.exceptions import NoNormalModesFound
 from autode.point_charges import PointCharge
+from autode.config import Config
 import pytest
 import os
 import numpy as np
@@ -15,6 +16,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = G09()
 method.available = True
+Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Opt'])
 optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',

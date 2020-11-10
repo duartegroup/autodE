@@ -15,6 +15,7 @@ import pytest
 here = os.path.dirname(os.path.abspath(__file__))
 method = MOPAC()
 method.available = True
+Config.keyword_prefixes = False
 
 methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
                           solvent_name='water')
