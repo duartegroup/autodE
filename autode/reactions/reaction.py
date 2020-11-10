@@ -77,6 +77,13 @@ class Reaction:
             logger.critical('Charge doesn\'t balance')
             raise UnbalancedReaction
 
+        # Ensure the number of unpaired electrons is equal on the left and
+        # right-hand sides of the reaction, for now
+        if (total(self.reacs, 'mult') - len(self.reacs)
+                != total(self.prods, 'mult') - len(self.prods)):
+            raise NotImplementedError('Found a change in spin state – not '
+                                      'implemented yet!')
+
         self.charge = total(self.reacs, 'charge')
         return None
 
