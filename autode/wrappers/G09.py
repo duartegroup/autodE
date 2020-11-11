@@ -208,7 +208,12 @@ class G09(ElectronicStructureMethod):
         """Print a Gaussian input file"""
 
         with open(calc.input.filename, 'w') as inp_file:
-            print(f'%mem={Config.max_core}MB', file=inp_file)
+
+            # Gaussian defines the total memory for the whole calculation, not
+            # per core
+            total_mem = int(Config.max_core * calc.n_cores)
+            print(f'%mem={total_mem}MB', file=inp_file)
+            
             if calc.n_cores > 1:
                 print(f'%nprocshared={calc.n_cores}', file=inp_file)
 
