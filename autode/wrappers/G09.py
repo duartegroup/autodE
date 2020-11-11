@@ -73,8 +73,9 @@ def get_keywords(calc_input, molecule):
     for keyword in new_keywords:
 
         if 'opt' not in keyword.lower():
-            opt = True
             continue
+
+        opt = True
 
         if molecule.n_atoms == 1:
             logger.warning('Cannot do an optimisation for a single atom')
@@ -213,7 +214,7 @@ class G09(ElectronicStructureMethod):
             # per core
             total_mem = int(Config.max_core * calc.n_cores)
             print(f'%mem={total_mem}MB', file=inp_file)
-            
+
             if calc.n_cores > 1:
                 print(f'%nprocshared={calc.n_cores}', file=inp_file)
 
