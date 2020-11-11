@@ -198,15 +198,6 @@ def plot_smooth_profile(zi_s, energies, ax):
     ax.plot(fine_zi_s, optimised_spline(fine_zi_s), c='k')
     ax.scatter(zi_s, optimised_spline(zi_s), c='b', zorder=10)
 
-    # Annotate the plot with the relative energies
-    for i, energy in enumerate(optimised_spline(zi_s)):
-        # Shift the minima labels (even points) below the point and the
-        # transition state labels above the point
-        shift = -2.0 if i % 2 == 0 else 0.7
-
-        ax.annotate(f'{energy:.1f}', (zi_s[i], energy + shift),
-                    fontsize=12, ha='center')
-
     return None
 
 
