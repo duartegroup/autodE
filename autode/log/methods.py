@@ -38,9 +38,8 @@ class ComputationalMethods:
 
     def __init__(self):
         """
-        ComputationalMethods containing a list of digital object identifiers
-        for all the methods used and a private list of strings for all the
-        methods used
+        ComputationalMethods as a list of sentences and digital object
+        identifiers (DOIs) for all the methods used
         """
         self._list = []
 

@@ -189,6 +189,7 @@ class Calculation:
         else:
             logger.warning('Not adding gradient or hessian to methods section '
                            'anticipating that they will be the same as opt')
+            # and have been already added to the methods section
             return
 
         # Level of theory ----
@@ -202,11 +203,13 @@ class Calculation:
 
         if self.input.solvent is not None:
             solv_type = self.method.implicit_solvation_type
-            string += (f' and {solv_type.upper()} ({solv_type.doi_str()}) '
+            doi = solv_type.doi_str() if hasattr(solv_type, 'doi_str') else '?'
+
+            string += (f' and {solv_type.upper()} ({doi}) '
                        f'solvation, with parameters appropriate for '
                        f'{self.input.solvent}')
 
-        methods += f'{string}.\n'
+        methods.add(f'{string}.\n')
         return None
 
     def get_energy(self):

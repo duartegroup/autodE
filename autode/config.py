@@ -133,7 +133,7 @@ class Config:
         # former has support for a VdW surface construction which provides
         # better geometry convergence (https://doi.org/10.1002/jcc.26139) SMD
         # is in general more accurate, but does not (yet) have support for the
-        # VdW charge scheme. Use either 1. 'cpcm', 2. 'smd'
+        # VdW charge scheme. Use either (1) solv.cpcm, (2) solv.smd
         implicit_solvation_type = solv.cpcm
 
     class G09:

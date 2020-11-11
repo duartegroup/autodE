@@ -125,7 +125,8 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
         (list(autode.atoms.Atom)): Atoms
     """
 
-    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+    stereocentres = [node for node in species.graph.nodes
+                     if species.graph.nodes[node]['stereo'] is True]
 
     # Check on every pair of stereocenters
     for (i, j) in combinations(stereocentres, 2):
@@ -150,7 +151,12 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
         theta = 2*np.pi*rand.rand()
         idxs_to_rotate = left_idxs if i in left_idxs else right_idxs
 
-        [atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[i].coord) for n in idxs_to_rotate if n != i]
+        # Rotate all the atoms to the left of this bond, missing out i as that
+        # is the origin for rotation and thus won't move
+        for n in idxs_to_rotate:
+            if n == i:
+                continue
+            atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[i].coord)
 
     return atoms
 

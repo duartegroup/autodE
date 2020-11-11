@@ -64,6 +64,8 @@ class Solvent:
         self.smiles = smiles
         self.aliases = aliases
 
+        # Add attributes for all the methods specified e.g. initialisation with
+        # orca='water' -> self.orca = 'water'
         self.__dict__.update(kwargs)
 
         # Gaussian 09 and Gaussian 16 solvents are named the same
