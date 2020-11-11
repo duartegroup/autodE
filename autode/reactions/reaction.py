@@ -363,6 +363,11 @@ class Reaction:
         for mol in self.reacs + self.prods:
             mol.print_xyz_file(title_line=get_title(mol))
 
+        # and the reactant and product complexes if they're present
+        for mol in [self.reactant, self.product]:
+            if mol is not None:
+                mol.print_xyz_file(title_line=get_title(mol))
+
         # If it exists print the xyz file of the transition state
         if self.ts is not None:
             ts_title = get_title(self.ts)
