@@ -198,10 +198,32 @@ class MOPAC(ElectronicStructureMethod):
     def get_output_filename(self, calc):
         return f'{calc.name}.out'
 
+    def get_version(self, calc):
+        """Get the version of MOPAC used to execute this calculation"""
+
+        for line in calc.output.file_lines:
+
+            if '(Version:' in line and len(line.split()) >= 3:
+                # e.g.        MOPAC2016 (Version: 19.144L)
+
+                try:
+                    name = line.split()[0]
+                    # Item between the brackets with only the version number
+                    version = line.split('(')[1].split(')')[0].split()[1]
+
+                    return f'{name} {version}'
+
+                except IndexError:
+                    pass
+
+        logger.warning('Could not get the version number from the output file')
+        return '???'
+
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
-                         kept_file_exts=('.mop', '.out'))
+                         kept_file_exts=('.mop', '.out'),
+                         use_ll_tmp=True)
         def execute_mopac():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
@@ -325,7 +347,8 @@ class MOPAC(ElectronicStructureMethod):
     def __init__(self):
         super().__init__(name='mopac', path=Config.MOPAC.path,
                          keywords_set=Config.MOPAC.keywords,
-                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type)
+                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
+                         doi='10.1007/BF00128336')
 
 
 mopac = MOPAC()

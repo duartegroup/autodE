@@ -1,10 +1,12 @@
+import rdkit
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
+from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
-from autode.conformers.conformer import Conformer
+from autode.conformers.conformer import get_conformer
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import conf_is_unique_rmsd
-from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
+from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.atoms import metals
 from autode.config import Config
 from autode.log import logger
@@ -71,23 +73,28 @@ class Molecule(Species):
                                                        params=method))
             logger.info('                                          ... done')
 
-            conf_atoms_list = [get_atoms_from_rdkit_mol_object(self.rdkit_mol_obj, conf_id) for conf_id in conf_ids]
+            conf_atoms_list = [atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
+                               for conf_id in conf_ids]
+
+            methods.add('ETKDGv2 algorithm (10.1021/acs.jcim.5b00654) '
+                        f'implemented in RDKit v. {rdkit.__version__}')
 
         else:
-            logger.info('Using simulated annealing to generate conformers')
+            logger.info('Using repulsion+relaxed (RR) to generate conformers')
             with Pool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(get_simanl_atoms, (self, None, i)) for i in range(n_confs)]
+                results = [pool.apply_async(get_simanl_atoms, (self, None, i))
+                           for i in range(n_confs)]
                 conf_atoms_list = [res.get(timeout=None) for res in results]
 
+            methods.add('RR algorithm (???) implemented in autodE')
+
+        # Add the unique conformers
         for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}',
-                             charge=self.charge,
-                             mult=self.mult,
-                             atoms=atoms)
+            conf = get_conformer(name=f'{self.name}_conf{i}', species=self)
+            conf.set_atoms(atoms)
 
             # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):
-                conf.solvent = self.solvent
                 self.conformers.append(conf)
 
         logger.info(f'Generated {len(self.conformers)} unique conformer(s)')

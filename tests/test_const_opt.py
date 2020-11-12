@@ -8,6 +8,7 @@ from . import testutils
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.keyword_prefixes = False
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'constrained_opt.zip'))

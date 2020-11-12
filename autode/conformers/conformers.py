@@ -7,7 +7,7 @@ from autode.log import logger
 import numpy as np
 
 
-def get_atoms_from_rdkit_mol_object(rdkit_mol_obj, conf_id):
+def atoms_from_rdkit_mol(rdkit_mol_obj, conf_id):
     """Generate atoms for conformers in rdkit_mol_obj
 
     Arguments:

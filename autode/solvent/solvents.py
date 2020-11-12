@@ -7,13 +7,13 @@ def get_solvent(solvent_name, implicit=True, explicit=False):
     if solvent_name is None:
         return None
 
-    if implicit:
+    if implicit and not explicit:
 
         for solvent in solvents:
             if solvent_name.lower() in solvent.aliases:
                 return solvent
 
-        raise SolventNotFound
+        raise SolventNotFound('No matching solvent in the library')
 
     if explicit:
         # Return ExplicitSolvent
@@ -25,7 +25,7 @@ def get_solvent(solvent_name, implicit=True, explicit=False):
 def get_available_solvent_names(method):
     """For an autode.wrappers.base.ElectronicStructureMethod return those
     solvents that are available"""
-    return [s.name for s in solvents if getattr(s, method.name) is not None]
+    return [s.name for s in solvents if hasattr(s, method.name)]
 
 
 class Solvent:
@@ -34,16 +34,13 @@ class Solvent:
         return self.name
 
     def __eq__(self, other):
-        if self is None and other is None:
-            return True
-
-        if self is None or other is None:
+        """Determine if two solvent are the same based on name and SMILES"""
+        if other is None:
             return False
 
         return self.name == other.name and self.smiles == other.smiles
 
-    def __init__(self, name, smiles, aliases, orca=None, g09=None, nwchem=None,
-                 xtb=None, mopac=None):
+    def __init__(self, name, smiles, aliases, **kwargs):
         """
         Solvent class. As electronic structure methods implement implicit
         solvation without a unique list of solvents there needs to be
@@ -53,29 +50,25 @@ class Solvent:
         Arguments:
             name (str): Unique name of the solvent
             smiles (str): SMILES string
-            aliases (list(str)): DIfferent names for the same solvent e.g.
+            aliases (list(str)): Different names for the same solvent e.g.
                                  water and H2O
 
         Keyword Arguments:
-            orca (str): Name of the solvent in ORCA, or None
-            g09 (str): Name of the solvent in Gaussian 09, or None
-            nwchem (str): Name of the solvent in NwChem, or None
-            xtb (str): Name of the solvent in XTB, or None
-            mopac (str): Name of the solvent in MOPAC, or None
+            kwargs (str): Name of the solvent in the electronic structure
+                          package e.g. Solvent(..., orca='water')
         """
 
         self.name = name
         self.smiles = smiles
         self.aliases = aliases
-        self.orca = orca
-        self.g09 = g09
+
+        # Add attributes for all the methods specified e.g. initialisation with
+        # orca='water' -> self.orca = 'water'
+        self.__dict__.update(kwargs)
 
         # Gaussian 09 and Gaussian 16 solvents are named the same
-        self.g16 = g09
-
-        self.nwchem = nwchem
-        self.xtb = xtb
-        self.mopac = mopac
+        if 'g09' in kwargs.keys():
+            self.g16 = kwargs['g09']
 
 
 class ExplicitSolvent(Solvent):

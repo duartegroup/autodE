@@ -4,8 +4,6 @@ import numpy as np
 import os
 from scipy.optimize import minimize
 from time import time
-from cconf_gen import v
-from cconf_gen import dvdr
 from autode.bond_lengths import get_ideal_bond_length_matrix
 from autode.config import Config
 from autode.input_output import xyz_file_to_atoms
@@ -64,6 +62,8 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8
         (np.ndarray): Optimised coordinates, shape = (n_atoms, 3)
     """
     # TODO divide and conquer?
+    from cconf_gen import v
+    from cconf_gen import dvdr
 
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
@@ -99,6 +99,8 @@ def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
     Returns:
         (float): Energy
     """
+    from cconf_gen import v
+
     n_atoms = len(coords)
     os.environ['OMP_NUM_THREADS'] = str(1)
 
@@ -123,7 +125,8 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
         (list(autode.atoms.Atom)): Atoms
     """
 
-    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+    stereocentres = [node for node in species.graph.nodes
+                     if species.graph.nodes[node]['stereo'] is True]
 
     # Check on every pair of stereocenters
     for (i, j) in combinations(stereocentres, 2):
@@ -148,7 +151,12 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
         theta = 2*np.pi*rand.rand()
         idxs_to_rotate = left_idxs if i in left_idxs else right_idxs
 
-        [atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[i].coord) for n in idxs_to_rotate if n != i]
+        # Rotate all the atoms to the left of this bond, missing out i as that
+        # is the origin for rotation and thus won't move
+        for n in idxs_to_rotate:
+            if n == i:
+                continue
+            atoms[n].rotate(axis=rot_axis, theta=theta, origin=atoms[i].coord)
 
     return atoms
 

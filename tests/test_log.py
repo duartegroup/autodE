@@ -1,4 +1,4 @@
-from autode import log
+from autode.log import log
 import os
 
 

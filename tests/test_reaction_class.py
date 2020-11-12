@@ -20,6 +20,7 @@ import shutil
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.keyword_prefixes = False
 
 h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
@@ -111,7 +112,6 @@ def test_reaction_identical_reac_prods():
     h2_reaction.locate_transition_state()
     assert h2_reaction.ts is None
 
-    shutil.rmtree('transition_states')
     os.chdir(here)
 
 
@@ -150,6 +150,12 @@ def test_bad_balance():
 
     with pytest.raises(SolventsDontMatch):
         reaction.Reaction(h1_water, h2_water, hh_thf)
+
+    with pytest.raises(NotImplementedError):
+        hh_triplet = reaction.Product(name='hh_trip',
+                                      atoms=[Atom('H'), Atom('H', x=0.7)],
+                                      mult=3)
+        reaction.Reaction(h1, h2, hh_triplet)
 
 
 def test_calc_delta_e():

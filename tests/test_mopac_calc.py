@@ -15,6 +15,7 @@ import pytest
 here = os.path.dirname(os.path.abspath(__file__))
 method = MOPAC()
 method.available = True
+Config.keyword_prefixes = False
 
 methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
                           solvent_name='water')
@@ -224,3 +225,18 @@ def test_mopac_keywords():
     h = Molecule(name='H', smiles='[H]')
     keywords = get_keywords(calc_input=calc_input, molecule=h)
     assert any('doublet' == kw.lower() for kw in keywords)
+
+
+def test_get_version_no_output():
+
+    calc = Calculation(name='test',
+                       molecule=methylchloride,
+                       method=method,
+                       keywords=method.keywords.sp)
+    calc.output.filename = 'test.out'
+    calc.output.file_lines = ['some', 'incorrect', 'lines']
+
+    assert not calc.terminated_normally()
+
+    version = method.get_version(calc)
+    assert version == '???'

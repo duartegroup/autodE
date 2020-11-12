@@ -12,6 +12,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 method = XTB()
 method.available = True
+Config.keyword_prefixes = False
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))

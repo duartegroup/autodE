@@ -1,7 +1,9 @@
 from autode.solvent import explicit_solvent
+from autode.solvent.solvents import get_solvent
 from autode.species.molecule import SolvatedMolecule
 from autode.atoms import Atom
 import numpy as np
+import pytest
 
 
 def test_add_solvent_mols():
@@ -19,3 +21,10 @@ def test_centre_species():
     species = SolvatedMolecule(atoms=[Atom('H', 1.0, 1.0, 1.0)])
     explicit_solvent.centre_species(species)
     assert np.allclose(species.atoms[0].coord, [0, 0, 0])
+
+
+def test_get_explicit_solvent():
+    # Implement explicit solvent test here..
+
+    with pytest.raises(NotImplementedError):
+        _ = get_solvent(solvent_name='water', explicit=True)

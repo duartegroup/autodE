@@ -1,6 +1,7 @@
 from autode.config import Config
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
+from autode.wrappers.implicit_solvent_types import cpcm
 from . import testutils
 import shutil
 import os
@@ -12,6 +13,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_multistep_reaction():
 
     Config.num_conformers = 1
+    Config.keyword_prefixes = True
 
     # Spoof installs
     Config.lcode = 'xtb'
@@ -26,7 +28,7 @@ def test_multistep_reaction():
 
     Config.XTB.path = shutil.which('xtb')
 
-    Config.ORCA.implicit_solvation_type = 'cpcm'
+    Config.ORCA.implicit_solvation_type = cpcm
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1
@@ -44,3 +46,4 @@ def test_multistep_reaction():
     reaction.calculate_reaction_profile()
 
     assert reaction.reactions is not None
+    Config.keyword_prefixes = False

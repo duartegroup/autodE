@@ -19,7 +19,10 @@ def test_get_solvent():
     assert water.smiles == 'O'
 
     with pytest.raises(SolventNotFound):
-        solvents.get_solvent(solvent_name='test_solvent')
+        _ = solvents.get_solvent(solvent_name='test_solvent')
+
+    assert not water == None
+    assert water == solvents.get_solvent(solvent_name='h2o')
 
 
 def test_point_charge():

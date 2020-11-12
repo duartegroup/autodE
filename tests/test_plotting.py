@@ -139,6 +139,13 @@ def test_edge_case_plot():
                                      energies=energies,
                                      ax=ax)
 
+    # But should be able to just plot the points connected by lines
+    fig, ax = plt.subplots()
+    plotting.plot_points(zi_s=np.array([0, 1, 2, 3, 4]),
+                         energies=energies,
+                         ax=ax)
+    plt.close()
+
 
 def test_stat_point_minimisation():
     # Test that the minimisation works for very shallow minima

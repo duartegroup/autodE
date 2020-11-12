@@ -1,10 +1,11 @@
 from autode.atoms import Atom
 from autode.conformers.conformer import Conformer
 from autode.wrappers.ORCA import orca
+from autode.config import Config
 from scipy.spatial import distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from autode.conformers.conformers import get_atoms_from_rdkit_mol_object
+from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import get_unique_confs
 from autode.constants import Constants
@@ -13,6 +14,7 @@ import numpy as np
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.keyword_prefixes = False
 
 orca.available = True
 
@@ -54,7 +56,7 @@ def test_rdkit_atoms():
 
     AllChem.EmbedMultipleConfs(mol, numConfs=1)
 
-    atoms = get_atoms_from_rdkit_mol_object(rdkit_mol_obj=mol, conf_id=0)
+    atoms = atoms_from_rdkit_mol(rdkit_mol_obj=mol, conf_id=0)
     assert len(atoms) == 5
 
     coords = np.array([atom.coord for atom in atoms])

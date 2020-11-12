@@ -106,3 +106,28 @@ def test_conformers():
     # Populating a species conformers should allow this function to be called
     methane.conformers = [Conformer(name='conf0', atoms=methane.atoms)]
     test(methane)
+
+
+def test_work_in_empty():
+
+    @utils.work_in('tmp_dir')
+    def test_function():
+        # Function makes no files so the directory should be deleted
+        print('test')
+
+    test_function()
+    assert not os.path.exists('tmp_dir')
+
+    @utils.work_in('tmp_dir')
+    def test_function_files():
+        # Function makes  files so the directory should be deleted
+        with open('tmp.txt', 'w') as out_file:
+            print('test', file=out_file)
+
+    test_function_files()
+    # Directory should now be retained
+    assert os.path.exists('tmp_dir')
+
+    # Remove the created files and directory
+    os.remove('tmp_dir/tmp.txt')
+    os.rmdir('tmp_dir')

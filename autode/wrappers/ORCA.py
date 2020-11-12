@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
@@ -50,7 +51,7 @@ def add_solvent_keyword(calc_input, keywords, implicit_solv_type):
             and calc_input.solvent not in vdw_gaussian_solvent_dict.keys()):
 
         err = (f'CPCM solvent with gaussian charge not avalible for '
-               f'{calc_input.solvent}.Available solvents are '
+               f'{calc_input.solvent}. Available solvents are '
                f'{vdw_gaussian_solvent_dict.keys()}')
 
         raise UnsuppportedCalculationInput(message=err)
@@ -63,17 +64,23 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
     """Modify the keywords for this calculation with the solvent + fix for
     single atom optimisation calls"""
 
-    keywords = calc_input.keywords.copy()
+    new_keywords = []
 
-    for keyword in keywords:
+    for keyword in calc_input.keywords.copy():
         if 'opt' in keyword.lower() and molecule.n_atoms == 1:
             logger.warning('Can\'t optimise a single atom')
-            keywords.remove(keyword)  # ORCA defaults to a SP calc
+            continue
+
+        if isinstance(keyword, kws.Keyword):
+            new_keywords.append(keyword.orca)
+
+        else:
+            new_keywords.append(keyword)
 
     if calc_input.solvent is not None:
-        add_solvent_keyword(calc_input, keywords, implicit_solv_type)
+        add_solvent_keyword(calc_input, new_keywords, implicit_solv_type)
 
-    return keywords
+    return new_keywords
 
 
 def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):
@@ -88,8 +95,9 @@ def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):
               f'end', file=inp_file)
 
     if use_vdw_gaussian_solvent(keywords, implicit_solv_type):
-        print('%cpcm\n surfacetype vdw_gaussian\nend', file=inp_file)
-
+        print('%cpcm\n'
+              'surfacetype vdw_gaussian\n'
+              'end', file=inp_file)
     return
 
 
@@ -255,6 +263,16 @@ class ORCA(ElectronicStructureMethod):
 
     def get_output_filename(self, calculation):
         return f'{calculation.name}.out'
+
+    def get_version(self, calc):
+        """Get the version of ORCA used to execute this calculation"""
+
+        for line in calc.output.file_lines:
+            if 'Program Version' in line and len(line.split()) >= 3:
+                return line.split()[2]
+
+        logger.warning('Could not find the ORCA version number')
+        return '???'
 
     def execute(self, calc):
 
@@ -477,7 +495,8 @@ class ORCA(ElectronicStructureMethod):
     def __init__(self):
         super().__init__('orca', path=Config.ORCA.path,
                          keywords_set=Config.ORCA.keywords,
-                         implicit_solvation_type=Config.ORCA.implicit_solvation_type)
+                         implicit_solvation_type=Config.ORCA.implicit_solvation_type,
+                         doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])
 
 
 orca = ORCA()

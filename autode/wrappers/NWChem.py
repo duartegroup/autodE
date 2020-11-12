@@ -1,4 +1,5 @@
 import numpy as np
+import autode.wrappers.keywords as kws
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external_monitored
 from autode.atoms import Atom
@@ -16,6 +17,16 @@ def get_keywords(calc_input, molecule):
     scf_block = False
 
     for keyword in calc_input.keywords:
+
+        if isinstance(keyword, kws.Functional):
+            keyword = f'dft\n  maxiter 100\n  xc {keyword.nwchem}\nend'
+
+        elif isinstance(keyword, kws.BasisSet):
+            keyword = f'basis\n  *   library {keyword.nwchem}\nend'
+
+        elif isinstance(keyword, kws.Keyword):
+            keyword = keyword.nwchem
+
         if 'opt' in keyword.lower() and molecule.n_atoms == 1:
             logger.warning('Cannot do an optimisation for a single atom')
 
@@ -46,7 +57,9 @@ def get_keywords(calc_input, molecule):
             new_keyword = '\n'.join(lines)
             new_keywords.append(new_keyword)
 
-        elif any(st in keyword.lower() for st in ['ccsd', 'mp2']) and not scf_block:
+        elif (any(st in keyword.lower() for st in ['ccsd', 'mp2'])
+              and not scf_block):
+
             if calc_input.solvent.keyword is not None:
                 logger.critical('nwchem only supports solvent for DFT calcs')
                 raise UnsuppportedCalculationInput
@@ -177,6 +190,17 @@ class NWChem(ElectronicStructureMethod):
 
     def get_output_filename(self, calc):
         return f'{calc.name}.out'
+
+    def get_version(self, calc):
+        """Get the NWChem version from the output file"""
+        for line in calc.output.file_lines:
+
+            if '(NWChem)' in line:
+                # e.g. Northwest Computational Chemistry Package (NWChem) 6.6
+                return line.split()[-1]
+
+        logger.warning('Could not find the NWChem version')
+        return '???'
 
     def execute(self, calc):
 
@@ -365,7 +389,8 @@ class NWChem(ElectronicStructureMethod):
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,
                          keywords_set=Config.NWChem.keywords,
-                         implicit_solvation_type=Config.NWChem.implicit_solvation_type)
+                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
+                         doi='10.1063/5.0004997')
 
 
 nwchem = NWChem()

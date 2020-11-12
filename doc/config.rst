@@ -53,3 +53,7 @@ environment variable, in bash::
 
     $ export AUTODE_LOG_LEVEL=INFO
 
+to output the log to a file set e.g. autode.log::
+
+    $ export AUTODE_LOG_FILE=autode.log
+

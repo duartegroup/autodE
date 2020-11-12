@@ -10,6 +10,7 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
+from autode.wrappers.implicit_solvent_types import cpcm
 from autode.transition_states.base import imag_mode_links_reactant_products
 from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
@@ -25,6 +26,7 @@ import shutil
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
 method.available = True
+Config.keyword_prefixes = False
 
 # Force ORCA to appear available
 Config.hcode = 'orca'
@@ -88,8 +90,11 @@ def test_ts_guess_class():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
 def test_links_reacs_prods():
 
-    tsguess.calc = Calculation(name=tsguess.name + '_hess', molecule=tsguess, method=method,
-                               keywords=method.keywords.hess, n_cores=Config.n_cores)
+    tsguess.calc = Calculation(name=tsguess.name + '_hess',
+                               molecule=tsguess,
+                               method=method,
+                               keywords=method.keywords.hess,
+                               n_cores=Config.n_cores)
     # Should find the completed calculation output
     tsguess.calc.run()
 
@@ -171,9 +176,12 @@ def test_find_tss():
     if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
         return
 
+    if os.path.exists('/dev/shm'):
+        Config.ll_tmp_dir = '/dev/shm'
+
     Config.XTB.path = shutil.which('xtb')
 
-    Config.ORCA.implicit_solvation_type = 'cpcm'
+    Config.ORCA.implicit_solvation_type = cpcm
     Config.make_ts_template = False
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1
@@ -195,7 +203,6 @@ def test_find_tss():
     assert reaction.ts.is_true_ts()
     os.chdir('..')
 
-    print(os.getcwd())
     reaction.ts.save_ts_template(folder_path=os.getcwd())
     assert os.path.exists('template0.txt')
 
@@ -209,6 +216,9 @@ def test_find_tss():
     assert template.charge == -1
 
     assert template.graph.number_of_nodes() == 6
+
+    # Reset the configuration
+    Config.ll_tmp_dir = None
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))

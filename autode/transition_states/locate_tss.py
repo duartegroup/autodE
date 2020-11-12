@@ -112,16 +112,11 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
                                 lmethod, lmethod.keywords.low_opt)
 
         yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_bbond',
-                                hmethod, hmethod.keywords.low_opt)
-
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_alt_bbond',
                                 hmethod,  hmethod.keywords.opt)
 
     if len(bbonds) > 0 and len(fbonds) == 1:
-        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_fbond',
-                                hmethod, hmethod.keywords.low_opt)
 
-        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_alt_fbond',
+        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_fbond',
                                 hmethod, hmethod.keywords.opt)
 
     if len(bbonds) >= 1 and len(fbonds) >= 1:
@@ -137,11 +132,7 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
                                         hmethod.keywords.low_opt)
 
     if len(bbonds) == 1 and len(fbonds) == 0:
-
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d', hmethod,
-                                hmethod.keywords.low_opt)
-
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_alt',
+        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d',
                                 hmethod, hmethod.keywords.opt)
 
     if len(fbonds) == 2:

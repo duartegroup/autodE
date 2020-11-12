@@ -9,7 +9,7 @@ Overview of autodE_
 profiles from just SMILES strings of reactant(s) and product(s).
 
 .. warning::
-    **autodE** is still in alpha release.
+    **autodE** is still beta release. Please report any bugs `here <https://github.com/duartegroup/autodE/issues>`_
 
 
 Documentation

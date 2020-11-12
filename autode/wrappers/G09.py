@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
@@ -45,40 +46,53 @@ def modify_keywords_for_point_charges(keywords):
 def get_keywords(calc_input, molecule):
     """Modify the input keywords to try and fix some Gaussian's quirks"""
 
-    keywords = calc_input.keywords.copy()
+    new_keywords = []   # List of keywords as strings for this calculation
+
+    for keyword in calc_input.keywords.copy():
+
+        # Add any empirical dispersion
+        if isinstance(keyword, kws.DispersionCorrection):
+            new_keywords.append(f'EmpiricalDispersion={keyword.g09}')
+
+        elif isinstance(keyword, kws.Keyword):
+            new_keywords.append(keyword.g09)
+
+        else:
+            new_keywords.append(keyword)
 
     # Mod redundant keywords is required if there are any constraints or
     # modified internal coordinates
     if molecule.constraints.any():
-        keywords.append('Geom=ModRedun')
+        new_keywords.append('Geom=ModRedun')
 
     if calc_input.added_internals is not None:
-        keywords.append('Geom=ModRedun')
+        new_keywords.append('Geom=ModRedun')
 
     # Remove the optimisation keyword if there is only a single atom
     opt = False
-    for keyword in keywords:
+    for keyword in new_keywords:
 
         if 'opt' not in keyword.lower():
-            opt = True
             continue
+
+        opt = True
 
         if molecule.n_atoms == 1:
             logger.warning('Cannot do an optimisation for a single atom')
-            keywords.remove(keyword)
+            new_keywords.remove(keyword)
 
     if calc_input.temp is not None:
-        keywords.append(f'Temperature={calc_input.temp:.2f}')
+        new_keywords.append(f'Temperature={calc_input.temp:.2f}')
 
     # Further modification is required if there are surrounding point charges
     if calc_input.point_charges is not None:
-        modify_keywords_for_point_charges(keywords)
+        modify_keywords_for_point_charges(new_keywords)
 
     # By default perform all optimisations without symmetry
-    if opt and not any(kw.lower() == 'nosymm' for kw in keywords):
-        keywords.append('NoSymm')
+    if opt and not any(kw.lower() == 'nosymm' for kw in new_keywords):
+        new_keywords.append('NoSymm')
 
-    return keywords
+    return new_keywords
 
 
 def print_point_charges(inp_file, calc_input):
@@ -195,7 +209,12 @@ class G09(ElectronicStructureMethod):
         """Print a Gaussian input file"""
 
         with open(calc.input.filename, 'w') as inp_file:
-            print(f'%mem={Config.max_core}MB', file=inp_file)
+
+            # Gaussian defines the total memory for the whole calculation, not
+            # per core
+            total_mem = int(Config.max_core * calc.n_cores)
+            print(f'%mem={total_mem}MB', file=inp_file)
+
             if calc.n_cores > 1:
                 print(f'%nprocshared={calc.n_cores}', file=inp_file)
 
@@ -228,6 +247,17 @@ class G09(ElectronicStructureMethod):
 
     def get_output_filename(self, calc):
         return f'{calc.name}.log'
+
+    def get_version(self, calc):
+        """Get the version of Gaussian used in this calculation"""
+
+        for line in calc.output.file_lines:
+
+            if line.startswith('Gaussian ') and 'Revision' in line:
+                return line.lstrip('Gaussian ')
+
+        logger.warning('Could not find the Gaussian version number')
+        return '???'
 
     def execute(self, calc):
 
@@ -472,7 +502,8 @@ class G09(ElectronicStructureMethod):
         super().__init__(name=name,
                          path=Config.G09.path if path is None else path,
                          keywords_set=keywords_set,
-                         implicit_solvation_type=implicit_solvation_type)
+                         implicit_solvation_type=implicit_solvation_type,
+                         doi='http://gaussian.com/citation/')
 
 
 g09 = G09()

@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
 from autode.solvent.solvents import get_solvent
@@ -238,9 +239,15 @@ class Species:
             logger.info('Getting the default low level method')
             lmethod = get_lmethod()
 
+        methods.add('Low energy conformers located with the')
         self._generate_conformers()
 
         # For all generated conformers optimise with the low level of theory
+        method_string = f'and optimised using {lmethod.name}'
+        if hmethod is not None:
+            method_string += f' then with {hmethod.name}'
+        methods.add(f'{method_string}.')
+
         for conformer in self.conformers:
             conformer.optimise(lmethod)
 
