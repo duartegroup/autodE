@@ -57,7 +57,9 @@ def log_to_log_file():
 if log_to_log_file():
     logging.basicConfig(level=get_log_level(),
                         filename=os.environ['AUTODE_LOG_FILE'], filemode='w',
-                        format='%(name)-12s: %(levelname)-8s %(message)s')
+                        format='%(asctime)s %(name)-12s: %(levelname)-8s '
+                               '%(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
 
 else:
     logging.basicConfig(level=get_log_level(),
