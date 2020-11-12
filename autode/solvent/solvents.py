@@ -15,7 +15,7 @@ def get_solvent(solvent_name, implicit=True, explicit=False):
 
         raise SolventNotFound('No matching solvent in the library')
 
-    if explicit and not implicit:
+    if explicit:
         # Return ExplicitSolvent
         raise NotImplementedError
 

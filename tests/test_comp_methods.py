@@ -13,7 +13,6 @@ def test_init():
 
     # Should contain some mention of autodE by default
     assert 'autodE' in str(methods)
-    assert 'autodE' in methods.string()
 
 
 @work_in_zipped_dir(os.path.join(here, 'data', 'comp_methods.zip'))
@@ -32,5 +31,3 @@ def test_dft():
 
     # Default CPCM solvation in orca
     assert 'CPCM' in str(methods)
-
-    print(methods)

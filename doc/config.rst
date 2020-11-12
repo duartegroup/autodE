@@ -55,5 +55,5 @@ environment variable, in bash::
 
 to output the log to a file set e.g. autode.log::
 
-    $ export AUTODE_LOG_FILE=ade.log
+    $ export AUTODE_LOG_FILE=autode.log
 
