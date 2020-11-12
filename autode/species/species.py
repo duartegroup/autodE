@@ -229,7 +229,6 @@ class Species:
             hmethod (autode.wrappers.ElectronicStructureMethod):
         """
         logger.info('Finding lowest energy conformer')
-        methods.add('Low energy conformers located with the')
 
         if self.n_atoms <= 2:
             logger.warning('Cannot have conformers of a species with 2 atoms '
@@ -240,6 +239,7 @@ class Species:
             logger.info('Getting the default low level method')
             lmethod = get_lmethod()
 
+        methods.add('Low energy conformers located with the')
         self._generate_conformers()
 
         # For all generated conformers optimise with the low level of theory

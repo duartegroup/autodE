@@ -347,7 +347,8 @@ class MOPAC(ElectronicStructureMethod):
     def __init__(self):
         super().__init__(name='mopac', path=Config.MOPAC.path,
                          keywords_set=Config.MOPAC.keywords,
-                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type)
+                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
+                         doi='10.1007/BF00128336')
 
 
 mopac = MOPAC()

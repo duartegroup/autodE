@@ -33,9 +33,6 @@ class ComputationalMethods:
         self._list = []
         return None
 
-    def string(self):
-        return self.__str__()
-
     def __init__(self):
         """
         ComputationalMethods as a list of sentences and digital object

@@ -177,14 +177,12 @@ class Calculation:
                     f'{self.method.get_version(self)} '
                     f'({self.method.doi_str()}).')
 
-        string = ''
-
         # Type of calculation ----
         if isinstance(self.input.keywords, kws.SinglePointKeywords):
-            string += 'Single point '
+            string = 'Single point '
 
         elif isinstance(self.input.keywords, kws.OptKeywords):
-            string += 'Optimisation '
+            string = 'Optimisation '
 
         else:
             logger.warning('Not adding gradient or hessian to methods section '
