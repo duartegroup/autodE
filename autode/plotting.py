@@ -137,12 +137,7 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
         plot_smooth_profile(zi_s, energies, ax=ax)
 
     except CouldNotPlotSmoothProfile:
-        ax.plot(zi_s, energies, ls='--', c='k', marker='o')
-
-        # Annotate the plot with the relative energies
-        for i, energy in enumerate(energies):
-            ax.annotate(f'{np.round(energy, 1)}', (zi_s[i], energy + 0.7),
-                        fontsize=12, ha='center')
+        plot_points(zi_s, energies, ax=ax)
 
     ec = 'E'
     if free_energy:
@@ -209,6 +204,24 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     return None
 
+
+def plot_points(zi_s, energies, ax):
+    """
+    Plot a reaction profile just adding the points to the graph
+
+    Arguments:
+        zi_s (np.ndarray): Estimate of reaction coordinate points
+        energies (np.ndarray): len(energies) = len(zi_s)
+        ax (matplotlib.axes.Axes):
+    """
+    ax.plot(zi_s, energies, ls='--', c='k', marker='o')
+
+    # Annotate the plot with the relative energies
+    for i, energy in enumerate(energies):
+        ax.annotate(f'{np.round(energy, 1)}', (zi_s[i], energy + 0.7),
+                    fontsize=12, ha='center')
+
+    return None
 
 def get_reaction_profile_warnings(reactions):
     """Get a string of warnings for a reaction

@@ -7,7 +7,7 @@ def get_solvent(solvent_name, implicit=True, explicit=False):
     if solvent_name is None:
         return None
 
-    if implicit:
+    if implicit and not explicit:
 
         for solvent in solvents:
             if solvent_name.lower() in solvent.aliases:
@@ -15,7 +15,7 @@ def get_solvent(solvent_name, implicit=True, explicit=False):
 
         raise SolventNotFound('No matching solvent in the library')
 
-    if explicit:
+    if explicit and not implicit:
         # Return ExplicitSolvent
         raise NotImplementedError
 
@@ -34,10 +34,8 @@ class Solvent:
         return self.name
 
     def __eq__(self, other):
-        if self is None and other is None:
-            return True
-
-        if self is None or other is None:
+        """Determine if two solvent are the same based on name and SMILES"""
+        if other is None:
             return False
 
         return self.name == other.name and self.smiles == other.smiles

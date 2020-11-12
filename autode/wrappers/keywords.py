@@ -4,6 +4,9 @@ from autode.log import logger
 
 class KeywordsSet:
 
+    def __getitem__(self, item):
+        return self._list[item]
+
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
         for attr in ('opt', 'opt_ts', 'grad', 'hess'):
@@ -22,9 +25,17 @@ class KeywordsSet:
         """Set the functional for all calculation types"""
         assert type(functional) is Functional
 
-        self.low_opt.set_functional(functional)
-        self.set_opt_functional(functional)
-        self.sp.set_functional(functional)
+        for keywords in self:
+            keywords.set_functional(functional)
+
+        return None
+
+    def set_dispersion(self, dispersion):
+        """Set the dispersion correction for all calculation types"""
+        assert type(dispersion) is DispersionCorrection or dispersion is None
+
+        for keywords in self:
+            keywords.set_dispersion(dispersion)
 
         return None
 
@@ -68,6 +79,9 @@ class KeywordsSet:
 
         self.sp = SinglePointKeywords(sp)
 
+        self._list = [self.low_opt, self.opt, self.opt_ts, self.grad,
+                      self.hess, self.sp]
+
         self.optts_block = optts_block
 
 
@@ -91,11 +105,14 @@ class Keywords:
         if type(keyword) is str:
             keyword = Functional(name=keyword)
 
-        assert type(keyword) is keyword_type
+        assert type(keyword) is keyword_type or keyword is None
 
         for i, keyword_in_list in enumerate(self.keyword_list):
             if isinstance(keyword_in_list, keyword_type):
-                self.keyword_list[i] = keyword
+                if keyword is None:
+                    self.keyword_list.pop(i)
+                else:
+                    self.keyword_list[i] = keyword
                 return
 
         raise ValueError('Could not set the keyword - none recognised')
@@ -103,6 +120,10 @@ class Keywords:
     def set_functional(self, functional):
         """Set the functional in a set of keywords"""
         return self._set_keyword(functional, keyword_type=Functional)
+
+    def set_dispersion(self, dispersion):
+        """Set the dispersion correction in a set of keywords"""
+        return self._set_keyword(dispersion, keyword_type=DispersionCorrection)
 
     def set_basis_set(self, basis_set):
         """Set the functional in a set of keywords"""
