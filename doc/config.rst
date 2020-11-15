@@ -6,18 +6,23 @@ the calculations. By default low level optimisations are performed at PBE-D3BJ/d
 optimisations at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in
 ORCA if it is available.
 
+Calculations
+------------
+
 For example, to use Gaussian09 as the high level electronic structure method
 
 .. code-block:: python
 
   >>> Config.hcode = 'g09'
 
-To set the number of cores available and the memory per core (in MB)
+To set the number of cores available and the memory per core (in MB), to use a maximum
+of 32 GB for the whole calculation
 
 .. code-block:: python
 
   >>> Config.n_cores = 8
   >>> Config.max_core = 4000
+
 
 Calculation parameters also can be changed, e.g to use B3LYP/def2-TZVP single point
 energies in ORCA
@@ -32,10 +37,22 @@ basis set for optimisations
 
 .. code-block:: python
 
-  >>> from autode.wrappers.keywords import OptKeywords, HessianKeywords
   >>> Config.ORCA.keywords.opt = OptKeywords(['Opt', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
+  >>> Config.ORCA.keywords.grad = GradientKeywords(['EnGrad', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
   >>> Config.ORCA.keywords.hess = HessianKeywords(['Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
   >>> Config.ORCA.keywords.opt_ts = OptKeywords(['OptTS', 'Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
+
+
+To use XTB as the *hmethod* for minima and TS optimisations with the `xtb-gaussian <https://github.com/aspuru-guzik-group/xtb-gaussian>`_ wrapper
+
+.. code-block:: python
+
+  >>> Config.G16.keywords.sp = SinglePointKeywords([f"external='xtb-gaussian'"])
+  >>> Config.G16.keywords.low_opt = OptKeywords([f"external='xtb-gaussian'", "opt=loose"])
+  >>> Config.G16.keywords.opt = OptKeywords([f"external='xtb-gaussian'", "opt"])
+  >>> Config.G16.keywords.opt_ts = OptKeywords([f"external='xtb-gaussian'", 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', "freq"])
+  >>> Config.G16.keywords.hess = HessianKeywords([f"external='xtb-gaussian'", 'freq'])
+  >>> Config.G16.keywords.grad = GradientKeywords([f"external='xtb-gaussian'", 'Force(NoStep)'])
 
 
 See the `config file <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_
