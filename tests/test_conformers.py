@@ -1,7 +1,10 @@
 from autode.atoms import Atom
+from autode.species import Molecule
 from autode.conformers.conformer import Conformer
 from autode.wrappers.ORCA import orca
+from autode.wrappers.XTB import XTB
 from autode.config import Config
+from autode.wrappers.keywords import SinglePointKeywords
 from scipy.spatial import distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -11,6 +14,7 @@ from autode.conformers.conformers import get_unique_confs
 from autode.constants import Constants
 from . import testutils
 import numpy as np
+import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -125,3 +129,30 @@ def test_rmsd_confs():
     # Methane but rotated should have an RMSD ~ 0 Angstroms
     assert not conf_is_unique_rmsd(conf=methane2, conf_list=[methane1],
                                    rmsd_tol=0.1)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
+def test_sp_hmethod_ranking():
+
+    Config.hmethod_sp_conformers = True
+
+    butane = Molecule(smiles='CCCC')
+    xtb = XTB()
+    xtb.available = True
+    cwd = os.getcwd()
+
+    # Need to set hmethod.low_sp
+    with pytest.raises(AssertionError):
+        butane.find_lowest_energy_conformer(lmethod=xtb,
+                                            hmethod=orca)
+
+    # work_in function will change directories and not change back when an
+    # exception is raised, so ensure we're working in the same dir as before
+    os.chdir(cwd)
+
+    orca.keywords.low_sp = SinglePointKeywords(['PBE', 'D3BJ', 'def2-SVP'])
+    butane.find_lowest_energy_conformer(lmethod=xtb,
+                                        hmethod=orca)
+    assert butane.energy is not None
+
+    Config.hmethod_sp_conformers = False
