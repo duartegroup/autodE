@@ -225,3 +225,34 @@ def test_thermal_cont_without_hess_run():
     # and similarly with the enthalpic contribution
     mol.calc_h_cont(calc=calc)
     assert mol.h_cont is None
+
+
+def test_is_linear():
+
+    h_atom = Species(name='h', atoms=[Atom('H')], charge=0, mult=1)
+    assert not h_atom.is_linear()
+
+    dihydrogen = Species(name='h2', atoms=[Atom('H'), Atom('H', x=1)],
+                         charge=0, mult=1)
+    assert dihydrogen.is_linear()
+
+    water = Species(name='water', charge=0, mult=1,
+                    atoms=[Atom('O', x=-1.52, y=2.72),
+                           Atom('H', x=-0.54, y=2.72),
+                           Atom('H', x=-1.82, y=2.82, z=-0.92)])
+    assert not water.is_linear()
+
+    lin_water = Species(name='linear_water', charge=0, mult=1,
+                        atoms=[Atom('O', x=-1.52, y=2.72),
+                               Atom('H', x=-1.21, y=2.51, z=1.03),
+                               Atom('H', x=-1.82, y=2.82, z=-0.92)])
+    assert lin_water.is_linear()
+
+    close_lin_water = Species(name='linear_water', charge=0, mult=1,
+                              atoms=[Atom('O', x=-1.52, y=2.72),
+                                     Atom('H', x=-0.90, y=2.36, z=0.89),
+                                     Atom('H', x=-1.82, y=2.82, z=-0.92)])
+    assert not close_lin_water.is_linear()
+
+    acetylene = Molecule(smiles='C#C')
+    assert acetylene.is_linear()

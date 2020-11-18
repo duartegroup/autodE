@@ -95,6 +95,35 @@ class Species:
 
         return None
 
+    @requires_atoms()
+    def is_linear(self, tol=0.01):
+        """Determine if a species is linear i.e all atoms are colinear
+
+        Keyword Arguments:
+            tol (float): Tolerance on |cos(θ)| - 1 where θ is the angle between
+                         the vector from atom 0 to 1 and from 0 to n (n > 1)
+        """
+
+        if len(self.atoms) < 2:
+            return False
+
+        # A species with two atoms must be linear
+        if len(self.atoms) == 2:
+            return True
+
+        # Check that all atoms are in colinear to the first two, taking the
+        # first atom as the origin
+        vec0 = self.atoms[1].coord - self.atoms[0].coord
+
+        for atom in self.atoms[2:]:
+            vec = atom.coord - self.atoms[0].coord
+            cos_theta = np.dot(vec, vec0) / (length(vec) * length(vec0))
+            if np.abs(np.abs(cos_theta) - 1) > tol:
+                return False
+
+        logger.info('Species is linear')
+        return True
+
     def is_explicitly_solvated(self):
         return isinstance(self.solvent, ExplicitSolvent)
 
@@ -145,10 +174,10 @@ class Species:
             keywords (autode.wrappers.keywords.Keywords):
         """
         logger.info(f'Running optimisation of {self.name}')
-        keywords = method.keywords.opt if keywords is None else keywords
 
         if calc is None:
             assert method is not None
+            keywords = method.keywords.opt if keywords is None else keywords
 
             calc = Calculation(name=f'{self.name}_opt',
                                molecule=self,

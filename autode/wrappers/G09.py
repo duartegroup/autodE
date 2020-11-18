@@ -90,7 +90,12 @@ def get_keywords(calc_input, molecule):
 
     # By default perform all optimisations without symmetry
     if opt and not any(kw.lower() == 'nosymm' for kw in new_keywords):
-        new_keywords.append('NoSymm')
+        if hasattr(molecule, 'is_linear') and molecule.is_linear():
+            # Allow symmetry for linear molecules so the free energy
+            # calculation
+            pass
+        else:
+            new_keywords.append('NoSymm')
 
     return new_keywords
 
