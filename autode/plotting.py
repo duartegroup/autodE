@@ -152,7 +152,8 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
     fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left',
              fontsize=6, wrap=True)
 
-    return save_plot(plt, filename=f'{name}_reaction_profile.png')
+    prefix = '' if name == 'reaction' else f'{name}_'
+    return save_plot(plt, filename=f'{prefix}reaction_profile.png')
 
 
 def plot_smooth_profile(zi_s, energies, ax):
