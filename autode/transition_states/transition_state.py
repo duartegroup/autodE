@@ -198,6 +198,9 @@ class TransitionState(TSbase):
                 logger.info('Conformer search successful')
                 return None
 
+            # Ensure the energy has a numerical value, so a difference can be
+            # evaluated
+            self.energy = self.energy if self.energy is not None else 0
             logger.warning(f'Transition state conformer search failed '
                            f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
 
