@@ -82,9 +82,9 @@ def test_calculate_reaction_profile_energies():
                                                             units=KcalMol)
 
     # Energies have been set to ∆E = -20 and ∆E‡ = 20 kcal mol-1 respectively
-    assert energies[0] == 0
-    assert 19 < energies[1] < 21
-    assert -21 < energies[2] < -19
+    assert energies[0].item() == 0
+    assert 19 < energies[1].item() < 21
+    assert -21 < energies[2].item() < -19
 
     # Copying the reaction should give relative energies [0, 20, -20, 0, -40]
 
@@ -92,9 +92,9 @@ def test_calculate_reaction_profile_energies():
                                                             units=KcalMol)
 
     # Energies have been set to ∆E = -20 and ∆E‡ = 20 kcal mol-1 respectively
-    assert energies[0] == 0
-    assert -0.1 < energies[3] < 0.1
-    assert -41 < energies[4] < -39
+    assert energies[0].item() == 0
+    assert -0.1 < energies[3].item() < 0.1
+    assert -41 < energies[4].item() < -39
 
 
 def test_reaction_warnings():

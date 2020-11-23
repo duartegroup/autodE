@@ -146,7 +146,8 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
         ec = 'H'
 
     plt.ylabel(f'∆${ec}$ / {units.name}', fontsize=12)
-    plt.ylim(min(energies)-3, max(energies)+3)
+    energy_values = [energy.item() for energy in energies]
+    plt.ylim(min(energy_values)-3, max(energy_values)+3)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
     fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left',
@@ -164,14 +165,15 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     Arguments:
         zi_s (np.ndarray): Estimate of reaction coordinate points
-        energies (np.ndarray): len(energies) = len(zi_s)
+        energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
         ax (matplotlib.axes.Axes):
     """
 
     # Minimise a set of spline points so the stationary points have y values
     # given in the energies array
-    result = minimize(error_on_stationary_points, x0=energies,
-                      args=(energies,),
+    energies_arr = np.array([energy.item() for energy in energies], dtype='f')
+    result = minimize(error_on_stationary_points, x0=energies_arr,
+                      args=(energies_arr,),
                       method='BFGS',
                       tol=0.1)
 
@@ -196,6 +198,10 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     # Annotate the plot with the relative energies
     for i, energy in enumerate(optimised_spline(zi_s)):
+        if energies[i].estimated:
+            # Don't add estimated energies
+            continue
+
         # Shift the minima labels (even points) below the point and the
         # transition state labels above the point
         shift = -2.0 if i % 2 == 0 else 0.7
@@ -212,23 +218,36 @@ def plot_points(zi_s, energies, ax):
 
     Arguments:
         zi_s (np.ndarray): Estimate of reaction coordinate points
-        energies (np.ndarray): len(energies) = len(zi_s)
+        energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
         ax (matplotlib.axes.Axes):
     """
-    ax.plot(zi_s, energies, ls='--', c='k', marker='o')
+    if all(isinstance(energy, Energy) for energy in energies):
+        energies_arr = np.array([energy.item() for energy in energies])
+    else:
+        energies_arr = np.array(energies, copy=True)
+
+    ax.plot(zi_s, energies_arr, ls='--', c='k', marker='o')
 
     # Annotate the plot with the relative energies
     for i, energy in enumerate(energies):
-        ax.annotate(f'{np.round(energy, 1)}', (zi_s[i], energy + 0.7),
-                    fontsize=12, ha='center')
+        if hasattr(energy, 'estimated') and energy.estimated:
+            # Don't add estimated energies
+            continue
 
+        ax.annotate(f'{np.round(energies_arr[i], 1)}',
+                    (zi_s[i], energies_arr[i] + 0.7),
+                    fontsize=12, ha='center')
     return None
+
 
 def get_reaction_profile_warnings(reactions):
     """Get a string of warnings for a reaction
 
     Arguments:
         reactions (list(autode.reaction.Reaction)):
+
+    Returns:
+        (str): List of warnings to annotate the plot with
     """
     logger.info('Getting warnings for reaction profile')
     warnings = ''
@@ -272,6 +291,9 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
     Keyword Arguments:
         free_energy (bool): Calculate ∆Gs
         enthalpy (bool): Calculate ∆Hs
+
+    Returns:
+        (np.ndarray(autode.plotting.Energy))
     """
     # Populate a list of reaction relative energies
     # [reactants -> TS -> products], all floats
@@ -289,7 +311,9 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         # If ∆Er cannot be calculated then assume isoenergetic and add a
         # warning to the plot
         if de is None:
-            de = 0.0
+            de = Energy(0.0, estimated=True)
+        else:
+            de = Energy(de)
 
         if free_energy:
             de_ts = reaction.calc_delta_g_ddagger()
@@ -299,11 +323,15 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
             de_ts = reaction.calc_delta_e_ddagger()
 
         # If there is no TS then a barrierless reaction will be assumed and a
-        # warning added to the plot
+        # warning added to the plot. Effective free energy barrier =
+        # 4.35 kcal mol-1 calcd. from k = 4x10^9 at 298 K (10.1021/cr050205w)
         if de_ts is None:
-            de_ts = 0.0032 + max(0.0, de)
+            de_ts = Energy(0.00694 + max(0.0, de.item()), estimated=True)
 
-        reaction_energies.append([0.0, de_ts, de])
+        else:
+            de_ts = Energy(de_ts)
+
+        reaction_energies.append([Energy(0.0), de_ts, de])
 
     # Construct the full list of energies, referenced to the first set of
     # reactants
@@ -315,14 +343,18 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         energies += [reaction_energies[i][1] + energies[-1],
                      reaction_energies[i][2] + energies[-1]]
 
-    return units.conversion * np.array(energies)
+    # Convert to the required units
+    for energy in energies:
+        energy.x *= units.conversion
+
+    return energies
 
 
 def get_stationary_points(xs, dydx):
     """
     Compute the productive of the derivative at points x(i-1) and x(i) which
     is negative if there is a point x(k)
-    between x(i-1) and x(i) that has dy/dx|_x(k) = 0
+    between x(i-1) and x(i) that has dy/dx|x(k) = 0
 
     Arguments:
          xs (np.ndarray):
@@ -383,3 +415,33 @@ def error_on_stationary_points(x, energies):
     energy_difference = energies - np.array(energies_at_stationary_points)
 
     return np.sum(np.square(energy_difference))
+
+
+class Energy:
+
+    def __repr__(self):
+        return f'Energy({self.x})'
+
+    def __add__(self, other):
+        """Add a number to an energy"""
+        self.x += other.item() if isinstance(other, Energy) else other
+        return self
+
+    def __sub__(self, other):
+        """Subtract a number from an energy"""
+        return self.__add__(-other.x if isinstance(other, Energy) else -other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __mul__(self, other):
+        """Multiply an energy by a number"""
+        self.x *= other.item() if isinstance(other, Energy) else other
+        return self
+
+    def item(self):
+        return self.x
+
+    def __init__(self, value, estimated=False):
+        self.x = value
+        self.estimated = estimated
