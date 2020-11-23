@@ -81,7 +81,7 @@ class TSbase(Species):
         except NoNormalModesFound:
             logger.warning('No normal modes could be found cannot determine if'
                            'this the correct imaginary mode is found')
-            return None
+            return False
 
         # Check very conservatively for the correct displacement
         if not imag_mode_has_correct_displacement(self.calc,
@@ -172,7 +172,7 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
     Returns:
         (list(autode.atoms.Atom)):
     """
-    logger.info('Displacing along imaginary mode')
+    logger.info(f'Displacing along imaginary mode from {calc.name}')
 
     atoms = deepcopy(calc.get_final_atoms())
     mode_disp_coords = calc.get_normal_mode_displacements(mode_number)
