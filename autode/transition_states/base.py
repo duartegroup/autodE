@@ -208,6 +208,12 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
                 ' bonds')
     ts_species = deepcopy(calc.molecule)
 
+    try:
+        # We need to used the optimised set of atoms...
+        ts_species.set_atoms(atoms=calc.get_final_atoms())
+    except AtomsNotFound:
+        return False
+
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
                                                        disp_magnitude=disp_mag)
     f_species = Species(name='f_displaced', atoms=f_displaced_atoms,
