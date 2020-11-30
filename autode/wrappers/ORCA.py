@@ -479,17 +479,26 @@ class ORCA(ElectronicStructureMethod):
         gradients = []
 
         for i, line in enumerate(calc.output.file_lines):
-            if 'CARTESIAN GRADIENT' in line:
+            if 'CARTESIAN GRADIENT' in line or 'The final MP2 gradient' in line:
                 gradients = []
-                first, last = i + 3, i + 3 + calc.molecule.n_atoms
+                if 'CARTESIAN GRADIENT' in line:
+                    first, last = i + 3, i + 3 + calc.molecule.n_atoms
+                if 'The final MP2 gradient' in line:
+                    first, last = i + 1, i + 1 + calc.molecule.n_atoms
+                if 'CARTESIAN GRADIENT (NUMERICAL)' in line:
+                    first, last = i + 2, i + 2 + calc.molecule.n_atoms
+
                 for grad_line in calc.output.file_lines[first:last]:
+
+                    if len(grad_line.split()) <= 3:
+                        continue
+
                     dadx, dady, dadz = grad_line.split()[-3:]
                     vec = [float(dadx), float(dady), float(dadz)]
 
-                    gradients.append(np.array(vec))
+                    # Convert from Ha a0^-1 to Ha A-1
+                    gradients.append(np.array(vec) / Constants.a02ang)
 
-        # Convert from Ha a0^-1 to Ha A-1
-        gradients = [grad / Constants.a02ang for grad in gradients]
         return np.array(gradients)
 
     def __init__(self):

@@ -1,10 +1,12 @@
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
+from autode.constants import Constants
 from autode.wrappers.ORCA import calc_atom_entropy
 from autode.calculation import Calculation
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
 from autode.species.molecule import SolvatedMolecule
+from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoNormalModesFound
 from autode.exceptions import NoInputError
@@ -217,6 +219,31 @@ def test_gradients():
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1E-3
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
+def test_mp2_numerical_gradients():
+
+    calc = Calculation(name='tmp',
+                       molecule=Molecule(atoms=xyz_file_to_atoms('tmp_orca.xyz')),
+                       method=method,
+                       keywords=method.keywords.grad)
+    calc.output.filename = 'tmp_orca.out'
+    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
+
+    gradients = calc.get_gradients()
+    assert len(gradients) == 6
+    expected = np.array([-0.00971201,  -0.00773534,  -0.02473580]) / Constants.a02ang
+    assert np.linalg.norm(expected - gradients[0]) < 1e-6
+
+    # Test for different printing with numerical..
+    calc.output.filename = 'numerical_orca.out'
+    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
+    gradients = calc.get_gradients()
+    assert len(gradients) == 6
+    expected = np.array([0.012397372, 0.071726232, -0.070942743]) / Constants.a02ang
+    assert np.linalg.norm(expected - gradients[0]) < 1e-6
+
 
 
 def test_calc_entropy():
