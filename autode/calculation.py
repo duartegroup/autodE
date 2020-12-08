@@ -349,7 +349,11 @@ class Calculation:
         """Generate the required input"""
         logger.info(f'Generating input file(s) for {self.name}')
 
-        self._fix_unique()
+        # Can switch of uniqueness testing with e.g.
+        # export AUTODE_FIXUNIQUE=False   used for testing
+        if os.getenv('AUTODE_FIXUNIQUE', True) != 'False':
+            self._fix_unique()
+
         self.input.filename = self.method.get_input_filename(self)
 
         # Check that if the keyword is a autode.wrappers.keywords.Keyword then
