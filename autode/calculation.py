@@ -226,8 +226,10 @@ class Calculation:
         Returns:
             (bool)
         """
-
         logger.info('Checking to see if the geometry converged')
+        if not self.output.exists():
+            return False
+
         return self.method.optimisation_converged(self)
 
     def optimisation_nearly_converged(self):
@@ -238,6 +240,9 @@ class Calculation:
             (bool)
         """
         logger.info('Checking to see if the geometry nearly converged')
+        if not self.output.exists():
+            return False
+
         return self.method.optimisation_nearly_converged(self)
 
     def get_imaginary_freqs(self):
