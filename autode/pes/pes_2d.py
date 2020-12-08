@@ -186,8 +186,10 @@ class PES2d(PES):
         self.n_points_r1, self.n_points_r2 = len(r1s), len(r2s)
 
         # Matrices to store the species and r1, r2 values at a point (i, j)
-        self.species = np.empty(shape=(self.n_points_r1, self.n_points_r2), dtype=object)
-        self.rs = np.empty(shape=(self.n_points_r1, self.n_points_r2), dtype=tuple)
+        self.species = np.empty(shape=(self.n_points_r1, self.n_points_r2),
+                                dtype=object)
+        self.rs = np.empty(shape=(self.n_points_r1, self.n_points_r2),
+                           dtype=tuple)
 
         # List of tuples that contain atom indices of the coordinate r1
         self.rs_idxs = [r1_idxs, r2_idxs]
@@ -295,7 +297,3 @@ def polyfit2d(x, y, z, order):
     # (0,1), (0,2) ... (1,0), (1,1), (1,2) etc up to (order, order)
     coeff_mat, _, _, _ = np.linalg.lstsq(vander, z, rcond=None)
     return coeff_mat.reshape(deg + 1)
-
-
-
-

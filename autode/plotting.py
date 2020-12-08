@@ -94,12 +94,12 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
     return save_plot(plot=plt, filename=f'{name}.png')
 
 
-def plot_1dpes(rs, rel_energies, method_name, name='1d_scan'):
+def plot_1dpes(rs, rel_energies, method_name, name='1d_scan', xlabel='$r$ / Å'):
     logger.info(f'Plotting 1D scan and saving to {name}.png')
 
     plt.plot(rs, rel_energies, marker='o', color='k', label=method_name)
     plt.legend()
-    plt.xlabel('$r$ / Å')
+    plt.xlabel(xlabel)
     plt.ylabel('∆$E$ / kcal mol$^{-1}$')
 
     return save_plot(plot=plt, filename=f'{name}.png')
