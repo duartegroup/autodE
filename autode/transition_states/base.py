@@ -156,7 +156,8 @@ class TSbase(Species):
         self._init_graph()
 
 
-def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
+def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0,
+                                   atoms=None):
     """Displace the geometry along the imaginary mode with mode number
     iterating from 0, where 0-2 are translational normal modes, 3-5 are
     rotational modes and 6 is the largest imaginary mode. To displace along
@@ -168,21 +169,27 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
 
     Keyword Arguments:
         disp_magnitude (float): Distance to displace (default: {1.0})
+        atoms (list(autode.atoms.Atom)): Atoms to displace, if None then the
+                                     final set of atoms from the calc are used
 
     Returns:
         (list(autode.atoms.Atom)):
     """
     logger.info(f'Displacing along imaginary mode from {calc.name}')
 
-    atoms = deepcopy(calc.get_final_atoms())
+    if atoms is None:
+        s_atoms = calc.get_final_atoms()
+    else:
+        s_atoms = deepcopy(atoms)
+
     mode_disp_coords = calc.get_normal_mode_displacements(mode_number)
 
-    assert len(atoms) == len(mode_disp_coords)
+    assert len(s_atoms) == len(mode_disp_coords)
 
-    for i in range(len(atoms)):
-        atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
+    for i in range(len(s_atoms)):
+        s_atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
 
-    return atoms
+    return s_atoms
 
 
 def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,

@@ -381,6 +381,7 @@ class Reaction:
                              f' cm-1')
 
             self.ts.print_xyz_file(title_line=ts_title)
+            self.ts.print_imag_vector(name='TS_imag_mode')
 
         return None
 

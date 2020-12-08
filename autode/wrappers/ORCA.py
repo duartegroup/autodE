@@ -431,7 +431,7 @@ class ORCA(ElectronicStructureMethod):
         xyz_file_name = calc.output.filename.replace('.out', '.xyz')
 
         if not os.path.exists(xyz_file_name):
-            raise NoCalculationOutput
+            raise NoCalculationOutput('ORCA generated .xyz file not found')
 
         with open(xyz_file_name, 'r') as xyz_file:
             for line_no, line in enumerate(xyz_file):
