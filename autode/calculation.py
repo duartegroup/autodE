@@ -349,7 +349,7 @@ class Calculation:
         """Generate the required input"""
         logger.info(f'Generating input file(s) for {self.name}')
 
-        # Can switch of uniqueness testing with e.g.
+        # Can switch off uniqueness testing with e.g.
         # export AUTODE_FIXUNIQUE=False   used for testing
         if os.getenv('AUTODE_FIXUNIQUE', True) != 'False':
             self._fix_unique()
