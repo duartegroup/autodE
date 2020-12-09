@@ -1,6 +1,7 @@
 from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
+from autode.transition_states.base import f_b_isomorphic_to_r_p
 from autode.bond_rearrangement import BondRearrangement
 from autode.reactions.reaction import Reaction
 from autode.transition_states.transition_state import TransitionState
@@ -240,3 +241,51 @@ def test_optts_no_reactants_products():
 
     with pytest.raises(ValueError):
         _ = da_ts.has_correct_imag_mode()
+
+
+def test_has_correct_mode_no_calc():
+
+    bond_rearr = BondRearrangement(breaking_bonds=[(2, 1)],
+                                   forming_bonds=[(0, 2)])
+    calc = Calculation(molecule=ts,
+                       method=method,
+                       keywords=method.keywords.opt_ts,
+                       name='tmp')
+
+    # Calculation has no output so should not have the correct mode
+    assert not imag_mode_has_correct_displacement(calc,
+                                                  bond_rearrangement=bond_rearr)
+
+
+def test_no_graph():
+
+    ts_no_graph = TSguess(atoms=None)
+    assert ts_no_graph.graph is None
+
+
+def test_fb_rp_isomorphic():
+
+    reac = ReactantComplex(f, ch3cl)
+    prod = ProductComplex(ch3f, cl)
+
+    assert f_b_isomorphic_to_r_p(forwards=prod,
+                                 backwards=reac,
+                                 reactant=reac,
+                                 product=prod)
+
+    assert f_b_isomorphic_to_r_p(forwards=reac,
+                                 backwards=prod,
+                                 reactant=reac,
+                                 product=prod)
+
+    assert not f_b_isomorphic_to_r_p(forwards=reac,
+                                     backwards=reac,
+                                     reactant=reac,
+                                     product=prod)
+
+    # Check for e.g. failed optimisation of the forwards displaced complex
+    mol_no_atoms = Product()
+    assert not f_b_isomorphic_to_r_p(forwards=mol_no_atoms,
+                                     backwards=reac,
+                                     reactant=reac,
+                                     product=prod)

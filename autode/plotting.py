@@ -424,8 +424,8 @@ class Energy:
 
     def __add__(self, other):
         """Add a number to an energy"""
-        self.x += other.item() if isinstance(other, Energy) else other
-        return self
+        value = self.x + (other.item() if isinstance(other, Energy) else other)
+        return Energy(value, estimated=self.estimated)
 
     def __sub__(self, other):
         """Subtract a number from an energy"""
@@ -436,8 +436,8 @@ class Energy:
 
     def __mul__(self, other):
         """Multiply an energy by a number"""
-        self.x *= other.item() if isinstance(other, Energy) else other
-        return self
+        value = self.x * (other.item() if isinstance(other, Energy) else other)
+        return Energy(value, estimated=self.estimated)
 
     def item(self):
         return self.x

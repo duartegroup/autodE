@@ -36,6 +36,11 @@ def test_plot_reaction_profile():
 
     assert os.path.exists('test_reaction_profile.png')
     os.remove('test_reaction_profile.png')
+
+    with pytest.raises(AssertionError):
+        plotting.plot_reaction_profile(reactions=[reaction], units=KjMol,
+                                       name='test', free_energy=True,
+                                       enthalpy=True)
     return None
 
 
@@ -164,3 +169,41 @@ def test_stat_point_minimisation():
         fine_zi_s = np.linspace(-0.2, 5.2, num=500)
         stationary_points = plotting.get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
         assert len(stationary_points) == 5
+
+
+def test_saving():
+
+    plotting.plot_1dpes(rs=[1, 2, 3],
+                        rel_energies=[0.0, 0.2, 0.0],
+                        method_name='test',
+                        name='tmp_pes')
+    assert os.path.exists('tmp_pes.png')
+
+    # Plotting again wit the same name shouldn't plot on top, rather override
+    plotting.plot_1dpes(rs=[1, 2, 3],
+                        rel_energies=[0.0, 0.3, 0.0],
+                        method_name='test',
+                        name='tmp_pes')
+    assert os.path.exists('tmp_pes.png')
+    # checked manually...
+    os.remove('tmp_pes.png')
+
+
+def test_energy():
+
+    energy = plotting.Energy(value=5, estimated=False)
+    assert not energy.estimated
+    assert energy.item() == 5
+
+    new_energy = energy * 5
+    assert new_energy.item() == 25
+    assert not new_energy.estimated
+
+    new_energy = energy - 5
+    assert new_energy.item() == 0
+
+    energy2 = plotting.Energy(value=2, estimated=False)
+    new_energy = 5 * energy2
+    assert new_energy.item() == 10
+
+    assert 'energy' in str(energy).lower()
