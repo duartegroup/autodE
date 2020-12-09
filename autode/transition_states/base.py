@@ -2,7 +2,6 @@ from copy import deepcopy
 import autode.exceptions as ex
 from autode.calculation import Calculation
 from autode.config import Config
-from autode.exceptions import NoNormalModesFound
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.species.molecule import Molecule
@@ -78,7 +77,7 @@ class TSbase(Species):
         try:
             _ = self.calc.get_normal_mode_displacements(mode_number=6)
 
-        except NoNormalModesFound:
+        except ex.NoNormalModesFound:
             logger.warning('No normal modes could be found cannot determine if'
                            'this the correct imaginary mode is found')
             return False
