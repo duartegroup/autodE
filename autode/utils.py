@@ -119,7 +119,7 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
             if base_dir is not None:
                 assert os.path.exists(base_dir)
 
-            tmpdir_path = mkdtemp()
+            tmpdir_path = mkdtemp(dir=base_dir)
             logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
 
             logger.info(f'Copying {filenames_to_copy}')

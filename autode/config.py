@@ -102,6 +102,15 @@ class Config:
     #
     hmethod_conformers = True
     # -------------------------------------------------------------------------
+    # Set to True to use single point energy evaluations to rank conformers and
+    # select the lowest energy. Requires keywords.low_sp to be set and
+    # hmethod_conformers = True
+    # WARNING: This relies on the low-level geometry being accurate enough for
+    # the system in question – switching this on without benchmarking may lead
+    # to large errors!
+    #
+    hmethod_sp_conformers = False
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------

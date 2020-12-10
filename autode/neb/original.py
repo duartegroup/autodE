@@ -5,7 +5,9 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 from autode.log import logger
 from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
+from autode.constants import Constants
 from autode.utils import work_in
+from autode.plotting import plot_1dpes
 from scipy.optimize import minimize
 from multiprocessing import Pool
 from copy import deepcopy
@@ -204,6 +206,23 @@ class Images:
 
 class NEB:
 
+    def plot_surface(self, name='neb'):
+        """Plot the NEB surface"""
+        energies = [image.energy for image in self.images]
+        if any(energy is None for energy in energies):
+            logger.error('Could not plot NEB surface, an energy was None')
+            return
+
+        # Relative energies in kcal mol-1
+        energies = Constants.ha2kcalmol * (np.array(energies) - min(energies))
+
+        plot_1dpes(rs=list(range(len(self.images))),
+                   rel_energies=energies,
+                   method_name='NEB',
+                   name=name,
+                   xlabel='NEB coordinate')
+        return None
+
     def print_geometries(self, name='neb'):
         """Print an xyz trajectory of the geometries in the NEB"""
 
@@ -280,6 +299,7 @@ class NEB:
         # Set the optimised coordinates for all the images
         self.images.set_coords(result.x)
         self.print_geometries(name='neb_optimised')
+        self.plot_surface(name='neb_optimised')
         return None
 
     def get_species_saddle_point(self):

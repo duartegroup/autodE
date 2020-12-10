@@ -1,8 +1,7 @@
 from copy import deepcopy
+import autode.exceptions as ex
 from autode.calculation import Calculation
 from autode.config import Config
-from autode.exceptions import AtomsNotFound
-from autode.exceptions import NoNormalModesFound
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.species.molecule import Molecule
@@ -78,10 +77,10 @@ class TSbase(Species):
         try:
             _ = self.calc.get_normal_mode_displacements(mode_number=6)
 
-        except NoNormalModesFound:
+        except ex.NoNormalModesFound:
             logger.warning('No normal modes could be found cannot determine if'
                            'this the correct imaginary mode is found')
-            return None
+            return False
 
         # Check very conservatively for the correct displacement
         if not imag_mode_has_correct_displacement(self.calc,
@@ -156,7 +155,8 @@ class TSbase(Species):
         self._init_graph()
 
 
-def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
+def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0,
+                                   atoms=None):
     """Displace the geometry along the imaginary mode with mode number
     iterating from 0, where 0-2 are translational normal modes, 3-5 are
     rotational modes and 6 is the largest imaginary mode. To displace along
@@ -168,21 +168,27 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0):
 
     Keyword Arguments:
         disp_magnitude (float): Distance to displace (default: {1.0})
+        atoms (list(autode.atoms.Atom)): Atoms to displace, if None then the
+                                     final set of atoms from the calc are used
 
     Returns:
         (list(autode.atoms.Atom)):
     """
-    logger.info('Displacing along imaginary mode')
+    logger.info(f'Displacing along imaginary mode from {calc.name}')
 
-    atoms = deepcopy(calc.get_final_atoms())
+    if atoms is None:
+        s_atoms = calc.get_final_atoms()
+    else:
+        s_atoms = deepcopy(atoms)
+
     mode_disp_coords = calc.get_normal_mode_displacements(mode_number)
 
-    assert len(atoms) == len(mode_disp_coords)
+    assert len(s_atoms) == len(mode_disp_coords)
 
-    for i in range(len(atoms)):
-        atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
+    for i in range(len(s_atoms)):
+        s_atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
 
-    return atoms
+    return s_atoms
 
 
 def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
@@ -207,6 +213,12 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
     logger.info('Checking displacement on imaginary mode forms the correct'
                 ' bonds')
     ts_species = deepcopy(calc.molecule)
+
+    try:
+        # We need to used the optimised set of atoms...
+        ts_species.set_atoms(atoms=calc.get_final_atoms())
+    except (ex.AtomsNotFound, ex.NoCalculationOutput):
+        return False
 
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
                                                        disp_magnitude=disp_mag)
@@ -371,13 +383,25 @@ def f_b_isomorphic_to_r_p(forwards, backwards, reactant, product):
 
 
 def get_optimised_species(calc, method, direction, atoms):
-    """Get the species that is optimised from an initial set of atoms"""
+    """Get the species that is optimised from an initial set of atoms in a
+    particular direction (i.e. forwards or backwards along a normal mode)
 
-    species = Molecule(name=f'{calc.name}_{direction}', atoms=atoms, charge=calc.molecule.charge, mult=calc.molecule.mult)
+    Arguments:
+        calc (autode.calculation.Calculation):
+        method (autode.wrappers.base.ElectronicStructureMethod):
+        direction (str):
+        atoms (list(autode.atoms.Atom)):
+    """
 
-    # Note that for the surface to be the same the keywords.opt and keywords.hess need to match in the level of theory
-    calc = Calculation(name=f'{calc.name}_{direction}', molecule=species, method=method,
-                       keywords=method.keywords.opt, n_cores=Config.n_cores)
+    species = Molecule(name=f'{calc.name}_{direction}', atoms=atoms,
+                       charge=calc.molecule.charge,
+                       mult=calc.molecule.mult)
+
+    # Note that for the surface to be the same the keywords.opt and
+    # keywords.hess need to match in the level of theory
+    calc = Calculation(name=f'{calc.name}_{direction}', molecule=species,
+                       method=method, keywords=method.keywords.opt,
+                       n_cores=Config.n_cores)
     calc.run()
 
     try:
@@ -385,7 +409,7 @@ def get_optimised_species(calc, method, direction, atoms):
         species.energy = calc.get_energy()
         make_graph(species)
 
-    except AtomsNotFound:
+    except ex.AtomsNotFound:
         logger.error(f'{direction} displacement calculation failed')
 
     return species

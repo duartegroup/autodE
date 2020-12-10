@@ -12,6 +12,8 @@ then run the tests
 py.test 
 ```
 
+**Note:** set $AUTODE_FIXUNIQUE=False 
+
 ### Benchmark
 In addition to the tests there is a benchmark of calculations (benchmark.py) to
 run for every minor release. This benchmark **must** be run and the results 

@@ -3,6 +3,7 @@ from multiprocessing import Pool
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
+from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, NoNormalModesFound
@@ -118,6 +119,37 @@ class TransitionState(TSbase):
         return None
 
     @requires_atoms()
+    def print_imag_vector(self, mode_number=6, name=None):
+        """Print a .xyz file with multiple structures visualising the largest
+        magnitude imaginary mode
+
+        Keyword Arguments:
+            mode_number (int): Number of the normal mode to visualise,
+                               6 (default) is the lowest frequency vibration
+                               i.e. largest magnitude imaginary, if present
+            name (str):
+        """
+        assert self.optts_calc is not None
+        name = self.name if name is None else name
+
+        disp = -0.5
+        for i in range(40):
+            atoms = get_displaced_atoms_along_mode(calc=self.optts_calc,
+                                                   mode_number=int(mode_number),
+                                                   disp_magnitude=disp,
+                                                   atoms=self.atoms)
+            atoms_to_xyz_file(atoms=atoms,
+                              filename=f'{name}.xyz',
+                              append=True)
+
+            # Add displacement so the final set of atoms are +0.5 Å displaced
+            # along the mode, then displaced back again
+            sign = 1 if i < 20 else -1
+            disp += sign * 1.0 / 20.0
+
+        return None
+
+    @requires_atoms()
     def optimise(self, name_ext='optts'):
         """Optimise this TS to a true TS """
         logger.info(f'Optimising {self.name} to a transition state')
@@ -198,6 +230,9 @@ class TransitionState(TSbase):
                 logger.info('Conformer search successful')
                 return None
 
+            # Ensure the energy has a numerical value, so a difference can be
+            # evaluated
+            self.energy = self.energy if self.energy is not None else 0
             logger.warning(f'Transition state conformer search failed '
                            f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
 

@@ -77,6 +77,7 @@ class KeywordsSet:
         self.grad = GradientKeywords(grad)
         self.hess = HessianKeywords(hess)
 
+        self.low_sp = None                      # Low level single point
         self.sp = SinglePointKeywords(sp)
 
         self._list = [self.low_opt, self.opt, self.opt_ts, self.grad,

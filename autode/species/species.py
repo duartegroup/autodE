@@ -95,6 +95,35 @@ class Species:
 
         return None
 
+    @requires_atoms()
+    def is_linear(self, tol=0.01):
+        """Determine if a species is linear i.e all atoms are colinear
+
+        Keyword Arguments:
+            tol (float): Tolerance on |cos(θ)| - 1 where θ is the angle between
+                         the vector from atom 0 to 1 and from 0 to n (n > 1)
+        """
+        if len(self.atoms) < 2:
+            return False
+
+        # A species with two atoms must be linear
+        if len(self.atoms) == 2:
+            logger.info('Species is linear')
+            return True
+
+        # Check that all atoms are in colinear to the first two, taking the
+        # first atom as the origin
+        vec0 = self.atoms[1].coord - self.atoms[0].coord
+
+        for atom in self.atoms[2:]:
+            vec = atom.coord - self.atoms[0].coord
+            cos_theta = np.dot(vec, vec0) / (length(vec) * length(vec0))
+            if np.abs(np.abs(cos_theta) - 1) > tol:
+                return False
+
+        logger.info('Species is linear')
+        return True
+
     def is_explicitly_solvated(self):
         return isinstance(self.solvent, ExplicitSolvent)
 
@@ -131,7 +160,7 @@ class Species:
         return np.array([atom.coord for atom in self.atoms])
 
     @requires_atoms()
-    def optimise(self, method=None, reset_graph=False, calc=None):
+    def optimise(self, method=None, reset_graph=False, calc=None, keywords=None):
         """
         Optimise the geometry using a method
 
@@ -142,16 +171,18 @@ class Species:
             reset_graph (bool): Reset the molecular graph
             calc (autode.calculation.Calculation): Different e.g. constrained
                                                    optimisation calculation
+            keywords (autode.wrappers.keywords.Keywords):
         """
         logger.info(f'Running optimisation of {self.name}')
 
         if calc is None:
             assert method is not None
+            keywords = method.keywords.opt if keywords is None else keywords
 
             calc = Calculation(name=f'{self.name}_opt',
                                molecule=self,
                                method=method,
-                               keywords=method.keywords.opt,
+                               keywords=keywords,
                                n_cores=Config.n_cores)
         else:
             assert isinstance(calc, Calculation)
@@ -201,13 +232,14 @@ class Species:
         return None
 
     @requires_atoms()
-    def single_point(self, method):
+    def single_point(self, method, keywords=None):
         """Calculate the single point energy of the species with a
         autode.wrappers.base.ElectronicStructureMethod"""
         logger.info(f'Running single point energy evaluation of {self.name}')
+        keywords = method.keywords.sp if keywords is None else keywords
 
         sp = Calculation(name=f'{self.name}_sp', molecule=self, method=method,
-                         keywords=method.keywords.sp, n_cores=Config.n_cores)
+                         keywords=keywords, n_cores=Config.n_cores)
         sp.run()
         self.energy = sp.get_energy()
 
@@ -256,10 +288,17 @@ class Species:
         self.conformers = get_unique_confs(conformers=self.conformers)
 
         if hmethod is not None:
-            # Re-optimise all the conformers with the higher level of theory
-            # to get more accurate energies
+            # Re-evaluate the energy of all the conformers with the higher
+            # level of theory
             for conformer in self.conformers:
-                conformer.optimise(hmethod)
+
+                if Config.hmethod_sp_conformers:
+                    assert hmethod.keywords.low_sp is not None
+                    conformer.single_point(hmethod)
+
+                else:
+                    # Otherwise run a full optimisation
+                    conformer.optimise(hmethod)
 
         self._set_lowest_energy_conformer()
 

@@ -142,6 +142,10 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
 
         # Set the optimised atoms - can raise AtomsNotFound
         species.optimise(method=method, calc=opt)
+        if species.energy is None:
+            # To continue there must be final atoms and a final energy
+            raise ex.AtomsNotFound
+
         species_set.append(species)
 
         # Early stopping if a ~saddle point has already been traversed, must be

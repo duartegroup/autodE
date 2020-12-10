@@ -63,9 +63,14 @@ class Molecule(Species):
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
             logger.info(f'Using RDKit to gen conformers. {n_confs} requested')
 
-            method = AllChem.ETKDGv2()
+            m_string = 'ETKDGv3' if hasattr(AllChem, 'ETKDGv3') else 'ETKDGv2'
+            logger.info(f'Using the {m_string} method')
+
+            method_class = getattr(AllChem, m_string)
+            method = method_class()
             method.pruneRmsThresh = Config.rmsd_threshold
             method.numThreads = Config.n_cores
+            method.useSmallRingTorsion = True
 
             logger.info('Running conformation generation with RDKit... running')
             conf_ids = list(AllChem.EmbedMultipleConfs(self.rdkit_mol_obj,
@@ -76,7 +81,7 @@ class Molecule(Species):
             conf_atoms_list = [atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
                                for conf_id in conf_ids]
 
-            methods.add('ETKDGv2 algorithm (10.1021/acs.jcim.5b00654) '
+            methods.add(f'{m_string} algorithm (10.1021/acs.jcim.5b00654) '
                         f'implemented in RDKit v. {rdkit.__version__}')
 
         else:

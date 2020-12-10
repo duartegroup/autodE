@@ -90,7 +90,12 @@ def get_keywords(calc_input, molecule):
 
     # By default perform all optimisations without symmetry
     if opt and not any(kw.lower() == 'nosymm' for kw in new_keywords):
-        new_keywords.append('NoSymm')
+        if hasattr(molecule, 'is_linear') and molecule.is_linear():
+            # Allow symmetry for linear molecules so the free energy
+            # calculation
+            pass
+        else:
+            new_keywords.append('NoSymm')
 
     return new_keywords
 
@@ -275,17 +280,19 @@ class G09(ElectronicStructureMethod):
         termination_strings = ['Normal termination of Gaussian',
                                'Number of steps exceeded']
 
+        bend_ok = True  # Gaussian can fail when 180º bends are encountered
         for line in reversed(calc.output.file_lines):
 
-            if any(substring in line for substring in termination_strings):
+            if any(string in line for string in termination_strings):
                 logger.info('Gaussian09 terminated normally')
                 return True
 
             if 'Bend failed for angle' in line:
                 logger.warning('Gaussian encountered a 180° angle and crashed')
+                bend_ok = False
                 break
 
-        if not rerun_if_failed:
+        if bend_ok or not rerun_if_failed:
             return False
 
         # Set a limit on the amount of times we do this
@@ -299,7 +306,7 @@ class G09(ElectronicStructureMethod):
         except AtomsNotFound:
             return False
 
-        if fixed_calc.terminated_normally():
+        if fixed_calc is not None and fixed_calc.terminated_normally():
             logger.info('The 180° angle issue has been fixed')
             calc.output = fixed_calc.output
             calc.name = fixed_calc.name

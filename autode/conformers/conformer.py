@@ -28,7 +28,20 @@ def get_conformer(species, name):
 
 class Conformer(Species):
 
-    def optimise(self, method=None, reset_graph=False, calc=None):
+    def single_point(self, method, keywords=None):
+        """
+        Calculate a single point and default to a low level single point method
+
+        Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
+        """
+        keywords = method.keywords.low_sp if keywords is None else keywords
+        return super().single_point(method, keywords)
+
+    def optimise(self, method=None, reset_graph=False, calc=None, keywords=None):
         """
         Optimise the geometry of this conformer
 
@@ -38,6 +51,7 @@ class Conformer(Species):
         Keyword Arguments:
             reset_graph (bool):
             calc (autode.calculation.Calculation):
+            keywords (autode.wrappers.keywords.Keywords):
         """
         logger.info(f'Running optimisation of {self.name}')
 

@@ -365,7 +365,7 @@ class Reaction:
 
         # and the reactant and product complexes if they're present
         for mol in [self.reactant, self.product]:
-            if mol is not None:
+            if mol is not None and mol.energy is not None:
                 mol.print_xyz_file(title_line=get_title(mol))
 
         # If it exists print the xyz file of the transition state
@@ -381,6 +381,7 @@ class Reaction:
                              f' cm-1')
 
             self.ts.print_xyz_file(title_line=ts_title)
+            self.ts.print_imag_vector(name='TS_imag_mode')
 
         return None
 
