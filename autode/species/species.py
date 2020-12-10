@@ -103,12 +103,12 @@ class Species:
             tol (float): Tolerance on |cos(θ)| - 1 where θ is the angle between
                          the vector from atom 0 to 1 and from 0 to n (n > 1)
         """
-
         if len(self.atoms) < 2:
             return False
 
         # A species with two atoms must be linear
         if len(self.atoms) == 2:
+            logger.info('Species is linear')
             return True
 
         # Check that all atoms are in colinear to the first two, taking the

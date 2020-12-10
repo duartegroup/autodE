@@ -220,10 +220,7 @@ def plot_points(zi_s, energies, ax):
         energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
         ax (matplotlib.axes.Axes):
     """
-    if all(isinstance(energy, Energy) for energy in energies):
-        energies_arr = np.array([energy.item() for energy in energies])
-    else:
-        energies_arr = np.array(energies, copy=True)
+    energies_arr = np.array([energy.item() for energy in energies])
 
     ax.plot(zi_s, energies_arr, ls='--', c='k', marker='o')
 

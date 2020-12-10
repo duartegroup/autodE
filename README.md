@@ -59,3 +59,20 @@ additional documentation.
 Pull requests are very welcome but must pass all the unit tests prior to being merged. Please write code and tests!
 Bugs and feature requests should be raised on the issue [page](https://github.com/duartegroup/autodE/issues).
 
+
+## Citation
+
+If **autodE** is used in a publication please consider citing the [paper](https://doi.org/10.1002/anie.202011941):
+ 
+```
+@article{Young2020,
+  doi = {10.1002/anie.202011941},
+  url = {https://doi.org/10.1002/anie.202011941},
+  year = {2020},
+  month = oct,
+  publisher = {Wiley},
+  author = {Tom A. Young and Joseph J. Silcock and Alistair J. Sterling and Fernanda Duarte},
+  title = {{autodE}: Automated Calculation of Reaction Energy Profiles {\textendash} Application to Organic and Organometallic Reactions},
+  journal = {Angewandte Chemie International Edition}
+}
+```
