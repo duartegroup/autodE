@@ -40,24 +40,25 @@ or _calculate_reaction_profile()_. For example, to  calculate the reaction profi
 a 1,2 hydrogen shift in a propyl radical
 
 ```python
-from autode import *
-Config.n_cores = 8
+import autode as ade
+ade.Config.n_cores = 8
 
-r = Reactant(name='reactant', smiles='CC[C]([H])[H]')
-p = Product(name='product', smiles='C[C]([H])C')
+r = ade.Reactant(name='reactant', smiles='CC[C]([H])[H]')
+p = ade.Product(name='product', smiles='C[C]([H])C')
 
-reaction = Reaction(r, p, name='1-2_shift')
+reaction = ade.Reaction(r, p, name='1-2_shift')
 reaction.calculate_reaction_profile()
 ```
 
-See _examples/_ for more examples and [duartegroup.github.io/autodE/](https://duartegroup.github.io/autodE/) for
+See [examples/](https://github.com/duartegroup/autodE/tree/master/examples) for
+more examples and [duartegroup.github.io/autodE/](https://duartegroup.github.io/autodE/) for
 additional documentation.
 
 
 ## Development
 
 Pull requests are very welcome but must pass all the unit tests prior to being merged. Please write code and tests!
-Bugs and feature requests should be raised on the issue [page](https://github.com/duartegroup/autodE/issues).
+Bugs and feature requests should be raised on the [issue page](https://github.com/duartegroup/autodE/issues).
 
 
 ## Citation
