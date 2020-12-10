@@ -306,6 +306,10 @@ class Calculation:
         Returns:
             (list(float)): Atomic charges in units of e
         """
+        if not self.output.exists():
+            logger.error('No calculation output. Could not get final charges')
+            raise ex.CouldNotGetProperty(name='atomic charges')
+
         logger.info(f'Getting atomic charges from {self.output.filename}')
         charges = self.method.get_atomic_charges(self)
 
