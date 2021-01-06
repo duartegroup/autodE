@@ -119,7 +119,7 @@ class Complex(Species):
 
                 conformer = get_conformer(species=self, name=f'{self.name}_conf{n}')
                 atoms = get_complex_conformer_atoms(self.molecules, rotations, points)
-                conformer.set_atoms(atoms)
+                conformer.atoms = atoms
 
                 self.conformers.append(conformer)
                 n += 1

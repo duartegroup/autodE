@@ -62,13 +62,13 @@ def init_organic_smiles(molecule, smiles):
     method = AllChem.ETKDGv2()
     method.randomSeed = 0xf00d
     AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=method)
-    molecule.set_atoms(atoms=atoms_from_rdkit_mol(molecule.rdkit_mol_obj, conf_id=0))
+    molecule.atoms = atoms_from_rdkit_mol(molecule.rdkit_mol_obj, conf_id=0)
     make_graph(molecule, bond_list=bonds)
 
     if not are_coords_reasonable(coords=molecule.get_coordinates()):
         logger.warning('RDKit conformer was not reasonable')
         molecule.rdkit_conf_gen_is_fine = False
-        molecule.set_atoms(atoms=get_simanl_atoms(molecule))
+        molecule.atoms = get_simanl_atoms(molecule)
 
     for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
         molecule.graph.nodes[atom]['stereo'] = True
@@ -102,7 +102,7 @@ def init_smiles(molecule, smiles):
     molecule.mult = calc_multiplicity(molecule=molecule,
                                       n_radical_electrons=parser.n_radical_electrons)
 
-    molecule.set_atoms(atoms=parser.atoms)
+    molecule.atoms = parser.atoms
 
     make_graph(molecule, bond_list=parser.bonds)
 
@@ -112,7 +112,7 @@ def init_smiles(molecule, smiles):
         bond = parser.bonds[bond_index]
         molecule.graph.edges[bond]['pi'] = True
 
-    molecule.set_atoms(atoms=get_simanl_atoms(molecule))
+    molecule.atoms = get_simanl_atoms(molecule)
     check_bonds(molecule, bonds=parser.bonds)
 
     return None

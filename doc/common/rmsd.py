@@ -30,7 +30,7 @@ def get_molecules_no_hydrogens(molecules):
     no_h_molecules = []
 
     for molecule in molecules:
-        molecule.set_atoms(atoms=[atom for atom in molecule.atoms if atom.label != 'H'])
+        molecule.atoms = [atom for atom in molecule.atoms if atom.label != 'H']
 
         no_h_molecules.append(molecule)
 

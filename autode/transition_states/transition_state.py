@@ -63,7 +63,7 @@ class TransitionState(TSbase):
                     logger.info('Still have correct imaginary mode, trying '
                                 'more  optimisation steps')
 
-                    self.set_atoms(atoms=self.optts_calc.get_final_atoms())
+                    self.atoms = self.optts_calc.get_final_atoms()
                     self.optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt',
                                                   molecule=self,
                                                   method=method,
@@ -79,7 +79,7 @@ class TransitionState(TSbase):
 
         try:
             self.imaginary_frequencies = self.optts_calc.get_imaginary_freqs()
-            self.set_atoms(atoms=self.optts_calc.get_final_atoms())
+            self.atoms = self.optts_calc.get_final_atoms()
             self.energy = self.optts_calc.get_energy()
 
         except (AtomsNotFound, NoNormalModesFound):
@@ -185,7 +185,7 @@ class TransitionState(TSbase):
                 break
 
             self.optts_calc = calc
-            self.set_atoms(atoms)
+            self.atoms = atoms
             self.energy = energy
             self.imaginary_frequencies = self.optts_calc.get_imaginary_freqs()
 
@@ -237,7 +237,7 @@ class TransitionState(TSbase):
                            f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
 
         logger.info('Reverting to previously found TS')
-        self.set_atoms(atoms=atoms)
+        self.atoms = atoms
         self.energy = energy
         self.optts_calc = calc
         self.imaginary_frequencies = calc.get_imaginary_freqs()

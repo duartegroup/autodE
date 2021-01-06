@@ -88,12 +88,12 @@ def test_ts_template():
 
     reac_shift = reac_complex.copy()
 
-    reac_shift.set_atoms(atoms=[Atom('F', -3.0587, -0.8998, -0.2180),
-                                Atom('Cl', 0.3842, 0.86572,-1.65507),
-                                Atom('C', -1.3741, -0.0391, -0.9719),
-                                Atom('H', -1.9151, -0.0163, -1.9121),
-                                Atom('H', -1.6295,  0.6929, -0.2173),
-                                Atom('H', -0.9389, -0.9786, -0.6534)])
+    reac_shift.atoms = [Atom('F', -3.0587, -0.8998, -0.2180),
+                        Atom('Cl', 0.3842, 0.86572,-1.65507),
+                        Atom('C', -1.3741, -0.0391, -0.9719),
+                        Atom('H', -1.9151, -0.0163, -1.9121),
+                        Atom('H', -1.6295,  0.6929, -0.2173),
+                        Atom('H', -0.9389, -0.9786, -0.6534)]
     reac_shift.print_xyz_file()
 
     templates = get_ts_templates()

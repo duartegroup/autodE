@@ -38,7 +38,7 @@ class Molecule(Species):
         """Initialise a molecule from a .xyz file"""
         logger.info('Generating species from .xyz file')
 
-        self.set_atoms(atoms=xyz_file_to_atoms(xyz_filename))
+        self.atoms = xyz_file_to_atoms(xyz_filename)
 
         # Override the default name with something more descriptive
         if self.name == 'molecule' or self.name.endswith('.xyz'):
@@ -96,7 +96,7 @@ class Molecule(Species):
         # Add the unique conformers
         for i, atoms in enumerate(conf_atoms_list):
             conf = get_conformer(name=f'{self.name}_conf{i}', species=self)
-            conf.set_atoms(atoms)
+            conf.atoms = atoms
 
             # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):
