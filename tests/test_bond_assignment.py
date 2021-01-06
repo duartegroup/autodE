@@ -1,5 +1,6 @@
 from autode import bond_lengths
 from autode.atoms import Atom
+import pytest
 
 
 def test_bond_assignment():
@@ -7,6 +8,11 @@ def test_bond_assignment():
     # Check that if the pair isn't found then a length is still returned
     assert 1.4 < bond_lengths.get_avg_bond_length(atom_i_label='X',
                                                   atom_j_label='X') < 1.6
+
+    # Check that if the pair isn't found but the VdW radii are defined then
+    # return something sensible
+    assert 2.0 < bond_lengths.get_avg_bond_length(atom_i_label='Ir',
+                                                  atom_j_label='As') < 3.0
 
     # CH bond should be ~1.1 Å
     assert 0.8 < bond_lengths.get_avg_bond_length(atom_i_label='C',
