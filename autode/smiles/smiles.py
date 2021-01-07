@@ -71,8 +71,8 @@ def init_organic_smiles(molecule, smiles):
     molecule.atoms = atoms_from_rdkit_mol(molecule.rdkit_mol_obj, conf_id=0)
     make_graph(molecule, bond_list=bonds)
 
+    # Revert back to RR if RDKit fails to return a sensible geometry
     if not are_coords_reasonable(coords=molecule.get_coordinates()):
-        logger.warning('RDKit conformer was not reasonable')
         molecule.rdkit_conf_gen_is_fine = False
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
