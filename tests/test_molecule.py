@@ -15,7 +15,7 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-
+"""
 def test_basic_attributes():
 
     with pytest.raises(NoAtomsInMolecule):
@@ -118,3 +118,14 @@ def test_molecule_from_xyz():
     assert h2.name == 'h2_conf0'
     assert h2.n_atoms == 2
     assert h2.formula() == 'H2'
+"""
+
+def test_rdkit_possible_fail():
+    """RDKit can't generate structures for some SMILES, make sure they can
+    be generated in other ways"""
+
+    rh_complex = Molecule(smiles='C[Rh](=C=O)(=C=O)(=C=O)=C=O')
+    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+
+    ch5 = Molecule(smiles='[H]C([H])([H])([H])[H+]')
+    assert are_coords_reasonable(coords=ch5.get_coordinates())

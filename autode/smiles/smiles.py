@@ -50,6 +50,11 @@ def init_organic_smiles(molecule, smiles):
 
     try:
         molecule.rdkit_mol_obj = Chem.MolFromSmiles(smiles)
+
+        if molecule.rdkit_mol_obj is None:
+            logger.warning('RDKit failed to initialise a molecule')
+            return init_smiles(molecule, smiles)
+
         molecule.rdkit_mol_obj = Chem.AddHs(molecule.rdkit_mol_obj)
     except RuntimeError:
         raise RDKitFailed
@@ -58,7 +63,8 @@ def init_organic_smiles(molecule, smiles):
     molecule.mult = calc_multiplicity(molecule, rdkit.Chem.Descriptors.NumRadicalElectrons(molecule.rdkit_mol_obj))
     bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in molecule.rdkit_mol_obj.GetBonds()]
 
-    # Generate a single 3D structure using RDKit's ETKDG conformer generation algorithm
+    # Generate a single 3D structure using RDKit's ETKDG conformer generation
+    # algorithm
     method = AllChem.ETKDGv2()
     method.randomSeed = 0xf00d
     AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=method)
@@ -68,7 +74,7 @@ def init_organic_smiles(molecule, smiles):
     if not are_coords_reasonable(coords=molecule.get_coordinates()):
         logger.warning('RDKit conformer was not reasonable')
         molecule.rdkit_conf_gen_is_fine = False
-        molecule.atoms = get_simanl_atoms(molecule)
+        molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
     for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
         molecule.graph.nodes[atom]['stereo'] = True
@@ -112,7 +118,7 @@ def init_smiles(molecule, smiles):
         bond = parser.bonds[bond_index]
         molecule.graph.edges[bond]['pi'] = True
 
-    molecule.atoms = get_simanl_atoms(molecule)
+    molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
     check_bonds(molecule, bonds=parser.bonds)
 
     return None

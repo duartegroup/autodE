@@ -305,7 +305,7 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
     return coords
 
 
-def get_simanl_atoms(species, dist_consts=None, conf_n=0):
+def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
     """
     Use a bonded + repulsive force field to generate 3D structure for a
     species. If the initial coordinates are reasonable e.g. from a previously
@@ -319,9 +319,13 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     Arguments:
         species (autode.species.Species):
 
+    Keyword Arguments:
         dist_consts (dict): Key = tuple of atom indexes, Value = distance
 
         conf_n (int): Number of this conformer
+
+        save_xyz (bool): Whether or not to save a .xyz file of the structure
+                         for fast reloading
 
     Returns:
         (list(autode.atoms.Atom)): Atoms
@@ -378,9 +382,10 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
     logger.info('Minimising species...')
     st = time()
     if initial_coords_are_reasonable:
-        coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]), bonds=species.graph.edges,
-                                        k=1.0, c=0.01, d0=d0, tol=1E-5, fixed_bonds=constrained_bonds)
-
+        coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
+                                        bonds=species.graph.edges,
+                                        k=1.0, c=0.01, d0=d0, tol=1E-5,
+                                        fixed_bonds=constrained_bonds)
     else:
         coords = get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds)
 
@@ -391,6 +396,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0):
         atom.coord = coords[i]
 
     # Print an xyz file so rerunning will read the file
-    atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
+    if save_xyz:
+        atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
 
     return atoms
