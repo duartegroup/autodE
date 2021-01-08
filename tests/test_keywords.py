@@ -41,18 +41,18 @@ def test_set_keywordsset():
     assert hasattr(kwset, 'opt')
 
     kwset.set_opt_functional(pbe)
-    assert kwset.opt.functional().lower() == 'pbe'
-    assert kwset.opt_ts.functional().lower() == 'pbe'
-    assert kwset.hess.functional().lower() == 'pbe'
-    assert kwset.grad.functional().lower() == 'pbe'
-    assert kwset.sp.functional().lower() != 'pbe'
+    assert kwset.opt.functional.lower() == 'pbe'
+    assert kwset.opt_ts.functional.lower() == 'pbe'
+    assert kwset.hess.functional.lower() == 'pbe'
+    assert kwset.grad.functional.lower() == 'pbe'
+    assert kwset.sp.functional.lower() != 'pbe'
 
     # Should now all be PBE functionals
     kwset.set_functional(pbe)
-    assert kwset.sp.functional().lower() == 'pbe'
+    assert kwset.sp.functional.lower() == 'pbe'
 
     kwset.set_opt_basis_set(def2tzvp)
-    assert kwset.opt.basis_set().lower() == 'def2-tzvp'
+    assert kwset.opt.basis_set.lower() == 'def2-tzvp'
 
     # Should admit no dispersion correction
     assert kwset.opt.dispersion() is not None

@@ -194,7 +194,7 @@ class Calculation:
         string += (f'calculations performed at the '
                    f'{self.input.keywords.method_string()} level')
 
-        basis = self.input.keywords.basis_set()
+        basis = self.input.keywords.basis_set
         if basis is not None:
             string += (f' in combination with the {str(basis)} '
                        f'({basis.doi_str()}) basis set')
@@ -371,9 +371,16 @@ class Calculation:
             if not isinstance(keyword, kws.Keyword):
                 continue
 
+            # Allow for the unambiguous setting of a keyword with only a name
+            if keyword.has_only_name():
+                continue
+
+            # For a keyword e.g. Keyword(name='pbe', orca='PBE') then the
+            # definition in this method is not obvious, so raise an exception
             if not hasattr(keyword, self.method.name):
-                raise ex.UnsuppportedCalculationInput(f'Keyword: {keyword} :'
-                                                      f'not supported')
+                err_str = (f'Keyword: {keyword} is not supported set '
+                           f'{keyword}.{self.method.name} as a string')
+                raise ex.UnsuppportedCalculationInput(err_str)
 
         self.method.generate_input(self, self.molecule)
 

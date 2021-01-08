@@ -54,11 +54,19 @@ def get_keywords(calc_input, molecule):
         if isinstance(keyword, kws.DispersionCorrection):
             new_keywords.append(f'EmpiricalDispersion={keyword.g09}')
 
-        elif isinstance(keyword, kws.Keyword):
+        # and any other keywords, that may be a Keyword with a g09
+        # attribute or just a name, or just a string
+        elif isinstance(keyword, kws.Keyword) and hasattr(keyword, 'g09'):
             new_keywords.append(keyword.g09)
 
         else:
-            new_keywords.append(keyword)
+            new_keywords.append(str(keyword))
+
+    # Replace the basis set file specification with genecp
+    for i, keyword in enumerate(new_keywords):
+        if str(keyword).endswith('.gbs'):
+            logger.info('Found a custom basis set file adding genecp')
+            new_keywords[i] = 'genecp'
 
     # Mod redundant keywords is required if there are any constraints or
     # modified internal coordinates
@@ -143,6 +151,21 @@ def print_constraints(inp_file, molecule):
             # Gaussian indexes atoms from 1
             print('X', i+1, 'F', file=inp_file)
     return
+
+
+def print_custom_basis(inp_file, keywords):
+    """Print the definition of the custom basis set file """
+
+    for keyword in keywords:
+        if isinstance(keyword, kws.Keyword) and hasattr(keyword, 'g09'):
+            str_keyword = keyword.g09
+        else:
+            str_keyword = str(keyword)
+
+        if str_keyword.endswith('.gbs'):
+            print(f'\n@{keyword}', file=inp_file)
+
+    return None
 
 
 def rerun_angle_failure(calc):
@@ -244,6 +267,7 @@ class G09(ElectronicStructureMethod):
             print('', file=inp_file)
             print_added_internals(inp_file, calc.input)
             print_constraints(inp_file, molecule)
+            print_custom_basis(inp_file, calc.input.keywords)
 
         return None
 

@@ -104,7 +104,7 @@ class Keywords:
     def _set_keyword(self, keyword, keyword_type):
         """Set a keyword. A keyword of the same type must exist"""
         if type(keyword) is str:
-            keyword = Functional(name=keyword)
+            keyword = keyword_type(name=keyword)
 
         assert type(keyword) is keyword_type or keyword is None
 
@@ -143,15 +143,15 @@ class Keywords:
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
         string = ''
 
-        func = self.functional()
+        func = self.functional
         if func is not None:
             string += f'{func.upper()}({func.doi_str()})'
 
-        disp = self.dispersion()
+        disp = self.dispersion
         if disp is not None:
             string += f'-{disp.upper()}({disp.doi_str()})'
 
-        wf = self.wf_method()
+        wf = self.wf_method
         if wf is not None:
             string += f'{str(wf)}({wf.doi_str()})'
 
@@ -165,18 +165,22 @@ class Keywords:
 
         return string
 
+    @property
     def functional(self):
         """Get the functional in this set of keywords"""
         return self._get_keyword(Functional)
 
+    @property
     def basis_set(self):
         """Get the functional in this set of keywords"""
         return self._get_keyword(BasisSet)
 
+    @property
     def dispersion(self):
         """Get the dispersion keyword in this set of keywords"""
         return self._get_keyword(DispersionCorrection)
 
+    @property
     def wf_method(self):
         """Get the wavefunction method in this set of keywords"""
         return self._get_keyword(WFMethod)
@@ -250,15 +254,32 @@ class Keyword:
     def doi_str(self):
         return ' '.join(self.doi_list)
 
+    def has_only_name(self):
+        """Determine if only a name has been set, in which case it will
+        be printed verbatim into an input file, otherwise needs keyword.method
+        to be set, where method is e.g. orca"""
+
+        excl_attrs = ('name', 'doi_list')
+        for attr in self.__dict__:
+            if attr in excl_attrs:
+                continue
+            return False
+
+        return True
+
     def __init__(self, name, doi=None, doi_list=None, **kwargs):
         """
         A keyword for an electronic structure theory method e.g. basis set or
         functional, with possibly a an associated reference or set of
-        references
+        references.
+
+        e.g.
+        keyword = Keyword(name='pbe')
+        keyword = Keyword(name='pbe', g09='xpbe96 cpbe96')
 
         ---------------------------------------------------------------------
         Arguments:
-            name: (str) Name of the model
+            name: (str) Name of the keyword/method
             doi: (str) Digital object identifier for the method's paper
 
         Keyword Arguments:

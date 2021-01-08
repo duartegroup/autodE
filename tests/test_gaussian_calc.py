@@ -25,7 +25,7 @@ optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
 
 sp_keywords = SinglePointKeywords(['PBE1PBE/Def2SVP'])
 
-
+"""
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_opt_calc():
 
@@ -213,3 +213,32 @@ def test_point_charge_calc():
                 assert 'charge' in line.lower()
                 assert 'z-matrix' in line.lower() and 'nosymm' in line.lower()
                 break
+
+"""
+
+def test_external_basis_set_file():
+
+    """
+
+    Example calculation with a custom basis set and ECP
+    -----------------------------------------------
+    # Opt M062X EmpiricalDispersion=GD3BJ genecp
+
+     name of calc
+
+    0 1
+    xyz coordinates
+
+    @bs1.gbs
+
+    """
+    from autode.wrappers.G16 import G16
+
+    custom = G16()
+    custom.keywords.set_opt_basis_set('/u/fd/ball4935/repos/autodE/bs1.gbs')
+    assert custom.keywords.opt.basis_set.has_only_name()
+    custom.keywords.sp.set_basis_set('/u/fd/ball4935/repos/autodE/bs1.gbs')
+
+    pd_cl2 = Molecule('pd_cl2.xyz')
+    pd_cl2.single_point(method=custom)
+    assert pd_cl2.energy is not None
