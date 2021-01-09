@@ -1,6 +1,5 @@
 from autode import bond_lengths
 from autode.atoms import Atom
-import pytest
 
 
 def test_bond_assignment():
