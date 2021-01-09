@@ -58,6 +58,10 @@ def test_gen_conformers():
         mol = Molecule()
         mol._generate_conformers()
 
+    # Metal complexes must be completely bonded entities
+    with pytest.raises(ValueError):
+        _ = Molecule(smiles='[Pd]C.C')
+
 
 def test_siman_conf_gen(tmpdir):
     os.chdir(tmpdir)
