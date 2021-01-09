@@ -66,11 +66,11 @@ class Conformer(Species):
         self.energy = opt.get_energy()
 
         try:
-            self.set_atoms(atoms=opt.get_final_atoms())
+            self.atoms = opt.get_final_atoms()
 
         except AtomsNotFound:
             logger.error(f'Atoms not found for {self.name} but not critical')
-            self.set_atoms(atoms=None)
+            self.atoms = None
 
         return None
 

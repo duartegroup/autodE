@@ -2,7 +2,7 @@ from autode.species.molecule import Molecule
 from autode.conformers.conformer import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
-from autode.smiles.smiles import calc_multiplicity
+from autode.smiles.smiles import calc_multiplicity, init_organic_smiles
 from autode.wrappers.ORCA import orca
 from autode.species.molecule import Reactant
 from autode.species.molecule import Product
@@ -118,3 +118,21 @@ def test_molecule_from_xyz():
     assert h2.name == 'h2_conf0'
     assert h2.n_atoms == 2
     assert h2.formula() == 'H2'
+
+
+def test_rdkit_possible_fail():
+    """RDKit can't generate structures for some SMILES, make sure they can
+    be generated in other ways"""
+
+    rh_complex = Molecule(smiles='C[Rh](=C=O)(=C=O)(=C=O)=C=O')
+    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+
+    # Trying to parse with RDKit should revert to RR structure
+    rh_complex_rdkit_attempt = Molecule()
+    init_organic_smiles(rh_complex_rdkit_attempt,
+                        smiles='O=[Rh]([H])([H])([H])=O')
+    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+
+    # RDKit also may not parse CH5+
+    ch5 = Molecule(smiles='[H]C([H])([H])([H])[H+]')
+    assert are_coords_reasonable(coords=ch5.get_coordinates())

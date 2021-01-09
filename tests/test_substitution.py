@@ -58,7 +58,7 @@ def test_attack_cost():
              Atom('H' , -0.51166,  1.03181, -0.00597)]
 
     ideal_complex = ReactantComplex(f, ch3cl)
-    ideal_complex.set_atoms(atoms)
+    ideal_complex.atoms = atoms
 
     attack_cost = substitution.attack_cost(reac_complex, subst_centers,
                                            attacking_mol_idx=0)

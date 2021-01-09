@@ -221,7 +221,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
 
     # Remove any dummy atoms that may have been added
     # in alt_substitution_centres
-    reactant.set_atoms([atom for atom in reactant.atoms if atom.label != 'D'])
+    reactant.atoms = [atom for atom in reactant.atoms if atom.label != 'D']
 
     return None
 

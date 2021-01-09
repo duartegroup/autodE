@@ -66,7 +66,7 @@ Bugs and feature requests should be raised on the [issue page](https://github.co
 If **autodE** is used in a publication please consider citing the [paper](https://doi.org/10.1002/anie.202011941):
  
 ```
-@article{Young2020,
+@article{autodE2020,
   doi = {10.1002/anie.202011941},
   url = {https://doi.org/10.1002/anie.202011941},
   year = {2020},

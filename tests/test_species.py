@@ -28,7 +28,6 @@ def test_species_class():
     assert hasattr(mol, 'translate')
     assert hasattr(mol, 'rotate')
     assert hasattr(mol, 'get_coordinates')
-    assert hasattr(mol, 'set_atoms')
     assert hasattr(mol, 'set_coordinates')
 
     assert mol.charge == 0
@@ -62,8 +61,8 @@ def test_species_xyz_file():
 
     os.remove('H2.xyz')
 
-    mol_copy = deepcopy(mol)
-    mol_copy.atoms = mol_copy.set_atoms(atoms=None)
+    mol_copy = mol.copy()
+    mol_copy.atoms = None
 
     with pytest.raises(NoAtomsInMolecule):
         mol_copy.print_xyz_file()
@@ -96,7 +95,7 @@ def test_get_coordinates():
 def test_set_atoms():
     mol_copy = deepcopy(mol)
 
-    mol_copy.set_atoms(atoms=[h1])
+    mol_copy.atoms = [h1]
     assert mol_copy.n_atoms == 1
     assert len(mol_copy.atoms) == 1
 

@@ -216,7 +216,7 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
 
     try:
         # We need to used the optimised set of atoms...
-        ts_species.set_atoms(atoms=calc.get_final_atoms())
+        ts_species.atoms = calc.get_final_atoms()
     except (ex.AtomsNotFound, ex.NoCalculationOutput):
         return False
 
@@ -405,7 +405,7 @@ def get_optimised_species(calc, method, direction, atoms):
     calc.run()
 
     try:
-        species.set_atoms(atoms=calc.get_final_atoms())
+        species.atoms = calc.get_final_atoms()
         species.energy = calc.get_energy()
         make_graph(species)
 

@@ -47,6 +47,11 @@ class Species:
     def copy(self):
         return deepcopy(self)
 
+    @property
+    def n_atoms(self):
+        """Number of atoms in this species"""
+        return 0 if self.atoms is None else len(self.atoms)
+
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '
                                   'generate_conformers() not implemented')
@@ -90,7 +95,7 @@ class Species:
 
             if conformer.energy <= lowest_energy:
                 self.energy = conformer.energy
-                self.set_atoms(atoms=conformer.atoms)
+                self.atoms = conformer.atoms
                 lowest_energy = conformer.energy
 
         return None
@@ -189,7 +194,7 @@ class Species:
 
         calc.run()
         self.energy = calc.get_energy()
-        self.set_atoms(atoms=calc.get_final_atoms())
+        self.atoms = calc.get_final_atoms()
         self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
 
         if reset_graph:
@@ -305,18 +310,9 @@ class Species:
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
 
-    def set_atoms(self, atoms):
-        """Set the atoms of this species and from those the number of atoms"""
-
-        self.atoms = atoms
-        self.n_atoms = 0 if atoms is None else len(atoms)
-
-        return None
-
     def set_coordinates(self, coords):
         """For coordinates as a np.ndarray with shape Nx3 set the coordinates
         of each atom"""
-
         assert coords.shape == (self.n_atoms, 3)
 
         for i, coord in enumerate(coords):
@@ -343,7 +339,6 @@ class Species:
         self.name = name
 
         self.atoms = atoms
-        self.n_atoms = 0 if atoms is None else len(atoms)
         self.charge = int(charge)
         self.mult = int(mult)
 

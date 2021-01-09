@@ -220,7 +220,6 @@ def test_salt():
     salt = Molecule(name='salt', smiles='[Li][Br]')
     assert salt.n_atoms == 2
     assert are_coords_reasonable(coords=salt.get_coordinates())
-    os.remove('salt_conf0_siman.xyz')
 
 
 def test_potential():

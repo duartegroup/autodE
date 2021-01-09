@@ -260,8 +260,8 @@ def get_truncated_complex(r_complex, bond_rearrangement):
 
     # Delete all atoms not in the truncated graph and reset the graph
     t_complex.graph = t_graph
-    t_complex.set_atoms(atoms=[atom for i, atom in enumerate(t_complex.atoms) if
-                        i in sorted(t_graph.nodes)])
+    t_complex.atoms = [atom for i, atom in enumerate(t_complex.atoms) if
+                       i in sorted(t_graph.nodes)]
 
     # Relabel the nodes so they correspond to the new set of atoms
     mapping = {node_label: i for i, node_label in enumerate(sorted(t_graph.nodes))}

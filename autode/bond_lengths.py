@@ -1,4 +1,5 @@
 import numpy as np
+from autode.atoms import vdw_radii
 from autode.log import logger
 
 
@@ -56,11 +57,19 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
 
     else:
         logger.warning(f'Couldn\'t find a default bond length for '
-                       f'({atom_i_label},{atom_j_label}). Using 1.5 Å')
-        return 1.5
+                       f'({atom_i_label}-{atom_j_label}). Using the sum of '
+                       f'their VdW radii minus 1.5 Å')
+        try:
+            est = vdw_radii[atom_i_label] +  vdw_radii[atom_j_label] - 1.5
+            logger.info(f'Estimated the bond length as {est:.3f} Å')
+            return est
 
+        except KeyError:
+            logger.error(f'Could not find VdW radii for {atom_i_label} or '
+                         f'{atom_j_label}, returning 1.5 Å')
+            return 1.5
 
-""" 
+"""
 Dictionary of average bond lengths (Å) taken from the first 100,000 entries in 
 the CCDC
 
