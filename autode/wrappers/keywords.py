@@ -10,32 +10,28 @@ class KeywordsSet:
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
         for attr in ('opt', 'opt_ts', 'grad', 'hess'):
-            getattr(self, attr).set_functional(functional)
+            getattr(self, attr).functional = functional
 
         return None
 
     def set_opt_basis_set(self, basis_set):
         """Set the basis set for all optimisation and gradient calculations"""
         for attr in ('opt', 'opt_ts', 'grad', 'hess'):
-            getattr(self, attr).set_basis_set(basis_set)
+            getattr(self, attr).basis_set = basis_set
 
         return None
 
     def set_functional(self, functional):
         """Set the functional for all calculation types"""
-        assert type(functional) is Functional
-
         for keywords in self:
-            keywords.set_functional(functional)
+            keywords.functional = functional
 
         return None
 
     def set_dispersion(self, dispersion):
         """Set the dispersion correction for all calculation types"""
-        assert type(dispersion) is DispersionCorrection or dispersion is None
-
         for keywords in self:
-            keywords.set_dispersion(dispersion)
+            keywords.dispersion = dispersion
 
         return None
 
@@ -101,6 +97,15 @@ class Keywords:
         else:
             return base_str
 
+    def _get_keyword(self, keyword_type):
+        """Get a keyword given a type"""
+
+        for keyword in self.keyword_list:
+            if isinstance(keyword, keyword_type):
+                return keyword
+
+        return None
+
     def _set_keyword(self, keyword, keyword_type):
         """Set a keyword. A keyword of the same type must exist"""
         if type(keyword) is str:
@@ -118,26 +123,40 @@ class Keywords:
 
         raise ValueError('Could not set the keyword - none recognised')
 
-    def set_functional(self, functional):
-        """Set the functional in a set of keywords"""
-        return self._set_keyword(functional, keyword_type=Functional)
+    @property
+    def functional(self):
+        """Get the functional in this set of keywords"""
+        return self._get_keyword(Functional)
 
-    def set_dispersion(self, dispersion):
+    @property
+    def basis_set(self):
+        """Get the functional in this set of keywords"""
+        return self._get_keyword(BasisSet)
+
+    @property
+    def dispersion(self):
+        """Get the dispersion keyword in this set of keywords"""
+        return self._get_keyword(DispersionCorrection)
+
+    @property
+    def wf_method(self):
+        """Get the wavefunction method in this set of keywords"""
+        return self._get_keyword(WFMethod)
+
+    @functional.setter
+    def functional(self, functional):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(functional, keyword_type=Functional)
+
+    @dispersion.setter
+    def dispersion(self, dispersion):
         """Set the dispersion correction in a set of keywords"""
-        return self._set_keyword(dispersion, keyword_type=DispersionCorrection)
+        self._set_keyword(dispersion, keyword_type=DispersionCorrection)
 
-    def set_basis_set(self, basis_set):
+    @basis_set.setter
+    def basis_set(self, basis_set):
         """Set the functional in a set of keywords"""
-        return self._set_keyword(basis_set, keyword_type=BasisSet)
-
-    def _get_keyword(self, keyword_type):
-        """Get a keyword given a type"""
-
-        for keyword in self.keyword_list:
-            if isinstance(keyword, keyword_type):
-                return keyword
-
-        return None
+        self._set_keyword(basis_set, keyword_type=BasisSet)
 
     def method_string(self):
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
@@ -164,26 +183,6 @@ class Keywords:
             string = '???'
 
         return string
-
-    @property
-    def functional(self):
-        """Get the functional in this set of keywords"""
-        return self._get_keyword(Functional)
-
-    @property
-    def basis_set(self):
-        """Get the functional in this set of keywords"""
-        return self._get_keyword(BasisSet)
-
-    @property
-    def dispersion(self):
-        """Get the dispersion keyword in this set of keywords"""
-        return self._get_keyword(DispersionCorrection)
-
-    @property
-    def wf_method(self):
-        """Get the wavefunction method in this set of keywords"""
-        return self._get_keyword(WFMethod)
 
     def copy(self):
         return deepcopy(self.keyword_list)
