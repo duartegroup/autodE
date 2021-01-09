@@ -393,18 +393,17 @@ class Calculation:
         if not self.input.exists():
             raise ex.NoInputError('Input did not exist')
 
-        # Check that the method used to execute the calculation is available
-        self.method.set_availability()
-        if not self.method.available:
-            raise ex.MethodUnavailable
-
         # If the output file already exists set the output lines
-        if os.path.exists(self.output.filename):
+        if self.output.filename is not None and os.path.exists(self.output.filename):
             self.output.set_lines()
 
         if self.output.exists() and self.terminated_normally():
             logger.info('Calculation already terminated normally. Skipping')
             return None
+
+        # Check that the method used to execute the calculation is available
+        if not self.method.available:
+            raise ex.MethodUnavailable
 
         self.method.execute(self)
         self.output.set_lines()
@@ -511,11 +510,7 @@ class CalculationOutput:
 
     def exists(self):
         """Does the calculation output exist?"""
-
-        if self.filename is None or self.file_lines is None:
-            return False
-
-        return True
+        return self.filename is not None and self.file_lines is not None
 
     def __init__(self):
 

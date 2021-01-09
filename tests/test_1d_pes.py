@@ -18,10 +18,6 @@ Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE', 'def2-SVP', 'Opt'])
 
-# Override the availability of
-orca.available = True
-xtb.available = True
-
 # Set the reactant and product complexes
 
 h1 = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)

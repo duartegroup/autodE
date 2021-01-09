@@ -123,7 +123,6 @@ def test_species_solvent():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_species_single_point():
 
-    orca.available = True
     mol.single_point(method=orca)
     assert mol.energy == -1.138965730007
 
@@ -133,7 +132,6 @@ def test_find_lowest_energy_conformer():
 
      # Spoof XTB availability
     xtb.path = here
-    xtb.available = True
 
     propane = Molecule(name='propane', smiles='CCC')
 

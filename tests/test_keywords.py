@@ -55,7 +55,7 @@ def test_set_keywordsset():
     assert kwset.opt.basis_set.lower() == 'def2-tzvp'
 
     # Should admit no dispersion correction
-    assert kwset.opt.dispersion() is not None
+    assert kwset.opt.dispersion is not None
     kwset.set_dispersion(None)
-    assert kwset.opt.dispersion() is None
-    assert kwset.sp.dispersion() is None
+    assert kwset.opt.dispersion is None
+    assert kwset.sp.dispersion is None

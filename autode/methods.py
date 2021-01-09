@@ -64,7 +64,6 @@ def get_first_available_method(possibilities):
     """
     for method in possibilities:
 
-        method.set_availability()
         if method.available:
             return method
 
@@ -87,7 +86,6 @@ def get_defined_method(name, possibilities):
     for method in possibilities:
         if method.name == name:
 
-            method.set_availability()
             if method.available:
                 return method
 

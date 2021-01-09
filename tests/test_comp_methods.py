@@ -19,7 +19,6 @@ def test_init():
 def test_dft():
 
     orca = ORCA()
-    orca.available = True
 
     methods.clear()
     h2 = Molecule(smiles='[H][H]', solvent_name='water')

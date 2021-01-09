@@ -11,7 +11,6 @@ from . import testutils
 import os
 
 Config.high_quality_plots = False
-xtb.available = True
 Config.keyword_prefixes = False
 
 here = os.path.dirname(os.path.abspath(__file__))

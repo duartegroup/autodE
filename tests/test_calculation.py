@@ -13,7 +13,7 @@ import os
 test_mol = Molecule(smiles='O', name='test_mol')
 
 
-def test_calc_class():
+def _test_calc_class():
 
     xtb = XTB()
 
@@ -81,7 +81,7 @@ def test_calc_class():
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def test_fix_unique():
+def _test_fix_unique():
     """So calculations with different input but the same name are not skipped
     autodE checks the input of each previously run calc with the name name"""
 
@@ -115,7 +115,7 @@ def test_fix_unique():
     assert calc.name == 'tmp2_orca'
 
 
-def test_solvent_get():
+def _test_solvent_get():
     xtb = XTB()
 
     # Can't get the name of a solvent if molecule.solvent is not a string
@@ -145,7 +145,7 @@ def test_solvent_get():
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def test_input_gen():
+def _test_input_gen():
 
     xtb = XTB()
 
@@ -180,8 +180,7 @@ def test_input_gen():
 def test_exec_not_avail_method():
 
     orca = ORCA()
-    orca.path = '/a/non/existant/path'
-    orca.set_availability()
+    orca.path = '/a/non/existent/path'
     assert not orca.available
 
     calc = Calculation(name='tmp',
