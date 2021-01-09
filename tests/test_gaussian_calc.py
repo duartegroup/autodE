@@ -1,4 +1,5 @@
 from autode.wrappers.G09 import G09
+from autode.wrappers.G16 import G16
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
@@ -15,7 +16,6 @@ from . import testutils
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = G09()
-method.available = True
 Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Opt'])
@@ -25,7 +25,7 @@ optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
 
 sp_keywords = SinglePointKeywords(['PBE1PBE/Def2SVP'])
 
-"""
+
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_opt_calc():
 
@@ -214,8 +214,8 @@ def test_point_charge_calc():
                 assert 'z-matrix' in line.lower() and 'nosymm' in line.lower()
                 break
 
-"""
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_external_basis_set_file():
 
     """
@@ -232,13 +232,23 @@ def test_external_basis_set_file():
     @bs1.gbs
 
     """
-    from autode.wrappers.G16 import G16
+
+    # This test needs to not change the filename based on the input as the
+    # keywords depend on the current working directory, thus is not generally
+    # going to be the same
+    if os.getenv('AUTODE_FIXUNIQUE', True) != 'False':
+        return
 
     custom = G16()
-    custom.keywords.set_opt_basis_set('/u/fd/ball4935/repos/autodE/bs1.gbs')
+
+    basis_path = os.path.join(os.getcwd(), 'bs1.gbs')
+    custom.keywords.set_opt_basis_set(basis_path)
     assert custom.keywords.opt.basis_set.has_only_name()
-    custom.keywords.sp.set_basis_set('/u/fd/ball4935/repos/autodE/bs1.gbs')
+
+    custom.keywords.sp.set_basis_set(basis_path)
 
     pd_cl2 = Molecule('pd_cl2.xyz')
     pd_cl2.single_point(method=custom)
     assert pd_cl2.energy is not None
+    # ensure the energy is in the right ball-park
+    assert np.abs(pd_cl2.energy - -1046.7287) < 1E-2

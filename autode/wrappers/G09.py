@@ -163,7 +163,7 @@ def print_custom_basis(inp_file, keywords):
             str_keyword = str(keyword)
 
         if str_keyword.endswith('.gbs'):
-            print(f'\n@{keyword}', file=inp_file)
+            print(f'@{keyword}', file=inp_file)
 
     return None
 
@@ -268,6 +268,8 @@ class G09(ElectronicStructureMethod):
             print_added_internals(inp_file, calc.input)
             print_constraints(inp_file, molecule)
             print_custom_basis(inp_file, calc.input.keywords)
+            # Gaussian needs blank lines at the end of the file
+            print('\n', file=inp_file)
 
         return None
 
@@ -308,7 +310,7 @@ class G09(ElectronicStructureMethod):
         for line in reversed(calc.output.file_lines):
 
             if any(string in line for string in termination_strings):
-                logger.info('Gaussian09 terminated normally')
+                logger.info('Gaussian terminated normally')
                 return True
 
             if 'Bend failed for angle' in line:
