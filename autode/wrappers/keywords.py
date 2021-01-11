@@ -143,6 +143,10 @@ class Keywords:
         """Get the wavefunction method in this set of keywords"""
         return self._get_keyword(WFMethod)
 
+    @wf_method.setter
+    def wf_method(self, method):
+        self._set_keyword(method, keyword_type=WFMethod)
+
     @functional.setter
     def functional(self, functional):
         """Set the functional in a set of keywords"""
@@ -237,6 +241,9 @@ class SinglePointKeywords(Keywords):
 
 
 class Keyword:
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
     def __str__(self):
         return self.name

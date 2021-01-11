@@ -56,17 +56,16 @@ def get_keywords(calc_input, molecule):
 
         # and any other keywords, that may be a Keyword with a g09
         # attribute or just a name, or just a string
-        elif isinstance(keyword, kws.Keyword) and hasattr(keyword, 'g09'):
+        elif isinstance(keyword, kws.Keyword):
             new_keywords.append(keyword.g09)
+
+        # Replace the basis set file specification with genecp
+        elif str(keyword).endswith('.gbs'):
+            logger.info('Found a custom basis set file adding genecp')
+            new_keywords.append('genecp')
 
         else:
             new_keywords.append(str(keyword))
-
-    # Replace the basis set file specification with genecp
-    for i, keyword in enumerate(new_keywords):
-        if str(keyword).endswith('.gbs'):
-            logger.info('Found a custom basis set file adding genecp')
-            new_keywords[i] = 'genecp'
 
     # Mod redundant keywords is required if there are any constraints or
     # modified internal coordinates

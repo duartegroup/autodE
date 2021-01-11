@@ -368,11 +368,14 @@ class Calculation:
         # Check that if the keyword is a autode.wrappers.keywords.Keyword then
         # it has the required name in the method used for this calculation
         for keyword in self.input.keywords:
+            # Allow keywords as strings
             if not isinstance(keyword, kws.Keyword):
                 continue
 
             # Allow for the unambiguous setting of a keyword with only a name
             if keyword.has_only_name():
+                # set e.g. keyword.orca = 'b3lyp'
+                setattr(keyword, self.method.name, keyword.name)
                 continue
 
             # For a keyword e.g. Keyword(name='pbe', orca='PBE') then the
