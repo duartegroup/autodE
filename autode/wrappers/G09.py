@@ -54,15 +54,15 @@ def get_keywords(calc_input, molecule):
         if isinstance(keyword, kws.DispersionCorrection):
             new_keywords.append(f'EmpiricalDispersion={keyword.g09}')
 
-        # and any other keywords, that may be a Keyword with a g09
-        # attribute or just a name, or just a string
-        elif isinstance(keyword, kws.Keyword):
-            new_keywords.append(keyword.g09)
-
         # Replace the basis set file specification with genecp
         elif str(keyword).endswith('.gbs'):
             logger.info('Found a custom basis set file adding genecp')
             new_keywords.append('genecp')
+
+        # and any other keywords, that may be a Keyword with a g09
+        # attribute or just a name, or just a string
+        elif isinstance(keyword, kws.Keyword):
+            new_keywords.append(keyword.g09)
 
         else:
             new_keywords.append(str(keyword))
