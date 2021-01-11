@@ -13,7 +13,7 @@ import os
 test_mol = Molecule(smiles='O', name='test_mol')
 
 
-def _test_calc_class():
+def test_calc_class():
 
     xtb = XTB()
 
@@ -42,6 +42,15 @@ def _test_calc_class():
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
+
+    # Calculation that has not been run shouldn't have an opt converged
+    assert not calc.optimisation_converged()
+    assert not calc.optimisation_nearly_converged()
+
+    # With a filename that doesn't exist a NoOutput exception should be raised
+    calc.output.filename = '/a/path/that/does/not/exist/tmp'
+    with pytest.raises(ex.NoCalculationOutput):
+        calc.output.set_lines()
 
     # With no output should not be able to get properties
     calc.output.filename = 'tmp'
@@ -81,7 +90,7 @@ def _test_calc_class():
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def _test_fix_unique():
+def test_fix_unique():
     """So calculations with different input but the same name are not skipped
     autodE checks the input of each previously run calc with the name name"""
 
@@ -115,7 +124,7 @@ def _test_fix_unique():
     assert calc.name == 'tmp2_orca'
 
 
-def _test_solvent_get():
+def test_solvent_get():
     xtb = XTB()
 
     # Can't get the name of a solvent if molecule.solvent is not a string
@@ -140,12 +149,16 @@ def _test_solvent_get():
     with pytest.raises(ex.SolventUnavailable):
         _ = get_solvent_name(test_mol, method=xtb)
 
+    test_mol.solvent = 0
+    with pytest.raises(ex.SolventUnavailable):
+        _ = get_solvent_name(test_mol, method=xtb)
+
     # return to the gas phase
     test_mol.solvent = None
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def _test_input_gen():
+def test_input_gen():
 
     xtb = XTB()
 
