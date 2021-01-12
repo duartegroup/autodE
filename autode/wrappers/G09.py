@@ -50,19 +50,23 @@ def get_keywords(calc_input, molecule):
 
     for keyword in calc_input.keywords.copy():
 
-        # Add any empirical dispersion
-        if isinstance(keyword, kws.DispersionCorrection):
-            new_keywords.append(f'EmpiricalDispersion={keyword.g09}')
-
         # Replace the basis set file specification with genecp
-        elif str(keyword).endswith('.gbs'):
+        if str(keyword).endswith('.gbs'):
             logger.info('Found a custom basis set file adding genecp')
             new_keywords.append('genecp')
+            continue
 
-        # and any other keywords, that may be a Keyword with a g09
-        # attribute or just a name, or just a string
-        elif isinstance(keyword, kws.Keyword):
-            new_keywords.append(keyword.g09)
+        if isinstance(keyword, kws.Keyword):
+            kwd_str = keyword.g09 if hasattr(keyword, 'g09') else keyword.g16
+
+            # Add any empirical dispersion
+            if isinstance(keyword, kws.DispersionCorrection):
+                new_keywords.append(f'EmpiricalDispersion={kwd_str}')
+
+            # and any other keywords, that may be a Keyword with a g09/g16
+            # attribute or just a name
+            else:
+                new_keywords.append(kwd_str)
 
         else:
             new_keywords.append(str(keyword))
@@ -254,7 +258,6 @@ class G09(ElectronicStructureMethod):
                 print('', file=inp_file)
 
             print(f'\n {calc.name}\n', file=inp_file)
-
             print(molecule.charge, molecule.mult, file=inp_file)
 
             for atom in molecule.atoms:
@@ -266,7 +269,11 @@ class G09(ElectronicStructureMethod):
             print('', file=inp_file)
             print_added_internals(inp_file, calc.input)
             print_constraints(inp_file, molecule)
+
+            if molecule.constraints.any() or calc.input.added_internals:
+                print('', file=inp_file)   # needs an extra blank line
             print_custom_basis(inp_file, calc.input.keywords)
+
             # Gaussian needs blank lines at the end of the file
             print('\n', file=inp_file)
 

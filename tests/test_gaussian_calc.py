@@ -245,7 +245,7 @@ def test_external_basis_set_file():
     custom.keywords.set_opt_basis_set(basis_path)
     assert custom.keywords.opt.basis_set.has_only_name()
 
-    custom.keywords.sp.set_basis = basis_path
+    custom.keywords.sp.basis = basis_path
 
     pd_cl2 = Molecule('pd_cl2.xyz')
     pd_cl2.single_point(method=custom)
