@@ -58,7 +58,8 @@ class Calculation:
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""
         string = (f'{self.name}{self.method.name}{str(self.input.keywords)}'
-                  f'{str(self.molecule)}{self.method.implicit_solvation_type}')
+                  f'{str(self.molecule)}{self.method.implicit_solvation_type}'
+                  f'{str(self.molecule.constraints)}')
 
         if self.input.temp is not None:
             string += str(self.input.temp)
@@ -589,6 +590,18 @@ class CalculationInput:
 
 
 class Constraints:
+
+    def __str__(self):
+        """String of constraints"""
+        string = ''
+
+        if self.cartesian is not None:
+            string += str(self.cartesian)
+
+        if self.distance is not None:
+            string += str(self.distance)
+
+        return f'Constraints({string})'
 
     def _check(self):
         """ Check the constraints have the expected format"""

@@ -89,6 +89,40 @@ def test_calc_class():
                         keywords=xtb.keywords.sp)
 
 
+def test_calc_string():
+
+    xtb = XTB()
+
+    no_const = Calculation(name='tmp',
+                           molecule=test_mol,
+                           method=xtb,
+                           keywords=xtb.keywords.sp)
+
+    cart_const = Calculation(name='tmp',
+                             molecule=test_mol,
+                             method=xtb,
+                             keywords=xtb.keywords.sp,
+                             cartesian_constraints=[0])
+
+    dist_const = Calculation(name='tmp',
+                             molecule=test_mol,
+                             method=xtb,
+                             keywords=xtb.keywords.sp,
+                             distance_constraints={(0, 1): 1.0})
+
+    dist_const2 = Calculation(name='tmp',
+                              molecule=test_mol,
+                              method=xtb,
+                              keywords=xtb.keywords.sp,
+                              distance_constraints={(0, 1): 1.5})
+
+    assert str(no_const) == str(no_const)
+    assert str(no_const) != str(cart_const)
+    assert str(no_const) != str(dist_const)
+    assert str(cart_const) != str(dist_const)
+    assert str(dist_const) != str(dist_const2)
+
+
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_fix_unique():
     """So calculations with different input but the same name are not skipped
