@@ -13,8 +13,10 @@ from autode.exceptions import NoInputError
 from autode.exceptions import SolventUnavailable
 from autode.exceptions import UnsuppportedCalculationInput
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
+from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.solvent.solvents import Solvent
 from autode.config import Config
+from autode import utils
 from . import testutils
 import numpy as np
 import pytest
@@ -23,7 +25,6 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = ORCA()
-method.available = True
 Config.keyword_prefixes = False
 
 sp_keywords = SinglePointKeywords(['PBE', 'def2-SVP'])
@@ -245,7 +246,6 @@ def test_mp2_numerical_gradients():
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
 
-
 def test_calc_entropy():
 
     f_entropy_g09 = 0.011799 / 298.15   # TS from g09
@@ -253,3 +253,45 @@ def test_calc_entropy():
 
     # Ensure the calculated and 'actual' from Gaussian09 are close
     assert np.abs(f_entropy_g09 - f_entropy) < 2E-5
+
+
+@utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_keyword_setting():
+
+    orca = ORCA()
+    orca.keywords.sp.functional = 'B3LYP'
+
+    # Setter should generate a Functional from the keyword string
+    assert isinstance(orca.keywords.sp.functional, Functional)
+
+    calc = Calculation(name='tmp',
+                       molecule=test_mol.copy(),
+                       method=orca,
+                       keywords=orca.keywords.sp)
+    calc.generate_input()
+    assert calc.input.exists()
+
+    # B3LYP should now be in the in input
+    inp_lines = open(calc.input.filename, 'r').readlines()
+    assert any('B3LYP' in line for line in inp_lines)
+
+    # With a keyword without ORCA defined then raise an exception
+    with pytest.raises(UnsuppportedCalculationInput):
+        orca.keywords.sp.functional = Functional(name='B3LYP', g09='B3LYP')
+        calc = Calculation(name='tmp',
+                           molecule=test_mol.copy(),
+                           method=orca,
+                           keywords=orca.keywords.sp)
+        calc.generate_input()
+
+    # Without a default wavefunction method defined in the single point method
+    # we can't set keywords.wf
+    with pytest.raises(ValueError):
+        orca.keywords.sp.wf_method = 'HF'
+
+    # but if we have a WF method in the keywords we should be able to set it
+    orca.keywords.sp = SinglePointKeywords([WFMethod('MP2'),
+                                            BasisSet('def2-TZVP')])
+
+    orca.keywords.sp.wf_method = 'HF'
+    assert orca.keywords.sp.wf_method == 'HF'

@@ -102,6 +102,9 @@ def init_smiles(molecule, smiles):
     # metals
     molecule.rdkit_conf_gen_is_fine = False
 
+    if '.' in smiles:
+        raise ValueError('Could not parse SMILES with non-bonded components')
+
     parser = parse_smiles(smiles)
 
     molecule.charge = parser.charge

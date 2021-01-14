@@ -523,6 +523,9 @@ def strip_equiv_bond_rearrs(mol, possible_bond_rearrs, depth=6):
 
 class BondRearrangement:
 
+    def __eq__(self, other):
+        return self.fbonds == other.fbonds and self.bbonds == other.bbonds
+
     def __str__(self):
         return '_'.join(f'{bond[0]}-{bond[1]}' for bond in self.all)
 
@@ -576,8 +579,13 @@ class BondRearrangement:
 
         return None
 
-    def __eq__(self, other):
-        return self.fbonds == other.fbonds and self.bbonds == other.bbonds
+    @property
+    def n_fbonds(self):
+        return len(self.fbonds)
+
+    @property
+    def n_bbonds(self):
+        return len(self.bbonds)
 
     def __init__(self, forming_bonds=None, breaking_bonds=None):
         """
@@ -593,9 +601,6 @@ class BondRearrangement:
 
         self.fbonds = forming_bonds if forming_bonds is not None else []
         self.bbonds = breaking_bonds if breaking_bonds is not None else []
-
-        self.n_fbonds = len(self.fbonds)
-        self.n_bbonds = len(self.bbonds)
 
         self.active_atoms = []
         self.fatoms = []

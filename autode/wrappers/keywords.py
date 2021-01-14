@@ -10,32 +10,28 @@ class KeywordsSet:
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
         for attr in ('opt', 'opt_ts', 'grad', 'hess'):
-            getattr(self, attr).set_functional(functional)
+            getattr(self, attr).functional = functional
 
         return None
 
     def set_opt_basis_set(self, basis_set):
         """Set the basis set for all optimisation and gradient calculations"""
         for attr in ('opt', 'opt_ts', 'grad', 'hess'):
-            getattr(self, attr).set_basis_set(basis_set)
+            getattr(self, attr).basis_set = basis_set
 
         return None
 
     def set_functional(self, functional):
         """Set the functional for all calculation types"""
-        assert type(functional) is Functional
-
         for keywords in self:
-            keywords.set_functional(functional)
+            keywords.functional = functional
 
         return None
 
     def set_dispersion(self, dispersion):
         """Set the dispersion correction for all calculation types"""
-        assert type(dispersion) is DispersionCorrection or dispersion is None
-
         for keywords in self:
-            keywords.set_dispersion(dispersion)
+            keywords.dispersion = dispersion
 
         return None
 
@@ -101,10 +97,19 @@ class Keywords:
         else:
             return base_str
 
+    def _get_keyword(self, keyword_type):
+        """Get a keyword given a type"""
+
+        for keyword in self.keyword_list:
+            if isinstance(keyword, keyword_type):
+                return keyword
+
+        return None
+
     def _set_keyword(self, keyword, keyword_type):
         """Set a keyword. A keyword of the same type must exist"""
         if type(keyword) is str:
-            keyword = Functional(name=keyword)
+            keyword = keyword_type(name=keyword)
 
         assert type(keyword) is keyword_type or keyword is None
 
@@ -118,40 +123,58 @@ class Keywords:
 
         raise ValueError('Could not set the keyword - none recognised')
 
-    def set_functional(self, functional):
-        """Set the functional in a set of keywords"""
-        return self._set_keyword(functional, keyword_type=Functional)
+    @property
+    def functional(self):
+        """Get the functional in this set of keywords"""
+        return self._get_keyword(Functional)
 
-    def set_dispersion(self, dispersion):
+    @property
+    def basis_set(self):
+        """Get the functional in this set of keywords"""
+        return self._get_keyword(BasisSet)
+
+    @property
+    def dispersion(self):
+        """Get the dispersion keyword in this set of keywords"""
+        return self._get_keyword(DispersionCorrection)
+
+    @property
+    def wf_method(self):
+        """Get the wavefunction method in this set of keywords"""
+        return self._get_keyword(WFMethod)
+
+    @wf_method.setter
+    def wf_method(self, method):
+        self._set_keyword(method, keyword_type=WFMethod)
+
+    @functional.setter
+    def functional(self, functional):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(functional, keyword_type=Functional)
+
+    @dispersion.setter
+    def dispersion(self, dispersion):
         """Set the dispersion correction in a set of keywords"""
-        return self._set_keyword(dispersion, keyword_type=DispersionCorrection)
+        self._set_keyword(dispersion, keyword_type=DispersionCorrection)
 
-    def set_basis_set(self, basis_set):
+    @basis_set.setter
+    def basis_set(self, basis_set):
         """Set the functional in a set of keywords"""
-        return self._set_keyword(basis_set, keyword_type=BasisSet)
-
-    def _get_keyword(self, keyword_type):
-        """Get a keyword given a type"""
-
-        for keyword in self.keyword_list:
-            if isinstance(keyword, keyword_type):
-                return keyword
-
-        return None
+        self._set_keyword(basis_set, keyword_type=BasisSet)
 
     def method_string(self):
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
         string = ''
 
-        func = self.functional()
+        func = self.functional
         if func is not None:
             string += f'{func.upper()}({func.doi_str()})'
 
-        disp = self.dispersion()
+        disp = self.dispersion
         if disp is not None:
             string += f'-{disp.upper()}({disp.doi_str()})'
 
-        wf = self.wf_method()
+        wf = self.wf_method
         if wf is not None:
             string += f'{str(wf)}({wf.doi_str()})'
 
@@ -164,22 +187,6 @@ class Keywords:
             string = '???'
 
         return string
-
-    def functional(self):
-        """Get the functional in this set of keywords"""
-        return self._get_keyword(Functional)
-
-    def basis_set(self):
-        """Get the functional in this set of keywords"""
-        return self._get_keyword(BasisSet)
-
-    def dispersion(self):
-        """Get the dispersion keyword in this set of keywords"""
-        return self._get_keyword(DispersionCorrection)
-
-    def wf_method(self):
-        """Get the wavefunction method in this set of keywords"""
-        return self._get_keyword(WFMethod)
 
     def copy(self):
         return deepcopy(self.keyword_list)
@@ -235,6 +242,9 @@ class SinglePointKeywords(Keywords):
 
 class Keyword:
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
     def __str__(self):
         return self.name
 
@@ -250,15 +260,32 @@ class Keyword:
     def doi_str(self):
         return ' '.join(self.doi_list)
 
+    def has_only_name(self):
+        """Determine if only a name has been set, in which case it will
+        be printed verbatim into an input file, otherwise needs keyword.method
+        to be set, where method is e.g. orca"""
+
+        excl_attrs = ('name', 'doi_list')
+        for attr in self.__dict__:
+            if attr in excl_attrs:
+                continue
+            return False
+
+        return True
+
     def __init__(self, name, doi=None, doi_list=None, **kwargs):
         """
         A keyword for an electronic structure theory method e.g. basis set or
         functional, with possibly a an associated reference or set of
-        references
+        references.
+
+        e.g.
+        keyword = Keyword(name='pbe')
+        keyword = Keyword(name='pbe', g09='xpbe96 cpbe96')
 
         ---------------------------------------------------------------------
         Arguments:
-            name: (str) Name of the model
+            name: (str) Name of the keyword/method
             doi: (str) Digital object identifier for the method's paper
 
         Keyword Arguments:

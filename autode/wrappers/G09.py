@@ -50,15 +50,26 @@ def get_keywords(calc_input, molecule):
 
     for keyword in calc_input.keywords.copy():
 
-        # Add any empirical dispersion
-        if isinstance(keyword, kws.DispersionCorrection):
-            new_keywords.append(f'EmpiricalDispersion={keyword.g09}')
+        # Replace the basis set file specification with genecp
+        if str(keyword).endswith('.gbs'):
+            logger.info('Found a custom basis set file adding genecp')
+            new_keywords.append('genecp')
+            continue
 
-        elif isinstance(keyword, kws.Keyword):
-            new_keywords.append(keyword.g09)
+        if isinstance(keyword, kws.Keyword):
+            kwd_str = keyword.g09 if hasattr(keyword, 'g09') else keyword.g16
+
+            # Add any empirical dispersion
+            if isinstance(keyword, kws.DispersionCorrection):
+                new_keywords.append(f'EmpiricalDispersion={kwd_str}')
+
+            # and any other keywords, that may be a Keyword with a g09/g16
+            # attribute or just a name
+            else:
+                new_keywords.append(kwd_str)
 
         else:
-            new_keywords.append(keyword)
+            new_keywords.append(str(keyword))
 
     # Mod redundant keywords is required if there are any constraints or
     # modified internal coordinates
@@ -143,6 +154,21 @@ def print_constraints(inp_file, molecule):
             # Gaussian indexes atoms from 1
             print('X', i+1, 'F', file=inp_file)
     return
+
+
+def print_custom_basis(inp_file, keywords):
+    """Print the definition of the custom basis set file """
+
+    for keyword in keywords:
+        if isinstance(keyword, kws.Keyword) and hasattr(keyword, 'g09'):
+            str_keyword = keyword.g09
+        else:
+            str_keyword = str(keyword)
+
+        if str_keyword.endswith('.gbs'):
+            print(f'@{keyword}', file=inp_file)
+
+    return None
 
 
 def rerun_angle_failure(calc):
@@ -232,7 +258,6 @@ class G09(ElectronicStructureMethod):
                 print('', file=inp_file)
 
             print(f'\n {calc.name}\n', file=inp_file)
-
             print(molecule.charge, molecule.mult, file=inp_file)
 
             for atom in molecule.atoms:
@@ -244,6 +269,13 @@ class G09(ElectronicStructureMethod):
             print('', file=inp_file)
             print_added_internals(inp_file, calc.input)
             print_constraints(inp_file, molecule)
+
+            if molecule.constraints.any() or calc.input.added_internals:
+                print('', file=inp_file)   # needs an extra blank line
+            print_custom_basis(inp_file, calc.input.keywords)
+
+            # Gaussian needs blank lines at the end of the file
+            print('\n', file=inp_file)
 
         return None
 
@@ -284,7 +316,7 @@ class G09(ElectronicStructureMethod):
         for line in reversed(calc.output.file_lines):
 
             if any(string in line for string in termination_strings):
-                logger.info('Gaussian09 terminated normally')
+                logger.info('Gaussian terminated normally')
                 return True
 
             if 'Bend failed for angle' in line:

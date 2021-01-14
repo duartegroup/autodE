@@ -58,7 +58,8 @@ class Calculation:
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""
         string = (f'{self.name}{self.method.name}{str(self.input.keywords)}'
-                  f'{str(self.molecule)}{self.method.implicit_solvation_type}')
+                  f'{str(self.molecule)}{self.method.implicit_solvation_type}'
+                  f'{str(self.molecule.constraints)}')
 
         if self.input.temp is not None:
             string += str(self.input.temp)
@@ -194,7 +195,7 @@ class Calculation:
         string += (f'calculations performed at the '
                    f'{self.input.keywords.method_string()} level')
 
-        basis = self.input.keywords.basis_set()
+        basis = self.input.keywords.basis_set
         if basis is not None:
             string += (f' in combination with the {str(basis)} '
                        f'({basis.doi_str()}) basis set')
@@ -368,12 +369,22 @@ class Calculation:
         # Check that if the keyword is a autode.wrappers.keywords.Keyword then
         # it has the required name in the method used for this calculation
         for keyword in self.input.keywords:
+            # Allow keywords as strings
             if not isinstance(keyword, kws.Keyword):
                 continue
 
+            # Allow for the unambiguous setting of a keyword with only a name
+            if keyword.has_only_name():
+                # set e.g. keyword.orca = 'b3lyp'
+                setattr(keyword, self.method.name, keyword.name)
+                continue
+
+            # For a keyword e.g. Keyword(name='pbe', orca='PBE') then the
+            # definition in this method is not obvious, so raise an exception
             if not hasattr(keyword, self.method.name):
-                raise ex.UnsuppportedCalculationInput(f'Keyword: {keyword} :'
-                                                      f'not supported')
+                err_str = (f'Keyword: {keyword} is not supported set '
+                           f'{keyword}.{self.method.name} as a string')
+                raise ex.UnsuppportedCalculationInput(err_str)
 
         self.method.generate_input(self, self.molecule)
 
@@ -386,18 +397,17 @@ class Calculation:
         if not self.input.exists():
             raise ex.NoInputError('Input did not exist')
 
-        # Check that the method used to execute the calculation is available
-        self.method.set_availability()
-        if not self.method.available:
-            raise ex.MethodUnavailable
-
         # If the output file already exists set the output lines
-        if os.path.exists(self.output.filename):
+        if self.output.filename is not None and os.path.exists(self.output.filename):
             self.output.set_lines()
 
         if self.output.exists() and self.terminated_normally():
             logger.info('Calculation already terminated normally. Skipping')
             return None
+
+        # Check that the method used to execute the calculation is available
+        if not self.method.available:
+            raise ex.MethodUnavailable
 
         self.method.execute(self)
         self.output.set_lines()
@@ -504,11 +514,7 @@ class CalculationOutput:
 
     def exists(self):
         """Does the calculation output exist?"""
-
-        if self.filename is None or self.file_lines is None:
-            return False
-
-        return True
+        return self.filename is not None and self.file_lines is not None
 
     def __init__(self):
 
@@ -584,6 +590,18 @@ class CalculationInput:
 
 
 class Constraints:
+
+    def __str__(self):
+        """String of constraints"""
+        string = ''
+
+        if self.cartesian is not None:
+            string += str(self.cartesian)
+
+        if self.distance is not None:
+            string += str(self.distance)
+
+        return f'Constraints({string})'
 
     def _check(self):
         """ Check the constraints have the expected format"""

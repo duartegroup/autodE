@@ -9,17 +9,17 @@ import os
 
 class ElectronicStructureMethod(ABC):
 
-    def set_availability(self):
+    @property
+    def available(self):
         logger.info(f'Setting the availability of {self.__name__}')
 
         if self.path is not None:
             if os.path.exists(self.path):
-                self.available = True
                 logger.info(f'{self.__name__} is available')
+                return True
 
-        if not self.available:
-            logger.info(f'{self.__name__} is not available')
-            self.available = False
+        logger.info(f'{self.__name__} is not available')
+        return False
 
     @abstractmethod
     def generate_input(self, calculation, molecule):
@@ -246,10 +246,5 @@ class ElectronicStructureMethod(ABC):
 
         # If the path is not set in config.py or input script search in $PATH
         self.path = path if path is not None else which(name)
-
-        # Availability is set when hlevel and llevel methods are set
-        self.available = False
-
         self.keywords = deepcopy(keywords_set)
-
         self.implicit_solvation_type = implicit_solvation_type

@@ -20,8 +20,6 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 Config.keyword_prefixes = False
 
-orca.available = True
-
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'conformers.zip'))
 def test_conf_class():
@@ -138,7 +136,6 @@ def test_sp_hmethod_ranking():
 
     butane = Molecule(smiles='CCCC')
     xtb = XTB()
-    xtb.available = True
     cwd = os.getcwd()
 
     # Need to set hmethod.low_sp

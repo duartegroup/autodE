@@ -1,4 +1,5 @@
 from autode.wrappers.G09 import G09
+from autode.wrappers.G16 import G16
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
@@ -15,7 +16,6 @@ from . import testutils
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = G09()
-method.available = True
 Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Opt'])
@@ -213,3 +213,42 @@ def test_point_charge_calc():
                 assert 'charge' in line.lower()
                 assert 'z-matrix' in line.lower() and 'nosymm' in line.lower()
                 break
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
+def test_external_basis_set_file():
+
+    """
+
+    Example calculation with a custom basis set and ECP
+    -----------------------------------------------
+    # Opt M062X EmpiricalDispersion=GD3BJ genecp
+
+     name of calc
+
+    0 1
+    xyz coordinates
+
+    @bs1.gbs
+
+    """
+
+    # This test needs to not change the filename based on the input as the
+    # keywords depend on the current working directory, thus is not generally
+    # going to be the same
+    if os.getenv('AUTODE_FIXUNIQUE', True) != 'False':
+        return
+
+    custom = G16()
+
+    basis_path = os.path.join(os.getcwd(), 'bs1.gbs')
+    custom.keywords.set_opt_basis_set(basis_path)
+    assert custom.keywords.opt.basis_set.has_only_name()
+
+    custom.keywords.sp.basis = basis_path
+
+    pd_cl2 = Molecule('pd_cl2.xyz')
+    pd_cl2.single_point(method=custom)
+    assert pd_cl2.energy is not None
+    # ensure the energy is in the right ball-park
+    assert np.abs(pd_cl2.energy - -1046.7287) < 1E-2

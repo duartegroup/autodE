@@ -44,6 +44,7 @@ class Molecule(Species):
         if self.name == 'molecule' or self.name.endswith('.xyz'):
             self.name = xyz_filename.rstrip('.xyz')
 
+        make_graph(self)
         return None
 
     @requires_atoms()

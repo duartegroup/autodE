@@ -11,14 +11,11 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 
 method = XTB()
-method.available = True
 Config.keyword_prefixes = False
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_xtb_calculation():
-
-    XTB.available = True
 
     test_mol = Molecule(name='test_mol',
                         smiles='O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O')
@@ -63,7 +60,6 @@ def test_xtb_calculation():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_point_charge():
     os.chdir(os.path.join(here, 'data', 'xtb'))
-    XTB.available = True
 
     test_mol = Molecule(name='test_mol', smiles='C')
 

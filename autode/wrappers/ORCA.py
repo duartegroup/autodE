@@ -75,7 +75,7 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
             new_keywords.append(keyword.orca)
 
         else:
-            new_keywords.append(keyword)
+            new_keywords.append(str(keyword))
 
     if calc_input.solvent is not None:
         add_solvent_keyword(calc_input, new_keywords, implicit_solv_type)

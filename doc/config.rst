@@ -9,6 +9,9 @@ ORCA if it is available.
 Calculations
 ------------
 
+General
+*******
+
 For example, to use Gaussian09 as the high level electronic structure method
 
 .. code-block:: python
@@ -24,26 +27,38 @@ of 32 GB for the whole calculation
   >>> Config.max_core = 4000
 
 
-Calculation parameters also can be changed, e.g to use B3LYP/def2-TZVP single point
-energies in ORCA
+Keywords
+********
+
+Calculation parameters (keywords) also can be changed, e.g to use
+B3LYP/def2-TZVP single point energies in ORCA
 
 .. code-block:: python
 
   >>> from autode.wrappers.keywords import SinglePointKeywords
   >>> Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
 
+a cleaner solution uses
+
+  >>> Config.ORCA.keywords.sp.functional = 'B3LYP'
+
 To add diffuse functions with the ma scheme to the def2-SVP default optimisation
 basis set for optimisations
 
 .. code-block:: python
 
-  >>> Config.ORCA.keywords.opt = OptKeywords(['Opt', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
-  >>> Config.ORCA.keywords.grad = GradientKeywords(['EnGrad', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
-  >>> Config.ORCA.keywords.hess = HessianKeywords(['Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
-  >>> Config.ORCA.keywords.opt_ts = OptKeywords(['OptTS', 'Freq', 'PBE0', 'D3BJ', 'ma-def2-SVP'])
+  >>> Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
 
+.. note::
+    set_opt_basis_set also sets the basis set in keywords.grad, keywords.opt_ts
+    and keywords.hess while leaving all other keywords intact
+
+
+XTB as a hmethod
+****************
 
 To use XTB as the *hmethod* for minima and TS optimisations with the `xtb-gaussian <https://github.com/aspuru-guzik-group/xtb-gaussian>`_ wrapper
+and some default options
 
 .. code-block:: python
 
@@ -54,6 +69,9 @@ To use XTB as the *hmethod* for minima and TS optimisations with the `xtb-gaussi
   >>> Config.G16.keywords.hess = HessianKeywords([f"external='xtb-gaussian'", 'freq'])
   >>> Config.G16.keywords.grad = GradientKeywords([f"external='xtb-gaussian'", 'Force(NoStep)'])
 
+
+Other
+*****
 
 See the `config file <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_
 to see all the options.
@@ -70,7 +88,7 @@ environment variable, in bash::
 
     $ export AUTODE_LOG_LEVEL=INFO
 
-to output the log to a file set e.g. autode.log::
+to output the log to a file set e.g. *autode.log*::
 
     $ export AUTODE_LOG_FILE=autode.log
 

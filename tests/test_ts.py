@@ -26,7 +26,6 @@ import shutil
 
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
-method.available = True
 Config.keyword_prefixes = False
 
 # Force ORCA to appear available
@@ -118,7 +117,6 @@ def test_correct_imag_mode():
     bond_rearr = BondRearrangement(breaking_bonds=[(4, 1), (4, 18)],
                                    forming_bonds=[(1, 18)])
     g09 = G09()
-    g09.available = True
 
     calc = Calculation(name='tmp', molecule=ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1')),
                        method=g09, keywords=Config.G09.keywords.opt_ts)

@@ -283,7 +283,8 @@ def reorder_product(reactant, product, bond_rearr):
 
 
 def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
-    """For a bond rearrangement run 1d and 2d scans to find a TS
+    """For a bond rearrangement run PES exploration and TS optimisation to
+    find a TS
 
     Arguments:
         reaction (autode.reaction.Reaction):
@@ -298,6 +299,10 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
     if reaction.product is None or reaction.reactant is None:
         logger.warning('Reaction had no complexes - generating')
         reaction.find_complexes()
+
+    if bond_rearr.n_fbonds > bond_rearr.n_bbonds:
+        raise NotImplementedError('Cannot treat more forming than breaking '
+                                  'bonds, reverse the reaction(?)')
 
     # Reorder the atoms in the product complex so they are equivalent to the
     # reactant

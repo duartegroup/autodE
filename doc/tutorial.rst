@@ -67,3 +67,22 @@ should take around 10 minutes to complete on a modern processor.
     PBE0-D3BJ/def2-SVP and single points calculations performed at
     PBE0-D3BJ/def2-TZVP. To use other methods see the
     :doc:`config page <config>`.
+
+
+Diels Alder
+------------
+
+.. image:: common/diels_alder.png
+
+For the simple [4+2] Diels-Alder reaction between ethene and butadiene the
+reaction profile can be calculated in a couple of lines, where **autodE**
+identifies reactants and products from the reaction SMILES.
+
+.. code-block:: python
+
+    >>> import autode as ade
+    >>> ade.Config.n_cores = 8
+
+    >>> rxn = ade.Reaction('C=CC=C.C=C>>C1=CCCCC1', name='DA')
+    >>> rxn.calculate_reaction_profile()
+

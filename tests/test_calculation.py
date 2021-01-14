@@ -43,6 +43,15 @@ def test_calc_class():
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
 
+    # Calculation that has not been run shouldn't have an opt converged
+    assert not calc.optimisation_converged()
+    assert not calc.optimisation_nearly_converged()
+
+    # With a filename that doesn't exist a NoOutput exception should be raised
+    calc.output.filename = '/a/path/that/does/not/exist/tmp'
+    with pytest.raises(ex.NoCalculationOutput):
+        calc.output.set_lines()
+
     # With no output should not be able to get properties
     calc.output.filename = 'tmp'
     calc.output.file_lines = []
@@ -78,6 +87,40 @@ def test_calc_class():
                         molecule=mol_no_atoms,
                         method=xtb,
                         keywords=xtb.keywords.sp)
+
+
+def test_calc_string():
+
+    xtb = XTB()
+
+    no_const = Calculation(name='tmp',
+                           molecule=test_mol,
+                           method=xtb,
+                           keywords=xtb.keywords.sp)
+
+    cart_const = Calculation(name='tmp',
+                             molecule=test_mol,
+                             method=xtb,
+                             keywords=xtb.keywords.sp,
+                             cartesian_constraints=[0])
+
+    dist_const = Calculation(name='tmp',
+                             molecule=test_mol,
+                             method=xtb,
+                             keywords=xtb.keywords.sp,
+                             distance_constraints={(0, 1): 1.0})
+
+    dist_const2 = Calculation(name='tmp',
+                              molecule=test_mol,
+                              method=xtb,
+                              keywords=xtb.keywords.sp,
+                              distance_constraints={(0, 1): 1.5})
+
+    assert str(no_const) == str(no_const)
+    assert str(no_const) != str(cart_const)
+    assert str(no_const) != str(dist_const)
+    assert str(cart_const) != str(dist_const)
+    assert str(dist_const) != str(dist_const2)
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
@@ -140,6 +183,10 @@ def test_solvent_get():
     with pytest.raises(ex.SolventUnavailable):
         _ = get_solvent_name(test_mol, method=xtb)
 
+    test_mol.solvent = 0
+    with pytest.raises(ex.SolventUnavailable):
+        _ = get_solvent_name(test_mol, method=xtb)
+
     # return to the gas phase
     test_mol.solvent = None
 
@@ -180,8 +227,7 @@ def test_input_gen():
 def test_exec_not_avail_method():
 
     orca = ORCA()
-    orca.path = '/a/non/existant/path'
-    orca.set_availability()
+    orca.path = '/a/non/existent/path'
     assert not orca.available
 
     calc = Calculation(name='tmp',
