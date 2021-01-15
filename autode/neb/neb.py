@@ -3,6 +3,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.neb.original import NEB
+from autode.neb.ci import CINEB
 from autode.methods import get_lmethod
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.utils import work_in
@@ -47,32 +48,30 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
             logger.error('Failed to locate linear path')
             return None
 
-        neb = NEB(species_list=species_list)
+        neb = CINEB(species_list=species_list)
 
     # Otherwise using the reactant and product geometries
     else:
         assert n is not None
-        neb = NEB(initial_species=reactant.copy(),
-                  final_species=product.copy(),
-                  num=n)
+        neb = CINEB(initial_species=reactant.copy(),
+                    final_species=product.copy(),
+                    num=n)
         neb.interpolate_geometries()
 
-    # Calculate and generate the TS guess
+    # Calculate and generate the TS guess, in a unique directory
     try:
-        neb.calculate(method=method, n_cores=Config.n_cores)
+        @work_in(name)
+        def calculate():
+            return neb.calculate(method=method, n_cores=Config.n_cores)
+
+        calculate()
 
     except ex.CouldNotGetProperty:
         logger.error('NEB failed')
         return None
 
-    # Yield all peaks?
-    for peak_species in neb.get_species_saddle_point():
-        logger.info('Found peak in optimised NEB - using as TS guess')
-        return get_ts_guess(peak_species, reactant, product, name=name)
-
-    logger.warning('NEB did not generate a saddle point')
-    return None
-
+    return get_ts_guess(neb.get_species_saddle_point(),
+                        reactant, product, name=name)
 
 @work_in('NEB_init_path')
 def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
@@ -159,7 +158,7 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
                            f'before this one had a lower energy - stopping the'
                            f' interpolation on step {i}')
 
-            return species_set
+            return species_set[:-1]
 
     logger.info('Generated initial NEB path')
     return species_set
@@ -249,7 +248,7 @@ def contains_peak(species_list):
     return False
 
 
-def calc_n_images(fbonds, bbonds, average_spacing=0.15):
+def calc_n_images(fbonds, bbonds, average_spacing=0.3):
     """
     Calculate the number of images to use in a NEB calculation based on the
     active bonds. Will use a number so the average ∆r between each step on

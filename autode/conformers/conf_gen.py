@@ -1,18 +1,15 @@
+import os
+import numpy as np
+import autode as ade
 from copy import deepcopy
 from itertools import combinations
-import numpy as np
-import os
 from scipy.optimize import minimize
 from time import time
+import autode.exceptions as ex
 from autode.bond_lengths import get_ideal_bond_length_matrix
-from autode.config import Config
-from autode.input_output import xyz_file_to_atoms
-from autode.input_output import atoms_to_xyz_file
-from autode.log import logger
-from autode.geom import are_coords_reasonable
+from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.mol_graphs import split_mol_across_bond
-from autode.exceptions import CannotSplitAcrossBond
-from autode.exceptions import NoMolecularGraph
+from autode.log import logger
 
 
 def get_bond_matrix(n_atoms, bonds, fixed_bonds):
@@ -29,7 +26,6 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     Returns:
         (np.ndarray): Bond matrix, shape = (n_atoms, n_atoms)
     """
-
     bond_matrix = np.zeros((n_atoms, n_atoms), dtype=np.intc)
 
     for i, j in bonds:
@@ -139,9 +135,10 @@ def get_atoms_rotated_stereocentres(species, atoms, rand):
             continue
 
         try:
-            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(i, j))
+            left_idxs, right_idxs = split_mol_across_bond(species.graph,
+                                                          bond=(i, j))
 
-        except CannotSplitAcrossBond:
+        except ex.CannotSplitAcrossBond:
             logger.warning('Splitting across this bond does not give two '
                            'components - could have a ring')
             return atoms
@@ -177,16 +174,18 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
     Returns:
         (dict): Distance constraints
     """
-    if not are_coords_reasonable(coords=species.get_coordinates()):
+    if not ade.geom.are_coords_reasonable(coords=species.coordinates):
         # TODO generate a reasonable initial structure: molassembler?
         logger.error('Cannot constrain stereochemistry if the initial '
                      'structure is not sensible')
         return dist_consts
 
-    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+    stereocentres = [node for node in species.graph.nodes
+                     if species.graph.nodes[node]['stereo'] is True]
 
     # Get the stereocentres with 4 bonds as ~ chiral centres
-    chiral_centres = [centre for centre in stereocentres if len(list(species.graph.neighbors(centre))) == 4]
+    chiral_centres = [centre for centre in stereocentres
+                      if len(list(species.graph.neighbors(centre))) == 4]
 
     # Add distance constraints from one atom to the other 3 atoms to fix the
     # configuration
@@ -195,7 +194,7 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
         atom_i = neighbors[0]
 
         for atom_j in neighbors[1:]:
-            dist_consts[(atom_i, atom_j)] = species.get_distance(atom_i, atom_j)
+            dist_consts[(atom_i, atom_j)] = species.distance(atom_i, atom_j)
 
     # Check on every pair of stereocenters
     for (atom_i, atom_j) in combinations(stereocentres, 2):
@@ -206,13 +205,13 @@ def add_dist_consts_for_stereocentres(species, dist_consts):
 
         # Add a single distance constraint between the nearest neighbours of
         # each stereocentre
-        for atom_i_neighbour in species.graph.neighbors(atom_i):
-            for atom_j_neighbour in species.graph.neighbors(atom_j):
-                if atom_i_neighbour != atom_j and atom_j_neighbour != atom_i:
+        for i_neighbour in species.graph.neighbors(atom_i):
+            for j_neighbour in species.graph.neighbors(atom_j):
+                if i_neighbour != atom_j and j_neighbour != atom_i:
 
                     # Fix the distance to the current value
-                    dist_consts[(atom_i_neighbour, atom_j_neighbour)] = species.get_distance(atom_i_neighbour,
-                                                                                             atom_j_neighbour)
+                    dist = species.distance(i_neighbour, j_neighbour)
+                    dist_consts[(i_neighbour, j_neighbour)] = dist
 
     logger.info(f'Have {len(dist_consts)} distance constraint(s)')
     return dist_consts
@@ -229,7 +228,8 @@ def get_non_random_atoms(species):
     Returns:
         (set(int)): Atoms indexes to not randomise
     """
-    stereocentres = [node for node in species.graph.nodes if species.graph.nodes[node]['stereo'] is True]
+    stereocentres = [node for node in species.graph.nodes
+                     if species.graph.nodes[node]['stereo'] is True]
 
     non_rand_atoms = deepcopy(stereocentres)
     for stereocentre in stereocentres:
@@ -288,19 +288,24 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
     """
     # Minimise atoms with no bonds between them
     far_coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
-                                        bonds=species.graph.edges, fixed_bonds=constrained_bonds,
-                                        k=0.0, c=0.1, d0=d0, tol=5E-3, exponent=2)
+                                        bonds=species.graph.edges,
+                                        fixed_bonds=constrained_bonds,
+                                        k=0.0, c=0.1, d0=d0, tol=5E-3,
+                                        exponent=2)
     coords = far_coords[:2]
 
     # Add the atoms one by one to the structure. Thanks to Dr. Cyrille Lavigne
     #  for this suggestion!
     for n in range(2, species.n_atoms):
         coords = get_coords_minimised_v(np.concatenate((coords, far_coords[len(coords):n+1])),
-                                        bonds=species.graph.edges, fixed_bonds=constrained_bonds,
-                                        k=0.1, c=0.1, d0=d0, tol=1E-3, exponent=2)
+                                        bonds=species.graph.edges,
+                                        fixed_bonds=constrained_bonds,
+                                        k=0.1, c=0.1, d0=d0, tol=1E-3,
+                                        exponent=2)
 
     # Perform a final minimisation
-    coords = get_coords_minimised_v(coords=coords, bonds=species.graph.edges, fixed_bonds=constrained_bonds,
+    coords = get_coords_minimised_v(coords=coords, bonds=species.graph.edges,
+                                    fixed_bonds=constrained_bonds,
                                     k=1.0, c=0.01, d0=d0, tol=1E-5)
     return coords
 
@@ -339,7 +344,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
     # To generate the potential requires bonds between atoms defined in a
     # molecular graph
     if species.graph is None:
-        raise NoMolecularGraph
+        raise ex.NoMolecularGraph
 
     # Initialise a new random seed and make a copy of the species' atoms.
     # RandomState is thread safe
@@ -370,18 +375,20 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
 
     # Shift by a factor defined in the config file if the coordinates are
     # reasonable but otherwise init in a 10 A cube
-    initial_coords_are_reasonable = are_coords_reasonable(species.get_coordinates())
+    reasonable_init_coords = ade.geom.are_coords_reasonable(species.coordinates)
 
-    if initial_coords_are_reasonable:
-        factor = Config.max_atom_displacement / np.sqrt(3)
-        [atom.translate(vec=factor * rand.uniform(-1, 1, 3)) for i, atom in enumerate(atoms) if i not in fixed_atom_indexes]
+    if reasonable_init_coords:
+        factor = ade.Config.max_atom_displacement / np.sqrt(3)
+        for i, atom in enumerate(atoms):
+            if i not in fixed_atom_indexes:
+                atom.translate(vec=factor * rand.uniform(-1, 1, 3))
     else:
         # Randomise in a 10 Å cubic box
         [atom.translate(vec=rand.uniform(-5, 5, 3)) for atom in atoms]
 
     logger.info('Minimising species...')
     st = time()
-    if initial_coords_are_reasonable:
+    if reasonable_init_coords:
         coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
                                         bonds=species.graph.edges,
                                         k=1.0, c=0.01, d0=d0, tol=1E-5,

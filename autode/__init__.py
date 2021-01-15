@@ -12,8 +12,9 @@ from autode.calculation import Calculation
 from autode import methods
 from autode import geom
 from autode import utils
+from autode import mol_graphs
 
-__version__ = '1.0.0b2'
+__version__ = '1.0.0b3'
 
 
 __all__ = [
@@ -32,5 +33,6 @@ __all__ = [
     'KjMol',
     'geom',
     'methods',
+    'mol_graphs',
     'utils'
 ]
