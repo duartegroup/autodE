@@ -48,7 +48,7 @@ def test_get_ts_guess_1dscan():
     assert ts_guess.n_atoms == 3
 
     # Peak in the PES is at r = 0.85 Å
-    assert 0.84 < ts_guess.get_distance(1, 2) < 0.86
+    assert 0.84 < ts_guess.distance(1, 2) < 0.86
     assert os.path.exists('H+H2_H2+H.png')
     os.remove('H+H2_H2+H.png')
 

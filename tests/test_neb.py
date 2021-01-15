@@ -110,8 +110,8 @@ def test_get_ts_guess_neb():
 
     assert ts_guess is not None
     # Approximate distances at the TS guess
-    assert 1.8 < ts_guess.get_distance(0, 2) < 2.2      # C-F
-    assert 1.9 < ts_guess.get_distance(2, 1) < 2.3      # C-Cl
+    assert 1.8 < ts_guess.distance(0, 2) < 2.2      # C-F
+    assert 1.9 < ts_guess.distance(2, 1) < 2.3      # C-Cl
 
     if os.path.exists('NEB'):
         shutil.rmtree('NEB')

@@ -68,7 +68,7 @@ def test_translate_rotate():
     assert len(reactant.molecules) == 2
 
     # Initially the geometry is not sensible
-    assert reactant.get_distance(0, 2) < 1.0
+    assert reactant.distance(0, 2) < 1.0
 
     # SN2' bond rearrangement
     bond_rearr = BondRearrangement(forming_bonds=[(0, 1)],
@@ -80,7 +80,7 @@ def test_translate_rotate():
 
     # The geometry should now be sensible
     for i in range(1, 10):
-        assert reactant.get_distance(0, i) > 2.0
+        assert reactant.distance(0, i) > 2.0
 
     # Should be closer to the end carbon than the middle
-    assert reactant.get_distance(0, 1) < reactant.get_distance(0, 2)
+    assert reactant.distance(0, 1) < reactant.distance(0, 2)

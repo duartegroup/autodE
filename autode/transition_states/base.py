@@ -244,8 +244,8 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
 
         for fbond in bond_rearrangement.fbonds:
 
-            ts_dist = ts_species.get_distance(*fbond)
-            p_dist = product.get_distance(*fbond)
+            ts_dist = ts_species.distance(*fbond)
+            p_dist = product.distance(*fbond)
 
             # Displaced distance towards products should be shorter than the
             # distance at the TS if the bond is forming
@@ -257,8 +257,8 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
 
         for bbond in bond_rearrangement.bbonds:
 
-            ts_dist = ts_species.get_distance(*bbond)
-            p_dist = product.get_distance(*bbond)
+            ts_dist = ts_species.distance(*bbond)
+            p_dist = product.distance(*bbond)
 
             # Displaced distance towards products should be longer than the
             # distance at the TS if the bond is breaking

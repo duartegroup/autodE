@@ -65,13 +65,13 @@ water molecule so the oxygen atom is centred at the origin
 
 .. code-block:: python
 
-  >>> water.get_coordinates()
+  >>> water.coordinates
   array([[-0.0011,  0.3631, -0.    ],
          [-0.825 , -0.1819, -0.    ],
          [ 0.8261, -0.1812,  0.    ]])
   >>> o_atom = water.atoms[0]
   >>> water.translate(vec=-o_atom.coord)
-  >>> water.get_coordinates()
+  >>> water.coordinates
   array([[ 0.    ,  0.    ,  0.    ],
          [-0.8250, -0.1819,  0.    ],
          [ 0.8261, -0.1812,  0.    ]])
@@ -82,7 +82,7 @@ then rotate around the x axis
 
   >>> import numpy as np
   >>> water.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
-  >>> water.get_coordinates()
+  >>> water.coordinates
   array([[ 0.    ,  0.   ,  0.    ],
          [-0.8250, 0.1819,  0.    ],
          [ 0.8261, 0.1812,  0.    ]])
@@ -91,7 +91,7 @@ Pairwise distances between atoms in a molecule can be calculated
 
 .. code-block:: python
 
-  >>> water.get_distance(0, 1)
+  >>> water.distance(0, 1)
   0.8448
 
 where atoms are indexed from 0, so that r\ :sub:`01`\  is r(O-H) in Å.

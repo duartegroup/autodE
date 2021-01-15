@@ -8,7 +8,6 @@ from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
-from autode.geom import length
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
@@ -51,6 +50,22 @@ class Species:
     def n_atoms(self):
         """Number of atoms in this species"""
         return 0 if self.atoms is None else len(self.atoms)
+
+    @property
+    @requires_atoms()
+    def coordinates(self):
+        """Return a np.ndarray of size n_atoms x 3 containing the xyz
+        coordinates of the molecule in Å. Will return a copy"""
+        return np.array([atom.coord for atom in self.atoms], copy=True)
+
+    @coordinates.setter
+    def coordinates(self, coords):
+        """For coordinates as a np.ndarray with shape Nx3 set the coordinates
+        of each atom"""
+        assert coords.shape == (self.n_atoms, 3)
+
+        for i in range(self.n_atoms):
+            self.atoms[i].coord = coords[i]
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '
@@ -119,10 +134,11 @@ class Species:
         # Check that all atoms are in colinear to the first two, taking the
         # first atom as the origin
         vec0 = self.atoms[1].coord - self.atoms[0].coord
+        vec0 /= np.linalg.norm(vec0)    # normalise
 
         for atom in self.atoms[2:]:
             vec = atom.coord - self.atoms[0].coord
-            cos_theta = np.dot(vec, vec0) / (length(vec) * length(vec0))
+            cos_theta = np.dot(vec, vec0) / np.linalg.norm(vec)
             if np.abs(np.abs(cos_theta) - 1) > tol:
                 return False
 
@@ -150,6 +166,12 @@ class Species:
         return None
 
     @requires_atoms()
+    def centre(self):
+        """Translate this molecule so the centroid (~COM) is at the origin"""
+        self.translate(vec=-np.average(self.coordinates, axis=0))
+        return None
+
+    @requires_atoms()
     def print_xyz_file(self, title_line='', filename=None):
         """Print a standard xyz file from the Molecule's atoms"""
 
@@ -157,12 +179,6 @@ class Species:
             filename = f'{self.name}.xyz'
 
         return atoms_to_xyz_file(self.atoms, filename, title_line=title_line)
-
-    @requires_atoms()
-    def get_coordinates(self):
-        """Return a np.ndarray of size n_atoms x 3 containing the xyz
-        coordinates of the molecule"""
-        return np.array([atom.coord for atom in self.atoms])
 
     @requires_atoms()
     def optimise(self, method=None, reset_graph=False, calc=None, keywords=None):
@@ -251,9 +267,9 @@ class Species:
         return None
 
     @requires_atoms()
-    def get_distance(self, atom_i, atom_j):
+    def distance(self, i, j):
         """Get the distance between two atoms in the species"""
-        return length(self.atoms[atom_i].coord - self.atoms[atom_j].coord)
+        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
 
     @work_in('conformers')
     def find_lowest_energy_conformer(self, lmethod=None, hmethod=None):
@@ -308,16 +324,6 @@ class Species:
         self._set_lowest_energy_conformer()
 
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
-        return None
-
-    def set_coordinates(self, coords):
-        """For coordinates as a np.ndarray with shape Nx3 set the coordinates
-        of each atom"""
-        assert coords.shape == (self.n_atoms, 3)
-
-        for i, coord in enumerate(coords):
-            self.atoms[i].coord = coord
-
         return None
 
     def __init__(self, name, atoms, charge, mult, solvent_name=None):

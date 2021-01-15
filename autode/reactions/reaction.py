@@ -167,7 +167,7 @@ class Reaction:
                 logger.warning(f'{mol.name} current energy was None')
                 continue
 
-            if not are_coords_reasonable(mol.get_coordinates()):
+            if not are_coords_reasonable(mol.coordinates):
                 logger.warning(f'{mol.name} coordinates not reasonable')
                 continue
 

@@ -74,7 +74,7 @@ def test_ts_guess_class():
     assert tsguess.product.n_atoms == 6
 
     # C -- Cl distance should be long
-    assert tsguess.product.get_distance(0, 5) > 3.0
+    assert tsguess.product.distance(0, 5) > 3.0
 
     assert tsguess.calc is None
     assert hasattr(tsguess, 'bond_rearrangement')

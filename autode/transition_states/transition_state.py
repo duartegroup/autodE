@@ -277,7 +277,7 @@ class TransitionState(TSbase):
         truncated_graph = get_truncated_active_mol_graph(self.graph)
 
         for bond in self.bond_rearrangement.all:
-            truncated_graph.edges[bond]['distance'] = self.get_distance(*bond)
+            truncated_graph.edges[bond]['distance'] = self.distance(*bond)
 
         ts_template = TStemplate(truncated_graph, species=self)
         ts_template.save(folder_path=folder_path)

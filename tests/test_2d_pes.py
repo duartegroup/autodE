@@ -100,5 +100,5 @@ def test_get_ts_guess_2dscan():
     assert ts_guess is not None
     assert ts_guess.n_atoms == 6
     assert ts_guess.energy is None
-    assert 1.9 < ts_guess.get_distance(0, 2) < 2.1
-    assert 1.9 < ts_guess.get_distance(1, 2) < 2.0
+    assert 1.9 < ts_guess.distance(0, 2) < 2.1
+    assert 1.9 < ts_guess.distance(1, 2) < 2.0

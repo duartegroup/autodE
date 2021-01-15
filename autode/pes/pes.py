@@ -176,7 +176,7 @@ class FormingBond(ScannedBond):
         super().__init__(atom_indexes)
 
         i, j = self.atom_indexes
-        self.curr_dist = species.get_distance(atom_i=i, atom_j=j)
+        self.curr_dist = species.distance(i=i, j=j)
         self.final_dist = get_avg_bond_length(species.atoms[i].label,
                                               species.atoms[j].label)
 
@@ -194,7 +194,7 @@ class BreakingBond(ScannedBond):
         """
         super().__init__(atom_indexes)
 
-        self.curr_dist = species.get_distance(*self.atom_indexes)
+        self.curr_dist = species.distance(*self.atom_indexes)
 
         # Length a breaking bond should increase by (Å)
         bbond_add_dist = 1.5

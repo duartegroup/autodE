@@ -19,7 +19,7 @@ energies = []
 for r in rs:
 
     o_atom, h_atom = water.atoms[:2]
-    curr_r = water.get_distance(0, 1)       # current O-H distance
+    curr_r = water.distance(0, 1)       # current O-H distance
 
     # Shift the hydrogen atom to the required distance
     # vector =  (h_atom.coord - o_atom.coord) / curr_r * (r - curr_r)

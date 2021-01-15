@@ -27,8 +27,7 @@ def test_species_class():
     assert hasattr(mol, 'print_xyz_file')
     assert hasattr(mol, 'translate')
     assert hasattr(mol, 'rotate')
-    assert hasattr(mol, 'get_coordinates')
-    assert hasattr(mol, 'set_coordinates')
+    assert hasattr(mol, 'coordinates')
 
     assert mol.charge == 0
     assert mol.mult == 1
@@ -87,7 +86,7 @@ def test_species_rotate():
 
 def test_get_coordinates():
 
-    coords = mol.get_coordinates()
+    coords = mol.coordinates
     assert type(coords) == np.ndarray
     assert coords.shape == (2, 3)
 
@@ -106,7 +105,7 @@ def test_set_coords():
     new_coords = np.array([[0.0, 0.0, 1.0],
                            [0.0, 0.0, 0.0]])
 
-    mol_copy.set_coordinates(coords=new_coords)
+    mol_copy.coordinates = new_coords
 
     assert np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, 1.0])) < 1E-9
     assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
