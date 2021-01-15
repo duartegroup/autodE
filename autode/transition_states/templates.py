@@ -383,7 +383,10 @@ class TStemplate:
         Raise:
             (autode.exceptions.TemplateLoadingFailed):
         """
-        template_lines = open(filename, 'r').readlines()
+        try:
+            template_lines = open(filename, 'r').readlines()
+        except (IOError, UnicodeDecodeError):
+            raise TemplateLoadingFailed('Failed to read file lines')
 
         if len(template_lines) < 5:
             raise TemplateLoadingFailed('Not enough lines in the template')
