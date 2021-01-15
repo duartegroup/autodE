@@ -3,6 +3,7 @@ The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
 from autode.log import logger
+from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
 from autode.constants import Constants
@@ -59,11 +60,17 @@ def total_energy(flat_coords, images, method, n_cores):
     all_energies = [image.energy for image in images]
     rel_energies = [energy - min(all_energies) for energy in all_energies]
 
+    if Config.adaptive_neb_k:
+        logger.info('Updating the NEB force constant based on image energy')
+        for i, image in enumerate(images[1:-1]):
+            # Linear in energy, up to ~0.02 at 50 kcal mol-1
+            image.k = 0.01 + 0.188 * rel_energies[i]
+
     logger.info(f'Path energy = {sum(rel_energies):.5f}')
     return sum(rel_energies)
 
 
-def get_force(im_l, im, im_r, k=0.005):
+def get_force(im_l, im, im_r):
     """
     Compute F_i. Notation from:
     Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
@@ -111,8 +118,8 @@ def get_force(im_l, im, im_r, k=0.005):
     hat_tau = tau / np.linalg.norm(tau)
 
     # F_i^s||
-    f_parallel = (np.linalg.norm(x_r - x) * k -
-                  np.linalg.norm(x - x_l) * k) * hat_tau
+    f_parallel = (np.linalg.norm(x_r - x) * im.k -
+                  np.linalg.norm(x - x_l) * im.k) * hat_tau
 
     # ∇V(x)_i|_|_ = ∇V(x)_i - (∇V(x)_i•τ) τ
     grad_perp = im.grad - np.dot(im.grad, hat_tau) * hat_tau
@@ -146,7 +153,7 @@ def derivative(flat_coords, images, method, n_cores):
 
 class Image:
 
-    def __init__(self, name):
+    def __init__(self, name, k):
         """
         Image in a NEB
 
@@ -157,6 +164,9 @@ class Image:
 
         # Current optimisation iteration of this image
         self.iteration = 0
+
+        # Force constant in Eh/Å^2
+        self.k = k
 
         self.species = None         # autode.species.Species
         self.energy = None          # float
@@ -199,9 +209,9 @@ class Images:
 
         return None
 
-    def __init__(self, num):
+    def __init__(self, num, init_k):
 
-        self._list = [Image(name=str(i)) for i in range(num)]
+        self._list = [Image(name=str(i), k=init_k) for i in range(num)]
 
 
 class NEB:
@@ -321,16 +331,6 @@ class NEB:
 
         return None
 
-    def _init_from_species_list(self, s_list):
-        """Initialise from a list of species rather than just end points"""
-
-        self.images = Images(num=len(s_list))
-
-        for i, image in enumerate(self.images):
-            image.species = s_list[i]
-
-        return None
-
     def _init_from_end_points(self, initial, final):
         """Initialise from the start and finish points of the NEB"""
 
@@ -340,7 +340,7 @@ class NEB:
         return None
 
     def __init__(self, initial_species=None, final_species=None, num=8,
-                 species_list=None):
+                 species_list=None, k=0.01):
         """
         Nudged elastic band
 
@@ -351,10 +351,14 @@ class NEB:
             species_list (list(autode.species.Species)): Intermediate images
                          along the NEB
         """
-        self.images = Images(num=num)
+        self.images = Images(num=num, init_k=k)
 
         if species_list is not None:
-            self._init_from_species_list(species_list)
+            # Initialise from a list of species rather than just end points
+            self.images = Images(num=len(species_list), init_k=k)
+
+            for i, image in enumerate(self.images):
+                image.species = species_list[i]
 
         else:
             self._init_from_end_points(initial_species, final_species)

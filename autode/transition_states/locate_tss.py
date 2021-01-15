@@ -105,53 +105,6 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     yield get_ts_guess_neb, (r, p, hmethod, fbonds, bbonds,
                              f'{name}_hl_neb_{bond_rearr}')
 
-    # Otherwise run 1D or 2D potential energy surface scans to generate a
-    # transition state guess cheap -> most expensive
-    if len(bbonds) == 1 and len(fbonds) == 1 and reaction.type in (Substitution, Elimination):
-        yield get_ts_guess_2d, (r, p, fbonds[0], bbonds[0], f'{scan_name}_ll2d',
-                                lmethod, lmethod.keywords.low_opt)
-
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_bbond',
-                                hmethod,  hmethod.keywords.opt)
-
-    if len(bbonds) > 0 and len(fbonds) == 1:
-
-        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_fbond',
-                                hmethod, hmethod.keywords.opt)
-
-    if len(bbonds) >= 1 and len(fbonds) >= 1:
-        for fbond in fbonds:
-            for bbond in bbonds:
-
-                yield get_ts_guess_2d, (r, p, fbond, bbond,
-                                        f'{scan_name}_ll2d', lmethod,
-                                        lmethod.keywords.low_opt)
-
-                yield get_ts_guess_2d, (r, p, fbond, bbond,
-                                        f'{scan_name}_hl2d', hmethod,
-                                        hmethod.keywords.low_opt)
-
-    if len(bbonds) == 1 and len(fbonds) == 0:
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d',
-                                hmethod, hmethod.keywords.opt)
-
-    if len(fbonds) == 2:
-        yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
-                                f'{scan_name}_ll2d_fbonds', lmethod,
-                                lmethod.keywords.low_opt)
-        yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
-                                f'{scan_name}_hl2d_fbonds', hmethod,
-                                hmethod.keywords.low_opt)
-
-    if len(bbonds) == 2:
-        yield get_ts_guess_2d, (r, p, bbonds[0], bbonds[1],
-                                f'{scan_name}_ll2d_bbonds', lmethod,
-                                lmethod.keywords.low_opt)
-
-        yield get_ts_guess_2d, (r, p, bbonds[0], bbonds[1],
-                                f'{scan_name}_hl2d_bbonds', hmethod,
-                                hmethod.keywords.low_opt)
-
     return None
 
 
