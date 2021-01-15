@@ -115,9 +115,9 @@ def get_neighbour_list(species, atom_i):
         species (autode.species.Species):
 
     Returns:
-        (list(int)): list of atom ids in ascending distance away from atom_i
+        (list(int)): list of atom ids in ascending distance away from i
     """
-    coords = species.get_coordinates()
+    coords = species.coordinates
     distance_vector = cdist(np.array([coords[atom_i]]), coords)[0]
 
     dists_and_atom_labels = {}
@@ -154,7 +154,7 @@ def get_distance_constraints(species):
     for edge in species.graph.edges:
 
         if species.graph.edges[edge]['active']:
-            distance_constraints[edge] = species.get_distance(*edge)
+            distance_constraints[edge] = species.distance(*edge)
 
     return distance_constraints
 

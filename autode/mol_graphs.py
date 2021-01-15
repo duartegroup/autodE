@@ -56,8 +56,8 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
 
     else:
         # Loop over the unique pairs of atoms and add 'bonds'
-        coordinates = species.get_coordinates()
-        dist_mat = distance_matrix(coordinates, coordinates)
+        coords = species.coordinates
+        dist_mat = distance_matrix(coords, coords)
 
         for i in get_atom_ids_sorted_type(species):
 
@@ -131,7 +131,7 @@ def remove_bonds_invalid_valancies(species):
 
         # Get the atom indexes sorted by the closest to atom i
         closest_atoms = sorted(neighbours,
-                               key=lambda k: species.get_distance(i, k))
+                               key=lambda k: species.distance(i, k))
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
         for j in closest_atoms[max_valance:]:
