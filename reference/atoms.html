@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Atoms &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Bonds" href="bond_lengths.html" />
+    <link rel="prev" title="XTB" href="wrappers/xtb.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0b2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Atoms</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/atoms.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="atoms">
+<span id="id1"></span><h1>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-autode.atoms"></span><dl class="class">
+<dt id="autode.atoms.Atom">
+<em class="property">class </em><code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">Atom</code><span class="sig-paren">(</span><em class="sig-param">atomic_symbol</em>, <em class="sig-param">x=0.0</em>, <em class="sig-param">y=0.0</em>, <em class="sig-param">z=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.atoms.Atom.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atomic_symbol</em>, <em class="sig-param">x=0.0</em>, <em class="sig-param">y=0.0</em>, <em class="sig-param">z=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom class. Centered at the origin by default</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atomic_symbol</strong> (<em>str</em>) – Symbol of an element e.g. ‘C’ for carbon</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x coordinate in 3D space (Å)</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y coordinate in 3D space (Å)</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – z coordinate in 3D space (Å)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.__repr__">
+<code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.rotate">
+<code class="sig-name descname">rotate</code><span class="sig-paren">(</span><em class="sig-param">axis</em>, <em class="sig-param">theta</em>, <em class="sig-param">origin=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate this atom theta radians around an axis given an origin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>np.ndarray</em>) – Axis to rotate in. shape = (3,)</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Angle in radians (float)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>origin</strong> (<em>np.ndarray</em>) – Rotate about this origin. shape = (3,)
+if no origin is specified then the atom
+is rotated without translation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.translate">
+<code class="sig-name descname">translate</code><span class="sig-paren">(</span><em class="sig-param">vec</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate this atom by a vector</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Arguments:</dt><dd><p>vec (np.ndarray): Shape = (3,)</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.atoms.DummyAtom">
+<em class="property">class </em><code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">DummyAtom</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.DummyAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.atoms.DummyAtom.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.DummyAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom class. Centered at the origin by default</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atomic_symbol</strong> (<em>str</em>) – Symbol of an element e.g. ‘C’ for carbon</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x coordinate in 3D space (Å)</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y coordinate in 3D space (Å)</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – z coordinate in 3D space (Å)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.get_atomic_weight">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">get_atomic_weight</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.get_atomic_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the atomic weight of an atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_label</strong> (<em>str</em>) – atom label e.g. C or Pd</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>atomic weight of the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.get_maximal_valance">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">get_maximal_valance</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.get_maximal_valance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the maximum valance of an atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_label</strong> (<em>str</em>) – atom label e.g. C or Pd</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>maximal valence of the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.get_vdw_radius">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">get_vdw_radius</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.get_vdw_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the van der waal’s radius of an atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_label</strong> (<em>str</em>) – atom label e.g. C or Pd</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>van der waal’s radius of the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.is_pi_atom">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">is_pi_atom</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em>, <em class="sig-param">valency</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.is_pi_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if an atom is a ‘π-atom’ i.e. is unsaturated and is a first or
+second row element</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_label</strong> (<em>str</em>) – </p></li>
+<li><p><strong>valency</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="bond_lengths.html" class="btn btn-neutral float-right" title="Bonds" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="wrappers/xtb.html" class="btn btn-neutral float-left" title="XTB" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

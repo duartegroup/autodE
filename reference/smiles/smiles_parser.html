@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Smiles Parser &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Solvent" href="../solvent/index.html" />
+    <link rel="prev" title="Smiles" href="smiles.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.0b2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">SMILES</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smiles.html">Smiles</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Smiles Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">SMILES</a> &raquo;</li>
+        
+      <li>Smiles Parser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/smiles/smiles_parser.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autode.smiles.smiles_parser">
+<span id="smiles-parser"></span><h1>Smiles Parser<a class="headerlink" href="#module-autode.smiles.smiles_parser" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.smiles.smiles_parser.SmilesParser">
+<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.smiles_parser.</code><code class="sig-name descname">SmilesParser</code><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.add_atom">
+<code class="sig-name descname">add_atom</code><span class="sig-paren">(</span><em class="sig-param">atom_string</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.add_atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Given an string starting with an atom label (e.g Cl), add the atom</dt><dd><p>and return the rest of the string</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_string</strong> (<em>str</em>) – string starting with an atom label</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>rest of the string, some details about the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.add_cluster">
+<code class="sig-name descname">add_cluster</code><span class="sig-paren">(</span><em class="sig-param">new_cluster</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.add_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>After a stereocentre has been added, add its atoms to the
+stereoclusters list. If any new atom is in another cluster, merge them,
+as all all the atoms will need to shift together to maintain
+stereochemistry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_cluster</strong> (<em>list</em>) – list of atom indexes in the new cluster</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.add_hs">
+<code class="sig-name descname">add_hs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.add_hs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the hydrogens implied by the smiles string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.add_stereochem">
+<code class="sig-name descname">add_stereochem</code><span class="sig-paren">(</span><em class="sig-param">central_atom</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.add_stereochem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds stereochemistry around an atom, by placing atoms are the correct
+coordinates for the stereochemistry. For tetrahedral centres, ‘&#64;’
+means looking along the bond from the first atom bonded to the centre,
+the other atoms go anticlockwise in their index order in the atoms
+list. For alkene centres, ‘&#64;’ means the atoms go anticlockwise in their</p>
+<blockquote>
+<div><p>index order in the atoms list (this works as the same thing is applied</p>
+</div></blockquote>
+<p>to every centre)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>central_atom</strong> (<em>int</em>) – index of the atom having stereochemistry added
+around it</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.analyse_alkene_stereochem_dict">
+<code class="sig-name descname">analyse_alkene_stereochem_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.analyse_alkene_stereochem_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the alkene stereochemistry dict, and converts it into a &#64;/&#64;&#64;
+classification for the alkene carbon</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.analyse_atom_details">
+<code class="sig-name descname">analyse_atom_details</code><span class="sig-paren">(</span><em class="sig-param">atom_details_string</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.analyse_atom_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string of details from a bracket atom, get the charge,
+number of hydrogens and stereochem</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_details_string</strong> (<em>str</em>) – string of atom details (e.g H+2&#64; has
+one bonded hydrogen, a charge of +2 and ‘&#64;’
+stereochem)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.analyse_bond_ring_string">
+<code class="sig-name descname">analyse_bond_ring_string</code><span class="sig-paren">(</span><em class="sig-param">bond_ring_string</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.analyse_bond_ring_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a string containing ring information, add the ring bonds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bond_ring_string</strong> (<em>str</em>) – string of ring information, (e.g 23,
+labels the atom with rings 2 and 3, to be bonded
+to wherever these numbers appear again)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.analyse_char">
+<code class="sig-name descname">analyse_char</code><span class="sig-paren">(</span><em class="sig-param">char</em>, <em class="sig-param">char_type</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.analyse_char" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyse a section of a smiles string, depending on what section it
+is</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>char</strong> (<em>str</em>) – the section of a string to analyse</p></li>
+<li><p><strong>char_type</strong> (<em>str</em>) – the type of string</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.rotate_stereocluster">
+<code class="sig-name descname">rotate_stereocluster</code><span class="sig-paren">(</span><em class="sig-param">fixed_atom</em>, <em class="sig-param">central_rotating_atom</em>, <em class="sig-param">new_vector</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.rotate_stereocluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a stereocluster, so a certain bond points the correct way
+for a new stereocentre. Used for bonded stereocentres.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fixed_atom</strong> (<em>int</em>) – Index of the new stereocentre being formed</p></li>
+<li><p><strong>central_rotating_atom</strong> (<em>int</em>) – Index of the old stereocentre, which
+is being rotated</p></li>
+<li><p><strong>new_vector</strong> (<em>np.array</em>) – the bond between fixed_atom and
+central_rotating_atom is transformed into this vector</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.smiles_parser.SmilesParser.shift_atom">
+<code class="sig-name descname">shift_atom</code><span class="sig-paren">(</span><em class="sig-param">atom_to_shift</em>, <em class="sig-param">translation</em>, <em class="sig-param">not_to_move=-1</em>, <em class="sig-param">clusters=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.SmilesParser.shift_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shift an atom to its position for stereochemistry purposes. If it
+is part of another stereocluster, that whole cluster will be moved to
+keep the stereochemistry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_to_shift</strong> (<em>int</em>) – index of the atom to be moved</p></li>
+<li><p><strong>translation</strong> (<em>np.array</em>) – vector to shift the atom by</p></li>
+<li><p><strong>not_to_move</strong> (<em>int</em><em>, </em><em>optional</em>) – an atom not to be moved, even if it
+is in a stereocluster being moved. This is due to
+stereocentres directly bonded to each other being
+treated differently. Defaults to -1.</p></li>
+<li><p><strong>clusters</strong> (<em>list</em><em>(</em><em>list</em><em>)</em><em>, </em><em>optional</em>) – list of stereoclusters.
+Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.smiles.smiles_parser.divide_smiles">
+<code class="sig-prename descclassname">autode.smiles.smiles_parser.</code><code class="sig-name descname">divide_smiles</code><span class="sig-paren">(</span><em class="sig-param">string_to_divide</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.divide_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divides a SMILES string into its constituent sections. These are:</p>
+<blockquote>
+<div><p>Atom: (e.g ‘Cl’)</p>
+<p>Bond: showing the bond order of a bond (e.g ‘=’)</p>
+<dl class="simple">
+<dt>Bracket Atom: contained stereochem, charge, hydrogens etc about the</dt><dd><p>atom (e.g ‘[NH+]’)</p>
+</dd>
+</dl>
+<p>Branch: a branch coming off the main chain (e.g ‘(CCC)’)</p>
+<dl>
+<dt>Double bond stereochem: showing the position of an atom relative to</dt><dd><dl>
+<dt>the carbon in a double bond (e.g ‘/’, F/C= ==&gt;    C=  )</dt><dd><blockquote>
+<div><p>/</p>
+</div></blockquote>
+<p>F</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>string_to_divide</strong> (<em>str</em>) – string to divide</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>(str, str)</em> – section of smiles string, what type of section it is</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.smiles.smiles_parser.parse_smiles">
+<code class="sig-prename descclassname">autode.smiles.smiles_parser.</code><code class="sig-name descname">parse_smiles</code><span class="sig-paren">(</span><em class="sig-param">smiles</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.smiles_parser.parse_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the given smiles string
+:param smiles: smiles string to be parsed
+:type smiles: str</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../solvent/index.html" class="btn btn-neutral float-right" title="Solvent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="smiles.html" class="btn btn-neutral float-left" title="Smiles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
