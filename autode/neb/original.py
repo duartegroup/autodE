@@ -7,6 +7,7 @@ from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
 from autode.constants import Constants
 from autode.utils import work_in
+from autode.config import Config
 from scipy.optimize import minimize
 from multiprocessing import Pool
 import numpy as np
@@ -123,7 +124,7 @@ class Image:
             tau = tau_plus * dv_min + tau_minus * dv_max
 
         else:
-            raise RuntimeError
+            raise RuntimeError('Something went very wrong in the NEB!')
 
         # Normalised τ vector and coordinates of the images
         return tau / np.linalg.norm(tau), x_l, x, x_r
@@ -204,10 +205,28 @@ class Images:
         return None
 
     def increment(self):
-        """Advance all the iteration numbers on the images to name correctly"""
+        """Advance all the iteration numbers on the images to name correctly
+        also update force constants"""
         for image in self:
             image.iteration += 1
 
+        if Config.adaptive_neb_k and all(im.energy is not None for im in self):
+            logger.info('Updating force constants')
+            # Notation from https://doi.org/10.1063/1.1329672
+            delta_k = self.max_k - self.min_k
+
+            # E_ref is the maximum energy of the end points
+            energies = [image.energy for image in self]
+            e_ref = max(energies[0], energies[-1])
+            e_max = max(energies)
+
+            for image in self:
+                if image.energy < e_ref:
+                    image.k = self.min_k
+
+                else:
+                    image.k = self.max_k - delta_k * ((e_max - image.energy)
+                                                      / (e_max - e_ref))
         return None
 
     def plot_energies(self):
@@ -256,7 +275,19 @@ class Images:
 
         return None
 
-    def __init__(self, num, init_k):
+    def __init__(self, num, init_k, min_k=None, max_k=None):
+        """
+        Set of images joined by harmonic springs with force constant k
+
+        Arguments:
+
+            num (int): Number of images
+            init_k (float): Initial force constant (Ha Å^-2)
+            min_k (None | float): Minimum value of k
+            max_k (None | float): Maximum value of k
+        """
+        self.min_k = init_k / 10 if min_k is None else float(min_k)
+        self.max_k = 2 * init_k if max_k is None else float(max_k)
 
         self._list = [Image(name=str(i), k=init_k) for i in range(num)]
 
@@ -365,7 +396,7 @@ class NEB:
 
         # Energy tolerance is ~1 kcal mol-1 per image
         result = self._minimise(method, n_cores,
-                                etol=0.0015 * len(self.images))
+                                etol=0.003 * len(self.images))
 
         # Set the optimised coordinates for all the images
         self.images.set_coords(result.x)
@@ -393,7 +424,7 @@ class NEB:
         return None
 
     def __init__(self, initial_species=None, final_species=None, num=8,
-                 species_list=None, k=0.01):
+                 species_list=None, k=0.1):
         """
         Nudged elastic band
 

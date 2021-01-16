@@ -49,7 +49,7 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
             return None
 
         neb = CINEB(species_list=species_list)
-        neb.partition(n=2)
+        # neb.partition(n=2)
 
     # Otherwise using the reactant and product geometries
     else:
@@ -73,6 +73,7 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
     return get_ts_guess(neb.get_species_saddle_point(),
                         reactant, product, name=name)
+
 
 @work_in('NEB_init_path')
 def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,

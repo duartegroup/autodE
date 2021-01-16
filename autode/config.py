@@ -111,6 +111,11 @@ class Config:
     #
     hmethod_sp_conformers = False
     # -------------------------------------------------------------------------
+    # Use adaptive force constant modification in NEB calculations to improve
+    # sampling around the saddle point
+    #
+    adaptive_neb_k = True
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------

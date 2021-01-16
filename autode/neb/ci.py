@@ -38,8 +38,7 @@ class CImages(Images):
 
     def increment(self):
         """Increment the counter, and switch on a climbing image"""
-        for image in self:
-            image.iteration += 1
+        super().increment()
 
         if self[0].iteration < 4:
             # No need to do anything else

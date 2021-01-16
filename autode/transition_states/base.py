@@ -1,5 +1,6 @@
 from copy import deepcopy
 import autode.exceptions as ex
+from autode.atoms import metals
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.log import logger
@@ -232,7 +233,9 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
     b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
                         charge=0, mult=1)
 
-    if imag_mode_generates_other_bonds(ts_species, f_species, b_species, bond_rearrangement):
+    # Be conservative with metal complexes - what even is a bond..
+    if imag_mode_generates_other_bonds(ts_species, f_species, b_species,
+                                       bond_rearrangement, allow_mx=True):
         logger.warning('Imaginary mode generates bonds that are not active')
         return False
 
@@ -285,10 +288,19 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
     return False
 
 
-def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement):
+def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement,
+                                    allow_mx=False):
     """Determine if the forward or backwards displaced molecule break or make
     bonds that aren't in all the active bonds bond_rearrangement.all. Will be
-    fairly conservative here"""
+    fairly conservative here
+
+    Arguments:
+        ts (autode.species.Species):
+        f_species (autode.species.Species): Forward displaced species
+        b_species (autode.species.Species): Backward displaced species
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        allow_mx (bool): Allow any metal-X bonds where X is another element
+    """
 
     for species in (ts, f_species, b_species):
         make_graph(species, rel_tolerance=0.3)
@@ -297,6 +309,11 @@ def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement
 
         new_bonds_in_product = set([bond for bond in product.graph.edges
                                     if bond not in ts.graph.edges])
+
+        if allow_mx:
+            new_bonds_in_product = set([(i, j) for i, j in new_bonds_in_product
+                                        if ts.atoms[i].label not in metals and
+                                        ts.atoms[j].label not in metals])
 
         # If there are new bonds in the forward displaced species that are not
         # part of the bond rearrangement
