@@ -99,7 +99,10 @@ if __name__ == '__main__':
         reaction.locate_transition_state()
         os.chdir('..')
 
-        freq = reaction.ts.imaginary_frequencies[0]
+        if reaction.ts is not None:
+            freq = reaction.ts.imaginary_frequencies[0]
+        else:
+            freq = 0
 
         print(f'{reaction.name:.15}'
               f'{freq:15.1f}'

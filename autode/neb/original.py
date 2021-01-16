@@ -9,7 +9,6 @@ from autode.constants import Constants
 from autode.utils import work_in
 from scipy.optimize import minimize
 from multiprocessing import Pool
-from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
@@ -279,6 +278,37 @@ class NEB:
         logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
         return result
 
+    def partition(self, n):
+        """
+        Partition this NEB into n steps between each image i.e. n=2 affords
+        double the images
+
+        Arguments:
+            n: (int)
+        """
+        logger.info('Interpolating')
+        species_list = [self.images[0].species]    # First unchanged
+
+        for i, image in enumerate(self.images[1:]):
+            for j in range(1, n):
+                new_species = self.images[i].species.copy()
+                right_coords = image.species.coordinates
+
+                for k, atom in enumerate(new_species.atoms):
+                    shift = right_coords[k] - atom.coord
+                    atom.translate(vec=shift * (j / n))
+
+                species_list.append(new_species)
+            species_list.append(image.species)
+
+        # Reset the list of images
+        self.images = Images(num=len(species_list), init_k=self.images[0].k)
+
+        for i, image in enumerate(self.images):
+            image.species = species_list[i]
+
+        return None
+
     def print_geometries(self, name='neb'):
         """Print an xyz trajectory of the geometries in the NEB"""
 
@@ -303,7 +333,7 @@ class NEB:
         for i in range(1, n - 1):
 
             # Use a copy of the starting point for atoms, charge etc.
-            self.images[i].species = deepcopy(self.images[0].species)
+            self.images[i].species = self.images[0].species.copy()
 
             # For all the atoms in the species translate an amount so the
             # spacing is even between the initial and final points

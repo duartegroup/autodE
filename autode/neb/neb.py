@@ -49,6 +49,7 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
             return None
 
         neb = CINEB(species_list=species_list)
+        neb.partition(n=2)
 
     # Otherwise using the reactant and product geometries
     else:
