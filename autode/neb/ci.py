@@ -40,27 +40,51 @@ class CImages(Images):
         """Increment the counter, and switch on a climbing image"""
         super().increment()
 
-        if self[0].iteration < 4:
+        if self[0].iteration < self.wait_iteration:
             # No need to do anything else
-            return None
+            return
 
         if self.peak_idx is None:
             logger.error('Lost NEB peak - cannot switch on CI')
-            return None
+            return
 
         logger.info(f'Setting image {self.peak_idx} as the CI')
         self[self.peak_idx] = CImage(image=self[self.peak_idx])
         return None
 
-    def __init__(self, images):
-        """Initalise a set of images """
+    def __init__(self, images, wait_iterations=4):
+        """Initialise a set of images
 
+        Arguments:
+            images (autode.neb.Images):
+
+            wait_iterations (int): Number of iterations to wait before turning
+                                  on the climbing image
+        """
         super().__init__(num=len(images), init_k=0)
+
+        self.wait_iteration = wait_iterations
         for i, image in enumerate(images):
             self[i] = image
 
 
 class CINEB(NEB):
+
+    def _minimise(self, method, n_cores, etol, max_n=30):
+        """Minimise th energy of every image in the NEB"""
+        logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
+        result = super()._minimise(method, n_cores, etol, max_n)
+
+        if any(im.iteration > self.images.wait_iteration for im in self.images):
+            return result
+
+        logger.info('Converged before CI was turned on. Reducing the wait and '
+                    'minimising again')
+
+        self.images.wait_iteration = max(im.iteration for im in self.images)
+        result = super()._minimise(method, n_cores, etol, max_n)
+
+        return result
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
