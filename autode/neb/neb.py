@@ -2,7 +2,6 @@ import autode.exceptions as ex
 from autode.config import Config
 from autode.log import logger
 from autode.calculation import Calculation
-from autode.neb.original import NEB
 from autode.neb.ci import CINEB
 from autode.methods import get_lmethod
 from autode.transition_states.ts_guess import get_ts_guess
@@ -171,6 +170,11 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
         # locating a TS from it
         return None
 
+    # If the final point is higher in energy than the previous then remove
+    # the last, then iterate as appropriate
+    while len(species_set) >= 2 and species_set[-2].energy < species_set[-1].energy:
+        species_set.pop(-1)
+
     logger.info('Generated initial NEB path')
     return species_set
 
@@ -179,8 +183,9 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     """
     From forming and breaking bonds determine which should be used as the
     set of active bonds that define bond constraints. Any breaking bonds that
-    form rings with forming bonds in should be removed to try and avoid very
-    high energy points in the potential. For example:
+    form rings with forming bonds or those already in the graphshould be
+    removed to try and avoid very high energy points in the potential.
+    For example:
 
                H
     forming-> / \  <-breaking
@@ -202,7 +207,7 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     Returns:
         (list(autode.pes.pes.ScannedBond)):
     """
-    logger.info('Removing breaking bonds that are also in the set of forming'
+    logger.info('Removing breaking bonds that are also in the set of forming '
                 'bonds')
 
     graph = initial_species.graph.copy()
@@ -218,12 +223,9 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     def in_ring(bond):
         (i, j) = bond.atom_indexes
 
-        for fbond in fbonds:
-            (m, n) = fbond.atom_indexes
-
-            for ring in rings:
-                if all(idx in ring for idx in (i, j, m, n)):
-                    return True
+        for ring in rings:
+            if all(idx in ring for idx in (i, j)):
+                return True
 
         return False
 
@@ -259,7 +261,7 @@ def contains_peak(species_list):
     return False
 
 
-def calc_n_images(fbonds, bbonds, average_spacing=0.3):
+def calc_n_images(fbonds, bbonds, average_spacing=0.2):
     """
     Calculate the number of images to use in a NEB calculation based on the
     active bonds. Will use a number so the average ∆r between each step on
