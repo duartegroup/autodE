@@ -40,7 +40,8 @@ def total_energy(flat_coords, images, method, n_cores):
     images.set_coords(flat_coords)
 
     # Number of cores per process is the floored total divided by n images
-    n_cores_pp = max(int(n_cores//len(images)), 1)
+    # minus the two end points that will be fixed
+    n_cores_pp = max(int(n_cores//(len(images)-2)), 1)
 
     logger.info(f'Calculating energy and forces for all images with '
                 f'{n_cores} total cores and {n_cores_pp} per process')
@@ -189,7 +190,7 @@ class Images:
         """Get the index of the highest energy peak in this set of images"""
         if any(image.energy is None for image in self):
             logger.error('Optimisation of at least one image failed')
-            return StopIteration
+            return None
 
         def is_saddle(j):
             """Is an image j amn approximate saddle point in the surface?"""
@@ -222,8 +223,15 @@ class Images:
 
             # E_ref is the maximum energy of the end points
             energies = [image.energy for image in self]
+
             e_ref = max(energies[0], energies[-1])
             e_max = max(energies)
+
+            if e_ref == e_max:
+                logger.error('Cannot adjust k, the reference energy was the '
+                             'maximum')
+                # Return otherwise we'll divide by zero here
+                return
 
             for image in self:
                 if image.energy < e_ref:
