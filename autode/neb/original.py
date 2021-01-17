@@ -207,6 +207,11 @@ class Images:
     def increment(self):
         """Advance all the iteration numbers on the images to name correctly
         also update force constants"""
+        if self.peak_idx is None:
+            logger.warning('Lost peak in NEB: not incrementing so calculations'
+                           ' will be skipped')
+            return
+
         for image in self:
             image.iteration += 1
 

@@ -45,7 +45,11 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
                                             max_n=calc_n_images(fbonds, bbonds),
                                             method=method)
         except ex.AtomsNotFound:
-            logger.error('Failed to locate linear path')
+            logger.warning('Failed to optimise a point on the linear path')
+            return None
+
+        if species_list is None:
+            logger.warning('Failed to locate linear path containing a maximum')
             return None
 
         neb = CINEB(species_list=species_list)
@@ -161,6 +165,11 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
                            f' interpolation on step {i}')
 
             return species_set[:-1]
+
+    if not contains_peak(species_set):
+        # Needs to have a maximum in the linear path to have any hope of
+        # locating a TS from it
+        return None
 
     logger.info('Generated initial NEB path')
     return species_set
