@@ -116,6 +116,15 @@ class Config:
     #
     adaptive_neb_k = True
     # -------------------------------------------------------------------------
+    # Step size to use for the initial PES exploration in organic species (Å)
+    #
+    step_size_organic = 0.3
+    # -------------------------------------------------------------------------
+    # Step size to use for the initial PES exploration in metal/organometallic
+    # species where a M-X bond is breaking or forming (Å)
+    #
+    step_size_metal = 0.2
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------

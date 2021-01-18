@@ -1,6 +1,7 @@
 import autode.exceptions as ex
 from autode.config import Config
 from autode.log import logger
+from autode.atoms import metals
 from autode.calculation import Calculation
 from autode.neb.ci import CINEB
 from autode.methods import get_lmethod
@@ -40,8 +41,9 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
     if generate_final_species and fbonds is not None and bbonds is not None:
 
         try:
+            n = calc_n_images(fbonds, bbonds, reactant)
             species_list = get_interpolated(reactant, fbonds, bbonds,
-                                            max_n=calc_n_images(fbonds, bbonds),
+                                            max_n=n,
                                             method=method)
         except ex.AtomsNotFound:
             logger.warning('Failed to optimise a point on the linear path')
@@ -305,7 +307,7 @@ def peak_idx(species_list):
     return None
 
 
-def calc_n_images(fbonds, bbonds, average_spacing=0.3):
+def calc_n_images(fbonds, bbonds, species):
     """
     Calculate the number of images to use in a NEB calculation based on the
     active bonds. Will use a number so the average ∆r between each step on
@@ -314,13 +316,20 @@ def calc_n_images(fbonds, bbonds, average_spacing=0.3):
     Arguments:
         fbonds (list(autode.pes.pes.FormingBond)):
         bbonds (list(autode.pes.pes.BreakingBond)):
-
-    Keyword Arguments:
-        average_spacing (float):
+        species (autode.species.Species):
 
     Returns:
         (int): Number of images
     """
+    average_spacing = Config.step_size_organic
+    for bond in fbonds + bbonds:
+        if any(species.atoms[i].label in metals for i in bond.atom_indexes):
+            logger.info('A M-X bond was active')
+            average_spacing = Config.step_size_metal
+            break
+
+    logger.info(f'Using a step size of {average_spacing:.2f} Å')
+
     differences = [(b.final_dist - b.curr_dist) for b in fbonds + bbonds]
     average_abs_difference = np.average(np.abs(np.array(differences)))
 
