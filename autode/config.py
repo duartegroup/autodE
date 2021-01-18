@@ -125,7 +125,7 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', pbe,  d3bj, def2svp],
+        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0,  d3bj, def2svp],
                                grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
                                      'AutoAux'],
                                opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
@@ -162,7 +162,7 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=[pbe, def2svp, 'Opt=Loose',
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose',
                                         d3bj, grid],
                                grad=[pbe0, def2svp, 'Force(NoStep)',
                                      d3bj, grid],
@@ -226,7 +226,7 @@ class Config:
                      '  maxiter 100\n'
                      'end')
 
-        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe,
+        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe0,
                                         'task dft optimize'],
                                grad=[def2svp, pbe0,
                                      'task dft gradient'],

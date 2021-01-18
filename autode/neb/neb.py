@@ -52,7 +52,8 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
             return None
 
         neb = CINEB(species_list=species_list)
-        # neb.partition(n=2)
+        if len(species_list) == 3:
+            neb.partition(n=3)
 
     # Otherwise using the reactant and product geometries
     else:
@@ -70,12 +71,19 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
         calculate()
 
-    except ex.CouldNotGetProperty:
+    except (ex.CouldNotGetProperty, ex.AtomsNotFound):
         logger.error('NEB failed')
         return None
 
-    return get_ts_guess(neb.get_species_saddle_point(),
-                        reactant, product, name=name)
+    peak_species = neb.get_species_saddle_point()
+    if peak_species is None:
+        logger.warning('Found no peak in the NEB')
+        return None
+
+    if fbonds is not None and bbonds is not None:
+        run_final_const_opt(peak_species, method, const_bonds=fbonds+bbonds)
+
+    return get_ts_guess(peak_species, reactant, product, name=name)
 
 
 @work_in('NEB_init_path')
@@ -117,6 +125,46 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
     # Set a dictionary of bond length constraints
     consts = {b.atom_indexes: b.curr_dist for b in bonds}
 
+    species_set = _get_interp_species_set(max_n, initial_species, consts,
+                                          deltas, method, stop_thresh)
+
+    if peak_idx(species_set) is None:
+        # Needs to have a maximum in the linear path to have any hope of
+        # locating a TS from it
+        return None
+
+    # If the final point is higher in energy than the previous then remove
+    # the last, then iterate as appropriate
+    while len(species_set) >= 2 and species_set[-2].energy < species_set[-1].energy:
+        species_set.pop(-1)
+
+    # If only a one bond has been scanned over then the initial path is already
+    # pretty good, so truncate to the two points either side of the peak,
+    # and the peak
+    if len(bonds) == 1:
+        logger.info('Truncating interpolated set over the peak')
+        idx = peak_idx(species_set)
+        species_set = species_set[idx-1:idx+2]
+
+    logger.info('Generated initial NEB path')
+    return species_set
+
+
+def _get_interp_species_set(max_n, initial_species, consts, deltas, method,
+                            stop_thresh):
+    """
+    From an initial species generate a path along a surface defined by
+    distance constraints
+
+    Arguments:
+        initial_species (autode.species.Species):
+        consts (dict): Keyed with tuples of atom indexes and values of the
+                       initial distance
+        deltas (list): ∆r distances for all the constraints
+        max_n (int): Maximum number of intermediate species to generate
+        method (autode.wrappers.base.ElectronicStructureMethod):
+        stop_thresh (float):
+    """
     species_set = []
 
     # Generate a species with a constrained geometry for each point in the path
@@ -126,7 +174,7 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
             species = initial_species.copy()
 
         else:
-            species = species_set[i-1].copy()
+            species = species_set[i - 1].copy()
 
             # Add the required change in every bond length to get to the final
             # distances at step n-1
@@ -140,7 +188,7 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
         opt = Calculation(name=f'{species.name}_constrained_opt{i}',
                           molecule=species,
                           method=method,
-                          keywords=method.keywords.opt,
+                          keywords=method.keywords.low_opt,
                           n_cores=Config.n_cores,
                           distance_constraints=consts)
 
@@ -155,27 +203,15 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
         # Early stopping if a ~saddle point has already been traversed, must be
         # in the second half of the scan and above an energy threshold for ∆E
         if all((i > 1,
-                i > max_n//2,
-                contains_peak(species_set),
-                species.energy - species_set[i-1].energy > stop_thresh)):
-
+                i > max_n // 2,
+                peak_idx(species_set) is not None,
+                species.energy - species_set[i - 1].energy > stop_thresh)):
             logger.warning(f'Path contained an energy peak and the point '
                            f'before this one had a lower energy - stopping the'
                            f' interpolation on step {i}')
 
             return species_set[:-1]
 
-    if not contains_peak(species_set):
-        # Needs to have a maximum in the linear path to have any hope of
-        # locating a TS from it
-        return None
-
-    # If the final point is higher in energy than the previous then remove
-    # the last, then iterate as appropriate
-    while len(species_set) >= 2 and species_set[-2].energy < species_set[-1].energy:
-        species_set.pop(-1)
-
-    logger.info('Generated initial NEB path')
     return species_set
 
 
@@ -234,7 +270,7 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     return fbonds + [bbond for bbond in bbonds if not in_ring(bbond)]
 
 
-def contains_peak(species_list):
+def peak_idx(species_list):
     """
     Does this list of species contain a peak in the energy?
 
@@ -246,7 +282,7 @@ def contains_peak(species_list):
     """
     if any(species.energy is None for species in species_list):
         logger.warning('Cannot determine if path contains a peak, an E=None')
-        return False
+        return None
 
     for i, species in enumerate(species_list):
 
@@ -256,12 +292,12 @@ def contains_peak(species_list):
 
         # Points either side of this species must be lower in energy
         if all(species_list[k].energy < species.energy for k in (i-1, i+1)):
-            return True
+            return i
 
-    return False
+    return None
 
 
-def calc_n_images(fbonds, bbonds, average_spacing=0.2):
+def calc_n_images(fbonds, bbonds, average_spacing=0.3):
     """
     Calculate the number of images to use in a NEB calculation based on the
     active bonds. Will use a number so the average ∆r between each step on
@@ -281,3 +317,24 @@ def calc_n_images(fbonds, bbonds, average_spacing=0.2):
     average_abs_difference = np.average(np.abs(np.array(differences)))
 
     return int(average_abs_difference / average_spacing)
+
+
+def run_final_const_opt(species, method, const_bonds):
+    """
+    Run a final constrained optimisation on the peak species
+
+    Arguments:
+        species (autode.species.Species):
+        method (autode.wrappers.ElectronicStructureMethod)
+        const_bonds (list(autode.pes.pes.FormingBond)):
+    """
+    bond_idxs = [bond.atom_indexes for bond in const_bonds]
+    opt = Calculation(name=f'{species.name}_peak_const_opt',
+                      molecule=species,
+                      method=method,
+                      n_cores=Config.n_cores,
+                      keywords=method.keywords.opt,
+                      distance_constraints={bond: species.distance(*bond)
+                                            for bond in bond_idxs})
+    species.optimise(calc=opt)
+    return None

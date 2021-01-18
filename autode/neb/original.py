@@ -145,8 +145,8 @@ class Image:
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
 
         # F_i^s||
-        f_parallel = (np.linalg.norm(x_r - x) * self.k -
-                      np.linalg.norm(x - x_l) * self.k) * hat_tau
+        f_parallel = (np.linalg.norm(x_r - x) * im_r.k -
+                      np.linalg.norm(x - x_l) * im_l.k) * hat_tau
 
         # ∇V(x)_i|_|_ = ∇V(x)_i - (∇V(x)_i•τ) τ
         grad_perp = self.grad - np.dot(self.grad, hat_tau) * hat_tau
@@ -407,7 +407,7 @@ class NEB:
             # Zero the forces so the end points don't move
             self.images[idx].grad = np.zeros(shape=self.images[idx].grad.shape)
 
-        # Energy tolerance is ~1 kcal mol-1 per image
+        # Energy tolerance is ~2 kcal mol-1 per image
         result = self._minimise(method, n_cores,
                                 etol=0.003 * len(self.images))
 

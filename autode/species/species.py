@@ -211,7 +211,9 @@ class Species:
         calc.run()
         self.energy = calc.get_energy()
         self.atoms = calc.get_final_atoms()
-        self.print_xyz_file(filename=f'{self.name}_optimised_{method.name}.xyz')
+
+        method_name = '' if method is None else method.name
+        self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
 
         if reset_graph:
             make_graph(self)
