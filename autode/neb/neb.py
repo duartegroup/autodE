@@ -219,7 +219,7 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     """
     From forming and breaking bonds determine which should be used as the
     set of active bonds that define bond constraints. Any breaking bonds that
-    form rings with forming bonds or those already in the graphshould be
+    form rings with forming bonds or those already in the graph should be
     removed to try and avoid very high energy points in the potential.
     For example:
 
@@ -246,6 +246,10 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     logger.info('Removing breaking bonds that are also in the set of forming '
                 'bonds')
 
+    if len(fbonds) == 0:
+        logger.info('No need to check for rings, no forming bonds')
+        return bbonds
+
     graph = initial_species.graph.copy()
 
     # Add all the active bonds if they don't already exist
@@ -257,11 +261,15 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     rings = find_cycles(graph)
 
     def in_ring(bond):
+        """Does a breaking bond form a ring with a forming one?"""
         (i, j) = bond.atom_indexes
 
-        for ring in rings:
-            if all(idx in ring for idx in (i, j)):
-                return True
+        for fbond in fbonds:
+            (m, n) = fbond.atom_indexes
+
+            for ring in rings:
+                if all(idx in ring for idx in (i, j, m, n)):
+                    return True
 
         return False
 
