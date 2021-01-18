@@ -87,7 +87,7 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     bbonds = [BreakingBond(pair, r, reaction) for pair in bond_rearr.bbonds]
     scan_name += "_".join(str(bb) for bb in bbonds)
 
-    fbonds = [FormingBond(pair, r) for pair in bond_rearr.fbonds]
+    fbonds = [FormingBond(pair, r, final_species=p) for pair in bond_rearr.fbonds]
     scan_name += "_".join(str(fb) for fb in fbonds)
 
     # Ideally use a transition state template, then only a single constrained

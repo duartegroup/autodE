@@ -165,7 +165,7 @@ class ScannedBond:
 
 class FormingBond(ScannedBond):
 
-    def __init__(self, atom_indexes, species):
+    def __init__(self, atom_indexes, species, final_species=None):
         """
         Forming bond with current and final distances
 
@@ -177,8 +177,12 @@ class FormingBond(ScannedBond):
 
         i, j = self.atom_indexes
         self.curr_dist = species.distance(i=i, j=j)
-        self.final_dist = get_avg_bond_length(species.atoms[i].label,
-                                              species.atoms[j].label)
+
+        if final_species is None:
+            self.final_dist = get_avg_bond_length(species.atoms[i].label,
+                                                  species.atoms[j].label)
+        else:
+            self.final_dist = final_species.distance(*atom_indexes)
 
 
 class BreakingBond(ScannedBond):
