@@ -61,7 +61,7 @@ class CImages(Images):
             wait_iterations (int): Number of iterations to wait before turning
                                   on the climbing image
         """
-        super().__init__(num=len(images), init_k=0)
+        super().__init__(num=len(images), init_k=images[0].k)
 
         self.wait_iteration = wait_iterations
         for i, image in enumerate(images):
@@ -85,6 +85,12 @@ class CINEB(NEB):
         result = super()._minimise(method, n_cores, etol, max_n)
 
         return result
+
+    def partition(self, n):
+        """Partition a set of CI images"""
+        super().partition(n=n)
+        self.images = CImages(self.images)
+        return None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
