@@ -1,3 +1,4 @@
+import numpy as np
 import autode.exceptions as ex
 from autode.config import Config
 from autode.log import logger
@@ -7,7 +8,7 @@ from autode.methods import get_lmethod
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.utils import work_in
 from autode.mol_graphs import find_cycles, is_isomorphic, make_graph
-import numpy as np
+from copy import deepcopy
 
 
 def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
@@ -39,10 +40,10 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
     if generate_final_species and fbonds is not None and bbonds is not None:
         try:
-            species_list = get_interpolated(reactant, fbonds, bbonds,
+            species_list = get_interpolated(reactant.copy(), fbonds, bbonds,
                                             max_n=calc_n_images(fbonds, bbonds),
                                             method=method,
-                                            final_species=product)
+                                            final_species=product.copy())
         except ex.AtomsNotFound:
             logger.warning('Failed to optimise a point on the linear path')
             return None
@@ -136,7 +137,7 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
         # size around the region reactants -> products
         spe_l, spe_r = initial_final_missed_peak(species_set, product=final_species)
         species_set = divided_species_set(spe_l, spe_r,
-                                          bonds=bonds,
+                                          bonds=deepcopy(bonds),
                                           method=method)
 
         if peak_idx(species_set) is None:
@@ -156,7 +157,7 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
         idx = peak_idx(species_set)
         species_set = divided_species_set(initial_species=species_set[idx-1],
                                           final_species=species_set[idx+1],
-                                          bonds=bonds,
+                                          bonds=deepcopy(bonds),
                                           method=method)
 
     logger.info('Generated initial NEB path')
@@ -241,6 +242,7 @@ def _get_interp_species_set(max_n, initial_species, bonds, method,
         method (autode.wrappers.base.ElectronicStructureMethod):
         stop_thresh (float):
     """
+    assert max_n > 1
     deltas = [(b.final_dist - b.curr_dist) / (max_n - 1) for b in bonds]
     consts = {b.atom_indexes: b.curr_dist for b in bonds}
 
@@ -417,7 +419,6 @@ def calc_n_images(fbonds, bbonds):
     Arguments:
         fbonds (list(autode.pes.pes.FormingBond)):
         bbonds (list(autode.pes.pes.BreakingBond)):
-        species (autode.species.Species):
 
     Returns:
         (int): Number of images
@@ -427,7 +428,7 @@ def calc_n_images(fbonds, bbonds):
     differences = [(b.final_dist - b.curr_dist) for b in fbonds + bbonds]
     average_abs_difference = np.average(np.abs(np.array(differences)))
 
-    return int(average_abs_difference / Config.neb_step_size)
+    return max(int(average_abs_difference / Config.neb_step_size), 3)
 
 
 def run_final_const_opt(species, method, const_bonds):
