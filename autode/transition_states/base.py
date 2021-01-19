@@ -34,7 +34,7 @@ class TSbase(Species):
             raise ValueError('Could not check imaginary mode – reactants '
                              ' and/or products not set ')
 
-    def could_have_correct_imag_mode(self, method=None, threshold=-45):
+    def could_have_correct_imag_mode(self, method=None, threshold=-40):
         """
         Determine if a point on the PES could have the correct imaginary mode. This must have
 
