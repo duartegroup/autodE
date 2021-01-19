@@ -7,7 +7,6 @@ cycbut C1=CCC1>>C=CC=C
 DAcpd C=C.C1=CC=CC1>>[C@H]23C=C[C@@H](C3)CC2
 ethCF2 C=C.F[C]F>>FC1(F)CC1
 ene C=C.C=CC>>CCCC=C
-H2loss O=C([H])[H]>>[C]=O.[H][H]
 HFloss CCF>>C=C.[H]F
 H2add O=C([H])[H].[H][H]>>CO
 oxir [O-]C(C)=O.C1CO1>>[O-]CCOC(C)=O water

@@ -6,7 +6,7 @@ from autode.log import logger
 from autode.geom import get_points_on_sphere
 from autode.mol_graphs import union
 from autode.species.species import Species
-from autode.utils import requires_atoms
+from autode.utils import requires_atoms, work_in
 from autode.config import Config
 from autode.methods import get_lmethod
 from autode.conformers.conformer import get_conformer
@@ -131,6 +131,7 @@ class Complex(Species):
         logger.info(f'Generated {n} conformers')
         return None
 
+    @work_in('conformers')
     def populate_conformers(self):
         """
         Generate and optimise with a low level method a set of conformers, the
