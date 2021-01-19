@@ -1,13 +1,12 @@
 import autode.exceptions as ex
 from autode.config import Config
 from autode.log import logger
-from autode.atoms import metals
 from autode.calculation import Calculation
 from autode.neb.ci import CINEB
 from autode.methods import get_lmethod
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.utils import work_in
-from autode.mol_graphs import find_cycles
+from autode.mol_graphs import find_cycles, is_isomorphic, make_graph
 import numpy as np
 
 
@@ -41,10 +40,10 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
     if generate_final_species and fbonds is not None and bbonds is not None:
 
         try:
-            n = calc_n_images(fbonds, bbonds, reactant)
             species_list = get_interpolated(reactant, fbonds, bbonds,
-                                            max_n=n,
-                                            method=method)
+                                            max_n=calc_n_images(fbonds, bbonds),
+                                            method=method,
+                                            final_species=product)
         except ex.AtomsNotFound:
             logger.warning('Failed to optimise a point on the linear path')
             return None
@@ -90,7 +89,7 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
 @work_in('NEB_init_path')
 def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
-                     stop_thresh=0.02):
+                     stop_thresh=0.02, final_species=None):
     """
     Generate the end point on the NEB by running a 1D scan, using by default a
     low-level method. Supprorts using different methods for the starting and
@@ -107,10 +106,15 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
 
     Keyword Arguments:
         method (autode.wrappers.base.ElectronicStructureMethod):
+
         stop_thresh (float): Energy threshold in Ha to terminate the
                     interpolation if ∆E between two adjacent points is > this
                     and there is a peak in the surface, return the points.
                     default is ~ 10 kcal mol-1
+
+        final_species (autode.species.Species | None): Final species (e.g.
+                      products) on the path that we're interpolating to. If
+                      None then isomorphisms are not checked
 
     Returns:
         (list(autode.species.Species)): Set of intermediate species between
@@ -130,10 +134,21 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
     species_set = _get_interp_species_set(max_n, initial_species, consts,
                                           deltas, method, stop_thresh)
 
+    # Needs to have a maximum in the linear path to have any hope of
+    # locating a TS from it
     if peak_idx(species_set) is None:
-        # Needs to have a maximum in the linear path to have any hope of
-        # locating a TS from it
-        return None
+        if not products_made(species_set, final_species):
+            logger.warning('No peak and products not made')
+            return None
+        # If there is no peak but products have been made then reduce the step
+        # size around the region reactants -> products
+        species_set = divided_species_set(species_set, bonds,
+                                          method=method,
+                                          final_species=final_species)
+
+        if peak_idx(species_set) is None:
+            logger.warning('Still no peak from the divided path')
+            return None
 
     # If the final point is higher in energy than the previous then remove
     # the last, then iterate as appropriate
@@ -150,6 +165,57 @@ def get_interpolated(initial_species, fbonds, bbonds, max_n, method=None,
 
     logger.info('Generated initial NEB path')
     return species_set
+
+
+def divided_species_set(species_list, bonds, method, final_species=None, max_n=5):
+    """
+    Divide a list of species
+
+    Arguments:
+        species_list:
+        bonds (list(autode.pes.pes.ScannedBond)):
+
+        final_species (autode.species.Species | None): Final species (e.g.
+                      products) on the path that we're interpolating to. If
+                      None then isomorphisms are not checked    Returns:
+    Returns:
+
+    """
+    if not products_made(species_list, final_species):
+        logger.warning('Cannot divide species list to locate peak without '
+                       'a final species/no products made to check isomorphisms')
+        return None
+
+    # Ensure all species have a graph
+    for species in species_list:
+        make_graph(species)
+
+    def isomorphic_idxs(graph):
+        """Return the indexes of the graphs isomorphic to the given"""
+        return [i for i, species_ in enumerate(species_list)
+                if is_isomorphic(graph1=species_.graph, graph2=graph)]
+
+    # Use the final index that's isomorphic to the initial species (i.e. the
+    # first point in the species list)
+    idx_l = isomorphic_idxs(graph=species_list[0].graph)[-1]
+
+    # and the right index the first that's isomorphic to the final species
+    idx_r = isomorphic_idxs(graph=final_species.graph)[0]
+
+    for bond in bonds:
+        bond.curr_dist = species_list[idx_l].distance(*bond)
+        bond.final_dist = species_list[idx_r].distance(*bond)
+
+    deltas = [(b.final_dist - b.curr_dist) / (max_n - 1) for b in bonds]
+    consts = {b.atom_indexes: b.curr_dist for b in bonds}
+
+    species_list = _get_interp_species_set(max_n=max_n,
+                                           initial_species=species_list[idx_l],
+                                           consts=consts,
+                                           deltas=deltas,
+                                           stop_thresh=0.02,
+                                           method=method)
+    return species_list
 
 
 def _get_interp_species_set(max_n, initial_species, consts, deltas, method,
@@ -267,17 +333,41 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
         (i, j) = bond.atom_indexes
 
         for fbond in fbonds:
-            (m, n) = fbond.atom_indexes
-
             for ring in rings:
-                if all(idx in ring for idx in (i, j, m, n)):
-                    return True
-
+                # At least one of the forming bond idxs needs to be in the ring
+                for fbond_idx in fbond.atom_indexes:
+                    if all(idx in ring for idx in (i, j, fbond_idx)):
+                        return True
         return False
 
     # Remove all the breaking bonds that form a ring that also include at
     # least one forming bond
     return fbonds + [bbond for bbond in bbonds if not in_ring(bbond)]
+
+
+def products_made(species_list, product):
+    """Check whether the products are made on the surface
+
+    Arguments:
+        species_list (list(autode.species.Species):
+        product (autode.species.Species):
+
+    Returns:
+        (bool):
+    """
+    if product is None or product.graph is None:
+        logger.warning('Cannot check if products are made')
+        return False
+
+    for i, species in enumerate(species_list):
+        make_graph(species)
+
+        if is_isomorphic(graph1=species.graph,
+                         graph2=product.graph):
+            logger.info(f'Products made at point {i}')
+            return True
+
+    return False
 
 
 def peak_idx(species_list):
@@ -307,7 +397,7 @@ def peak_idx(species_list):
     return None
 
 
-def calc_n_images(fbonds, bbonds, species):
+def calc_n_images(fbonds, bbonds):
     """
     Calculate the number of images to use in a NEB calculation based on the
     active bonds. Will use a number so the average ∆r between each step on
@@ -321,19 +411,12 @@ def calc_n_images(fbonds, bbonds, species):
     Returns:
         (int): Number of images
     """
-    average_spacing = Config.step_size_organic
-    for bond in fbonds + bbonds:
-        if any(species.atoms[i].label in metals for i in bond.atom_indexes):
-            logger.info('A M-X bond was active')
-            average_spacing = Config.step_size_metal
-            break
-
-    logger.info(f'Using a step size of {average_spacing:.2f} Å')
+    logger.info(f'Using a step size of {Config.neb_step_size:.2f} Å')
 
     differences = [(b.final_dist - b.curr_dist) for b in fbonds + bbonds]
     average_abs_difference = np.average(np.abs(np.array(differences)))
 
-    return int(average_abs_difference / average_spacing)
+    return int(average_abs_difference / Config.neb_step_size)
 
 
 def run_final_const_opt(species, method, const_bonds):

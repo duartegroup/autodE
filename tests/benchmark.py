@@ -104,10 +104,10 @@ if __name__ == '__main__':
         else:
             freq = 0
 
-        print(f'{reaction.name:.15}'
-              f'{freq:15.1f}'
-              f'{(time()- start_time)/60:15.1f}'
-              f'{"✓" if freq < -100 else "✗":15s}', file=out_file)
+        print(f'{reaction.name:<15}'
+              f'{freq:<15.1f}'
+              f'{(time()- start_time)/60:<15.1f}'
+              f'{"✓" if freq < -100 else "✗"}', file=out_file)
 
 
 """ 1.0.0a1
