@@ -17,17 +17,19 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
                allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria
-    or a smiles parser object. All attributes default to false
+    or a smiles parser object. All attributes default to false::
 
-    Nodes attributes:
-        (0) atom_label: Atomic symbol of this atom
-        (1) stereo: Is this atom part of some stereochemistry e.g. R/S or E/Z
+        Nodes attributes;
+            (0) atom_label: Atomic symbol of this atom
+            (1) stereo: Is this atom part of some stereochemistry e.g. R/S or
+                        E/Z
 
-    Edge attributes:
-        (1) pi: Is this bond a pi bond. If it is then there should be no
-                rotation the bond axis in conformer generation
-        (2) active: Is this bond being made/broken
-                   (applies only to TransitionState objects)
+        Edge attributes;
+            (1) pi: Is this bond a pi bond. If it is then there should be no
+                    rotation the bond axis in conformer generation
+            (2) active: Is this bond being made/broken
+                       (applies only to TransitionState objects)
+
 
     Arguments:
         species (autode.species.Species):

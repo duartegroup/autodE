@@ -160,16 +160,22 @@ class TransitionState(TSbase):
         # imaginary frequency
         if len(self.imaginary_frequencies) == 1:
             logger.info('Found a TS with a single imaginary frequency')
-            return None
+            return
 
         if len(self.imaginary_frequencies) == 0:
             logger.error('Transition state optimisation did not return any '
                          'imaginary frequencies')
-            return None
+            return
+
+        if all([freq > -50 for freq in self.imaginary_frequencies[1:]]):
+            logger.warning('Had small imaginary modes - not displacing along')
+            return
 
         # There is more than one imaginary frequency. Will assume that the most
         # negative is the correct mode..
         for disp_magnitude in [1, -1]:
+            logger.info('Displacing along second imaginary mode to try and '
+                        'remove')
             dis_name_ext = name_ext + '_dis' if disp_magnitude == 1 else name_ext + '_dis2'
             atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.optts_calc)
 

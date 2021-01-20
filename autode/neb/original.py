@@ -15,6 +15,48 @@ import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
 
 
+def highest_peak(energies):
+    """
+    Get the index of the highest energy peak in a list of energies
+
+    Arguments:
+        energies (list(float | object | None )): List of energies, objects with
+                 a .energy attribute or None
+
+    Returns:
+         (int | None)
+    """
+    if energies is None:
+        logger.warning('Energies list was None, cannot find peak')
+        return None
+
+    # Allow for objects e.g. species
+    if all(hasattr(item, 'energy') for item in energies):
+        energies = [item.energy for item in energies]
+
+    if any(energy is None for energy in energies):
+        logger.error('Optimisation of at least one image failed')
+        return None
+
+    def is_saddle(j):
+        """Is an image j an approximate saddle point in the surface?"""
+        return energies[j-1] < energies[j] and energies[j+1] < energies[j]
+
+    # A saddle point cannot be either the start or the end point..
+    peaks = [i for i in range(1, len(energies) - 1) if is_saddle(i)]
+    rel_es = np.array([627.5*(energies[i] - min(energies)) for i in peaks])
+
+    if len(peaks) > 0:
+        logger.info(f'Found peaks at {peaks} with relative energies '
+                    f'∆E = {np.round(rel_es, 1)} kcal mol-1')
+
+    # Return the highest energy peak i.e. sorted high -> low
+    for peak_idx in sorted(peaks, key=lambda i: -energies[i]):
+        return peak_idx
+
+    return None
+
+
 def energy_gradient(image, method, n_cores):
     """Calculate energies and gradients for an image using a EST method"""
 
@@ -188,26 +230,12 @@ class Images:
     @property
     def peak_idx(self):
         """Get the index of the highest energy peak in this set of images"""
-        if any(image.energy is None for image in self):
-            logger.error('Optimisation of at least one image failed')
-            return None
-
-        def is_saddle(j):
-            """Is an image j amn approximate saddle point in the surface?"""
-            e = self[j].energy
-            return self[j-1].energy < e and self[j+1].energy < e
-
-        # A saddle point cannot be either the start or the end point..
-        peaks = [i for i in range(1, len(self) - 1) if is_saddle(i)]
-
-        for peak_idx in sorted(peaks, key=lambda p: -self[p].energy):
-            return peak_idx
-
-        return None
+        return highest_peak(energies=[image.energy for image in self])
 
     def increment(self):
         """Advance all the iteration numbers on the images to name correctly
         also update force constants"""
+
         if self.peak_idx is None:
             logger.warning('Lost peak in NEB: not incrementing so calculations'
                            ' will be skipped')
@@ -223,7 +251,6 @@ class Images:
 
             # E_ref is the maximum energy of the end points
             energies = [image.energy for image in self]
-
             e_ref = max(energies[0], energies[-1])
             e_max = max(energies)
 
@@ -460,4 +487,4 @@ class NEB:
         else:
             self._init_from_end_points(initial_species, final_species)
 
-        logger.info(f'Initialised a NEB with {num} images')
+        logger.info(f'Initialised a NEB with {len(self.images)} images')

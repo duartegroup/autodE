@@ -1,6 +1,9 @@
 Troubleshooting
 ===============
 
+------------
+
+
 Conda Solve Fails
 -----------------
 
@@ -14,6 +17,7 @@ then install. The autodE environment will need to be activated each time a new s
 ``conda activate autode_env``.
 
 
+------------
 
 MethodUnavailable
 -----------------

@@ -3,7 +3,7 @@ Molecules
 *********
 
 Reactants and Products are :ref:`Molecules <molecules>` and are initialised
-much like their :ref:`Species <species>` parent class but have charge and
+much like their :ref:`Species <species>` parent, but have charge and
 multiplicity defaults (0, 1 respectively) and can be built from
 `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system/>`_
 strings
@@ -17,6 +17,13 @@ strings
   >>> molecule.mult
   1
 
+or from 3D structures given as xyz files directly
+
+  >>> ch4 = Molecule('methane.xyz')
+  >>> ch4.name
+  'methane'
+
+---------------
 
 Simple Example
 --------------
@@ -54,6 +61,7 @@ can be generated as a .xyz file for viewing in molecular visualisation software
 
 where 'h2o.xyz' is generated in the current working directory.
 
+---------------
 
 Geometry Manipulation
 ---------------------

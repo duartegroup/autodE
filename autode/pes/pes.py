@@ -199,16 +199,4 @@ class BreakingBond(ScannedBond):
         super().__init__(atom_indexes)
 
         self.curr_dist = species.distance(*self.atom_indexes)
-
-        # Length a breaking bond should increase by (Å)
-        bbond_add_dist = 1.5
-
-        # If a reaction is specified and any component is charged then use a
-        # larger ∆r shift as the interaction range is likely further
-        if reaction is not None:
-            if (any(mol.charge != 0 for mol in reaction.prods)
-                    or any(mol.charge != 0 for mol in reaction.reacs)):
-
-                bbond_add_dist = 2.5
-
-        self.final_dist = self.curr_dist + bbond_add_dist
+        self.final_dist = 1.6 * self.curr_dist
