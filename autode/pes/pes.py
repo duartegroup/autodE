@@ -199,4 +199,4 @@ class BreakingBond(ScannedBond):
         super().__init__(atom_indexes)
 
         self.curr_dist = species.distance(*self.atom_indexes)
-        self.final_dist = 1.6 * self.curr_dist
+        self.final_dist = 2.0 * self.curr_dist

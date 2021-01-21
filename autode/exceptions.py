@@ -1,4 +1,8 @@
-class AtomsNotFound(Exception):
+class CalculationException(Exception):
+    pass
+
+
+class AtomsNotFound(CalculationException):
     pass
 
 
@@ -18,7 +22,7 @@ class NoInputError(Exception):
     pass
 
 
-class MethodUnavailable(Exception):
+class MethodUnavailable(CalculationException):
     pass
 
 
@@ -30,7 +34,7 @@ class UnbalancedReaction(Exception):
     pass
 
 
-class UnsuppportedCalculationInput(Exception):
+class UnsuppportedCalculationInput(CalculationException):
     def __init__(self, message='Parameters not supported'):
         super().__init__(message)
 
@@ -67,7 +71,7 @@ class NoMapping(Exception):
     pass
 
 
-class NoNormalModesFound(Exception):
+class NoNormalModesFound(CalculationException):
     pass
 
 
@@ -75,7 +79,7 @@ class NoMolecularGraph(Exception):
     pass
 
 
-class NoCalculationOutput(Exception):
+class NoCalculationOutput(CalculationException):
     pass
 
 
@@ -87,7 +91,7 @@ class InvalidSmilesString(Exception):
     pass
 
 
-class CouldNotGetProperty(Exception):
+class CouldNotGetProperty(CalculationException):
     def __init__(self, name):
         super().__init__(f'Could not get {name}')
 

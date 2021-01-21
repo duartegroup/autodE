@@ -119,6 +119,10 @@ class Config:
     # Step size to use for the initial PES exploration in organic species (Å)
     #
     neb_step_size = 0.3
+
+    # TODO - are these the right sort of thing??
+    min_step_size = 0.2
+    max_step_size = 0.5
     # -------------------------------------------------------------------------
 
     class ORCA:

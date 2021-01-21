@@ -129,7 +129,8 @@ class XTB(ElectronicStructureMethod):
         if isinstance(calc.input.keywords, OptKeywords):
             flags.append('--opt')
 
-        if isinstance(calc.input.keywords, GradientKeywords):
+        if (isinstance(calc.input.keywords, GradientKeywords)
+                or isinstance(calc.input.keywords, OptKeywords)):
             flags.append('--grad')
 
         if calc.input.solvent is not None:

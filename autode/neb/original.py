@@ -5,7 +5,7 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 from autode.log import logger
 from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
-from autode.constants import Constants
+from autode.neb.path import Path
 from autode.utils import work_in
 from autode.config import Config
 from scipy.optimize import minimize
@@ -13,48 +13,6 @@ from multiprocessing import Pool
 import numpy as np
 import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
-
-
-def highest_peak(energies):
-    """
-    Get the index of the highest energy peak in a list of energies
-
-    Arguments:
-        energies (list(float | object | None )): List of energies, objects with
-                 a .energy attribute or None
-
-    Returns:
-         (int | None)
-    """
-    if energies is None:
-        logger.warning('Energies list was None, cannot find peak')
-        return None
-
-    # Allow for objects e.g. species
-    if all(hasattr(item, 'energy') for item in energies):
-        energies = [item.energy for item in energies]
-
-    if any(energy is None for energy in energies):
-        logger.error('Optimisation of at least one image failed')
-        return None
-
-    def is_saddle(j):
-        """Is an image j an approximate saddle point in the surface?"""
-        return energies[j-1] < energies[j] and energies[j+1] < energies[j]
-
-    # A saddle point cannot be either the start or the end point..
-    peaks = [i for i in range(1, len(energies) - 1) if is_saddle(i)]
-    rel_es = np.array([627.5*(energies[i] - min(energies)) for i in peaks])
-
-    if len(peaks) > 0:
-        logger.info(f'Found peaks at {peaks} with relative energies '
-                    f'∆E = {np.round(rel_es, 1)} kcal mol-1')
-
-    # Return the highest energy peak i.e. sorted high -> low
-    for peak_idx in sorted(peaks, key=lambda i: -energies[i]):
-        return peak_idx
-
-    return None
 
 
 def energy_gradient(image, method, n_cores):
@@ -216,21 +174,7 @@ class Image:
         self.grad = None            # np.ndarray shape (3xn_atoms,)
 
 
-class Images:
-
-    def __len__(self):
-        return len(self._list)
-
-    def __setitem__(self, key, value):
-        self._list[key] = value
-
-    def __getitem__(self, item):
-        return self._list[item]
-
-    @property
-    def peak_idx(self):
-        """Get the index of the highest energy peak in this set of images"""
-        return highest_peak(energies=[image.energy for image in self])
+class Images(Path):
 
     def increment(self):
         """Advance all the iteration numbers on the images to name correctly
@@ -269,31 +213,16 @@ class Images:
                                                       / (e_max - e_ref))
         return None
 
-    def plot_energies(self):
+    def plot_energies(self, save=False, name='None', color=None,
+                      xlabel='NEB coordinate'):
         """Plot the NEB surface"""
-
-        energies = [image.energy for image in self]
-        if any(energy is None for energy in energies):
-            logger.error('Could not plot NEB surface, an energy was None')
-            return
-
-        # Relative energies in kcal mol-1
-        energies = Constants.ha2kcalmol * (np.array(energies) - min(energies))
-
-        # Plot the relative energies each iteration as a color gradient
-        plt.plot(np.arange(len(self)), energies, marker='o',
-                 color=blues((self[0].iteration+1)/20),
-                 label='NEB')
-        plt.ylim(-0.1*np.max(energies), 1.1*np.max(energies))
-        plt.xlabel('NEB coordinate')
-        plt.ylabel('∆$E$ / kcal mol$^{-1}$')
-
-        return None
+        color = blues((self[0].iteration+1)/20) if color is None else str(color)
+        super().plot_energies(save, name, color, xlabel)
 
     def coords(self):
         """Get a flat array of all components of every atom"""
         coords = np.array([])
-        for image in self._list:
+        for image in self:
 
             coords = np.append(coords,
                                image.species.coordinates.flatten())
@@ -307,10 +236,10 @@ class Images:
             coords (np.ndarray): shape (num x n x 3,)
         """
 
-        n_atoms = self._list[0].species.n_atoms
+        n_atoms = self[0].species.n_atoms
         coords = coords.reshape((len(self), n_atoms, 3))
 
-        for i, image in enumerate(self._list):
+        for i, image in enumerate(self):
             image.species.coordinates = coords[i]
 
         return None
@@ -326,10 +255,10 @@ class Images:
             min_k (None | float): Minimum value of k
             max_k (None | float): Maximum value of k
         """
+        super().__init__(*(Image(name=str(i), k=init_k) for i in range(num)))
+
         self.min_k = init_k / 10 if min_k is None else float(min_k)
         self.max_k = 2 * init_k if max_k is None else float(max_k)
-
-        self._list = [Image(name=str(i), k=init_k) for i in range(num)]
 
 
 class NEB:

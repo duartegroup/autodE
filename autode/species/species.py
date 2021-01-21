@@ -193,6 +193,9 @@ class Species:
             calc (autode.calculation.Calculation): Different e.g. constrained
                                                    optimisation calculation
             keywords (autode.wrappers.keywords.Keywords):
+
+        Raises:
+            (autode.exceptions.CalculationException):
         """
         logger.info(f'Running optimisation of {self.name}')
 
