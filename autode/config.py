@@ -121,7 +121,7 @@ class Config:
     neb_step_size = 0.3
 
     # TODO - are these the right sort of thing??
-    min_step_size = 0.1
+    min_step_size = 0.05
     max_step_size = 0.3
     # -------------------------------------------------------------------------
 

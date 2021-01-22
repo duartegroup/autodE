@@ -53,7 +53,19 @@ class InitialPath(Path):
         # Set the required properties from the calculation
         self[idx].species.atoms = calc.get_final_atoms()
         self[idx].energy = calc.get_energy()
-        self[idx].grad = calc.get_gradients()
+
+        if self.method.name == 'xtb':
+            calc = ade.Calculation(name=f'path_grad{idx}',
+                                   molecule=self[idx].species,
+                                   method=self.method,
+                                   keywords=self.method.keywords.grad,
+                                   n_cores=ade.Config.n_cores)
+            calc.run()
+            self[idx].grad = calc.get_gradients()
+
+        else:
+            self[idx].grad = calc.get_gradients()
+
         return None
 
     def plot_energies(self, save=True, name='init_path', color='k', xlabel='ζ'):
@@ -74,6 +86,10 @@ class InitialPath(Path):
         Arguments:
             point (autode.neb.PathPoint):
         """
+        # Flat list of all the atom indexes involved in the bonds
+        atom_idxs = [i for bond in self.bonds for i in bond]
+
+        max_step, min_step = ade.Config.max_step_size, ade.Config.min_step_size
 
         for bond in self.bonds:
             (i, j), coords = bond.atom_indexes, self[-1].species.coordinates
@@ -82,40 +98,42 @@ class InitialPath(Path):
             vec = coords[j] - coords[i]
             vec /= np.linalg.norm(vec)
 
-            # Calculate |∇E_i·r| i.e. the gradient along the bond
-
-            # don't consider subst centers
-            # max dr if grad in direction of change, min dr otherwise
+            # Calculate |∇E_i·r| i.e. the gradient along the bond. Positive
+            # values are downhill in energy to form the bond and negative
+            # downhill to break it
             gradi = np.dot(self[-1].grad[i], vec)  # |∇E_i·r| bond midpoint
             gradj = np.dot(self[-1].grad[j], -vec)
 
-            print(bond, gradi, gradj)
+            # Exclude gradients from atoms that are being substituted
+            if atom_idxs.count(i) > 1:
+                grad = gradj
+            elif atom_idxs.count(j) > 1:
+                grad = gradi
+            else:
+                grad = np.average((gradi, gradj))
 
-            dr_sign = np.sign(bond.dr)
-            if dr_sign * gradi > 0 and dr_sign * gradj > 0:
-                # Downhill move in direction of dr
-                dr = ade.Config.max_step_size
+            print(bond, gradi, gradj, grad)
 
-            elif gradi * gradj < 0:
-                # Downhill for one of the atoms
-                dr = (ade.Config.max_step_size + ade.Config.min_step_size) / 2.0
+            if grad * np.sign(bond.dr) > 0:
+                dr = np.sign(bond.dr) * ade.Config.max_step_size
 
             else:
-                # Uphill to form/break this bond
-                dr = ade.Config.min_step_size
+                dr = (max_step - min_step) * np.exp(-(grad/0.001)**2) + min_step
+                dr *= np.sign(bond.dr)
 
-            dr *= dr_sign
             new_dist = point.species.distance(*bond.atom_indexes) + dr
 
+            # No need to go exceed final distances on forming/breaking bonds
             if bond.forming and new_dist < bond.final_dist:
                 new_dist = bond.final_dist
 
-            if bond.breaking and new_dist > bond.final_dist:
+            elif bond.breaking and new_dist > bond.final_dist:
                 new_dist = bond.final_dist
 
-            logger.info(f'Using step {dr_sign * dr:.3f} Å on bond: {bond}')
-            point.constraints[bond.atom_indexes] = new_dist
+            else:
+                logger.info(f'Using step {dr:.3f} Å on bond: {bond}')
 
+            point.constraints[bond.atom_indexes] = new_dist
 
         return None
 
