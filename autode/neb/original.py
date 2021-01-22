@@ -310,20 +310,7 @@ class NEB:
         return None
 
     def print_geometries(self, name='neb'):
-        """Print an xyz trajectory of the geometries in the NEB"""
-
-        # Empty the file
-        open(f'{name}.xyz', 'w').close()
-
-        for i, image in enumerate(self.images):
-            assert image.species is not None
-            energy = image.energy if image.energy is not None else 'none'
-
-            atoms_to_xyz_file(image.species.atoms,
-                              f'{name}.xyz',
-                              title_line=f'autodE NEB point {i}. E = {energy}',
-                              append=True)
-        return None
+        return self.images.print_geometries(name)
 
     def interpolate_geometries(self):
         """Generate simple interpolated coordinates for these set of images"""

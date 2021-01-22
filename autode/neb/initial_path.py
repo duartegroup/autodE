@@ -1,6 +1,7 @@
 import autode as ade
 import numpy as np
 from copy import deepcopy
+from autode.log import logger
 from autode.neb.path import Path
 
 
@@ -58,10 +59,6 @@ class InitialPath(Path):
     def plot_energies(self, save=True, name='init_path', color='k', xlabel='ζ'):
         return super().plot_energies(save, name, color, xlabel)
 
-    def optimise_point(self, idx):
-
-        return None
-
     def truncate_final_points(self):
         """Remove any points higher than the previous one from the lend of the
         path"""
@@ -70,7 +67,59 @@ class InitialPath(Path):
 
         return None
 
-    def generate(self, max_n=10):
+    def _adjust_constraints(self, point):
+        """
+        Adjust the geometry constraints based on the final point
+
+        Arguments:
+            point (autode.neb.PathPoint):
+        """
+
+        for bond in self.bonds:
+            (i, j), coords = bond.atom_indexes, self[-1].species.coordinates
+
+            # Normalised r_ij vector
+            vec = coords[j] - coords[i]
+            vec /= np.linalg.norm(vec)
+
+            # Calculate |∇E_i·r| i.e. the gradient along the bond
+
+            # don't consider subst centers
+            # max dr if grad in direction of change, min dr otherwise
+            gradi = np.dot(self[-1].grad[i], vec)  # |∇E_i·r| bond midpoint
+            gradj = np.dot(self[-1].grad[j], -vec)
+
+            print(bond, gradi, gradj)
+
+            dr_sign = np.sign(bond.dr)
+            if dr_sign * gradi > 0 and dr_sign * gradj > 0:
+                # Downhill move in direction of dr
+                dr = ade.Config.max_step_size
+
+            elif gradi * gradj < 0:
+                # Downhill for one of the atoms
+                dr = (ade.Config.max_step_size + ade.Config.min_step_size) / 2.0
+
+            else:
+                # Uphill to form/break this bond
+                dr = ade.Config.min_step_size
+
+            dr *= dr_sign
+            new_dist = point.species.distance(*bond.atom_indexes) + dr
+
+            if bond.forming and new_dist < bond.final_dist:
+                new_dist = bond.final_dist
+
+            if bond.breaking and new_dist > bond.final_dist:
+                new_dist = bond.final_dist
+
+            logger.info(f'Using step {dr_sign * dr:.3f} Å on bond: {bond}')
+            point.constraints[bond.atom_indexes] = new_dist
+
+
+        return None
+
+    def generate(self, max_n=10, init_step_size=0.2):
         """
         Generate the path from the starting point; can be called only once!
 
@@ -78,37 +127,39 @@ class InitialPath(Path):
             max_n (int): Maximum number of constrained geometry optimisations
                          to do
         """
+        logger.info('Generating path from the initial species')
         assert len(self) == 1
 
         # Always perform an initial step linear in all bonds
+        logger.info('Performing a linear step and calculating gradients')
         point = self[0].copy()
 
         for bond in self.bonds:
-
-            dr = bond.final_dist - bond.curr_dist       # ∆r (init -> final)
             # Shift will be -min_step_size if ∆r is negative and larger than
-            # 0.1 the minimum step size
-            dr = np.sign(dr) * min(ade.Config.min_step_size, np.abs(dr))
+            # the minimum step size
+            dr = np.sign(bond.dr) * min(init_step_size, np.abs(bond.dr))
             point.constraints[bond.atom_indexes] += dr
 
         self.append(point)
+        logger.info('First point found')
 
-        point = self[-1].copy()
-        for bond in self.bonds:
-            (i, j), coords = bond.atom_indexes, self[-1].species.coordinates
-            vec = coords[i] - coords[j]
-            vec /= np.linalg.norm(vec)
-            # Calculate |∇E·r| i.e. the gradient along the bond
-            derivative = np.abs(np.dot(self[-1].grad[i], vec)) + np.abs(np.dot(self[-1].grad[j], vec))
+        # Now sequentially add points to the path
+        while True:
 
-            print(bond, derivative)
-            print(np.dot(self[-1].grad[i], vec))
-            print(np.dot(self[-1].grad[j], vec))
-            print()
+            point = self[-1].copy()
+            # apply some new constraints
+            self._adjust_constraints(point=point)
 
-        self[-1].species.print_xyz_file()
+            if all(point.constraints[bond.atom_indexes] == bond.final_dist for
+                   bond in self.bonds):
+                logger.info('Done')
+                break
+
+            self.append(point)
 
         self.plot_energies()
+        self.print_geometries(name='initial_path')
+        print(self.rel_energies[self.peak_idx])
 
         return None
 
@@ -124,13 +175,13 @@ class InitialPath(Path):
         super().__init__()
 
         self.method = method
+        self.bonds = bonds
 
-        # Bonds need to have the correct attributes to drive along them
+        # Bonds need to have the initial and final dists to drive along them
         for bond in bonds:
             assert bond.curr_dist is not None and bond.final_dist is not None
 
-        self.bonds = bonds
-
+        # Add the first point - will run a constrained minimisation by default
         init_point = PathPoint(species=init_species,
                                constraints={bond.atom_indexes: bond.curr_dist
                                             for bond in bonds})

@@ -84,7 +84,7 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
     # Bonds with initial and final distances
-    bbonds = [BreakingBond(pair, r, reaction) for pair in bond_rearr.bbonds]
+    bbonds = [BreakingBond(pair, r) for pair in bond_rearr.bbonds]
     scan_name += "_".join(str(bb) for bb in bbonds)
 
     fbonds = [FormingBond(pair, r, final_species=p) for pair in bond_rearr.fbonds]

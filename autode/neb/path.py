@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
 from autode.units import KcalMol
 
@@ -65,6 +66,22 @@ class Path(list):
 
         return None
 
+    def print_geometries(self, name):
+        """Print an xyz trajectory of the geometries in the path"""
+
+        # Empty the file
+        open(f'{name}.xyz', 'w').close()
+
+        for i, image in enumerate(self):
+            assert image.species is not None
+            energy = image.energy if image.energy is not None else 'none'
+
+            atoms_to_xyz_file(image.species.atoms,
+                              f'{name}.xyz',
+                              title_line=f'autodE path point {i}. E = {energy}',
+                              append=True)
+        return None
+
     def __init__(self, *args, units=KcalMol):
         """
         Base path class that may be populated with species or nudged elastic
@@ -76,7 +93,7 @@ class Path(list):
         super().__init__()
 
         for arg in args:
-            assert hasattr(arg, 'energy')
+            assert hasattr(arg, 'energy') and hasattr(arg, 'species')
             self.append(arg)
 
         self.units = units

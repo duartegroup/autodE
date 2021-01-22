@@ -121,8 +121,8 @@ class Config:
     neb_step_size = 0.3
 
     # TODO - are these the right sort of thing??
-    min_step_size = 0.2
-    max_step_size = 0.5
+    min_step_size = 0.1
+    max_step_size = 0.3
     # -------------------------------------------------------------------------
 
     class ORCA:

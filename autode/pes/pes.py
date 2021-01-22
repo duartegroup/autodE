@@ -147,6 +147,14 @@ class ScannedBond:
     def __getitem__(self, item):
         return self.atom_indexes[item]
 
+    @property
+    def dr(self):
+        """Change in distance for this bond (∆r / Å)"""
+        if self.curr_dist is None or self.final_dist is None:
+            return 0
+
+        return self.final_dist - self.curr_dist
+
     def __init__(self, atom_indexes):
         """
         Bond with a current and final distance which will be scanned over
@@ -162,6 +170,9 @@ class ScannedBond:
         self.curr_dist = None
         self.final_dist = None
 
+        self.forming = False
+        self.breaking = False
+
 
 class FormingBond(ScannedBond):
 
@@ -174,6 +185,7 @@ class FormingBond(ScannedBond):
             species (autode.species.Species):
         """
         super().__init__(atom_indexes)
+        self.forming = True
 
         i, j = self.atom_indexes
         self.curr_dist = species.distance(i=i, j=j)
@@ -187,7 +199,7 @@ class FormingBond(ScannedBond):
 
 class BreakingBond(ScannedBond):
 
-    def __init__(self, atom_indexes, species, reaction=None):
+    def __init__(self, atom_indexes, species):
         """
         Form a breaking bond with current and final distances
 
@@ -197,6 +209,7 @@ class BreakingBond(ScannedBond):
             reaction (autode.reaction.Reaction):
         """
         super().__init__(atom_indexes)
+        self.breaking = True
 
         self.curr_dist = species.distance(*self.atom_indexes)
         self.final_dist = 2.0 * self.curr_dist
