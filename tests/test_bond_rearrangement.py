@@ -1,3 +1,4 @@
+from autode.config import Config
 from autode import bond_rearrangement as br
 from autode.species.molecule import Molecule
 from autode.bond_rearrangement import BondRearrangement
@@ -11,6 +12,65 @@ import os
 
 # Some of the 'reactions' here are not physical, hence for some the graph will
 # be regenerated allowing for invalid hydrogen valencies
+
+
+def test_n_membered_rings():
+
+    h2o = Molecule(atoms=[Atom('O'), Atom('H', x=-1), Atom('H', x=1)])
+    bond_rearr = BondRearrangement(forming_bonds=[(1, 2)])
+
+    # Forming bond over H-H should give a single 3-membered ring
+    assert bond_rearr.n_membered_rings(h2o) == [3]
+
+    bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)])
+    assert bond_rearr.n_membered_rings(h2o) == []
+
+    # Breaking an O-H and forming a H-H should not make any rings
+    bond_rearr = BondRearrangement(breaking_bonds=[(0, 2)],
+                                   forming_bonds=[(1, 2)])
+    assert bond_rearr.n_membered_rings(h2o) == [3]
+
+
+def test_prune_small_rings():
+
+    # Cope rearrangement reactant
+    cope_r = Molecule(atoms=[Atom('C', -1.58954,  1.52916, -0.43451),
+                             Atom('C', -1.46263,  0.23506,  0.39601),
+                             Atom('C', -0.57752,  2.62322, -0.15485),
+                             Atom('H', -2.59004,  1.96603, -0.22830),
+                             Atom('H', -1.55607,  1.26799, -1.51381),
+                             Atom('C',  0.40039,  2.56394,  0.75883),
+                             Atom('C', -0.24032, -0.62491,  0.13974),
+                             Atom('H', -2.34641, -0.39922,  0.17008),
+                             Atom('H', -1.50638,  0.49516,  1.47520),
+                             Atom('C',  0.72280, -0.36227, -0.75367),
+                             Atom('H', -0.66513,  3.53229, -0.74242),
+                             Atom('H',  0.55469,  1.70002,  1.39347),
+                             Atom('H',  1.07048,  3.40870,  0.88117),
+                             Atom('H', -0.14975, -1.53366,  0.72733),
+                             Atom('H',  0.70779,  0.51623, -1.38684),
+                             Atom('H',  1.55578, -1.04956, -0.86026)])
+
+    six_mem = BondRearrangement(forming_bonds=[(5, 9)],
+                                breaking_bonds=[(1, 0)])
+    assert six_mem.n_membered_rings(mol=cope_r) == [6]
+
+    four_mem = BondRearrangement(forming_bonds=[(0, 9)],
+                                 breaking_bonds=[(1, 0)])
+    assert four_mem.n_membered_rings(cope_r) == [4]
+
+    Config.skip_small_ring_tss = False
+
+    bond_rearrs = [six_mem, four_mem]
+    br.prune_small_ring_rearrs(possible_brs=bond_rearrs, mol=cope_r)
+    # Should not prune if Config.skip_small_ring_tss = False
+    assert len(bond_rearrs) == 2
+
+    Config.skip_small_ring_tss = True
+
+    br.prune_small_ring_rearrs(possible_brs=bond_rearrs, mol=cope_r)
+    # should remove the 4-membered ring
+    assert len(bond_rearrs) == 1
 
 
 def test_multiple_possibilities():
@@ -30,7 +90,7 @@ def test_multiple_possibilities():
     assert len(rearrs) == 1
 
 
-def test_bondrearr_obj():
+def test_bondrearr_class():
     # Reaction H + H2 -> H2 + H
     rearrang = br.BondRearrangement(forming_bonds=[(0, 1)],
                                     breaking_bonds=[(1, 2)])

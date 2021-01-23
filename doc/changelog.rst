@@ -44,6 +44,8 @@ is mostly broken, as below
 where X-Y corresponds to a molecule e.g. C-C with the appropriate hydrogens added
 then the BDE curve calculated at the GFN2-XTB level of theory.
 
+- There is now a heuristic used to skip TSs that go via small rings (3, 4-membered) if there is a >4-membered equivalent (:code:`ade.Config.skip_small_ring_tss`)
+
 
 Bug Fixes
 *********

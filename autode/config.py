@@ -120,9 +120,18 @@ class Config:
     #
     neb_step_size = 0.3
 
-    # TODO - are these the right sort of thing??
+    # TODO - optimise for maximum efficiency
     min_step_size = 0.05
     max_step_size = 0.3
+    # -------------------------------------------------------------------------
+    # Heuristic for pruning the bond rearrangement set. If there are only bond
+    # rearrangements that involve small rings then TSs involving small rings
+    # are possible. However, when there are multiple possibilities involving
+    # the same set of atoms then discard any rearrangements that would involve
+    # a 3 or 4-membered TS e.g. skip the possible 4-membered TS for a Cope
+    # rearrangement in hexadiene
+    #
+    skip_small_ring_tss = True
     # -------------------------------------------------------------------------
 
     class ORCA:

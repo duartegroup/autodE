@@ -1,13 +1,11 @@
 import itertools
 import os
 from autode.atoms import get_maximal_valance
-from autode.geom import get_neighbour_list
-from autode.geom import get_points_on_sphere
+from autode.geom import get_neighbour_list, get_points_on_sphere
 from autode.log import logger
-from autode.mol_graphs import get_bond_type_list
-from autode.mol_graphs import get_fbonds
-from autode.mol_graphs import is_isomorphic
-from autode.mol_graphs import connected_components
+from autode.mol_graphs import (get_bond_type_list, get_fbonds, is_isomorphic,
+                               connected_components, find_cycles)
+from autode.config import Config
 
 
 def get_bond_rearrangs(reactant, product, name):
@@ -110,7 +108,8 @@ def get_bond_rearrangs(reactant, product, name):
             if n_bond_rearrangs > 1:
                 logger.info(f'Multiple *{n_bond_rearrangs}* possible bond '
                             f'breaking/makings are possible')
-                possible_brs = strip_equiv_bond_rearrs(reactant, possible_brs)
+                possible_brs = strip_equiv_bond_rearrs(possible_brs, reactant)
+                prune_small_ring_rearrs(possible_brs, reactant)
 
             save_bond_rearrangs_to_file(possible_brs,
                                         filename=f'{name}_bond_rearrangs.txt')
@@ -482,13 +481,13 @@ def get_fbonds_bbonds_2b2f(reac, prod, possible_brs, all_possible_bbonds, all_po
     return possible_brs
 
 
-def strip_equiv_bond_rearrs(mol, possible_bond_rearrs, depth=6):
-    """Remove any bond rearrangement from possible_bond_rearrs for which
+def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
+    """Remove any bond rearrangement from possible_brs for which
     there is already an equivalent in the unique_bond_rearrangements list
 
     Arguments:
+        possible_brs (list(BondRearrangement)):
         mol (molecule object): reactant object
-        possible_bond_rearrs (list(object)): list of BondRearrangement objects
 
     Keyword Arguments:
         depth (int): Depth of neighbour list that must be identical for a set
@@ -502,7 +501,7 @@ def strip_equiv_bond_rearrs(mol, possible_bond_rearrs, depth=6):
 
     unique_bond_rearrs = []
 
-    for bond_rearr in possible_bond_rearrs:
+    for bond_rearr in possible_brs:
         bond_rearrang_is_unique = True
 
         # Compare bond_rearrang to all those already considered to be unique,
@@ -515,10 +514,61 @@ def strip_equiv_bond_rearrs(mol, possible_bond_rearrs, depth=6):
         if bond_rearrang_is_unique:
             unique_bond_rearrs.append(bond_rearr)
 
-    logger.info(
-        f'Stripped {len(possible_bond_rearrs)-len(unique_bond_rearrs)} '
-        f'bond rearrangements')
+    logger.info(f'Stripped {len(possible_brs) - len(unique_bond_rearrs)} '
+                'bond rearrangements')
     return unique_bond_rearrs
+
+
+def prune_small_ring_rearrs(possible_brs, mol):
+    """
+    Remove any bond rearrangements that go via small (3, 4) rings if there is
+    an alternative that goes vie
+
+    Arguments:
+        possible_brs (list(BondRearrangement)):
+        mol (molecule object): reactant object
+    """
+    small_ring_sizes = (3, 4)
+
+    if not Config.skip_small_ring_tss:
+        logger.info('Not pruning small ring TSs')
+        return None
+
+    # Membered-ness of rings in each bond rearrangement
+    n_mem_rings = [br.n_membered_rings(mol) for br in possible_brs]
+
+    # Unique elements involved in each bond rearrangement
+    elems = [set(mol.atoms[i].label for i in range(mol.n_atoms)
+                 if i in br.active_atoms) for br in possible_brs]
+
+    excluded_idxs = []
+    for i, br in enumerate(possible_brs):
+
+        # Only consider brs with at least one small ring
+        if not any(n_mem in small_ring_sizes for n_mem in n_mem_rings[i]):
+            continue
+
+        for j, other_br in enumerate(possible_brs):
+
+            # Only consider brs with the same set of elements
+            if elems[i] != elems[j]:
+                continue
+
+            # Needs to have the same number of rings
+            if len(n_mem_rings[i]) != len(n_mem_rings[j]):
+                continue
+
+            # Exclude i if j has a larger smallest ring size
+            if min(n_mem_rings[i]) < min(n_mem_rings[j]):
+                excluded_idxs.append(i)
+
+    logger.info(f'Excluding {len(excluded_idxs)} bond rearrangements based on '
+                f'small rings')
+
+    for idx in excluded_idxs:
+        possible_brs.pop(idx)
+
+    return None
 
 
 class BondRearrangement:
@@ -568,16 +618,53 @@ class BondRearrangement:
 
         return self.active_atom_nl
 
-    def _set_active_atom_list(self, bonds, ls):
+    def n_membered_rings(self, mol):
+        """
+        Find the membered-ness of the rings involved in this bond rearrangement
+        will add the forming bonds to the graph to determine
 
-        for bond in bonds:
-            for atom in bond:
-                if atom not in ls:
-                    ls.append(atom)
-                if atom not in self.active_atoms:
-                    self.active_atoms.append(atom)
+        Arguments:
+            (autode.species.Species):
 
-        return None
+        Returns:
+            (list(int)):
+        """
+        assert mol.graph is not None
+        graph = mol.graph.copy()
+
+        for fbond in self.fbonds:
+            if fbond not in graph.edges:
+                graph.add_edge(*fbond)
+
+        rings = find_cycles(graph)
+        n_mem_rings = []
+
+        # Full enumeration over all atoms and rings - could be faster..
+        for ring in rings:
+            for atom_idx in self.active_atoms:
+                if atom_idx in ring:
+                    # This ring has at least one active atom in
+                    n_mem_rings.append(len(ring))
+
+                    # don't add the same ring more than once
+                    break
+
+        return n_mem_rings
+
+    @property
+    def fatoms(self):
+        """Unique atoms indexes involved in forming bonds"""
+        return list(set([i for bond in self.fbonds for i in bond]))
+
+    @property
+    def batoms(self):
+        """Unique atoms indexes involved in breaking bonds"""
+        return list(set([i for bond in self.bbonds for i in bond]))
+
+    @property
+    def active_atoms(self):
+        """Unique atom indexes in forming or breaking bonds"""
+        return list(set(self.fatoms + self.batoms))
 
     @property
     def n_fbonds(self):
@@ -602,11 +689,5 @@ class BondRearrangement:
         self.fbonds = forming_bonds if forming_bonds is not None else []
         self.bbonds = breaking_bonds if breaking_bonds is not None else []
 
-        self.active_atoms = []
-        self.fatoms = []
-        self.batoms = []
         self.active_atom_nl = None
         self.all = self.fbonds + self.bbonds
-
-        self._set_active_atom_list(self.fbonds, self.fatoms)
-        self._set_active_atom_list(self.bbonds, self.batoms)
