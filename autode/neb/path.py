@@ -54,7 +54,7 @@ class Path(list):
             logger.warning('Cannot check if products are made')
             return False
 
-        for point in self:
+        for i, point in enumerate(self):
             if point.species.graph is None:
                 mol_graphs.make_graph(point.species)
 

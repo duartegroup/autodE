@@ -8,7 +8,6 @@ DAcpd C=C.C1=CC=CC1>>[C@H]23C=C[C@@H](C3)CC2
 ethCF2 C=C.F[C]F>>FC1(F)CC1
 ene C=C.C=CC>>CCCC=C
 HFloss CCF>>C=C.[H]F
-H2add O=C([H])[H].[H][H]>>CO
 oxir [O-]C(C)=O.C1CO1>>[O-]CCOC(C)=O water
 Ocope C=CCOC=C>>O=CCCC=C
 SO2loss O=S1(CC=CC1)=O>>C=CC=C.O=S=O

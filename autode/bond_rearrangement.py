@@ -8,7 +8,7 @@ from autode.mol_graphs import (get_bond_type_list, get_fbonds, is_isomorphic,
 from autode.config import Config
 
 
-def get_bond_rearrangs(reactant, product, name):
+def get_bond_rearrangs(reactant, product, name, save=True):
     """For a reactant and product (complex) find the set of breaking and
     forming bonds that will turn reactants into products. This works by
     determining the types of bonds that have been made/broken (i.e CH) and
@@ -18,6 +18,9 @@ def get_bond_rearrangs(reactant, product, name):
         reactant (autode.complex.ReactantComplex):
         product (autode.complex.ProductComplex):
         name (str):
+
+    Keyword Arguments:
+        save (bool): Save bond rearrangements to a file for fast reloading
 
     Returns:
         (list(autode.bond_rearrangements.BondRearrangement)):
@@ -111,8 +114,9 @@ def get_bond_rearrangs(reactant, product, name):
                 possible_brs = strip_equiv_bond_rearrs(possible_brs, reactant)
                 prune_small_ring_rearrs(possible_brs, reactant)
 
-            save_bond_rearrangs_to_file(possible_brs,
-                                        filename=f'{name}_bond_rearrangs.txt')
+            if save:
+                save_bond_rearrangs_to_file(possible_brs,
+                                            filename=f'{name}_BRs.txt')
 
             logger.info(f'Found *{len(possible_brs)}* bond '
                         f'rearrangement(s) that lead to products')
@@ -541,13 +545,19 @@ def prune_small_ring_rearrs(possible_brs, mol):
     elems = [set(mol.atoms[i].label for i in range(mol.n_atoms)
                  if i in br.active_atoms) for br in possible_brs]
 
+    logger.info(f'Pruning {len(possible_brs)} to remove any '
+                f'{small_ring_sizes}-membered rings where others are possible')
+
     excluded_idxs = []
     for i, br in enumerate(possible_brs):
+        logger.info(f'Checking bond rearrangement {i} with rings:'
+                    f' {n_mem_rings[i]} and atom indexes: {br}')
 
         # Only consider brs with at least one small ring
         if not any(n_mem in small_ring_sizes for n_mem in n_mem_rings[i]):
             continue
 
+        # Check against all other rearrangements
         for j, other_br in enumerate(possible_brs):
 
             # Only consider brs with the same set of elements
@@ -561,12 +571,15 @@ def prune_small_ring_rearrs(possible_brs, mol):
             # Exclude i if j has a larger smallest ring size
             if min(n_mem_rings[i]) < min(n_mem_rings[j]):
                 excluded_idxs.append(i)
+                break
 
     logger.info(f'Excluding {len(excluded_idxs)} bond rearrangements based on '
                 f'small rings')
 
-    for idx in excluded_idxs:
-        possible_brs.pop(idx)
+    # Delete the excluded bond rearrangements (sorted high ->  low, so the
+    # idxs remain the same while deleting)
+    for idx in sorted(excluded_idxs, reverse=True):
+        del possible_brs[idx]
 
     return None
 

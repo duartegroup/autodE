@@ -1,4 +1,6 @@
-from autode.config import Config
+import os
+import networkx as nx
+import autode as ade
 from autode import bond_rearrangement as br
 from autode.species.molecule import Molecule
 from autode.bond_rearrangement import BondRearrangement
@@ -6,12 +8,30 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
-import networkx as nx
-import os
 
 
 # Some of the 'reactions' here are not physical, hence for some the graph will
 # be regenerated allowing for invalid hydrogen valencies
+
+
+def test_prune_small_rings2():
+    reaction = ade.Reaction('CCCC=C>>C=C.C=CC')
+    reaction.find_complexes()
+
+    ade.Config.skip_small_ring_tss = False
+    bond_rearrs = br.get_bond_rearrangs(reactant=reaction.reactant,
+                                        product=reaction.product,
+                                        name='tmp', save=False)
+    assert len(bond_rearrs) > 2
+
+    ade.Config.skip_small_ring_tss = True
+
+    br.prune_small_ring_rearrs(bond_rearrs, reaction.reactant)
+    assert len(bond_rearrs) == 2
+
+    # Should find the 6-membered TS
+    assert (bond_rearrs[0].n_membered_rings(reaction.reactant) == [6]
+            or bond_rearrs[1].n_membered_rings(reaction.reactant) == [6])
 
 
 def test_n_membered_rings():
@@ -59,14 +79,14 @@ def test_prune_small_rings():
                                  breaking_bonds=[(1, 0)])
     assert four_mem.n_membered_rings(cope_r) == [4]
 
-    Config.skip_small_ring_tss = False
+    ade.Config.skip_small_ring_tss = False
 
     bond_rearrs = [six_mem, four_mem]
     br.prune_small_ring_rearrs(possible_brs=bond_rearrs, mol=cope_r)
     # Should not prune if Config.skip_small_ring_tss = False
     assert len(bond_rearrs) == 2
 
-    Config.skip_small_ring_tss = True
+    ade.Config.skip_small_ring_tss = True
 
     br.prune_small_ring_rearrs(possible_brs=bond_rearrs, mol=cope_r)
     # should remove the 4-membered ring
@@ -83,8 +103,7 @@ def test_multiple_possibilities():
     reac.print_xyz_file()
 
     rearrs = br.get_bond_rearrangs(reac, ProductComplex(p1, p2),
-                                   name='H_subst')
-    os.remove('H_subst_bond_rearrangs.txt')
+                                   name='H_subst', save=False)
 
     # All H abstractions are the same
     assert len(rearrs) == 1
@@ -114,9 +133,6 @@ def test_bondrearr_class():
 
 def test_get_bond_rearrangs():
 
-    if os.path.exists('test_bond_rearrangs.txt'):
-        os.remove('test_bond_rearrangs.txt')
-
     # ethane --> Ch3 + Ch3
     reac = Molecule(smiles='CC')
     prod = Molecule(atoms=[Atom('C', -8.3, 1.4, 0.0),
@@ -128,7 +144,7 @@ def test_get_bond_rearrangs():
                            Atom('H', 12.4, 0.8, 0.4),
                            Atom('H', 12.3, 2.5, 0.5)])
 
-    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='test') == [br.BondRearrangement(breaking_bonds=[(0, 1)])]
+    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='test', save=False) == [br.BondRearrangement(breaking_bonds=[(0, 1)])]
 
     # Rerunning the get function should read test_bond_rearrangs.txt, so modify
     #  it, swapping 0 and 1 in the breaking
@@ -142,14 +158,13 @@ def test_get_bond_rearrangs():
     rearr = br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod),
                                   name='test')[0]
     assert rearr == BondRearrangement(breaking_bonds=[(1, 0)])
+    os.remove('test_bond_rearrangs.txt')
 
-    assert br.get_bond_rearrangs(ReactantComplex(prod), ProductComplex(reac), name='test2') is None
+    assert br.get_bond_rearrangs(ReactantComplex(prod), ProductComplex(reac), name='test2', save=False) is None
 
     # If reactants and products are identical then the rearrangement is
     # undetermined
-    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(reac), name='test3') is None
-
-    os.remove('test_bond_rearrangs.txt')
+    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(reac), name='test3', save=False) is None
 
 
 def test_two_possibles():
@@ -161,13 +176,12 @@ def test_two_possibles():
                        smiles='C[C]([H])F')
 
     rearrs = br.get_bond_rearrangs(ReactantComplex(ch2ch3f), ProductComplex(ch3ch2f),
-                                   name='H_migration')
+                                   name='H_migration', save=False)
 
     # There are two possibilities for H migration by they should be considered
     # the same
     assert len(rearrs) == 1
-    os.remove('H_migration_bond_rearrangs.txt')
-    
+
     
 def test_add_bond_rearrang():
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 0.6, 0, 0)])
@@ -193,8 +207,7 @@ def test_2b():
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 10, 0, 0), Atom('H', 20, 0, 0)])
 
     # Reactants to products must break two bonds
-    assert len(br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='2b_test')) == 1
-    os.remove('2b_test_bond_rearrangs.txt')
+    assert len(br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='2b_test', save=False)) == 1
 
     assert br.get_fbonds_bbonds_2b(reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []) == [br.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
 
@@ -205,7 +218,7 @@ def test_3b():
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('H', 10, 0, 0), Atom('H', 20, 0, 0), Atom('H', 30, 0, 0)])
 
     # Reactants to products must break three bonds but this is not yet supported in any form
-    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='3b_test') is None
+    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='3b_test', save=False) is None
 
 
 def test_1b1f():
@@ -264,3 +277,4 @@ def test_2b2f():
     reac = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 0.6, 0, 0), Atom('N', 1.2, 0, 0), Atom('C', 10, 0, 0)])
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 10, 0, 0), Atom('N', 1.2, 0, 0), Atom('C', 0.6, 0, 0)])
     assert br.get_fbonds_bbonds_2b2f(reac, prod, [], [], [], [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]], [], []) == [br.BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
+
