@@ -46,9 +46,19 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
                                bonds=active_bonds,
                                method=method)
 
-            path.generate(max_n=calc_n_images(fbonds, bbonds))
+            path.generate()
+            if path.peak_idx is None:
+                logger.warning('No peak in the initial path')
+                return None
 
-            exit()
+            return get_ts_guess(path[path.peak_idx].species,
+                                reactant, product, name=name)
+
+
+
+
+
+
 
 
 
@@ -116,75 +126,6 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
     return get_ts_guess(peak_species, reactant, product, name=name)
 
 
-@work_in('NEB_init_path')
-def get_interpolated(initial_species, bonds, max_n, method,
-                     final_species=None):
-    """
-    Generate the end point on the NEB by running a 1D scan, using by default a
-    low-level method. Supprorts using different methods for the starting and
-    final (end) points to the method used for the interpolation.
-    If method is set then this will be used for both the end and intermediate
-     methods
-
-    Arguments:
-        initial_species (autode.species.Species):
-        bonds (list(autode.pes.pes.ScannedBond)):
-        max_n (int): Maximum number of intermediate species to generate between
-              the initial and final species
-        method (autode.wrappers.base.ElectronicStructureMethod):
-
-    Keyword Arguments:
-        stop_thresh (float): Energy threshold in Ha to terminate the
-                    interpolation if ∆E between two adjacent points is > this
-                    and there is a peak in the surface, return the points.
-                    default is ~ 10 kcal mol-1
-
-        final_species (autode.species.Species | None): Final species (e.g.
-                      products) on the path that we're interpolating to. If
-                      None then isomorphisms are not checked
-
-    Returns:
-        (list(autode.species.Species)): Set of intermediate species between
-    """
-    logger.info('Generating the interpolated species reactant -> product using'
-                f' a maximum of {max_n} intermediate points')
-    species_set = _get_interp_species_set(max_n, initial_species, bonds, method)
-    logger.info('Initial interpolation done')
-
-    # Needs to have a maximum in the linear path to have any hope of
-    # locating a TS from it
-    if species_set.peak_idx is None:
-        if not products_made(species_set, final_species):
-            logger.warning('No peak and products not made - failed interp.')
-            return None
-
-        # If there is no peak but products have been made then reduce the step
-        # size around the region reactants -> products
-        spe_l, spe_r = initial_final_missed_peak(species_set,
-                                                 product=final_species)
-        species_set = divided_species_set(spe_l, spe_r,
-                                          bonds=deepcopy(bonds),
-                                          method=method)
-
-        if species_set.peak_idx is None:
-            logger.warning('Still no peak from the divided path')
-            return None
-
-    # If only a one bond has been scanned over then the initial path is already
-    # pretty good, so truncate to the two points either side of the peak,
-    # and the peak
-    if len(bonds) == 1:
-        logger.info('Truncating interpolated set over the peak')
-        idx = species_set.peak_idx
-        species_set = divided_species_set(initial_species=species_set[idx-1],
-                                          final_species=species_set[idx+1],
-                                          bonds=deepcopy(bonds),
-                                          method=method)
-
-    logger.info('Generated initial NEB path')
-    return species_set
-
-
 def initial_final_missed_peak(species_list, product):
     """
     Find guesses of the initial and final species between a missed peak by
@@ -200,7 +141,7 @@ def initial_final_missed_peak(species_list, product):
     Returns:
         (tuple(autode.species.Species, autode.species.Species)):
     """
-    assert products_made(species_list, product)
+    assert species_list.products_made(product)
 
     # Ensure all species have a graph
     for species in species_list:
@@ -223,107 +164,6 @@ def initial_final_missed_peak(species_list, product):
 
     logger.info(f'Dividing {idx_l} -- {idx_r}')
     return species_list[idx_l], species_list[idx_r]
-
-
-def divided_species_set(initial_species, final_species, bonds, method):
-    """
-    Divide a list of species
-
-    Arguments:
-        initial_species (autode.species.Species):
-        bonds (list(autode.pes.pes.ScannedBond)):
-        final_species (autode.species.Species): Final species (e.g.
-                      products) on the path that we're interpolating to
-    Returns:
-        (list(autode.species.Species))
-    """
-    step_size = float(Config.neb_step_size) / 3
-    total_deltas = []
-
-    # Set the new initial and final distances on each bond
-    for bond in bonds:
-        bond.curr_dist = initial_species.distance(*bond)
-        bond.final_dist = final_species.distance(*bond)
-        # ∆r = r_final - r_initial
-        total_deltas.append(bond.final_dist - bond.curr_dist)
-
-    average_abs_difference = np.average(np.abs(np.array(total_deltas)))
-    max_n = max(int(average_abs_difference / step_size), 3)
-
-    logger.info(f'Will divide into {max_n} steps, with an average step size '
-                f'of {float(Config.neb_step_size) / 3:.3f} Å')
-
-    # max_n rather than max_n - 1 here as we don't need the final point
-    deltas = [total_dr / max_n for total_dr in total_deltas]
-    species_list = _get_interp_species_set(max_n=max_n,
-                                           initial_species=initial_species,
-                                           bonds=bonds,
-                                           method=method,
-                                           deltas=deltas)
-    species_list.append(final_species)
-    logger.info(f'Divided path into {len(species_list)}')
-    return species_list
-
-
-def _get_interp_species_set(max_n, initial_species, bonds, method,
-                            deltas=None):
-    """
-    From an initial species generate a path along a surface defined by
-    distance constraints
-
-    Arguments:
-        initial_species (autode.species.Species):
-        bonds (list(autode.pes.pes.ScannedBond)):
-        max_n (int): Maximum number of intermediate species to generate
-        method (autode.wrappers.base.ElectronicStructureMethod):
-        stop_thresh (float):
-        deltas (list(float)): List of ∆r distances for each bond, which will
-               be added
-    """
-    assert max_n > 1
-
-    # Assume there needs to be ∆r_i added max_n times to reach the final
-    # distance for each bond i
-    if deltas is None:
-        deltas = [(b.final_dist - b.curr_dist) / (max_n - 1) for b in bonds]
-    else:
-        assert len(deltas) == len(bonds)
-
-    consts = {b.atom_indexes: b.curr_dist for b in bonds}
-
-    species_set = InitialPath()
-
-    # Generate a species with a constrained geometry for each point in the path
-    for i in range(max_n):
-
-        if i == 0:
-            species = initial_species.copy()
-
-        else:
-            species = species_set[i - 1].copy()
-
-            # Add the required change in every bond length to get to the final
-            # distances at step n-1
-            for j, atom_indexes in enumerate(consts.keys()):
-                consts[atom_indexes] += deltas[j]
-
-        # Run the constrained optimisation
-        opt = Calculation(name=f'{species.name}_constrained_opt{i}',
-                          molecule=species,
-                          method=method,
-                          keywords=method.keywords.low_opt,
-                          n_cores=Config.n_cores,
-                          distance_constraints=consts)
-
-        # Set the optimised atoms - can raise AtomsNotFound
-        species.optimise(method=method, calc=opt)
-        if species.energy is None:
-            # To continue there must be final atoms and a final energy
-            raise ex.AtomsNotFound
-
-        species_set.append(species)
-
-    return species_set
 
 
 def active_bonds_no_rings(initial_species, fbonds, bbonds):
@@ -387,51 +227,6 @@ def active_bonds_no_rings(initial_species, fbonds, bbonds):
     # least one forming bond
     return fbonds + [bbond for bbond in bbonds if not in_ring(bbond)]
 
-
-def products_made(species_list, product):
-    """Check whether the products are made on the surface
-
-    Arguments:
-        species_list (list(autode.species.Species):
-        product (autode.species.Species):
-
-    Returns:
-        (bool):
-    """
-    if product is None or product.graph is None:
-        logger.warning('Cannot check if products are made')
-        return False
-
-    for i, species in enumerate(species_list):
-        make_graph(species)
-
-        if is_isomorphic(graph1=species.graph,
-                         graph2=product.graph):
-            logger.info(f'Products made at point {i}')
-            return True
-
-    return False
-
-
-def calc_n_images(fbonds, bbonds):
-    """
-    Calculate the number of images to use in a NEB calculation based on the
-    active bonds. Will use a number so the average ∆r between each step on
-    each coordinate is ~average_spacing Å
-
-    Arguments:
-        fbonds (list(autode.pes.pes.FormingBond)):
-        bbonds (list(autode.pes.pes.BreakingBond)):
-
-    Returns:
-        (int): Number of images
-    """
-    logger.info(f'Using a step size of {Config.neb_step_size:.2f} Å')
-
-    differences = [(b.final_dist - b.curr_dist) for b in fbonds + bbonds]
-    average_abs_difference = np.average(np.abs(np.array(differences)))
-
-    return max(int(average_abs_difference / Config.neb_step_size), 5)
 
 
 

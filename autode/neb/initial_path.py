@@ -3,6 +3,7 @@ import numpy as np
 from copy import deepcopy
 from autode.log import logger
 from autode.neb.path import Path
+from autode.utils import work_in
 
 
 class PathPoint:
@@ -29,6 +30,7 @@ class PathPoint:
 
 class InitialPath(Path):
 
+    @work_in('initial_path')
     def append(self, point) -> None:
         """
         Append a point to the path and  optimise it
@@ -55,6 +57,9 @@ class InitialPath(Path):
         self[idx].energy = calc.get_energy()
 
         if self.method.name == 'xtb':
+            # XTB prints gradients including the constraints, which are ~0
+            # the gradient here is just the derivative of the electronic energy
+            # so rerun a gradient calculation, which should be very fast
             calc = ade.Calculation(name=f'path_grad{idx}',
                                    molecule=self[idx].species,
                                    method=self.method,
@@ -62,6 +67,7 @@ class InitialPath(Path):
                                    n_cores=ade.Config.n_cores)
             calc.run()
             self[idx].grad = calc.get_gradients()
+            calc.clean_up(force=True, everything=True)
 
         else:
             self[idx].grad = calc.get_gradients()
@@ -86,6 +92,7 @@ class InitialPath(Path):
         Arguments:
             point (autode.neb.PathPoint):
         """
+        logger.info(f'Adjusting constraints on')
         # Flat list of all the atom indexes involved in the bonds
         atom_idxs = [i for bond in self.bonds for i in bond]
 
@@ -112,13 +119,16 @@ class InitialPath(Path):
             else:
                 grad = np.average((gradi, gradj))
 
-            print(bond, gradi, gradj, grad)
+            logger.info(f'|∇E_i·r| = {grad:.4f} on {bond}')
 
+            # Downhill in energy to break/form this breaking/forming bond
             if grad * np.sign(bond.dr) > 0:
                 dr = np.sign(bond.dr) * ade.Config.max_step_size
 
+            # otherwise use a scaled value, depending on the gradient
+            # large values will have small step sizes, down to min_step Å
             else:
-                dr = (max_step - min_step) * np.exp(-(grad/0.001)**2) + min_step
+                dr = (max_step - min_step) * np.exp(-(grad/0.01)**2) + min_step
                 dr *= np.sign(bond.dr)
 
             new_dist = point.species.distance(*bond.atom_indexes) + dr
@@ -137,13 +147,13 @@ class InitialPath(Path):
 
         return None
 
-    def generate(self, max_n=10, init_step_size=0.2):
+    def generate(self, init_step_size=0.2):
         """
         Generate the path from the starting point; can be called only once!
 
-        Keyword Arguments:
-            max_n (int): Maximum number of constrained geometry optimisations
-                         to do
+        Keyword arguments:
+            init_step_size (float): Initial step size in all bonds to calculate
+                           the gradient
         """
         logger.info('Generating path from the initial species')
         assert len(self) == 1
@@ -161,23 +171,20 @@ class InitialPath(Path):
         self.append(point)
         logger.info('First point found')
 
-        # Now sequentially add points to the path
-        while True:
+        def reached_final_point():
+            """Are there any more points to add?"""
+            return all(point.constraints[b.atom_indexes] == b.final_dist
+                       for b in self.bonds)
+
+        logger.info('Adaptively adding points to the path')
+        while not reached_final_point():
 
             point = self[-1].copy()
-            # apply some new constraints
             self._adjust_constraints(point=point)
-
-            if all(point.constraints[bond.atom_indexes] == bond.final_dist for
-                   bond in self.bonds):
-                logger.info('Done')
-                break
-
             self.append(point)
 
         self.plot_energies()
         self.print_geometries(name='initial_path')
-        print(self.rel_energies[self.peak_idx])
 
         return None
 

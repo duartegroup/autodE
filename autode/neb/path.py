@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from autode import mol_graphs
 from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
 from autode.units import KcalMol
@@ -39,6 +40,30 @@ class Path(list):
             return peak_idx
 
         return None
+
+    def products_made(self, product):
+        """Check whether the products are made on the surface
+
+        Arguments:
+            product (autode.species.Species):
+
+        Returns:
+            (bool):
+        """
+        if product is None or product.graph is None:
+            logger.warning('Cannot check if products are made')
+            return False
+
+        for point in self:
+            if point.species.graph is None:
+                mol_graphs.make_graph(point.species)
+
+            if mol_graphs.is_isomorphic(graph1=point.species.graph,
+                                        graph2=product.graph):
+                logger.info(f'Products made at point {i}')
+                return True
+
+        return False
 
     def is_saddle(self, idx):
         """Is an index a saddle point"""

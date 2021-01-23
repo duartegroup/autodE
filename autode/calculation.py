@@ -346,14 +346,27 @@ class Calculation:
 
         return self.method.calculation_terminated_normally(self)
 
-    def clean_up(self, force=False):
+    def clean_up(self, force=False, everything=False):
         """Clean up input files, if Config.keep_input_files is False"""
 
         if Config.keep_input_files and not force:
             logger.info('Keeping input files')
-            return None
-        else:
-            return self.method.clean_up(self)
+            return
+
+        filenames = self.input.get_input_filenames()
+        if everything:
+            filenames.append(self.output.filename)
+
+        logger.info(f'Deleting {filenames}')
+
+        # Delete the files that exist
+        for filename in filenames:
+            if not os.path.exists(filename):
+                logger.warning(f'Could not delete {filename} it did not exist')
+                continue
+            os.remove(filename)
+
+        return None
 
     def generate_input(self):
         """Generate the required input"""
