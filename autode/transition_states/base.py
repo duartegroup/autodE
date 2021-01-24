@@ -34,21 +34,28 @@ class TSbase(Species):
             raise ValueError('Could not check imaginary mode – reactants '
                              ' and/or products not set ')
 
-    def could_have_correct_imag_mode(self, method=None, threshold=-40):
+    def could_have_correct_imag_mode(self, method=None, threshold=None):
         """
-        Determine if a point on the PES could have the correct imaginary mode. This must have
+        Determine if a point on the PES could have the correct imaginary mode.
+        This must have
 
         (0) An imaginary frequency      (quoted as negative in most EST codes)
         (1) The most negative(/imaginary) is more negative that a threshold
 
         Keywords Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
-            threshold (float):
 
+            threshold (float | None): Negative float (rather than imaginary
+                                      complex number)
         Returns:
             (bool):
         """
         self._check_reactants_products()
+
+        # Use the default threshold in Config if unspecified
+        if threshold is None:
+            threshold = Config.min_imag_freq
+
         # By default the high level method is used to check imaginary modes
         if method is None:
             method = get_hmethod()

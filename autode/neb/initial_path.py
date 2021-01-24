@@ -128,7 +128,7 @@ class InitialPath(Path):
             # otherwise use a scaled value, depending on the gradient
             # large values will have small step sizes, down to min_step Å
             else:
-                dr = (max_step - min_step) * np.exp(-(grad/0.01)**2) + min_step
+                dr = (max_step - min_step) * np.exp(-(grad/0.05)**2) + min_step
                 dr *= np.sign(bond.dr)
 
             new_dist = point.species.distance(*bond.atom_indexes) + dr

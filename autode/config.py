@@ -133,6 +133,13 @@ class Config:
     #
     skip_small_ring_tss = True
     # -------------------------------------------------------------------------
+    # Minimum magnitude of the imaginary frequency (cm-1) to consider for a
+    # 'true' TS. For very shallow saddle points this may need to be reduced
+    # to e.g. -10 cm-1. Although most TSs have |v_imag| > 100 cm-1 this
+    # threshold is designed to be conservative
+    #
+    min_imag_freq = -40
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------

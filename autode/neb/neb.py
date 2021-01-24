@@ -40,10 +40,10 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
     if generate_final_species and fbonds is not None and bbonds is not None:
         try:
-            active_bonds = active_bonds_no_rings(reactant.copy(), fbonds, bbonds)
+            # active_bonds = active_bonds_no_rings(reactant.copy(), fbonds, bbonds)
 
             path = InitialPath(init_species=reactant.copy(),
-                               bonds=active_bonds,
+                               bonds=fbonds + bbonds,
                                method=method)
 
             path.generate()

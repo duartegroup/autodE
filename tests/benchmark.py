@@ -16,6 +16,10 @@ data_path = os.path.join(here, 'data', 'benchmark')
 ade.Config.n_cores = 8
 ade.Config.ts_template_folder_path = here
 
+# H2 addition to Vaska's complex has a very shallow barrier, so reduce the
+# default minimum imaginary frequency for a true TS
+ade.Config.min_imag_freq = -10
+
 
 def get_args():
 
