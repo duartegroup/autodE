@@ -41,6 +41,10 @@ class Path(list):
 
         return None
 
+    @property
+    def contains_peak(self):
+        return self.peak_idx is not None
+
     def products_made(self, product):
         """Check whether the products are made on the surface
 

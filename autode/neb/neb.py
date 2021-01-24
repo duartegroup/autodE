@@ -44,7 +44,8 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
 
             path = InitialPath(init_species=reactant.copy(),
                                bonds=fbonds + bbonds,
-                               method=method)
+                               method=method,
+                               final_species=product)
 
             path.generate()
             if path.peak_idx is None:

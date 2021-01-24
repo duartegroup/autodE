@@ -85,6 +85,26 @@ class InitialPath(Path):
 
         return None
 
+    def contains_suitable_peak(self):
+        """Does this path contain a peak suitable for a TS guess?"""
+        if not self.contains_peak:
+            return False
+
+        if self.products_made(product=self.final_species):
+            logger.info('Products made and have a peak. Assuming suitable!')
+            return True
+
+        # Products aren't made by isomorphism but we may still have a suitable
+        # peak..
+        if any(self[-1].constraints[b.atom_indexes] == b.final_dist
+               for b in self.bonds):
+            logger.warning('Have a peak, products not made on isomorphism, but'
+                           ' at least one of the distances is final. Assuming '
+                           'the peak is suitable    ')
+            return True
+
+        return False
+
     def _adjust_constraints(self, point):
         """
         Adjust the geometry constraints based on the final point
@@ -177,7 +197,7 @@ class InitialPath(Path):
                        for b in self.bonds)
 
         logger.info('Adaptively adding points to the path')
-        while not reached_final_point():
+        while not (reached_final_point() or self.contains_suitable_peak()):
 
             point = self[-1].copy()
             self._adjust_constraints(point=point)
@@ -188,7 +208,7 @@ class InitialPath(Path):
 
         return None
 
-    def __init__(self, init_species, bonds, method):
+    def __init__(self, init_species, bonds, method, final_species=None):
         """
         PES Path
 
@@ -196,17 +216,21 @@ class InitialPath(Path):
             init_species (autode.species.Species):
             bonds (list(autode.pes.ScannedBond)):
             method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            final_species (autode.species.Species):
         """
         super().__init__()
 
         self.method = method
         self.bonds = bonds
+        self.final_species = final_species
 
         # Bonds need to have the initial and final dists to drive along them
         for bond in bonds:
             assert bond.curr_dist is not None and bond.final_dist is not None
 
-        # Add the first point - will run a constrained minimisation by default
+        # Add the first point - will run a constrained minimisation
         init_point = PathPoint(species=init_species,
                                constraints={bond.atom_indexes: bond.curr_dist
                                             for bond in bonds})
