@@ -1,0 +1,32 @@
+\documentclass[10pt]{article}
+\usepackage{bm}% bold math
+\usepackage{amsmath}
+\DeclareMathOperator{\sgn}{sgn}
+
+\begin{document}
+
+\subsection{Adaptive Path}
+
+The adaptive path algorithm in \emph{autodE} attempts to traverse the minimum energy pathway from reactants to products with constrained optimisations using a gradient dependent step size. The initial constraints for the first point are
+
+\begin{equation}
+r_b^{(1)} = r_b^{(0)} + \sgn(r_b^\text{final} - r_b^{(0)})\Delta r_\text{init}
+\end{equation}
+\\
+for a bond $b$, where the superscript denotes the current step. $\Delta r_\text{init}$ is an initial step size, e.g. 0.2 Å. Constraints for subsequent steps are then given by
+\\\\
+\begin{equation}
+r_b^{(k)} = r_b^{(k-1)} + \sgn(r_b^\text{final} - r_b^{(0)})\Delta r_b^{(k-1)}
+\end{equation}
+
+\begin{equation}
+\Delta r_b^{(k)} = 
+\begin{cases}
+\Delta r_\text{max} \quad &\text{if } \sgn(r_b^\text{final} - r_b^{(0)}) \nabla E_{j} \cdot \boldsymbol{r}_{ij} > 0 \\
+\Delta r_\text{m}\exp\left[-\left({\nabla E_{j}^{(k)} \cdot \boldsymbol{r}_{ij}}/{g} \right)^2\right] + \Delta r_\text{min} \quad &\text{otherwise}
+\end{cases}
+\end{equation}
+\\
+where $\Delta r_\text{m} = \Delta r_\text{max} - \Delta r_\text{min}$, $E$ the total potential energy (in the absence of any harmonic constraints) and $g$ a parameter to control the interpolation between $\Delta r_\text{max}$ and $\Delta r_\text{min}$ e.g. 0.05 Ha Å$^{-1}$. Atom indices $i, j$ form part of the bond indexed by $b$ with $j$ being an atom not being substituted. In the case that neither $i$ nor $j$ are being substituted the gradient is taken as an average over $i$ ad $j$. 
+
+\end{document}

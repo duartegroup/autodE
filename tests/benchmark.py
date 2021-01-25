@@ -114,7 +114,9 @@ if __name__ == '__main__':
               f'{"✓" if freq < -50 else "✗"}', file=out_file)
 
 
-""" 1.0.0a1
+""" 
+1.0.0a1
+
    Name      v_imag / cm-1     Time / min    Success
 ------------------------------------------------------
    sn2           -495.9           0.1           ✓         
