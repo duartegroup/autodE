@@ -1,20 +1,13 @@
-import numpy as np
 import autode.exceptions as ex
 from autode.config import Config
 from autode.log import logger
-from autode.calculation import Calculation
 from autode.neb.ci import CINEB
-from autode.neb.initial_path import InitialPath
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.utils import work_in
 from autode.mol_graphs import find_cycles, is_isomorphic, make_graph
-from copy import deepcopy
 
 
-def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
-                     name='neb',
-                     n=None,
-                     generate_final_species=True):
+def get_ts_guess_neb(reactant, product, method, name='neb', n=10):
     """
     Get a transition state guess using a nudged elastic band calculation. The
     geometry of the reactant is used as the fixed initial point and the final
@@ -27,82 +20,19 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
         method (autode.wrappers.base.ElectronicStructureMethod):
 
     Keyword Arguments:
-        fbonds (list(autode.pes.pes.FormingBond)):
-        bbonds (list(autode.pes.pes.BreakingBond)):
         name (str):
         n (int): Number of images to use in the NEB
-        generate_final_species (bool):
 
     Returns:
         (autode.transition_states.ts_guess.TSguess) or None:
     """
+    assert n is not None
     logger.info('Generating a TS guess using a nudged elastic band')
 
-    if generate_final_species and fbonds is not None and bbonds is not None:
-        try:
-            # active_bonds = active_bonds_no_rings(reactant.copy(), fbonds, bbonds)
-
-            path = InitialPath(init_species=reactant.copy(),
-                               bonds=fbonds + bbonds,
-                               method=method,
-                               final_species=product)
-
-            path.generate()
-            if path.peak_idx is None:
-                logger.warning('No peak in the initial path')
-                return None
-
-            return get_ts_guess(path[path.peak_idx].species,
-                                reactant, product, name=name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            path = get_interpolated(initial_species=reactant.copy(),
-                                            bonds=active_bonds,
-                                            max_n=calc_n_images(fbonds, bbonds),
-                                            method=method,
-                                            final_species=product.copy())
-            path.truncate_final_points()
-
-        except ex.AtomsNotFound:
-            logger.warning('Failed to optimise a point on the linear path')
-            return None
-
-        if path is None:
-            logger.warning('Failed to locate linear path containing a maximum')
-            return None
-
-        if len(active_bonds) == 1:
-            logger.info('Only explored a single bond should have a very '
-                        'good guess of the TS - skipping NEB relaxation')
-            return get_ts_guess(path[path.peak_idx],
-                                reactant, product, name=name)
-
-        neb = CINEB(species_list=path)
-
-    # Otherwise using the reactant and product geometries
-    else:
-        assert n is not None
-        neb = CINEB(initial_species=reactant.copy(),
-                    final_species=product.copy(),
-                    num=n)
-        neb.interpolate_geometries()
+    neb = CINEB(initial_species=reactant.copy(),
+                final_species=product.copy(),
+                num=n)
+    neb.interpolate_geometries()
 
     # Calculate and generate the TS guess, in a unique directory
     try:
@@ -116,15 +46,8 @@ def get_ts_guess_neb(reactant, product, method, fbonds=None, bbonds=None,
         logger.error('NEB failed')
         return None
 
-    peak_species = neb.get_species_saddle_point()
-    if peak_species is None:
-        logger.warning('Found no peak in the NEB')
-        return None
-
-    if fbonds is not None and bbonds is not None:
-        run_final_const_opt(peak_species, method, const_bonds=fbonds+bbonds)
-
-    return get_ts_guess(peak_species, reactant, product, name=name)
+    return get_ts_guess(neb.get_species_saddle_point(), reactant, product,
+                        name=name)
 
 
 def initial_final_missed_peak(species_list, product):

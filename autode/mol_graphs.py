@@ -8,7 +8,7 @@ import autode.exceptions as ex
 from scipy.spatial import distance_matrix
 from autode.atoms import get_maximal_valance
 from autode.atoms import is_pi_atom
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.log import logger
 from autode.atoms import get_atomic_weight
 

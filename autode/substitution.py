@@ -2,7 +2,7 @@ from copy import deepcopy
 import numpy as np
 from autode.atoms import DummyAtom
 from autode.mol_graphs import connected_components
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.geom import length
 from autode.log import logger
 

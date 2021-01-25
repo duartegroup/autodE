@@ -2,8 +2,43 @@ import autode as ade
 import numpy as np
 from copy import deepcopy
 from autode.log import logger
-from autode.neb.path import Path
+from autode.path.path import Path
+from autode.transition_states.ts_guess import get_ts_guess
 from autode.utils import work_in
+
+
+def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
+                         name='adaptive'):
+    """
+    Generate a TS guess geometry based on an adaptive path along multiple
+    breaking and/or forming bonds
+
+    Arguments:
+        reactant (autode.species.Species):
+        product (autode.species.Species):
+        method (autode.wrappers.base.ElectronicStructureMethod):
+
+    Keyword Arguments:
+        fbonds (list(autode.pes.pes.FormingBond)):
+        bbonds (list(autode.pes.pes.BreakingBond)):
+        name (str):
+
+    Returns:
+        (autode.transition_states.ts_guess.TSguess | None):
+    """
+
+    ts_path = AdaptivePath(init_species=reactant,
+                           bonds=fbonds+bbonds,
+                           method=method,
+                           final_species=product)
+    ts_path.generate(name=name)
+
+    if not ts_path.contains_peak:
+        logger.warning('Adaptive path had no peak')
+        return None
+
+    return get_ts_guess(ts_path[ts_path.peak_idx].species, reactant, product,
+                        name=name)
 
 
 class PathPoint:
@@ -28,7 +63,7 @@ class PathPoint:
         self.grad = None      # Ha Å^-1
 
 
-class InitialPath(Path):
+class AdaptivePath(Path):
 
     @work_in('initial_path')
     def append(self, point) -> None:
@@ -76,14 +111,6 @@ class InitialPath(Path):
 
     def plot_energies(self, save=True, name='init_path', color='k', xlabel='ζ'):
         return super().plot_energies(save, name, color, xlabel)
-
-    def truncate_final_points(self):
-        """Remove any points higher than the previous one from the lend of the
-        path"""
-        while len(self) >= 2 and self[-2].energy < self[-1].energy:
-            self.pop(-1)
-
-        return None
 
     def contains_suitable_peak(self):
         """Does this path contain a peak suitable for a TS guess?"""
@@ -167,13 +194,15 @@ class InitialPath(Path):
 
         return None
 
-    def generate(self, init_step_size=0.2):
+    def generate(self, init_step_size=0.2, name='initial'):
         """
         Generate the path from the starting point; can be called only once!
 
         Keyword arguments:
             init_step_size (float): Initial step size in all bonds to calculate
                            the gradient
+
+            name (str): Prefix to use for saved plot and geometries
         """
         logger.info('Generating path from the initial species')
         assert len(self) == 1
@@ -203,8 +232,8 @@ class InitialPath(Path):
             self._adjust_constraints(point=point)
             self.append(point)
 
-        self.plot_energies()
-        self.print_geometries(name='initial_path')
+        self.plot_energies(name=f'{name}_path')
+        self.print_geometries(name=f'{name}_path')
 
         return None
 

@@ -6,7 +6,7 @@ from itertools import combinations
 from scipy.optimize import minimize
 from time import time
 import autode.exceptions as ex
-from autode.bond_lengths import get_ideal_bond_length_matrix
+from autode.bonds import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.mol_graphs import split_mol_across_bond
 from autode.log import logger

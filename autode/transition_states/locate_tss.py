@@ -14,11 +14,8 @@ from autode.methods import get_lmethod
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
 from autode.mol_graphs import reorder_nodes
-from autode.pes.pes import FormingBond, BreakingBond
-from autode.pes.pes_1d import get_ts_guess_1d
-from autode.pes.pes_2d import get_ts_guess_2d
-from autode.neb.neb import get_ts_guess_neb
-from autode.reactions.reaction_types import Substitution, Elimination
+from autode.bonds import FormingBond, BreakingBond
+from autode.path.adaptive import get_ts_adaptive_path
 from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
 from autode.substitution import get_substitution_centres
@@ -91,19 +88,19 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     scan_name += "_".join(str(fb) for fb in fbonds)
 
     # Ideally use a transition state template, then only a single constrained
-    # optimisation needs to be run...
+    # optimisation needs to be run
     yield get_template_ts_guess, (r, p, bond_rearr,
                                   f'{name}_template_{bond_rearr}', hmethod)
 
-    # Otherwise try a nudged elastic band calculation, don't use the low level
-    # method if there are any metals..
+    # otherwise try a nudged elastic band calculation, don't use the low level
+    # method if there are any metals
     if not any(atom.label in metals for atom in r.atoms):
-        yield get_ts_guess_neb, (r, p, lmethod, fbonds, bbonds,
-                                 f'{name}_ll_neb_{bond_rearr}')
+        yield get_ts_adaptive_path, (r, p, lmethod, fbonds, bbonds,
+                                     f'{name}_ll_ad_{bond_rearr}')
 
     # Always attempt a high-level NEB
-    yield get_ts_guess_neb, (r, p, hmethod, fbonds, bbonds,
-                             f'{name}_hl_neb_{bond_rearr}')
+    yield get_ts_adaptive_path, (r, p, hmethod, fbonds, bbonds,
+                                 f'{name}_hl_ad_{bond_rearr}')
 
     return None
 

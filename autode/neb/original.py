@@ -3,9 +3,8 @@ The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
 from autode.log import logger
-from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
-from autode.neb.path import Path
+from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
 from scipy.optimize import minimize

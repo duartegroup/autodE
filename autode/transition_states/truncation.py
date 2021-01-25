@@ -2,7 +2,7 @@ from copy import deepcopy
 import networkx as nx
 from autode.atoms import Atom
 from autode.transition_states.ts_guess import has_matching_ts_templates
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.log import logger
 
 
