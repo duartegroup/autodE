@@ -28,7 +28,7 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
     """
 
     ts_path = AdaptivePath(init_species=reactant,
-                           bonds=fbonds+bbonds,
+                           bonds=pruned_active_bonds(reactant, fbonds, bbonds),
                            method=method,
                            final_species=product)
     ts_path.generate(name=name)
@@ -39,6 +39,58 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
 
     return get_ts_guess(ts_path[ts_path.peak_idx].species, reactant, product,
                         name=name)
+
+
+def pruned_active_bonds(initial_species, fbonds, bbonds):
+    """
+    Prune the set of forming and breaking bonds for special cases
+
+    (1) Three bonds form a ring, in which case the adaptive path may fail to
+    traverse the MEP. If so then delete the breaking bond with the largest
+    overlap to the forming bond e.g.::
+
+           H
+         /  \
+        M --- C
+
+    where all the bonds drawn are active and the C-H bond is forming
+
+    Arguments:
+        initial_species (autode.species.Species):
+        fbonds (list(autode.pes.pes.FormingBond)):
+        bbonds (list(autode.pes.pes.BreakingBond)):
+
+    Returns:
+        (list(autode.pes.pes.ScannedBond)):
+    """
+    logger.info('Pruning active bonds for special cases')
+
+    # Flat list of all the atom indexes in the breaking/forming bonds
+    a_atoms = [bond.atom_indexes for bond in fbonds + bbonds]
+
+    coords = initial_species.coordinates
+
+    if len(fbonds) == 1 and len(bbonds) == 2 and len(set(a_atoms)) == 3:
+        logger.info('Found 3-membered ring with 2 breaking and 1 forming bond')
+
+        f_i, f_j = fbonds[0].atom_indexes
+        f_vec = coords[f_i] - coords[f_j]
+        f_vec /= np.linalg.norm(f_vec)
+
+        b0_i, b0_j = bbonds[0].atom_indexes
+        b0_projection = np.dot((coords[b0_i] - coords[b0_j]), f_vec)
+
+        b1_i, b1_j = bbonds[1].atom_indexes
+        b1_projection = np.dot((coords[b1_i] - coords[b1_j]), f_vec)
+
+        if b0_projection > b1_projection:
+            logger.info(f'Excluding {bbonds[0]}')
+            bbonds.pop(0)
+        else:
+            logger.info(f'Excluding {bbonds[1]}')
+            bbonds.pop(1)
+
+    return fbonds + bbonds
 
 
 class PathPoint:
