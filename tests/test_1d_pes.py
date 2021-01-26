@@ -1,11 +1,10 @@
 from autode.pes.pes_1d import get_ts_guess_1d, PES1d
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
-from autode.pes.pes import FormingBond
+from autode.bonds import FormingBond
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.ORCA import orca
-from autode.wrappers.XTB import xtb
 from autode.wrappers.keywords import OptKeywords
 from . import testutils
 from autode.utils import work_in

@@ -3,7 +3,7 @@ import numpy as np
 from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
 from autode.species.complex import ReactantComplex, ProductComplex
-from autode.pes.pes import FormingBond, BreakingBond
+from autode.bonds import FormingBond, BreakingBond
 from autode.reactions.reaction import Reaction
 from autode.wrappers.XTB import xtb
 from autode.config import Config
@@ -60,7 +60,7 @@ def test_get_ts_guess_2dscan():
     pes.calculate(name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt)
 
     assert pes.species[0, 1] is not None
-    assert  -13.13 < pes.species[0, 1].energy < -13.11
+    assert -13.13 < pes.species[0, 1].energy < -13.11
     assert pes.species.shape == (9, 8)
     assert pes.rs.shape == (9, 8)
     assert type(pes.rs[0, 1]) == tuple
@@ -85,8 +85,7 @@ def test_get_ts_guess_2dscan():
     fbond = FormingBond(atom_indexes=(0, 2), species=reactant)
     fbond.final_dist = 1.5
 
-    bbond = BreakingBond(atom_indexes=(1, 2), species=reactant,
-                         reaction=Reaction(ch3cl_f, ch3f_cl))
+    bbond = BreakingBond(atom_indexes=(1, 2), species=reactant)
     bbond.final_dist = 4.0
 
     ts_guess = pes_2d.get_ts_guess_2d(reactant=reactant,

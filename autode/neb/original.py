@@ -277,6 +277,10 @@ class NEB:
         logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
         return result
 
+    def contains_peak(self):
+        """Does this nudged elastic band calculation contain an energy peak?"""
+        return self.images.contains_peak
+
     def partition(self, n):
         """
         Partition this NEB into n steps between each image i.e. n=2 affords

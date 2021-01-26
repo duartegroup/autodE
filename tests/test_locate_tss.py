@@ -27,7 +27,7 @@ def test_one_to_three_dissociation():
     reaction.reactant, reaction.product = reactant, product
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
     assert len(bond_rearrangs) == 1
-    os.remove(f'{str(reaction)}_bond_rearrangs.txt')
+    os.remove(f'{str(reaction)}_BRs.txt')
 
     # This dissociation breaks two bonds and forms none
     bond_rearrangement = bond_rearrangs[0]

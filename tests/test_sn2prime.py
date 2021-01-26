@@ -34,7 +34,7 @@ def test_detection():
 
     # autodE should find both direct SN2 and SN2' pathways
     assert len(bond_rearrs) == 2
-    os.remove('SN2_bond_rearrangs.txt')
+    os.remove('SN2_BRs.txt')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sn2prime.zip'))

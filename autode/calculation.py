@@ -609,10 +609,11 @@ class Constraints:
         string = ''
 
         if self.cartesian is not None:
-            string += str({key: round(val, 3) for key, val in self.cartesian})
+            string += str(self.cartesian)
 
         if self.distance is not None:
-            string += str(self.distance)
+            string += str({key: round(val, 3)
+                           for key, val in self.distance.items()})
 
         return f'Constraints({string})'
 

@@ -71,6 +71,15 @@ class Path(list):
 
     def is_saddle(self, idx):
         """Is an index a saddle point"""
+        if idx == 0 or idx == len(self) -1:
+            logger.warning('Cannot be saddle point, index was at the end')
+            return False
+
+        if any(self[i].energy is None for i in (idx-1, idx, idx+1)):
+            logger.error(f'Could not determine if point {idx} was a saddle '
+                         f'point, an energy close by was None')
+            return False
+
         energy = self[idx].energy
         return self[idx-1].energy < energy and self[idx+1].energy < energy
 
