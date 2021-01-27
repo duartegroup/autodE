@@ -10,11 +10,26 @@ class Path(list):
 
     @property
     def energies(self):
-        """Numpy array of energy for each species/image in this path"""
+        """
+        Numpy array of energy for each species/image in this path
+
+        Returns:
+            (np.ndarray):
+        """
         return np.array([item.energy for item in self])
 
     @property
     def rel_energies(self):
+        """
+        "Relative energies in a particular unit
+
+        Returns:
+            (np.ndarray):
+        """
+        if len(self) == 0:
+            logger.warning('Cannot determine relative energies with no points')
+            return np.array([])
+
         return self.units.conversion * (self.energies - np.min(self.energies))
 
     @property
@@ -24,7 +39,7 @@ class Path(list):
         Returns:
              (int | None)
         """
-        if any(energy is None for energy in self):
+        if any(item.energy is None for item in self):
             logger.warning('An energy was None - cannot locate peak')
             return None
 
@@ -59,9 +74,6 @@ class Path(list):
             return False
 
         for i, point in enumerate(self):
-            if point.species.graph is None:
-                mol_graphs.make_graph(point.species)
-
             if mol_graphs.is_isomorphic(graph1=point.species.graph,
                                         graph2=product.graph):
                 logger.info(f'Products made at point {i}')
@@ -85,7 +97,7 @@ class Path(list):
 
     def plot_energies(self, save, name, color, xlabel):
         """Plot this path"""
-        if any(energy is None for energy in self.energies):
+        if len(self) == 0 or any(item.energy is None for item in self):
             logger.error('Could not plot a surface, an energy was None')
             return
 
@@ -120,7 +132,7 @@ class Path(list):
                               append=True)
         return None
 
-    def __init__(self, *args, units=KcalMol):
+    def __init__(self, *args, units=KcalMol()):
         """
         Base path class that may be populated with species or nudged elastic
         band images, *must* have .energy attributes

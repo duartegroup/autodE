@@ -226,7 +226,6 @@ def test_free_energy_profile():
 
     # Use a spoofed Gaussian09 and XTB install
     Config.lcode = 'xtb'
-    Config.XTB.path = here
 
     Config.hcode = 'g09'
     Config.G09.path = here
@@ -241,6 +240,11 @@ def test_free_energy_profile():
                             Product(name='Cl-', smiles='[Cl-]'),
                             Product(name='CH3F', smiles='CF'),
                             name='sn2', solvent_name='water')
+
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
+
     rxn.calculate_reaction_profile(free_energy=True)
 
     # Allow ~0.5 kcal mol-1 either side of the true value

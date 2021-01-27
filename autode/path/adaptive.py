@@ -2,6 +2,7 @@ import autode as ade
 import numpy as np
 from copy import deepcopy
 from autode.log import logger
+from autode.mol_graphs import make_graph
 from autode.path.path import Path
 from autode.transition_states.ts_guess import get_ts_guess
 from autode.utils import work_in
@@ -17,10 +18,10 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
         reactant (autode.species.Species):
         product (autode.species.Species):
         method (autode.wrappers.base.ElectronicStructureMethod):
-
-    Keyword Arguments:
         fbonds (list(autode.pes.pes.FormingBond)):
         bbonds (list(autode.pes.pes.BreakingBond)):
+
+    Keyword Arguments:
         name (str):
 
     Returns:
@@ -109,6 +110,8 @@ class PathPoint:
                         a tuple with distances (floats) as values
         """
         self.species = species
+
+        assert type(constraints) is dict
         self.constraints = constraints
 
         self.energy = None    # Ha
@@ -141,6 +144,7 @@ class AdaptivePath(Path):
 
         # Set the required properties from the calculation
         self[idx].species.atoms = calc.get_final_atoms()
+        make_graph(self[idx].species)
         self[idx].energy = calc.get_energy()
 
         if self.method.name == 'xtb':
