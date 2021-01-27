@@ -4,4 +4,5 @@ from autode.path.adaptive import PathPoint
 
 
 __all__ = ['Path',
-           'AdaptivePath']
+           'AdaptivePath',
+           'PathPoint']

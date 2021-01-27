@@ -11,12 +11,15 @@ test_species = Species(name='tmp', charge=0, mult=1, atoms=[Atom('He')])
 test_mol = Molecule(smiles='O')
 
 
-def test_path_properties():
+def test_path_properties_empty():
 
     path = Path()
 
     assert len(path) == 0
     assert isinstance(path.units, Unit)
+
+    assert path == Path()  # should be able to compare paths
+    assert path != 0
 
     # With no species there should be no peak/saddle/energies
     assert len(path.rel_energies) == 0
@@ -30,6 +33,8 @@ def test_path_properties():
     path.plot_energies(save=True, name='tmp', color='black', xlabel='none')
     assert not os.path.exists('tmp.png')
 
+
+def test_path_properties():
     p1 = PathPoint(test_species.copy(), constraints={})
     p1.energy = -3
     p2 = PathPoint(test_species.copy(), constraints={})

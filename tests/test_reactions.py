@@ -22,5 +22,12 @@ def test_classify():
     rearrangement = classify([0], [0])
     assert rearrangement.name == 'rearrangement'
 
+    # Needs to have at least some reactants and products
     with pytest.raises(ReactionFormationFalied):
-        classify([], [])
+        _ = classify([], [])
+        _ = classify([0], [])
+        _ = classify([], [0])
+
+    # 3 -> 3 reactions are not currently supported
+    with pytest.raises(NotImplementedError):
+        _ = classify([0, 1, 2], [3, 4, 5])

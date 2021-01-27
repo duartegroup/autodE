@@ -8,6 +8,13 @@ from autode.units import KcalMol
 
 class Path(list):
 
+    def __eq__(self, other):
+        """Are two paths equal?"""
+        if not isinstance(other, Path):
+            return False
+
+        return list.__eq__(self, other)
+
     @property
     def energies(self):
         """
@@ -138,7 +145,10 @@ class Path(list):
         band images, *must* have .energy attributes
 
         Arguments:
-            args (list(autode.species.Species | autode.neb.Image))
+            args (list(autode.species.Species | autode.neb.Image)):
+
+        Keyword Arguments:
+            units (autode.units.Unit):
         """
         super().__init__()
 
