@@ -175,6 +175,16 @@ class Image:
 
 class Images(Path):
 
+    def __eq__(self, other):
+        """Equality od two climbing image NEB paths"""
+        if not isinstance(other, Images):
+            return None
+
+        if any((self.min_k != other.min_k, self.max_k != other.max_k)):
+            return False
+
+        return super().__eq__(other)
+
     def increment(self):
         """Advance all the iteration numbers on the images to name correctly
         also update force constants"""

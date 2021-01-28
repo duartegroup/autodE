@@ -14,6 +14,27 @@ from autode.mol_graphs import make_graph
 # be regenerated allowing for invalid hydrogen valencies
 
 
+def test_prune_small_rings3():
+
+    # Square H4 "molecule"
+    h4 = Molecule(atoms=[Atom('H'), Atom('H', x=0.5),
+                         Atom('H', y=0.5), Atom('H', x=0.5, y=0.5)])
+    make_graph(h4, allow_invalid_valancies=True)
+
+    # Some unphysical bond rearrangements
+    three_mem = BondRearrangement(forming_bonds=[(0, 3)],
+                                  breaking_bonds=[(1, 2)])
+    four_mem = BondRearrangement(forming_bonds=[(0, 1)],
+                                 breaking_bonds=[(1, 2)])
+    bond_rearrs = [three_mem, four_mem]
+
+    ade.Config.skip_small_ring_tss = True
+    br.prune_small_ring_rearrs(bond_rearrs, h4)
+
+    # Should not prune if there are different ring sizes
+    assert len(bond_rearrs) == 2
+
+
 def test_prune_small_rings2():
     reaction = ade.Reaction('CCCC=C>>C=C.C=CC')
     reaction.find_complexes()
@@ -278,3 +299,21 @@ def test_2b2f():
     prod = Molecule(atoms=[Atom('H', 0, 0, 0), Atom('C', 10, 0, 0), Atom('N', 1.2, 0, 0), Atom('C', 0.6, 0, 0)])
     assert br.get_fbonds_bbonds_2b2f(reac, prod, [], [], [], [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]], [], []) == [br.BondRearrangement(forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)])]
 
+
+def test_br_from_file():
+
+    path = '/a/path/that/doesnt/exist'
+    assert br.get_bond_rearrangs_from_file(filename=path) is None
+
+    with open('tmp.txt', 'w') as br_file:
+        print('fbonds\n'
+              '0 1\n'
+              'end', file=br_file)
+
+    saved_brs = br.get_bond_rearrangs_from_file(filename='tmp.txt')
+    os.remove('tmp.txt')
+    assert len(saved_brs) == 1
+
+    saved_br = saved_brs[0]
+    assert saved_br.n_fbonds == 1
+    assert saved_br.n_bbonds == 0

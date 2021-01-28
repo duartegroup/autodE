@@ -272,3 +272,18 @@ def test_free_energy_profile():
     Config.G09.path = None
     Config.lcode = None
     Config.XTB.path = None
+
+
+def test_unavail_properties():
+    ha = reaction.Reactant(name='ha', atoms=[Atom('H')])
+
+    hb = reaction.Product(name='hb', atoms=[Atom('H')])
+
+    rxn = reaction.Reaction(ha, hb)
+    delta = reaction.calc_delta_with_cont(left=[ha], right=[hb], cont='h_cont')
+    assert delta is None
+
+    # Should not raise an exception(?)
+    rxn.find_lowest_energy_ts_conformer()
+    rxn.calculate_thermochemical_cont(free_energy=False, enthalpy=False)
+

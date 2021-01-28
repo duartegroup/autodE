@@ -79,7 +79,7 @@ def test_get_ts_guess_neb():
     xtb = XTB()
 
     # Don't run the NEB without a working XTB install
-    if shutil.which('xtb') is None or  not shutil.which('xtb').endswith('xtb'):
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
         return
 
     xtb.path = shutil.which('xtb')

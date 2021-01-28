@@ -120,6 +120,13 @@ class PathPoint:
 
 class AdaptivePath(Path):
 
+    def __eq__(self, other):
+        """Equality of two adaptive paths"""
+        if not isinstance(other, AdaptivePath):
+            return False
+
+        return super().__eq__(other)
+
     @work_in('initial_path')
     def append(self, point) -> None:
         """
@@ -315,8 +322,10 @@ class AdaptivePath(Path):
         for bond in bonds:
             assert bond.curr_dist is not None and bond.final_dist is not None
 
-        # Add the first point - will run a constrained minimisation
+        # Add the first point - will run a constrained minimisation if possible
         init_point = PathPoint(species=init_species,
                                constraints={bond.atom_indexes: bond.curr_dist
                                             for bond in bonds})
-        self.append(init_point)
+
+        if init_point.species.n_atoms > 0:
+            self.append(init_point)

@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from autode.atoms import Atom
+from autode.methods import XTB, ORCA
 from autode.path import Path, AdaptivePath, PathPoint
 from autode.path.adaptive import pruned_active_bonds
 from autode.bonds import FormingBond, BreakingBond
@@ -122,3 +123,17 @@ def test_products_made():
     diff_mol = test_mol.copy()
     diff_mol.graph.remove_edge(0, 1)
     assert not path.products_made(product=diff_mol)
+
+
+def test_adaptive_path():
+
+    species_no_atoms = Species(name='tmp', charge=0, mult=1, atoms=[])
+    path1 = AdaptivePath(init_species=species_no_atoms,
+                         bonds=[],
+                         method=XTB())
+    assert len(path1) == 0
+    assert path1.method.name == 'xtb'
+    assert len(path1.bonds) == 0
+
+    assert path1 != 0
+    assert path1 == path1

@@ -167,22 +167,19 @@ def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
 
     with open(filename, 'r') as br_file:
         fbonds_block = False
-        bbonds_block = True
-        fbonds = []
-        bbonds = []
+        fbonds, bbonds = [], []
         for line in br_file:
             if 'fbonds' in line:
                 fbonds_block = True
-                bbonds_block = False
-            if 'bbonds' in line:
-                fbonds_block = False
-                bbonds_block = True
-            if fbonds_block and len(line.split()) == 2:
-                atom_id_string = line.split()
-                fbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
-            if bbonds_block and len(line.split()) == 2:
-                atom_id_string = line.split()
-                bbonds.append((int(atom_id_string[0]), int(atom_id_string[1])))
+
+            if len(line.split()) == 2:
+                atom_idx0, atom_idx1 = (int(val) for val in line.split())
+
+                if fbonds_block:
+                    fbonds.append((atom_idx0, atom_idx1))
+                if not fbonds_block:
+                    bbonds.append((atom_idx0, atom_idx1))
+
             if 'end' in line:
                 bond_rearrangs.append(BondRearrangement(forming_bonds=fbonds,
                                                         breaking_bonds=bbonds))
