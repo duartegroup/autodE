@@ -36,6 +36,14 @@ class CImage(Image):
 
 class CImages(Images):
 
+    def __eq__(self, other):
+        """Equality of climbing image NEB"""
+        if (not isinstance(other, CImages)
+                or self.wait_iteration != other.wait_iteration):
+            return False
+
+        return super().__eq__(other)
+
     def increment(self):
         """Increment the counter, and switch on a climbing image"""
         super().increment()

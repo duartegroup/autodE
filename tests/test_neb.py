@@ -1,7 +1,8 @@
 import shutil
 import os
 from autode.path import Path
-from autode.neb import NEB
+from autode.neb import NEB, CINEB
+from autode.neb.ci import CImages, Image
 from autode.species.molecule import Species
 from autode.species.molecule import Reactant
 from autode.neb.neb import get_ts_guess_neb
@@ -12,6 +13,14 @@ from . import testutils
 
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+
+def test_image_properties():
+
+    images = CImages(images=[Image(name='tmp', k=0.1)])
+    assert images != 0
+    assert images == images
+
 
 
 def test_contains_peak():
