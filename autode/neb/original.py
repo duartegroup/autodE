@@ -326,7 +326,8 @@ class NEB:
         return self.images.print_geometries(name)
 
     def interpolate_geometries(self):
-        """Generate simple interpolated coordinates for these set of images"""
+        """Generate simple interpolated coordinates for these set of images
+        in Cartesian coordinates"""
         n = len(self.images)
 
         # Interpolate images between the starting point i=0 and end point i=n-1
@@ -389,6 +390,7 @@ class NEB:
 
         self.images[0].species = initial
         self.images[-1].species = final
+        self.interpolate_geometries()
 
         return None
 

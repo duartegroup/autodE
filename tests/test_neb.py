@@ -2,17 +2,43 @@ import shutil
 import os
 from autode.path import Path
 from autode.neb import NEB, CINEB
-from autode.neb.ci import CImages, Image
+from autode.neb.ci import Images, CImages, Image
 from autode.species.molecule import Species
 from autode.species.molecule import Reactant
 from autode.neb.neb import get_ts_guess_neb
 from autode.atoms import Atom
 from autode.input_output import xyz_file_to_atoms
-from autode.methods import XTB
+from autode.methods import XTB, ORCA
 from . import testutils
 
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+
+def test_neb_properties():
+
+    # H-H  H
+    reac = Species(name='reac', charge=0, mult=2,
+                   atoms=[Atom('H'), Atom('H', x=0.7), Atom('H', x=2.0)])
+    # H  H-H
+    prod = Species(name='prod', charge=0, mult=2,
+                   atoms=[Atom('H'), Atom('H', x=1.3), Atom('H', x=2.0)])
+
+    neb = NEB(initial_species=reac, final_species=prod, num=3)
+    assert len(neb.images) == 3
+    assert neb.get_species_saddle_point() is None
+    assert not neb.contains_peak()
+
+    neb.partition(n=2)
+    assert len(neb.images) == 5
+
+    # Should move monotonically from 0.7 -> 1.3 Angstroms
+    for i in range(1, 5):
+
+        prev_bb_dist = neb.images[i-1].species.distance(0, 1)
+        curr_bb_dist = neb.images[i].species.distance(0, 1)
+
+        assert curr_bb_dist > prev_bb_dist
 
 
 def test_image_properties():
@@ -21,6 +47,9 @@ def test_image_properties():
     assert images != 0
     assert images == images
 
+    images = Images(init_k=0.1, num=1)
+    assert images != 0
+    assert images == images
 
 
 def test_contains_peak():
@@ -105,3 +134,24 @@ def test_get_ts_guess_neb():
 
     if os.path.exists('neb.xyz'):
         os.remove('neb.xyz')
+
+    # Trying to get a TS guess with an unavailable method should return None
+    # as a TS guess
+    orca = ORCA()
+    orca.path = None
+
+    orca_ts_guess = get_ts_guess_neb(reactant, product, method=orca, n=10)
+    assert orca_ts_guess is None
+
+
+def test_climbing_image():
+
+    images = CImages(images=[Image(name='tmp', k=0.1)])
+    assert images.peak_idx is None
+    assert images[0].iteration == 0
+    images[0].iteration = 10
+
+    images.increment()
+    # with no peak there should be no Image -> CIImage change
+    assert images[0].iteration == 10
+    assert isinstance(images[0], Image)

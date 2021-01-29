@@ -31,7 +31,6 @@ def get_ts_guess_neb(reactant, product, method, name='neb', n=10):
     neb = CINEB(initial_species=reactant.copy(),
                 final_species=product.copy(),
                 num=n)
-    neb.interpolate_geometries()
 
     # Calculate and generate the TS guess, in a unique directory
     try:
@@ -41,8 +40,8 @@ def get_ts_guess_neb(reactant, product, method, name='neb', n=10):
 
         calculate()
 
-    except (ex.CouldNotGetProperty, ex.AtomsNotFound):
-        logger.error('NEB failed')
+    except ex.CalculationException:
+        logger.error('NEB failed - could not calculate')
         return None
 
     return get_ts_guess(neb.get_species_saddle_point(), reactant, product,
