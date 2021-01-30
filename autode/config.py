@@ -1,7 +1,7 @@
 import autode.wrappers.implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.basis_sets import def2svp, def2tzvp
-from autode.wrappers.functionals import pbe, pbe0
+from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.ri import rijcosx
 
