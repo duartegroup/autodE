@@ -46,7 +46,8 @@ class TSbase(Species):
             method (autode.wrappers.base.ElectronicStructureMethod):
 
             threshold (float | None): Negative float (rather than imaginary
-                                      complex number)
+                                      complex number) if None then the default
+                                      Config.min_imag_freq is used
         Returns:
             (bool):
         """

@@ -1,6 +1,7 @@
 import autode as ade
 
 ade.Config.n_cores = 8
+ade.Config.hcode = 'g09'   # Use Gaussian09 as the high-level method
 
 # For hydroxide to be not too reactive in solution requires diffuse functions;
 # set all the optimisation and the hessian keywords to include the ma-def2-SVP

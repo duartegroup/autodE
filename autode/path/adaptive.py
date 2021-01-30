@@ -202,7 +202,8 @@ class AdaptivePath(Path):
         Arguments:
             point (autode.neb.PathPoint):
         """
-        logger.info(f'Adjusting constraints on')
+        logger.info(f'Adjusting constraints on point {len(self)}')
+
         # Flat list of all the atom indexes involved in the bonds
         atom_idxs = [i for bond in self.bonds for i in bond]
 

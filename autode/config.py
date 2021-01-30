@@ -116,11 +116,8 @@ class Config:
     #
     adaptive_neb_k = True
     # -------------------------------------------------------------------------
-    # Step size to use for the initial PES exploration in organic species (Å)
+    # Minimum and maximum step size to use for the adaptive path search (Å)
     #
-    neb_step_size = 0.3
-
-    # TODO - optimise for maximum efficiency
     min_step_size = 0.05
     max_step_size = 0.3
     # -------------------------------------------------------------------------
@@ -149,7 +146,7 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0,  d3bj, def2svp],
+        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj, def2svp],
                                grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
                                      'AutoAux'],
                                opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
@@ -211,7 +208,7 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate, RecalcFC=30)')
 
-        keywords = KeywordsSet(low_opt=[pbe, def2svp, 'Opt=Loose', d3bj],
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', d3bj],
                                grad=[pbe0, def2svp, 'Force(NoStep)', d3bj],
                                opt=[pbe0, def2svp, 'Opt', d3bj],
                                opt_ts=[pbe0, def2svp, 'Freq', d3bj,

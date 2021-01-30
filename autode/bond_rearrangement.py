@@ -172,6 +172,9 @@ def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
             if 'fbonds' in line:
                 fbonds_block = True
 
+            if 'bbonds' in line:
+                fbonds_block = False
+
             if len(line.split()) == 2:
                 atom_idx0, atom_idx1 = (int(val) for val in line.split())
 

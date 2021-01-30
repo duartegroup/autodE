@@ -311,9 +311,25 @@ def test_br_from_file():
               'end', file=br_file)
 
     saved_brs = br.get_bond_rearrangs_from_file(filename='tmp.txt')
-    os.remove('tmp.txt')
     assert len(saved_brs) == 1
 
     saved_br = saved_brs[0]
     assert saved_br.n_fbonds == 1
     assert saved_br.n_bbonds == 0
+
+    with open('tmp.txt', 'w') as br_file:
+        print('fbonds\n'
+              '1 12\n'
+              'bbonds\n'
+              '6 12\n'
+              '7 8\n'
+              'endn\n', file=br_file)
+
+    saved_brs = br.get_bond_rearrangs_from_file(filename='tmp.txt')
+    assert len(saved_brs) == 1
+
+    saved_br = saved_brs[0]
+    assert saved_br.n_fbonds == 1
+    assert saved_br.n_bbonds == 2
+
+    os.remove('tmp.txt')

@@ -40,6 +40,9 @@ def test_neb_properties():
 
         assert curr_bb_dist > prev_bb_dist
 
+    if os.path.exists('neb.xyz'):
+        os.remove('neb.xyz')
+
 
 def test_image_properties():
 
