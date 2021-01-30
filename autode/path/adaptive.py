@@ -154,10 +154,11 @@ class AdaptivePath(Path):
         make_graph(self[idx].species)
         self[idx].energy = calc.get_energy()
 
-        if self.method.name == 'xtb':
+        if self.method.name == 'xtb' or self.method.name == 'mopac':
             # XTB prints gradients including the constraints, which are ~0
             # the gradient here is just the derivative of the electronic energy
             # so rerun a gradient calculation, which should be very fast
+            # while MOPAC doesn't print gradients for a constrained opt
             calc = ade.Calculation(name=f'path_grad{idx}',
                                    molecule=self[idx].species,
                                    method=self.method,
