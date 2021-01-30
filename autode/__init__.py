@@ -11,7 +11,9 @@ from autode.units import KjMol
 from autode.calculation import Calculation
 from autode import methods
 from autode import geom
+from autode import pes
 from autode import utils
+from autode import neb
 from autode import mol_graphs
 
 __version__ = '1.0.0b3'
@@ -31,6 +33,8 @@ __all__ = [
     'KcalMol',
     'Calculation',
     'KjMol',
+    'pes',
+    'neb',
     'geom',
     'methods',
     'mol_graphs',

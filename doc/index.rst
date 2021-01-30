@@ -7,6 +7,9 @@ Overview of autodE_
 
 **autodE** is a Python module designed for the automated calculation of reaction
 profiles from reactant(s) and product(s) given as 1D SMILES or 3D structures.
+Functionality for conformational sampling (RR algorithm) and transition state
+finding (NEB, CI-NEB, adapt.) is also available.
+
 
 .. warning::
     **autodE** is still beta release. Please report any bugs `here <https://github.com/duartegroup/autodE/issues>`_

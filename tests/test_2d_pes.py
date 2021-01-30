@@ -30,6 +30,16 @@ def test_polyfit2d():
     assert -0.005 < coeff_mat[1, 1] < 0.005
 
 
+def test_2dpes_properties():
+
+    pes = pes_2d.PES2d(reactant=Reactant(smiles='O'),
+                       product=Product(),
+                       r1s=np.linspace(4.0, 1.5, 9), r1_idxs=(0, 2),
+                       r2s=np.linspace(1.78, 4.0, 8), r2_idxs=(1, 2))
+
+    assert not pes.products_made()
+
+
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'pes2d.zip'))
 def test_get_ts_guess_2dscan():
 

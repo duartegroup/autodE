@@ -1,9 +1,12 @@
-from autode import Reactant, Product, Reaction, Config
-Config.n_cores = 4
+import autode as ade
 
-r1 = Reactant(smiles='CC(C)=O', name='acetone')
-r2 = Reactant(smiles='[C-]#N', name='cn-')
-p = Product(smiles='CC([O-])(C#N)C', name='prod')
+ade.Config.n_cores = 8
 
-reaction = Reaction(r1, r2, p, solvent_name='water')
+# For this reaction involving anionic CN- use a basis set with diffuse
+# functions
+ade.Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
+ade.Config.ORCA.keywords.sp.basis_set = 'ma-def2-TZVP'
+
+
+reaction = ade.Reaction('CC(C)=O.[C-]#N>>CC([O-])(C#N)C', solvent_name='water')
 reaction.calculate_reaction_profile()

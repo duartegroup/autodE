@@ -22,6 +22,8 @@ Usability improvements
 
 - :code:`species.centre()` will translate a species so it's coordinate centroid lies at the origin
 
+- PBE0/def2-SVP is now the default 'low opt' method (`keywords.low_opt`) with loose optimisation. Path exploration uses this method, thus it needs to be very close to the 'opt' level
+
 
 Functionality improvements
 **************************

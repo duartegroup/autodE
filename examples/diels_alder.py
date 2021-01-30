@@ -1,10 +1,6 @@
-from autode import *
+import autode as ade
 
-Config.n_cores = 2
+ade.Config.n_cores = 8
 
-butadiene = Reactant(name='butadiene', smiles='C=CC=C')
-ethene = Reactant(name='ethene', smiles='C=C')
-cyclohexene = Product(name='cyclohexene', smiles='C1C=CCCC1')
-
-reaction = Reaction(butadiene, ethene, cyclohexene, name='diels_alder')
+reaction = ade.Reaction('C=CC=C.C=C>>C1C=CCCC1', name='diels_alder')
 reaction.calculate_reaction_profile()
