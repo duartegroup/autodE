@@ -1,3 +1,6 @@
+import pytest
+import os
+import numpy as np
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
 from autode.calculation import Calculation
@@ -8,9 +11,7 @@ from autode.exceptions import NoInputError
 from autode.exceptions import NoNormalModesFound
 from autode.point_charges import PointCharge
 from autode.config import Config
-import pytest
-import os
-import numpy as np
+from autode.atoms import Atom
 from . import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -24,6 +25,32 @@ optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
                               'MaxCycles=100, MaxStep=10, NoTrustUpdate)'])
 
 sp_keywords = SinglePointKeywords(['PBE1PBE/Def2SVP'])
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
+def test_get_gradients():
+
+    ester = Molecule(name='ester', charge=-1,
+                     atoms=[Atom('C', - 1.82707,  0.08502,  0.12799),
+                            Atom('C', - 0.42971,  0.07495,- 0.39721),
+                            Atom('O',   0.47416, -0.05624,  0.58034),
+                            Atom('C',   1.84921, -0.11372,  0.17588),
+                            Atom('O', - 0.11743,  0.16179,- 1.57499),
+                            Atom('H', - 1.93163,  0.83516,  0.91779),
+                            Atom('H', - 2.52831,  0.29353,- 0.68072),
+                            Atom('H', - 2.05617, -0.89219,  0.56728),
+                            Atom('H',   2.41930, -0.21232,  1.09922),
+                            Atom('H',   2.13056,   0.80382, -0.3467),
+                            Atom('H',   2.01729, -0.97969, -0.4689)])
+
+    calc = Calculation(name='ester', molecule=ester,
+                       method=method, keywords=method.keywords.opt)
+    calc.output.filename = 'ester_opt_g09.log'
+    calc.output.set_lines()
+
+    gradients = calc.get_gradients()
+    assert gradients is not None
+    assert gradients.shape == (ester.n_atoms, 3)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))

@@ -496,35 +496,41 @@ class G09(ElectronicStructureMethod):
         return None
 
     def get_gradients(self, calc):
-        gradients_section = False
+        """
+        Get gradients from a Gaussian output file in the format
+
+
+        -------------------------------------------------------------------
+         Center     Atomic                   Forces (Hartrees/Bohr)
+         Number     Number              X              Y              Z
+         -------------------------------------------------------------------
+          1        6          -0.000205102    0.000074692    0.000073625
+          .        .                .              .               .
+        """
+        n_atoms = calc.molecule.n_atoms
         gradients = []
-        dashed_line = 0
 
-        for line in calc.output.file_lines:
+        for i, line in enumerate(calc.output.file_lines):
 
-            if 'Axes restored to original set' in line:
-                gradients_section = True
-                gradients = []
-                dashed_line = 0
+            if 'Forces (Hartrees/Bohr)' not in line:
+                continue
 
-            if gradients_section and '--------' in line:
-                dashed_line += 1
-                if dashed_line == 3:
-                    gradients_section = False
+            # Reset the gradients, possibly multiple in a file
+            gradients = []
 
-            if gradients_section and len(line.split()) == 5:
-                _, _, fx, fy, fz = line.split()
+            for force_line in calc.output.file_lines[i+3:i+3+n_atoms]:
+
                 try:
+                    _, _, fx, fy, fz = force_line.split()
+
                     # Ha / a0
                     force = np.array([float(fx), float(fy), float(fz)])
 
                     grad = -force / Constants.a02ang
                     gradients.append(grad)
+
                 except ValueError:
-                    pass
-        for line in gradients:
-            for i in range(3):
-                line[i] *= -1
+                    logger.warning('Failed to set gradient line')
 
         return np.array(gradients)
 
