@@ -9,14 +9,14 @@ class KeywordsSet:
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
-        for attr in ('opt', 'opt_ts', 'grad', 'hess'):
+        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
             getattr(self, attr).functional = functional
 
         return None
 
     def set_opt_basis_set(self, basis_set):
         """Set the basis set for all optimisation and gradient calculations"""
-        for attr in ('opt', 'opt_ts', 'grad', 'hess'):
+        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
             getattr(self, attr).basis_set = basis_set
 
         return None

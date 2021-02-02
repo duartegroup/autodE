@@ -3,7 +3,7 @@ import numpy as np
 from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
 from autode.species.complex import ReactantComplex, ProductComplex
-from autode.pes.pes import FormingBond, BreakingBond
+from autode.bonds import FormingBond, BreakingBond
 from autode.reactions.reaction import Reaction
 from autode.wrappers.XTB import xtb
 from autode.config import Config
@@ -28,6 +28,16 @@ def test_polyfit2d():
     assert 1.995 < coeff_mat[0, 1] < 2.005
     assert 0.995 < coeff_mat[1, 0] < 1.005
     assert -0.005 < coeff_mat[1, 1] < 0.005
+
+
+def test_2dpes_properties():
+
+    pes = pes_2d.PES2d(reactant=Reactant(smiles='O'),
+                       product=Product(),
+                       r1s=np.linspace(4.0, 1.5, 9), r1_idxs=(0, 2),
+                       r2s=np.linspace(1.78, 4.0, 8), r2_idxs=(1, 2))
+
+    assert not pes.products_made()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'pes2d.zip'))
@@ -60,7 +70,7 @@ def test_get_ts_guess_2dscan():
     pes.calculate(name='SN2_PES', method=xtb, keywords=xtb.keywords.low_opt)
 
     assert pes.species[0, 1] is not None
-    assert  -13.13 < pes.species[0, 1].energy < -13.11
+    assert -13.13 < pes.species[0, 1].energy < -13.11
     assert pes.species.shape == (9, 8)
     assert pes.rs.shape == (9, 8)
     assert type(pes.rs[0, 1]) == tuple
@@ -85,8 +95,7 @@ def test_get_ts_guess_2dscan():
     fbond = FormingBond(atom_indexes=(0, 2), species=reactant)
     fbond.final_dist = 1.5
 
-    bbond = BreakingBond(atom_indexes=(1, 2), species=reactant,
-                         reaction=Reaction(ch3cl_f, ch3f_cl))
+    bbond = BreakingBond(atom_indexes=(1, 2), species=reactant)
     bbond.final_dist = 4.0
 
     ts_guess = pes_2d.get_ts_guess_2d(reactant=reactant,
@@ -100,5 +109,5 @@ def test_get_ts_guess_2dscan():
     assert ts_guess is not None
     assert ts_guess.n_atoms == 6
     assert ts_guess.energy is None
-    assert 1.9 < ts_guess.get_distance(0, 2) < 2.1
-    assert 1.9 < ts_guess.get_distance(1, 2) < 2.0
+    assert 1.9 < ts_guess.distance(0, 2) < 2.1
+    assert 1.9 < ts_guess.distance(1, 2) < 2.0

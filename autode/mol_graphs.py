@@ -8,7 +8,7 @@ import autode.exceptions as ex
 from scipy.spatial import distance_matrix
 from autode.atoms import get_maximal_valance
 from autode.atoms import is_pi_atom
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.log import logger
 from autode.atoms import get_atomic_weight
 
@@ -17,17 +17,19 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
                allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria
-    or a smiles parser object. All attributes default to false
+    or a smiles parser object. All attributes default to false::
 
-    Nodes attributes:
-        (0) atom_label: Atomic symbol of this atom
-        (1) stereo: Is this atom part of some stereochemistry e.g. R/S or E/Z
+        Nodes attributes;
+            (0) atom_label: Atomic symbol of this atom
+            (1) stereo: Is this atom part of some stereochemistry e.g. R/S or
+                        E/Z
 
-    Edge attributes:
-        (1) pi: Is this bond a pi bond. If it is then there should be no
-                rotation the bond axis in conformer generation
-        (2) active: Is this bond being made/broken
-                   (applies only to TransitionState objects)
+        Edge attributes;
+            (1) pi: Is this bond a pi bond. If it is then there should be no
+                    rotation the bond axis in conformer generation
+            (2) active: Is this bond being made/broken
+                       (applies only to TransitionState objects)
+
 
     Arguments:
         species (autode.species.Species):
@@ -56,8 +58,8 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
 
     else:
         # Loop over the unique pairs of atoms and add 'bonds'
-        coordinates = species.get_coordinates()
-        dist_mat = distance_matrix(coordinates, coordinates)
+        coords = species.coordinates
+        dist_mat = distance_matrix(coords, coords)
 
         for i in get_atom_ids_sorted_type(species):
 
@@ -131,7 +133,7 @@ def remove_bonds_invalid_valancies(species):
 
         # Get the atom indexes sorted by the closest to atom i
         closest_atoms = sorted(neighbours,
-                               key=lambda k: species.get_distance(i, k))
+                               key=lambda k: species.distance(i, k))
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
         for j in closest_atoms[max_valance:]:

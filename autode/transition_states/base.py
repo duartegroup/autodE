@@ -1,5 +1,6 @@
 from copy import deepcopy
 import autode.exceptions as ex
+from autode.atoms import metals
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.log import logger
@@ -33,21 +34,29 @@ class TSbase(Species):
             raise ValueError('Could not check imaginary mode – reactants '
                              ' and/or products not set ')
 
-    def could_have_correct_imag_mode(self, method=None, threshold=-45):
+    def could_have_correct_imag_mode(self, method=None, threshold=None):
         """
-        Determine if a point on the PES could have the correct imaginary mode. This must have
+        Determine if a point on the PES could have the correct imaginary mode.
+        This must have
 
         (0) An imaginary frequency      (quoted as negative in most EST codes)
         (1) The most negative(/imaginary) is more negative that a threshold
 
         Keywords Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
-            threshold (float):
 
+            threshold (float | None): Negative float (rather than imaginary
+                                      complex number) if None then the default
+                                      Config.min_imag_freq is used
         Returns:
             (bool):
         """
         self._check_reactants_products()
+
+        # Use the default threshold in Config if unspecified
+        if threshold is None:
+            threshold = Config.min_imag_freq
+
         # By default the high level method is used to check imaginary modes
         if method is None:
             method = get_hmethod()
@@ -232,7 +241,9 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
     b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
                         charge=0, mult=1)
 
-    if imag_mode_generates_other_bonds(ts_species, f_species, b_species, bond_rearrangement):
+    # Be conservative with metal complexes - what even is a bond..
+    if imag_mode_generates_other_bonds(ts_species, f_species, b_species,
+                                       bond_rearrangement, allow_mx=True):
         logger.warning('Imaginary mode generates bonds that are not active')
         return False
 
@@ -244,8 +255,8 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
 
         for fbond in bond_rearrangement.fbonds:
 
-            ts_dist = ts_species.get_distance(*fbond)
-            p_dist = product.get_distance(*fbond)
+            ts_dist = ts_species.distance(*fbond)
+            p_dist = product.distance(*fbond)
 
             # Displaced distance towards products should be shorter than the
             # distance at the TS if the bond is forming
@@ -257,8 +268,8 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
 
         for bbond in bond_rearrangement.bbonds:
 
-            ts_dist = ts_species.get_distance(*bbond)
-            p_dist = product.get_distance(*bbond)
+            ts_dist = ts_species.distance(*bbond)
+            p_dist = product.distance(*bbond)
 
             # Displaced distance towards products should be longer than the
             # distance at the TS if the bond is breaking
@@ -285,10 +296,19 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
     return False
 
 
-def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement):
+def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement,
+                                    allow_mx=False):
     """Determine if the forward or backwards displaced molecule break or make
     bonds that aren't in all the active bonds bond_rearrangement.all. Will be
-    fairly conservative here"""
+    fairly conservative here
+
+    Arguments:
+        ts (autode.species.Species):
+        f_species (autode.species.Species): Forward displaced species
+        b_species (autode.species.Species): Backward displaced species
+        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+        allow_mx (bool): Allow any metal-X bonds where X is another element
+    """
 
     for species in (ts, f_species, b_species):
         make_graph(species, rel_tolerance=0.3)
@@ -297,6 +317,11 @@ def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement
 
         new_bonds_in_product = set([bond for bond in product.graph.edges
                                     if bond not in ts.graph.edges])
+
+        if allow_mx:
+            new_bonds_in_product = set([(i, j) for i, j in new_bonds_in_product
+                                        if ts.atoms[i].label not in metals and
+                                        ts.atoms[j].label not in metals])
 
         # If there are new bonds in the forward displaced species that are not
         # part of the bond rearrangement

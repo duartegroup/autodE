@@ -58,16 +58,31 @@ class PES2d(PES):
 
         return None
 
+    def energies(self):
+        """
+        Get a matrix of absolute energies over the two dimensions
+
+        Returns:
+            (np.ndarray): shape = (n_points_r1, self.n_points_r2)
+        """
+        e_mat = np.zeros(shape=(self.n_points_r1, self.n_points_r2))
+
+        for i in range(self.n_points_r1):
+            for j in range(self.n_points_r2):
+                energy = self.species[i, j].energy
+                e_mat[i, j] = energy if energy is not None else 0
+
+        return e_mat
+
     def fit(self, polynomial_order):
         """Fit an analytic 2d surface"""
 
-        energies = [species.energy for species in self.species.flatten()]
-        if any(energy is None for energy in energies):
+        e_array = self.energies().flatten()
+        if any(energy == 0 for energy in e_array):
             raise FitFailed
 
         # Compute a flat list of relative energies to use to fit the polynomial
-        min_energy = min(energies)
-        rel_energies = [KcalMol.conversion * (species.energy - min_energy) for species in self.species.flatten()]
+        rel_energies = KcalMol.conversion * (e_array - np.min(e_array))
 
         # Compute a polynomial_order x polynomial_order matrix of coefficients
         self.coeff_mat = polyfit2d(x=[r[0] for r in self.rs.flatten()],
@@ -77,12 +92,19 @@ class PES2d(PES):
 
     def print_plot(self, name='PES2d'):
         """Print the fitted 2D surface using matplotlib"""
+        if self.coeff_mat is None:
+            self.fit(polynomial_order=3)
+
         return plot_2dpes(coeff_mat=self.coeff_mat, r1=self.r1s, r2=self.r2s, name=name)
 
     def products_made(self):
         """Check that somewhere on the surface the molecular graph is
         isomorphic to the product"""
         logger.info('Checking product(s) are made somewhere on the surface')
+
+        # Requires a product graph to check
+        if self.product_graph is None:
+            return False
 
         for i in range(self.n_points_r1):
             for j in range(self.n_points_r2):

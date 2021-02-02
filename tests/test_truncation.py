@@ -80,8 +80,7 @@ methlyethylether = Reactant(name='ether', charge=0, mult=1,
 
 
 def test_core_strip():
-    bond_rearr = BondRearrangement()
-    bond_rearr.active_atoms = [0]
+    bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)])
 
     stripped = get_truncated_complex(methane, bond_rearr)
     # Should not strip any atoms if the carbon is designated as active
@@ -90,7 +89,7 @@ def test_core_strip():
     stripped = get_truncated_complex(ethene, bond_rearr)
     assert stripped.n_atoms == 6
 
-    bond_rearr.active_atoms = [1]
+    bond_rearr = BondRearrangement(breaking_bonds=[(1, 3)])
     # Propene should strip to ethene if the terminal C=C is the active atom
     stripped = get_truncated_complex(propene, bond_rearr)
     assert stripped.n_atoms == 6
@@ -105,7 +104,7 @@ def test_core_strip():
     stripped = get_truncated_complex(benzene, bond_rearr)
     assert stripped.n_atoms == 12
 
-    bond_rearr.active_atoms = [0]
+    bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)])
     # Ethanol with the terminal C as the active atom should not replace the OH
     # with a H
     stripped = get_truncated_complex(ethanol, bond_rearr)

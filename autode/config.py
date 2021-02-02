@@ -1,7 +1,7 @@
 import autode.wrappers.implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.basis_sets import def2svp, def2tzvp
-from autode.wrappers.functionals import pbe, pbe0
+from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.ri import rijcosx
 
@@ -111,6 +111,32 @@ class Config:
     #
     hmethod_sp_conformers = False
     # -------------------------------------------------------------------------
+    # Use adaptive force constant modification in NEB calculations to improve
+    # sampling around the saddle point
+    #
+    adaptive_neb_k = True
+    # -------------------------------------------------------------------------
+    # Minimum and maximum step size to use for the adaptive path search (Å)
+    #
+    min_step_size = 0.05
+    max_step_size = 0.3
+    # -------------------------------------------------------------------------
+    # Heuristic for pruning the bond rearrangement set. If there are only bond
+    # rearrangements that involve small rings then TSs involving small rings
+    # are possible. However, when there are multiple possibilities involving
+    # the same set of atoms then discard any rearrangements that would involve
+    # a 3 or 4-membered TS e.g. skip the possible 4-membered TS for a Cope
+    # rearrangement in hexadiene
+    #
+    skip_small_ring_tss = True
+    # -------------------------------------------------------------------------
+    # Minimum magnitude of the imaginary frequency (cm-1) to consider for a
+    # 'true' TS. For very shallow saddle points this may need to be reduced
+    # to e.g. -10 cm-1. Although most TSs have |v_imag| > 100 cm-1 this
+    # threshold is designed to be conservative
+    #
+    min_imag_freq = -40
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------
@@ -120,7 +146,7 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', pbe,  d3bj, def2svp],
+        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj, def2svp],
                                grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
                                      'AutoAux'],
                                opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
@@ -157,7 +183,7 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=[pbe, def2svp, 'Opt=Loose',
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose',
                                         d3bj, grid],
                                grad=[pbe0, def2svp, 'Force(NoStep)',
                                      d3bj, grid],
@@ -182,7 +208,7 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate, RecalcFC=30)')
 
-        keywords = KeywordsSet(low_opt=[pbe, def2svp, 'Opt=Loose', d3bj],
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', d3bj],
                                grad=[pbe0, def2svp, 'Force(NoStep)', d3bj],
                                opt=[pbe0, def2svp, 'Opt', d3bj],
                                opt_ts=[pbe0, def2svp, 'Freq', d3bj,
@@ -221,7 +247,7 @@ class Config:
                      '  maxiter 100\n'
                      'end')
 
-        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe,
+        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe0,
                                         'task dft optimize'],
                                grad=[def2svp, pbe0,
                                      'task dft gradient'],

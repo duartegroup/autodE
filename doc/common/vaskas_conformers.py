@@ -9,9 +9,9 @@ vaskas = Molecule(name='vaskas', atoms=xyz_file_to_atoms('vaskas.xyz'))
 # Set up some distance constraints where the keys are the atom indexes and
 # the value the distance in Å. Fixing the Cl-P, Cl-P and Cl-C(=O) distances
 # enforces a square planar geometry
-distance_constraints = {(1, 2): vaskas.get_distance(1, 2),
-                        (1, 3): vaskas.get_distance(1, 3),
-                        (1, 4): vaskas.get_distance(1, 4)}
+distance_constraints = {(1, 2): vaskas.distance(1, 2),
+                        (1, 3): vaskas.distance(1, 3),
+                        (1, 4): vaskas.distance(1, 4)}
 
 # Generate 5 conformers
 for n in range(5):

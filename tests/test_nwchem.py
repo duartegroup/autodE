@@ -83,4 +83,4 @@ def test_opt_hf_constraints():
                        distance_constraints={(0, 1): 0.95})
     calc.run()
     h2o.atoms = calc.get_final_atoms()
-    assert 0.94 < h2o.get_distance(0, 1) < 0.96
+    assert 0.94 < h2o.distance(0, 1) < 0.96

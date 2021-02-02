@@ -46,4 +46,6 @@ def test_multistep_reaction():
     reaction.calculate_reaction_profile()
 
     assert reaction.reactions is not None
+    assert len(reaction.reactions) == 2
+    assert reaction.reactions[0].ts is not None
     Config.keyword_prefixes = False

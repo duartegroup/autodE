@@ -67,7 +67,7 @@ def test_rotation():
                                [0.0, 0.0, 0.0],
                                [0.0, 0.0, -1.0]])
 
-    assert np.sum(expected_coords - dimer_copy.get_coordinates()) < 1E-9
+    assert np.sum(expected_coords - dimer_copy.coordinates) < 1E-9
 
 
 def test_graph():

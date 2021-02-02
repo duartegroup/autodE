@@ -6,6 +6,8 @@ the calculations. By default low level optimisations are performed at PBE-D3BJ/d
 optimisations at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in
 ORCA if it is available.
 
+------------
+
 Calculations
 ------------
 
@@ -26,6 +28,7 @@ of 32 GB for the whole calculation
   >>> Config.n_cores = 8
   >>> Config.max_core = 4000
 
+------------
 
 Keywords
 ********
@@ -53,6 +56,7 @@ basis set for optimisations
     set_opt_basis_set also sets the basis set in keywords.grad, keywords.opt_ts
     and keywords.hess while leaving all other keywords intact
 
+------------
 
 XTB as a hmethod
 ****************
@@ -69,6 +73,7 @@ and some default options
   >>> Config.G16.keywords.hess = HessianKeywords([f"external='xtb-gaussian'", 'freq'])
   >>> Config.G16.keywords.grad = GradientKeywords([f"external='xtb-gaussian'", 'Force(NoStep)'])
 
+------------
 
 Other
 *****
@@ -79,6 +84,8 @@ to see all the options.
 .. note::
     NWChem currently only supports solvents for DFT, other methods must not have
     a solvent.
+
+------------
 
 Logging
 -------

@@ -101,8 +101,8 @@ def test_chiral_rotation(tmpdir):
     atoms = conf_gen.get_simanl_atoms(chiral_ethane)
     regen = Molecule(name='regenerated_ethane', charge=0, mult=1, atoms=atoms)
 
-    regen_coords = regen.get_coordinates()
-    coords = chiral_ethane.get_coordinates()
+    regen_coords = regen.coordinates
+    coords = chiral_ethane.coordinates
 
     # Atom indexes of the C(C)(Cl)(F)(H) chiral centre
     ccclfh = [0, 1, 2, 3, 4]
@@ -149,7 +149,7 @@ def test_butene(tmpdir):
     regen = Molecule(name='regenerated_butene', atoms=atoms, charge=0, mult=1)
 
     regen.print_xyz_file()
-    regen_coords = regen.get_coordinates()
+    regen_coords = regen.coordinates
 
     # The Z-butene isomer has a r(C_1 C_2) < 3.2 Å where C_1C=CC_2
     assert np.linalg.norm(regen_coords[6] - regen_coords[2]) < 3.6
@@ -194,7 +194,7 @@ def test_ts_conformer(tmpdir):
     # regen.print_xyz_file()
 
     # Ensure the making/breaking bonds retain their length
-    regen_coords = regen.get_coordinates()
+    regen_coords = regen.coordinates
     assert are_coords_reasonable(regen_coords) is True
 
     assert 1.9 < np.linalg.norm(regen_coords[0] - regen_coords[2]) < 2.1
@@ -210,7 +210,7 @@ def test_metal_eta_complex(tmpdir):
     m = Molecule(smiles='[C@@H]12[C@H]3[C@H]4[C@H]5[C@H]6[C@@H]1[Fe]265437N'
                         '(C8=CC=CC=C8)C=CC=[N+]7C9=CC=CC=C9')
     m.print_xyz_file()
-    assert are_coords_reasonable(coords=m.get_coordinates())
+    assert are_coords_reasonable(coords=m.coordinates)
 
     os.chdir(here)
 
@@ -219,7 +219,7 @@ def test_salt():
 
     salt = Molecule(name='salt', smiles='[Li][Br]')
     assert salt.n_atoms == 2
-    assert are_coords_reasonable(coords=salt.get_coordinates())
+    assert are_coords_reasonable(coords=salt.coordinates)
 
 
 def test_potential():

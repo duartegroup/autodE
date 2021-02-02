@@ -2,7 +2,7 @@ from copy import deepcopy
 import numpy as np
 from autode.atoms import DummyAtom
 from autode.mol_graphs import connected_components
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.geom import length
 from autode.log import logger
 
@@ -27,8 +27,8 @@ class SubstitutionCentre:
         """
         Substitution centre has the following structure::
 
-            H            H  H
-             \            \/
+              H           H  H
+              |           |/
               N-- H       C -- Cl
              /           /
             H           H
@@ -163,7 +163,7 @@ def add_dummy_atom(reactant, bond_rearrangement):
         raise NotImplementedError('Cannot place dummy atom')
 
     cn1, cn2 = c_atom_nns[:2]
-    coords = reactant.get_coordinates()
+    coords = reactant.coordinates
 
     # Calculate the normal from the vectors to two of the neighbours
     position = np.cross(coords[cn1] - coords[c_atom],
@@ -197,19 +197,20 @@ def attack_cost(reactant, subst_centres, attacking_mol_idx,
     Returns:
         (float): Cost
     """
-    coords = reactant.get_coordinates()
+    coords =reactant.coordinates
     cost = 0
 
     for subst_centre in subst_centres:
 
-        r_ac = reactant.get_distance(atom_i=subst_centre.a_atom,
-                                     atom_j=subst_centre.c_atom)
+        r_ac = reactant.distance(i=subst_centre.a_atom,
+                                 j=subst_centre.c_atom)
 
         cost += a * (r_ac - subst_centre.r0_ac)**2
 
         # Attack vector is the average of all the nearest neighbour atoms,
         # unless it is flat
-        a_nn_coords = [coords[atom_index] - coords[subst_centre.a_atom] for atom_index in subst_centre.a_atom_nn]
+        a_nn_coords = [coords[atom_index] - coords[subst_centre.a_atom]
+                       for atom_index in subst_centre.a_atom_nn]
 
         if len(a_nn_coords) == 0:
             # The attacking atom has no nearest neighbours thus take the

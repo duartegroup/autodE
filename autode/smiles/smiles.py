@@ -1,5 +1,5 @@
-import rdkit.Chem.Descriptors
 from rdkit.Chem import AllChem
+from rdkit.Chem.Descriptors import NumRadicalElectrons
 from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import atoms_from_rdkit_mol
@@ -60,8 +60,10 @@ def init_organic_smiles(molecule, smiles):
         raise RDKitFailed
 
     molecule.charge = Chem.GetFormalCharge(molecule.rdkit_mol_obj)
-    molecule.mult = calc_multiplicity(molecule, rdkit.Chem.Descriptors.NumRadicalElectrons(molecule.rdkit_mol_obj))
-    bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in molecule.rdkit_mol_obj.GetBonds()]
+    molecule.mult = calc_multiplicity(molecule,
+                                      NumRadicalElectrons(molecule.rdkit_mol_obj))
+    bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
+             for bond in molecule.rdkit_mol_obj.GetBonds()]
 
     # Generate a single 3D structure using RDKit's ETKDG conformer generation
     # algorithm
@@ -72,7 +74,7 @@ def init_organic_smiles(molecule, smiles):
     make_graph(molecule, bond_list=bonds)
 
     # Revert back to RR if RDKit fails to return a sensible geometry
-    if not are_coords_reasonable(coords=molecule.get_coordinates()):
+    if not are_coords_reasonable(coords=molecule.coordinates):
         molecule.rdkit_conf_gen_is_fine = False
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 

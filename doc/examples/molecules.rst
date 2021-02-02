@@ -3,7 +3,7 @@ Molecules
 *********
 
 Reactants and Products are :ref:`Molecules <molecules>` and are initialised
-much like their :ref:`Species <species>` parent class but have charge and
+much like their :ref:`Species <species>` parent, but have charge and
 multiplicity defaults (0, 1 respectively) and can be built from
 `SMILES <https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system/>`_
 strings
@@ -17,6 +17,13 @@ strings
   >>> molecule.mult
   1
 
+or from 3D structures given as xyz files directly
+
+  >>> ch4 = Molecule('methane.xyz')
+  >>> ch4.name
+  'methane'
+
+---------------
 
 Simple Example
 --------------
@@ -54,6 +61,7 @@ can be generated as a .xyz file for viewing in molecular visualisation software
 
 where 'h2o.xyz' is generated in the current working directory.
 
+---------------
 
 Geometry Manipulation
 ---------------------
@@ -65,13 +73,13 @@ water molecule so the oxygen atom is centred at the origin
 
 .. code-block:: python
 
-  >>> water.get_coordinates()
+  >>> water.coordinates
   array([[-0.0011,  0.3631, -0.    ],
          [-0.825 , -0.1819, -0.    ],
          [ 0.8261, -0.1812,  0.    ]])
   >>> o_atom = water.atoms[0]
   >>> water.translate(vec=-o_atom.coord)
-  >>> water.get_coordinates()
+  >>> water.coordinates
   array([[ 0.    ,  0.    ,  0.    ],
          [-0.8250, -0.1819,  0.    ],
          [ 0.8261, -0.1812,  0.    ]])
@@ -82,7 +90,7 @@ then rotate around the x axis
 
   >>> import numpy as np
   >>> water.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
-  >>> water.get_coordinates()
+  >>> water.coordinates
   array([[ 0.    ,  0.   ,  0.    ],
          [-0.8250, 0.1819,  0.    ],
          [ 0.8261, 0.1812,  0.    ]])
@@ -91,7 +99,7 @@ Pairwise distances between atoms in a molecule can be calculated
 
 .. code-block:: python
 
-  >>> water.get_distance(0, 1)
+  >>> water.distance(0, 1)
   0.8448
 
 where atoms are indexed from 0, so that r\ :sub:`01`\  is r(O-H) in Å.

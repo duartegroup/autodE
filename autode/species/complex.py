@@ -6,7 +6,7 @@ from autode.log import logger
 from autode.geom import get_points_on_sphere
 from autode.mol_graphs import union
 from autode.species.species import Species
-from autode.utils import requires_atoms
+from autode.utils import requires_atoms, work_in
 from autode.config import Config
 from autode.methods import get_lmethod
 from autode.conformers.conformer import get_conformer
@@ -48,7 +48,7 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
         coords = np.array([atom.coord for atom in atoms])
 
-        mol_centroid = np.average(molecule.get_coordinates(), axis=0)
+        mol_centroid = np.average(molecule.coordinates, axis=0)
         shifted_mol_atoms = deepcopy(molecule.atoms)
 
         # Shift the molecule to the origin then rotate randomly
@@ -131,6 +131,7 @@ class Complex(Species):
         logger.info(f'Generated {n} conformers')
         return None
 
+    @work_in('conformers')
     def populate_conformers(self):
         """
         Generate and optimise with a low level method a set of conformers, the
@@ -138,8 +139,11 @@ class Complex(Species):
         Config.num_complex_sphere_points ×  Config.num_complex_random_rotations
          ^ (n molecules in complex - 1)
         """
-        n_confs = Config.num_complex_sphere_points * Config.num_complex_random_rotations * (len(self.molecules) - 1 )
-        logger.info(f'Generating and optimising {n_confs} conformers of {self.name}')
+        n_confs = (Config.num_complex_sphere_points
+                   * Config.num_complex_random_rotations
+                   * (len(self.molecules) - 1))
+        logger.info(f'Generating and optimising {n_confs} conformers of '
+                    f'{self.name} with a low-level method')
 
         self._generate_conformers()
 
@@ -202,11 +206,11 @@ class Complex(Species):
         """Calculate the repulsion between a molecule and the rest of the
         complex"""
 
-        coordinates = self.get_coordinates()
+        coords = self.coordinates
 
         mol_indexes = self.get_atom_indexes(mol_index)
-        mol_coords = [coordinates[i] for i in mol_indexes]
-        other_coords = [coordinates[i] for i in range(self.n_atoms) if i not in mol_indexes]
+        mol_coords = [coords[i] for i in mol_indexes]
+        other_coords = [coords[i] for i in range(self.n_atoms) if i not in mol_indexes]
 
         # Repulsion is the sum over all pairs 1/r^4
         distance_mat = distance_matrix(mol_coords, other_coords)

@@ -2,7 +2,7 @@ from copy import deepcopy
 import networkx as nx
 from autode.atoms import Atom
 from autode.transition_states.ts_guess import has_matching_ts_templates
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.log import logger
 
 
@@ -74,7 +74,7 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
     s_molecule.atoms[n_atom_index].label = 'H'
 
     # Shift the added capping hydrogen to the 'ideal' E-H bond length
-    curr_dist = s_molecule.get_distance(atom_index, n_atom_index)
+    curr_dist = s_molecule.distance(atom_index, n_atom_index)
     ideal_dist = get_avg_bond_length(s_molecule.atoms[atom_index].label, 'H')
     shift_vec = (s_molecule.atoms[n_atom_index].coord
                  - s_molecule.atoms[atom_index].coord)

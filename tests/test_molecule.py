@@ -68,7 +68,7 @@ def test_siman_conf_gen(tmpdir):
 
     rh_complex = Molecule(name='[RhH(CO)3(ethene)]',
                           smiles='O=C=[Rh]1(=C=O)(CC1)([H])=C=O')
-    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+    assert are_coords_reasonable(coords=rh_complex.coordinates)
     assert rh_complex.n_atoms == 14
     assert 12 < rh_complex.graph.number_of_edges() < 15  # What is a bond even
 
@@ -87,7 +87,7 @@ def test_molecule_opt():
     assert mol.energy == -1.160687049941
     assert mol.n_atoms == 2
 
-    opt_coords = mol.get_coordinates()
+    opt_coords = mol.coordinates
     # H2 bond length ~ 0.767 Å at PBE/def2-SVP
     assert 0.766 < np.linalg.norm(opt_coords[0] - opt_coords[1]) < 0.768
 
@@ -129,14 +129,14 @@ def test_rdkit_possible_fail():
     be generated in other ways"""
 
     rh_complex = Molecule(smiles='C[Rh](=C=O)(=C=O)(=C=O)=C=O')
-    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+    assert are_coords_reasonable(coords=rh_complex.coordinates)
 
     # Trying to parse with RDKit should revert to RR structure
     rh_complex_rdkit_attempt = Molecule()
     init_organic_smiles(rh_complex_rdkit_attempt,
                         smiles='O=[Rh]([H])([H])([H])=O')
-    assert are_coords_reasonable(coords=rh_complex.get_coordinates())
+    assert are_coords_reasonable(coords=rh_complex.coordinates)
 
     # RDKit also may not parse CH5+
     ch5 = Molecule(smiles='[H]C([H])([H])([H])[H+]')
-    assert are_coords_reasonable(coords=ch5.get_coordinates())
+    assert are_coords_reasonable(coords=ch5.coordinates)

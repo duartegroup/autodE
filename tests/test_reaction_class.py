@@ -226,7 +226,6 @@ def test_free_energy_profile():
 
     # Use a spoofed Gaussian09 and XTB install
     Config.lcode = 'xtb'
-    Config.XTB.path = here
 
     Config.hcode = 'g09'
     Config.G09.path = here
@@ -241,6 +240,11 @@ def test_free_energy_profile():
                             Product(name='Cl-', smiles='[Cl-]'),
                             Product(name='CH3F', smiles='CF'),
                             name='sn2', solvent_name='water')
+
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
+
     rxn.calculate_reaction_profile(free_energy=True)
 
     # Allow ~0.5 kcal mol-1 either side of the true value
@@ -268,3 +272,18 @@ def test_free_energy_profile():
     Config.G09.path = None
     Config.lcode = None
     Config.XTB.path = None
+
+
+def test_unavail_properties():
+    ha = reaction.Reactant(name='ha', atoms=[Atom('H')])
+
+    hb = reaction.Product(name='hb', atoms=[Atom('H')])
+
+    rxn = reaction.Reaction(ha, hb)
+    delta = reaction.calc_delta_with_cont(left=[ha], right=[hb], cont='h_cont')
+    assert delta is None
+
+    # Should not raise an exception(?)
+    rxn.find_lowest_energy_ts_conformer()
+    rxn.calculate_thermochemical_cont(free_energy=False, enthalpy=False)
+

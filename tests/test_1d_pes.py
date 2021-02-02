@@ -1,11 +1,10 @@
 from autode.pes.pes_1d import get_ts_guess_1d, PES1d
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
-from autode.pes.pes import FormingBond
+from autode.bonds import FormingBond
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.ORCA import orca
-from autode.wrappers.XTB import xtb
 from autode.wrappers.keywords import OptKeywords
 from . import testutils
 from autode.utils import work_in
@@ -48,7 +47,7 @@ def test_get_ts_guess_1dscan():
     assert ts_guess.n_atoms == 3
 
     # Peak in the PES is at r = 0.85 Å
-    assert 0.84 < ts_guess.get_distance(1, 2) < 0.86
+    assert 0.84 < ts_guess.distance(1, 2) < 0.86
     assert os.path.exists('H+H2_H2+H.png')
     os.remove('H+H2_H2+H.png')
 

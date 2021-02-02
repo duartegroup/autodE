@@ -146,7 +146,7 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
             continue
 
         logger.info('Found a TS guess from a template')
-        if any([reactant.get_distance(*bond) > dist_thresh for bond in bond_rearr.all]):
+        if any([reactant.distance(*bond) > dist_thresh for bond in bond_rearr.all]):
             logger.info(f'TS template has => 1 active bond distance larger '
                         f'than {dist_thresh}. Passing')
 
@@ -186,6 +186,8 @@ def get_ts_guess(species, reactant, product, name):
     """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess
     is returned"""
     if species is None:
+        logger.warning('Could not generate a TS guess from species=None, '
+                       'returning None')
         return None
 
     if species.is_explicitly_solvated():

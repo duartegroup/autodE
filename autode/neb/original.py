@@ -3,15 +3,15 @@ The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
 from autode.log import logger
-from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
-from autode.constants import Constants
+from autode.path import Path
 from autode.utils import work_in
-from autode.plotting import plot_1dpes
+from autode.config import Config
 from scipy.optimize import minimize
 from multiprocessing import Pool
-from copy import deepcopy
 import numpy as np
+import matplotlib.pyplot as plt
+blues = plt.get_cmap('Blues')
 
 
 def energy_gradient(image, method, n_cores):
@@ -39,7 +39,8 @@ def total_energy(flat_coords, images, method, n_cores):
     images.set_coords(flat_coords)
 
     # Number of cores per process is the floored total divided by n images
-    n_cores_pp = max(int(n_cores//len(images)), 1)
+    # minus the two end points that will be fixed
+    n_cores_pp = max(int(n_cores//(len(images)-2)), 1)
 
     logger.info(f'Calculating energy and forces for all images with '
                 f'{n_cores} total cores and {n_cores_pp} per process')
@@ -52,73 +53,14 @@ def total_energy(flat_coords, images, method, n_cores):
 
         images[1:-1] = [result.get(timeout=None) for result in results]
 
-    # Advance all the iteration numbers on the images to name correctly
-    for i in range(1, len(images) - 1):
-        images[i].iteration += 1
+    images.increment()
+    images.plot_energies()
 
     all_energies = [image.energy for image in images]
     rel_energies = [energy - min(all_energies) for energy in all_energies]
 
     logger.info(f'Path energy = {sum(rel_energies):.5f}')
     return sum(rel_energies)
-
-
-def get_force(im_l, im, im_r, k=0.005):
-    """
-    Compute F_i. Notation from:
-    Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
-
-    also a copy in autode/common
-
-    Arguments:
-        im_l (autode.neb.Image): Left image (i-1)
-        im (autode.neb.Image): (i)
-        im_r (autode.neb.Image): Right image (i+1)
-        k (float): Force constant of the spring in Ha / Å^2
-    """
-    # ΔV_i^max
-    dv_max = max(np.abs(im_r.energy - im.energy),
-                 np.abs(im_l.energy - im.energy))
-
-    # ΔV_i^min
-    dv_min = min(np.abs(im_r.energy - im.energy),
-                 np.abs(im_l.energy - im.energy))
-
-    # x_i-1,   x_i,   x_i+1
-    x_l, x, x_r = [image.species.get_coordinates().flatten()
-                   for image in (im_l, im, im_r)]
-    # τ_i+
-    tau_plus = x_r - x
-    # τ_i-
-    tau_minus = x - x_l
-
-    if im_l.energy < im.energy < im_r.energy:
-        tau = tau_plus
-
-    elif im_r.energy < im.energy < im_l.energy:
-        tau = tau_minus
-
-    elif im_l.energy < im_r.energy:
-        tau = tau_plus * dv_max + tau_minus * dv_min
-
-    elif im_r.energy < im_l.energy:
-        tau = tau_plus * dv_min + tau_minus * dv_max
-
-    else:
-        raise RuntimeError
-
-    # Normalised τ vector
-    hat_tau = tau / np.linalg.norm(tau)
-
-    # F_i^s||
-    f_parallel = (np.linalg.norm(x_r - x) * k -
-                  np.linalg.norm(x - x_l) * k) * hat_tau
-
-    # ∇V(x)_i|_|_ = ∇V(x)_i - (∇V(x)_i•τ) τ
-    grad_perp = im.grad - np.dot(im.grad, hat_tau) * hat_tau
-
-    # F_i = F_i^s|| -  ∇V(x)_i|_|_
-    return f_parallel - grad_perp
 
 
 def derivative(flat_coords, images, method, n_cores):
@@ -130,10 +72,7 @@ def derivative(flat_coords, images, method, n_cores):
 
     # No need to calculate gradient as should already be there from energy eval
     for i in range(1, len(images) - 1):
-        force = get_force(im_l=images[i - 1],
-                          im=images[i],
-                          im_r=images[i + 1])
-
+        force = images[i].get_force(im_l=images[i - 1], im_r=images[i + 1])
         forces = np.append(forces, force)
 
     # Final zero set of forces
@@ -146,7 +85,75 @@ def derivative(flat_coords, images, method, n_cores):
 
 class Image:
 
-    def __init__(self, name):
+    def _tau_xl_x_xr(self, im_l, im_r):
+        """
+        Calculate the normalised τ vector, along with the coordinates of the
+        left, this and right images
+
+        :param im_l: (autode.neb.Image)
+        :param im_r: (autode.neb.Image)
+        :return: (np.ndarray)
+        """
+
+        # ΔV_i^max
+        dv_max = max(np.abs(im_r.energy - self.energy),
+                     np.abs(im_l.energy - self.energy))
+
+        # ΔV_i^min
+        dv_min = min(np.abs(im_r.energy - self.energy),
+                     np.abs(im_l.energy - self.energy))
+
+        # x_i-1,   x_i,   x_i+1
+        x_l, x, x_r = [image.species.coordinates.flatten()
+                       for image in (im_l, self, im_r)]
+        # τ_i+
+        tau_plus = x_r - x
+        # τ_i-
+        tau_minus = x - x_l
+
+        if im_l.energy < self.energy < im_r.energy:
+            tau = tau_plus
+
+        elif im_r.energy < self.energy < im_l.energy:
+            tau = tau_minus
+
+        elif im_l.energy < im_r.energy:
+            tau = tau_plus * dv_max + tau_minus * dv_min
+
+        elif im_r.energy < im_l.energy:
+            tau = tau_plus * dv_min + tau_minus * dv_max
+
+        else:
+            raise RuntimeError('Something went very wrong in the NEB!')
+
+        # Normalised τ vector and coordinates of the images
+        return tau / np.linalg.norm(tau), x_l, x, x_r
+
+    def get_force(self, im_l, im_r):
+        """
+        Compute F_i. Notation from:
+        Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
+
+        also a copy in autode/common
+
+        Arguments:
+            im_l (autode.neb.Image): Left image (i-1)
+            im_r (autode.neb.Image): Right image (i+1)
+        """
+        # τ,  x_i-1,  x_i,   x_i+1
+        hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
+
+        # F_i^s||
+        f_parallel = (np.linalg.norm(x_r - x) * im_r.k -
+                      np.linalg.norm(x - x_l) * im_l.k) * hat_tau
+
+        # ∇V(x)_i|_|_ = ∇V(x)_i - (∇V(x)_i•τ) τ
+        grad_perp = self.grad - np.dot(self.grad, hat_tau) * hat_tau
+
+        # F_i = F_i^s|| -  ∇V(x)_i|_|_
+        return f_parallel - grad_perp
+
+    def __init__(self, name, k):
         """
         Image in a NEB
 
@@ -158,29 +165,76 @@ class Image:
         # Current optimisation iteration of this image
         self.iteration = 0
 
+        # Force constant in Eh/Å^2
+        self.k = k
+
         self.species = None         # autode.species.Species
         self.energy = None          # float
         self.grad = None            # np.ndarray shape (3xn_atoms,)
 
 
-class Images:
+class Images(Path):
 
-    def __len__(self):
-        return len(self._list)
+    def __eq__(self, other):
+        """Equality od two climbing image NEB paths"""
+        if not isinstance(other, Images):
+            return None
 
-    def __setitem__(self, key, value):
-        self._list[key] = value
+        if any((self.min_k != other.min_k, self.max_k != other.max_k)):
+            return False
 
-    def __getitem__(self, item):
-        return self._list[item]
+        return super().__eq__(other)
+
+    def increment(self):
+        """Advance all the iteration numbers on the images to name correctly
+        also update force constants"""
+
+        if self.peak_idx is None:
+            logger.warning('Lost peak in NEB: not incrementing so calculations'
+                           ' will be skipped')
+            return
+
+        for image in self:
+            image.iteration += 1
+
+        if Config.adaptive_neb_k and all(im.energy is not None for im in self):
+            logger.info('Updating force constants')
+            # Notation from https://doi.org/10.1063/1.1329672
+            delta_k = self.max_k - self.min_k
+
+            # E_ref is the maximum energy of the end points
+            energies = [image.energy for image in self]
+            e_ref = max(energies[0], energies[-1])
+            e_max = max(energies)
+
+            if e_ref == e_max:
+                logger.error('Cannot adjust k, the reference energy was the '
+                             'maximum')
+                # Return otherwise we'll divide by zero here
+                return
+
+            for image in self:
+                if image.energy < e_ref:
+                    image.k = self.min_k
+
+                else:
+                    image.k = self.max_k - delta_k * ((e_max - image.energy)
+                                                      / (e_max - e_ref))
+        return None
+
+    def plot_energies(self, save=False, name='None', color=None,
+                      xlabel='NEB coordinate'):
+        """Plot the NEB surface"""
+        color = blues((self[0].iteration+1)/20) if color is None else str(color)
+        super().plot_energies(save, name, color, xlabel)
 
     def coords(self):
         """Get a flat array of all components of every atom"""
         coords = np.array([])
-        for image in self._list:
+        for image in self:
 
             coords = np.append(coords,
-                               image.species.get_coordinates().flatten())
+                               image.species.coordinates.flatten())
         return coords
 
     def set_coords(self, coords):
@@ -191,63 +245,96 @@ class Images:
             coords (np.ndarray): shape (num x n x 3,)
         """
 
-        n_atoms = self._list[0].species.n_atoms
+        n_atoms = self[0].species.n_atoms
         coords = coords.reshape((len(self), n_atoms, 3))
 
-        for i, image in enumerate(self._list):
-            image.species.set_coordinates(coords[i])
+        for i, image in enumerate(self):
+            image.species.coordinates = coords[i]
 
         return None
 
-    def __init__(self, num):
+    def __init__(self, num, init_k, min_k=None, max_k=None):
+        """
+        Set of images joined by harmonic springs with force constant k
 
-        self._list = [Image(name=str(i)) for i in range(num)]
+        Arguments:
+
+            num (int): Number of images
+            init_k (float): Initial force constant (Ha Å^-2)
+            min_k (None | float): Minimum value of k
+            max_k (None | float): Maximum value of k
+        """
+        super().__init__(*(Image(name=str(i), k=init_k) for i in range(num)))
+
+        self.min_k = init_k / 10 if min_k is None else float(min_k)
+        self.max_k = 2 * init_k if max_k is None else float(max_k)
 
 
 class NEB:
 
-    def plot_surface(self, name='neb'):
-        """Plot the NEB surface"""
-        energies = [image.energy for image in self.images]
-        if any(energy is None for energy in energies):
-            logger.error('Could not plot NEB surface, an energy was None')
-            return
+    def _minimise(self, method, n_cores, etol, max_n=30):
+        """Minimise th energy of every image in the NEB"""
+        logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
 
-        # Relative energies in kcal mol-1
-        energies = Constants.ha2kcalmol * (np.array(energies) - min(energies))
+        result = minimize(total_energy,
+                          x0=self.images.coords(),
+                          method='L-BFGS-B',
+                          jac=derivative,
+                          args=(self.images, method, n_cores),
+                          tol=etol,
+                          options={'maxfun': max_n})
 
-        plot_1dpes(rs=list(range(len(self.images))),
-                   rel_energies=energies,
-                   method_name='NEB',
-                   name=name,
-                   xlabel='NEB coordinate')
+        logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
+        return result
+
+    def contains_peak(self):
+        """Does this nudged elastic band calculation contain an energy peak?"""
+        return self.images.contains_peak
+
+    def partition(self, n):
+        """
+        Partition this NEB into n steps between each image i.e. n=2 affords
+        double the images
+
+        Arguments:
+            n: (int)
+        """
+        logger.info('Interpolating')
+        species_list = [self.images[0].species]    # First unchanged
+
+        for i, image in enumerate(self.images[1:]):
+            for j in range(1, n):
+                new_species = self.images[i].species.copy()
+                right_coords = image.species.coordinates
+
+                for k, atom in enumerate(new_species.atoms):
+                    shift = right_coords[k] - atom.coord
+                    atom.translate(vec=shift * (j / n))
+
+                species_list.append(new_species)
+            species_list.append(image.species)
+
+        # Reset the list of images
+        self.images = Images(num=len(species_list), init_k=self.images[0].k)
+
+        for i, image in enumerate(self.images):
+            image.species = species_list[i]
+
         return None
 
     def print_geometries(self, name='neb'):
-        """Print an xyz trajectory of the geometries in the NEB"""
-
-        # Empty the file
-        open(f'{name}.xyz', 'w').close()
-
-        for i, image in enumerate(self.images):
-            assert image.species is not None
-            energy = image.energy if image.energy is not None else 'none'
-
-            atoms_to_xyz_file(image.species.atoms,
-                              f'{name}.xyz',
-                              title_line=f'autodE NEB point {i}. E = {energy}',
-                              append=True)
-        return None
+        return self.images.print_geometries(name)
 
     def interpolate_geometries(self):
-        """Generate simple interpolated coordinates for these set of images"""
+        """Generate simple interpolated coordinates for these set of images
+        in Cartesian coordinates"""
         n = len(self.images)
 
         # Interpolate images between the starting point i=0 and end point i=n-1
         for i in range(1, n - 1):
 
             # Use a copy of the starting point for atoms, charge etc.
-            self.images[i].species = deepcopy(self.images[0].species)
+            self.images[i].species = self.images[0].species.copy()
 
             # For all the atoms in the species translate an amount so the
             # spacing is even between the initial and final points
@@ -261,7 +348,6 @@ class NEB:
         self.print_geometries()
         return None
 
-    @work_in('NEB')
     def calculate(self, method, n_cores):
         """
         Optimise the NEB using forces calculated from electronic structure
@@ -278,69 +364,38 @@ class NEB:
             # Zero the forces so the end points don't move
             self.images[idx].grad = np.zeros(shape=self.images[idx].grad.shape)
 
-        # Minimise the total energy across the path initial -> final points
-        # with respect to the coordinates of all the intermediate images
-        init_coords = self.images.coords()
-
-        # Energy tolerance is ~1 kcal mol-1 per image
-        etol = 0.0015 * len(self.images)
-        logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
-
-        result = minimize(total_energy,
-                          x0=init_coords,
-                          method='L-BFGS-B',
-                          jac=derivative,
-                          args=(self.images, method, n_cores),
-                          tol=etol,
-                          options={'maxfun': 30})
-
-        logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
+        # Energy tolerance is ~2 kcal mol-1 per image
+        result = self._minimise(method, n_cores,
+                                etol=0.003 * len(self.images))
 
         # Set the optimised coordinates for all the images
         self.images.set_coords(result.x)
         self.print_geometries(name='neb_optimised')
-        self.plot_surface(name='neb_optimised')
+
+        # and save the plot
+        plt.savefig('neb_optimised.png', dpi=300)
+        plt.close()
         return None
 
     def get_species_saddle_point(self):
-        """Yield a TS guesses for this NEB from all saddle points"""
-        if any(image.energy is None for image in self.images):
-            logger.error('Optimisation of at least one image failed')
+        """Find a TS guess species for this NEB: highest energy saddle point"""
+        if self.images.peak_idx is None:
+            logger.warning('Found no peaks in the NEB')
             return None
 
-        def is_saddle(j):
-            """Is an image j amn approximate saddle point in the surface?"""
-            e = self.images[j].energy
-            return self.images[j-1].energy < e and self.images[j+1].energy < e
-
-        # A saddle point cannot be either the start or the end point..
-        peaks = [i for i in range(1, len(self.images) - 1) if is_saddle(i)]
-
-        for peak_idx in sorted(peaks, key=lambda p: -self.images[p].energy):
-            yield self.images[peak_idx].species
-
-        return None
-
-    def _init_from_species_list(self, s_list):
-        """Initialise from a list of species rather than just end points"""
-
-        self.images = Images(num=len(s_list))
-
-        for i, image in enumerate(self.images):
-            image.species = s_list[i]
-
-        return None
+        return self.images[self.images.peak_idx].species
 
     def _init_from_end_points(self, initial, final):
         """Initialise from the start and finish points of the NEB"""
 
         self.images[0].species = initial
         self.images[-1].species = final
+        self.interpolate_geometries()
 
         return None
 
     def __init__(self, initial_species=None, final_species=None, num=8,
-                 species_list=None):
+                 species_list=None, k=0.1):
         """
         Nudged elastic band
 
@@ -351,12 +406,16 @@ class NEB:
             species_list (list(autode.species.Species)): Intermediate images
                          along the NEB
         """
-        self.images = Images(num=num)
+        self.images = Images(num=num, init_k=k)
 
         if species_list is not None:
-            self._init_from_species_list(species_list)
+            # Initialise from a list of species rather than just end points
+            self.images = Images(num=len(species_list), init_k=k)
+
+            for i, image in enumerate(self.images):
+                image.species = species_list[i]
 
         else:
             self._init_from_end_points(initial_species, final_species)
 
-        logger.info(f'Initialised a NEB with {num} images')
+        logger.info(f'Initialised a NEB with {len(self.images)} images')

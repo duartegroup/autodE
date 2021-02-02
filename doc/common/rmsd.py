@@ -55,8 +55,7 @@ def get_and_copy_unique_confs(xyz_filenames, only_heavy_atoms, threshold_rmsd):
         is_unique = True
 
         for j in unique_mol_ids:
-            rmsd = calc_rmsd(coords1=mol.get_coordinates(),
-                             coords2=molecules[j].get_coordinates())
+            rmsd = calc_rmsd(mol.coordinates, molecules[j].coordinates)
 
             if rmsd < threshold_rmsd:
                 is_unique = False

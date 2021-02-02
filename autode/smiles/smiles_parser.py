@@ -1,6 +1,6 @@
 import numpy as np
 from autode.atoms import Atom, elements
-from autode.bond_lengths import get_avg_bond_length
+from autode.bonds import get_avg_bond_length
 from autode.exceptions import InvalidSmilesString
 from autode.log import logger
 

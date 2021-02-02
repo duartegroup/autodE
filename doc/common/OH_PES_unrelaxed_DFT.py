@@ -25,7 +25,7 @@ for dft_name, keywords in keywords_list.items():
     for r in rs:
 
         o_atom, h_atom = water.atoms[:2]
-        curr_r = water.get_distance(0, 1)
+        curr_r = water.distance(0, 1)
 
         vector = (h_atom.coord - o_atom.coord) * (r/curr_r - 1)
         h_atom.translate(vector)

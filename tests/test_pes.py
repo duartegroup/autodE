@@ -1,3 +1,5 @@
+import pytest
+import numpy as np
 from autode.pes.pes_2d import PES2d
 from autode.pes.pes import get_closest_species
 from autode.species.complex import ReactantComplex, ProductComplex
@@ -5,11 +7,10 @@ from autode.atoms import Atom
 from autode.species.species import Species
 from autode.mol_graphs import make_graph
 from autode.exceptions import NoClosestSpecies
-from autode.pes.pes import FormingBond, BreakingBond
+from autode.bonds import FormingBond, BreakingBond
 from autode.reactions.reaction import Reaction
 from autode.species.molecule import Reactant, Product
-import pytest
-import numpy as np
+
 
 mol = Species(name='H2', charge=0, mult=1, atoms=[Atom('H'), Atom('H', z=1.0)])
 make_graph(mol)
@@ -68,10 +69,10 @@ def test_bonds():
     prod_h = Product(name='H', atoms=[h3], charge=0, mult=2)
 
     fbond = FormingBond(atom_indexes=(1, 2), species=reac)
-    bbond = BreakingBond(atom_indexes=(0, 1), species=reac, reaction=Reaction(hydrogen, h, prod_h2, prod_h))
+    bbond = BreakingBond(atom_indexes=(0, 1), species=reac)
 
     assert fbond.curr_dist == 1.0
     assert 0.6 < fbond.final_dist < 0.8
 
-    assert 2.0 < bbond.final_dist < 2.5
+    assert 1.3 < bbond.final_dist
     assert bbond.curr_dist == 0.7

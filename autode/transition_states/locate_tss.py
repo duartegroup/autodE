@@ -14,11 +14,8 @@ from autode.methods import get_lmethod
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
 from autode.mol_graphs import reorder_nodes
-from autode.pes.pes import FormingBond, BreakingBond
-from autode.pes.pes_1d import get_ts_guess_1d
-from autode.pes.pes_2d import get_ts_guess_2d
-from autode.neb.neb import get_ts_guess_neb
-from autode.reactions.reaction_types import Substitution, Elimination
+from autode.bonds import FormingBond, BreakingBond
+from autode.path.adaptive import get_ts_adaptive_path
 from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
 from autode.substitution import get_substitution_centres
@@ -84,73 +81,26 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
     # Bonds with initial and final distances
-    bbonds = [BreakingBond(pair, r, reaction) for pair in bond_rearr.bbonds]
+    bbonds = [BreakingBond(pair, r) for pair in bond_rearr.bbonds]
     scan_name += "_".join(str(bb) for bb in bbonds)
 
-    fbonds = [FormingBond(pair, r) for pair in bond_rearr.fbonds]
+    fbonds = [FormingBond(pair, r, final_species=p) for pair in bond_rearr.fbonds]
     scan_name += "_".join(str(fb) for fb in fbonds)
 
     # Ideally use a transition state template, then only a single constrained
-    # optimisation needs to be run...
+    # optimisation needs to be run
     yield get_template_ts_guess, (r, p, bond_rearr,
                                   f'{name}_template_{bond_rearr}', hmethod)
 
-    # Otherwise try a nudged elastic band calculation, don't use the low level
-    # method if there are any metals..
+    # otherwise try a nudged elastic band calculation, don't use the low level
+    # method if there are any metals
     if not any(atom.label in metals for atom in r.atoms):
-        yield get_ts_guess_neb, (r, p, lmethod, fbonds, bbonds,
-                                 f'{name}_ll_neb_{bond_rearr}')
+        yield get_ts_adaptive_path, (r, p, lmethod, fbonds, bbonds,
+                                     f'{name}_ll_ad_{bond_rearr}')
 
     # Always attempt a high-level NEB
-    yield get_ts_guess_neb, (r, p, hmethod, fbonds, bbonds,
-                             f'{name}_hl_neb_{bond_rearr}')
-
-    # Otherwise run 1D or 2D potential energy surface scans to generate a
-    # transition state guess cheap -> most expensive
-    if len(bbonds) == 1 and len(fbonds) == 1 and reaction.type in (Substitution, Elimination):
-        yield get_ts_guess_2d, (r, p, fbonds[0], bbonds[0], f'{scan_name}_ll2d',
-                                lmethod, lmethod.keywords.low_opt)
-
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d_bbond',
-                                hmethod,  hmethod.keywords.opt)
-
-    if len(bbonds) > 0 and len(fbonds) == 1:
-
-        yield get_ts_guess_1d, (r, p, fbonds[0], f'{scan_name}_hl1d_fbond',
-                                hmethod, hmethod.keywords.opt)
-
-    if len(bbonds) >= 1 and len(fbonds) >= 1:
-        for fbond in fbonds:
-            for bbond in bbonds:
-
-                yield get_ts_guess_2d, (r, p, fbond, bbond,
-                                        f'{scan_name}_ll2d', lmethod,
-                                        lmethod.keywords.low_opt)
-
-                yield get_ts_guess_2d, (r, p, fbond, bbond,
-                                        f'{scan_name}_hl2d', hmethod,
-                                        hmethod.keywords.low_opt)
-
-    if len(bbonds) == 1 and len(fbonds) == 0:
-        yield get_ts_guess_1d, (r, p, bbonds[0], f'{scan_name}_hl1d',
-                                hmethod, hmethod.keywords.opt)
-
-    if len(fbonds) == 2:
-        yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
-                                f'{scan_name}_ll2d_fbonds', lmethod,
-                                lmethod.keywords.low_opt)
-        yield get_ts_guess_2d, (r, p, fbonds[0], fbonds[1],
-                                f'{scan_name}_hl2d_fbonds', hmethod,
-                                hmethod.keywords.low_opt)
-
-    if len(bbonds) == 2:
-        yield get_ts_guess_2d, (r, p, bbonds[0], bbonds[1],
-                                f'{scan_name}_ll2d_bbonds', lmethod,
-                                lmethod.keywords.low_opt)
-
-        yield get_ts_guess_2d, (r, p, bbonds[0], bbonds[1],
-                                f'{scan_name}_hl2d_bbonds', hmethod,
-                                hmethod.keywords.low_opt)
+    yield get_ts_adaptive_path, (r, p, hmethod, fbonds, bbonds,
+                                 f'{name}_hl_ad_{bond_rearr}')
 
     return None
 

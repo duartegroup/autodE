@@ -1,6 +1,6 @@
-**************
-PES Generation
-**************
+*****************
+1D PES Generation
+*****************
 
 
 **autodE** allows for both potential energy surface (PES) to be constructed

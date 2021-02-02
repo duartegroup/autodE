@@ -15,12 +15,12 @@ def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
     total_n_solvent_atoms = n_solvent_mols * solvent_n_atoms
 
     centre_species(species.solvent_mol)
-    solvent_coords = species.solvent_mol.get_coordinates()
+    solvent_coords = species.solvent_mol.coordinates
     solvent_size = np.linalg.norm(np.max(solvent_coords, axis=0) - np.min(solvent_coords, axis=0))
     solvent_size = 1 if solvent_size < 1 else solvent_size
 
     centre_species(species)
-    solute_coords = species.get_coordinates()
+    solute_coords = species.coordinates
     radius = np.linalg.norm(np.max(solute_coords, axis=0) - np.min(solute_coords, axis=0))
     radius = 2 if radius < 2 else radius
 
@@ -56,7 +56,7 @@ def add_solvent_molecules(species, n_qm_solvent_mols, n_solvent_mols):
 
 def centre_species(species):
     """Translates a species so its centre is at (0,0,0)"""
-    species_coords = species.get_coordinates()
+    species_coords = species.coordinates
     species_centre = np.average(species_coords, axis=0)
     species.translate(-species_centre)
 
