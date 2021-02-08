@@ -1,13 +1,11 @@
 import autode as ade
 
 ade.Config.n_cores = 8
-ade.Config.hcode = 'g09'   # Use Gaussian09 as the high-level method
+ade.Config.hcode = 'g09'       # Use Gaussian09 as the high-level method
 
-# For hydroxide to be not too reactive in solution requires diffuse functions;
-# set all the optimisation and the hessian keywords to include the ma-def2-SVP
-# basis set, assuming the hmethod is ORCA
-ade.Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
-ade.Config.ORCA.keywords.sp.basis_set = 'ma-def2-TZVP'
+# For hydroxide to be not too reactive requires diffuse functions; set all the
+ade.Config.G09.keywords.set_opt_basis_set('6-31+G(d)')
+ade.Config.G09.keywords.sp.basis_set = '6-311+G(d,p)'
 
 # Set up the first step in the hydrolysis of the ester, attack of OH- to get a
 # tetrahedral intermediate
