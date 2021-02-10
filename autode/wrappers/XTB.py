@@ -264,8 +264,10 @@ class XTB(ElectronicStructureMethod):
         for i, line in enumerate(calc.output.file_lines):
 
             # XTB 6.2.x have a slightly different way of printing the atoms
-            if 'xtb version' in line and len(line.split()) >= 4:
-                if line.split()[3] == '6.2.2' or '6.1' in line.split()[3]:
+            if ('xtb version' in line or 'Version' in line
+                    and len(line.split()) >= 4):
+
+                if line.split()[3] == '6.2.2' or '6.1' in line.split()[2]:
                     atoms = self._get_final_atoms_old(calc)
                     break
 
