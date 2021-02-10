@@ -265,12 +265,12 @@ class XTB(ElectronicStructureMethod):
 
             # XTB 6.2.x have a slightly different way of printing the atoms
             if 'xtb version' in line and len(line.split()) >= 4:
-                if line.split()[3] == '6.2.3' or '6.3' in line.split()[3]:
-                    atoms = self._get_final_atoms_6_2_above(calc)
+                if line.split()[3] == '6.2.2' or '6.1' in line.split()[3]:
+                    atoms = self._get_final_atoms_old(calc)
                     break
 
-                elif line.split()[3] == '6.2.2' or '6.1' in line.split()[3]:
-                    atoms = self._get_final_atoms_old(calc)
+                else:
+                    atoms = self._get_final_atoms_6_2_above(calc)
                     break
 
             # Version is not recognised if we're 50 lines into the output file
