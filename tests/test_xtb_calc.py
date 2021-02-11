@@ -1,13 +1,15 @@
+import numpy as np
+import os
 import pytest
 from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
+from autode.exceptions import AtomsNotFound
 from autode.config import Config
 from . import testutils
-import numpy as np
-import os
+
 here = os.path.dirname(os.path.abspath(__file__))
 
 method = XTB()
@@ -55,6 +57,15 @@ def test_xtb_calculation():
 
     const_opt.clean_up(force=True)
     assert not os.path.exists('xcontrol_const_opt_xtb')
+
+    # Write an empty output file
+    open('tmp.out', 'w').close()
+    const_opt.output.filename = 'tmp.out'
+    const_opt.output.set_lines()
+
+    # cannot get atoms from an empty file
+    with pytest.raises(AtomsNotFound):
+        _ = const_opt.get_final_atoms()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -143,3 +154,25 @@ def test_xtb_6_3_2():
 
     assert len(calc.get_final_atoms()) == 5
 
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
+def test_xtb_6_1_old():
+
+    mol = Molecule(name='methane', smiles='C')
+    calc = Calculation(name='test',
+                       molecule=mol,
+                       method=method,
+                       keywords=method.keywords.opt)
+
+    for filename in ('xtb_6_1_opt.out', 'xtb_no_version_opt.out'):
+
+        calc.output.filename = filename
+        calc.output.set_lines()
+
+        assert len(calc.get_final_atoms()) == 5
+        mol.atoms = calc.get_final_atoms()
+
+        assert set([atom.label for atom in mol.atoms]) == {'C', 'H'}
+        assert 0.9 < mol.distance(0, 1) < 1.2
+
+        calc.output.set_lines()
