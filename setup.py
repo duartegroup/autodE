@@ -1,13 +1,12 @@
 from setuptools import setup
 from Cython.Build import cythonize
 from setuptools.extension import Extension
-import autode
 
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx'])]
 
 setup(name='autode',
-      version=autode.__version__,
+      version='1.0.0',
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',

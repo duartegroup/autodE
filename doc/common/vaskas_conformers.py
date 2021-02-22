@@ -1,10 +1,8 @@
-from autode import Molecule
-from autode.input_output import xyz_file_to_atoms
+import autode as ade
 from autode.conformers import conf_gen, Conformer
-from autode.methods import XTB
 
 # Initialise the complex from a .xyz file containing a square planar structure
-vaskas = Molecule(name='vaskas', atoms=xyz_file_to_atoms('vaskas.xyz'))
+vaskas = ade.Molecule('vaskas.xyz')
 
 # Set up some distance constraints where the keys are the atom indexes and
 # the value the distance in Å. Fixing the Cl-P, Cl-P and Cl-C(=O) distances
@@ -25,5 +23,5 @@ for n in range(5):
     # Generate a conformer from these atoms then optimise with XTB
     conformer = Conformer(name=f'vaskas_conf{n}', atoms=atoms)
 
-    conformer.optimise(method=XTB())
+    conformer.optimise(method=ade.methods.XTB())
     conformer.print_xyz_file()

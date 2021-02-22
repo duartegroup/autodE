@@ -2,17 +2,52 @@
 Transition States
 *****************
 
+In addition to generating full reaction profiles directly **autodE** provides
+automated access to transition states (TSs). TSs are found either from a
+reaction, where bond rearrangements are found and TS located along each
+possible path, or from 3D structures of reactants & products, and a given bond
+rearrangement.
 
-Default
-*******
+------------
+
+Default: Reaction
+*****************
+
+
+.. image:: ../common/curtius.png
+
+For a simple Curtius rearrangement copied as a SMILES string directly from
+Chemdraw\ :sup:`TM`\  (selecting reactants and products with arrows and '+' then Edit->Copy As->SMILES)
+the TS can be located with
+
+
+.. literalinclude:: ../common/curtius.py
+
+
+Out (visualised)
+
+.. image:: ../common/curtius_ts.png
+   :width: 450
+   :align: center
+
+
+.. note::
+    :code:`locate_transition_state` only locates a single transtion state for
+    each possible bond rearrangment and does not attempt to search the conformational
+    space.
+
+
+------------
+
+
+Default: Reactants and products
+*******************************
 
 .. image:: ../common/cope.png
 
 
-In addition to generating full reaction profiles directly **autodE** provides
-automated access to transition states. Given a specific bond rearrangement
-generating a TS from known structures of reactants and products can be achieved
-for a simple Cope rearrangement with
+Given a specific bond rearrangement generating a TS from known structures of
+reactants and products can be achieved for a simple Cope rearrangement with
 
 
 .. literalinclude:: ../common/cope.py
@@ -30,6 +65,7 @@ where the xyz files used are:
 
 .. literalinclude:: ../common/cope_p.xyz
 
+------------
 
 CI-NEB
 ******
