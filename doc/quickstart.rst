@@ -75,6 +75,9 @@ From reactants and products form a reaction in water and calculate the reaction 
 This function call will return a plot something like:
 
 .. image:: common/sn2_reaction_profile.png
+   :width: 550
+   :align: center
+
 
 as *sn2_reaction_profile.png* in the current working directory, where conformers
 of the reactant and products have been searched and the profile calculated at

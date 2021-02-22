@@ -32,7 +32,7 @@ First clone the repository and ``cd`` there::
 
 then, install the appropriate dependencies (you may want to create a new virtual environment)::
 
-    $ conda config --append channels conda-forge --append channels omnia
+    $ conda config --append channels conda-forge
     $ conda install --file requirements.txt
 
 finally::
