@@ -1,7 +1,7 @@
 Citation
 ========
 
-If **autodE** is used in a published work please consider citiing the `paper <https://doi.org/10.1002/anie.202011941>`_ alongside all the methods used.
+If **autodE** is used in a published work please consider citing the `paper <https://doi.org/10.1002/anie.202011941>`_ alongside all the methods used.
 
 
 .. note::

@@ -3,9 +3,10 @@ Transition States
 *****************
 
 In addition to generating full reaction profiles directly **autodE** provides
-automated access to transition states (TSs). Either from a reaction, where bond rearrangements
-are found and TS located along each possible path, or from 3D structures of reactants
-and products, and a bond rearrangement given explicitly.
+automated access to transition states (TSs). TSs are found either from a
+reaction, where bond rearrangements are found and TS located along each
+possible path, or from 3D structures of reactants & products, and a given bond
+rearrangement.
 
 ------------
 

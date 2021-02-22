@@ -11,7 +11,7 @@ Overview
 
 
 `autodE <https://github.com/duartegroup/autodE/>`_ is a Python module designed for the automated generation of reaction
-profiles as fast as possible. Profiles are generated using a double-ended search form from reactant(s) and product(s)
+profiles as fast as possible. Profiles are generated using a double-ended search form reactant(s) and product(s)
 given as 1D SMILES or 3D structures. Functionality for conformational sampling (RR algorithm) and transition state
 finding (NEB, CI-NEB, adapt.) is also available.
 
