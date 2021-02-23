@@ -21,6 +21,7 @@ The Python dependencies are listed in requirements.txt best satisfied using cond
 (`anaconda <https://www.anaconda.com/distribution>`_ or `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_);
 the following guide assumes a conda install.
 
+******
 
 Conda: Mac OSX / Linux
 ----------------------
@@ -30,7 +31,7 @@ Conda: Mac OSX / Linux
     $ conda install autode --channel conda-forge
 
 
-***
+******
 
 Git: Mac OSX / Linux
 --------------------
@@ -41,13 +42,9 @@ First clone the repository and ``cd`` there::
     $ cd autodE
 
 
-then, install the appropriate dependencies (you may want to create a new virtual environment)::
+then, install the appropriate dependencies (you may want to create a new virtual environment) and install::
 
-    $ conda config --append channels conda-forge
-    $ conda install --file requirements.txt
-
-finally::
-
+    $ conda install --file requirements.txt --channel conda-forge
     $ python setup.py install
 
 
@@ -56,7 +53,7 @@ Setup video tutorial
 
 A Linux installation tutorial is available through the following link: https://youtu.be/ZUweT1Sc02s
 
-***
+******
 
 Git: Windows
 ------------
@@ -72,6 +69,9 @@ extracting it. Then, open an anaconda command prompt and ``cd`` to the directory
 .. note::
     The above commands assume you have extracted the zip to ``C:\Users\yourusername\Downloads`` and a C++
     compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ is available.
+
+
+******
 
 Installation Check
 ------------------
@@ -90,6 +90,8 @@ available:
 
 
 If a MethodUnavailable exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
+
+******
 
 Quick test
 ----------

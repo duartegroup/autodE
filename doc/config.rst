@@ -53,8 +53,8 @@ basis set for optimisations
   >>> Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
 
 .. note::
-    set_opt_basis_set also sets the basis set in keywords.grad, keywords.opt_ts
-    and keywords.hess while leaving all other keywords intact
+    `set_opt_basis_set` sets the basis set in keywords.grad, keywords.opt_ts
+    keywords.opt, keywords.low_opt and keywords.hess.
 
 ------------
 

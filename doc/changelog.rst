@@ -1,6 +1,30 @@
 Changelog
 =========
 
+
+1.0.0
+--------
+------------
+
+The first stable release! Mostly documentation updates from v.1.0.0b3 with the
+package now being conda-install-able.
+
+
+Usability improvements
+**********************
+
+- More documentation
+
+
+Functionality improvements
+**************************
+
+- XTB wrapper now supports v. 6.4 (and hopefully higher)
+
+
+Thanks to Joe, Alistair, Matina, Kjell, Gabe, Cher-Tian amongst others for their invaluable contributions.
+
+
 1.0.0b3
 --------
 ------------
