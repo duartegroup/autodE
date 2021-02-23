@@ -21,8 +21,19 @@ The Python dependencies are listed in requirements.txt best satisfied using cond
 (`anaconda <https://www.anaconda.com/distribution>`_ or `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_);
 the following guide assumes a conda install.
 
-Mac OSX / Linux
----------------
+
+Conda: Mac OSX / Linux
+----------------------
+
+**autodE** is available through `conda <https://anaconda.org/conda-forge/autode>`_ and can be installed with::
+
+    $ conda install autode --channel conda-forge
+
+
+***
+
+Git: Mac OSX / Linux
+--------------------
 
 First clone the repository and ``cd`` there::
 
@@ -45,9 +56,10 @@ Setup video tutorial
 
 A Linux installation tutorial is available through the following link: https://youtu.be/ZUweT1Sc02s
 
+***
 
-Windows
---------
+Git: Windows
+------------
 
 On Windows without a ``git`` installation **autode** can be installed with `anaconda <https://www.anaconda.com/distribution>`_
 by: on the GitHub `page <https://github.com/duartegroup/autode>`_ using Clone or download → Download ZIP then
