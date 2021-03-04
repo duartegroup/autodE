@@ -5,6 +5,7 @@ from copy import deepcopy
 from itertools import combinations
 from scipy.optimize import minimize
 from time import time
+from autode.conformers.conformer import get_conformer
 import autode.exceptions as ex
 from autode.bonds import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
@@ -40,7 +41,8 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     return bond_matrix
 
 
-def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8):
+def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds,
+                           exponent=8, return_energy=False):
     """
     Get the coordinates that minimise a FF with a bonds + repulsion FF
     where the repulsion is c/r^exponent
@@ -52,7 +54,10 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8
                     as the harmonic force constant
         k (float):
         c (float):
+
+    Keyword Arguments:
         exponent (int): Exponent in the repulsive pairwise term
+        return_energy (bool): Whether to also return the energy
 
     Returns:
         (np.ndarray): Optimised coordinates, shape = (n_atoms, 3)
@@ -74,8 +79,12 @@ def get_coords_minimised_v(coords, bonds, k, c, d0, tol, fixed_bonds, exponent=8
                    method='CG',
                    tol=tol,
                    jac=dvdr)
+    coords = res.x.reshape(n_atoms, 3)
 
-    return res.x.reshape(n_atoms, 3)
+    if return_energy:
+        return coords, res.fun
+
+    return coords
 
 
 def get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
@@ -271,7 +280,7 @@ def get_atoms_from_generated_file(species, xyz_filename):
     return None
 
 
-def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
+def get_coords_no_init_structure(atoms, species, d0, constrained_bonds):
     """
     Generate coordinates where no initial structure is present - this fixes(?)
      a problem for large molecule where if all the atoms are initially bonded
@@ -304,13 +313,16 @@ def get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds):
                                         exponent=2)
 
     # Perform a final minimisation
-    coords = get_coords_minimised_v(coords=coords, bonds=species.graph.edges,
-                                    fixed_bonds=constrained_bonds,
-                                    k=1.0, c=0.01, d0=d0, tol=1E-5)
-    return coords
+    coords, energy = get_coords_minimised_v(coords=coords,
+                                            bonds=species.graph.edges,
+                                            fixed_bonds=constrained_bonds,
+                                            k=1.0, c=0.01, d0=d0, tol=1E-5,
+                                            return_energy=True)
+    return coords, energy
 
 
-def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
+def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True,
+                     also_return_energy=False):
     """
     Use a bonded + repulsive force field to generate 3D structure for a
     species. If the initial coordinates are reasonable e.g. from a previously
@@ -332,13 +344,15 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
         save_xyz (bool): Whether or not to save a .xyz file of the structure
                          for fast reloading
 
+        also_return_energy (bool): Whether or not to return the energy in units of ?
+
     Returns:
         (list(autode.atoms.Atom)): Atoms
     """
     xyz_filename = f'{species.name}_conf{conf_n}_siman.xyz'
 
     saved_atoms = get_atoms_from_generated_file(species, xyz_filename)
-    if saved_atoms is not None:
+    if saved_atoms is not None and not also_return_energy:
         return saved_atoms
 
     # To generate the potential requires bonds between atoms defined in a
@@ -359,8 +373,9 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
 
     # Add distance constraints across stereocentres e.g. for a Z double bond
     # then modify d0 appropriately
+    curr_dist_consts = {} if dist_consts is None else dist_consts
     dist_consts = add_dist_consts_for_stereocentres(species=species,
-                                                    dist_consts={} if dist_consts is None else dist_consts)
+                                                    dist_consts=curr_dist_consts)
 
     constrained_bonds = []
     for bond, length in dist_consts.items():
@@ -389,12 +404,15 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
     logger.info('Minimising species...')
     st = time()
     if reasonable_init_coords:
-        coords = get_coords_minimised_v(coords=np.array([atom.coord for atom in atoms]),
-                                        bonds=species.graph.edges,
-                                        k=1.0, c=0.01, d0=d0, tol=1E-5,
-                                        fixed_bonds=constrained_bonds)
+        init_coords = np.array([atom.coord for atom in atoms])
+        coords, energy = get_coords_minimised_v(coords=init_coords,
+                                                bonds=species.graph.edges,
+                                                k=1.0, c=0.01, d0=d0, tol=1E-5,
+                                                fixed_bonds=constrained_bonds,
+                                                return_energy=True)
     else:
-        coords = get_coords_no_init_strucutre(atoms, species, d0, constrained_bonds)
+        coords, energy = get_coords_no_init_structure(atoms, species, d0,
+                                                      constrained_bonds)
 
     logger.info(f'                 ... ({time()-st:.3f} s)')
 
@@ -406,4 +424,40 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True):
     if save_xyz:
         atoms_to_xyz_file(atoms=atoms, filename=xyz_filename)
 
+    if also_return_energy:
+        logger.info(f'E_RR = {energy:.6f}')
+        return atoms, energy
+
     return atoms
+
+
+def get_simanl_conformer(species, dist_consts=None, conf_n=0, save_xyz=True):
+    """
+    Generate a conformer of a species using randomise+relax with a simple FF
+    (see get_simanl_atoms)
+
+    Arguments:
+        species (autode.species.Species):
+
+    Keyword Arguments:
+        dist_consts (dict): Key = tuple of atom indexes, Value = distance
+        conf_n (int): Number of this conformer
+        save_xyz (bool): Whether or not to save a .xyz file of the structure
+
+    Returns:
+        (autode.conformers.Conformer): Conformer
+    """
+    # Generate a conformer from a species - same charge/mult/solvent etc.
+    conformer = get_conformer(species, name=f'{species.name}_conf{conf_n}')
+    conformer.dist_consts = dist_consts
+
+    atoms, energy = get_simanl_atoms(species,
+                                     dist_consts=dist_consts,
+                                     conf_n=conf_n,
+                                     save_xyz=save_xyz,
+                                     also_return_energy=True)
+    conformer.atoms = atoms
+    conformer.energy = energy
+
+    return conformer
+

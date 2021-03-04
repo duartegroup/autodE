@@ -4,7 +4,7 @@ from rdkit.Chem import AllChem
 from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
 from autode.conformers.conformer import get_conformer
-from autode.conformers.conf_gen import get_simanl_atoms
+from autode.conformers.conf_gen import get_simanl_conformer
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.atoms import metals
@@ -102,18 +102,15 @@ class Molecule(Species):
         else:
             logger.info('Using repulsion+relaxed (RR) to generate conformers')
             with Pool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(get_simanl_atoms, (self, None, i))
+                results = [pool.apply_async(get_simanl_conformer, (self, None, i))
                            for i in range(n_confs)]
-                conf_atoms_list = [res.get(timeout=None) for res in results]
+                conformers = [res.get(timeout=None) for res in results]
 
             methods.add('RR algorithm (???) implemented in autodE')
 
         # Add the unique conformers
-        for i, atoms in enumerate(conf_atoms_list):
-            conf = get_conformer(name=f'{self.name}_conf{i}', species=self)
-            conf.atoms = atoms
+        for i, conf in enumerate(conformers):
 
-            # If the conformer is unique on an RMSD threshold
             if conf_is_unique_rmsd(conf, self.conformers):
                 self.conformers.append(conf)
 
