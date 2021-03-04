@@ -63,7 +63,7 @@ def test_conf_gen(tmpdir):
     conf = conf_gen.get_simanl_conformer(species=methane)
     assert len(atoms) == 5
     assert are_coords_reasonable(conf.coordinates)
-    assert conf.energy is None
+    assert conf.energy is not None
     assert conf.solvent is None
 
     os.remove('methane_conf0_siman.xyz')
