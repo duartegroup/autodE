@@ -93,8 +93,11 @@ class Molecule(Species):
                                                        params=method))
             logger.info('                                          ... done')
 
-            conf_atoms_list = [atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
-                               for conf_id in conf_ids]
+            conformers = []
+            for conf_id in conf_ids:
+                conf = get_conformer(self, name=f'{self.name}_conf{conf_id}')
+                conf.atoms = atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
+                conformers.append(conf)
 
             methods.add(f'{m_string} algorithm (10.1021/acs.jcim.5b00654) '
                         f'implemented in RDKit v. {rdkit.__version__}')
