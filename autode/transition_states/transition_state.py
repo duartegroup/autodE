@@ -90,7 +90,6 @@ class TransitionState(TSbase):
     def _generate_conformers(self, n_confs=None):
         """Generate conformers at the TS """
         from autode.conformers.conf_gen import get_simanl_conformer
-        from autode.conformers.conformers import conf_is_unique_rmsd
 
         n_confs = Config.num_conformers if n_confs is None else n_confs
         self.conformers = []
@@ -103,17 +102,7 @@ class TransitionState(TSbase):
 
             conformers = [res.get(timeout=None) for res in results]
 
-        min_e = min(c.energy for c in conformers)
-        for i, conf in enumerate(conformers):
-
-            logger.info(f'∆E_RR({i}) = {conf.energy - min_e:.6f}')
-
-            # If the conformer is unique on an RMSD threshold
-            if conf_is_unique_rmsd(conf, self.conformers):
-                conf.graph = deepcopy(self.graph)
-                self.conformers.append(conf)
-
-        logger.info(f'Generated {len(self.conformers)} conformer(s)')
+        self._set_unique_conformers_rmsd(conformers)
         return None
 
     @requires_atoms()

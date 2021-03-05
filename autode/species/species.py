@@ -9,6 +9,7 @@ from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
+from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
@@ -76,6 +77,40 @@ class Species:
 
         coords = self.coordinates
         return np.max(distance_matrix(coords, coords)) / 2.0
+
+    def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
+        """
+        Given a list of conformers add those that are unique based on an RMSD
+        tolerance. In addition, discard any very high or very low energy
+        conformers more than n_sigma σ (std. devs) away from the average
+
+        Args:
+            conformers (Iterable(autode.conformers.Conformer):
+
+            n_sigma (int): Number of standard deviations a conformer energy
+                           must be from the average for it not to be added
+        """
+        energies = std_dev_e = avg_e = None
+
+        # Populate an array of energies in any units to calculate std. dev. etc
+        if all(conf.energy is not None for conf in conformers):
+            energies = np.array([conf.energy for conf in conformers])
+            std_dev_e, avg_e = np.std(energies), np.average(energies)
+
+        for i, conf in enumerate(conformers):
+
+            if energies is not None:
+                if np.abs(conf.energy - avg_e)/std_dev_e > n_sigma:
+                    logger.warning(f'Conformer {i} had an energy >{n_sigma}σ '
+                                   f'from the average - not adding')
+                    continue
+
+            if conf_is_unique_rmsd(conf, self.conformers):
+                conf.graph = deepcopy(self.graph.copy)
+                self.conformers.append(conf)
+
+        logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
+        return None
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '

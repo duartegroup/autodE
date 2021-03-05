@@ -5,7 +5,6 @@ from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
 from autode.conformers.conformer import get_conformer
 from autode.conformers.conf_gen import get_simanl_conformer
-from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.atoms import metals
 from autode.config import Config
@@ -111,13 +110,7 @@ class Molecule(Species):
 
             methods.add('RR algorithm (???) implemented in autodE')
 
-        # Add the unique conformers
-        for i, conf in enumerate(conformers):
-
-            if conf_is_unique_rmsd(conf, self.conformers):
-                self.conformers.append(conf)
-
-        logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
+        self._set_unique_conformers_rmsd(conformers)
         return None
 
     def populate_conformers(self, n_confs):

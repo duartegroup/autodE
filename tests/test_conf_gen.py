@@ -40,8 +40,29 @@ methane = Molecule(name='methane', charge=0, mult=1,
                           Atom('H', 0.33899, 1.93529, -0.55331)])
 
 
-def test_setero_metal():#tmpdir):
-    #os.chdir(tmpdir)
+def test_bcp_confs(tmpdir):
+    os.chdir(tmpdir)
+
+    mol = Molecule(smiles='C1CC2C1C2')
+    mol.rdkit_conf_gen_is_fine = False
+    mol.populate_conformers(n_confs=100)
+
+    assert all(conf.energy is not None for conf in mol.conformers)
+    energies = np.array([conf.energy for conf in mol.conformers])
+    avg, std = np.average(energies), np.std(energies)
+
+    # This fused ring system has a reasonable probability of generating a
+    # high energy conformer with RR, with a minimum that is very congested
+    # it should be removed when the conformers are set
+    assert all(np.abs(conf.energy - avg)/std < 5 for conf in mol.conformers)
+
+    assert len(mol.conformers) > 0
+
+    os.chdir(here)
+
+
+def test_setero_metal(tmpdir):
+    os.chdir(tmpdir)
 
     # (R)-sec butyl lithium
     mol = Molecule(smiles='[Li][C@H](C)CC')
@@ -49,7 +70,6 @@ def test_setero_metal():#tmpdir):
     assert are_coords_reasonable(coords=mol.coordinates)
 
     os.chdir(here)
-
 
 
 def test_conf_gen(tmpdir):
