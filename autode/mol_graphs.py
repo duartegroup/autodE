@@ -1,9 +1,9 @@
 from copy import deepcopy
 import itertools
-import signal
 from networkx.algorithms import isomorphism
 import networkx as nx
 import numpy as np
+from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
 from autode.atoms import get_maximal_valance
@@ -407,7 +407,8 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     return g1, g2
 
 
-def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
+@timeout(seconds=5)
+def is_isomorphic(graph1, graph2, ignore_active_bonds=False):
     """Check whether two NX graphs are isomorphic. Contains a timeout because
     the gm.is_isomorphic() method occasionally gets stuck
 
@@ -417,7 +418,6 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
 
     Keyword Arguments:
         ignore_active_bonds (bool):
-        timeout (float): Timeout in seconds
 
     Returns:
         (bool): if the graphs are isomorphic
@@ -444,17 +444,8 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False, timeout=5):
                                       edge_match=edge_match)
 
     # NX can hang here for not very large graphs, so kill after a timeout
-
-    def handler(signum, frame):
-        raise TimeoutError
-
-    signal.signal(signal.SIGALRM, handler)
-    signal.alarm(int(timeout))
     try:
-        result = gm.is_isomorphic()
-        # Cancel the timer
-        signal.alarm(0)
-        return result
+        return gm.is_isomorphic()
 
     except TimeoutError:
         logger.error('NX graph matching hanging')
