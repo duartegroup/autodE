@@ -269,7 +269,7 @@ def test_timeout():
 
     # With a short timeout this should return False - not sure this is the
     # optimal behavior
-    assert not mol_graphs.is_isomorphic(graph, isomorphic_graph, timeout=1)
+    assert not mol_graphs.is_isomorphic(graph, isomorphic_graph)
 
 
 def test_species_conformers_isomorphic():

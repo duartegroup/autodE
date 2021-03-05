@@ -407,7 +407,7 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     return g1, g2
 
 
-@timeout(seconds=5)
+@timeout(seconds=5, return_value=False)
 def is_isomorphic(graph1, graph2, ignore_active_bonds=False):
     """Check whether two NX graphs are isomorphic. Contains a timeout because
     the gm.is_isomorphic() method occasionally gets stuck
@@ -443,13 +443,7 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False):
                                       node_match=node_match,
                                       edge_match=edge_match)
 
-    # NX can hang here for not very large graphs, so kill after a timeout
-    try:
-        return gm.is_isomorphic()
-
-    except TimeoutError:
-        logger.error('NX graph matching hanging')
-        return False
+    return gm.is_isomorphic()
 
 
 def gm_is_isomorphic(gm, result):

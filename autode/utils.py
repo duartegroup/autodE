@@ -229,12 +229,15 @@ def requires_output():
     return func_decorator
 
 
-def timeout(seconds):
+def timeout(seconds, return_value=None):
     """
     Function dectorator that times-out after a number of seconds
 
     Arguments:
         seconds (float):
+
+    Keyword Arguments:
+        return_value (Any): Value returned if the function times out
 
     Returns:
         (Any): Result of the function
@@ -256,7 +259,7 @@ def timeout(seconds):
             if p.is_alive():
                 p.terminate()
                 p.join()
-                raise TimeoutError
+                return return_value
 
             else:
                 return q.get()

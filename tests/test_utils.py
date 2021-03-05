@@ -149,9 +149,7 @@ def test_timeout():
 
     # Decorated function should timeout and return in under two seconds
     start_time = time.time()
-    with pytest.raises(TimeoutError):
-        sleep_2s()
-
+    sleep_2s()
     assert time.time() - start_time < 2
 
     @utils.timeout(seconds=10)
