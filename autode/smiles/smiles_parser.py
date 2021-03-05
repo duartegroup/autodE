@@ -14,8 +14,11 @@ bond_order_symbol_dict = {'-': 1, '=': 2, '#': 3, '$': 4}
 
 def parse_smiles(smiles):
     """Parse the given smiles string
-    Args:
+    Arguments:
         smiles (str): smiles string to be parsed
+
+    Returns:
+        (autode.smiles.SmilesParser):
     """
 
     logger.info(f'Parsing SMILES string: {smiles}')
@@ -29,12 +32,11 @@ def parse_smiles(smiles):
         # This means a ring number has only been mentioned once, which is
         # invalid
         logger.critical('Invalid SMILES string')
-        raise InvalidSmilesString
+        raise InvalidSmilesString('Non-closed ring')
 
     parser.add_hs()
 
     parser.charge = sum(parser.charge_dict.values())
-
     parser.analyse_alkene_stereochem_dict()
 
     for atom_no in sorted(parser.stereochem_dict.keys()):
@@ -151,6 +153,65 @@ def divide_smiles(string_to_divide):
         yield char, char_type
 
 
+def get_h_atoms(atom, bonded_atoms, n):
+    """Get a list of n hydrogen atoms given a list of bonded atoms i.e.
+
+    for bonded_atoms = [Atom(C)] and n = 2
+    then should return hydrogen atoms in the position::
+
+                  H
+                /
+        C --- atom
+                \
+                 H
+
+    Arguments:
+        atom (autode.atoms.Atom):
+        bonded_atoms (list((autode.atoms.Atom)):
+        n (int): Number of hydrogens that need to be added to this atom
+                 in total
+
+    Returns:
+        (list(autode.atoms.Atom)):
+    """
+    logger.info(f'Adding {n} hydrogens to {atom.label} at {atom.coord} Å with '
+                f'{len(bonded_atoms)} other bonded atom(s)')
+    h_atoms = []
+
+    if n == 0:
+        return h_atoms
+
+    # No bonded atoms (e.g. first atom of methane), add at a random position
+    if len(bonded_atoms) == 0:
+        h_atom = Atom('H', x=atom.coord[0]+1.0, y=atom.coord[1], z=atom.coord[2])
+        h_atoms.append(h_atom)
+        b_atom = h_atom
+        n -= 1
+
+    else:
+        b_atom = bonded_atoms[0]
+
+    # Add the remaining hydrogen atoms at the average coordinate of all the
+    # atoms bonded to this one.. not ideal
+    for i in range(n):
+
+        # Gram-Schmidt
+        vec = b_atom.coord - atom.coord
+        vec /= np.linalg.norm(vec)
+        orth_vec = np.ones(3) - np.dot(np.ones(3), vec)*vec
+
+        coord = orth_vec / np.linalg.norm(orth_vec)
+
+        h_atom = Atom('H', x=coord[0], y=coord[1], z=coord[2])
+        h_atom.rotate(axis=b_atom.coord-atom.coord,
+                      theta=2 * i * np.pi / n)
+        h_atom.translate(vec=atom.coord)
+
+        h_atoms.append(h_atom)
+
+    return h_atoms
+
+
 class SmilesParser:
 
     def analyse_char(self, char, char_type):
@@ -216,8 +277,12 @@ class SmilesParser:
         Returns:
             (str): rest of the string, some details about the atom
         """
+        coord = np.zeros(3)
+
         if self.atom_no != 0:
             self.bonds.append((self.prev_atom_no, self.atom_no))
+            # Add this atom 1.5 Å along the x axis
+            coord = self.atoms[-1].coord + np.array([1.5, 0.0, 0.0])
 
         if atom_string[:2] in atoms_and_electrons.keys():
             label = atom_string[:2]
@@ -227,7 +292,9 @@ class SmilesParser:
             label = atom_string[0]
             rest_of_string = atom_string[1:]
 
-        self.atoms.append(Atom(label, 0.0, 0.0, 0.0))
+        logger.info(f'Adding {label} at {np.round(coord, 3)} Å')
+
+        self.atoms.append(Atom(label, x=coord[0], y=coord[1], z=coord[2]))
         self.prev_atom_no = self.atom_no
         self.atom_no += 1
         return rest_of_string
@@ -349,8 +416,8 @@ class SmilesParser:
         self.hydrogen_dict[self.prev_atom_no] = hydrogens
 
     def add_hs(self):
-        """Adds the hydrogens implied by the smiles string
-        """
+        """Adds the hydrogens implied by the smiles string"""
+        logger.info('Adding hydrogens')
         # need to add aromatic characters?
         hs = {'B': [3], 'C': [4], 'N': [3, 5], 'O': [2], 'P': [3, 5],
               'S': [2, 4, 6], 'F': [1], 'Cl': [1], 'Br': [1], 'I': [1]}
@@ -361,9 +428,16 @@ class SmilesParser:
 
         for i, atom in enumerate(self.atoms):
             n_bonds = 0
+            bonded_atoms = []
+
             # count the number of bonds this atom has
             for j, bond in enumerate(self.bonds):
                 if i in bond:
+
+                    for idx in bond:
+                        if idx != i:
+                            bonded_atoms.append(self.atoms[idx])
+
                     if j in self.bond_order_dict.keys():
                         # include double bonds as two bonds etc
                         n_bonds += self.bond_order_dict[j]
@@ -387,17 +461,22 @@ class SmilesParser:
                 else:
                     n_hydrogen = 0
 
-            for _ in range(n_hydrogen):
-                h_atoms.append(Atom('H', 0.0, 0.0, 0.0))
+            for h_atom in get_h_atoms(atom, bonded_atoms, n=n_hydrogen):
+
+                h_atoms.append(h_atom)
+                bonded_atoms.append(h_atom)
                 h_bonds.append((i, self.atom_no))
+
                 n_bonds += 1
                 self.atom_no += 1
+
             n_electrons = (atoms_and_electrons[atom.label]
                            - n_bonds
                            - self.charge_dict.get(i, 0))
 
             if n_electrons % 2 == 1:
                 self.n_radical_electrons += 1
+
         self.atoms += h_atoms
         self.bonds += h_bonds
 
