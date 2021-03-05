@@ -6,6 +6,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.keywords import Keywords
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
+import time
 import pytest
 import os
 
@@ -131,3 +132,31 @@ def test_work_in_empty():
     # Remove the created files and directory
     os.remove('tmp_dir/tmp.txt')
     os.rmdir('tmp_dir')
+
+
+def test_timeout():
+
+    def sleep_2s():
+        return time.sleep(2)
+
+    start_time = time.time()
+    sleep_2s()
+    assert time.time() - start_time > 2
+
+    @utils.timeout(seconds=1)
+    def sleep_2s():
+        return time.sleep(2)
+
+    # Decorated function should timeout and return in under two seconds
+    start_time = time.time()
+    sleep_2s()
+    assert time.time() - start_time < 2
+
+    @utils.timeout(seconds=10)
+    def return_string():
+        return 'test'
+
+    # Should not raise a TimeoutError if the function executes fast
+    start_time = time.time()
+    assert return_string() == 'test'
+    assert time.time() - start_time < 10

@@ -229,6 +229,43 @@ def requires_output():
     return func_decorator
 
 
+def timeout(seconds, return_value=None):
+    """
+    Function dectorator that times-out after a number of seconds
+
+    Arguments:
+        seconds (float):
+
+    Keyword Arguments:
+        return_value (Any): Value returned if the function times out
+
+    Returns:
+        (Any): Result of the function | return_value
+    """
+    def handler(queue, func, args, kwargs):
+        queue.put(func(*args, **kwargs))
+
+    def decorator(func):
+
+        def wraps(*args, **kwargs):
+            q = multiprocessing.Queue()
+            p = multiprocessing.Process(target=handler,
+                                        args=(q, func, args, kwargs))
+            p.start()
+            p.join(timeout=seconds)
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                return return_value
+
+            else:
+                return q.get()
+
+        return wraps
+
+    return decorator
+
+
 class NoDaemonProcess(multiprocessing.Process):
     @property
     def daemon(self):
