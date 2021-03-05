@@ -240,10 +240,7 @@ def timeout(seconds, return_value=None):
         return_value (Any): Value returned if the function times out
 
     Returns:
-        (Any): Result of the function
-
-    Raises:
-        (TimeoutError): If current time > seconds
+        (Any): Result of the function | return_value
     """
     def handler(queue, func, args, kwargs):
         queue.put(func(*args, **kwargs))
