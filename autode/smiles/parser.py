@@ -1,0 +1,412 @@
+"""
+(Open)SMILES parser implemented based on
+
+1. http://opensmiles.org/
+2. https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system
+
+as of 03/2021
+"""
+from time import time
+from autode.log import logger
+from autode.atoms import Atom
+from autode.atoms import elements
+from autode.exceptions import InvalidSmilesString
+
+bond_order_symbols = ['-', '=', '#', '$']
+organic_symbols = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
+aromatic_symbols = ['b', 'c', 'n', 'o', 's', 'p']
+
+
+class Parser:
+
+    @property
+    def n_atoms(self):
+        return len(self.atoms)
+
+    @property
+    def canonical_atoms(self):
+        """Generate canonical autodE atoms from this set"""
+        if self.n_atoms == 0:
+            raise ValueError('Had no atoms - cannot return a canonical set')
+
+        atoms = []
+        for atom in self.atoms:
+            x, y, z = atom.coord
+            atoms.append(Atom(atom.label, x=x, y=y, z=z))
+
+        return atoms
+
+    @property
+    def parsed(self):
+        """Has the parser parsed every character of the SMILES string"""
+        return len(self.parsed_idxs) == len(self._string)
+
+    def _check_smiles(self):
+        """Check the SMILES string for unsupported characters"""
+        unsupported_chars = [':', '.', '*']
+        if any(char in self.smiles for char in unsupported_chars):
+            raise InvalidSmilesString(f'{self.smiles} had invalid characters')
+
+    @property
+    def smiles(self):
+        return self._string
+
+    @smiles.setter
+    def smiles(self, string):
+        """Set the SMILES string for the parser and reset"""
+        self._string = str(string)
+        self._check_smiles()
+
+        # Reset all the defaults for the parser
+        self.parsed_idxs = set()
+        self.n_rad_electrons = 0
+        self.atoms = []
+        self.bonds = []
+
+    def _parse_sq_bracket(self, string):
+        """
+        Parse a section in a square bracket
+
+        e.g. [C], [CH3], [Cu+2], [O-], [C@H]
+        """
+        if '(' in string or ')' in string:
+            raise InvalidSmilesString('Cannot parse branch in "[]" section')
+
+        if len(string) == 0:
+            raise InvalidSmilesString('"[]" must contain something')
+
+        elif len(string) == 1:
+            # Single element e.g. [C] i.e. string = 'C'
+            self.atoms.append(SMILESAtom(string, n_hydrogens=0))
+            return
+
+        # e.g. [Cu++], first two characters are an element
+        if string[:2] in elements:
+            label, rest = string[:2], string[2:]
+
+        # e.g. [CH2] or [n+]
+        elif string[0] in elements or string[0] in aromatic_symbols:
+            label, rest = string[0], string[1:]
+
+        # e.g. [999C]  NOTE: SMILES does allow for isotopes, but they're not
+        # supported
+        else:
+            raise InvalidSmilesString(f'Unknown first item {string} in a "[]"')
+
+        if len(rest) == 0:  # e.g. [Cu] etc.
+            self.atoms.append(SMILESAtom(label, n_hydrogens=0))
+            return
+
+        if any(elem in rest for elem in elements if elem != 'H'):
+            raise InvalidSmilesString(f'Only expecting hydrogens in {rest}')
+
+        atom = SMILESAtom(label=label,
+                          n_hydrogens=atomic_n_hydrogens(rest),
+                          charge=atomic_charge(rest),
+                          stereochem=atomic_sterochem(rest))
+
+        self.atoms.append(atom)
+        return None
+
+    def _parse_next_sq_bracket(self, idx):
+        """
+        Parse the next square bracket section from the SMILES e.g.
+
+        CCC [ CH3]
+           ^
+           |
+          idx
+
+        Arguments:
+            idx (int): Position in the SMILES string for the [
+        """
+        if idx == len(self.smiles) - 1:
+            raise InvalidSmilesString('"[" cannot appear at '
+                                      'the end of a SMILES string')
+
+        # Split the on closed square brackets e.g
+        # [C -> ['C']   [C] -> ['C', '']   [CH4] -> ['CH4', '']
+        closing_brackets_sec = self.smiles[idx + 1:].split(']')
+
+        if len(closing_brackets_sec) == 1:
+            raise InvalidSmilesString('Bracket "]" not closed')
+
+        # [C] -> 'C',  [CH4] -> 'CH4'
+        bracketed_sec = self.smiles[idx + 1:].split(']')[0]
+        n_bracket_chars = len(bracketed_sec)
+        self._parse_sq_bracket(bracketed_sec)
+
+        # Have now parsed i+1 -- n_bracket_chars+1 inclusive
+        # where the +1 is from the final ]
+        self.parsed_idxs.update(list(range(idx, n_bracket_chars + 2)))
+        return None
+
+    def _add_bond(self, symbol, prev_idx=None):
+        """
+        Add a bond to the list of bonds from the previously added atom to
+
+        Arguments:
+            symbol (str): Symbol of this bond e.g. # for a double bond, see
+                          bond_order_symbols
+
+        Keyword Arguments:
+            prev_idx (int | None): Index to bond the added atom to
+        """
+        if self.n_atoms == 1:               # First atom, thus no bonds to add
+            return
+
+        if prev_idx is None:
+            prev_idx = self.n_atoms - 2
+
+        self.bonds.append(SMILESBond(idx_i=self.n_atoms-1,
+                                     idx_j=prev_idx,
+                                     symbol=symbol))
+        return None
+
+    def parse(self, smiles: str):
+        """
+        Parse a SMILES string e.g. '[He]', 'C'
+        """
+        self.smiles = smiles
+        logger.info(f'Parsing {self.smiles}')
+
+        start_time = time()
+        branch_idxs = []     # Indexes of branch points
+        prev_idx = None      # Index of the previous atom to bond the next to
+
+        # Enumerate over the string until all characters have been parsed
+        for i, char in enumerate(self.smiles):
+
+            if i in self.parsed_idxs or char in bond_order_symbols:
+                continue
+
+            elif char == '[':
+                self._parse_next_sq_bracket(idx=i)
+
+            elif char == '(':                                      # New branch
+                branch_idxs.append(len(self.atoms)-1)
+                continue
+
+            elif char == ')':                                   # Closed branch
+                if len(branch_idxs) == 0:
+                    raise InvalidSmilesString('Closed unopened bracket "("')
+
+                # If the next character is another branch from the same atom
+                # then the branch index should not be deleted
+                prev_idx = branch_idxs[-1]
+
+                if next_char(self.smiles, i) != '(':
+                    del branch_idxs[-1]
+
+                continue
+
+            # e.g. C, B, O
+            elif char in organic_symbols + aromatic_symbols:
+                self.atoms.append(SMILESAtom(label=char))
+
+            # e.g. Cl, Br
+            elif char + next_char(self.smiles, i) in organic_symbols:
+                atom = SMILESAtom(label=char + self.smiles[i + 1])
+                self.atoms.append(atom)
+                # Have also parsed the next character
+                self.parsed_idxs.update([i, i+1])
+
+            else:
+                raise InvalidSmilesString(f'Unsupported character {char}')
+
+            # Determine the type of bond the next added atom is bonded with
+            if i > 0 and self.smiles[i-1] in bond_order_symbols:
+                bond_symbol = self.smiles[i-1]            # double, triple etc.
+            else:
+                bond_symbol = '-'                       # single bonds implicit
+
+            # Finally add the bond and add this character to those parsed
+            self._add_bond(bond_symbol, prev_idx)
+            self.parsed_idxs.update([i])
+
+        logger.info(f'Parsed SMILES in {(time() - start_time)*1E3:.2f} ms')
+        return None
+
+    def __init__(self):
+        """SMILES Parser"""
+
+        self._string = ''
+
+        # Indexes of the characters in the SMILES string that have been parsed
+        self.parsed_idxs = set()
+
+        self.n_rad_electrons = 0
+        self.atoms = []
+        self.bonds = []
+
+
+class SMILESAtom(Atom):
+    """Atom in a SMILES string"""
+
+    @property
+    def has_stereochem(self):
+        """Does this atom have associated stereochemistry?"""
+        return self.stereochem is not None
+
+    def __init__(self, label, stereochem=None, n_hydrogens=None, charge=0):
+        """
+        SMILES atom initialised at the origin
+
+        ----------------------------------------------------------------------
+        Arguments:
+            label (str): Label / atomic symbol of this atom
+
+        Keyword Arguments:
+            n_hydrogens (int | None): Number of hydrogens, None means unset and
+                                      should be determined implicitly
+
+            stereochem (str | None):
+
+            charge (int): Formal charge on this atom
+        """
+        super().__init__(label)
+
+        self.charge = charge
+        self.n_hydrogens = n_hydrogens
+        self.stereochem = stereochem
+
+
+class SMILESBond:
+    """Bond in a SMILES string"""
+
+    def __getitem__(self, item):
+        return self._list[item]
+
+    @property
+    def order(self):
+        """The order of this bond e.g. 1 for a single bond"""
+        return bond_order_symbols.index(self.symbol) + 1
+
+    def __init__(self, idx_i, idx_j, symbol):
+        """
+        Bond between two atoms from a SMILES string
+
+        Arguments:
+            idx_i (int):
+            idx_j (int):
+            symbol (str): Bond order symbol
+        """
+
+        self._list = list(sorted([idx_i, idx_j]))
+
+        if symbol not in bond_order_symbols:
+            raise InvalidSmilesString(f'{symbol} is an unknown bond type')
+
+        self.symbol = symbol
+
+
+def atomic_charge(string):
+    """
+    Parse a section of a SMILES string associated with an atom for the
+    formal charge on the atom, will ignore anything but +, -. e.g.
+
+    +   ->   1
+    -   ->  -1
+    ++  ->   2
+    H+  ->   1
+
+    Returns:
+        (int): charge
+    """
+    charge = 0
+    for i, item in enumerate(string):
+
+        if item == '+':
+            sign = 1
+
+        elif item == '-':
+            sign = -1
+
+        else:  # Not a charge determining portion
+            continue
+
+        # +3 or +2 or -2 etc.
+        if next_char(string, i).isdigit():
+            return sign * int(string[i + 1])
+
+        # ++  or --
+        elif next_char(string, i) in ('+', '-'):
+            return sign * 2
+
+        # just - or +, thus the charge is just the sign
+        else:
+            return sign
+
+    return charge
+
+
+def atomic_sterochem(string):
+    """
+    Extract the first occurring atomic stereochemistry from a partial
+    SMILES i.e
+
+    @H3  ->  @
+    @    ->  @
+    @@-  ->  @@
+
+    Arguments:
+        string (str):
+
+    Returns:
+        (str | None): Type of point stereochemistry
+    """
+    for i, item in enumerate(string):
+
+        if item == '@':
+            if next_char(string, i) == '@':
+                return '@@'
+
+            return '@'
+
+    return None
+
+
+def atomic_n_hydrogens(string):
+    """
+    Extract the number of hydrogens from a partial SMILES, i.e.
+
+    H3-  ->  3
+    H    ->  1
+    C    ->  0
+
+    Arguments:
+        string (str):
+
+    Returns:
+        (int): Number of hydrogens
+    """
+    for i, item in enumerate(string):
+
+        if item == 'H':
+            # e.g. [CH3]  where rest = H3  or [OH-]
+            if next_char(string, i).isdigit():
+                return int(string[i + 1])
+
+            # e.g. [OH]
+            else:
+                return 1
+
+    return 0
+
+
+def next_char(string, idx):
+    """
+    Get the next character in a string if it exists otherwise return
+    an empty string
+
+    Arguments:
+        string (str):
+        idx (idx):
+
+    Returns:
+        (str):
+    """
+    if idx >= len(string) - 1:
+        return ''
+
+    return string[idx + 1]

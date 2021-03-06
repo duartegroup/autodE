@@ -191,8 +191,7 @@ def get_h_atoms(atom, bonded_atoms, n):
     else:
         b_atom = bonded_atoms[0]
 
-    # Add the remaining hydrogen atoms at the average coordinate of all the
-    # atoms bonded to this one.. not ideal
+    # Add the remaining hydrogen atoms at a reasonable-ish position
     for i in range(n):
 
         # Gram-Schmidt
