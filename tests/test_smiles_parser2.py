@@ -15,6 +15,12 @@ def test_base_properties():
     with pytest.raises(InvalidSmilesString):
         parser.smiles = 'C*C'
 
+    # Should allow for SMILES typos with leading or final empty spaces
+    parser.parse(smiles='C ')
+    assert parser.n_atoms == 1
+
+    assert str(parser.atoms[0]) is not None
+
 
 def test_sq_brackets_parser():
 
@@ -89,12 +95,19 @@ def test_multiple_atoms():
     parser = Parser()
     parser.parse(smiles='CC')
     assert parser.n_atoms == 2
+    assert str(parser.bonds[0]) is not None
+    assert parser.bonds[0].symbol == '-'
+
     assert all(atom.label == 'C' for atom in parser.atoms)
     assert all(atom.charge == 0 for atom in parser.atoms)
     assert all(atom.n_hydrogens is None for atom in parser.atoms)
 
     assert len(parser.bonds) == 1
     assert parser.bonds[0].order == 1
+
+    parser.parse(smiles='[H][H]')
+    assert parser.n_atoms == 2
+    assert len(parser.bonds) == 1
 
     parser.parse(smiles='CN')
     assert parser.n_atoms == 2
@@ -119,14 +132,102 @@ def test_branches():
     parser = Parser()
     parser.parse(smiles='C(C)C')
     assert parser.n_atoms == 3
-    assert len(parser.bonds) == 2
+    assert parser.n_bonds == 2
 
     b1, b2 = parser.bonds
     assert b1[0] == 0 and b1[1] == 1
     assert b2[0] == 0 and b2[1] == 2
 
     # isobutane - properly branched
-    parser = Parser()
     parser.parse(smiles='CC(C)C')
     assert parser.n_atoms == 4
-    assert len(parser.bonds) == 3
+    assert parser.n_bonds == 3
+
+    # octachlorodirhenate
+    parser.parse(smiles='[Rh-](Cl)(Cl)(Cl)(Cl)$[Rh-](Cl)(Cl)(Cl)Cl')
+    assert parser.n_atoms == 10
+    assert parser.n_bonds == 9
+
+    # should have a single quadruple bond
+    assert any(bond.order == 4 for bond in parser.bonds)
+
+    # 2-propyl-3-isopropyl-1-propanol
+    parser.parse(smiles='OCC(CCC)C(C(C)C)CCC')
+    assert parser.n_atoms == 13
+    assert parser.n_bonds == 12
+
+    # thiosulfate
+    parser.parse(smiles='OS(=O)(=S)O')
+    assert parser.n_atoms == 5
+    assert parser.n_bonds == 4
+
+
+def test_rings():
+
+    parser = Parser()
+
+    # cyclohexane
+    parser.parse(smiles='C1CCCCC1')
+    assert parser.n_atoms == parser.n_bonds == 6
+
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='C1CCCCC')
+
+    # Should be able to resolve multiple cyclohexenes to the same structure
+    def n_double_bonds():
+        return len([bond for bond in parser.bonds if bond.order == 2])
+
+    cychexene_smiles = ['C=1CCCCC=1', 'C=1CCCCC1', 'C1CCCCC=1 ']
+    for smiles in cychexene_smiles:
+
+        parser.parse(smiles)
+        assert parser.n_atoms == parser.n_bonds == 6
+        assert n_double_bonds() == 1
+
+    # perhydroisoquinoline
+    parser.parse(smiles='N1CC2CCCC2CC1')
+    assert parser.n_bonds == 10
+    assert parser.n_atoms == 9
+
+    ring_bonds = [bond for bond in parser.bonds if bond.in_ring]
+    assert len(ring_bonds) == 2
+
+    # Reusing ring closures is fine..
+    bicylcohexyl_smiles = ['C1CCCCC1C2CCCCC2', 'C1CCCCC1C1CCCCC1']
+    for smiles in bicylcohexyl_smiles:
+        parser.parse(smiles)
+        assert parser.n_atoms == 12
+        assert parser.n_bonds == 13
+
+    # Should be able to parse atoms with multiple dangling bonds to the
+    # same atom
+    parser.parse(smiles='C12(CCCCC1)CCCCC2')
+    assert parser.n_atoms == 11
+
+    # Should correct for atoms bonded to themselves
+    parser.parse(smiles='C11')
+    assert parser.n_atoms == 1
+    assert parser.n_bonds == 0
+
+
+def test_aromatic():
+
+    parser = Parser()
+    parser.parse(smiles='c1occc1')
+    assert parser.n_atoms == 5
+    assert parser.n_bonds == 5
+
+
+def test_hydrogens():
+
+    parser = Parser()
+
+    # H atoms defined explicitly are treated as atoms
+    parser.parse(smiles='[H]C([H])([H])[H]')
+    assert parser.n_atoms == 5
+    assert parser.n_bonds == 4
+
+    assert len(parser.canonical_atoms) == 5
+
+
+# TODO: (1) cis/trans  (2) allene   (3) n_rad_electrons

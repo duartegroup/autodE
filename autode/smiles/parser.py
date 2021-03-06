@@ -24,6 +24,10 @@ class Parser:
         return len(self.atoms)
 
     @property
+    def n_bonds(self):
+        return len(self.bonds)
+
+    @property
     def canonical_atoms(self):
         """Generate canonical autodE atoms from this set"""
         if self.n_atoms == 0:
@@ -37,13 +41,19 @@ class Parser:
         return atoms
 
     @property
+    def n_rad_electrons(self):
+        """Number of radical electrons in this SMILES-defined system"""
+        # TODO: implement
+        return 0
+
+    @property
     def parsed(self):
         """Has the parser parsed every character of the SMILES string"""
         return len(self.parsed_idxs) == len(self._string)
 
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
-        unsupported_chars = [':', '.', '*']
+        unsupported_chars = [':', '.', '*', '%']
         if any(char in self.smiles for char in unsupported_chars):
             raise InvalidSmilesString(f'{self.smiles} had invalid characters')
 
@@ -54,14 +64,13 @@ class Parser:
     @smiles.setter
     def smiles(self, string):
         """Set the SMILES string for the parser and reset"""
-        self._string = str(string)
+        self._string = str(string.strip())  # strip leading/trailing whitespace
         self._check_smiles()
 
         # Reset all the defaults for the parser
         self.parsed_idxs = set()
-        self.n_rad_electrons = 0
         self.atoms = []
-        self.bonds = []
+        self.bonds = SMILESBonds()
 
     def _parse_sq_bracket(self, string):
         """
@@ -138,7 +147,7 @@ class Parser:
 
         # Have now parsed i+1 -- n_bracket_chars+1 inclusive
         # where the +1 is from the final ]
-        self.parsed_idxs.update(list(range(idx, n_bracket_chars + 2)))
+        self.parsed_idxs.update(list(range(idx, idx + n_bracket_chars + 2)))
         return None
 
     def _add_bond(self, symbol, prev_idx=None):
@@ -173,13 +182,35 @@ class Parser:
         start_time = time()
         branch_idxs = []     # Indexes of branch points
         prev_idx = None      # Index of the previous atom to bond the next to
+        unclosed_bonds = {}  # Bonds that must be closed
 
         # Enumerate over the string until all characters have been parsed
         for i, char in enumerate(self.smiles):
 
+            # Determine the type of bond the next added atom is bonded with
+            if i > 0 and self.smiles[i-1] in bond_order_symbols:
+                bond_symbol = self.smiles[i-1]            # double, triple etc.
+            else:
+                bond_symbol = '-'                       # single bonds implicit
+
             if i in self.parsed_idxs or char in bond_order_symbols:
                 continue
 
+            # Integer for a dangling bond e.g. C1, C=1, N3 etc.
+            elif char.isdigit():
+                ring_idx = int(char) - 1
+
+                # This bond is in the dictionary and can be closed and removed
+                if ring_idx in unclosed_bonds.keys():
+                    ring_bond = unclosed_bonds.pop(ring_idx)
+                    ring_bond.close(idx=self.n_atoms-1, symbol=bond_symbol)
+                    self.bonds.append(ring_bond)
+                    continue
+
+                unclosed_bonds[ring_idx] = RingBond(idx_i=self.n_atoms-1,
+                                                    symbol=bond_symbol)
+
+            # Any square bracketed atom with hydrogens defined e.g. [OH], [Fe]
             elif char == '[':
                 self._parse_next_sq_bracket(idx=i)
 
@@ -200,29 +231,26 @@ class Parser:
 
                 continue
 
-            # e.g. C, B, O
-            elif char in organic_symbols + aromatic_symbols:
-                self.atoms.append(SMILESAtom(label=char))
-
-            # e.g. Cl, Br
-            elif char + next_char(self.smiles, i) in organic_symbols:
+            # only Cl, Br
+            elif char + next_char(self.smiles, i) in ('Cl', 'Br'):
                 atom = SMILESAtom(label=char + self.smiles[i + 1])
                 self.atoms.append(atom)
                 # Have also parsed the next character
                 self.parsed_idxs.update([i, i+1])
 
+            # e.g. C, B, O
+            elif char in organic_symbols + aromatic_symbols:
+                self.atoms.append(SMILESAtom(label=char))
+
             else:
                 raise InvalidSmilesString(f'Unsupported character {char}')
-
-            # Determine the type of bond the next added atom is bonded with
-            if i > 0 and self.smiles[i-1] in bond_order_symbols:
-                bond_symbol = self.smiles[i-1]            # double, triple etc.
-            else:
-                bond_symbol = '-'                       # single bonds implicit
 
             # Finally add the bond and add this character to those parsed
             self._add_bond(bond_symbol, prev_idx)
             self.parsed_idxs.update([i])
+
+        if len(unclosed_bonds) > 0:
+            raise InvalidSmilesString('Found unclosed rings')
 
         logger.info(f'Parsed SMILES in {(time() - start_time)*1E3:.2f} ms')
         return None
@@ -234,14 +262,15 @@ class Parser:
 
         # Indexes of the characters in the SMILES string that have been parsed
         self.parsed_idxs = set()
-
-        self.n_rad_electrons = 0
         self.atoms = []
-        self.bonds = []
+        self.bonds = SMILESBonds()
 
 
 class SMILESAtom(Atom):
     """Atom in a SMILES string"""
+
+    def __str__(self):
+        return f'SMILESAtom({self.label})'
 
     @property
     def has_stereochem(self):
@@ -264,7 +293,9 @@ class SMILESAtom(Atom):
 
             charge (int): Formal charge on this atom
         """
-        super().__init__(label)
+        super().__init__(atomic_symbol=label.capitalize())
+
+        self.is_aromatic = label in aromatic_symbols
 
         self.charge = charge
         self.n_hydrogens = n_hydrogens
@@ -274,30 +305,88 @@ class SMILESAtom(Atom):
 class SMILESBond:
     """Bond in a SMILES string"""
 
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f'SMILESBond{self._list}'
+
     def __getitem__(self, item):
         return self._list[item]
 
     @property
-    def order(self):
-        """The order of this bond e.g. 1 for a single bond"""
-        return bond_order_symbols.index(self.symbol) + 1
+    def atom_indexes(self):
+        """Atom indexes for the atoms in this bond"""
+        return {self._list[0], self._list[1]}
 
-    def __init__(self, idx_i, idx_j, symbol):
+    @property
+    def symbol(self):
+        """SMILES symbol for this bond e.g. # for a triple bond"""
+        return bond_order_symbols[self.order - 1]
+
+    @symbol.setter
+    def symbol(self, value):
+        """Allow for a symbol to be set, keeping track of only the order"""
+        self.order = bond_order_symbols.index(value) + 1
+
+    def __init__(self, idx_i: int, idx_j: int, symbol: str):
         """
-        Bond between two atoms from a SMILES string
+        Bond between two atoms from a SMILES string, sorted from low to high
 
         Arguments:
             idx_i (int):
             idx_j (int):
             symbol (str): Bond order symbol
         """
-
         self._list = list(sorted([idx_i, idx_j]))
 
         if symbol not in bond_order_symbols:
             raise InvalidSmilesString(f'{symbol} is an unknown bond type')
 
-        self.symbol = symbol
+        self.in_ring = False
+        self.order = bond_order_symbols.index(symbol) + 1
+
+
+class RingBond(SMILESBond):
+    """Dangling bond created with a ring is found"""
+
+    def __repr__(self):
+        return f'RingSMILESBond{self._list}'
+
+    def close(self, idx, symbol):
+        """Close this bond using an atom index"""
+        self._list = list(sorted([self[0], idx]))
+
+        # Only override implicit single bonds with double, triple etc.
+        if self.symbol == '-':
+            self.symbol = symbol
+
+        return None
+
+    def __init__(self, idx_i, symbol):
+        """Initialise the bond with a non-existent large index"""
+        super().__init__(idx_i=idx_i, idx_j=99999, symbol=symbol)
+        self.in_ring = True
+
+
+class SMILESBonds(list):
+
+    def n_bonds_involving(self, idx):
+        """How many bonds does an atom (given as a index) have?"""
+        return len([bond for bond in self if idx in bond])
+
+    def append(self, bond: SMILESBond):
+        """Add another SMILESBond to this list"""
+
+        if len(bond.atom_indexes) != 2:
+            logger.warning('Could not bond an atom to itself etc. - skipping')
+            return None
+
+        if any(bond.atom_indexes == item.atom_indexes for item in self):
+            logger.warning('Attempted to add a bond already present - skipping')
+            return None
+
+        return super().append(bond)
 
 
 def atomic_charge(string):
