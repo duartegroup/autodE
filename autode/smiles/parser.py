@@ -54,8 +54,8 @@ class Parser:
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
         unsupported_chars = [':', '.', '*', '%']
-        if any(char in self.smiles for char in unsupported_chars):
-            raise InvalidSmilesString(f'{self.smiles} had invalid characters')
+        if any(char in self._string for char in unsupported_chars):
+            raise InvalidSmilesString(f'{self._string} had invalid characters')
 
     @property
     def smiles(self):
@@ -150,7 +150,7 @@ class Parser:
         self.parsed_idxs.update(list(range(idx, idx + n_bracket_chars + 2)))
         return None
 
-    def _add_bond(self, symbol, prev_idx=None):
+    def _add_bond(self, symbol, idx, prev_atom_idx=None):
         """
         Add a bond to the list of bonds from the previously added atom to
 
@@ -158,18 +158,89 @@ class Parser:
             symbol (str): Symbol of this bond e.g. # for a double bond, see
                           bond_order_symbols
 
+            idx (int): Index of the position in the SMILES string
+
         Keyword Arguments:
-            prev_idx (int | None): Index to bond the added atom to
+            prev_atom_idx (int | None): Index to bond the added atom to
         """
         if self.n_atoms == 1:               # First atom, thus no bonds to add
             return
 
-        if prev_idx is None:
-            prev_idx = self.n_atoms - 2
+        if prev_atom_idx is None:
+            prev_atom_idx = self.n_atoms - 2
 
-        self.bonds.append(SMILESBond(idx_i=self.n_atoms-1,
-                                     idx_j=prev_idx,
+        self.bonds.append(SMILESBond(self.n_atoms-1, prev_atom_idx,
                                      symbol=symbol))
+
+        if symbol == '=':
+            self._set_double_bond_stereochem(idx)
+        return None
+
+    def _set_double_bond_stereochem(self, idx):
+        """
+        Set the stereochemistry for the atoms involved in a double bond (E/Z
+        or cis/trans) that has just been added to the system e.g.::
+
+            C(/F)=C/F
+                  ^
+                  |
+                 idx
+
+        where the slashes refer to the "up-ness" or "down-ness" of each single
+        bond is relative to the carbon atom
+
+        Arguments:
+            idx (int): Index of the current position in the SMILES string
+        """
+        if '/' not in self._string and '\\' not in self._string:
+            # No defined double bond setereochemistry
+            return
+
+        # Index that has just been added, and the one previously
+        atom_idx_i, atom_idx_j = self.bonds[-1]
+
+        # If is more than one double bond sequentially from this bond then
+        # the 'left' index should be the final atom that is double bonded
+        # e.g. F/C=C=C=C/F should assign atom_idx_j to first most carbon
+        if self.n_bonds > 1:
+            for bond in self.bonds[-2::-1]:
+                if bond.order == 2:
+                    atom_idx_j, _ = bond
+                if bond.order == 1:
+                    break
+
+        # Now set the up or down-ness of the atoms that are bonded with a
+        # double bond, with respect to the next (or previous) atom
+        for char in self._string[idx:]:
+            if char == '/':
+                self.atoms[atom_idx_i].stereochem = 'al_up'
+                break
+
+            if char == '\\':
+                self.atoms[atom_idx_i].stereochem = 'al_down'
+                break
+
+        # Parse backwards from the final atom to assign the stereochemistry of
+        # atom_j. Needs to allow for branching e.g. C(\F)=C/F is trans
+        branched = False
+
+        for char in self._string[:idx][::-1]:
+            if char == ')':                                # Generated a branch
+                branched = True
+
+            if char == '(':                                # Closed a branch
+                branched = False
+
+            if char == '\\':
+                stereo = 'al_up' if not branched else 'al_down'
+                self.atoms[atom_idx_j].stereochem = stereo
+                break
+
+            if char == '/':
+                stereo = 'al_down' if not branched else 'al_up'
+                self.atoms[atom_idx_j].stereochem = stereo
+                break
+
         return None
 
     def parse(self, smiles: str):
@@ -181,19 +252,20 @@ class Parser:
 
         start_time = time()
         branch_idxs = []     # Indexes of branch points
-        prev_idx = None      # Index of the previous atom to bond the next to
         unclosed_bonds = {}  # Bonds that must be closed
+        prev_idx = None      # Index of the previous atom to bond the next to
 
         # Enumerate over the string until all characters have been parsed
-        for i, char in enumerate(self.smiles):
+        for i, char in enumerate(self._string):
 
             # Determine the type of bond the next added atom is bonded with
-            if i > 0 and self.smiles[i-1] in bond_order_symbols:
-                bond_symbol = self.smiles[i-1]            # double, triple etc.
+            if i > 0 and self._string[i-1] in bond_order_symbols:
+                bond_symbol = self._string[i-1]         # double, triple etc.
             else:
                 bond_symbol = '-'                       # single bonds implicit
 
-            if i in self.parsed_idxs or char in bond_order_symbols:
+            # Skip any parsed atoms, bond order chars and cis/trans definitions
+            if i in self.parsed_idxs or char in bond_order_symbols+['/', '\\']:
                 continue
 
             # Integer for a dangling bond e.g. C1, C=1, N3 etc.
@@ -203,7 +275,7 @@ class Parser:
                 # This bond is in the dictionary and can be closed and removed
                 if ring_idx in unclosed_bonds.keys():
                     ring_bond = unclosed_bonds.pop(ring_idx)
-                    ring_bond.close(idx=self.n_atoms-1, symbol=bond_symbol)
+                    ring_bond.close(self.n_atoms-1, symbol=bond_symbol)
                     self.bonds.append(ring_bond)
                     continue
 
@@ -215,7 +287,7 @@ class Parser:
                 self._parse_next_sq_bracket(idx=i)
 
             elif char == '(':                                      # New branch
-                branch_idxs.append(len(self.atoms)-1)
+                branch_idxs.append(self.n_atoms - 1)
                 continue
 
             elif char == ')':                                   # Closed branch
@@ -232,8 +304,8 @@ class Parser:
                 continue
 
             # only Cl, Br
-            elif char + next_char(self.smiles, i) in ('Cl', 'Br'):
-                atom = SMILESAtom(label=char + self.smiles[i + 1])
+            elif char + next_char(self._string, i) in ('Cl', 'Br'):
+                atom = SMILESAtom(label=char + self._string[i + 1])
                 self.atoms.append(atom)
                 # Have also parsed the next character
                 self.parsed_idxs.update([i, i+1])
@@ -246,8 +318,13 @@ class Parser:
                 raise InvalidSmilesString(f'Unsupported character {char}')
 
             # Finally add the bond and add this character to those parsed
-            self._add_bond(bond_symbol, prev_idx)
+            self._add_bond(bond_symbol, idx=i, prev_atom_idx=prev_idx)
             self.parsed_idxs.update([i])
+
+            # Reset the index of the previous atom, so the next atom
+            # will be bonded to the previously added one (unless a branch has
+            # been closed
+            prev_idx = self.n_atoms - 1
 
         if len(unclosed_bonds) > 0:
             raise InvalidSmilesString('Found unclosed rings')
@@ -270,7 +347,10 @@ class SMILESAtom(Atom):
     """Atom in a SMILES string"""
 
     def __str__(self):
-        return f'SMILESAtom({self.label})'
+        return self.__repr__()
+
+    def __repr__(self):
+        return f'SMILESAtom({self.label}, stereo={self.stereochem})'
 
     @property
     def has_stereochem(self):
@@ -319,6 +399,19 @@ class SMILESBond:
         """Atom indexes for the atoms in this bond"""
         return {self._list[0], self._list[1]}
 
+    def is_cis(self, atoms):
+        """Is this bond a cis double bond?"""
+        i, j = self._list
+
+        if atoms[i].stereochem is None:
+            return False
+
+        return self.order == 2 and atoms[i].stereochem == atoms[j].stereochem
+
+    def is_trans(self, atoms):
+        """Is this bond a trans double bond?"""
+        return self.order == 2 and not self.is_cis(atoms)
+
     @property
     def symbol(self):
         """SMILES symbol for this bond e.g. # for a triple bond"""
@@ -338,7 +431,7 @@ class SMILESBond:
             idx_j (int):
             symbol (str): Bond order symbol
         """
-        self._list = list(sorted([idx_i, idx_j]))
+        self._list = [idx_i, idx_j]
 
         if symbol not in bond_order_symbols:
             raise InvalidSmilesString(f'{symbol} is an unknown bond type')
@@ -383,7 +476,7 @@ class SMILESBonds(list):
             return None
 
         if any(bond.atom_indexes == item.atom_indexes for item in self):
-            logger.warning('Attempted to add a bond already present - skipping')
+            logger.warning('Attempted to add a bond already present- skipping')
             return None
 
         return super().append(bond)
@@ -490,7 +583,7 @@ def next_char(string, idx):
 
     Arguments:
         string (str):
-        idx (idx):
+        idx (idx): Index of the current position in the string
 
     Returns:
         (str):
@@ -499,3 +592,8 @@ def next_char(string, idx):
         return ''
 
     return string[idx + 1]
+
+
+if __name__ == '__main__':
+
+    parser = Parser()

@@ -135,8 +135,8 @@ def test_branches():
     assert parser.n_bonds == 2
 
     b1, b2 = parser.bonds
-    assert b1[0] == 0 and b1[1] == 1
-    assert b2[0] == 0 and b2[1] == 2
+    assert (b1[0] == 0 and b1[1] == 1) or (b1[0] == 1 and b1[1] == 0)
+    assert (b2[0] == 0 and b2[1] == 2) or (b2[0] == 2 and b2[1] == 0)
 
     # isobutane - properly branched
     parser.parse(smiles='CC(C)C')
@@ -230,4 +230,45 @@ def test_hydrogens():
     assert len(parser.canonical_atoms) == 5
 
 
-# TODO: (1) cis/trans  (2) allene   (3) n_rad_electrons
+def test_cis_trans():
+
+    parser = Parser()
+
+    # Check that without defined stereochem the C-C double bond is present
+    parser.parse(smiles='C(F)=CF')
+    double_bond = next(bond for bond in parser.bonds if bond.order == 2)
+    idx_i, idx_j = double_bond
+    assert parser.atoms[idx_i].label == 'C'
+    assert parser.atoms[idx_j].label == 'C'
+
+    # trans (E) diflorouethene
+    trans_dfe_smiles = ['F/C=C/F', r'F\C=C\F', r'C(\F)=C/F']
+
+    for smiles in trans_dfe_smiles:
+        parser.parse(smiles)
+
+        double_bond = next(bond for bond in parser.bonds if bond.order == 2)
+        assert double_bond.is_trans(atoms=parser.atoms)
+        assert not double_bond.is_cis(atoms=parser.atoms)
+
+    # test the cis equivalent
+    cis_dfe_smiles = [r'F\C=C/F', r'F\C=C/F', 'C(/F)=C/F']
+
+    for smiles in cis_dfe_smiles:
+        parser.parse(smiles)
+        double_bond = next(bond for bond in parser.bonds if bond.order == 2)
+        assert double_bond.is_cis(atoms=parser.atoms)
+
+    parser.parse(smiles='F/C(CC)=C/F')
+    double_bonds = [bond for bond in parser.bonds if bond.order == 2]
+    assert len(double_bonds) == 1
+    assert double_bonds[0].is_trans(atoms=parser.atoms)
+
+    # Test allene stereochem
+    parser.parse(smiles=r'F/C=C=C=C/F')
+    # First carbon should be assigned stereochemistry
+    assert parser.atoms[1].label == 'C'
+    assert parser.atoms[1].has_stereochem
+
+
+# TODO: (3) n_rad_electrons
