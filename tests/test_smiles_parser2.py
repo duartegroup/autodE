@@ -4,9 +4,12 @@ from autode.smiles.parser import Parser
 
 
 def test_base_properties():
+
     parser = Parser()
-    assert parser.n_rad_electrons == 0
+
+    assert parser.mult == 1
     assert parser.n_atoms == 0
+    assert parser.charge == 0
 
     # Cannot generate canonical atoms if the SMILES string has not been parsed
     with pytest.raises(ValueError):
@@ -17,7 +20,10 @@ def test_base_properties():
 
     # Should allow for SMILES typos with leading or final empty spaces
     parser.parse(smiles='C ')
+
+    # parser treats hydrogens as attributes of atoms
     assert parser.n_atoms == 1
+    assert parser.atoms[0].n_hydrogens == 4
 
     assert str(parser.atoms[0]) is not None
 
@@ -100,7 +106,6 @@ def test_multiple_atoms():
 
     assert all(atom.label == 'C' for atom in parser.atoms)
     assert all(atom.charge == 0 for atom in parser.atoms)
-    assert all(atom.n_hydrogens is None for atom in parser.atoms)
 
     assert len(parser.bonds) == 1
     assert parser.bonds[0].order == 1
@@ -269,6 +274,58 @@ def test_cis_trans():
     # First carbon should be assigned stereochemistry
     assert parser.atoms[1].label == 'C'
     assert parser.atoms[1].has_stereochem
+
+
+def test_implicit_hydrogens():
+
+    parser = Parser()
+    parser.parse(smiles='CC')
+    # ethane carbons should have three hydrogens each
+    assert parser.atoms[0].n_hydrogens == parser.atoms[1].n_hydrogens == 3
+
+    parser.parse(smiles='B')
+    assert parser.atoms[0].n_hydrogens == 3
+
+    parser.parse(smiles='BC')
+    assert parser.atoms[0].n_hydrogens == 2
+
+    parser.parse(smiles='CBC')
+    assert parser.atoms[1].n_hydrogens == 1
+
+    parser.parse(smiles='P')
+    assert parser.atoms[0].n_hydrogens == 3
+
+    # For PF3 no hydrogens should be added
+    parser.parse(smiles='FP(F)F')
+    assert parser.atoms[1].n_hydrogens == 0
+
+    # Should fill the valance of P up to 5 if currently is 4
+    parser.parse(smiles='FP(F)(F)F')
+    assert parser.bonds.n_involving(idx=1) == 4
+    assert parser.atoms[1].n_hydrogens == 1
+
+    # Should fill the valance of S up to 6 if currently is 5
+    parser.parse(smiles='FS(F)(F)(F)F')
+    assert parser.bonds.n_involving(idx=1) == 5
+    assert parser.atoms[1].n_hydrogens == 1
+
+    for halogen in ('F', 'Cl', 'Br', 'I'):
+        parser.parse(smiles=f'C{halogen}')
+        assert parser.atoms[0].n_hydrogens == 3
+        assert parser.atoms[1].n_hydrogens == 0
+
+    # Should fill up to HCl etc.
+    parser.parse(smiles='Cl')
+    assert parser.n_atoms == 1
+    assert parser.atoms[0].n_hydrogens == 1
+
+    # Should not overfill an oxygen valance that is already exceeded
+    parser.parse(smiles='CO(C)O')
+    assert parser.atoms[1].n_hydrogens == 0
+
+
+def test_multiplicity():
+
 
 
 # TODO: (3) n_rad_electrons

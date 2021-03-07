@@ -28,6 +28,11 @@ class Parser:
         return len(self.bonds)
 
     @property
+    def charge(self):
+        """Return the total charge on all the atoms"""
+        return sum(atom.charge for atom in self.atoms)
+
+    @property
     def canonical_atoms(self):
         """Generate canonical autodE atoms from this set"""
         if self.n_atoms == 0:
@@ -41,10 +46,14 @@ class Parser:
         return atoms
 
     @property
-    def n_rad_electrons(self):
-        """Number of radical electrons in this SMILES-defined system"""
-        # TODO: implement
-        return 0
+    def mult(self):
+        """Approximate spin multiplicity (2S+1). For multiple unpaired
+        electrons will default to a singlet"""
+
+        n_electrons = (sum([atom.atomic_number for atom in self.atoms])
+                       - self.charge)
+
+        return 2 * (n_electrons % 2) + 1
 
     @property
     def parsed(self):
@@ -169,7 +178,7 @@ class Parser:
         if prev_atom_idx is None:
             prev_atom_idx = self.n_atoms - 2
 
-        self.bonds.append(SMILESBond(self.n_atoms-1, prev_atom_idx,
+        self.bonds.append(SMILESBond(prev_atom_idx, self.n_atoms-1,
                                      symbol=symbol))
 
         if symbol == '=':
@@ -196,18 +205,8 @@ class Parser:
             # No defined double bond setereochemistry
             return
 
-        # Index that has just been added, and the one previously
-        atom_idx_i, atom_idx_j = self.bonds[-1]
-
-        # If is more than one double bond sequentially from this bond then
-        # the 'left' index should be the final atom that is double bonded
-        # e.g. F/C=C=C=C/F should assign atom_idx_j to first most carbon
-        if self.n_bonds > 1:
-            for bond in self.bonds[-2::-1]:
-                if bond.order == 2:
-                    atom_idx_j, _ = bond
-                if bond.order == 1:
-                    break
+        # Index that has been added previously and the new one
+        atom_idx_j, atom_idx_i = self.bonds[-1]
 
         # Now set the up or down-ness of the atoms that are bonded with a
         # double bond, with respect to the next (or previous) atom
@@ -240,6 +239,43 @@ class Parser:
                 stereo = 'al_down' if not branched else 'al_up'
                 self.atoms[atom_idx_j].stereochem = stereo
                 break
+
+        return None
+
+    def _set_implicit_hs(self):
+        """
+        Given a completely parsed set of atoms from a SMILES string set the
+        implicit hydrogens for all atoms where they're defined. From ref [1]
+        elems_pos_val is defined
+
+        NOTE: Elements with implicit hydrogens must be neutral
+        """
+        elems_poss_val = {'B': (3,), 'C': (4,), 'N': (3, 5), 'O': (2,),
+                          'P': (3, 5), 'S': (2, 4, 6), 'F': (1,), 'Cl': (1,),
+                          'Br': (1,), 'I': (1,)}
+
+        for idx, atom in enumerate(self.atoms):
+
+            # Only consider atoms with undefined number of hydrogens
+            if atom.n_hydrogens is not None:
+                continue
+
+            if atom.label not in elems_poss_val.keys():
+                raise InvalidSmilesString('Could not define implicit hydrogens'
+                                          f'for {atom.label}')
+
+            bonds = self.bonds.involving(idx)
+            sum_bond_orders = sum(bond.order for bond in bonds)
+
+            # If the sum of the bond order is less than the minimum valance
+            # then add the appropriate number of hydrogens to satisfy the
+            # implicit valance
+            for valance in elems_poss_val[atom.label]:
+                if sum_bond_orders <= valance:
+                    atom.n_hydrogens = valance - sum_bond_orders
+                    break
+
+                atom.n_hydrogens = 0
 
         return None
 
@@ -287,7 +323,11 @@ class Parser:
                 self._parse_next_sq_bracket(idx=i)
 
             elif char == '(':                                      # New branch
-                branch_idxs.append(self.n_atoms - 1)
+                if i != 0 and self._string[i-1] == ')':
+                    # Directly opened a new branch so keep the previous index
+                    pass
+                else:
+                    branch_idxs.append(self.n_atoms - 1)
                 continue
 
             elif char == ')':                                   # Closed branch
@@ -298,7 +338,7 @@ class Parser:
                 # then the branch index should not be deleted
                 prev_idx = branch_idxs[-1]
 
-                if next_char(self.smiles, i) != '(':
+                if next_char(self._string, i) != '(':
                     del branch_idxs[-1]
 
                 continue
@@ -323,12 +363,13 @@ class Parser:
 
             # Reset the index of the previous atom, so the next atom
             # will be bonded to the previously added one (unless a branch has
-            # been closed
+            # been closed)
             prev_idx = self.n_atoms - 1
 
         if len(unclosed_bonds) > 0:
             raise InvalidSmilesString('Found unclosed rings')
 
+        self._set_implicit_hs()
         logger.info(f'Parsed SMILES in {(time() - start_time)*1E3:.2f} ms')
         return None
 
@@ -464,9 +505,13 @@ class RingBond(SMILESBond):
 
 class SMILESBonds(list):
 
-    def n_bonds_involving(self, idx):
+    def n_involving(self, idx):
         """How many bonds does an atom (given as a index) have?"""
-        return len([bond for bond in self if idx in bond])
+        return len(self.involving(idx=idx))
+
+    def involving(self, idx):
+        """Get all the bonds involving a particular atom (given as a index)"""
+        return [bond for bond in self if idx in bond]
 
     def append(self, bond: SMILESBond):
         """Add another SMILESBond to this list"""
@@ -597,3 +642,4 @@ def next_char(string, idx):
 if __name__ == '__main__':
 
     parser = Parser()
+    parser.parse(smiles='FP(F)(F)F')
