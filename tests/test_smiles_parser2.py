@@ -340,6 +340,3 @@ def test_multiplicity():
     # Multiple unpaired electrons default to singlets..
     parser.parse(smiles='C[C]C')
     assert parser.mult == 1
-
-
-# TODO: (3) n_rad_electrons

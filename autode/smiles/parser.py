@@ -637,9 +637,3 @@ def next_char(string, idx):
         return ''
 
     return string[idx + 1]
-
-
-if __name__ == '__main__':
-
-    parser = Parser()
-    parser.parse(smiles='FP(F)(F)F')
