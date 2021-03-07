@@ -68,6 +68,7 @@ def test_sq_brackets_parser():
 
     parser.parse(smiles='[N+4]')
     assert parser.atoms[0].charge == 4
+    assert parser.charge == 4
 
     parser.parse(smiles='[Cu++]')
     assert parser.atoms[0].charge == 2
@@ -94,6 +95,7 @@ def test_sq_brackets_parser():
     assert parser.atoms[0].stereochem == '@@'
     assert parser.atoms[0].charge == -1
     assert parser.atoms[0].n_hydrogens == 2
+    assert parser.charge == -1
 
 
 def test_multiple_atoms():
@@ -326,6 +328,18 @@ def test_implicit_hydrogens():
 
 def test_multiplicity():
 
+    parser = Parser()
+
+    # Test some simple examples
+    parser.parse(smiles='[H]')
+    assert parser.mult == 2
+
+    parser.parse(smiles='C')
+    assert parser.mult == 1
+
+    # Multiple unpaired electrons default to singlets..
+    parser.parse(smiles='C[C]C')
+    assert parser.mult == 1
 
 
 # TODO: (3) n_rad_electrons

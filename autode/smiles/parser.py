@@ -53,7 +53,7 @@ class Parser:
         n_electrons = (sum([atom.atomic_number for atom in self.atoms])
                        - self.charge)
 
-        return 2 * (n_electrons % 2) + 1
+        return (n_electrons % 2) + 1
 
     @property
     def parsed(self):
