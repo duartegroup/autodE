@@ -93,7 +93,7 @@ class Builder:
         """Iterator over all atoms that have yet to be shifted"""
 
         if self.built:
-            return StopIteration
+            return
 
         for i, atom in enumerate(self.atoms):
             if i not in self.shifted_idxs:
