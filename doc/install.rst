@@ -53,22 +53,9 @@ Setup video tutorial
 
 A Linux installation tutorial is available through the following link: https://youtu.be/ZUweT1Sc02s
 
-******
 
-Git: Windows
-------------
-
-On Windows without a ``git`` installation **autode** can be installed with `anaconda <https://www.anaconda.com/distribution>`_
-by: on the GitHub `page <https://github.com/duartegroup/autode>`_ using Clone or download → Download ZIP then
-extracting it. Then, open an anaconda command prompt and ``cd`` to the directory and proceed as above e.g.::
-
-    $ cd Downloads/autodE-master/
-    $ conda config --append channels conda-forge
-    $ conda install --file requirements.txt
-    $ python setup.py install
 .. note::
-    The above commands assume you have extracted the zip to ``C:\Users\yourusername\Downloads`` and a C++
-    compiler e.g. `VS <https://visualstudio.microsoft.com/vs/features/cplusplus/>`_ is available.
+    Windows is not currently supported
 
 
 ******
