@@ -1,6 +1,7 @@
 import pytest
+from autode import Molecule
 from autode.atoms import Atom
-from autode.input_output import atoms_to_xyz_file
+from autode.geom import are_coords_reasonable
 from autode.smiles.parser import Parser, SMILESBonds
 from autode.smiles.builder import Builder
 from autode.exceptions import SMILESBuildFailed
@@ -13,6 +14,13 @@ def test_base_builder():
     # Builder needs SMILESAtom-s
     with pytest.raises(SMILESBuildFailed):
         builder.build(atoms=[Atom('H')], bonds=SMILESBonds())
+
+    # Builder needs at least some atoms
+    with pytest.raises(SMILESBuildFailed):
+        builder.build(atoms=None, bonds=[])
+
+    with pytest.raises(SMILESBuildFailed):
+        builder.build(atoms=[], bonds=[])
 
 
 def test_explicit_hs():
@@ -35,7 +43,15 @@ def test_simple_build():
     builder = Builder()
 
     parser = Parser()
-    parser.parse(smiles='C')
 
-    builder.build(parser.atoms, parser.bonds)
-    atoms_to_xyz_file(atoms=builder.atoms, filename='tmp.xyz')
+    simple_smiles = ['C', 'CC', 'CCC']
+
+    for smiles in simple_smiles:
+
+        parser.parse(smiles)
+
+        builder.build(parser.atoms, parser.bonds)
+        mol = Molecule(atoms=builder.atoms)
+        mol.print_xyz_file(filename='tmp.xyz')
+
+        assert are_coords_reasonable(mol.coordinates)

@@ -17,7 +17,7 @@ class Builder:
     @property
     def built(self):
         """Have all the atoms been shifted appropriately"""
-        return len(self.shifted_idxs) == len(self.atoms)
+        return self.atoms is not None and len(self.queued_atoms) == 0
 
     def _explicit_all_hydrogens(self):
         """Convert all implicit hydrogens to explicit ones"""
@@ -49,6 +49,9 @@ class Builder:
         From a list of SMILESAtoms, and SMILESBonds set the required attributes
         and convert all implicit hydrogens into explicit atoms
         """
+        if atoms is None or len(atoms) == 0:
+            raise SMILESBuildFailed('Cannot build a structure with no atoms')
+
         self.atoms, self.bonds = atoms, bonds
         self._explicit_all_hydrogens()
 
@@ -87,22 +90,28 @@ class Builder:
             else:
                 raise NotImplementedError
 
+        # Add the first atom to the queue
+        self.queued_atoms.append(0)
         return None
-
-    def non_shifted_atoms_idxs(self):
-        """Iterator over all atoms that have yet to be shifted"""
-
-        if self.built:
-            return
-
-        for i, atom in enumerate(self.atoms):
-            if i not in self.shifted_idxs:
-                yield i, atom
 
     def build(self, atoms, bonds):
         """
-        Build a molecule
+        Build a molecule by iterating through all the atoms adding it and
+        each of it's neighbours. i.e.
 
+        atoms = [C, H, H, H]
+
+        1. Add C at origin
+        2. Add all neighbours
+        3. Done
+
+        atoms = [C, C, C, 8xH]
+
+        1. Add C at origin
+        2. Add H3, C neighbours & update queued atoms to include the C
+           that has been translated but needs it's neighbours adding to it
+
+        ----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.smiles.SMILESAtoms)):
 
@@ -111,37 +120,47 @@ class Builder:
         start_time = time()
         self._set_atoms_bonds(atoms, bonds)
 
-        prev_position = None
+        shifted_atoms = set()
 
-        for i, atom in self.non_shifted_atoms_idxs():
+        while not self.built:
 
-            atom.translate(vec=self.position)
-            atom.type.rotate_onto(prev_position)
-            self.shifted_idxs.add(i)
+            # Grab the last item to be added on the queue
+            idx = self.queued_atoms[0]
+            atom = self.atoms[idx]
 
             # Add all the atoms that are bonded to this one
-            empty_sites = atom.type.empty_sites()
+            for bond in self.bonds.involving(idx):
+                bonded_idx = bond[0] if bond[1] == idx else bond[1]
 
-            for bond in self.bonds.involving(i):
-                bonded_idx = bond[0] if bond[1] == i else bond[1]
-
-                if bonded_idx in self.shifted_idxs:
+                if bonded_idx in shifted_atoms:
                     continue
 
-                coord = bond.r0 * next(empty_sites) + self.position
+                # Coordinate of this atom is the current position shifted by
+                # the ideal distance in a direction of a empty coordination
+                # site on the atom
+                coord = bond.r0 * atom.type.empty_site() + atom.coord
+                bonded_atom = self.atoms[bonded_idx]
+                bonded_atom.translate(coord)
 
-                self.atoms[bonded_idx].translate(coord)
-                self.shifted_idxs.add(bonded_idx)
+                # Atoms that are not terminal need to be added to the queue
+                if not isinstance(atoms[bonded_idx].type, TerminalAtom):
 
-            # Update the positions, at 0 if there are no more atoms to add
-            # from this one
-            prev_position = np.array(self.position, copy=True)
-            self.position = next(empty_sites, np.zeros(3))
+                    # and the atom type rotated so an empty site is coincident
+                    # with this atom
+                    bonded_atom.type.rotate_onto(point=atom.coord,
+                                                 coord=bonded_atom.coord)
+                    # and queue
+                    self.queued_atoms.append(bonded_idx)
+
+            # And remove this atom from the queue and added to shifted
+            self.queued_atoms.remove(idx)
+            shifted_atoms.add(idx)
+            logger.info(f'Queue: {self.queued_atoms}')
 
         logger.info(f'Built 3D in {(time() - start_time)*1E3:.2f} ms')
         return None
 
-    def __init__(self, ):
+    def __init__(self):
         """
         Coordinate builder initialised from a set of atoms and bonds connecting
         them. This builder should generate something *reasonable* that can
@@ -150,33 +169,61 @@ class Builder:
         self.atoms = None
         self.bonds = None
 
-        # Initial position that will be updated as atoms are added
-        self.position = np.zeros(3)
-
-        # Atoms that have been shifted from the origin
-        self.shifted_idxs = set()
+        # A queue of atom indexes the neighbours for which need to be added
+        self.queued_atoms = []
 
 
 class AtomType:
 
-    def empty_sites(self):
+    def empty_site(self):
         """Iterator for the coordinate of the next free site"""
-        for coord in self._site_coords:
-            yield coord
+        return self._site_coords.pop(0)
 
-    def rotate_onto(self, point):
+    def rotate_onto(self, point, coord):
         """
         Rotate this atom type so the first site is parallel with a point
         and remove the site from the possibles
 
         Arguments:
             point (None | np.ndarray): shape = (3,)
+            coord (np.ndarray): shape = (3,)
 
         """
+        logger.info(f'Rotating atom at {coord} such that a vacant site is '
+                    f'coincident to {point}')
+
         if point is None:   # No translation needed for no previous point
             return
 
-        raise NotImplementedError
+        site = self._site_coords.pop(0)   # Currently vacant site
+
+        v1 = site - coord
+        v2 = point - coord
+
+        normal = np.cross(v1, v2)
+        normal /= np.linalg.norm(normal)
+
+        arg = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+
+        # cosθ = v1.v2 / |v1||v2| := arg
+        # cos(θ/2) = √(arg + 1) / √2
+        # sin(θ/2) = √(1-arg) / √2
+        a = np.sqrt(1.0 - arg) / np.sqrt(2)
+        b, c, d = -normal * (np.sqrt(1 + arg) / np.sqrt(2))
+
+        # 3D rotation matrix from the Euler–Rodrigues formula
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        rot_matrix = np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+                               [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
+                               [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+
+        # Rotate all the sites (no need to translate as they're already
+        # positioned around the origin)
+        self._site_coords = [np.matmul(rot_matrix, site)
+                             for site in self._site_coords]
+
+        return None
 
     def __init__(self):
         """Base atom type class
@@ -197,7 +244,7 @@ class TerminalAtom(AtomType):
                     Atom--->
         """
         super().__init__()
-        self._site_coords = np.array([[1.0, 0.0, 0.0]])
+        self._site_coords = [np.array([1.0, 0.0, 0.0])]
 
 
 class LinearAtom(AtomType):
@@ -209,8 +256,8 @@ class LinearAtom(AtomType):
                     <---Atom--->
         """
         super().__init__()
-        self._site_coords = np.array([[1.0, 0.0, 0.0],
-                                      [-1.0, 0.0, 0.0]])
+        self._site_coords = [np.array([1.0, 0.0, 0.0]),
+                             np.array([-1.0, 0.0, 0.0])]
 
 
 class BentAtom(AtomType):
@@ -223,8 +270,8 @@ class BentAtom(AtomType):
                      /     \
         """
         super().__init__()
-        self._site_coords = np.array([[-0.78226654, -0.62294387, 0.0],
-                                      [0.78322832, -0.62173419, 0.0]])
+        self._site_coords = [np.array([-0.78226654, -0.62294387, 0.0]),
+                             np.array([0.78322832, -0.62173419, 0.0])]
 
 
 class TetrahedralAtom(AtomType):
@@ -239,7 +286,7 @@ class TetrahedralAtom(AtomType):
                      /     \
         """
         super().__init__()
-        self._site_coords = np.array([[-0.580775, -0.75435372, -0.30602419],
-                                      [-0.404709,  0.86798519, -0.28777090],
-                                      [0.0763827, -0.01927872,  0.99689218],
-                                      [0.9089159, -0.09390161, -0.40626889]])
+        self._site_coords = [np.array([-0.580775, -0.75435372, -0.30602419]),
+                             np.array([-0.404709,  0.86798519, -0.28777090]),
+                             np.array([0.0763827, -0.01927872,  0.99689218]),
+                             np.array([0.9089159, -0.09390161, -0.40626889])]
