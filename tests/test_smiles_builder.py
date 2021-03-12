@@ -44,7 +44,7 @@ def test_simple_build():
 
     parser = Parser()
 
-    simple_smiles = ['C', 'CC', 'CCC']
+    simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
 
     for smiles in simple_smiles:
 

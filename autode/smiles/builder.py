@@ -147,8 +147,9 @@ class Builder:
 
                     # and the atom type rotated so an empty site is coincident
                     # with this atom
-                    bonded_atom.type.rotate_onto(point=atom.coord,
-                                                 coord=bonded_atom.coord)
+                    bonded_atom.type.rotate_empty_onto(point=atom.coord,
+                                                       coord=bonded_atom.coord)
+
                     # and queue
                     self.queued_atoms.append(bonded_idx)
 
@@ -179,37 +180,40 @@ class AtomType:
         """Iterator for the coordinate of the next free site"""
         return self._site_coords.pop(0)
 
-    def rotate_onto(self, point, coord):
+    def rotate_empty_onto(self, point, coord):
+        """Rotate the site coordinates such that an empty site is coindicent
+        with the vector from a coordinate to a point, and remove the site
+        from the list of available sites"""
+        return self.rotate_onto(point, coord, site=self.empty_site())
+
+    def rotate_onto(self, point, coord, site):
         """
-        Rotate this atom type so the first site is parallel with a point
-        and remove the site from the possibles
+        Rotate this atom type so a site is coincident with a point if this
+        atom is at a coord
 
         Arguments:
             point (None | np.ndarray): shape = (3,)
             coord (np.ndarray): shape = (3,)
+            site (np.ndarray): shapte = (3,)
 
         """
-        logger.info(f'Rotating atom at {coord} such that a vacant site is '
-                    f'coincident to {point}')
-
         if point is None:   # No translation needed for no previous point
             return
 
-        site = self._site_coords.pop(0)   # Currently vacant site
+        vector = point - coord
 
-        v1 = site - coord
-        v2 = point - coord
-
-        normal = np.cross(v1, v2)
+        normal = np.cross(site, vector)
         normal /= np.linalg.norm(normal)
 
-        arg = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+        # Ensure the normal is always pointing in the same direction
+        normal *= -np.sign(normal[0])
 
+        # Sites are normal vectors, no no need for mod
         # cosθ = v1.v2 / |v1||v2| := arg
-        # cos(θ/2) = √(arg + 1) / √2
-        # sin(θ/2) = √(1-arg) / √2
-        a = np.sqrt(1.0 - arg) / np.sqrt(2)
-        b, c, d = -normal * (np.sqrt(1 + arg) / np.sqrt(2))
+        theta = - np.arccos(np.dot(site, vector) / np.linalg.norm(vector))
+
+        a = np.cos(theta / 2.0)
+        b, c, d = -normal * np.sin(theta / 2.0)
 
         # 3D rotation matrix from the Euler–Rodrigues formula
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
@@ -222,7 +226,6 @@ class AtomType:
         # positioned around the origin)
         self._site_coords = [np.matmul(rot_matrix, site)
                              for site in self._site_coords]
-
         return None
 
     def __init__(self):
