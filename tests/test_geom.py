@@ -20,10 +20,6 @@ def test_are_coords_reasonable():
     assert geom.are_coords_reasonable(coords=bad_coords2) is False
 
 
-def test_length():
-    assert geom.length(np.ones(3)) == np.linalg.norm(np.ones(3))
-
-
 def test_shifted_atoms():
 
     atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.0, 0.0, 2.0)]

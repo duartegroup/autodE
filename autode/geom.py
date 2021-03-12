@@ -4,24 +4,18 @@ from scipy.spatial import distance_matrix
 from autode.log import logger
 
 
-def length(vec):
-    """Return the length of a vector"""
-    return np.linalg.norm(vec)
-
-
 def are_coords_reasonable(coords):
     """
     Determine if a set of coords are reasonable. No distances can be < 0.7 Å
     and if there are more than 4 atoms ensure they do not all lie in the same
     plane. The latter possibility arises from RDKit's conformer generation
-    algorithm
-    breaking
+    algorithm breaking
+
     Arguments:
         coords (np.ndarray): Species coordinates as a n_atoms x 3 array
     Returns:
         bool:
     """
-
     n_atoms = len(coords)
 
     # Generate a n_atoms x n_atoms matrix with ones on the diagonal
@@ -47,8 +41,10 @@ def get_atoms_linear_interp(atoms, bonds, final_distances):
 
     Arguments:
         atoms (list(autode.atoms.Atom)): list of atoms
-        bonds (list(tuple)): List of bond ids on for which the final_distances apply
-        final_distances (list(float)): List of final bond distances for the bonds
+        bonds (list(tuple)): List of bond ids on for which the final_distances
+                             apply
+        final_distances (list(float)): List of final bond distances for the
+                                       bonds
 
     Returns:
         (list(autode.atoms.Atom)): Shifted atoms
@@ -100,14 +96,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     return rot_matrix
 
 
-def get_centered_matrix(mat):
-    """For a list of coordinates n.e. a n_atoms x 3 matrix as a np array
-    translate to the center of the coordinates"""
-    centroid = np.average(mat, axis=0)
-    return np.array([coord - centroid for coord in mat])
-
-
-def get_neighbour_list(species, atom_i, index_set=None):
+def get_neighbour_list(species, atom_i):
     """Calculate a neighbour list from atom i as a list of atom labels
 
     Arguments:
@@ -170,9 +159,12 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
     Calculate the RMSD between two sets of atoms considering only the 'heavy'
     atoms, i.e. the non-hydrogen atoms
 
-    :param atoms1: (list(autode.atoms.Atom))
-    :param atoms2: (list(autode.atoms.Atom))
-    :return: (float) RMSD between the two sets
+    Arguments:
+        atoms1 (list(autode.atoms.Atom)):
+        atoms2 (list(autode.atoms.Atom)):
+
+    Returns:
+        (float): RMSD between the two sets
     """
     if len(atoms1) != len(atoms2):
         raise ValueError('RMSD must be computed between atom lists of the'
@@ -200,18 +192,18 @@ def calc_rmsd(coords1, coords2):
     # Construct the P matrix in the Kabsch algorithm
     p_mat = np.array(coords2, copy=True)
     p = np.average(p_mat, axis=0)
-    p_mat_trans = get_centered_matrix(p_mat)
+    p_mat_trans = p_mat - p
 
     # Construct the P matrix in the Kabsch algorithm
     q_mat = np.array(coords1, copy=True)
     q = np.average(q_mat, axis=0)
-    q_mat_trans = get_centered_matrix(q_mat)
+    q_mat_trans = q_mat - q
 
     # Get the optimum rotation matrix
     rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
 
-    fitted_coords = np.array([np.matmul(rot_mat, coord - p) + q for coord in coords2])
-    return np.sqrt(np.average(np.square(fitted_coords - coords1)))
+    fitted_coords = np.dot(rot_mat, p_mat_trans.T).T
+    return np.sqrt(np.average(np.square(fitted_coords - q_mat_trans)))
 
 
 def get_points_on_sphere(n_points, r=1):

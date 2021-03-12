@@ -90,7 +90,7 @@ class Builder:
             else:
                 raise NotImplementedError
 
-        # Add the first atom to the queue
+        # Add the first atom to the queue of atoms to be translated etc.
         self.queued_atoms.append(0)
         return None
 
@@ -181,7 +181,7 @@ class AtomType:
         return self._site_coords.pop(0)
 
     def rotate_empty_onto(self, point, coord):
-        """Rotate the site coordinates such that an empty site is coindicent
+        """Rotate the site coordinates such that an empty site is coincident
         with the vector from a coordinate to a point, and remove the site
         from the list of available sites"""
         return self.rotate_onto(point, coord, site=self.empty_site())
@@ -189,13 +189,21 @@ class AtomType:
     def rotate_onto(self, point, coord, site):
         """
         Rotate this atom type so a site is coincident with a point if this
-        atom is at a coord
+        atom is at a coord i.e.
 
+                           site
+                           /
+                          /         -->
+        point--------coord                 point--site--coord
+
+
+        -----------------------------------------------------------------------
         Arguments:
             point (None | np.ndarray): shape = (3,)
-            coord (np.ndarray): shape = (3,)
-            site (np.ndarray): shapte = (3,)
 
+            coord (np.ndarray): shape = (3,)
+
+            site (np.ndarray): shapte = (3,)
         """
         if point is None:   # No translation needed for no previous point
             return
@@ -209,11 +217,12 @@ class AtomType:
         normal *= -np.sign(normal[0])
 
         # Sites are normal vectors, no no need for mod
-        # cosθ = v1.v2 / |v1||v2| := arg
-        theta = - np.arccos(np.dot(site, vector) / np.linalg.norm(vector))
+        arg = np.dot(site, vector) / np.linalg.norm(vector)
 
-        a = np.cos(theta / 2.0)
-        b, c, d = -normal * np.sin(theta / 2.0)
+        # cos(θ/2) = √(arg + 1) / √2
+        # sin(θ/2) = √(1-arg) / √2
+        a = np.sqrt(1.0 + arg) / np.sqrt(2)
+        b, c, d = normal * (np.sqrt(1.0 - arg) / np.sqrt(2))
 
         # 3D rotation matrix from the Euler–Rodrigues formula
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
