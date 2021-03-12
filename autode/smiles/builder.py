@@ -1,6 +1,8 @@
 import numpy as np
+import networkx as nx
 from time import time
 from autode.log import logger
+from autode.atoms import chalcogens
 from autode.bonds import get_avg_bond_length
 from autode.exceptions import SMILESBuildFailed
 from autode.smiles.base import SMILESAtom, SMILESBond
@@ -18,6 +20,10 @@ class Builder:
     def built(self):
         """Have all the atoms been shifted appropriately"""
         return self.atoms is not None and len(self.queued_atoms) == 0
+
+    @property
+    def n_atoms(self):
+        return 0 if self.atoms is None else len(self.atoms)
 
     def _explicit_all_hydrogens(self):
         """Convert all implicit hydrogens to explicit ones"""
@@ -44,24 +50,7 @@ class Builder:
         self.atoms += h_atoms
         return
 
-    def _set_atoms_bonds(self, atoms, bonds):
-        """
-        From a list of SMILESAtoms, and SMILESBonds set the required attributes
-        and convert all implicit hydrogens into explicit atoms
-        """
-        if atoms is None or len(atoms) == 0:
-            raise SMILESBuildFailed('Cannot build a structure with no atoms')
-
-        self.atoms, self.bonds = atoms, bonds
-        self._explicit_all_hydrogens()
-
-        # Set the ideal bond lengths
-        for bond in self.bonds:
-            idx_i, idx_j = bond
-            bond.r0 = get_avg_bond_length(self.atoms[idx_i].label,
-                                          self.atoms[idx_j].label)
-
-        # Set the atom types for each atom, e.g. tetrahedral etc.
+    def _set_atom_types(self):
         for i, atom in enumerate(self.atoms):
 
             # Ensure every atom is initialised at the origin
@@ -69,13 +58,13 @@ class Builder:
 
             # Atom type is determined by the number of bonded atoms, and the
             # 'hybridisation' as well as the stereochemistry
-            n_bonded = bonds.n_involving(i)
+            n_bonded = self.bonds.n_involving(i)
 
             if n_bonded == 1:                                 # e.g. H2, FCH3
                 atom.type = TerminalAtom()
 
             elif n_bonded == 2:                               # e.g. OH2, SR2
-                if atom.label in atoms.chalcogens:
+                if atom.label in chalcogens:
                     atom.type = BentAtom()
 
                 else:                                         # e.g. AuR2
@@ -89,6 +78,34 @@ class Builder:
 
             else:
                 raise NotImplementedError
+
+        return None
+
+    def _set_atoms_bonds(self, atoms, bonds):
+        """
+        From a list of SMILESAtoms, and SMILESBonds set the required attributes
+        and convert all implicit hydrogens into explicit atoms
+        """
+        if atoms is None or len(atoms) == 0:
+            raise SMILESBuildFailed('Cannot build a structure with no atoms')
+
+        self.atoms, self.bonds = atoms, bonds
+        self._explicit_all_hydrogens()
+
+        # Add nodes for all the atom indexes, without attributes for e.g
+        # atomic symbol as a normal molecular graph would have
+        for i in range(self.n_atoms):
+            self.graph.add_node(i)
+
+        # Set the ideal bond lengths and the graph edges
+        for bond in self.bonds:
+            idx_i, idx_j = bond
+            self.graph.add_edge(idx_i, idx_j)
+
+            bond.r0 = get_avg_bond_length(self.atoms[idx_i].label,
+                                          self.atoms[idx_j].label)
+
+        self._set_atom_types()
 
         # Add the first atom to the queue of atoms to be translated etc.
         self.queued_atoms.append(0)
@@ -169,6 +186,7 @@ class Builder:
         """
         self.atoms = None
         self.bonds = None
+        self.graph = nx.Graph()
 
         # A queue of atom indexes the neighbours for which need to be added
         self.queued_atoms = []

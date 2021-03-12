@@ -110,6 +110,10 @@ elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
             'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn',
             'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']
 
+pnictogens = group15 = ['N', 'P', 'As', 'Sb', 'Po']
+chalcogens = group16 = ['O', 'S', 'Se', 'Te', 'Po']
+halogens = group17 = ['F', 'Cl', 'Br', 'I', 'At']
+
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],
                   'B': [3, 4],
