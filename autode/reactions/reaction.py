@@ -293,6 +293,11 @@ class Reaction:
         h_method = get_hmethod()
         conf_hmethod = h_method if Config.hmethod_conformers else None
 
+        # Set the 'complexes' comprised of all reactants and products if
+        # they are not currently set
+        if self.reactant is None or self.product is None:
+            self.find_complexes()
+
         for species in [self.reactant, self.product]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)
             species.optimise(method=h_method)
