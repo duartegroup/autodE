@@ -224,6 +224,15 @@ class AtomType:
         from the list of available sites"""
         return self.rotate_onto(point, coord, site=self.empty_site())
 
+    def rotate_randomly(self):
+        """Rotate the sites randomly to prevent zero cross products"""
+        point = np.copy(self._site_coords[0])
+        point += np.random.uniform(0.01, 0.02, size=3)
+
+        self.rotate_onto(point=point, coord=np.zeros(3),
+                         site=self._site_coords[0])
+        return
+
     def rotate_onto(self, point, coord, site):
         """
         Rotate this atom type so a site is coincident with a point if this
@@ -269,14 +278,16 @@ class AtomType:
                              for site in self._site_coords]
         return None
 
-    def __init__(self):
+    def __init__(self, site_coords):
         """Base atom type class
 
-        _site_coords should contain a list of unit vectors pointing in
-        directions where other atoms can be added
+        Arguments:
+            site_coords (list(np.ndarray)): Shape = (n, 3) should contain a
+                        list of unit vectors pointing in directions where other
+                        atoms can be added
         """
-
-        self._site_coords = []
+        self._site_coords = site_coords
+        self.rotate_randomly()
 
 
 class TerminalAtom(AtomType):
@@ -287,8 +298,9 @@ class TerminalAtom(AtomType):
 
                     Atom--->
         """
-        super().__init__()
-        self._site_coords = [np.array([1.0, 0.0, 0.0])]
+        site_coords = [np.array([1.0, 0.0, 0.0])]
+
+        super().__init__(site_coords)
 
 
 class LinearAtom(AtomType):
@@ -299,9 +311,10 @@ class LinearAtom(AtomType):
 
                     <---Atom--->
         """
-        super().__init__()
-        self._site_coords = [np.array([1.0, 0.0, 0.0]),
-                             np.array([-1.0, 0.0, 0.0])]
+        site_coords = [np.array([1.0, 0.0, 0.0]),
+                       np.array([-1.0, 0.0, 0.0])]
+
+        super().__init__(site_coords)
 
 
 class BentAtom(AtomType):
@@ -313,9 +326,10 @@ class BentAtom(AtomType):
                        Atom
                      /     \
         """
-        super().__init__()
-        self._site_coords = [np.array([-0.78226654, -0.62294387, 0.0]),
-                             np.array([0.78322832, -0.62173419, 0.0])]
+        site_coords = [np.array([-0.78226654, -0.62294387, 0.0]),
+                       np.array([0.78322832, -0.62173419, 0.0])]
+
+        super().__init__(site_coords)
 
 
 class TrigonalPyramidalAtom(AtomType):
@@ -328,10 +342,11 @@ class TrigonalPyramidalAtom(AtomType):
                       Atom
                     /  |  \
         """
-        super().__init__()
-        self._site_coords = [np.array([0.90023489, -0.14794295, -0.40949973]),
-                             np.array([-0.58738609, -0.70512041, -0.39721881]),
-                             np.array([-0.32432922, 0.85865859, -0.39688283])]
+        site_coords = [np.array([0.90023489, -0.14794295, -0.40949973]),
+                       np.array([-0.58738609, -0.70512041, -0.39721881]),
+                       np.array([-0.32432922, 0.85865859, -0.39688283])]
+
+        super().__init__(site_coords)
 
 
 class TrigonalAtom(AtomType):
@@ -345,10 +360,11 @@ class TrigonalAtom(AtomType):
                        --- Atom
                               \
         """
-        super().__init__()
-        self._site_coords = [np.array([-0.506363095, -0.862320319, 0.0]),
-                             np.array([-0.495155944, 0.868804058, 0.0]),
-                             np.array([0.999977780, -0.006666131, 0.0])]
+        site_coords = [np.array([-0.506363095, -0.862320319, 0.0]),
+                       np.array([-0.495155944, 0.868804058, 0.0]),
+                       np.array([0.999977780, -0.006666131, 0.0])]
+
+        super().__init__(site_coords)
 
 
 class TetrahedralAtom(AtomType):
@@ -366,11 +382,12 @@ class TetrahedralAtom(AtomType):
         Keyword Arguments:
             swap_order (bool): Reverse the order of the sites?
         """
-        super().__init__()
-        self._site_coords = [np.array([-0.580775, -0.75435372, -0.30602419]),
-                             np.array([-0.404709,  0.86798519, -0.28777090]),
-                             np.array([0.0763827, -0.01927872,  0.99689218]),
-                             np.array([0.9089159, -0.09390161, -0.40626889])]
+        site_coords = [np.array([-0.580775, -0.75435372, -0.30602419]),
+                       np.array([-0.404709,  0.86798519, -0.28777090]),
+                       np.array([0.0763827, -0.01927872,  0.99689218]),
+                       np.array([0.9089159, -0.09390161, -0.40626889])]
 
         if swap_order:
-            self._site_coords = self._site_coords[::-1]
+            site_coords = site_coords[::-1]
+
+        super().__init__(site_coords)

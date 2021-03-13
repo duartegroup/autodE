@@ -325,6 +325,11 @@ def test_implicit_hydrogens():
     parser.parse(smiles='CO(C)O')
     assert parser.atoms[1].n_hydrogens == 0
 
+    parser.parse(smiles='O=[N]=O')
+    assert parser.n_bonds == 2
+    assert parser.bonds[0].order == parser.bonds[1].order == 2
+    assert parser.atoms[1].n_hydrogens == 0
+
 
 def test_multiplicity():
 

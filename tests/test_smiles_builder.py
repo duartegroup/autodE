@@ -21,7 +21,7 @@ def built_molecule_is_reasonable(smiles):
     return are_coords_reasonable(mol.coordinates)
 
 
-def _test_base_builder():
+def test_base_builder():
 
     builder = Builder()
 
@@ -37,7 +37,7 @@ def _test_base_builder():
         builder.build(atoms=[], bonds=[])
 
 
-def _test_explicit_hs():
+def test_explicit_hs():
 
     parser.parse(smiles='C')
     builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
@@ -57,7 +57,7 @@ def _test_explicit_hs():
     assert builder.n_atoms == 17
 
 
-def _test_simple_alkane():
+def test_simple_alkane():
     """A few simple linear and branched alkanes"""
 
     simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
@@ -66,7 +66,7 @@ def _test_simple_alkane():
         assert built_molecule_is_reasonable(smiles)
 
 
-def _test_long_alkane():
+def test_long_alkane():
     """Should be able to build a long alkane without overlapping atoms"""
 
     assert built_molecule_is_reasonable(smiles='CCCCCCC')
@@ -78,3 +78,12 @@ def test_simple_multispecies():
     assert built_molecule_is_reasonable(smiles='O')   # water
     assert built_molecule_is_reasonable(smiles='N')   # ammonia
     assert built_molecule_is_reasonable(smiles='B')   # BH3
+
+
+def test_simple_multispecies2():
+    """A small set of molecules with more than just carbon atoms"""
+
+    assert built_molecule_is_reasonable(smiles='N#N')
+    assert built_molecule_is_reasonable(smiles='OO')
+    assert built_molecule_is_reasonable(smiles='O=[N]=O')
+    assert built_molecule_is_reasonable(smiles='CN=C=O')
