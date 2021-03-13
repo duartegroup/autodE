@@ -7,7 +7,7 @@ from autode.smiles.builder import Builder
 from autode.exceptions import SMILESBuildFailed
 
 
-def test_base_builder():
+def _test_base_builder():
 
     builder = Builder()
 
@@ -23,7 +23,7 @@ def test_base_builder():
         builder.build(atoms=[], bonds=[])
 
 
-def test_explicit_hs():
+def _test_explicit_hs():
 
     builder = Builder()
 
@@ -37,11 +37,20 @@ def test_explicit_hs():
     assert len(builder.bonds) == 4
     assert len([atom for atom in builder.atoms if atom.label == 'H']) == 4
 
+    assert builder.graph.number_of_nodes() == 5
+    assert builder.graph.number_of_edges() == 4
 
-def test_simple_build():
+    parser.parse(smiles='CC(C)(C)C')
+    assert len([True for (i, j) in parser.bonds
+                if parser.atoms[i].label == parser.atoms[j].label == 'C']) == 4
+    builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+    assert builder.n_atoms == 17
+
+
+def test_simple_alkane():
+    """A few simple linear and branched alkanes"""
 
     builder = Builder()
-
     parser = Parser()
 
     simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
@@ -52,6 +61,17 @@ def test_simple_build():
 
         builder.build(parser.atoms, parser.bonds)
         mol = Molecule(atoms=builder.atoms)
-        mol.print_xyz_file(filename='tmp.xyz')
-
         assert are_coords_reasonable(mol.coordinates)
+
+
+def test_long_alkane():
+    """Should be able to build a long alkane without overlapping atoms"""
+
+    parser = Parser()
+    parser.parse(smiles='CCCCCCC')
+
+    builder = Builder()
+    builder.build(parser.atoms, parser.bonds)
+
+    mol = Molecule(atoms=builder.atoms)
+    assert are_coords_reasonable(mol.coordinates)
