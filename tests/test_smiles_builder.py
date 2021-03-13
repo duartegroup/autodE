@@ -6,6 +6,20 @@ from autode.smiles.parser import Parser, SMILESBonds
 from autode.smiles.builder import Builder
 from autode.exceptions import SMILESBuildFailed
 
+parser = Parser()
+builder = Builder()
+
+
+def built_molecule_is_reasonable(smiles):
+    """Is the molecule built from a SMILES string sensible?"""
+
+    parser.parse(smiles)
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+    mol.print_xyz_file(filename='tmp.xyz')
+
+    return are_coords_reasonable(mol.coordinates)
+
 
 def _test_base_builder():
 
@@ -25,11 +39,7 @@ def _test_base_builder():
 
 def _test_explicit_hs():
 
-    builder = Builder()
-
-    parser = Parser()
     parser.parse(smiles='C')
-
     builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
     # Should convert all implicit Hs to explicit atoms
@@ -47,31 +57,24 @@ def _test_explicit_hs():
     assert builder.n_atoms == 17
 
 
-def test_simple_alkane():
+def _test_simple_alkane():
     """A few simple linear and branched alkanes"""
-
-    builder = Builder()
-    parser = Parser()
 
     simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
 
     for smiles in simple_smiles:
-
-        parser.parse(smiles)
-
-        builder.build(parser.atoms, parser.bonds)
-        mol = Molecule(atoms=builder.atoms)
-        assert are_coords_reasonable(mol.coordinates)
+        assert built_molecule_is_reasonable(smiles)
 
 
-def test_long_alkane():
+def _test_long_alkane():
     """Should be able to build a long alkane without overlapping atoms"""
 
-    parser = Parser()
-    parser.parse(smiles='CCCCCCC')
+    assert built_molecule_is_reasonable(smiles='CCCCCCC')
 
-    builder = Builder()
-    builder.build(parser.atoms, parser.bonds)
 
-    mol = Molecule(atoms=builder.atoms)
-    assert are_coords_reasonable(mol.coordinates)
+def test_simple_multispecies():
+    """Some simple molecules """
+
+    assert built_molecule_is_reasonable(smiles='O')   # water
+    assert built_molecule_is_reasonable(smiles='N')   # ammonia
+    assert built_molecule_is_reasonable(smiles='B')   # BH3
