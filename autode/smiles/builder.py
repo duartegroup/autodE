@@ -6,6 +6,7 @@ from autode.atoms import chalcogens, pnictogens
 from autode.bonds import get_avg_bond_length
 from autode.exceptions import SMILESBuildFailed
 from autode.smiles.base import SMILESAtom, SMILESBond
+from autode.smiles.rings import minimise_ring_energy
 
 
 class Builder:
@@ -58,42 +59,138 @@ class Builder:
         """
         logger.info(f'Setting {self.n_atoms} atom types')
 
-        rings_idxs = nx.cycle_basis(self.graph)
-        ring_idxs = set(idx for ring in rings_idxs for idx in ring)
-        logger.info(f'Have {len(rings_idxs)} rings')
+        self.rings_idxs = nx.cycle_basis(self.graph)
+        logger.info(f'Have {len(self.rings_idxs)} ring(s)')
 
         for i, atom in enumerate(self.atoms):
 
             atom.coord = np.zeros(3)
-            n_bonded = len(list(self.graph.neighbors(i)))
+            atom.neighbours = list(self.graph.neighbors(i))
 
             # To build linear molecules the sites on atom types (templates)
             # need to be reversed for every other atom, otherwise the next atom
             # will be added to the same site forming a ring
-            swap_order = i % 2 == 1 and i not in ring_idxs
+            swap_order = i % 2 == 1
 
-            if n_bonded == 1:                                 # e.g. H2, FCH3
+            if atom.n_bonded == 1:                              # e.g. H2, FCH3
                 atom.type = TerminalAtom()
 
-            elif n_bonded == 2:                               # e.g. OH2, SR2
+            elif atom.n_bonded == 2:                               # e.g. OH2, SR2
                 if atom.label in chalcogens:
                     atom.type = BentAtom()
 
                 else:                                         # e.g. AuR2
                     atom.type = LinearAtom()
 
-            elif n_bonded == 3:                               # e.g. NH3
+            elif atom.n_bonded == 3:                               # e.g. NH3
                 if atom.label in pnictogens:
                     atom.type = TrigonalPyramidalAtom()
 
                 else:                                         # e.g. BH3
                     atom.type = TrigonalAtom()
 
-            elif n_bonded == 4:                               # e.g. CH4
-                atom.type = TetrahedralAtom(swap_order)
+            elif atom.n_bonded == 4:                               # e.g. CH4
+                atom.type = TetrahedralAtom(swap_order=swap_order)
 
             else:
                 raise NotImplementedError
+
+        return None
+
+    def _ring_dihedrals(self, ring_bond):
+        """
+        Given a ring bond find all the rotatable dihedrals that can be adjusted
+        to close it with a reasonable bond distance
+
+        Arguments:
+            ring_bond (autode.smiles.SMILESBond):
+
+        Returns:
+            (iterator(tuple(int))):
+        """
+        # Indexes of atoms in the ring that should be closed
+        ring_idxs = next(ring_idxs for ring_idxs in self.rings_idxs
+                         if ring_bond[0] in ring_idxs)
+
+        # Find the path along which dihedrals can be defined e.g.
+        #
+        #         C2----C3
+        #       /       |        -->  1, 2, 3, 4
+        #     C1        C4
+        #
+        paths = nx.shortest_simple_paths(self.graph,
+                                         source=ring_bond[0],
+                                         target=ring_bond[1])
+        path = None
+        for possible_path in paths:
+
+            # Can always have a path that traverses the ring bond (C1-C4 above)
+            if len(possible_path) == 2:
+                continue
+
+            # For multiple fused rings there may be other paths that could be
+            # traversed, so only take the one that has the appropriate idxs
+            if all(idx in ring_idxs for idx in possible_path):
+                path = possible_path
+                break
+
+        if path is None:
+            raise SMILESBuildFailed('Could not find path in ring')
+
+        # The dihedrals are then the all the 4 atom tuples in sequence
+        dihedrals = [tuple(path[i:i + 4]) for i in range(len(path)//4 + 1)]
+
+
+        # so only add the indexes where the bond (edge) order is one
+        for i, dihedral_idxs in enumerate(dihedrals):
+            _, idx_i, idx_j, _ = dihedral_idxs
+
+            if self.graph.get_edge_data(idx_i, idx_j)['order'] == 1:
+                yield dihedral_idxs
+
+    def _close_ring(self, ring_bond):
+        """
+        Adjust ring dihedrals such that a ring is formed
+
+        Arguments:
+            idxs (set(int)): Indexes of atoms that have been shifted from the
+                             origin, and thus need to be shifted to rotate
+
+            ring_bond (autode.smiles.SMILESBond):
+        """
+        logger.info(f'Closing ring with bond: {ring_bond} and adjusting atoms')
+
+        pairs_rot_idxs = {}
+        for dihedral in self._ring_dihedrals(ring_bond):
+            _, idx_i, idx_j, _ = dihedral
+
+            # Generate a graph without the ring or this dihedral to locate
+            # the indexes that should be rotated
+            graph = self.graph.copy()
+            graph.remove_edge(idx_i, idx_j)
+            graph.remove_edge(*ring_bond)
+
+            components = [graph.subgraph(c)
+                          for c in nx.connected_components(graph)]
+
+            if len(components) != 2:
+                logger.warning(f'Could not rotate dihedral {dihedral} '
+                               f'splitting across {idx_i}-{idx_j} did not '
+                               f'afford two fragments')
+                continue
+
+            # choose the first set of indexes (0) to rotate, this is arbitrary
+            # but only rotate the atoms that have been shifted from the origin
+            # (i.e. have been 'built')
+            rot_idxs = [idx for idx in components[0].nodes
+                        if not np.allclose(self.atoms[idx_i].coord, np.zeros(3))]
+
+            pairs_rot_idxs[(idx_i, idx_j)] = rot_idxs
+
+        minimise_ring_energy(atoms=self.atoms,
+                             pairs_rot_idxs=pairs_rot_idxs,
+                             close_idxs=(ring_bond[0], ring_bond[1]),
+                             r0=ring_bond.r0)
 
         return None
 
@@ -120,7 +217,7 @@ class Builder:
         # Set the ideal bond lengths and the graph edges
         for bond in self.bonds:
             idx_i, idx_j = bond
-            self.graph.add_edge(idx_i, idx_j)
+            self.graph.add_edge(idx_i, idx_j, order=bond.order)
 
             bond.r0 = get_avg_bond_length(self.atoms[idx_i].label,
                                           self.atoms[idx_j].label)
@@ -129,6 +226,8 @@ class Builder:
 
         # Add the first atom to the queue of atoms to be translated etc.
         self.queued_atoms.append(0)
+        # perturb the first atom's coordinate slightly
+        self.atoms[0].translate(vec=np.array([0.001, 0.001, 0.001]))
         return None
 
     def build(self, atoms, bonds):
@@ -157,11 +256,10 @@ class Builder:
         start_time = time()
         self._set_atoms_bonds(atoms, bonds)
 
-        shifted_atoms = set()
+        shifted_idxs = set()
 
         while not self.built:
 
-            # Grab the last item to be added on the queue
             idx = self.queued_atoms[0]
             atom = self.atoms[idx]
 
@@ -169,7 +267,11 @@ class Builder:
             for bond in self.bonds.involving(idx):
                 bonded_idx = bond[0] if bond[1] == idx else bond[1]
 
-                if bonded_idx in shifted_atoms:
+                if bonded_idx in shifted_idxs:
+                    continue
+
+                if bonded_idx in self.queued_atoms:
+                    self._close_ring(ring_bond=bond)
                     continue
 
                 # Coordinate of this atom is the current position shifted by
@@ -192,7 +294,7 @@ class Builder:
 
             # And remove this atom from the queue and added to shifted
             self.queued_atoms.remove(idx)
-            shifted_atoms.add(idx)
+            shifted_idxs.add(idx)
             logger.info(f'Queue: {self.queued_atoms}')
 
         logger.info(f'Built 3D in {(time() - start_time)*1E3:.2f} ms')
@@ -204,9 +306,10 @@ class Builder:
         them. This builder should generate something *reasonable* that can
         be cleaned up with a forcefield
         """
-        self.atoms = None
-        self.bonds = None
-        self.graph = None
+        self.atoms = None              # list(SMILESAtom)
+        self.bonds = None              # SMILESBonds
+        self.graph = None              # nx.Graph
+        self.rings_idxs = None         # Iterator for atom indexes in all rings
 
         # A queue of atom indexes, the neighbours for which need to be added
         self.queued_atoms = []

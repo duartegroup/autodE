@@ -87,3 +87,10 @@ def test_simple_multispecies2():
     assert built_molecule_is_reasonable(smiles='OO')
     assert built_molecule_is_reasonable(smiles='O=[N]=O')
     assert built_molecule_is_reasonable(smiles='CN=C=O')
+
+
+def test_simple_ring():
+    """Small unsubstituted rings"""
+
+    assert built_molecule_is_reasonable(smiles='C1CCCC1')  # cyclopentane
+    assert built_molecule_is_reasonable(smiles='C1CCCCC1')  # cyclohexane

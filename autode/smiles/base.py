@@ -21,6 +21,11 @@ class SMILESAtom(Atom):
         """Does this atom have associated stereochemistry?"""
         return self.stereochem is not None
 
+    @property
+    def n_bonded(self):
+        """How many atoms are bonded to this one?"""
+        return 0 if self.neighbours is None else len(self.neighbours)
+
     def __init__(self, label, stereochem=None, n_hydrogens=None, charge=0):
         """
         SMILES atom initialised at the origin
@@ -45,7 +50,9 @@ class SMILESAtom(Atom):
         self.n_hydrogens = n_hydrogens
         self.stereochem = stereochem
 
-        self.type = None         # Attribute used for building the 3D structure
+        # ---------- Attributes used for building the 3D structure ----------
+        self.type = None
+        self.neighbours = None
 
 
 class SMILESBond:
