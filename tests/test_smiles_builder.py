@@ -92,5 +92,9 @@ def test_simple_multispecies2():
 def test_simple_ring():
     """Small unsubstituted rings"""
 
+    parser.parse(smiles='C1CCCCC1')      # cyclohexane
+    builder._set_atoms_bonds(parser.atoms, parser.bonds)
+    ring_dihedrals = list(builder._ring_dihedrals(ring_bond=[3, 4]))
+    assert len(ring_dihedrals) == 3
+
     assert built_molecule_is_reasonable(smiles='C1CCCC1')  # cyclopentane
-    assert built_molecule_is_reasonable(smiles='C1CCCCC1')  # cyclohexane

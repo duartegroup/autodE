@@ -36,11 +36,9 @@ def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
     rot_idxs = [np.array(idxs, dtype=np.int)
                 for idxs in pairs_rot_idxs.values()]
 
+    # origins for the rotation to be applied
     origins = [idx_i if idx_i in idxs else idx_j
                for (idx_i, idx_j), idxs in pairs_rot_idxs.items()]
-
-    print(pairs_rot_idxs)
-
 
     res = minimize(dihedral_rotations,
                    x0=np.zeros(len(pairs_rot_idxs)),
@@ -62,8 +60,7 @@ def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
 
 
 def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
-                       origins,
-                       return_energy=True, with_repulsion=False):
+                       origins, return_energy=True):
     """
     Perform a set of dihedral rotations and calculate the 'energy'
 
@@ -98,16 +95,9 @@ def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
         coords[idxs] = np.dot(rot_matrix, coords[idxs].T).T
         coords += origin_coord
 
-    repulsion = 0
-    if with_repulsion:
-        dist_mat = distance_matrix(coords, coords)
-        dist_mat[dist_mat == 0] = 1000
-        repulsion = np.power(dist_mat+0.5, -1).sum()/100
-        print(repulsion)
-
     if return_energy:
         idx_i, idx_j = close_idxs
         r = np.linalg.norm(coords[idx_i] - coords[idx_j])
-        return (r - r0)**2 + repulsion
+        return (r - r0)**2
 
     return coords
