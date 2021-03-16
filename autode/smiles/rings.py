@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.optimize import minimize
-from scipy.spatial import distance_matrix
 
 
 def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):

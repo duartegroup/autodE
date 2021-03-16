@@ -109,8 +109,11 @@ class Builder:
             (iterator(tuple(int))):
         """
         # Indexes of atoms in the ring that should be closed
-        ring_idxs = next(ring_idxs for ring_idxs in self.rings_idxs
-                         if ring_bond[0] in ring_idxs and ring_bond[1] in ring_idxs)
+        try:
+            ring_idxs = next(idxs for idxs in self.rings_idxs
+                             if ring_bond[0] in idxs and ring_bond[1] in idxs)
+        except StopIteration:
+            raise SMILESBuildFailed(f'No ring containing {ring_bond}')
 
         # Find the path along which dihedrals can be defined e.g.
         #
@@ -133,8 +136,6 @@ class Builder:
             if all(idx in ring_idxs for idx in possible_path):
                 path = possible_path
                 break
-
-        print(path)
 
         if path is None:
             raise SMILESBuildFailed('Could not find path in ring')
