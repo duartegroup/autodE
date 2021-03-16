@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
+from scipy.spatial import distance_matrix
 
 
 def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
@@ -10,32 +11,48 @@ def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
 
     atoms will be modified in place with respect to the rotation
 
+    --------------------------------------------------------------------------
     Arguments:
-        atoms:
-        pairs_rot_idxs:
-        close_idxs:
-        r0 (float):
+        atoms (list(autode.smiles.SMILESAtom)): Atoms, a subset of which need
+                                                rotation
+
+        pairs_rot_idxs (dict): Dictionary keyed with central two atoms indexes
+                               of a dihedral and the values as all the atoms
+                               to rotate
+
+        close_idxs (tuple(int)): Atom indexes for the bond to close
+
+        r0 (float): Ideal distance (Å) for the closed bond
     """
     coords = np.array([a.coord for a in atoms], copy=True)
+
+    # normalised rotation axes
     axes = [coords[idx_i] - coords[idx_j]
             for (idx_i, idx_j) in pairs_rot_idxs.keys()]
 
-    # normalise
     axes = [axis / np.linalg.norm(axis) for axis in axes]
 
+    # atom indexes to rotate
     rot_idxs = [np.array(idxs, dtype=np.int)
                 for idxs in pairs_rot_idxs.values()]
 
+    origins = [idx_i if idx_i in idxs else idx_j
+               for (idx_i, idx_j), idxs in pairs_rot_idxs.items()]
+
+    print(pairs_rot_idxs)
+
+
     res = minimize(dihedral_rotations,
                    x0=np.zeros(len(pairs_rot_idxs)),
-                   args=(coords, axes, rot_idxs, close_idxs, r0),
+                   args=(coords, axes, rot_idxs, close_idxs, r0, origins),
                    method='CG',
                    tol=1E-2)
     print(res)
 
     # apply the optimal set of dihedral rotations
     new_coords = dihedral_rotations(res.x, coords, axes, rot_idxs, close_idxs,
-                                    r0, return_energy=False)
+                                    r0, origins,
+                                    return_energy=False)
 
     # and set the new coordinates
     for i, atom in enumerate(atoms):
@@ -45,7 +62,8 @@ def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
 
 
 def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
-                       return_energy=True):
+                       origins,
+                       return_energy=True, with_repulsion=False):
     """
     Perform a set of dihedral rotations and calculate the 'energy'
 
@@ -65,7 +83,7 @@ def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
     """
     coords = np.copy(coords)
 
-    for angle, axis, idxs in zip(angles, axes, rot_idxs):
+    for angle, axis, idxs, origin in zip(angles, axes, rot_idxs, origins):
 
         a = np.cos(angle / 2.0)
         b, c, d = -axis * np.sin(angle / 2.0)
@@ -75,11 +93,21 @@ def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
                                [2*(bc - ad), aa + cc - bb - dd, 2*(cd + ab)],
                                [2*(bd + ac), 2*(cd - ab), aa + dd - bb - cc]])
 
+        origin_coord = np.copy(coords[origin])
+        coords -= origin_coord
         coords[idxs] = np.dot(rot_matrix, coords[idxs].T).T
+        coords += origin_coord
+
+    repulsion = 0
+    if with_repulsion:
+        dist_mat = distance_matrix(coords, coords)
+        dist_mat[dist_mat == 0] = 1000
+        repulsion = np.power(dist_mat+0.5, -1).sum()/100
+        print(repulsion)
 
     if return_energy:
         idx_i, idx_j = close_idxs
         r = np.linalg.norm(coords[idx_i] - coords[idx_j])
-        return (r - r0)**2
+        return (r - r0)**2 + repulsion
 
     return coords

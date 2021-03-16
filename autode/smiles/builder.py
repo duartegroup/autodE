@@ -110,7 +110,7 @@ class Builder:
         """
         # Indexes of atoms in the ring that should be closed
         ring_idxs = next(ring_idxs for ring_idxs in self.rings_idxs
-                         if ring_bond[0] in ring_idxs)
+                         if ring_bond[0] in ring_idxs and ring_bond[1] in ring_idxs)
 
         # Find the path along which dihedrals can be defined e.g.
         #
@@ -134,12 +134,13 @@ class Builder:
                 path = possible_path
                 break
 
+        print(path)
+
         if path is None:
             raise SMILESBuildFailed('Could not find path in ring')
 
         # The dihedrals are then the all the 4 atom tuples in sequence
-        dihedrals = [tuple(path[i:i + 4]) for i in range(len(path)//4 + 1)]
-
+        dihedrals = [tuple(path[i:i + 4]) for i in range(len(path)- 3)]
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedrals):
@@ -183,7 +184,7 @@ class Builder:
             # but only rotate the atoms that have been shifted from the origin
             # (i.e. have been 'built')
             rot_idxs = [idx for idx in components[0].nodes
-                        if not np.allclose(self.atoms[idx_i].coord, np.zeros(3))]
+                        if not np.allclose(self.atoms[idx].coord, np.zeros(3))]
 
             pairs_rot_idxs[(idx_i, idx_j)] = rot_idxs
 
