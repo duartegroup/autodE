@@ -58,6 +58,9 @@ class SMILESAtom(Atom):
 class SMILESBond:
     """Bond in a SMILES string"""
 
+    def __len__(self):
+        return len(self._list)
+
     def __str__(self):
         return self.__repr__()
 

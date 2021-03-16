@@ -97,4 +97,4 @@ def test_simple_ring():
     ring_dihedrals = list(builder._ring_dihedrals(ring_bond=[3, 4]))
     assert len(ring_dihedrals) == 3
 
-    assert built_molecule_is_reasonable(smiles='C1CCCC1')  # cyclopentane
+    assert built_molecule_is_reasonable(smiles='C1CCCCC1')  # cyclopentane

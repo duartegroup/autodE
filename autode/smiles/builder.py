@@ -194,6 +194,13 @@ class Builder:
                              close_idxs=(ring_bond[0], ring_bond[1]),
                              r0=ring_bond.r0)
 
+        # TODO: improve this
+        for idx_i, idx_j in (ring_bond, reversed(ring_bond)):
+            atom = self.atoms[idx_i]
+            atom.type.rotate_closest_empty_onto(point=self.atoms[idx_j].coord,
+                                                coord=atom.coord,
+                                                r0=ring_bond.r0)
+
         return None
 
     def _set_atoms_bonds(self, atoms, bonds):
@@ -322,6 +329,13 @@ class AtomType:
     def empty_site(self):
         """Iterator for the coordinate of the next free site"""
         return self._site_coords.pop(0)
+
+    def rotate_closest_empty_onto(self, point, coord, r0):
+        """Rotate an empty site closest to the point onto it"""
+        site_idx = np.argmin([np.linalg.norm(r0 * site + coord - point)
+                              for site in self._site_coords])
+
+        return self.rotate_onto(point, coord, site=self._site_coords.pop(site_idx))
 
     def rotate_empty_onto(self, point, coord):
         """Rotate the site coordinates such that an empty site is coincident
