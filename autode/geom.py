@@ -83,7 +83,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
         q_matrix: (np.ndarray)
 
     Returns:
-        (np.ndarray) rotation matrix
+        (np.ndarray): rotation matrix
     """
 
     h = np.matmul(p_matrix.transpose(), q_matrix)
@@ -189,21 +189,16 @@ def calc_rmsd(coords1, coords2):
     """
     assert coords1.shape == coords2.shape
 
-    # Construct the P matrix in the Kabsch algorithm
     p_mat = np.array(coords2, copy=True)
-    p = np.average(p_mat, axis=0)
-    p_mat_trans = p_mat - p
+    p_mat -= np.average(p_mat, axis=0)
 
-    # Construct the P matrix in the Kabsch algorithm
     q_mat = np.array(coords1, copy=True)
-    q = np.average(q_mat, axis=0)
-    q_mat_trans = q_mat - q
+    q_mat -= np.average(q_mat, axis=0)
 
-    # Get the optimum rotation matrix
-    rot_mat = get_rot_mat_kabsch(p_mat_trans, q_mat_trans)
+    rot_mat = get_rot_mat_kabsch(p_mat, q_mat)
 
-    fitted_coords = np.dot(rot_mat, p_mat_trans.T).T
-    return np.sqrt(np.average(np.square(fitted_coords - q_mat_trans)))
+    fitted_coords = np.dot(rot_mat, p_mat.T).T
+    return np.sqrt(np.average(np.square(fitted_coords - q_mat)))
 
 
 def get_points_on_sphere(n_points, r=1):

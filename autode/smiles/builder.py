@@ -1,9 +1,11 @@
 import numpy as np
 import networkx as nx
 from time import time
+from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import chalcogens, pnictogens
 from autode.bonds import get_avg_bond_length
+from autode.geom import get_rot_mat_kabsch
 from autode.exceptions import SMILESBuildFailed
 from autode.smiles.base import SMILESAtom, SMILESBond
 from autode.smiles.rings import minimise_ring_energy
@@ -194,12 +196,12 @@ class Builder:
                              close_idxs=(ring_bond[0], ring_bond[1]),
                              r0=ring_bond.r0)
 
-        # TODO: improve this
-        for idx_i, idx_j in (ring_bond, reversed(ring_bond)):
+        for idx_i, _ in (ring_bond, reversed(ring_bond)):
+            logger.info(f'Resetting sites on atom {idx_i}')
             atom = self.atoms[idx_i]
-            atom.type.rotate_closest_empty_onto(point=self.atoms[idx_j].coord,
-                                                coord=atom.coord,
-                                                r0=ring_bond.r0)
+            atom.type.reset_onto(points=[self.atoms[idx].coord
+                                         for idx in atom.neighbours],
+                                 coord=atom.coord)
 
         return None
 
@@ -330,6 +332,45 @@ class AtomType:
         """Iterator for the coordinate of the next free site"""
         return self._site_coords.pop(0)
 
+    def reset_onto(self, points, coord):
+        """
+        Reset the site coordinates given a set of points. Ignore any points
+        located exactly at the origin and, once fitted, remove the sites
+        that are coincident with the points
+
+        Arguments:
+            points (iterable(np.ndarray)): List (or iterable) of points that
+                   that the sites need to be reset onto
+            coord (np.ndarray): Coordinate of this atom
+        """
+        origin = np.zeros(3)
+        points = np.array([(point - coord) / np.linalg.norm(point - coord)
+                           for point in points
+                           if not np.allclose(point, origin)])
+
+        # Take a copy of the template coordinates to rotate and delete
+        site_coords = np.copy(self.template_site_coords)
+
+        logger.info(f'Rotating {len(site_coords)} sites onto'
+                    f' {len(points)} points')
+
+        # Rotate all the sites such that n sites are optimally orientated onto
+        # the (fixed) points
+        rot_mat = get_rot_mat_kabsch(p_matrix=site_coords[:len(points)],
+                                     q_matrix=points)
+
+        site_coords = np.dot(rot_mat, site_coords.T).T
+
+        # For each point (row) calculate the minimum distance to a site on
+        # this atom
+        min_dists = np.min(distance_matrix(site_coords, points), axis=1)
+
+        # Re-populate the empty sites, which are the sites that are not the
+        # closest to the points
+        self._site_coords = [coord for i, coord in enumerate(site_coords)
+                             if i not in np.argsort(min_dists)[:len(points)]]
+        return None
+
     def rotate_closest_empty_onto(self, point, coord, r0):
         """Rotate an empty site closest to the point onto it"""
         site_idx = np.argmin([np.linalg.norm(r0 * site + coord - point)
@@ -405,7 +446,9 @@ class AtomType:
                         list of unit vectors pointing in directions where other
                         atoms can be added
         """
+        self.template_site_coords = np.copy(site_coords)
         self._site_coords = site_coords
+
         self.rotate_randomly()
 
 

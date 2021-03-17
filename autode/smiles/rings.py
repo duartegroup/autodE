@@ -44,7 +44,6 @@ def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
                    args=(coords, axes, rot_idxs, close_idxs, r0, origins),
                    method='CG',
                    tol=1E-2)
-    print(res)
 
     # apply the optimal set of dihedral rotations
     new_coords = dihedral_rotations(res.x, coords, axes, rot_idxs, close_idxs,
