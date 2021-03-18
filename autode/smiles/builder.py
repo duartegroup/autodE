@@ -107,8 +107,12 @@ class Builder:
         Arguments:
             ring_bond (autode.smiles.SMILESBond):
 
-        Returns:
-            (iterator(tuple(int))):
+        Yields:
+            (iterator(autode.smiles.builder.Dihedral)):
+
+        Raises:
+            (autode.exceptions.SMILESBuildFailed): If dihedrals cannot be
+                                                   located
         """
         # Indexes of atoms in the ring that should be closed
         try:
@@ -147,10 +151,10 @@ class Builder:
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedrals):
-            _, idx_i, idx_j, _ = dihedral_idxs
+            dihedral = Dihedral(dihedral_idxs)
 
-            if self.graph.get_edge_data(idx_i, idx_j)['order'] == 1:
-                yield dihedral_idxs
+            if self.graph.get_edge_data(*dihedral.mid_idxs)['order'] == 1:
+                yield dihedral
 
     def _close_ring(self, ring_bond):
         """
@@ -164,14 +168,13 @@ class Builder:
         """
         logger.info(f'Closing ring with bond: {ring_bond} and adjusting atoms')
 
-        pairs_rot_idxs = {}
+        dihedrals = []
         for dihedral in self._ring_dihedrals(ring_bond):
-            _, idx_i, idx_j, _ = dihedral
 
             # Generate a graph without the ring or this dihedral to locate
             # the indexes that should be rotated
             graph = self.graph.copy()
-            graph.remove_edge(idx_i, idx_j)
+            graph.remove_edge(*dihedral.mid_idxs)
             graph.remove_edge(*ring_bond)
 
             components = [graph.subgraph(c)
@@ -179,7 +182,7 @@ class Builder:
 
             if len(components) != 2:
                 logger.warning(f'Could not rotate dihedral {dihedral} '
-                               f'splitting across {idx_i}-{idx_j} did not '
+                               f'splitting across {dihedral.mid_idxs} did not '
                                f'afford two fragments')
                 continue
 
@@ -189,13 +192,16 @@ class Builder:
             rot_idxs = [idx for idx in components[0].nodes
                         if not np.allclose(self.atoms[idx].coord, np.zeros(3))]
 
-            pairs_rot_idxs[(idx_i, idx_j)] = rot_idxs
+            dihedral.rot_idxs = rot_idxs
+            dihedrals.append(dihedral)
 
         minimise_ring_energy(atoms=self.atoms,
-                             pairs_rot_idxs=pairs_rot_idxs,
+                             dihedrals=dihedrals,
                              close_idxs=(ring_bond[0], ring_bond[1]),
                              r0=ring_bond.r0)
 
+        # CLosing the ring will not rotate the empty sites on the closed atoms,
+        # therefore reset the empty sites defined by their new neighbours
         for idx_i, _ in (ring_bond, reversed(ring_bond)):
             logger.info(f'Resetting sites on atom {idx_i}')
             atom = self.atoms[idx_i]
@@ -553,3 +559,72 @@ class TetrahedralAtom(AtomType):
             site_coords = site_coords[::-1]
 
         super().__init__(site_coords)
+
+
+class Dihedral:
+    """A dihedral defined by 4 atom indexes e.g.
+
+       X       W
+       |      /
+       Y---- Z
+    """
+    def __str__(self):
+        return f'Dihedral(idxs={self.idxs})'
+
+    def __repr__(self):
+        return self.__str__()
+
+    def value(self, atoms):
+        """
+        Calculate the value of a dihedral defined by some atoms with non-zero
+        positions
+
+        Arguments:
+            atoms (list(autode.atoms.Atom)):
+
+        Returns:
+            (float): The dihedral angle in radians
+        """
+        idx_x, idx_y, idx_z, idx_w = self.idxs
+
+        vec_yx = atoms[idx_x].coord - atoms[idx_y].coord
+        vec_zw = atoms[idx_w].coord - atoms[idx_z].coord
+        vec_yz = atoms[idx_z].coord - atoms[idx_y].coord
+
+        vec1 = np.cross(vec_yx, vec_yz)
+        vec2 = np.cross(-vec_yz, vec_zw)
+
+        zero_vec = np.zeros(3)
+        if np.allclose(vec1, zero_vec) or np.allclose(vec2, zero_vec):
+            raise ValueError('Cannot calculate a dihedral - one zero vector')
+
+        # Normalise everything
+        vec1 /= np.linalg.norm(vec1)
+        vec2 /= np.linalg.norm(vec2)
+        vec_yz /= np.linalg.norm(vec_yz)
+
+        """
+        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
+        angle between groups A and D is then considered to be positive if 
+        the bond A-B is rotated in a clockwise direction through less than
+        180 degrees"
+        """
+        angle = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
+                            np.dot(vec1, vec2))
+        return angle
+
+    def __init__(self, idxs, rot_idxs=None):
+        """
+        A dihedral constructed from atom indexes and possibly indexes that
+        should be rotated, if this dihedral is altered
+
+        Arguments:
+            idxs (list(int)): Indexes defining the dihedral
+            rot_idxs (list(int) | None): Indexes to rotate
+        """
+        self.idxs = idxs
+
+        _, idx_y, idx_z, _ = idxs
+        self.mid_idxs = (idx_y, idx_z)
+
+        self.rot_idxs = rot_idxs

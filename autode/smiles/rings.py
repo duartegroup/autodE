@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
+def minimise_ring_energy(atoms, dihedrals, close_idxs, r0):
     """
     For a set of atoms minimise the energy with respect to dihedral rotation,
     where the energy is...
@@ -25,27 +25,23 @@ def minimise_ring_energy(atoms, pairs_rot_idxs, close_idxs, r0):
     """
     coords = np.array([a.coord for a in atoms], copy=True)
 
-    # normalised rotation axes
-    axes = [coords[idx_i] - coords[idx_j]
-            for (idx_i, idx_j) in pairs_rot_idxs.keys()]
+    axes, rot_idxs, origins = [], [], []
+    for dihedral in dihedrals:
+        idx_i, idx_j = dihedral.mid_idxs
 
-    axes = [axis / np.linalg.norm(axis) for axis in axes]
+        origin = idx_i if idx_i in dihedral.rot_idxs else idx_j
 
-    # atom indexes to rotate
-    rot_idxs = [np.array(idxs, dtype=np.int)
-                for idxs in pairs_rot_idxs.values()]
-
-    # origins for the rotation to be applied
-    origins = [idx_i if idx_i in idxs else idx_j
-               for (idx_i, idx_j), idxs in pairs_rot_idxs.items()]
+        axes.append(dihedral.mid_idxs)
+        rot_idxs.append(np.array(dihedral.rot_idxs, dtype=np.int))
+        origins.append(origin)
 
     res = minimize(dihedral_rotations,
-                   x0=np.zeros(len(pairs_rot_idxs)),
+                   x0=init_dihedral_angles(dihedrals, atoms),
                    args=(coords, axes, rot_idxs, close_idxs, r0, origins),
                    method='CG',
                    tol=1E-2)
 
-    # apply the optimal set of dihedral rotations
+    # Apply the optimal set of dihedral rotations
     new_coords = dihedral_rotations(res.x, coords, axes, rot_idxs, close_idxs,
                                     r0, origins,
                                     return_energy=False)
@@ -78,7 +74,10 @@ def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
     """
     coords = np.copy(coords)
 
-    for angle, axis, idxs, origin in zip(angles, axes, rot_idxs, origins):
+    for angle, (i, j), idxs, origin in zip(angles, axes, rot_idxs, origins):
+
+        axis = coords[i] - coords[j]
+        axis /= np.linalg.norm(axis)
 
         a = np.cos(angle / 2.0)
         b, c, d = -axis * np.sin(angle / 2.0)
@@ -99,3 +98,30 @@ def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
         return (r - r0)**2
 
     return coords
+
+
+def init_dihedral_angles(dihedrals, atoms):
+    """
+    Precondition the optimiser on ring dihedrals
+
+    Arguments:
+        dihedrals (list(autode.smiles.builder.Dihedral)):
+        atoms (list(autode.atoms.Atom)):
+
+    Returns:
+        (np.ndarray):
+    """
+    curr_angles = np.array([dihedral.value(atoms) for dihedral in dihedrals])
+
+    # TODO: heuristics
+    # return np.zeros(3)
+
+    if len(dihedrals) == 3:
+        ideal_angles = np.array([1.0472, -1.0472, 1.0472])  # ±60º
+
+        return ideal_angles - curr_angles
+
+    else:
+        raise NotImplementedError
+
+    return None
