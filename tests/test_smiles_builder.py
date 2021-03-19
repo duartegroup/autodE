@@ -86,7 +86,7 @@ def test_dihedrals():
         _ = dihedral.value(zero)
 
 
-def test_simple_alkane():
+def _test_simple_alkane():
     """A few simple linear and branched alkanes"""
 
     simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
@@ -95,13 +95,13 @@ def test_simple_alkane():
         assert built_molecule_is_reasonable(smiles)
 
 
-def test_long_alkane():
+def _test_long_alkane():
     """Should be able to build a long alkane without overlapping atoms"""
 
     assert built_molecule_is_reasonable(smiles='CCCCCCC')
 
 
-def test_simple_multispecies():
+def _test_simple_multispecies():
     """Some simple molecules """
 
     assert built_molecule_is_reasonable(smiles='O')   # water
@@ -109,7 +109,7 @@ def test_simple_multispecies():
     assert built_molecule_is_reasonable(smiles='B')   # BH3
 
 
-def test_simple_multispecies2():
+def _test_simple_multispecies2():
     """A small set of molecules with more than just carbon atoms"""
 
     assert built_molecule_is_reasonable(smiles='N#N')
@@ -121,11 +121,12 @@ def test_simple_multispecies2():
 def test_simple_ring():
     """Small unsubstituted rings"""
 
-    parser.parse(smiles='C1CCCCC1')      # cyclohexane
+    parser.parse(smiles='C1CCCCC1')                          # cyclohexane
     builder._set_atoms_bonds(parser.atoms, parser.bonds)
     ring_dihedrals = list(builder._ring_dihedrals(ring_bond=[3, 4]))
     assert len(ring_dihedrals) == 3
 
-    assert built_molecule_is_reasonable(smiles='C1CCCC1')    # cyclopentane
-    assert built_molecule_is_reasonable(smiles='C1CCCCC1')   # cyclohexane
+    assert built_molecule_is_reasonable(smiles='C1CCCC1')     # cyclopentane
+    assert built_molecule_is_reasonable(smiles='C1CCCCC1')    # cyclohexane
     assert built_molecule_is_reasonable(smiles='C1CCCCCC1')   # cycloheptane
+    assert built_molecule_is_reasonable(smiles='C1CCCCCCC1')  # cycloctane

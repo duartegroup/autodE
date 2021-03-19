@@ -99,6 +99,25 @@ class Builder:
 
         return None
 
+    def _ring_idxs(self, ring_bond):
+        """Indexes of atoms in the ring containing this bond
+
+        Arguments:
+            ring_bond (autode.smiles.SMILESBond):
+
+        Returns:
+            (list(int)): Atom indexes in this ring
+
+        Raises:
+            (autode.exceptions.SMILESBuildFailed): If there is no such ring
+        """
+        try:
+            return next(idxs for idxs in self.rings_idxs
+                             if ring_bond[0] in idxs and ring_bond[1] in idxs)
+        except StopIteration:
+            raise SMILESBuildFailed(f'No ring containing {ring_bond}')
+
+
     def _ring_dihedrals(self, ring_bond):
         """
         Given a ring bond find all the rotatable dihedrals that can be adjusted
@@ -114,12 +133,7 @@ class Builder:
             (autode.exceptions.SMILESBuildFailed): If dihedrals cannot be
                                                    located
         """
-        # Indexes of atoms in the ring that should be closed
-        try:
-            ring_idxs = next(idxs for idxs in self.rings_idxs
-                             if ring_bond[0] in idxs and ring_bond[1] in idxs)
-        except StopIteration:
-            raise SMILESBuildFailed(f'No ring containing {ring_bond}')
+        ring_idxs = self._ring_idxs(ring_bond)
 
         # Find the path along which dihedrals can be defined e.g.
         #
@@ -199,7 +213,8 @@ class Builder:
         minimise_ring_energy(atoms=self.atoms,
                              dihedrals=dihedrals,
                              close_idxs=(ring_bond[0], ring_bond[1]),
-                             r0=ring_bond.r0)
+                             r0=ring_bond.r0,
+                             ring_idxs=self._ring_idxs(ring_bond))
 
         # CLosing the ring will not rotate the empty sites on the closed atoms,
         # therefore reset the empty sites defined by their new neighbours
