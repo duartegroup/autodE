@@ -151,7 +151,8 @@ class Builder:
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedrals):
-            dihedral = Dihedral(dihedral_idxs)
+            dihedral = Dihedral(dihedral_idxs,
+                                ring_n=len(ring_idxs))
 
             if self.graph.get_edge_data(*dihedral.mid_idxs)['order'] == 1:
                 yield dihedral
@@ -166,7 +167,7 @@ class Builder:
 
             ring_bond (autode.smiles.SMILESBond):
         """
-        logger.info(f'Closing ring with bond: {ring_bond} and adjusting atoms')
+        logger.info(f'Closing ring on: {ring_bond} and adjusting atoms')
 
         dihedrals = []
         for dihedral in self._ring_dihedrals(ring_bond):
@@ -613,16 +614,23 @@ class Dihedral:
                             np.dot(vec1, vec2))
         return angle
 
-    def __init__(self, idxs, rot_idxs=None):
+    def __init__(self, idxs, rot_idxs=None, ring_n=None):
         """
         A dihedral constructed from atom indexes and possibly indexes that
         should be rotated, if this dihedral is altered
 
+        -----------------------------------------------------------------------
         Arguments:
             idxs (list(int)): Indexes defining the dihedral
+
+        Keyword Arguments:
             rot_idxs (list(int) | None): Indexes to rotate
+
+            ring_n (int | None): Number of atoms in the ring for which this
+                                 dihedral is a part, if None then not in a ring
         """
         self.idxs = idxs
+        self.ring_n = ring_n
 
         _, idx_y, idx_z, _ = idxs
         self.mid_idxs = (idx_y, idx_z)

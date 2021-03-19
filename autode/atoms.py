@@ -1,5 +1,6 @@
 import numpy as np
 from autode.log import logger
+from autode.geom import get_rot_mat_euler
 
 
 class Atom:
@@ -40,28 +41,15 @@ class Atom:
                                  if no origin is specified then the atom
                                  is rotated without translation.
         """
-        # If specified shift so that the origin is at (0, 0, 0), apply the
-        # rotation, and shift back
+        # If specified shift so that the origin is at (0, 0, 0)
         if origin is not None:
             self.translate(vec=-origin)
 
-        # Normalise the axis
-        axis = np.asarray(axis)
-        axis = axis / np.linalg.norm(axis)
-
-        # Compute the 3D rotation matrix using
-        # https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
-        a = np.cos(theta / 2.0)
-        b, c, d = -axis * np.sin(theta / 2.0)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                               [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                               [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-
-        # Apply the rotation
+        # apply the rotation
+        rot_matrix = get_rot_mat_euler(axis=axis, theta=theta)
         self.coord = np.matmul(rot_matrix, self.coord)
 
+        # and shift back, if required
         if origin is not None:
             self.translate(vec=origin)
 
