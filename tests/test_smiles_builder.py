@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
-from autode.geom import are_coords_reasonable
+from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds
 from autode.smiles.builder import Builder, Dihedral
 from autode.exceptions import SMILESBuildFailed
@@ -181,10 +181,40 @@ def test_double_bonds():
             or np.isclose(value, np.pi, atol=1E-4))
 
     # Cis double bond
-    for cis_smiles in ('C/C=C\C', 'C\C=C/C'):
+    for cis_smiles in (r'C/C=C\C', r'C\C=C/C'):
         parser.parse(cis_smiles)
         builder.build(parser.atoms, parser.bonds)
 
         value = np.abs(dihedral.value(builder.atoms))
 
         assert np.isclose(value, 0.0, atol=1E-4)
+
+
+def test_chiral_tetrahedral():
+    """Check simple chiral carbons"""
+
+    parser.parse(smiles='C[C@@H](Cl)F')
+    builder.build(parser.atoms, parser.bonds)
+    r_mol = Molecule(atoms=builder.atoms, name='R_chiral')
+    # r_mol.print_xyz_file()
+
+    coords = r_mol.coordinates
+
+    v1 = coords[0] - coords[1]  # C-C
+    v1 /= np.linalg.norm(v1)
+
+    v2 = coords[3] - coords[1]  # C-F
+    v2 /= np.linalg.norm(v2)
+
+    v3 = coords[2] - coords[1]   # C-Cl
+    # C-Cl vector should be pointing out of the plane, with a positive
+    # component along the normal to the C-C-F plane
+    assert np.dot(v3, np.cross(v1, v2)) > 0
+
+    parser.parse(smiles='C[C@H](Cl)F')
+    builder.build(parser.atoms, parser.bonds)
+    s_mol = Molecule(atoms=builder.atoms, name='S_chiral')
+    # s_mol.print_xyz_file()
+
+    # Different chirality should have RMSD > 0.1 Å on heavy atoms
+    assert calc_heavy_atom_rmsd(s_mol.atoms, r_mol.atoms) > 0.1

@@ -104,8 +104,16 @@ class Builder:
                     atom.type = TrigonalAtom()
 
             elif atom.n_bonded == 4:                               # e.g. CH4
-                atom.type = TetrahedralAtom(swap_order=swap_order)
 
+                print(atom.stereochem)
+                if atom.stereochem == '@':
+                    atom.type = TetrahedralNAtom()
+
+                elif atom.stereochem == '@@':
+                    atom.type = TetrahedralIAtom()
+
+                else:
+                    atom.type = TetrahedralAtom(swap_order=swap_order)
             else:
                 raise NotImplementedError
 
@@ -125,7 +133,8 @@ class Builder:
         """
         try:
             return next(idxs for idxs in self.rings_idxs
-                             if ring_bond[0] in idxs and ring_bond[1] in idxs)
+                        if ring_bond[0] in idxs and ring_bond[1] in idxs)
+
         except StopIteration:
             raise SMILESBuildFailed(f'No ring containing {ring_bond}')
 
@@ -172,7 +181,7 @@ class Builder:
             raise SMILESBuildFailed('Could not find path in ring')
 
         # The dihedrals are then the all the 4 atom tuples in sequence
-        dihedrals = [tuple(path[i:i + 4]) for i in range(len(path)- 3)]
+        dihedrals = [tuple(path[i:i + 4]) for i in range(len(path) - 3)]
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedrals):
@@ -187,9 +196,6 @@ class Builder:
         Adjust ring dihedrals such that a ring is formed
 
         Arguments:
-            idxs (set(int)): Indexes of atoms that have been shifted from the
-                             origin, and thus need to be shifted to rotate
-
             ring_bond (autode.smiles.SMILESBond):
         """
         logger.info(f'Closing ring on: {ring_bond} and adjusting atoms')
@@ -643,8 +649,8 @@ class TetrahedralAtom(AtomType):
         Keyword Arguments:
             swap_order (bool): Reverse the order of the sites?
         """
-        site_coords = [np.array([-0.580775, -0.75435372, -0.30602419]),
-                       np.array([-0.404709,  0.86798519, -0.28777090]),
+        site_coords = [np.array([-0.404709,  0.86798519, -0.28777090]),
+                       np.array([-0.580775, -0.75435372, -0.30602419]),
                        np.array([0.0763827, -0.01927872,  0.99689218]),
                        np.array([0.9089159, -0.09390161, -0.40626889])]
 
@@ -652,6 +658,24 @@ class TetrahedralAtom(AtomType):
             site_coords = site_coords[::-1]
 
         super().__init__(site_coords)
+
+
+class TetrahedralNAtom(TetrahedralAtom):
+    """A 'normal' order chiral tetrahedral atom"""
+
+
+class TetrahedralIAtom(TetrahedralAtom):
+    """An 'inverted' order chiral tetrahedral atom"""
+
+    def empty_site(self):
+        """Swap the first two yielded site coordinates, effectively swapping
+        the chirality this atom's neighbours are added"""
+
+        if len(self._site_coords) == 3:
+            return self._site_coords.pop(1)
+
+        else:
+            return super().empty_site()
 
 
 class Dihedrals(list):
