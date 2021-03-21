@@ -58,7 +58,7 @@ def test_explicit_hs():
     assert builder.n_atoms == 17
 
 
-def test_dihedrals():
+def _test_dihedrals():
 
     trans = [Atom('C', -0.94807, -1.38247, -0.02522),
              Atom('C',  0.54343, -1.02958, -0.02291),
@@ -84,6 +84,39 @@ def test_dihedrals():
     # Can't have a dihedral with vectors of zero length
     with pytest.raises(ValueError):
         _ = dihedral.value(zero)
+
+
+def test_cdihedral_rotation():
+
+    try:
+        from cdihedrals import rotate
+
+    except ModuleNotFoundError:
+        return
+
+    # If the extension is found then ensure that the dihedral rotation works
+    parser.parse(smiles='CC')
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+
+    dihedral = Dihedral(idxs=[2, 0, 1, 5])
+    coords = mol.coordinates
+
+    rot_idxs = np.zeros(shape=(1, mol.n_atoms), dtype='i4')
+    rot_idxs[0, [5, 6, 7]] = 1
+
+    rot_coords = rotate(py_coords=np.array(coords, dtype='f8'),
+                        py_angles=np.array([-dihedral.value(builder.atoms)],
+                                           dtype='f8'),
+                        py_axes=np.array([[1, 0]], dtype='i4'),
+                        py_rot_idxs=rot_idxs,
+                        py_origins=np.array([0], dtype='i4')
+                        )
+
+    mol.coordinates = rot_coords
+
+    assert np.isclose(dihedral.value(mol.atoms), 0.0, atol=1E-5)
+    assert are_coords_reasonable(mol.coordinates)
 
 
 def _test_simple_alkane():
@@ -130,3 +163,20 @@ def test_simple_ring():
     assert built_molecule_is_reasonable(smiles='C1CCCCC1')    # cyclohexane
     assert built_molecule_is_reasonable(smiles='C1CCCCCC1')   # cycloheptane
     assert built_molecule_is_reasonable(smiles='C1CCCCCCC1')  # cycloctane
+
+
+def test_double_bonds():
+
+    parser.parse(smiles='C=C')
+    builder.build(parser.atoms, parser.bonds)
+
+    dihedral = Dihedral(idxs=[2, 0, 1, 5])
+    value = np.abs(dihedral.value(builder.atoms))
+
+    # TODO: make this smaller!
+    tol = np.deg2rad(90)
+
+    assert (np.isclose(value, 0.0, atol=tol)
+            or np.isclose(value, np.pi, atol=tol))
+
+    # assert built_molecule_is_reasonable(smiles='C/C=C/C')

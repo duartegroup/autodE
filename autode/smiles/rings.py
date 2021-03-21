@@ -3,7 +3,7 @@ from time import time
 from itertools import permutations
 from scipy.optimize import minimize
 from autode.log import logger
-from autode.geom import get_rot_mat_euler
+from cdihedrals import rotate
 
 
 def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
@@ -34,18 +34,21 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
     """
     start_time = time()
 
-    coords = np.array([a.coord for a in atoms], copy=True)
+    coords = np.array([a.coord for a in atoms], copy=True, dtype='f8')
 
     axes, rot_idxs, origins = [], [], []  # Atom indexes
 
     for dihedral in dihedrals:
         idx_i, idx_j = dihedral.mid_idxs
 
-        origin = idx_i if idx_i in dihedral.rot_idxs else idx_j
-
         axes.append(dihedral.mid_idxs)
-        rot_idxs.append(np.array(dihedral.rot_idxs, dtype=np.int))
-        origins.append(origin)
+        origins.append(idx_i if idx_i in dihedral.rot_idxs else idx_j)
+
+        # Populate a vector containing a 1 if the atom should be rotated
+        # around this dihedral and a zero otherwise
+        idxs_to_rot = np.zeros(len(atoms), dtype='i4')
+        idxs_to_rot[dihedral.rot_idxs] = 1
+        rot_idxs.append(idxs_to_rot)
 
     # and 'opposing' atom indexes to add a repulsive components to the energy
     rep_idxs_i, rep_idxs_j = [], []
@@ -59,15 +62,22 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
     # Minimise the rotation energy with respect to the dihedral angles
     res = minimize(dihedral_rotations,
                    x0=init_dihedral_angles(dihedrals, atoms),
-                   args=(coords, axes, rot_idxs, close_idxs,
-                         r0, origins, (rep_idxs_i, rep_idxs_j)),
+                   args=(coords,
+                         np.array(axes, dtype='i4'),
+                         np.array(rot_idxs, dtype='i4'),
+                         np.array(origins, dtype='i4'),
+                         close_idxs,
+                         r0,
+                         (rep_idxs_i, rep_idxs_j)),
                    method='CG',
                    tol=1E-2)
 
     # Apply the optimal set of dihedral rotations
-    new_coords = dihedral_rotations(res.x, coords, axes, rot_idxs, close_idxs,
-                                    r0, origins,
-                                    return_energy=False)
+    new_coords = rotate(py_coords=coords,
+                        py_angles=res.x,
+                        py_axes=np.array(axes, dtype='i4'),
+                        py_rot_idxs=np.array(rot_idxs, dtype='i4'),
+                        py_origins=np.array(origins, dtype='i4'))
 
     # and set the new coordinates
     for i, atom in enumerate(atoms):
@@ -77,8 +87,7 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
     return None
 
 
-def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
-                       origins,
+def dihedral_rotations(angles, coords, axes, rot_idxs, origins, close_idxs, r0,
                        rep_idxs=None,
                        return_energy=True):
     """
@@ -104,20 +113,11 @@ def dihedral_rotations(angles, coords, axes, rot_idxs, close_idxs, r0,
         (float | np.ndarray):
         :param return_energy:
     """
-    coords = np.copy(coords)
-
-    for angle, (i, j), idxs, origin in zip(angles, axes, rot_idxs, origins):
-
-        rot_matrix = get_rot_mat_euler(axis=coords[i] - coords[j],
-                                       theta=angle)
-
-        origin_coord = np.copy(coords[origin])
-
-        # Shift, rotate and shift back
-        coords -= origin_coord
-        coords[idxs] = np.dot(rot_matrix, coords[idxs].T).T
-        coords += origin_coord
-
+    coords = rotate(py_coords=np.copy(coords),
+                    py_angles=angles,
+                    py_axes=axes,
+                    py_rot_idxs=rot_idxs,
+                    py_origins=origins)
     energy = 0
 
     if rep_idxs is not None and return_energy:

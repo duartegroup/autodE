@@ -393,13 +393,6 @@ class AtomType:
                              if i not in np.argsort(min_dists)[:len(points)]]
         return None
 
-    def rotate_closest_empty_onto(self, point, coord, r0):
-        """Rotate an empty site closest to the point onto it"""
-        site_idx = np.argmin([np.linalg.norm(r0 * site + coord - point)
-                              for site in self._site_coords])
-
-        return self.rotate_onto(point, coord, site=self._site_coords.pop(site_idx))
-
     def rotate_empty_onto(self, point, coord):
         """Rotate the site coordinates such that an empty site is coincident
         with the vector from a coordinate to a point, and remove the site
