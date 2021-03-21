@@ -23,7 +23,7 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
         atoms (list(autode.smiles.SMILESAtom)): Atoms, a subset of which need
                                                 rotation
 
-        dihedrals (list(autode.smiles.builder.Dihedral)): Dihedrals to rotate
+        dihedrals (autode.smiles.builder.Dihedrals): Dihedrals to rotate
                                                           about
 
         close_idxs (tuple(int)): Atom indexes for the bond to close
@@ -35,20 +35,6 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
     start_time = time()
 
     coords = np.array([a.coord for a in atoms], copy=True, dtype='f8')
-
-    axes, rot_idxs, origins = [], [], []  # Atom indexes
-
-    for dihedral in dihedrals:
-        idx_i, idx_j = dihedral.mid_idxs
-
-        axes.append(dihedral.mid_idxs)
-        origins.append(idx_i if idx_i in dihedral.rot_idxs else idx_j)
-
-        # Populate a vector containing a 1 if the atom should be rotated
-        # around this dihedral and a zero otherwise
-        idxs_to_rot = np.zeros(len(atoms), dtype='i4')
-        idxs_to_rot[dihedral.rot_idxs] = 1
-        rot_idxs.append(idxs_to_rot)
 
     # and 'opposing' atom indexes to add a repulsive components to the energy
     rep_idxs_i, rep_idxs_j = [], []
@@ -63,9 +49,9 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
     res = minimize(dihedral_rotations,
                    x0=init_dihedral_angles(dihedrals, atoms),
                    args=(coords,
-                         np.array(axes, dtype='i4'),
-                         np.array(rot_idxs, dtype='i4'),
-                         np.array(origins, dtype='i4'),
+                         dihedrals.axes,
+                         dihedrals.rot_idxs,
+                         dihedrals.origins,
                          close_idxs,
                          r0,
                          (rep_idxs_i, rep_idxs_j)),
@@ -75,9 +61,9 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs):
     # Apply the optimal set of dihedral rotations
     new_coords = rotate(py_coords=coords,
                         py_angles=res.x,
-                        py_axes=np.array(axes, dtype='i4'),
-                        py_rot_idxs=np.array(rot_idxs, dtype='i4'),
-                        py_origins=np.array(origins, dtype='i4'))
+                        py_axes=dihedrals.axes,
+                        py_rot_idxs=dihedrals.rot_idxs,
+                        py_origins=dihedrals.origins)
 
     # and set the new coordinates
     for i, atom in enumerate(atoms):

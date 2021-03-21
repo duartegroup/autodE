@@ -58,7 +58,7 @@ def test_explicit_hs():
     assert builder.n_atoms == 17
 
 
-def _test_dihedrals():
+def test_dihedrals():
 
     trans = [Atom('C', -0.94807, -1.38247, -0.02522),
              Atom('C',  0.54343, -1.02958, -0.02291),
@@ -119,7 +119,7 @@ def test_cdihedral_rotation():
     assert are_coords_reasonable(mol.coordinates)
 
 
-def _test_simple_alkane():
+def test_simple_alkane():
     """A few simple linear and branched alkanes"""
 
     simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
@@ -128,13 +128,13 @@ def _test_simple_alkane():
         assert built_molecule_is_reasonable(smiles)
 
 
-def _test_long_alkane():
+def test_long_alkane():
     """Should be able to build a long alkane without overlapping atoms"""
 
     assert built_molecule_is_reasonable(smiles='CCCCCCC')
 
 
-def _test_simple_multispecies():
+def test_simple_multispecies():
     """Some simple molecules """
 
     assert built_molecule_is_reasonable(smiles='O')   # water
@@ -142,7 +142,7 @@ def _test_simple_multispecies():
     assert built_molecule_is_reasonable(smiles='B')   # BH3
 
 
-def _test_simple_multispecies2():
+def test_simple_multispecies2():
     """A small set of molecules with more than just carbon atoms"""
 
     assert built_molecule_is_reasonable(smiles='N#N')
@@ -167,16 +167,24 @@ def test_simple_ring():
 
 def test_double_bonds():
 
-    parser.parse(smiles='C=C')
+    assert built_molecule_is_reasonable(smiles='C=C')
+    assert built_molecule_is_reasonable(smiles='CC/C=C/CCC')
+
+    # Trans
+    parser.parse(smiles='C/C=C/C')
     builder.build(parser.atoms, parser.bonds)
 
-    dihedral = Dihedral(idxs=[2, 0, 1, 5])
+    dihedral = Dihedral(idxs=[0, 1, 2, 3])
     value = np.abs(dihedral.value(builder.atoms))
 
-    # TODO: make this smaller!
-    tol = np.deg2rad(90)
+    assert (np.isclose(value, -np.pi, atol=1E-4)
+            or np.isclose(value, np.pi, atol=1E-4))
 
-    assert (np.isclose(value, 0.0, atol=tol)
-            or np.isclose(value, np.pi, atol=tol))
+    # Cis double bond
+    for cis_smiles in ('C/C=C\C', 'C\C=C/C'):
+        parser.parse(cis_smiles)
+        builder.build(parser.atoms, parser.bonds)
 
-    # assert built_molecule_is_reasonable(smiles='C/C=C/C')
+        value = np.abs(dihedral.value(builder.atoms))
+
+        assert np.isclose(value, 0.0, atol=1E-4)
