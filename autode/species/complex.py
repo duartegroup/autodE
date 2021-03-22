@@ -81,6 +81,10 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
 class Complex(Species):
 
+    @property
+    def n_molecules(self):
+        """Number of molecules in this molecular complex"""
+        return len(self.molecules)
 
     def get_atom_indexes(self, mol_index):
         """Get the first and last atom indexes of a molecule in a Complex"""
@@ -192,7 +196,8 @@ class Complex(Species):
                              they are indexed from 0
 
         """
-        logger.info(f'Rotating molecule {mol_index} by {theta:.4f} radians in {self.name}')
+        logger.info(f'Rotating molecule {mol_index} by {theta:.4f} radians '
+                    f'in {self.name}')
 
         for atom_index in self.get_atom_indexes(mol_index):
             self.atoms[atom_index].translate(vec=-origin)
@@ -218,6 +223,22 @@ class Complex(Species):
 
         return repulsion
 
+    def _init_translation(self):
+        """Translate all molecules initially to avoid overlaps"""
+
+        if self.n_molecules < 2:
+            return   # No need to translate 0 or 1 molecule
+
+        # Points on the unit sphere maximally displaced from one another
+        points = get_points_on_sphere(n_points=self.n_molecules)
+
+        # Shift along the vector defined on the unit sphere by the molecule's
+        # radius + 2Å, which should generate a somewhat reasonable geometry
+        for i in range(1, self.n_molecules):
+            self.translate_mol(vec=(self.molecules[i].radius + 2) * points[i],
+                               mol_index=i)
+        return None
+
     def __init__(self, *args, name='complex'):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
@@ -234,16 +255,21 @@ class Complex(Species):
         # Calculate the overall charge and spin multiplicity on the system and
         # initialise
         complex_charge = sum([mol.charge for mol in self.molecules])
-        complex_mult = sum([mol.mult for mol in self.molecules]) - (len(self.molecules) - 1)
+        complex_mult = (sum([mol.mult for mol in self.molecules])
+                        - (self.n_molecules - 1))
 
         complex_atoms = []
         for mol in self.molecules:
             complex_atoms += deepcopy(mol.atoms)
 
-        super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
+        super().__init__(name=name,
+                         atoms=complex_atoms,
+                         charge=complex_charge,
+                         mult=complex_mult)
+
+        self._init_translation()
 
         self.solvent = self.molecules[0].solvent if len(self.molecules) > 0 else None
-
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 

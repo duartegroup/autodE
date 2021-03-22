@@ -42,7 +42,7 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
                         name=name)
 
 
-def pruned_active_bonds(initial_species, fbonds, bbonds):
+def pruned_active_bonds(reactant, fbonds, bbonds):
     """
     Prune the set of forming and breaking bonds for special cases
 
@@ -57,7 +57,7 @@ def pruned_active_bonds(initial_species, fbonds, bbonds):
     where all the bonds drawn are active and the C-H bond is forming
 
     Arguments:
-        initial_species (autode.species.Species):
+        reactant (autode.species.Species):
         fbonds (list(autode.pes.pes.FormingBond)):
         bbonds (list(autode.pes.pes.BreakingBond)):
 
@@ -69,10 +69,10 @@ def pruned_active_bonds(initial_species, fbonds, bbonds):
     # Flat list of all the atom indexes in the breaking/forming bonds
     a_atoms = [bond.atom_indexes for bond in fbonds + bbonds]
 
-    coords = initial_species.coordinates
+    coords = reactant.coordinates
 
     if len(fbonds) == 1 and len(bbonds) == 2 and len(set(a_atoms)) == 3:
-        logger.info('Found 3-membered ring with 2 breaking and 1 forming bond')
+        logger.info('Found 3-membered ring with 2 breaking & 1 forming bonds')
 
         f_i, f_j = fbonds[0].atom_indexes
         f_vec = coords[f_i] - coords[f_j]

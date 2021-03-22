@@ -97,7 +97,7 @@ def test_pruning_bonds():
     bbond1 = BreakingBond(atom_indexes=(0, 2), species=h3)
     bbond2 = BreakingBond(atom_indexes=(1, 2), species=h3)
 
-    new_bonds = pruned_active_bonds(initial_species=h3,
+    new_bonds = pruned_active_bonds(reactant=h3,
                                     fbonds=[fbond], bbonds=[bbond1, bbond2])
     assert len(new_bonds) == 2
     # Should prune to one breaking and one forming bond
@@ -106,6 +106,26 @@ def test_pruning_bonds():
             or
             (isinstance(new_bonds[1], FormingBond) and
              isinstance(new_bonds[0], BreakingBond)))
+
+    # Test the correct assigment of the final bond distance
+    ru_reac = Species(name='Ru_alkene', charge=0, mult=1,
+                       atoms=[Atom('Ru', 0.45366,  0.70660, -0.25056),
+                              Atom('C',  0.72920,  1.42637,  1.37873),
+                              Atom('C', -1.75749, -0.39358,  0.57059),
+                              Atom('C', -1.10229, -1.02739, -0.43978)])
+
+    ru_prod = Species(name='Ru_cycylobutane', charge=0, mult=1,
+                      atoms=[Atom('Ru', 0.28841, -1.68905,  0.39833),
+                             Atom('C', -0.85865, -0.07597, -0.29711),
+                             Atom('C',  0.10995,  0.44156, -1.35018),
+                             Atom('C',  1.26946, -0.42574, -0.91200)])
+
+    bbond = BreakingBond(atom_indexes=[0, 2],
+                         species=ru_reac,
+                         final_species=ru_prod)
+
+    assert np.isclose(bbond.final_dist,
+                      ru_prod.distance(0, 2))
 
 
 def test_products_made():

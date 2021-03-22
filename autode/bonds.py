@@ -64,20 +64,28 @@ class FormingBond(ScannedBond):
 
 class BreakingBond(ScannedBond):
 
-    def __init__(self, atom_indexes, species):
+    def __init__(self, atom_indexes, species, final_species=None):
         """
         Form a breaking bond with current and final distances
 
         Arguments:
             atom_indexes (tuple(int)):
             species (autode.species.Species):
-            reaction (autode.reaction.Reaction):
+            final_species (autode.species.Species | None):
         """
         super().__init__(atom_indexes)
         self.breaking = True
 
         self.curr_dist = species.distance(*self.atom_indexes)
-        self.final_dist = 2.0 * self.curr_dist
+
+        if final_species is None:
+            self.final_dist = 2.0 * self.curr_dist
+
+        else:
+            # Take the smallest possible final distance, thus the shortest
+            # path to traverse
+            self.final_dist = min(final_species.distance(*self.atom_indexes),
+                                  2.0 * self.curr_dist)
 
 
 def get_ideal_bond_length_matrix(atoms, bonds):

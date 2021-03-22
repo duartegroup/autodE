@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from scipy.spatial import  distance_matrix
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
@@ -66,6 +67,15 @@ class Species:
 
         for i in range(self.n_atoms):
             self.atoms[i].coord = coords[i]
+
+    @property
+    def radius(self):
+        """Calculate an approximate radius of this species"""
+        if self.n_atoms == 0:
+            return 0
+
+        coords = self.coordinates
+        return np.max(distance_matrix(coords, coords)) / 2.0
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '

@@ -1,6 +1,7 @@
 from autode.species.complex import Complex
 from autode.config import Config
 from autode.species.molecule import Molecule
+from autode.geom import are_coords_reasonable
 from autode.atoms import Atom
 import numpy as np
 from copy import deepcopy
@@ -46,10 +47,10 @@ def test_translation():
 
     # Dimer translation
     dimer_copy = deepcopy(dimer)
-    dimer_copy.translate_mol(vec=np.array([1.0, 0.0, 0.0]), mol_index=1)
+    dimer_copy.translate_mol(vec=np.array([1.0, 0.0, 0.0]), mol_index=0)
 
-    assert np.linalg.norm(dimer_copy.atoms[2].coord - np.array([1.0, 0.0, 0.0])) < 1E-9
-    assert np.linalg.norm(dimer_copy.atoms[3].coord - np.array([1.0, 0.0, 1.0])) < 1E-9
+    assert np.linalg.norm(dimer_copy.atoms[0].coord - np.array([1.0, 0.0, 0.0])) < 1E-9
+    assert np.linalg.norm(dimer_copy.atoms[1].coord - np.array([1.0, 0.0, 1.0])) < 1E-9
 
     # Cannot translate molecule index 2 in a complex with only 2 molecules
     with pytest.raises(AssertionError):
@@ -60,14 +61,12 @@ def test_rotation():
 
     dimer_copy = deepcopy(dimer)
     dimer_copy.rotate_mol(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi,
-                          origin=np.array([0.0, 0.0, 0.0]), mol_index=1)
+                          origin=np.array([0.0, 0.0, 0.0]), mol_index=0)
 
     expected_coords = np.array([[0.0, 0.0, 0.0],
-                               [0.0, 0.0, 1.0],
-                               [0.0, 0.0, 0.0],
                                [0.0, 0.0, -1.0]])
 
-    assert np.sum(expected_coords - dimer_copy.coordinates) < 1E-9
+    assert np.sum(expected_coords - dimer_copy.coordinates[[0, 1], :]) < 1E-9
 
 
 def test_graph():
@@ -79,6 +78,16 @@ def test_graph():
     assert hasattr(dimer_shifted, 'graph')
     assert dimer_shifted.graph.number_of_edges() == 0
     assert dimer_shifted.graph.number_of_nodes() == 4
+
+
+def test_init_geometry():
+
+    water = Molecule(smiles='O')
+    assert are_coords_reasonable(coords=Complex(water).coordinates)
+
+    water_dimer = Complex(water, water)
+    water_dimer.print_xyz_file(filename='tmp.xyz')
+    assert are_coords_reasonable(coords=water_dimer.coordinates)
 
 
 def test_conformer_generation():
