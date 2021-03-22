@@ -107,12 +107,14 @@ def get_centered_matrix(mat):
     return np.array([coord - centroid for coord in mat])
 
 
-def get_neighbour_list(species, atom_i):
+def get_neighbour_list(species, atom_i, index_set=None):
     """Calculate a neighbour list from atom i as a list of atom labels
 
     Arguments:
         atom_i (int): index of the atom
         species (autode.species.Species):
+        index_set (set(int) | None): Indexes that are possible neighbours for
+                                     atom_i, if None then all atoms are ok
 
     Returns:
         (list(int)): list of atom ids in ascending distance away from i
@@ -122,6 +124,10 @@ def get_neighbour_list(species, atom_i):
 
     dists_and_atom_labels = {}
     for atom_j, dist in enumerate(distance_vector):
+
+        if index_set is not None and atom_j not in index_set:
+            continue
+
         dists_and_atom_labels[dist] = species.atoms[atom_j].label
 
     atom_label_neighbour_list = []

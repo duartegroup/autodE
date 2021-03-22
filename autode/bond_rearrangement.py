@@ -1,22 +1,24 @@
 import itertools
 import os
 from autode.atoms import get_maximal_valance
-from autode.geom import get_neighbour_list, get_points_on_sphere
+from autode.geom import get_neighbour_list
 from autode.log import logger
-from autode.mol_graphs import (get_bond_type_list, get_fbonds, is_isomorphic,
-                               connected_components, find_cycles)
 from autode.config import Config
+from autode.mol_graphs import (get_bond_type_list,
+                               get_fbonds,
+                               is_isomorphic,
+                               find_cycles)
 
 
 def get_bond_rearrangs(reactant, product, name, save=True):
-    """For a reactant and product (complex) find the set of breaking and
+    """For a reactant and product (mol_complex) find the set of breaking and
     forming bonds that will turn reactants into products. This works by
     determining the types of bonds that have been made/broken (i.e CH) and
     then only considering rearrangements involving those bonds.
 
     Arguments:
-        reactant (autode.complex.ReactantComplex):
-        product (autode.complex.ProductComplex):
+        reactant (autode.mol_complex.ReactantComplex):
+        product (autode.mol_complex.ProductComplex):
         name (str):
 
     Keyword Arguments:
@@ -31,7 +33,7 @@ def get_bond_rearrangs(reactant, product, name, save=True):
         return get_bond_rearrangs_from_file(f'{name}_bond_rearrangs.txt')
 
     if is_isomorphic(reactant.graph, product.graph) and product.n_atoms > 3:
-        logger.error('Reactant (complex) is isomorphic to product (complex). '
+        logger.error('Reactant (mol_complex) is isomorphic to product (mol_complex). '
                      'Bond rearrangement cannot be determined unless the '
                      'substrates are limited in size')
         return None
@@ -199,8 +201,8 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     Arguments:
         bond_rearrangs (list(autode.bond_rearrangements.BondRearrangement)):
                         list of working bond rearrangments
-        reactant (molecule object): reactant complex
-        product (molecule object): product complex
+        reactant (molecule object): reactant mol_complex
+        product (molecule object): product mol_complex
         fbonds (list(tuple)): list of bonds to be made
         bbonds (list(tuple)): list of bonds to be broken
 
@@ -491,7 +493,7 @@ def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
 
     Arguments:
         possible_brs (list(BondRearrangement)):
-        mol (molecule object): reactant object
+        mol (autode.species.Complex): Reactant
 
     Keyword Arguments:
         depth (int): Depth of neighbour list that must be identical for a set
@@ -503,24 +505,24 @@ def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
     logger.info('Stripping the forming and breaking bond list by discarding '
                 'rearrangements with equivalent atoms')
 
-    unique_bond_rearrs = []
+    unique_brs = []
 
-    for bond_rearr in possible_brs:
+    for br in possible_brs:
         bond_rearrang_is_unique = True
 
         # Compare bond_rearrang to all those already considered to be unique,
-        for unique_bond_rearrang in unique_bond_rearrs:
+        for unique_br in unique_brs:
 
-            if (unique_bond_rearrang.get_active_atom_neighbour_lists(mol=mol, depth=depth) ==
-                    bond_rearr.get_active_atom_neighbour_lists(mol=mol, depth=depth)):
+            if (unique_br.get_active_atom_neighbour_lists(mol_complex=mol, depth=depth) ==
+                    br.get_active_atom_neighbour_lists(mol_complex=mol, depth=depth)):
                 bond_rearrang_is_unique = False
 
         if bond_rearrang_is_unique:
-            unique_bond_rearrs.append(bond_rearr)
+            unique_brs.append(br)
 
-    logger.info(f'Stripped {len(possible_brs) - len(unique_bond_rearrs)} '
+    logger.info(f'Stripped {len(possible_brs) - len(unique_brs)} '
                 'bond rearrangements')
-    return unique_bond_rearrs
+    return unique_brs
 
 
 def prune_small_ring_rearrs(possible_brs, mol):
@@ -592,42 +594,36 @@ class BondRearrangement:
     def __str__(self):
         return '_'.join(f'{bond[0]}-{bond[1]}' for bond in self.all)
 
-    def get_active_atom_neighbour_lists(self, mol, depth):
+    def get_active_atom_neighbour_lists(self, mol_complex, depth):
         """
         Get neighbour lists of all the active atoms in the molecule
         (reactant complex)
 
         Arguments:
-            mol (autode.species.Species):
+            mol_complex (autode.species.Complex):
             depth (int): Depth of the neighbour list to consider
 
         Returns:
-            (list(list(int))):
+            (list(list(str))):
         """
-        connected_molecules = connected_components(mol.graph)
-        n_molecules = len(connected_molecules)
 
-        def shift_molecules(vectors):
-            for i, molecule_nodes in enumerate(connected_molecules):
-                for j in molecule_nodes:
-                    mol.atoms[j].translate(vec=vectors[i])
+        def nl(idx):
 
-        # For every molecule in the complex shift so they are far away, thus
-        # the neighbour lists only include atoms in the same molecule
-        vecs = get_points_on_sphere(n_points=n_molecules+1)
-        shift_vectors = [100 * vec for vec in vecs]
+            try:
+                mol_idxs = next(mol_complex.get_atom_indexes(i)
+                                for i in range(mol_complex.n_molecules)
+                                if idx in mol_complex.get_atom_indexes(i))
 
-        shift_molecules(vectors=shift_vectors)
+            except StopIteration:
+                raise RuntimeError('Active atom index not found in any '
+                                   'molecules')
 
-        # Calculate the neighbour lists while the molecules are all far away
-        def nl(atom):
-            return get_neighbour_list(species=mol, atom_i=atom)[:depth]
+            nl_labels = get_neighbour_list(mol_complex,
+                                           atom_i=idx,
+                                           index_set=set(mol_idxs))
+            return nl_labels[:depth]
 
-        if self.active_atom_nl is None:
-            self.active_atom_nl = [nl(atom) for atom in self.active_atoms]
-
-        # Shift the molecules back to where they were
-        shift_molecules(vectors=[-vector for vector in shift_vectors])
+        self.active_atom_nl = [nl(idx) for idx in self.active_atoms]
 
         return self.active_atom_nl
 
@@ -667,17 +663,17 @@ class BondRearrangement:
     @property
     def fatoms(self):
         """Unique atoms indexes involved in forming bonds"""
-        return list(set([i for bond in self.fbonds for i in bond]))
+        return list(sorted(set([i for bond in self.fbonds for i in bond])))
 
     @property
     def batoms(self):
         """Unique atoms indexes involved in breaking bonds"""
-        return list(set([i for bond in self.bbonds for i in bond]))
+        return list(sorted(set([i for bond in self.bbonds for i in bond])))
 
     @property
     def active_atoms(self):
         """Unique atom indexes in forming or breaking bonds"""
-        return list(set(self.fatoms + self.batoms))
+        return list(sorted(set(self.fatoms + self.batoms)))
 
     @property
     def n_fbonds(self):
