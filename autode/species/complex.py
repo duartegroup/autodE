@@ -239,7 +239,7 @@ class Complex(Species):
                                mol_index=i)
         return None
 
-    def __init__(self, *args, name='complex'):
+    def __init__(self, *args, name='complex', do_init_translation=False):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
 
@@ -248,6 +248,8 @@ class Complex(Species):
 
         Keyword Arguments:
             name (str):
+            do_init_translation (bool): Translate molecules initially such
+                                        that they do not overlap
         """
         self.molecules = args
         self.molecule_atom_indexes = []
@@ -267,7 +269,8 @@ class Complex(Species):
                          charge=complex_charge,
                          mult=complex_mult)
 
-        self._init_translation()
+        if do_init_translation:
+            self._init_translation()
 
         self.solvent = self.molecules[0].solvent if len(self.molecules) > 0 else None
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
@@ -308,7 +311,11 @@ def get_complexes(reaction):
     if reaction.reacs[0].is_explicitly_solvated():
         raise NotImplementedError
 
-    reac = ReactantComplex(*reaction.reacs, name=f'{str(reaction)}_reactant')
-    prod = ProductComplex(*reaction.prods, name=f'{str(reaction)}_product')
+    reac = ReactantComplex(*reaction.reacs,
+                           name=f'{str(reaction)}_reactant',
+                           do_init_translation=True)
 
+    prod = ProductComplex(*reaction.prods,
+                          name=f'{str(reaction)}_product',
+                          do_init_translation=True)
     return reac, prod
