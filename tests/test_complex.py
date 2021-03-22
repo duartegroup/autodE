@@ -85,7 +85,7 @@ def test_init_geometry():
     water = Molecule(smiles='O')
     assert are_coords_reasonable(coords=Complex(water).coordinates)
 
-    water_dimer = Complex(water, water)
+    water_dimer = Complex(water, water, do_init_translation=True)
     water_dimer.print_xyz_file(filename='tmp.xyz')
     assert are_coords_reasonable(coords=water_dimer.coordinates)
 
