@@ -17,8 +17,8 @@ def get_bond_rearrangs(reactant, product, name, save=True):
     then only considering rearrangements involving those bonds.
 
     Arguments:
-        reactant (autode.mol_complex.ReactantComplex):
-        product (autode.mol_complex.ProductComplex):
+        reactant (autode.species.ReactantComplex):
+        product (autode.species.ProductComplex):
         name (str):
 
     Keyword Arguments:
@@ -33,7 +33,7 @@ def get_bond_rearrangs(reactant, product, name, save=True):
         return get_bond_rearrangs_from_file(f'{name}_bond_rearrangs.txt')
 
     if is_isomorphic(reactant.graph, product.graph) and product.n_atoms > 3:
-        logger.error('Reactant (mol_complex) is isomorphic to product (mol_complex). '
+        logger.error('Reactant (complex) is isomorphic to product (complex). '
                      'Bond rearrangement cannot be determined unless the '
                      'substrates are limited in size')
         return None
@@ -201,8 +201,8 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     Arguments:
         bond_rearrangs (list(autode.bond_rearrangements.BondRearrangement)):
                         list of working bond rearrangments
-        reactant (molecule object): reactant mol_complex
-        product (molecule object): product mol_complex
+        reactant (autode.species.Complex): Reactant complex
+        product (autode.species.Complex): Product complex
         fbonds (list(tuple)): list of bonds to be made
         bbonds (list(tuple)): list of bonds to be broken
 
@@ -532,7 +532,7 @@ def prune_small_ring_rearrs(possible_brs, mol):
 
     Arguments:
         possible_brs (list(BondRearrangement)):
-        mol (molecule object): reactant object
+        mol (autode.species.Complex): Reactant
     """
     small_ring_sizes = (3, 4)
 
