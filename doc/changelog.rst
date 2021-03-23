@@ -2,6 +2,31 @@ Changelog
 =========
 
 
+1.0.1
+--------
+------------
+
+Hotfix
+
+Usability improvements
+**********************
+
+- Molecular complexes can now be initialised with a reasonable geometry :code:`Complex(..., do_init_translation=True)`
+
+
+Functionality improvements
+**************************
+
+- :code:`species.radius` has been added as an approximate molecular radius (in Angstroms, excluding VdW radii)
+
+
+Bug Fixes
+*********
+
+- Final breaking bond distances are now the minimum of the product X-Y distance if present in the product, or 2x the distance. This is required for breaking bonds that cross a ring.
+
+
+
 1.0.0
 --------
 ------------
