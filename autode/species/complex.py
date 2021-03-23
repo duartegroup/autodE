@@ -233,9 +233,9 @@ class Complex(Species):
         points = get_points_on_sphere(n_points=self.n_molecules)
 
         # Shift along the vector defined on the unit sphere by the molecule's
-        # radius + 2Å, which should generate a somewhat reasonable geometry
+        # radius + 4Å, which should generate a somewhat reasonable geometry
         for i in range(1, self.n_molecules):
-            self.translate_mol(vec=(self.molecules[i].radius + 2) * points[i],
+            self.translate_mol(vec=(self.molecules[i].radius + 4) * points[i],
                                mol_index=i)
         return None
 
