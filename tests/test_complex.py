@@ -23,6 +23,10 @@ h_h = Complex(h, h)
 
 def test_complex_class():
 
+    blank_complex = Complex()
+    assert blank_complex.n_molecules == 0
+    assert blank_complex.solvent is None
+
     assert monomer.charge == 0
     assert monomer.mult == 1
     assert monomer.n_atoms == 2
@@ -34,6 +38,12 @@ def test_complex_class():
     assert h_h.mult == 3
 
     assert trimer.n_atoms == 6
+
+    # Cannot have a complex in a different solvent
+    with pytest.raises(AssertionError):
+        h2_water = Molecule(name='H2', atoms=[h1, h2], charge=0, mult=1,
+                            solvent_name='water')
+        _ = Complex(hydrogen, h2_water)
 
 
 def test_translation():

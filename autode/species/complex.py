@@ -215,7 +215,8 @@ class Complex(Species):
 
         mol_indexes = self.get_atom_indexes(mol_index)
         mol_coords = [coords[i] for i in mol_indexes]
-        other_coords = [coords[i] for i in range(self.n_atoms) if i not in mol_indexes]
+        other_coords = [coords[i] for i in range(self.n_atoms)
+                        if i not in mol_indexes]
 
         # Repulsion is the sum over all pairs 1/r^4
         distance_mat = distance_matrix(mol_coords, other_coords)
@@ -234,7 +235,7 @@ class Complex(Species):
 
         # Shift along the vector defined on the unit sphere by the molecule's
         # radius + 4Å, which should generate a somewhat reasonable geometry
-        for i in range(1, self.n_molecules):
+        for i in range(self.n_molecules):
             self.translate_mol(vec=(self.molecules[i].radius + 4) * points[i],
                                mol_index=i)
         return None
@@ -272,7 +273,12 @@ class Complex(Species):
         if do_init_translation:
             self._init_translation()
 
-        self.solvent = self.molecules[0].solvent if len(self.molecules) > 0 else None
+        solvent = self.molecules[0].solvent if self.n_molecules > 0 else None
+        if not all(mol.solvent == solvent for mol in self.molecules):
+            raise AssertionError('A molecular complex must contain molecules '
+                                 'in the same solvent')
+
+        self.solvent = solvent
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 
