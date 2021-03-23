@@ -27,8 +27,8 @@ identifies reactants and products from the reaction SMILES.
 
 ------------
 
-S\ :sub:`N`\2 Reaction
-----------------------
+S\ :sub:`N`\2
+-------------
 
 .. image:: common/sn2_image.png
 

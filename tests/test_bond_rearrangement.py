@@ -1,4 +1,5 @@
 import os
+import pytest
 import networkx as nx
 import autode as ade
 from autode import bond_rearrangement as br
@@ -8,6 +9,7 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
+from autode.geom import get_neighbour_list
 
 
 # Some of the 'reactions' here are not physical, hence for some the graph will
@@ -121,12 +123,23 @@ def test_multiple_possibilities():
     p2 = Molecule(name='ch3_dot', smiles='[CH3]')
 
     reac = ReactantComplex(r1, r2)
-    reac.print_xyz_file()
 
     rearrs = br.get_bond_rearrangs(reac, ProductComplex(p1, p2),
                                    name='H_subst', save=False)
 
     # All H abstractions are the same
+    assert len(rearrs) == 1
+
+
+def test_multiple_possibles2():
+
+    # Attack on oxirane by AcO-
+    reaction = ade.Reaction('[O-]C(C)=O.C1CO1>>[O-]CCOC(C)=O')
+    reaction.find_complexes()
+
+    rearrs = br.get_bond_rearrangs(reaction.reactant,
+                                   reaction.product,
+                                   name='oxir_attack', save=False)
     assert len(rearrs) == 1
 
 
@@ -137,19 +150,27 @@ def test_bondrearr_class():
 
     assert rearrang.n_fbonds == 1
     assert rearrang.n_bbonds == 1
-    assert rearrang.__str__() == '0-1_1-2'
+    assert str(rearrang) == '0-1_1-2'
 
     rearrag2 = br.BondRearrangement(forming_bonds=[(0, 1)],
                                     breaking_bonds=[(1, 2)])
     assert rearrag2 == rearrang
 
-    h2_h_mol = Molecule(name='mol', atoms=[Atom('H', 0.0, 0.0, 0.0),
-                                           Atom('H', 0.0, 0.0, -1.0),
-                                           Atom('H', 0.0, 0.0, 1.0)])
+    mol = Molecule(name='mol', atoms=[Atom('H', 0.0, 0.0, 0.0),
+                                      Atom('H', 0.0, 0.0, -0.7),
+                                      Atom('H', 0.0, 0.0, 0.7)])
+    mol_c = ReactantComplex(mol)
+    rearrang.active_atom_nl = None
 
-    active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol=ReactantComplex(h2_h_mol), depth=1)
+    assert set(rearrang.active_atoms) == {0, 1, 2}
+    active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol_c, depth=1)
     assert len(active_atom_nl) == 3
     assert active_atom_nl == [['H'], ['H'], ['H']]
+
+    # Cannot get neighbour list with atoms not in the complex
+    with pytest.raises(RuntimeError):
+        rearrang = br.BondRearrangement(forming_bonds=[(3, 4)])
+        _ = rearrang.get_active_atom_neighbour_lists(mol_c, depth=1)
 
 
 def test_get_bond_rearrangs():
@@ -165,7 +186,8 @@ def test_get_bond_rearrangs():
                            Atom('H', 12.4, 0.8, 0.4),
                            Atom('H', 12.3, 2.5, 0.5)])
 
-    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod), name='test', save=False) == [br.BondRearrangement(breaking_bonds=[(0, 1)])]
+    assert br.get_bond_rearrangs(ReactantComplex(reac), ProductComplex(prod),
+                                 name='test', save=False) == [br.BondRearrangement(breaking_bonds=[(0, 1)])]
 
     # Rerunning the get function should read test_bond_rearrangs.txt, so modify
     #  it, swapping 0 and 1 in the breaking
@@ -333,3 +355,4 @@ def test_br_from_file():
     assert saved_br.n_bbonds == 2
 
     os.remove('tmp.txt')
+

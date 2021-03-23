@@ -24,6 +24,10 @@ mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
 
 def test_species_class():
 
+    blank_mol = Species(name='tmp', atoms=None, charge=0, mult=1)
+    assert blank_mol.n_atoms == 0
+    assert blank_mol.radius == 0
+
     assert hasattr(mol, 'print_xyz_file')
     assert hasattr(mol, 'translate')
     assert hasattr(mol, 'rotate')
@@ -38,6 +42,9 @@ def test_species_class():
     # A not very sensible water geometry!
     water = Species(name='H2O', charge=0, mult=1,
                     atoms=[Atom('O'), Atom('H', z=-1), Atom('H', z=1)])
+
+    # very approximate molecular radius
+    assert 0.5 < water.radius < 2.5
 
     # Base class for molecules and TSs and complexes shouldn't have a
     # implemented conformer method – needs to do different things based on the

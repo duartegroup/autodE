@@ -81,6 +81,10 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
 class Complex(Species):
 
+    @property
+    def n_molecules(self):
+        """Number of molecules in this molecular complex"""
+        return len(self.molecules)
 
     def get_atom_indexes(self, mol_index):
         """Get the first and last atom indexes of a molecule in a Complex"""
@@ -192,7 +196,8 @@ class Complex(Species):
                              they are indexed from 0
 
         """
-        logger.info(f'Rotating molecule {mol_index} by {theta:.4f} radians in {self.name}')
+        logger.info(f'Rotating molecule {mol_index} by {theta:.4f} radians '
+                    f'in {self.name}')
 
         for atom_index in self.get_atom_indexes(mol_index):
             self.atoms[atom_index].translate(vec=-origin)
@@ -210,7 +215,8 @@ class Complex(Species):
 
         mol_indexes = self.get_atom_indexes(mol_index)
         mol_coords = [coords[i] for i in mol_indexes]
-        other_coords = [coords[i] for i in range(self.n_atoms) if i not in mol_indexes]
+        other_coords = [coords[i] for i in range(self.n_atoms)
+                        if i not in mol_indexes]
 
         # Repulsion is the sum over all pairs 1/r^4
         distance_mat = distance_matrix(mol_coords, other_coords)
@@ -218,7 +224,23 @@ class Complex(Species):
 
         return repulsion
 
-    def __init__(self, *args, name='complex'):
+    def _init_translation(self):
+        """Translate all molecules initially to avoid overlaps"""
+
+        if self.n_molecules < 2:
+            return   # No need to translate 0 or 1 molecule
+
+        # Points on the unit sphere maximally displaced from one another
+        points = get_points_on_sphere(n_points=self.n_molecules)
+
+        # Shift along the vector defined on the unit sphere by the molecule's
+        # radius + 4Å, which should generate a somewhat reasonable geometry
+        for i in range(self.n_molecules):
+            self.translate_mol(vec=(self.molecules[i].radius + 4) * points[i],
+                               mol_index=i)
+        return None
+
+    def __init__(self, *args, name='complex', do_init_translation=False):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
 
@@ -227,6 +249,8 @@ class Complex(Species):
 
         Keyword Arguments:
             name (str):
+            do_init_translation (bool): Translate molecules initially such
+                                        that they do not overlap
         """
         self.molecules = args
         self.molecule_atom_indexes = []
@@ -234,16 +258,27 @@ class Complex(Species):
         # Calculate the overall charge and spin multiplicity on the system and
         # initialise
         complex_charge = sum([mol.charge for mol in self.molecules])
-        complex_mult = sum([mol.mult for mol in self.molecules]) - (len(self.molecules) - 1)
+        complex_mult = (sum([mol.mult for mol in self.molecules])
+                        - (self.n_molecules - 1))
 
         complex_atoms = []
         for mol in self.molecules:
             complex_atoms += deepcopy(mol.atoms)
 
-        super().__init__(name=name, atoms=complex_atoms, charge=complex_charge, mult=complex_mult)
+        super().__init__(name=name,
+                         atoms=complex_atoms,
+                         charge=complex_charge,
+                         mult=complex_mult)
 
-        self.solvent = self.molecules[0].solvent if len(self.molecules) > 0 else None
+        if do_init_translation:
+            self._init_translation()
 
+        solvent = self.molecules[0].solvent if self.n_molecules > 0 else None
+        if not all(mol.solvent == solvent for mol in self.molecules):
+            raise AssertionError('A molecular complex must contain molecules '
+                                 'in the same solvent')
+
+        self.solvent = solvent
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 
@@ -282,7 +317,11 @@ def get_complexes(reaction):
     if reaction.reacs[0].is_explicitly_solvated():
         raise NotImplementedError
 
-    reac = ReactantComplex(*reaction.reacs, name=f'{str(reaction)}_reactant')
-    prod = ProductComplex(*reaction.prods, name=f'{str(reaction)}_product')
+    reac = ReactantComplex(*reaction.reacs,
+                           name=f'{str(reaction)}_reactant',
+                           do_init_translation=True)
 
+    prod = ProductComplex(*reaction.prods,
+                          name=f'{str(reaction)}_product',
+                          do_init_translation=True)
     return reac, prod
