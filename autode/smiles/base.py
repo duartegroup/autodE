@@ -1,3 +1,4 @@
+import numpy as np
 from autode.log import logger
 from autode.atoms import Atom
 from autode.exceptions import InvalidSmilesString
@@ -15,6 +16,11 @@ class SMILESAtom(Atom):
 
     def __repr__(self):
         return f'SMILESAtom({self.label}, stereo={self.stereochem})'
+
+    @property
+    def is_shifted(self):
+        """Has this atom been shifted from the origin?"""
+        return False if np.allclose(self.coord, np.zeros(3)) else True
 
     @property
     def has_stereochem(self):

@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from time import time
 from scipy.spatial import distance_matrix
+from scipy.optimize import minimize
 from autode.log import logger
 from autode.atoms import chalcogens, pnictogens
 from autode.bonds import get_avg_bond_length
@@ -10,6 +11,30 @@ from autode.exceptions import SMILESBuildFailed, FailedToSetRotationIdxs
 from autode.smiles.base import SMILESAtom, SMILESBond
 from autode.smiles.rings import minimise_ring_energy
 from cdihedrals import rotate
+
+
+def repulsion(angles, coords, axes, rot_idxs, origins):
+    """
+
+    Arguments:
+        angles:
+        coords:
+        axes:
+        rot_idxs:
+        origins:
+
+    Returns:
+
+    """
+
+    rot_coords = rotate(py_coords=np.copy(coords),
+                        py_angles=angles,
+                        py_axes=axes,
+                        py_rot_idxs=rot_idxs,
+                        py_origins=origins)
+    dist_mat = distance_matrix(rot_coords, rot_coords)
+
+    return np.sum(np.power(dist_mat + np.eye(len(coords)), -1))
 
 
 class Builder:
@@ -96,16 +121,15 @@ class Builder:
                 else:                                          # e.g. AuR2
                     atom.type = LinearAtom()
 
-            elif atom.n_bonded == 3:                               # e.g. NH3
+            elif atom.n_bonded == 3:                           # e.g. NH3
                 if atom.label in pnictogens:
                     atom.type = TrigonalPyramidalAtom()
 
-                else:                                         # e.g. BH3
+                else:                                          # e.g. BH3
                     atom.type = TrigonalAtom()
 
-            elif atom.n_bonded == 4:                               # e.g. CH4
+            elif atom.n_bonded == 4:                           # e.g. CH4
 
-                print(atom.stereochem)
                 if atom.stereochem == '@':
                     atom.type = TetrahedralNAtom()
 
@@ -236,6 +260,73 @@ class Builder:
 
         return None
 
+    def _minimise_non_ring_dihedrals(self):
+        """
+        Minimise the repulsive pairwise energy with respect to all non-ring
+        dihedral rotations::
+
+                      Z
+                      |
+              X -----Y
+             /
+            W
+
+        """
+        logger.info('Minimising non-bonded repulsion by dihedral rotation')
+        dihedrals = Dihedrals()
+
+        for bond in self.bonds:
+
+            if bond.order != 1:
+                continue
+
+            # Check that both atoms that form this bond have > 1 neighbours,
+            # thus define a dihedral
+            idx_x, idx_y = bond
+
+            # Find the other atoms that form the 4 atom tuple
+            try:
+                idx_w = next(idx for idx in self.atoms[idx_x].neighbours
+                             if idx != idx_y and self.atoms[idx].n_bonded > 1)
+                idx_z = next(idx for idx in self.atoms[idx_y].neighbours
+                             if idx != idx_x and self.atoms[idx].n_bonded > 1)
+
+            except StopIteration:
+                continue   # No suitable neighbours
+
+            dihedral = Dihedral(idxs=[idx_w, idx_x, idx_y, idx_z])
+
+            try:
+                dihedral.find_rot_idxs(self.graph.copy(), atoms=self.atoms)
+
+            except FailedToSetRotationIdxs:
+                continue  # Bond could be in a ring etc.
+
+            dihedrals.append(dihedral)
+
+        if len(dihedrals) == 0:
+            return  # No rotation required
+
+        logger.info(f'Have {len(dihedrals)} dihedrals to rotate')
+
+        res = minimize(repulsion,
+                       x0=np.zeros(len(dihedrals)),
+                       args=(self.coordinates,
+                             dihedrals.axes,
+                             dihedrals.rot_idxs,
+                             dihedrals.origins),
+                       method='CG',
+                       tol=1E-1)
+
+        coords = rotate(py_coords=self.coordinates,
+                        py_angles=res.x,
+                        py_axes=dihedrals.axes,
+                        py_rot_idxs=dihedrals.rot_idxs,
+                        py_origins=dihedrals.origins)
+
+        self.coordinates = coords
+        return None
+
     def _set_atoms_bonds(self, atoms, bonds):
         """
         From a list of SMILESAtoms, and SMILESBonds set the required attributes
@@ -275,11 +366,13 @@ class Builder:
 
     def _queue_double_bond_dihedral(self, bond):
         """
-        For a double bond queue the dihedral rotation to be applied such that
+        For a double bond queue the dihedral rotation to be applied such that::
 
-          X -----Y
-         /       |         dihedral is 0 or π, depending on the stereochemistry
-        W        Z
+              X -----Y
+             /       |
+            W        Z
+
+        where the dihedral is 0 or π, depending on the stereochemistry
 
         Arguments:
             bond (autode.smiles.base.SMILESBond):
@@ -334,35 +427,47 @@ class Builder:
         self.queued_dihedrals.clear()
         return None
 
-    def _add_bonded_atoms(self, idx, shifted_idxs):
+    def _add_bonded_atoms(self, idx):
         """
-        Add all the atoms bonded to a particualr index, that have not already
+        Add all the atoms bonded to a particular index, that have not already
         been shifted
 
         Arguments:
             idx (int): Atom index
-            shifted_idxs (set(int)): Atoms that have already been 'built'
         """
         atom = self.atoms[idx]
 
         for bond in self.bonds.involving(idx):
             bonded_idx = bond[0] if bond[1] == idx else bond[1]
 
-            if bonded_idx in shifted_idxs and bond.order == 2:
-                self._queue_double_bond_dihedral(bond)
-                continue
-
-            if bonded_idx in shifted_idxs:
-                continue
-
             if bonded_idx in self.queued_atoms:
                 self._close_ring(ring_bond=bond)
                 continue
 
+            if self.atoms[bonded_idx].is_shifted:
+
+                # Dihedrals over double bonds need to be 0 or π, queue the
+                # rotation to be performed after all other atoms have been
+                # added
+                if bond.order == 2:
+                    self._queue_double_bond_dihedral(bond)
+
+                continue
+
+            # Get an empty site on this atom. If this atom is chrial then
+            # there is no choice to minimise the repulsion with the rest of
+            # the structure
+            if atom.type.is_chiral:
+                site = atom.type.empty_site()
+            else:
+                # TODO: check whether this is a pointless function...
+                site = atom.type.empty_site_mr(atom.coord,
+                                               other_coords=self.coordinates)
+
             # Coordinate of this atom is the current position shifted by
             # the ideal distance in a direction of a empty coordination
             # site on the atom
-            coord = bond.r0 * atom.type.empty_site() + atom.coord
+            coord = bond.r0 * site + atom.coord
             bonded_atom = self.atoms[bonded_idx]
             bonded_atom.translate(coord)
 
@@ -403,20 +508,17 @@ class Builder:
         start_time = time()
         self._set_atoms_bonds(atoms, bonds)
 
-        shifted_idxs = set()        # A subset of atoms that have been moved
-
         while not self.built:
 
             idx = self.queued_atoms[0]
 
-            self._add_bonded_atoms(idx, shifted_idxs=shifted_idxs)
-
+            self._add_bonded_atoms(idx)
             self.queued_atoms.remove(idx)
-            shifted_idxs.add(idx)
             self._rotate_dihedrals()
 
             logger.info(f'Queue: {self.queued_atoms}')
 
+        self._minimise_non_ring_dihedrals()
         logger.info(f'Built 3D in {(time() - start_time)*1E3:.2f} ms')
         return None
 
@@ -443,6 +545,24 @@ class AtomType:
     def empty_site(self):
         """Iterator for the coordinate of the next free site"""
         return self._site_coords.pop(0)
+
+    def empty_site_mr(self, point, other_coords):
+        """Return the site on this atom that is furthest from all other
+        coordinates using a simple 1/r potential where r is the distance from
+        the site to the other coordinates
+
+        Arguments:
+            point (np.ndarray): Coordinate of this atom, shape = (3,)
+            other_coords (np.ndarray): Other coordinates, shape = (N, 3)
+
+        Returns:
+            (np.ndarray): Coordinate of the site centered at the origin
+        """
+        dists = np.array([np.linalg.norm(other_coords - (site + point), axis=1)
+                          for site in self._site_coords])
+
+        repulsion = np.sum(np.power(dists, -1), axis=1)
+        return self._site_coords.pop(np.argmin(repulsion))
 
     def reset_onto(self, points, coord):
         """
@@ -543,17 +663,22 @@ class AtomType:
                              for site in self._site_coords]
         return None
 
-    def __init__(self, site_coords):
+    def __init__(self, site_coords, is_chiral=False):
         """Base atom type class
 
         Arguments:
             site_coords (list(np.ndarray)): Shape = (n, 3) should contain a
                         list of unit vectors pointing in directions where other
                         atoms can be added
+
+        Keyword Arguments:
+            is_chiral (bool): Is this atom type chiral e.g. a tetrahedral atom
+                              with four different substituents
         """
         self.template_site_coords = np.copy(site_coords)
         self._site_coords = site_coords
 
+        self.is_chiral = is_chiral
         self.rotate_randomly()
 
 
@@ -663,6 +788,10 @@ class TetrahedralAtom(AtomType):
 class TetrahedralNAtom(TetrahedralAtom):
     """A 'normal' order chiral tetrahedral atom"""
 
+    def __init__(self):
+        super().__init__(swap_order=False)
+        self.is_chiral = True
+
 
 class TetrahedralIAtom(TetrahedralAtom):
     """An 'inverted' order chiral tetrahedral atom"""
@@ -676,6 +805,10 @@ class TetrahedralIAtom(TetrahedralAtom):
 
         else:
             return super().empty_site()
+
+    def __init__(self):
+        super().__init__(swap_order=False)
+        self.is_chiral = True
 
 
 class Dihedrals(list):
@@ -761,33 +894,41 @@ class Dihedral:
         """
         graph.remove_edge(*self.mid_idxs)
 
-        components = [graph.subgraph(c)
-                      for c in nx.connected_components(graph)]
+        # Remove all the nodes in the graph that have not been shifted, thus
+        # the rotation indexes only include atoms that have been 'built'
+        for idx, atom in enumerate(atoms):
+            if not atom.is_shifted:
+                graph.remove_node(idx)
+
+        components = [graph.subgraph(c) for c in nx.connected_components(graph)]
 
         if len(components) != 2:
-            raise FailedToSetRotationIdxs
+            raise FailedToSetRotationIdxs('Splitting over this dihedral did '
+                                          'not afford two fragments')
 
-        # choose the first set of indexes (0) to rotate, this is arbitrary
-        # but only rotate the atoms that have been shifted from the origin
-        # (i.e. have been 'built')
-        rot_idxs = [idx for idx in components[0].nodes
-                    if not np.allclose(atoms[idx].coord, np.zeros(3))]
-
-        self.rot_idxs = [1 if idx in rot_idxs else 0
-                         for idx in range(graph.number_of_nodes())]
+        # Choose the first set of indexes [0] to rotate, this is arbitrary
+        self.rot_idxs = [1 if i in components[0].nodes else 0
+                         for i in range(len(atoms))]
         return None
 
     def __init__(self, idxs, rot_idxs=None, ring_n=None, phi0=0):
         """
         A dihedral constructed from atom indexes and possibly indexes that
-        should be rotated, if this dihedral is altered
+        should be rotated, if this dihedral is altered::
+
+             W
+              \
+               X --- Y
+                     |
+                     Z
 
         -----------------------------------------------------------------------
         Arguments:
-            idxs (list(int)): Indexes defining the dihedral
+            idxs (list(int)): 4 atom indexes defining the dihedral
 
         Keyword Arguments:
-            rot_idxs (list(int) | None): Indexes to rotate, 1 if rotate else 0
+            rot_idxs (list(int) | None): Indexes to rotate, 1 if the atoms
+                                         should be rotated else 0
 
             ring_n (int | None): Number of atoms in the ring for which this
                                  dihedral is a part, if None then not in a ring
@@ -798,6 +939,7 @@ class Dihedral:
         self.ring_n = ring_n
         self.phi0 = phi0
 
+        # Atom indexes of the central two atoms (X, Y)
         _, idx_y, idx_z, _ = idxs
         self.mid_idxs = (idx_y, idx_z)
 
