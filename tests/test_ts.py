@@ -100,7 +100,10 @@ def test_links_reacs_prods():
 
     # Spoof an xtb install as reactant/product complex optimisation
     Config.lcode = 'xtb'
-    # Config.XTB.path = here
+
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
 
     Config.num_complex_sphere_points = 4
     Config.num_complex_random_rotations = 1

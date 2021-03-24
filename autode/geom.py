@@ -123,7 +123,7 @@ def get_rot_mat_euler(axis, theta):
     return rot_matrix
 
 
-def get_neighbour_list(species, atom_i):
+def get_neighbour_list(species, atom_i, index_set):
     """Calculate a neighbour list from atom i as a list of atom labels
 
     Arguments:
