@@ -159,9 +159,14 @@ def init_dihedral_angles(dihedrals, atoms):
         ideal_angles = np.array([1.2, -0.9, 0.6, -1.6])[:n_angles]
 
     else:
-        # TODO: a better heuristic for larger rings
-        logger.warning('Heuristic not implemented, Using ∆ϕ = 0')
-        return np.zeros(n_angles)
+        # Use ±π/2, which should be close for larger rings
+
+        ideal_angles = []
+        for i in range(n_angles):
+            sign = 1 if i % 2 == 0 else -1
+            ideal_angles.append(sign * np.pi/2.0)
+
+        ideal_angles = np.array(ideal_angles)
 
     # Choose the ∆ϕs that are closest to the current values
     if (np.linalg.norm(curr_angles - ideal_angles)

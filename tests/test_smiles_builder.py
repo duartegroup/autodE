@@ -230,3 +230,4 @@ def test_macrocycle():
     # Large macrocyclic ring with stereochemistry
     macro_smiles = ('C/C1=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C'
                     '/CC/C=C/C(OC1)=O')
+    assert built_molecule_is_reasonable(smiles=macro_smiles)
