@@ -5,7 +5,7 @@ from libc.math cimport cos, sin, sqrt
 import numpy as np
 
 
-cdef void update_rotation_matrix(double [3][3] rot_mat,
+cdef void _update_rotation_matrix(double [3][3] rot_mat,
                                  double [3] axis,
                                  double theta):
     """
@@ -44,39 +44,19 @@ cdef void update_rotation_matrix(double [3][3] rot_mat,
     return
 
 
-cpdef rotate(py_coords,
-             py_angles,
-             py_axes,
-             py_rot_idxs,
-             py_origins):
+cdef void _rotate(int n_angles,
+                  int n_atoms,
+                  double [:, :] coords,
+                  double [:] angles,
+                  int [:, :] axes,
+                  int [:] origins,
+                  int [:, :] rot_idxs):
     """
-    Rotate coordinates by a set of dihedral angles each around an axis placed
-    at an origin
-    
-    Arguments:
-        py_coords: 
-        py_angles: 
-        py_axes: 
-        py_rot_idxs: 
-        py_origins: 
-    
-    Returns:
-        (np.ndarray): Rotated coordinates
+    Rotate a set of dihedral angles - see rotate() for docstring
     """
-
-    cdef int n_angles = len(py_angles)
-    cdef int n_atoms = len(py_coords)
-
-    cdef double [:, :] coords = py_coords
-
-    cdef double [:] angles = py_angles
-    cdef int [:, :] axes = py_axes
-    cdef int [:] origins = py_origins
-    cdef int [:, :] rot_idxs = py_rot_idxs
-
-    cdef double [3][3] rot_mat
-    cdef double [3] axis
-    cdef double [3] origin
+    cdef double[3][3] rot_mat
+    cdef double[3] axis
+    cdef double[3] origin
 
     cdef int i, j, k
     cdef double x, y, z
@@ -89,7 +69,7 @@ cpdef rotate(py_coords,
             origin[k] = coords[origins[i], k]
             axis[k] = coords[axes[i, 0], k] - coords[axes[i, 1], k]
 
-        update_rotation_matrix(rot_mat, axis=axis, theta=angles[i])
+        _update_rotation_matrix(rot_mat, axis=axis, theta=angles[i])
 
         # Rotate the portion of the structure to rotate about the bonding axis
         for j in range(n_atoms):
@@ -114,5 +94,149 @@ cpdef rotate(py_coords,
             # And shift back from the origin
             for k in range(3):
                 coords[j, k] += origin[k]
+
+    return
+
+
+cdef double _repulsion(int n_atoms, double [:, :] coords):
+    """
+    Calculate the pairwise repulsion between all atoms with
+    
+    V = Σ'_ij 1 / r_ij^2
+    
+    Args:
+        n_atoms (int): 
+        coords (array): 
+
+    Returns:
+        (double)
+    """
+    cdef int i, j
+    cdef double repulsion = 0.0
+    cdef double dist_sq
+
+    for i in range(n_atoms):
+        for j in range(i+1, n_atoms):
+
+            dist_sq = ((coords[i, 0] - coords[j, 0])**2 +
+                       (coords[i, 1] - coords[j, 1])**2 +
+                       (coords[i, 2] - coords[j, 2])**2)
+
+            repulsion += 1.0 / dist_sq
+
+    return repulsion
+
+
+cpdef void _minimise(int n_angles,
+                int n_atoms,
+                double [:, :] coords,
+                double [:] dangles,
+                int [:, :] axes,
+                int [:] origins,
+                int [:, :] rot_idxs):
+    """Minimise the dihedral rotations using a simple repulsive potential
+    and a gradient decent minimiser
+    
+    """
+    cdef double eps = 1E-5         # Finite difference  (rad)
+    cdef double tol = 1E-7         # Tolerance on dE    (a.u.)
+    cdef double step_size = 1   # Initial step size  (rad)
+
+    cdef double prev_repulsion = 0.0
+    cdef double curr_repulsion = _repulsion(n_atoms, coords)
+
+    cdef double [:] grad = np.zeros(int(n_angles))
+    cdef double [:, :] coords_h = np.zeros(shape=(int(n_atoms), 3))
+    cdef double [:, :] coords_mh = np.zeros(shape=(int(n_atoms), 3))
+
+    cdef int i, j
+
+    while (curr_repulsion - prev_repulsion)**2 > tol:
+
+        prev_repulsion = curr_repulsion
+
+        for i in range(n_angles):
+
+            # Reset the temporary set of coordinates for the finite difference
+            for j in range(n_atoms):
+                for k in range(3):
+                    coords_h[j, k] = coords[j, k]
+                    coords_mh[j, k] = coords[j, k]
+
+            # Calculate a finite difference gradient
+            dangles[i] += eps / 2.0
+            _rotate(n_angles, n_atoms, coords_h, dangles, axes, origins, rot_idxs)
+
+            dangles[i] -= eps
+            _rotate(n_angles, n_atoms, coords_mh, dangles, axes, origins, rot_idxs)
+
+            # central difference approximation for the gradient
+            grad[i] = (_repulsion(n_atoms, coords_h)
+                       - _repulsion(n_atoms, coords_mh))
+
+            dangles[i] += eps / 2.0
+
+
+        # Calculate the new angle based on the steepest decent
+        for i in range(n_angles):
+            dangles[i] = -step_size * grad[i]
+
+        _rotate(n_angles, n_atoms, coords, dangles, axes, origins, rot_idxs)
+
+        curr_repulsion = _repulsion(n_atoms, coords)
+
+    return
+
+
+cpdef rotate(py_coords,
+             py_angles,
+             py_axes,
+             py_rot_idxs,
+             py_origins,
+             minimise=False):
+    """
+    Rotate coordinates by a set of dihedral angles each around an axis placed
+    at an origin
+    
+    --------------------------------------------------------------------------
+    Arguments:
+        py_coords (np.ndarray): shape = (n_atoms, 3)  Atomic coordinates in 3D
+        
+        py_angles (np.ndarray): shape = (m,)  Angles in radians to rotate by
+        
+        py_axes (np.ndarray): shape = (m, 2) Atom indexes for the two atoms 
+                              defining the rotation axis, for each angle
+                              
+        py_rot_idxs (np.ndarray): shape = (m, n_atoms) Bit array for each angle
+                                  with 1 if this atom should be rotated and 0
+                                  otherwise
+        
+        py_origins (np.ndarray): shape = (m,) Atom indexes of the origin for
+                                 each rotation
+    
+    Keyword Arguments:
+        minimise (bool): Should the coordinates be minimised?
+    
+    Returns:
+        (np.ndarray): Rotated coordinates
+    """
+
+    cdef int n_angles = len(py_angles)
+    cdef int n_atoms = len(py_coords)
+
+    # Use memory views of the numpy arrays
+    cdef double [:, :] coords = py_coords
+
+    cdef double [:] angles = py_angles
+    cdef int [:, :] axes = py_axes
+    cdef int [:] origins = py_origins
+    cdef int [:, :] rot_idxs = py_rot_idxs
+
+    # Apply all the rotations in place
+    if minimise:
+        _minimise(n_angles, n_atoms, coords, angles, axes, origins, rot_idxs)
+
+    else:
+        _rotate(n_angles, n_atoms, coords, angles, axes, origins, rot_idxs)
 
     return np.array(coords)

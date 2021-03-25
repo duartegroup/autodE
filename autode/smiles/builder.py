@@ -273,6 +273,8 @@ class Builder:
 
         """
         logger.info('Minimising non-bonded repulsion by dihedral rotation')
+        start_time = time()
+
         dihedrals = Dihedrals()
 
         for bond in self.bonds:
@@ -308,6 +310,20 @@ class Builder:
             return  # No rotation required
 
         logger.info(f'Have {len(dihedrals)} dihedrals to rotate')
+        logger.info(f'Populated list in {(time() - start_time)*1000:.2f} ms')
+
+        # TODO: A better SD implementation
+        # coords = rotate(py_coords=self.coordinates,
+        #                 py_angles=np.zeros(len(dihedrals)),
+        #                 py_axes=dihedrals.axes,
+        #                 py_rot_idxs=dihedrals.rot_idxs,
+        #                 py_origins=dihedrals.origins,
+        #                 minimise=True)
+        # logger.info(f'Performed final dihedral rotation in '
+        #             f'{(time() - start_time)*1000:.2f} ms')
+
+        # self.coordinates = coords
+        # return
 
         res = minimize(repulsion,
                        x0=np.zeros(len(dihedrals)),
@@ -317,6 +333,9 @@ class Builder:
                              dihedrals.origins),
                        method='CG',
                        tol=1E-1)
+
+        logger.info(f'Performed final dihedral rotation in '
+                    f'{(time() - start_time)*1000:.2f} ms')
 
         coords = rotate(py_coords=self.coordinates,
                         py_angles=res.x,
