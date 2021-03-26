@@ -102,7 +102,7 @@ cdef double _repulsion(int n_atoms, double [:, :] coords):
     """
     Calculate the pairwise repulsion between all atoms with
     
-    V = Σ'_ij 1 / r_ij^2
+    V(X) = Σ'_ij 1 / r_ij^2
     
     Args:
         n_atoms (int): 
@@ -136,26 +136,28 @@ cpdef void _minimise(int n_angles,
                 int [:, :] rot_idxs):
     """Minimise the dihedral rotations using a simple repulsive potential
     and a gradient decent minimiser
-    
     """
     cdef double eps = 1E-7         # Finite difference  (rad)
-    cdef double tol = 1E-4         # Tolerance on dE    (a.u.)
+    cdef double tol = 1E-3         # Tolerance on dE    (a.u.)
     cdef double step_size = 0.05   # Initial step size  (rad)
 
     cdef double prev_repulsion = 0.0
     cdef double curr_repulsion = _repulsion(n_atoms, coords)
 
+    # Memory view arrays for the gradient dV/dθ_i and the forwards and
+    # backwards displaced coordinates used for the finite difference
     cdef double [:] grad = np.zeros(int(n_angles))
     cdef double [:, :] coords_h = np.zeros(shape=(int(n_atoms), 3))
     cdef double [:, :] coords_mh = np.zeros(shape=(int(n_atoms), 3))
 
     cdef int i, j
 
+    # Minimise the squared repulsion
     while (curr_repulsion - prev_repulsion)**2 > tol:
 
         prev_repulsion = curr_repulsion
 
-        for i in range(n_angles):
+        for i in range(n_angles):   # θ_i
 
             # Reset the temporary set of coordinates for the finite difference
             for j in range(n_atoms):
@@ -171,16 +173,20 @@ cpdef void _minimise(int n_angles,
             _rotate(n_angles, n_atoms, coords_mh, dangles, axes, origins, rot_idxs)
 
             # central difference approximation for the gradient
+            # dV/dθ_i ~ (V(x_h) - V(x_mh) / 2h)
+            # where x_h are the coordinates from a +h/2 rotation on θ_i
+            # and x_mh are similar with -h/2
             grad[i] = (_repulsion(n_atoms, coords_h)
                        - _repulsion(n_atoms, coords_mh)) / eps
 
             dangles[i] += eps / 2.0
 
 
-        # Calculate the new angle based on the steepest decent
+        # Calculate the new change in angle, based on the steepest decent
         for i in range(n_angles):
             dangles[i] = -step_size * grad[i]
 
+        # Apply the optimal rotations δθ
         _rotate(n_angles, n_atoms, coords, dangles, axes, origins, rot_idxs)
 
         curr_repulsion = _repulsion(n_atoms, coords)

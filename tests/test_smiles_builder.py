@@ -234,4 +234,4 @@ def test_macrocycle():
 
 
 def _test_tmp():
-    assert built_molecule_is_reasonable(smiles='CC(CCC)CCC')
+    assert built_molecule_is_reasonable(smiles='CCC(CCC)CCC')
