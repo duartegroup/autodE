@@ -398,8 +398,13 @@ class Builder:
             phi = np.pi
 
         dihedral = Dihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
-        dihedral.find_rot_idxs(graph=self.graph.copy(),
-                               atoms=self.atoms)
+
+        try:
+            dihedral.find_rot_idxs(graph=self.graph.copy(),
+                                   atoms=self.atoms)
+        except FailedToSetRotationIdxs:
+            logger.error(f'Could not queue {dihedral} for {bond}')
+            return
 
         logger.info(f'Queuing {dihedral}')
         self.queued_dihedrals.append(dihedral)
@@ -507,10 +512,8 @@ class Builder:
 
         while not self.built:
 
-            idx = self.queued_atoms[0]
-
+            idx = self.queued_atoms.pop(0)
             self._add_bonded_atoms(idx)
-            self.queued_atoms.remove(idx)
             self._rotate_dihedrals()
 
             logger.info(f'Queue: {self.queued_atoms}')

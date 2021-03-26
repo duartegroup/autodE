@@ -71,7 +71,7 @@ class SMILESBond:
         return self.__repr__()
 
     def __repr__(self):
-        return f'SMILESBond{self._list}'
+        return f'SMILESBond({self._list}, order={self.order})'
 
     def __getitem__(self, item):
         return self._list[item]
@@ -128,7 +128,7 @@ class RingBond(SMILESBond):
     """Dangling bond created with a ring is found"""
 
     def __repr__(self):
-        return f'RingSMILESBond{self._list}'
+        return f'RingSMILESBond({self._list}, order={self.order})'
 
     def close(self, idx, symbol):
         """Close this bond using an atom index"""
