@@ -2,7 +2,6 @@ import numpy as np
 import networkx as nx
 from time import time
 from scipy.spatial import distance_matrix
-from scipy.optimize import minimize
 from autode.log import logger
 from autode.atoms import chalcogens, pnictogens
 from autode.bonds import get_avg_bond_length
