@@ -138,9 +138,9 @@ cpdef void _minimise(int n_angles,
     and a gradient decent minimiser
     
     """
-    cdef double eps = 1E-5         # Finite difference  (rad)
-    cdef double tol = 1E-7         # Tolerance on dE    (a.u.)
-    cdef double step_size = 1   # Initial step size  (rad)
+    cdef double eps = 1E-7         # Finite difference  (rad)
+    cdef double tol = 1E-4         # Tolerance on dE    (a.u.)
+    cdef double step_size = 0.05   # Initial step size  (rad)
 
     cdef double prev_repulsion = 0.0
     cdef double curr_repulsion = _repulsion(n_atoms, coords)
@@ -172,7 +172,7 @@ cpdef void _minimise(int n_angles,
 
             # central difference approximation for the gradient
             grad[i] = (_repulsion(n_atoms, coords_h)
-                       - _repulsion(n_atoms, coords_mh))
+                       - _repulsion(n_atoms, coords_mh)) / eps
 
             dangles[i] += eps / 2.0
 
