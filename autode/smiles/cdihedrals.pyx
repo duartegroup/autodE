@@ -137,12 +137,14 @@ cpdef void _minimise(int n_angles,
     """Minimise the dihedral rotations using a simple repulsive potential
     and a gradient decent minimiser
     """
-    cdef double eps = 1E-7         # Finite difference  (rad)
-    cdef double tol = 1E-3         # Tolerance on dE    (a.u.)
-    cdef double step_size = 0.05   # Initial step size  (rad)
+    cdef double eps = 1E-7          # Finite difference  (rad)
+    cdef double tol = 1E-3          # Tolerance on dE    (a.u.)
+    cdef double step_size = 0.05    # Initial step size  (rad)
+    cdef int max_iters = 10000      # Maximum number of iterations
 
     cdef double prev_repulsion = 0.0
     cdef double curr_repulsion = _repulsion(n_atoms, coords)
+    cdef int iteration = 0
 
     # Memory view arrays for the gradient dV/dθ_i and the forwards and
     # backwards displaced coordinates used for the finite difference
@@ -153,7 +155,7 @@ cpdef void _minimise(int n_angles,
     cdef int i, j
 
     # Minimise the squared repulsion
-    while (curr_repulsion - prev_repulsion)**2 > tol:
+    while (curr_repulsion - prev_repulsion)**2 > tol and iteration < max_iters:
 
         prev_repulsion = curr_repulsion
 
@@ -190,6 +192,7 @@ cpdef void _minimise(int n_angles,
         _rotate(n_angles, n_atoms, coords, dangles, axes, origins, rot_idxs)
 
         curr_repulsion = _repulsion(n_atoms, coords)
+        iteration += 1
 
     return
 

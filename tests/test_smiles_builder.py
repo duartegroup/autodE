@@ -233,5 +233,13 @@ def test_macrocycle():
     assert built_molecule_is_reasonable(smiles=macro_smiles)
 
 
-def _test_tmp():
-    assert built_molecule_is_reasonable(smiles='CCC(CCC)CCC')
+def _test_branches_on_rings():
+    """Branches on rings should be fine"""
+    assert built_molecule_is_reasonable(smiles='C1CC(CCC)C(CC)CC1')
+    assert built_molecule_is_reasonable(smiles='C1NC(CNC)C(CO)CC1')
+    assert built_molecule_is_reasonable(smiles='C1C(C)C(C)C(C)C(C)C1')
+
+
+def test_tmp():
+    assert built_molecule_is_reasonable(smiles=r'O[C@@H]1[C@H](/C=C\CC/C=C'
+                                               r'\C(CC/C(C)=C/[C@H]1C)=O)OC')

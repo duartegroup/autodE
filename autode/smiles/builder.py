@@ -12,30 +12,6 @@ from autode.smiles.rings import minimise_ring_energy
 from cdihedrals import rotate
 
 
-def repulsion(angles, coords, axes, rot_idxs, origins):
-    """
-
-    Arguments:
-        angles:
-        coords:
-        axes:
-        rot_idxs:
-        origins:
-
-    Returns:
-
-    """
-
-    rot_coords = rotate(py_coords=np.copy(coords),
-                        py_angles=angles,
-                        py_axes=axes,
-                        py_rot_idxs=rot_idxs,
-                        py_origins=origins)
-    dist_mat = distance_matrix(rot_coords, rot_coords)
-
-    return np.sum(np.power(dist_mat + np.eye(len(coords)), -1))
-
-
 class Builder:
     """3D geometry builder
 
@@ -842,6 +818,15 @@ class Dihedrals(list):
     @property
     def rot_idxs(self):
         return np.array([dihedral.rot_idxs for dihedral in self], dtype='i4')
+
+    def subset(self, *args):
+
+        dihedrals = Dihedrals()
+        for idx in args:
+            dihedrals.append(self[idx])
+
+        return dihedrals
+
 
 
 class Dihedral:
