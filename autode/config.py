@@ -1,6 +1,6 @@
 import autode.wrappers.implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet
-from autode.wrappers.basis_sets import def2svp, def2tzvp
+from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.ri import rijcosx
@@ -163,7 +163,8 @@ class Config:
                                             'Recalc_Hess 30\n'
                                             'Trust -0.1\n'
                                             'MaxIter 150\n'
-                                            'end'))
+                                            'end'),
+                               ecp=def2ecp)
 
         # Implicit solvent in ORCA is either treated with CPCM or SMD, the
         # former has support for a VdW surface construction which provides
@@ -262,7 +263,8 @@ class Config:
                                hess=[def2svp, pbe0,
                                      'task dft freq'],
                                sp=[def2tzvp, pbe0,
-                                   'task dft energy'])
+                                   'task dft energy'],
+                               ecp=def2ecp)
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
