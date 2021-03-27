@@ -134,10 +134,20 @@ class Keywords:
         for i, keyword_in_list in enumerate(self.keyword_list):
             if isinstance(keyword_in_list, keyword_type):
                 if keyword is None:
-                    self.keyword_list.pop(i)
+                    del self.keyword_list[i]
                 else:
                     self.keyword_list[i] = keyword
                 return
+
+            # Cannot have both wavefunction and DFT methoda
+            if ((isinstance(keyword_in_list, WFMethod)
+                 and keyword_type == Functional)
+                or
+                (isinstance(keyword_in_list, Functional)
+                 and keyword_type == WFMethod)):
+
+                raise ValueError('Could not set a functional with a '
+                                 'WF method present, or vice-versa ')
 
         # This keyword does not appear in the list, so add it
         self.append(keyword)
@@ -370,6 +380,12 @@ class WFMethod(Keyword):
 
 class ECP(Keyword):
     """Effective core potential"""
+
+    def __eq__(self, other):
+        """Equality of ECPs"""
+        return (isinstance(other, ECP)
+                and str(self) == str(other)
+                and self.min_atomic_number == other.min_atomic_number)
 
     def __init__(self, name, min_atomic_number=37,
                  doi=None, doi_list=None, **kwargs):

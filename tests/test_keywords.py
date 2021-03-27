@@ -66,6 +66,14 @@ def test_ecp():
     kwds_set = KeywordsSet()
     assert kwds_set.opt.ecp is None
 
+    ecp1 = ECP(name='tmp_ecp', min_atomic_number=10)
+    ecp2 = ECP(name='tmp_ecp', min_atomic_number=20)
+
+    assert not ecp1 == ecp2
+    assert not ecp1 == 'tmp_ecp'
+    ecp2.min_atomic_number = 10
+    assert ecp1 == ecp2
+
     assert isinstance(def2ecp, ECP)
     kwds_set = KeywordsSet(ecp=def2ecp)
 
