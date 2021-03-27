@@ -10,6 +10,41 @@ from autode.constants import Constants
 from autode.utils import work_in_tmp_dir
 
 
+def ecp_block(molecule, keywords):
+    """
+    Generate a block of input for any effective core potentials to add
+
+    Arguments:
+        molecule (autode.species.Species):
+        keywords (autode.wrappers.keywords.Keywords):
+
+    Returns:
+        (str):
+    """
+    ecp_block = ""
+
+    for keyword in keywords:
+
+        if not isinstance(keyword, kws.ECP):
+            continue
+
+        # Set of unique atomic symbols that require an ECP
+        ecp_elems = set(atom.label for atom in molecule.atoms
+                        if atom.atomic_number >= keyword.min_atomic_number)
+
+        if len(ecp_elems) == 0:
+            break  # No atoms require an ECP
+
+        ecp_block += "\necp\n"
+        ecp_block += "\n".join(f'  {label}   library  {keyword.nwchem}'
+                               for label in ecp_elems)
+        ecp_block += "\nend"
+
+        break
+
+    return ecp_block
+
+
 def get_keywords(calc_input, molecule):
     """Generate a keywords list and adding solvent"""
 
@@ -23,6 +58,11 @@ def get_keywords(calc_input, molecule):
 
         elif isinstance(keyword, kws.BasisSet):
             keyword = f'basis\n  *   library {keyword.nwchem}\nend'
+            keyword += ecp_block(molecule, keywords=calc_input.keywords)
+
+        elif isinstance(keyword, kws.ECP):
+            # ECPs are added to the basis block
+            continue
 
         elif isinstance(keyword, kws.Keyword):
             keyword = keyword.nwchem

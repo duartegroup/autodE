@@ -1,10 +1,10 @@
-from autode.wrappers.keywords import Keywords
+from autode.wrappers.keywords import Keywords, KeywordsSet, ECP
 from autode.wrappers.keywords import GradientKeywords
 from autode.wrappers.keywords import OptKeywords
 from autode.wrappers.keywords import HessianKeywords
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import pbe
-from autode.wrappers.basis_sets import def2tzvp
+from autode.wrappers.basis_sets import def2tzvp, def2ecp
 from autode.config import Config
 from copy import deepcopy
 
@@ -59,3 +59,21 @@ def test_set_keywordsset():
     kwset.set_dispersion(None)
     assert kwset.opt.dispersion is None
     assert kwset.sp.dispersion is None
+
+
+def test_ecp():
+
+    kwds_set = KeywordsSet()
+    assert kwds_set.opt.ecp is None
+
+    assert isinstance(def2ecp, ECP)
+    kwds_set = KeywordsSet(ecp=def2ecp)
+
+    for kwds in kwds_set:
+        assert kwds.ecp is not None
+        assert isinstance(kwds.ecp, ECP)
+        assert kwds.ecp.min_atomic_number == 37
+
+    kwds_set.set_ecp(None)
+    for kwds in kwds_set:
+        assert kwds.ecp is None

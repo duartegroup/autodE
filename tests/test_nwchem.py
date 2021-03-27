@@ -69,6 +69,19 @@ def test_opt_single_atom():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_ecp_calc():
+
+    pdh2 = Molecule(smiles='[H][Pd][H]', name='H2Pd')
+    pdh2.single_point(method=method)
+
+    assert os.path.exists('H2Pd_sp_nwchem.nw')
+    input_lines = open('H2Pd_sp_nwchem.nw', 'r').readlines()
+    assert any('ecp' in line for line in input_lines)
+
+    assert pdh2.energy is not None
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_opt_hf_constraints():
 
     keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'

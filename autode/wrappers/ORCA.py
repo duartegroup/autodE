@@ -71,6 +71,10 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
             logger.warning('Can\'t optimise a single atom')
             continue
 
+        if isinstance(keyword, kws.ECP) and keyword.orca is None:
+            # Use the default specification for applying ECPs
+            continue
+
         if isinstance(keyword, kws.Keyword):
             new_keywords.append(keyword.orca)
 

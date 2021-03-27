@@ -35,8 +35,15 @@ class KeywordsSet:
 
         return None
 
+    def set_ecp(self, ecp):
+        """Set the effective core potential for all calculation types"""
+        for keywords in self:
+            keywords.ecp = ecp
+
+        return None
+
     def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None,
-                 hess=None, optts_block='', sp=None):
+                 hess=None, optts_block='', sp=None, ecp=None):
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
@@ -57,13 +64,21 @@ class KeywordsSet:
         Keyword Arguments:
 
             low_opt (list(str)): List of keywords for a low level optimisation
+
             grad (list(str)): List of keywords for a gradient calculation
+
             opt (list(str)): List of keywords for a low level optimisation
+
             opt_ts (list(str)): List of keywords for a low level optimisation
+
             hess (list(str)): List of keywords for a low level optimisation
+
             optts_block (str): String as extra input for a TS optimisation
+
             sp  (list(str)): List of keywords for a single point calculation
-        :return:
+
+            ecp (autode.wrrappers.keywords.ECP | None): Effective core
+                potential for atoms heavier than
         """
 
         self.low_opt = OptKeywords(low_opt)
@@ -80,6 +95,9 @@ class KeywordsSet:
                       self.hess, self.sp]
 
         self.optts_block = optts_block
+
+        if ecp is not None:
+            self.set_ecp(ecp)
 
 
 class Keywords:
@@ -121,7 +139,19 @@ class Keywords:
                     self.keyword_list[i] = keyword
                 return
 
-        raise ValueError('Could not set the keyword - none recognised')
+        # This keyword does not appear in the list, so add it
+        self.append(keyword)
+        return None
+
+    @property
+    def ecp(self):
+        """Get the effective core potential used"""
+        return self._get_keyword(ECP)
+
+    @ecp.setter
+    def ecp(self, ecp):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(ecp, keyword_type=ECP)
 
     @property
     def functional(self):
@@ -192,7 +222,7 @@ class Keywords:
         return deepcopy(self.keyword_list)
 
     def append(self, item):
-        assert type(item) is str
+        assert type(item) is str or isinstance(item, Keyword)
 
         # Don't re-add a keyword that is already there
         if any(kw.lower() == item.lower() for kw in self.keyword_list):
@@ -336,3 +366,24 @@ class RI(Keyword):
 
 class WFMethod(Keyword):
     """Keyword for a wavefunction method e.g. HF or CCSD(T)"""
+
+
+class ECP(Keyword):
+    """Effective core potential"""
+
+    def __init__(self, name, min_atomic_number=37,
+                 doi=None, doi_list=None, **kwargs):
+        """
+        An effective core potential that applies to all atoms with atomic
+        numbers larger than min_atomic_number
+
+        Arguments:
+            name (str):
+            min_atomic_number (int):
+            doi (str):
+            doi_list (list(str)):
+            kwargs:
+        """
+        super().__init__(name, doi, doi_list, **kwargs)
+
+        self.min_atomic_number = min_atomic_number
