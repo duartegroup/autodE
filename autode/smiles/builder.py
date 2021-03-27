@@ -214,6 +214,26 @@ class Builder:
             if self.graph.get_edge_data(*dihedral.mid_idxs)['order'] == 1:
                 yield dihedral
 
+    def _reset_queued_atom_sites(self, other_idxs=None):
+        """
+        When a dihedral rotation(s) is(are) performed the rotation is not
+        applied to the empty sites that are present in the queued atoms,
+        they therefore need to be reset
+
+        Keyword Arguments:
+            other_idxs (list | set | None): Other indexes that need to be reset
+        """
+        for idx_i in set(self.queued_atoms
+                         + list(other_idxs if other_idxs is not None else [])):
+
+            logger.info(f'Resetting sites on atom {idx_i}')
+            atom = self.atoms[idx_i]
+            atom.type.reset_onto(points=[self.atoms[idx].coord
+                                         for idx in atom.neighbours],
+                                 coord=atom.coord)
+
+        return None
+
     def _close_ring(self, ring_bond):
         """
         Adjust ring dihedrals such that a ring is formed
@@ -248,15 +268,7 @@ class Builder:
                              r0=ring_bond.r0,
                              ring_idxs=self._ring_idxs(ring_bond))
 
-        # CLosing the ring will not rotate the empty sites on the closed atoms,
-        # therefore reset the empty sites defined by their new neighbours
-        for idx_i, _ in (ring_bond, reversed(ring_bond)):
-            logger.info(f'Resetting sites on atom {idx_i}')
-            atom = self.atoms[idx_i]
-            atom.type.reset_onto(points=[self.atoms[idx].coord
-                                         for idx in atom.neighbours],
-                                 coord=atom.coord)
-
+        self._reset_queued_atom_sites(other_idxs=ring_bond)
         return None
 
     def _minimise_non_ring_dihedrals(self):
@@ -311,7 +323,6 @@ class Builder:
         logger.info(f'Have {len(dihedrals)} dihedrals to rotate')
         logger.info(f'Populated list in {(time() - start_time)*1000:.2f} ms')
 
-        # TODO: A better SD implementation
         coords = rotate(py_coords=self.coordinates,
                         py_angles=np.zeros(len(dihedrals)),
                         py_axes=dihedrals.axes,
@@ -425,8 +436,9 @@ class Builder:
                                   py_axes=self.queued_dihedrals.axes,
                                   py_rot_idxs=self.queued_dihedrals.rot_idxs,
                                   py_origins=self.queued_dihedrals.origins)
-        # reset the queue
+
         self.queued_dihedrals.clear()
+        self._reset_queued_atom_sites()
         return None
 
     def _add_bonded_atoms(self, idx):
