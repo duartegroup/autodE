@@ -233,7 +233,7 @@ def test_macrocycle():
     assert built_molecule_is_reasonable(smiles=macro_smiles)
 
 
-def _test_branches_on_rings():
+def test_branches_on_rings():
     """Branches on rings should be fine"""
     assert built_molecule_is_reasonable(smiles='C1CC(CCC)C(CC)CC1')
     assert built_molecule_is_reasonable(smiles='C1NC(CNC)C(CO)CC1')

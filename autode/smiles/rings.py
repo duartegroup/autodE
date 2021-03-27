@@ -51,8 +51,10 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs,
 
     # Minimise the rotation energy with respect to the dihedral angles
     dist_mat = distance_matrix(coords, coords)
-
     iteration = 0
+
+    # Minimise such that there are no close pairwise distances < 0.7 Å,
+    # while ignoring any atoms that remain at the origin (=0 distance)
     while (iteration == 0 or
            (iteration < max_iterations
             and np.any(np.logical_and(dist_mat > 0.01, dist_mat < 0.7)))):
