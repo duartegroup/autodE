@@ -21,6 +21,8 @@ def test_atom():
 
     h = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)
     assert h.label == 'H'
+    assert h.atomic_number == 1
+    assert h.atomic_symbol == 'H'
     assert type(h.coord) == np.ndarray
     assert len(h.coord) == 3
     assert h.coord[0] == 0
@@ -41,3 +43,5 @@ def test_atom():
 
     # Ensure that the atoms has a string representation
     assert len(str(h)) > 0
+
+    assert Atom('C').atomic_number == 6

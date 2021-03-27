@@ -40,6 +40,12 @@ class Molecule(Species):
 
         self.atoms = xyz_file_to_atoms(xyz_filename)
 
+        if (sum(atom.atomic_number for atom in self.atoms) % 2 != 0
+            and self.charge % 2 == 0 and self.mult == 1):
+            raise ValueError('Initialised a molecule from an xyz file with  '
+                             'an odd number of electrons but had an even '
+                             f'charge and S = {1}. Impossible!')
+
         # Override the default name with something more descriptive
         if self.name == 'molecule' or self.name.endswith('.xyz'):
             self.name = xyz_filename.rstrip('.xyz')

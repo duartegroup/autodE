@@ -2,11 +2,13 @@ from autode.species.molecule import Molecule
 from autode.conformers.conformer import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
+from autode.input_output import atoms_to_xyz_file
 from autode.smiles.smiles import calc_multiplicity, init_organic_smiles
 from autode.wrappers.ORCA import orca
 from autode.species.molecule import Reactant
 from autode.species.molecule import Product
 from autode.species.molecule import reactant_to_product
+from autode.atoms import Atom
 from rdkit.Chem import Mol
 from . import testutils
 import numpy as np
@@ -38,6 +40,18 @@ def test_basic_attributes():
     # A molecule without a name should default to the formula
     methane = Molecule(smiles='C')
     assert methane.name == 'CH4' or methane.name == 'H4C'
+
+    atoms_to_xyz_file(atoms=[Atom('H')], filename='tmp_H.xyz')
+    # Cannot create a molecule with an odd number of electrons with charge = 0
+    # and spin multiplicity of 1
+    with pytest.raises(ValueError):
+        _ = Molecule('tmp_H.xyz')
+
+    # but is fine as a doublet
+    h_atom = Molecule('tmp_H.xyz', mult=2)
+    assert h_atom.mult == 2
+
+    os.remove('tmp_H.xyz')
 
 
 def test_gen_conformers():
