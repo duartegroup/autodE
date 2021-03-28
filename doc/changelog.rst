@@ -2,11 +2,33 @@ Changelog
 =========
 
 
+1.0.2
+--------
+----------
+
+Usability improvements
+**********************
+
+- Effective core potentials can now be specified in :code:`Keywords()`
+
+- ORCA fitting basis sets now default to def2/J, which should be smaller but as accurate as AutoAux
+
+- Molecule initialisation from a .xyz file now checks for an odd number of electrons. For example, :code:`Molecule('H_atom.xyz')` will raise a :code:`ValueError` but :code:`Molecule('H_atom.xyz', charge=1)` or :code:`Molecule('H_atom.xyz', mult=2)` are acceptable
+
+
+Functionality improvements
+**************************
+
+- :code:`atom.atomic_number` has been added as an atom attribute
+
+- :code:`atom.atomic_symbol` is a more intuitive alias for :code:`atom.label`
+
+
+
 1.0.1
 --------
 ------------
 
-Hotfix
 
 Usability improvements
 **********************
@@ -25,6 +47,7 @@ Bug Fixes
 
 - Final breaking bond distances are now the minimum of the product X-Y distance if present in the product, or 2x the distance. This is required for breaking bonds that cross a ring.
 
+- Neighbour lists for comparing possibly equivalent bond rearrangements are now compared using a sorted list
 
 
 1.0.0

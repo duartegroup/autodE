@@ -35,7 +35,15 @@ class Molecule(Species):
         return None
 
     def _init_xyz_file(self, xyz_filename):
-        """Initialise a molecule from a .xyz file"""
+        """
+        Initialise a molecule from a .xyz file
+
+        Arguments:
+            xyz_filename (str):
+
+        Raises:
+            (ValueError)
+        """
         logger.info('Generating species from .xyz file')
 
         self.atoms = xyz_file_to_atoms(xyz_filename)
@@ -44,7 +52,7 @@ class Molecule(Species):
             and self.charge % 2 == 0 and self.mult == 1):
             raise ValueError('Initialised a molecule from an xyz file with  '
                              'an odd number of electrons but had an even '
-                             f'charge and S = {1}. Impossible!')
+                             'charge and 2S + 1 = 1. Impossible!')
 
         # Override the default name with something more descriptive
         if self.name == 'molecule' or self.name.endswith('.xyz'):

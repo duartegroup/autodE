@@ -51,6 +51,10 @@ def test_basic_attributes():
     h_atom = Molecule('tmp_H.xyz', mult=2)
     assert h_atom.mult == 2
 
+    # or as a proton
+    h_atom = Molecule('tmp_H.xyz', charge=1)
+    assert h_atom.charge == 1 and h_atom.mult == 1
+
     os.remove('tmp_H.xyz')
 
 
