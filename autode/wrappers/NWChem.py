@@ -21,28 +21,24 @@ def ecp_block(molecule, keywords):
     Returns:
         (str):
     """
-    ecp_block = ""
+    ecp_kwd = keywords.ecp
 
-    for keyword in keywords:
+    if ecp_kwd is None:
+        return ""   # No ECP is defined in these keywords
 
-        if not isinstance(keyword, kws.ECP):
-            continue
+    # Set of unique atomic symbols that require an ECP
+    ecp_elems = set(atom.label for atom in molecule.atoms
+                    if atom.atomic_number >= ecp_kwd.min_atomic_number)
 
-        # Set of unique atomic symbols that require an ECP
-        ecp_elems = set(atom.label for atom in molecule.atoms
-                        if atom.atomic_number >= keyword.min_atomic_number)
+    if len(ecp_elems) == 0:
+        return ""   # No atoms require an ECP
 
-        if len(ecp_elems) == 0:
-            break  # No atoms require an ECP
+    ecp_str = '\necp\n'
+    ecp_str += '\n'.join(f'  {label}   library  {ecp_kwd.nwchem}'
+                         for label in ecp_elems)
+    ecp_str += '\nend'
 
-        ecp_block += "\necp\n"
-        ecp_block += "\n".join(f'  {label}   library  {keyword.nwchem}'
-                               for label in ecp_elems)
-        ecp_block += "\nend"
-
-        break
-
-    return ecp_block
+    return ecp_str
 
 
 def get_keywords(calc_input, molecule):
@@ -250,8 +246,8 @@ class NWChem(ElectronicStructureMethod):
             params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,
                       calc.input.filename]
 
-            run_external_monitored(params, calc.output.filename)
-
+            run_external_monitored(params, calc.output.filename,
+                                   break_words=['Received an Error', 'MPI_ABORT'])
         execute_nwchem()
         return None
 

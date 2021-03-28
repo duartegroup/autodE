@@ -27,7 +27,7 @@ To install **autodE** with [conda](https://anaconda.org/conda-forge/autode):
 ```
 conda install autode -c conda-forge
 ```
-see the [installation guide](https://duartegroup.github.io/autodE/install.html) for installing from source or on Windows.
+see the [installation guide](https://duartegroup.github.io/autodE/install.html) for installing from source.
 
 ## Usage
 
