@@ -1,4 +1,4 @@
-from autode.wrappers.NWChem import NWChem
+from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords
@@ -70,6 +70,11 @@ def test_opt_single_atom():
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_ecp_calc():
+
+    # Should have no ECP block for molecule with only light elements
+    water_ecp_block = ecp_block(Molecule(smiles='O'),
+                                keywords=method.keywords.sp)
+    assert water_ecp_block == ''
 
     pdh2 = Molecule(smiles='[H][Pd][H]', name='H2Pd')
     pdh2.single_point(method=method)

@@ -87,6 +87,11 @@ class Atom:
 
 class DummyAtom(Atom):
 
+    @property
+    def atomic_number(self):
+        """The atomic number is defined as 0 for a dummy atom"""
+        return 0
+
     def __init__(self, x, y, z):
         super().__init__('H', x, y, z)
 

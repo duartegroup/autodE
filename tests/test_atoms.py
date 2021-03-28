@@ -45,3 +45,6 @@ def test_atom():
     assert len(str(h)) > 0
 
     assert Atom('C').atomic_number == 6
+
+    dummy = atoms.DummyAtom(0.0, 0.0, 0.0)
+    assert dummy.atomic_number == 0
