@@ -1,10 +1,13 @@
 import pytest
 import os
 import numpy as np
-from autode.wrappers.G09 import G09
+from autode.wrappers.G09 import G09, print_custom_basis, get_keywords, n_ecp_elements
 from autode.wrappers.G16 import G16
-from autode.calculation import Calculation
+from autode.calculation import Calculation, CalculationInput, Constraints
 from autode.species.molecule import Molecule
+from autode.wrappers import keywords as kwds
+from autode.wrappers.basis_sets import def2tzecp, def2tzvp
+from autode.wrappers.functionals import pbe0
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
@@ -25,6 +28,42 @@ optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
                               'MaxCycles=100, MaxStep=10, NoTrustUpdate)'])
 
 sp_keywords = SinglePointKeywords(['PBE1PBE/Def2SVP'])
+
+
+def test_printing_ecp():
+
+    tmp_file = open('tmp.com', 'w')
+    tmp_mol = Molecule(smiles='[H][Pd][H]')
+    tmp_mol.constraints = Constraints(distance={}, cartesian=[])
+
+    keywords = kwds.Keywords(keyword_list=[def2tzecp])
+    assert n_ecp_elements(keywords, molecule=tmp_mol) == 1
+    # Light elements should not default to ECPs
+    assert n_ecp_elements(keywords, molecule=Molecule(smiles='O')) == 0
+    # no ECP keywords -> no elements needing an ECP
+    assert n_ecp_elements(kwds.Keywords(keyword_list=[]), molecule=tmp_mol) == 0
+
+    calc_input = CalculationInput(keywords,
+                                  solvent=None,
+                                  additional_input=None,
+                                  added_internals=None,
+                                  point_charges=None,
+                                  temp=0)
+
+    with pytest.raises(RuntimeError):
+        print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
+
+    calc_input.keywords = kwds.Keywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
+    print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
+    assert os.path.exists('basis.gbs')
+
+    os.remove('tmp.com')
+    os.remove('basis.gbs')
+
+    # Should have GenECP in the keywords rather than the ECP or basis
+    # definitions
+    g09_kwds = get_keywords(calc_input, molecule=tmp_mol)
+    assert not any(kwd.lower() == 'def2tzvp' for kwd in g09_kwds)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))

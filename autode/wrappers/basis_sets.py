@@ -22,5 +22,10 @@ def2ecp = ECP(name='def2-ECP',
                         'Lu: 10.1063/1.1406535'],
               orca=None,              # def2-ECP is applied by default
               nwchem='def2-ecp',
-              g09='',  # TODO: Gaussian implementation
               min_atomic_number=37)   # applies to Rb and heavier
+
+
+def2tzecp = ECP(name='def2TZVP',     # Gaussian uses a combined definition
+                g09='def2TZVP',
+                g16='def2TZVP',
+                min_atomic_number=37)

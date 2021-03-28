@@ -1,6 +1,6 @@
 import autode.wrappers.implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet
-from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp
+from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.ri import rijcosx
@@ -194,7 +194,8 @@ class Config:
                                opt_ts=[pbe0, def2svp, 'Freq',
                                        d3bj, grid, ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj, grid],
-                               sp=[pbe0, def2tzvp, d3bj, grid])
+                               sp=[pbe0, def2tzvp, d3bj, grid],
+                               ecp=def2tzecp)
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -216,7 +217,8 @@ class Config:
                                opt_ts=[pbe0, def2svp, 'Freq', d3bj,
                                        ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj],
-                               sp=[pbe0, def2tzvp, d3bj])
+                               sp=[pbe0, def2tzvp, d3bj],
+                               ecp=def2tzecp)
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
