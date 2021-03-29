@@ -60,6 +60,7 @@ class SMILESAtom(Atom):
         # ---------- Attributes used for building the 3D structure ----------
         self.type = None
         self.neighbours = None
+        self.in_ring = False
 
 
 class SMILESBond:

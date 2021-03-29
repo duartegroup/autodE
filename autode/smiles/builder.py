@@ -80,6 +80,7 @@ class Builder:
 
             atom.coord = np.zeros(3)
             atom.neighbours = list(self.graph.neighbors(i))
+            atom.in_ring = len(self._ring_idxs([i], return_empty=True)) > 0
 
             # To build linear molecules the sites on atom types (templates)
             # need to be reversed for every other atom, otherwise the next atom
@@ -118,24 +119,31 @@ class Builder:
 
         return None
 
-    def _ring_idxs(self, ring_bond):
+    def _ring_idxs(self, inc_idxs, return_empty=False):
         """Indexes of atoms in the ring containing this bond
 
         Arguments:
-            ring_bond (autode.smiles.SMILESBond):
+            inc_idxs (list(int)): List of atom indexes that need to be included
+                                  in the ring
+
+        Keyword Arguments:
+            return_empty (bool):
 
         Returns:
-            (list(int)): Atom indexes in this ring
+            (list(int)): Atom indexes in this ring if they can be found
 
         Raises:
             (autode.exceptions.SMILESBuildFailed): If there is no such ring
         """
         try:
             return next(idxs for idxs in self.rings_idxs
-                        if ring_bond[0] in idxs and ring_bond[1] in idxs)
+                        if all(idx in idxs for idx in inc_idxs))
 
         except StopIteration:
-            raise SMILESBuildFailed(f'No ring containing {ring_bond}')
+            if return_empty:
+                return []
+
+            raise SMILESBuildFailed(f'No ring containing {inc_idxs}')
 
     def _ring_dihedrals(self, ring_bond):
         """
