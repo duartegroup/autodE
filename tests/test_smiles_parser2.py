@@ -330,6 +330,16 @@ def test_implicit_hydrogens():
     assert parser.bonds[0].order == parser.bonds[1].order == 2
     assert parser.atoms[1].n_hydrogens == 0
 
+    # Should be able to parse aromatic structures
+    parser.parse(smiles='c1ccccc1')
+    assert all(atom.n_hydrogens == 1 for atom in parser.atoms)
+
+    parser.parse(smiles='c1occc1')
+    assert all(atom.n_hydrogens == 0 for atom in parser.atoms
+               if atom.label == 'O')
+    assert all(atom.n_hydrogens == 1 for atom in parser.atoms
+               if atom.label == 'C')
+
 
 def test_multiplicity():
 

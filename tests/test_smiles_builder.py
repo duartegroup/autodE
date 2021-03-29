@@ -240,6 +240,10 @@ def test_branches_on_rings():
     assert built_molecule_is_reasonable(smiles='C1C(C)C(C)C(C)C(C)C1')
 
 
-def test_tmp():
+def test_aromatics():
+
+    assert built_molecule_is_reasonable(smiles='C1=CC=CC=C1')  # benzene
+    assert built_molecule_is_reasonable(smiles='c1ccccc1')     # benzene
+
     assert built_molecule_is_reasonable(smiles=r'O[C@@H]1[C@H](/C=C\CC/C=C'
                                                r'\C(CC/C(C)=C/[C@H]1C)=O)OC')

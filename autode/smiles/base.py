@@ -50,7 +50,8 @@ class SMILESAtom(Atom):
         """
         super().__init__(atomic_symbol=label.capitalize())
 
-        self.is_aromatic = label in aromatic_symbols
+        # SMILES label may be distinct from the atom label, e.g. aromatic atoms
+        self.smiles_label = label
 
         self.charge = charge
         self.n_hydrogens = n_hydrogens

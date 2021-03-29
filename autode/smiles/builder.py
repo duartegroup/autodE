@@ -238,6 +238,10 @@ class Builder:
 
             dihedrals.append(dihedral)
 
+        if len(dihedrals) == 0:
+            logger.info('No dihedrals to adjust to close the ring')
+            return
+
         minimise_ring_energy(atoms=self.atoms,
                              dihedrals=dihedrals,
                              close_idxs=(ring_bond[0], ring_bond[1]),
@@ -378,11 +382,13 @@ class Builder:
 
         # Is this bond cis or trans?
         stro_x, stro_y = self.atoms[idx_x].stereochem, self.atoms[idx_y].stereochem
-        if stro_x == stro_y == 'al_up' or stro_x == stro_y == 'al_down':
-            phi = 0
 
-        else:
-            phi = np.pi
+        phi = np.pi # Default to a trans double bond
+
+        if (all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
+            or stro_x == stro_y == 'al_up'
+            or stro_x == stro_y == 'al_down'):
+            phi = 0
 
         dihedral = Dihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
 
@@ -390,7 +396,13 @@ class Builder:
             dihedral.find_rot_idxs(graph=self.graph.copy(),
                                    atoms=self.atoms)
         except FailedToSetRotationIdxs:
-            logger.error(f'Could not queue {dihedral} for {bond}')
+            if self.atoms[idx_x].stereochem is not None:
+                logger.error(f'Could not queue {dihedral} for {bond} E/Z'
+                             f'stereochemistry may be wrong')
+
+            else:
+                logger.warning(f'Could not queue {dihedral} for {bond}')
+
             return
 
         logger.info(f'Queuing {dihedral}')

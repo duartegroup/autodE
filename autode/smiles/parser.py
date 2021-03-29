@@ -252,7 +252,10 @@ class Parser:
         """
         elems_poss_val = {'B': (3,), 'C': (4,), 'N': (3, 5), 'O': (2,),
                           'P': (3, 5), 'S': (2, 4, 6), 'F': (1,), 'Cl': (1,),
-                          'Br': (1,), 'I': (1,)}
+                          'Br': (1,), 'I': (1,),
+                          # Aromatic atoms are distinct
+                          'b': (3,), 'c': (3,), 'n': (3,), 'o': (2,),
+                          'p': (3,), 's': (2,), 'se': (2,), 'as': (3,)}
 
         for idx, atom in enumerate(self.atoms):
 
@@ -260,7 +263,7 @@ class Parser:
             if atom.n_hydrogens is not None:
                 continue
 
-            if atom.label not in elems_poss_val.keys():
+            if atom.smiles_label not in elems_poss_val.keys():
                 raise InvalidSmilesString('Could not define implicit hydrogens'
                                           f'for {atom.label}')
 
@@ -270,7 +273,7 @@ class Parser:
             # If the sum of the bond order is less than the minimum valance
             # then add the appropriate number of hydrogens to satisfy the
             # implicit valance
-            for valance in elems_poss_val[atom.label]:
+            for valance in elems_poss_val[atom.smiles_label]:
                 if sum_bond_orders <= valance:
                     atom.n_hydrogens = valance - sum_bond_orders
                     break
