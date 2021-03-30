@@ -36,9 +36,12 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs,
     Keyword Arguments:
         max_iterations (int): Maximum number of times the optimisation calls
     """
-    start_time = time()
-    assert len(dihedrals) > 0
 
+    return None
+
+
+def old_minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs,
+                             max_iterations=10):
     coords = np.array([a.coord for a in atoms], copy=True, dtype='f8')
     new_coords = np.copy(coords)
 
@@ -52,8 +55,8 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs,
     # Minimise such that there are no close pairwise distances < 0.7 Å,
     # while ignoring any atoms that remain at the origin (=0 distance)
     while (0 == iteration or (iteration < max_iterations
-           and np.any(np.logical_and(dist_mat > 0.01, dist_mat < 0.7)))):
-
+                              and np.any(
+                np.logical_and(dist_mat > 0.01, dist_mat < 0.7)))):
         res = minimize(dihedral_rotations,
                        x0=init_dihedral_angles(dihedrals, atoms),
                        args=(coords, dihedrals, close_idxs, r0,
@@ -75,8 +78,7 @@ def minimise_ring_energy(atoms, dihedrals, close_idxs, r0, ring_idxs,
     for i, atom in enumerate(atoms):
         atom.coord = new_coords[i]
 
-    logger.info(f'Closed ring in {(time() - start_time)*1000:.2f} ms')
-    return None
+    return
 
 
 def ring_atom_pairs(ring_idxs):
@@ -137,7 +139,7 @@ def dihedral_rotations(angles, coords, dihedrals, close_idxs, r0, rep_idxs):
     """
     idxs_i, idxs_j = rep_idxs
     dists = np.linalg.norm(coords[idxs_i] - coords[idxs_j], axis=1)
-    repulsive_energy = np.sum(np.power(dists - 1, -4)) / len(idxs_i)
+    repulsive_energy = np.sum(np.power(dists - 1, -2)) / len(idxs_i)
 
     return repulsive_energy + harm_energy(close_idxs, coords, r0)
 

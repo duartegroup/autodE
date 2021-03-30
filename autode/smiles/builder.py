@@ -40,6 +40,30 @@ class Builder:
         for i, atom in enumerate(self.atoms):
             atom.coord = value[i]
 
+    @property
+    def non_bonded_idx_matrix(self):
+        """
+        Generate a matrix of ones if atoms are non-bonded and zero if for
+        self pairs or they are bonded
+
+        Returns:
+            (np.ndarray): shape = (n_atoms, n_atoms)
+        """
+
+        idxs = np.ones(shape=(self.n_atoms, self.n_atoms), dtype='i4')
+        np.fill_diagonal(idxs, 0)  # Exclude self-repulsion
+
+        for bond in self.bonds:
+            idx_i, idx_j = bond
+            idxs[idx_i, idx_j] = idxs[idx_j, idx_i] = 0
+
+        # Do not include any atoms that have yet to be built
+        for i, atom in enumerate(self.atoms):
+            if not atom.is_shifted:
+                idxs[i, :] = 0
+
+        return idxs
+
     def _explicit_all_hydrogens(self):
         """Convert all implicit hydrogens to explicit ones"""
 
@@ -250,11 +274,27 @@ class Builder:
             logger.info('No dihedrals to adjust to close the ring')
             return
 
-        minimise_ring_energy(atoms=self.atoms,
-                             dihedrals=dihedrals,
-                             close_idxs=(ring_bond[0], ring_bond[1]),
-                             r0=ring_bond.r0,
-                             ring_idxs=self._ring_idxs(ring_bond))
+        # minimise_ring_energy(atoms=self.atoms,
+        #                      dihedrals=dihedrals,
+        #                      close_idxs=(ring_bond[0], ring_bond[1]),
+        #                      r0=ring_bond.r0,
+        #                      ring_idxs=self._ring_idxs(ring_bond))
+
+        start_time = time()
+
+        new_coords = rotate(py_coords=self.coordinates,
+                            py_angles=np.zeros(len(dihedrals)),
+                            py_axes=dihedrals.axes,
+                            py_rot_idxs=dihedrals.rot_idxs,
+                            py_origins=dihedrals.origins,
+                            minimise=True,
+                            py_rep_idxs=self.non_bonded_idx_matrix,
+                            py_close_idxs=np.array((ring_bond[0], ring_bond[1]),
+                                                   dtype='i4'),
+                            py_r0=ring_bond.r0)
+
+        self.coordinates = new_coords
+        logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
         return None
@@ -316,7 +356,8 @@ class Builder:
                         py_axes=dihedrals.axes,
                         py_rot_idxs=dihedrals.rot_idxs,
                         py_origins=dihedrals.origins,
-                        minimise=True)
+                        minimise=True,
+                        py_rep_idxs=self.non_bonded_idx_matrix)
 
         self.coordinates = coords
         logger.info(f'Performed final dihedral rotation in '
@@ -838,15 +879,6 @@ class Dihedrals(list):
     @property
     def rot_idxs(self):
         return np.array([dihedral.rot_idxs for dihedral in self], dtype='i4')
-
-    def subset(self, *args):
-
-        dihedrals = Dihedrals()
-        for idx in args:
-            dihedrals.append(self[idx])
-
-        return dihedrals
-
 
 
 class Dihedral:
