@@ -278,6 +278,17 @@ def test_cis_trans():
     assert parser.atoms[1].has_stereochem
 
 
+def test_is_pi_atom():
+
+    parser = Parser()
+
+    parser.parse(smiles='C1=CC=CC=C1')   # benzene
+    assert all(atom.is_pi for atom in parser.atoms)
+
+    parser.parse(smiles='c1ccccc1')       # benzene, but with aromatic atoms
+    assert all(atom.is_pi for atom in parser.atoms)
+
+
 def test_implicit_hydrogens():
 
     parser = Parser()

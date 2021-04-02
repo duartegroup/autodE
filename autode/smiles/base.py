@@ -23,6 +23,11 @@ class SMILESAtom(Atom):
         return False if np.allclose(self.coord, np.zeros(3)) else True
 
     @property
+    def is_aromatic(self):
+        """Is this atom 'aromatic'?"""
+        return self.smiles_label in aromatic_symbols
+
+    @property
     def has_stereochem(self):
         """Does this atom have associated stereochemistry?"""
         return self.stereochem is not None
@@ -61,6 +66,7 @@ class SMILESAtom(Atom):
         self.type = None
         self.neighbours = None
         self.in_ring = False
+        self.is_pi = False if label not in aromatic_symbols else True
 
 
 class SMILESBond:

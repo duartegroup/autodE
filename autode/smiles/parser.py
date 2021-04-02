@@ -268,6 +268,10 @@ class Parser:
                                           f'for {atom.label}')
 
             bonds = self.bonds.involving(idx)
+
+            if not atom.is_aromatic:
+                atom.is_pi = any(bond.order > 1 for bond in bonds)
+
             sum_bond_orders = sum(bond.order for bond in bonds)
 
             # If the sum of the bond order is less than the minimum valance
