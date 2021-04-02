@@ -8,8 +8,7 @@ from autode.bonds import get_avg_bond_length
 from autode.geom import get_rot_mat_kabsch
 from autode.exceptions import SMILESBuildFailed, FailedToSetRotationIdxs
 from autode.smiles.base import SMILESAtom, SMILESBond
-from autode.smiles.rings import minimise_ring_energy
-from cdihedrals import rotate
+from cdihedrals import rotate, closed_ring_coords
 
 
 class Builder:
@@ -60,7 +59,7 @@ class Builder:
         # Do not include any atoms that have yet to be built
         for i, atom in enumerate(self.atoms):
             if not atom.is_shifted:
-                idxs[i, :] = 0
+                idxs[i, :] = idxs[:, i] = 0
 
         return idxs
 
@@ -216,9 +215,15 @@ class Builder:
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedrals):
-            dihedral = Dihedral(dihedral_idxs,
-                                ring_n=len(ring_idxs))
 
+            dihedral = Dihedral(dihedral_idxs)
+
+            # If both atoms either side of this one are 'pi' atoms e.g. in a
+            # benzene ring, then the ideal angle must be 0 to close the ring
+            if all(self.atoms[idx].is_pi for idx in dihedral.mid_idxs):
+                dihedral.phi0 = 0.0
+
+            # Only yield single bonds, that can be rotated freely
             if self.graph.get_edge_data(*dihedral.mid_idxs)['order'] == 1:
                 yield dihedral
 
@@ -274,26 +279,20 @@ class Builder:
             logger.info('No dihedrals to adjust to close the ring')
             return
 
-        # minimise_ring_energy(atoms=self.atoms,
-        #                      dihedrals=dihedrals,
-        #                      close_idxs=(ring_bond[0], ring_bond[1]),
-        #                      r0=ring_bond.r0,
-        #                      ring_idxs=self._ring_idxs(ring_bond))
-
         start_time = time()
 
-        new_coords = rotate(py_coords=self.coordinates,
-                            py_angles=np.zeros(len(dihedrals)),
-                            py_axes=dihedrals.axes,
-                            py_rot_idxs=dihedrals.rot_idxs,
-                            py_origins=dihedrals.origins,
-                            minimise=True,
-                            py_rep_idxs=self.non_bonded_idx_matrix,
-                            py_close_idxs=np.array((ring_bond[0], ring_bond[1]),
-                                                   dtype='i4'),
-                            py_r0=ring_bond.r0)
+        coords = closed_ring_coords(py_coords=self.coordinates,
+                                    py_curr_angles=dihedrals.values(self.atoms),
+                                    py_ideal_angles=dihedrals.ideal_angles,
+                                    py_axes=dihedrals.axes,
+                                    py_rot_idxs=dihedrals.rot_idxs,
+                                    py_origins=dihedrals.origins,
+                                    py_rep_idxs=self.non_bonded_idx_matrix,
+                                    py_close_idxs=np.array(tuple(ring_bond),
+                                                           dtype='i4'),
+                                    py_r0=ring_bond.r0)
+        self.coordinates = coords
 
-        self.coordinates = new_coords
         logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
@@ -880,6 +879,15 @@ class Dihedrals(list):
     def rot_idxs(self):
         return np.array([dihedral.rot_idxs for dihedral in self], dtype='i4')
 
+    @property
+    def ideal_angles(self):
+        """Ideal dihedral angles (float | None)"""
+        return np.array([dihedral.phi_ideal for dihedral in self], dtype='f8')
+
+    def values(self, atoms):
+        """Current dihedral values"""
+        return [dihedral.value(atoms) for dihedral in self]
+
 
 class Dihedral:
     """A dihedral defined by 4 atom indexes e.g.
@@ -893,6 +901,15 @@ class Dihedral:
 
     def __repr__(self):
         return self.__str__()
+
+    @property
+    def phi0(self):
+        """A non-None ideal angle for this dihedral"""
+        return 0 if self.phi_ideal is None else self.phi_ideal
+
+    @phi0.setter
+    def phi0(self, value):
+        self.phi_ideal = float(value)
 
     def value(self, atoms):
         """
@@ -960,7 +977,7 @@ class Dihedral:
                          for i in range(len(atoms))]
         return None
 
-    def __init__(self, idxs, rot_idxs=None, ring_n=None, phi0=0):
+    def __init__(self, idxs, rot_idxs=None, phi0=None):
         """
         A dihedral constructed from atom indexes and possibly indexes that
         should be rotated, if this dihedral is altered::
@@ -982,11 +999,10 @@ class Dihedral:
             ring_n (int | None): Number of atoms in the ring for which this
                                  dihedral is a part, if None then not in a ring
 
-            phi0 (float): Ideal angle for this dihedral (radians)
+            phi0 (float | None): Ideal angle for this dihedral (radians)
         """
         self.idxs = idxs
-        self.ring_n = ring_n
-        self.phi0 = phi0
+        self.phi_ideal = phi0
 
         # Atom indexes of the central two atoms (X, Y)
         _, idx_y, idx_z, _ = idxs
