@@ -326,6 +326,67 @@ cpdef void _close_ring1(double [:, :] coords,
     return
 
 
+def large_ring_fixed(py_ideal_angles):
+    """
+    Generate the indexes of dihedrals that will be fixed and not minimised to
+    close a ring depending on the number of angles, also return the ideal
+    angles. Always return 2 non-fixed dihedrals that can be minimised on
+
+    Arguments:
+        py_ideal_angles (list(float | None)):
+
+    Returns:
+        (tuple(np.ndarray, np.ndarray)):
+    """
+    assert len(py_ideal_angles) > 2
+
+    n_angles = len(py_ideal_angles)
+    fixed_angles, fixed_idxs = [], []
+
+    for i, angle in enumerate(py_ideal_angles):
+        if angle is not None:
+            fixed_angles.append(angle)
+            fixed_idxs.append(i)
+
+        if n_angles - len(fixed_idxs) == 2:
+            return (np.array(fixed_idxs, dtype='i4'),
+                    np.array(fixed_angles, dtype='f8'))
+
+    if n_angles == 3:                          # e.g. 6-membered saturated ring
+        # Fix one angle at 60º
+        return (np.array([0], dtype='i4'),
+                np.array([1.0472], dtype='f8'))
+
+    if n_angles == 4:                        # e.g. 7-membered saturated ring
+        # Fix angles at -70º, +60º
+        return (np.array([0, 1], dtype='i4'),
+                np.array([-1.22173, 1.0472], dtype='f8'))
+
+    if n_angles == 5:                        # e.g. 8-membered saturated ring
+        # Fix angles at ±84º
+        return (np.array([0, 1, 2], dtype='i4'),
+                np.array([1.46608, -1.46608, 1.46608], dtype='f8'))
+
+
+    # Fix indexes are at the start and end of the ring, so insert any
+    # remaining in the middle (excluding idxs 2 and n_angles-3)
+    fixed_idxs = [0, 1, n_angles-2, n_angles-1]
+
+    # start from -70º, +60º on either end of the ring
+    fixed_angles = [-1.22173, 1.0472, -1.22173, 1.0472]
+
+    for i in range(n_angles-2-4):
+        if i % 2 == 0:
+            fixed_idxs.insert(2, 3+i)
+            fixed_angles.insert(2, np.pi)
+
+        else:
+            fixed_idxs.insert(-3, n_angles-4-i)
+            fixed_angles.insert(-3, np.pi)
+
+    return np.array(fixed_idxs, dtype='i4'), np.array(fixed_angles, dtype='f8')
+
+
 cpdef closed_ring_coords(py_coords,
                          py_curr_angles,
                          py_ideal_angles,
@@ -385,6 +446,9 @@ cpdef closed_ring_coords(py_coords,
     cdef double r0 = py_r0
 
     cdef double [:] angles
+    cdef double [:, :] angles1
+    cdef double [:, :, :] angles2
+
     n_angles = len(py_curr_angles)
 
     if n_angles == 0:
@@ -400,7 +464,6 @@ cpdef closed_ring_coords(py_coords,
         return np.array(coords)
 
     # There are at least one dihedral to optimise on...
-    cdef double [:, :] angles1
 
     if n_angles == 1:
         # Evenly spaced set of angles over [-π, π), excluding the final
@@ -419,29 +482,37 @@ cpdef closed_ring_coords(py_coords,
     # {angles}_ij = [angle_1, angle_2]  where the first two dimensions will
     # be iterated through
     py_angles1d = np.linspace(-np.pi, np.pi-0.419, num=14)
-    py_angles = np.stack(np.meshgrid(py_angles1d, py_angles1d), axis=2)
-    cdef double [:, :, :] angles2 = py_angles - py_curr_angles
+    angles2 = np.stack(np.meshgrid(py_angles1d, py_angles1d), axis=2)
 
     if n_angles == 2:
         # Nothing special to be done - just minimise fully
         _close_ring2(coords, min_coords, prev_coords, angles2, axes, origins,
                      rot_idxs, rep_idxs, close_idxs, r0)
 
-    elif n_angles == 3:
-        # Fix one of the angles to 60º, which should always be reasonable
-        # note that contiguous double bonds (e.g. phenyls) should have
-        # py_ideal_angles defined and thus not get here
-        raise NotImplementedError
+        return np.array(coords)
 
-    else:
-        raise NotImplementedError
+    fixed_idxs, fixed_angles = large_ring_fixed(py_ideal_angles)
 
-    # TODO apply initial rotations
+    # Apply the fixed rotations on a subset of the dihedrals, which will not
+    # be optimised
+    axes = py_axes[fixed_idxs, :]
+    origins = py_origins[fixed_idxs]
+    rot_idxs = py_rot_idxs[fixed_idxs, :]
+    angles = fixed_angles - py_curr_angles[fixed_idxs]
 
-    # TODO subset into smaller space
+    _rotate(coords, angles, axes, origins, rot_idxs)
 
-    # TODO Grid to minimise _close_energy
+    # Get the 'inverse' of the index array (surely there's a better way)
+    rotated_idxs = np.array([i for i in range(n_angles)
+                             if i not in fixed_idxs], dtype='i4')
 
+    axes = py_axes[rotated_idxs, :]
+    origins = py_origins[rotated_idxs]
+    rot_idxs = py_rot_idxs[rotated_idxs, :]
+
+    # and find the optimal closure over those angles
+    _close_ring2(coords, min_coords, prev_coords, angles2, axes, origins,
+                 rot_idxs, rep_idxs, close_idxs, r0)
 
     return np.array(coords)
 

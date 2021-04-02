@@ -882,11 +882,12 @@ class Dihedrals(list):
     @property
     def ideal_angles(self):
         """Ideal dihedral angles (float | None)"""
-        return np.array([dihedral.phi_ideal for dihedral in self], dtype='f8')
+        return [dihedral.phi_ideal for dihedral in self]
 
     def values(self, atoms):
         """Current dihedral values"""
-        return [dihedral.value(atoms) for dihedral in self]
+        return np.array([dihedral.value(atoms) for dihedral in self],
+                        dtype='f8')
 
 
 class Dihedral:
@@ -972,8 +973,10 @@ class Dihedral:
             raise FailedToSetRotationIdxs('Splitting over this dihedral did '
                                           'not afford two fragments')
 
-        # Choose the first set of indexes [0] to rotate, this is arbitrary
-        self.rot_idxs = [1 if i in components[0].nodes else 0
+        # Choose the components that will be rotated
+        cpnt_idx = 0 if self.mid_idxs[0] in components[0].nodes else 1
+
+        self.rot_idxs = [1 if i in components[cpnt_idx].nodes else 0
                          for i in range(len(atoms))]
         return None
 
