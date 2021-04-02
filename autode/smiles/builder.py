@@ -946,7 +946,7 @@ class Dihedral:
         # Remove all the nodes in the graph that have not been shifted, thus
         # the rotation indexes only include atoms that have been 'built'
         for idx, atom in enumerate(atoms):
-            if not atom.is_shifted:
+            if hasattr(atom, 'is_shifted') and not atom.is_shifted:
                 graph.remove_node(idx)
 
         components = [graph.subgraph(c) for c in nx.connected_components(graph)]

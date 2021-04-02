@@ -63,9 +63,7 @@ cdef void _set_coords(int n_atoms,
     return
 
 
-cdef void _rotate(int n_angles,
-                  int n_atoms,
-                  double [:, :] coords,
+cdef void _rotate(double [:, :] coords,
                   double [:] angles,
                   int [:, :] axes,
                   int [:] origins,
@@ -80,7 +78,7 @@ cdef void _rotate(int n_angles,
     cdef int i, j, k
     cdef double x, y, z
 
-    for i in range(n_angles):
+    for i in range(angles.shape[0]):
 
         # Define the origin and axis, the latter is normalised in
         # update_rotation_matrix
@@ -91,7 +89,7 @@ cdef void _rotate(int n_angles,
         _update_rotation_matrix(rot_mat, axis=axis, theta=angles[i])
 
         # Rotate the portion of the structure to rotate about the bonding axis
-        for j in range(n_atoms):
+        for j in range(coords.shape[0]):
 
             # Only rotate the required atoms (rot_idx == 1, rather than 0)
             if rot_idxs[i, j] != 1:
@@ -117,18 +115,15 @@ cdef void _rotate(int n_angles,
     return
 
 
-cdef double _energy(int n_atoms,
-                    double [:, :] coords,
-                    int [:, :] rep_idxs,
-                    int [:] pair_idxs,
-                    double r0):
+cdef double _rep_energy(int n_atoms,
+                        double [:, :] coords,
+                        int [:, :] rep_idxs):
     """
-    Calculate the pairwise repulsion between all atoms with
+    Calculate the pairwise repulsion between all atoms with {rep_idxs}ij != 0
+    using
     
-    V(X) = Σ'_ij 1 / r_ij^2  +  (r_pair - r0)^2
-    
-    if pair = (0, 0) then the harmonic component is skipped
-    
+    V(coords) = Σ'_ij 1 / r_ij^2 
+        
     Arguments:
         n_atoms (int): 
         coords (array): 
@@ -154,27 +149,49 @@ cdef double _energy(int n_atoms,
 
             energy += 1.0 / r_sq
 
-    # Harmonic term
-    if pair_idxs[0] != 0 and pair_idxs[1] != 0:
-        r_pair = sqrt((coords[pair_idxs[0], 0] - coords[pair_idxs[1], 0])**2 +
-                      (coords[pair_idxs[0], 1] - coords[pair_idxs[1], 1])**2 +
-                      (coords[pair_idxs[0], 2] - coords[pair_idxs[1], 2])**2)
-
-        energy += (r_pair - r0)**2
-
     return energy
 
 
-cpdef double _minimise(int n_angles,
-                       int n_atoms,
-                       double [:, :] coords,
+cdef double _close_energy(int n_atoms,
+                          double [:, :] coords,
+                          int [:, :] rep_idxs,
+                          int [:] pair_idxs,
+                          double r0):
+
+    """
+    Calculate the energy for closing a ring
+    
+    V(coords) = Σ'_ij 1 / r_ij^2  +  (r_pair - r0)^2
+    
+    where ij is an atom pair and r_pair is the distance between the two atom
+    indexes in pair_idxs
+    
+    Arguments:
+        n_atoms (int): 
+        coords (array): 
+        rep_idxs (array):
+        pair_idxs (array):
+        r0 (double):
+
+    Returns:
+        (double)
+    """
+    cdef double repulsive_energy = _rep_energy(n_atoms, coords, rep_idxs)
+
+    # Harmonic term
+    r_pair = sqrt((coords[pair_idxs[0], 0] - coords[pair_idxs[1], 0])**2 +
+                  (coords[pair_idxs[0], 1] - coords[pair_idxs[1], 1])**2 +
+                  (coords[pair_idxs[0], 2] - coords[pair_idxs[1], 2])**2)
+
+    return repulsive_energy + (r_pair - r0)**2
+
+
+cpdef double _minimise(double [:, :] coords,
                        double [:] dangles,
                        int [:, :] axes,
                        int [:] origins,
                        int [:, :] rot_idxs,
-                       int [:, :] rep_idxs,
-                       int [:] pair_idxs,
-                       double r0):
+                       int [:, :] rep_idxs):
     """Minimise the dihedral rotations using a simple repulsive potential
     and a gradient decent minimiser
     """
@@ -183,8 +200,11 @@ cpdef double _minimise(int n_angles,
     cdef double step_size = 0.05    # Initial step size  (rad)
     cdef int max_iters = 10000      # Maximum number of iterations
 
+    cdef int n_atoms = coords.shape[0]
+    cdef int n_angles = dangles.shape[0]
+
     cdef double prev_energy = 0.0
-    cdef double curr_energy = _energy(n_atoms, coords, rep_idxs, pair_idxs, r0)
+    cdef double curr_energy = _rep_energy(n_atoms, coords, rep_idxs)
     cdef int iteration = 0
 
     # Memory view arrays for the gradient dV/dθ_i and the forwards and
@@ -210,17 +230,17 @@ cpdef double _minimise(int n_angles,
 
             # Calculate a finite difference gradient
             dangles[i] += eps / 2.0
-            _rotate(n_angles, n_atoms, coords_h, dangles, axes, origins, rot_idxs)
+            _rotate(coords_h, dangles, axes, origins, rot_idxs)
 
             dangles[i] -= eps
-            _rotate(n_angles, n_atoms, coords_mh, dangles, axes, origins, rot_idxs)
+            _rotate(coords_mh, dangles, axes, origins, rot_idxs)
 
             # central difference approximation for the gradient
             # dV/dθ_i ~ (V(x_h) - V(x_mh) / 2h)
             # where x_h are the coordinates from a +h/2 rotation on θ_i
             # and x_mh are similar with -h/2
-            grad[i] = (_energy(n_atoms, coords_h, rep_idxs, pair_idxs, r0)
-                       - _energy(n_atoms, coords_mh, rep_idxs, pair_idxs, r0)) / eps
+            grad[i] = (_rep_energy(n_atoms, coords_h, rep_idxs)
+                       - _rep_energy(n_atoms, coords_mh, rep_idxs)) / eps
 
             dangles[i] += eps / 2.0
 
@@ -231,46 +251,39 @@ cpdef double _minimise(int n_angles,
 
 
         # Apply the optimal rotations δθ
-        _rotate(n_angles, n_atoms, coords, dangles, axes, origins, rot_idxs)
+        _rotate(coords, dangles, axes, origins, rot_idxs)
 
-        curr_energy = _energy(n_atoms, coords, rep_idxs, pair_idxs, r0)
+        curr_energy = _rep_energy(n_atoms, coords, rep_idxs)
         iteration += 1
 
     return curr_energy
 
 
 cpdef void _close_ring(double [:, :] coords,
+                       double [:] angles,
                        int [:, :] axes,
                        int [:] origins,
                        int [:, :] rot_idxs,
                        int [:, :] rep_idxs,
                        int [:] close_idxs,
-                       double r0,
-                       int n_iters=10):
+                       double r0):
     """Close a ring using dihedral rotations """
-
-    cdef int n_angles = len(axes)
-    cdef int n_atoms = len(coords)
+    cdef int n_atoms = coords.shape[0]
+    cdef int n_angles = angles.shape[0]
 
     cdef double min_energy = 99999.9
-    cdef double energy
+    cdef double energy = 0.0
     cdef double [:, :] min_coords = np.zeros(shape=(int(n_atoms), 3))
     cdef double [:, :] prev_coords = np.zeros(shape=(int(n_atoms), 3))
-
-    cdef double [:] angles = np.zeros(shape=(int(n_angles)))
 
     cdef int n, i, k
 
     _set_coords(n_atoms, prev_coords, coords)
 
     # Run n_iters minimisation's
-    for n in range(n_iters):
+    for n in range(99999999):
 
-        angles = np.random.uniform(-np.pi, np.pi, size=int(n_angles))
-
-        # Get the energy from some random starting point
-        energy = _minimise(n_angles, n_atoms, coords, angles, axes, origins,
-                           rot_idxs, rep_idxs, close_idxs, r0)
+        # TODO apply the minimisation
 
         if energy < min_energy:
             _set_coords(n_atoms, min_coords, coords)
@@ -282,6 +295,69 @@ cpdef void _close_ring(double [:, :] coords,
     return
 
 
+cpdef close_ring(py_coords,
+                 py_curr_angles,
+                 py_axes,
+                 py_rot_idxs,
+                 py_origins,
+                 py_rep_idxs,
+                 py_close_idxs,
+                 py_r0):
+    """
+    Close a ring by altering dihedral angles
+    
+    --------------------------------------------------------------------------
+    Arguments:
+        py_coords (np.ndarray): shape = (n_atoms, 3)  Atomic coordinates
+        
+        py_curr_angles (np.ndarray): shape = (m,)  Current dihedral angles
+                                     
+        
+        py_axes (np.ndarray): shape = (m, 2) Atom indexes for the axis atoms
+                              
+        py_rot_idxs (np.ndarray): shape = (m, n_atoms) Bit array for each angle
+                                  with 1 if this atom should be rotated and 0
+                                  otherwise
+        
+        py_origins (np.ndarray): shape = (m,) Atom indexes of the origin atoms
+            
+        py_rep_idxs (np.ndarray): shape = (n_atoms, n_atoms). Index pairs to
+                                  use for repulsion if {py_rep_idxs}_ij == 1
+                                  
+        py_close_idxs (np.ndarray): shape = (2,) Pair of atoms that need to be
+                                    separated by approximately r0
+                                    
+        py_r0 (float): Optimal distance between the close indexes
+                                  
+    Returns:
+        (np.ndarray): Rotated coordinates
+    """
+
+    # Use memory views of the numpy arrays
+    cdef double [:, :] coords = py_coords
+
+    cdef double [:] angles = py_curr_angles
+    cdef int [:, :] axes = py_axes
+    cdef int [:] origins = py_origins
+
+    cdef int [:, :] rot_idxs = py_rot_idxs
+    cdef int [:, :] rep_idxs = py_rep_idxs
+
+    cdef int [:] close_idxs = py_close_idxs
+    cdef double r0 = py_r0
+
+    # TODO apply initial rotations
+
+    # TODO subset into smaller space
+
+    # TODO Grid to minimise _close_energy
+
+
+    _close_ring(coords, angles, axes, origins, rot_idxs, rep_idxs, close_idxs, r0)
+
+
+    return np.array(coords)
+
 
 cpdef rotate(py_coords,
              py_angles,
@@ -289,9 +365,7 @@ cpdef rotate(py_coords,
              py_rot_idxs,
              py_origins,
              minimise=False,
-             py_rep_idxs=None,
-             py_close_idxs=None,
-             py_r0=None):
+             py_rep_idxs=None):
     """
     Rotate coordinates by a set of dihedral angles each around an axis placed
     at an origin
@@ -320,11 +394,6 @@ cpdef rotate(py_coords,
                                   to be pairwise repulsive. 
                                   *Only the upper triangular portion is used*
                                   
-        py_close_idxs (np.ndarray): shape = (2,) Pair of atoms that need to be
-                                    seperated by approximately r0
-                                    
-        py_r0 (float | None): r0 used if py_close_idxs is not None
-                                  
     Returns:
         (np.ndarray): Rotated coordinates
     """
@@ -348,26 +417,11 @@ cpdef rotate(py_coords,
 
     cdef int [:, :] rep_idxs = py_rep_idxs
 
-    # Pair of atom indexes that will close a ring, the distance between which
-    # needs to be close to r0
-    if py_close_idxs is None:
-        py_close_idxs = np.zeros(2, dtype='i4')
-
-    assert py_close_idxs.shape == (2,)
-    cdef int [:] close_idxs = py_close_idxs
-
-    cdef double r0 = py_r0 if py_r0 is not None else 0.0
-
-
     # Apply all the rotations in place
-    if py_close_idxs is not None and minimise:
-        _close_ring(coords, axes, origins, rot_idxs, rep_idxs, close_idxs, r0)
-
-    elif minimise:
-        _minimise(n_angles, n_atoms, coords, angles, axes, origins, rot_idxs,
-                  rep_idxs, close_idxs, r0)
+    if minimise:
+        _minimise(coords, angles, axes, origins, rot_idxs, rep_idxs)
 
     else:
-        _rotate(n_angles, n_atoms, coords, angles, axes, origins, rot_idxs)
+        _rotate(coords, angles, axes, origins, rot_idxs)
 
     return np.array(coords)
