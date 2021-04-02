@@ -10,6 +10,37 @@ from autode.constants import Constants
 from autode.utils import work_in_tmp_dir
 
 
+def ecp_block(molecule, keywords):
+    """
+    Generate a block of input for any effective core potentials to add
+
+    Arguments:
+        molecule (autode.species.Species):
+        keywords (autode.wrappers.keywords.Keywords):
+
+    Returns:
+        (str):
+    """
+    ecp_kwd = keywords.ecp
+
+    if ecp_kwd is None:
+        return ""   # No ECP is defined in these keywords
+
+    # Set of unique atomic symbols that require an ECP
+    ecp_elems = set(atom.label for atom in molecule.atoms
+                    if atom.atomic_number >= ecp_kwd.min_atomic_number)
+
+    if len(ecp_elems) == 0:
+        return ""   # No atoms require an ECP
+
+    ecp_str = '\necp\n'
+    ecp_str += '\n'.join(f'  {label}   library  {ecp_kwd.nwchem}'
+                         for label in ecp_elems)
+    ecp_str += '\nend'
+
+    return ecp_str
+
+
 def get_keywords(calc_input, molecule):
     """Generate a keywords list and adding solvent"""
 
@@ -23,6 +54,11 @@ def get_keywords(calc_input, molecule):
 
         elif isinstance(keyword, kws.BasisSet):
             keyword = f'basis\n  *   library {keyword.nwchem}\nend'
+            keyword += ecp_block(molecule, keywords=calc_input.keywords)
+
+        elif isinstance(keyword, kws.ECP):
+            # ECPs are added to the basis block
+            continue
 
         elif isinstance(keyword, kws.Keyword):
             keyword = keyword.nwchem
@@ -210,8 +246,8 @@ class NWChem(ElectronicStructureMethod):
             params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,
                       calc.input.filename]
 
-            run_external_monitored(params, calc.output.filename)
-
+            run_external_monitored(params, calc.output.filename,
+                                   break_words=['Received an Error', 'MPI_ABORT'])
         execute_nwchem()
         return None
 

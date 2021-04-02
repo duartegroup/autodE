@@ -1,6 +1,6 @@
 import autode.wrappers.implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet
-from autode.wrappers.basis_sets import def2svp, def2tzvp
+from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.ri import rijcosx
@@ -146,23 +146,25 @@ class Config:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj, def2svp],
+        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj,
+                                        def2svp, 'def2/J'],
                                grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
-                                     'AutoAux'],
+                                     'def2/J'],
                                opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
-                                    'AutoAux'],
+                                    'def2/J'],
                                opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj,
-                                       def2svp, 'AutoAux'],
+                                       def2svp, 'def2/J'],
                                hess=['Freq', pbe0, rijcosx, d3bj, def2svp,
-                                     'AutoAux'],
+                                     'def2/J'],
                                sp=['SP', pbe0, rijcosx, d3bj, def2tzvp,
-                                   'AutoAux'],
+                                   'def2/J'],
                                optts_block=('%geom\n'
                                             'Calc_Hess true\n' 
                                             'Recalc_Hess 30\n'
                                             'Trust -0.1\n'
                                             'MaxIter 150\n'
-                                            'end'))
+                                            'end'),
+                               ecp=def2ecp)
 
         # Implicit solvent in ORCA is either treated with CPCM or SMD, the
         # former has support for a VdW surface construction which provides
@@ -192,7 +194,8 @@ class Config:
                                opt_ts=[pbe0, def2svp, 'Freq',
                                        d3bj, grid, ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj, grid],
-                               sp=[pbe0, def2tzvp, d3bj, grid])
+                               sp=[pbe0, def2tzvp, d3bj, grid],
+                               ecp=def2tzecp)
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -214,7 +217,8 @@ class Config:
                                opt_ts=[pbe0, def2svp, 'Freq', d3bj,
                                        ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj],
-                               sp=[pbe0, def2tzvp, d3bj])
+                               sp=[pbe0, def2tzvp, d3bj],
+                               ecp=def2tzecp)
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -261,7 +265,8 @@ class Config:
                                hess=[def2svp, pbe0,
                                      'task dft freq'],
                                sp=[def2tzvp, pbe0,
-                                   'task dft energy'])
+                                   'task dft energy'],
+                               ecp=def2ecp)
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd

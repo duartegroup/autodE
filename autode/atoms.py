@@ -8,6 +8,16 @@ class Atom:
         x, y, z = self.coord
         return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
 
+    @property
+    def atomic_number(self):
+        """Atomic numbers are the position in the elements, plus one"""
+        return elements.index(self.label) + 1
+
+    @property
+    def atomic_symbol(self):
+        """A more interpretable alias for label"""
+        return self.label
+
     def translate(self, vec):
         """
         Translate this atom by a vector
@@ -76,6 +86,11 @@ class Atom:
 
 
 class DummyAtom(Atom):
+
+    @property
+    def atomic_number(self):
+        """The atomic number is defined as 0 for a dummy atom"""
+        return 0
 
     def __init__(self, x, y, z):
         super().__init__('H', x, y, z)

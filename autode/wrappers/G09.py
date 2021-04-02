@@ -43,6 +43,20 @@ def modify_keywords_for_point_charges(keywords):
     return None
 
 
+def n_ecp_elements(keywords, molecule):
+    """Number of elements that require an ECP"""
+
+    ecp_kwd = keywords.ecp
+
+    if ecp_kwd is None:
+        return 0
+
+    ecp_elems = set(atom.label for atom in molecule.atoms
+                    if atom.atomic_number >= ecp_kwd.min_atomic_number)
+
+    return len(ecp_elems)
+
+
 def get_keywords(calc_input, molecule):
     """Modify the input keywords to try and fix some Gaussian's quirks"""
 
@@ -56,7 +70,17 @@ def get_keywords(calc_input, molecule):
             new_keywords.append('genecp')
             continue
 
-        if isinstance(keyword, kws.Keyword):
+        if (isinstance(keyword, kws.BasisSet)
+                and n_ecp_elements(calc_input.keywords, molecule) > 0):
+            logger.info('Required and ECP so will print a custom basis set')
+            new_keywords.append('genecp')
+            continue
+
+        elif isinstance(keyword, kws.ECP):
+            # ECPs are dealt with in a custom file
+            continue
+
+        elif isinstance(keyword, kws.Keyword):
             kwd_str = keyword.g09 if hasattr(keyword, 'g09') else keyword.g16
 
             # Add any empirical dispersion
@@ -156,8 +180,9 @@ def print_constraints(inp_file, molecule):
     return
 
 
-def print_custom_basis(inp_file, keywords):
+def print_custom_basis(inp_file, calc_input, molecule):
     """Print the definition of the custom basis set file """
+    keywords = calc_input.keywords
 
     for keyword in keywords:
         if isinstance(keyword, kws.Keyword) and hasattr(keyword, 'g09'):
@@ -167,7 +192,46 @@ def print_custom_basis(inp_file, keywords):
 
         if str_keyword.endswith('.gbs'):
             print(f'@{keyword}', file=inp_file)
+            return
 
+    if n_ecp_elements(keywords, molecule) == 0:
+        return
+
+    # Must need a custom basis set file because there are ECPs to print
+    ecp_kwd, basis_kwd = keywords.ecp, keywords.basis_set
+
+    if ecp_kwd is None or basis_kwd is None:
+        raise RuntimeError('Expecting to print a custom basis set file with '
+                           'both a basis set and an ECP')
+
+    ecp_elems = set(atom.label for atom in molecule.atoms
+                    if atom.atomic_number >= ecp_kwd.min_atomic_number)
+
+    other_elems = set(atom.label for atom in molecule.atoms
+                      if atom.label not in ecp_elems)
+
+    print('@basis.gbs', file=inp_file)
+
+    # Keyword strings that could be defined as either G09 or G16
+    ecp_str = ecp_kwd.g09 if hasattr(ecp_kwd, 'g09') else ecp_kwd.g16
+    basis_str = basis_kwd.g09 if hasattr(basis_kwd, 'g09') else basis_kwd.g16
+
+    with open('basis.gbs', 'w') as basis_file:
+        if len(other_elems) > 0:
+            print(*other_elems, '0', file=basis_file)
+            print(f'{basis_str}',
+                  '****',
+                  sep='\n', file=basis_file)
+
+        print(*ecp_elems, '0', file=basis_file)
+        print(f'{ecp_str}',
+              '****',
+              '',
+              " ".join(ecp_elems) + ' 0',
+              f'{ecp_str}',
+              sep='\n', file=basis_file)
+
+    calc_input.additional_filenames.append('basis.gbs')
     return None
 
 
@@ -272,7 +336,7 @@ class G09(ElectronicStructureMethod):
 
             if molecule.constraints.any() or calc.input.added_internals:
                 print('', file=inp_file)   # needs an extra blank line
-            print_custom_basis(inp_file, calc.input.keywords)
+            print_custom_basis(inp_file, calc.input, molecule)
 
             # Gaussian needs blank lines at the end of the file
             print('\n', file=inp_file)
@@ -299,7 +363,7 @@ class G09(ElectronicStructureMethod):
     def execute(self, calc):
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
-                         kept_file_exts=('.log', '.com'))
+                         kept_file_exts=('.log', '.com', '.gbs'))
         def execute_g09():
             run_external(params=[calc.method.path, calc.input.filename],
                          output_filename=calc.output.filename)

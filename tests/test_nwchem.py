@@ -1,4 +1,4 @@
-from autode.wrappers.NWChem import NWChem
+from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords
@@ -66,6 +66,28 @@ def test_opt_single_atom():
     assert 'opt' not in [keyword.lower() for keyword in input_lines[0].split()]
 
     os.remove('opt_h_nwchem.nw')
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_ecp_calc():
+
+    # Should have no ECP block for molecule with only light elements
+    water_ecp_block = ecp_block(Molecule(smiles='O'),
+                                keywords=method.keywords.sp)
+    assert water_ecp_block == ''
+
+    # Should have no ECP block if the keywords do not define an ECP
+    pd_ecp_block = ecp_block(Molecule(smiles='[Pd]'), keywords=OptKeywords([]))
+    assert pd_ecp_block == ''
+
+    pdh2 = Molecule(smiles='[H][Pd][H]', name='H2Pd')
+    pdh2.single_point(method=method)
+
+    assert os.path.exists('H2Pd_sp_nwchem.nw')
+    input_lines = open('H2Pd_sp_nwchem.nw', 'r').readlines()
+    assert any('ecp' in line for line in input_lines)
+
+    assert pdh2.energy is not None
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))

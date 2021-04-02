@@ -71,3 +71,11 @@ def test_method_unavalible():
 
     with pytest.raises(MethodUnavailable):
         methods.get_hmethod()
+
+
+def test_nwchem_ecps():
+
+    nwchem = methods.NWChem()
+    assert nwchem.keywords.opt.ecp is not None
+    assert nwchem.keywords.sp.ecp is not None
+    assert nwchem.keywords.sp.ecp.nwchem is not None

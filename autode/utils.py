@@ -30,7 +30,8 @@ def run_external(params, output_filename):
     return None
 
 
-def run_external_monitored(params, output_filename, break_word='MPI_ABORT'):
+def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
+                           break_words=None):
     """
     Run an external process monitoring the standard output and error for a
     word that will terminate the process
@@ -41,11 +42,14 @@ def run_external_monitored(params, output_filename, break_word='MPI_ABORT'):
 
     Keyword Arguments:
         break_word (str): String that if found will terminate the process
+        break_words (list(str) | None): List of break_word-s
     """
+    # Defining a set will override a single break word
+    break_words = [break_word] if break_words is None else break_words
 
     def output_reader(process, out_file):
         for line in process.stdout:
-            if break_word in line.decode('utf-8'):
+            if any(word in line.decode('utf-8') for word in break_words):
                 raise ChildProcessError
 
             print(line.decode('utf-8'), end='', file=out_file)
