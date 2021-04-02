@@ -49,7 +49,7 @@ def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
 
     def output_reader(process, out_file):
         for line in process.stdout:
-            if any(string in line.decode('utf-8') for string in break_words):
+            if any(word in line.decode('utf-8') for word in break_words):
                 raise ChildProcessError
 
             print(line.decode('utf-8'), end='', file=out_file)

@@ -76,6 +76,10 @@ def test_ecp_calc():
                                 keywords=method.keywords.sp)
     assert water_ecp_block == ''
 
+    # Should have no ECP block if the keywords do not define an ECP
+    pd_ecp_block = ecp_block(Molecule(smiles='[Pd]'), keywords=OptKeywords([]))
+    assert pd_ecp_block == ''
+
     pdh2 = Molecule(smiles='[H][Pd][H]', name='H2Pd')
     pdh2.single_point(method=method)
 
