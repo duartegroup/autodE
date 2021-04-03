@@ -43,7 +43,7 @@ def test_base_builder():
     assert builder.non_bonded_idx_matrix[1, 2] == 1   # H-H
 
 
-def _test_explicit_hs():
+def test_explicit_hs():
 
     parser.parse(smiles='C')
     builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
@@ -63,7 +63,7 @@ def _test_explicit_hs():
     assert builder.n_atoms == 17
 
 
-def _test_dihedrals():
+def test_dihedrals():
 
     trans = [Atom('C', -0.94807, -1.38247, -0.02522),
              Atom('C',  0.54343, -1.02958, -0.02291),
@@ -91,7 +91,7 @@ def _test_dihedrals():
         _ = dihedral.value(zero)
 
 
-def _test_cdihedral_rotation():
+def test_cdihedral_rotation():
 
     try:
         from cdihedrals import rotate
@@ -124,7 +124,7 @@ def _test_cdihedral_rotation():
     assert are_coords_reasonable(mol.coordinates)
 
 
-def _test_simple_alkane():
+def test_simple_alkane():
     """A few simple linear and branched alkanes"""
 
     simple_smiles = ['C', 'CC', 'CCC', 'CCCC', 'CC(C)C']
@@ -133,13 +133,13 @@ def _test_simple_alkane():
         assert built_molecule_is_reasonable(smiles)
 
 
-def _test_long_alkane():
+def test_long_alkane():
     """Should be able to build a long alkane without overlapping atoms"""
 
     assert built_molecule_is_reasonable(smiles='CCCCCCC')
 
 
-def _test_simple_multispecies():
+def test_simple_multispecies():
     """Some simple molecules """
 
     assert built_molecule_is_reasonable(smiles='O')   # water
@@ -147,7 +147,7 @@ def _test_simple_multispecies():
     assert built_molecule_is_reasonable(smiles='B')   # BH3
 
 
-def _test_simple_multispecies2():
+def test_simple_multispecies2():
     """A small set of molecules with more than just carbon atoms"""
 
     assert built_molecule_is_reasonable(smiles='N#N')
@@ -156,7 +156,7 @@ def _test_simple_multispecies2():
     assert built_molecule_is_reasonable(smiles='CN=C=O')
 
 
-def _test_simple_ring():
+def test_simple_ring():
     """Small unsubstituted rings"""
 
     parser.parse(smiles='C1CCCCC1')                          # cyclohexane
@@ -170,7 +170,7 @@ def _test_simple_ring():
     assert built_molecule_is_reasonable(smiles='C1CCCCCCC1')  # cycloctane
 
 
-def _test_double_bonds():
+def test_double_bonds():
 
     assert built_molecule_is_reasonable(smiles='C=C')
     assert built_molecule_is_reasonable(smiles='CC/C=C/CCC')
@@ -195,7 +195,7 @@ def _test_double_bonds():
         assert np.isclose(value, 0.0, atol=1E-4)
 
 
-def _test_chiral_tetrahedral():
+def test_chiral_tetrahedral():
     """Check simple chiral carbons"""
 
     parser.parse(smiles='C[C@@H](Cl)F')
@@ -244,13 +244,20 @@ def test_branches_on_rings():
     assert built_molecule_is_reasonable(smiles='C1CC(CCC)C(CC)CC1')
     assert built_molecule_is_reasonable(smiles='C1NC(CNC)C(CO)CC1')
     assert built_molecule_is_reasonable(smiles='C1C(C)C(C)C(C)C(C)C1')
-    # assert built_molecule_is_reasonable(smiles='C1CCCCC1')
 
 
-def _test_aromatics():
+def test_aromatics():
 
     assert built_molecule_is_reasonable(smiles='C1=CC=CC=C1')  # benzene
     assert built_molecule_is_reasonable(smiles='c1ccccc1')     # benzene
 
-    assert built_molecule_is_reasonable(smiles=r'O[C@@H]1[C@H](/C=C\CC/C=C'
-                                               r'\C(CC/C(C)=C/[C@H]1C)=O)OC')
+
+def _test_tmp():
+
+    parser.parse(smiles='C1CCCCCCCCC1')
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+    mol.print_xyz_file(filename='tmp.xyz')
+    # print(mol.distance(9, 15))
+    #assert built_molecule_is_reasonable(smiles=r'O[C@@H]1[C@H](/C=C\CC/C=C'
+    #                                           r'\C(CC/C(C)=C/[C@H]1C)=O)OC')

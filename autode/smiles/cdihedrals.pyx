@@ -122,7 +122,7 @@ cdef double _rep_energy(double [:, :] coords,
     using
     
     V(coords) = Σ'_ij 1 / r_ij^2 
-        
+            
     Arguments:
         coords (array): 
         rep_idxs (array):
@@ -159,7 +159,7 @@ cdef double _close_energy(double [:, :] coords,
     """
     Calculate the energy for closing a ring
     
-    V(coords) = Σ'_ij 1 / r_ij^2  +  (r_pair - r0)^2
+    V(coords) = Σ'_ij 1 / r_ij^2  +  c(r_pair - r0)^2
     
     where ij is an atom pair and r_pair is the distance between the two atom
     indexes in pair_idxs
@@ -181,7 +181,7 @@ cdef double _close_energy(double [:, :] coords,
                   (coords[pair_idxs[0], 1] - coords[pair_idxs[1], 1])**2 +
                   (coords[pair_idxs[0], 2] - coords[pair_idxs[1], 2])**2)
 
-    return repulsive_energy + (r_pair - r0)**2
+    return repulsive_energy + 10 * (r_pair - r0)**2
 
 
 cpdef double _minimise(double [:, :] coords,
@@ -272,6 +272,8 @@ cpdef void _close_ring2(double [:, :] coords,
     cdef double min_energy = 99999.9
     cdef double energy = 0.0
     cdef int i, j
+
+    _set_coords(prev_coords, coords)
 
     for i in range(angles.shape[0]):
         for j in range(angles.shape[1]):
@@ -369,20 +371,25 @@ def large_ring_fixed(py_ideal_angles):
 
 
     # Fix indexes are at the start and end of the ring, so insert any
-    # remaining in the middle (excluding idxs 2 and n_angles-3)
+    # remaining in the middle
     fixed_idxs = [0, 1, n_angles-2, n_angles-1]
 
     # start from -70º, +60º on either end of the ring
-    fixed_angles = [-1.22173, 1.0472, -1.22173, 1.0472]
+    fixed_angles = [-1.48353, 1.27409, -1.48353, 1.27409]
 
-    for i in range(n_angles-2-4):
+    # TODO: make this better
+    for i in range(n_angles - 2 - 4):   # 2 optimised, 4 set
+
         if i % 2 == 0:
-            fixed_idxs.insert(2, 3+i)
-            fixed_angles.insert(2, np.pi)
+            fixed_idxs[i//2] += 1
+            fixed_idxs[i//2+1] += 1
+
+            fixed_idxs.insert(0, i//2)
+            fixed_angles.insert(0, np.pi if i > 1 else 1.2)
 
         else:
-            fixed_idxs.insert(-3, n_angles-4-i)
-            fixed_angles.insert(-3, np.pi)
+            fixed_idxs.insert(-2, n_angles-2-(i//2+1))
+            fixed_angles.insert(-2, np.pi if i > 1 else 1.2)
 
     return np.array(fixed_idxs, dtype='i4'), np.array(fixed_angles, dtype='f8')
 
@@ -481,7 +488,7 @@ cpdef closed_ring_coords(py_coords,
     # Use a coarser grid for a 2D grid search, and create a 3D tensor of angles
     # {angles}_ij = [angle_1, angle_2]  where the first two dimensions will
     # be iterated through
-    py_angles1d = np.linspace(-np.pi, np.pi-0.419, num=14)
+    py_angles1d = np.linspace(-np.pi, np.pi-0.314, num=19)
     angles2 = np.stack(np.meshgrid(py_angles1d, py_angles1d), axis=2)
 
     if n_angles == 2:
@@ -506,11 +513,21 @@ cpdef closed_ring_coords(py_coords,
     rotated_idxs = np.array([i for i in range(n_angles)
                              if i not in fixed_idxs], dtype='i4')
 
+    # Populate slices of the two axes, origins and rotation indexes for
+    # the dihedrals that will be rotated
     axes = py_axes[rotated_idxs, :]
     origins = py_origins[rotated_idxs]
     rot_idxs = py_rot_idxs[rotated_idxs, :]
 
-    # and find the optimal closure over those angles
+
+    # and find the optimal closure over the full [-π, π) range in each angle
+    _close_ring2(coords, min_coords, prev_coords, angles2, axes, origins,
+                 rot_idxs, rep_idxs, close_idxs, r0)
+
+    # then refine around the minimum on the coarse grid
+    angles2 = np.stack(np.meshgrid(np.linspace(-0.15, 0.15, num=19),
+                                   np.linspace(-0.15, 0.15, num=19)), axis=2)
+
     _close_ring2(coords, min_coords, prev_coords, angles2, axes, origins,
                  rot_idxs, rep_idxs, close_idxs, r0)
 
