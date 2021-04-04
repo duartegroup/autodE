@@ -230,7 +230,9 @@ def _test_macrocycle():
     # Large linear structure with stereochemistry
     lin_smiles = ('C/C=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C'
                   '/CC/C=C/C(OC)=O')
-    assert built_molecule_is_reasonable(smiles=lin_smiles)
+    # assert built_molecule_is_reasonable(smiles=lin_smiles)
+
+    # TODO: unbreak this
 
     # Large macrocyclic ring with stereochemistry
     macro_smiles = ('C/C1=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C'
@@ -254,7 +256,7 @@ def test_aromatics():
 
 def _test_tmp():
 
-    parser.parse(smiles='C1CCCCCCCCC1')
+    parser.parse(smiles='C1CCCC1')
     builder.build(parser.atoms, parser.bonds)
     mol = Molecule(atoms=builder.atoms)
     mol.print_xyz_file(filename='tmp.xyz')
