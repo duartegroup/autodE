@@ -4,6 +4,9 @@
 from libc.math cimport cos, sin, sqrt
 import numpy as np
 
+# Type of an energy function double [:, :], int [:, :], int [:], double -> double
+ctypedef double (*energy_func_type)(double [:, :], int [:, :], int [:], double)
+
 
 cdef void _update_rotation_matrix(double [3][3] rot_mat,
                                  double [3] axis,
@@ -298,6 +301,61 @@ cdef double _minimise(energy_func_type energy_func,
     return curr_energy
 
 
+cdef void _stochastic_global_minimise(energy_func_type energy_func,
+                                      double [:, :] coords,
+                                      double [:, :] min_coords,
+                                      int [:, :] axes,
+                                      int [:] origins,
+                                      int [:, :] rot_idxs,
+                                      int [:, :] rep_idxs,
+                                      int [:] pair_idxs,
+                                      double distance,
+                                      double search_tol=1E-1,
+                                      double final_tol=1E-3,
+                                      int max_iters=50):
+    """
+    
+    Arguments:
+        energy_func: 
+        coords: 
+        axes: 
+        origins: 
+        rot_idxs: 
+        rep_idxs: 
+        pair_idxs: 
+        distance: 
+        search_tol: 
+        final_tol: 
+        max_iters: 
+    """
+
+    n_angles = int(origins.shape[0])
+
+    cdef int i
+    cdef double energy = 0.0
+    cdef double min_energy = 999999.9
+
+    for i in range(max_iters):
+
+        angles = np.random.uniform(low=-0.6, high=0.6, size=n_angles)
+        _rotate(coords, angles, axes, origins, rot_idxs)
+
+        energy = _minimise(energy_func, coords, axes, origins,
+                           rot_idxs, rep_idxs, pair_idxs, distance,
+                           tol=search_tol)
+
+        if energy < min_energy:
+            min_energy = energy
+            _set_coords(min_coords, coords)
+
+    _minimise(energy_func, min_coords, axes, origins, rot_idxs, rep_idxs,
+              pair_idxs, distance,
+              tol=final_tol)
+
+    _set_coords(coords, min_coords)
+    return
+
+
 cdef void _close_ring2(double [:, :] coords,
                        double [:, :] min_coords,
                        double [:, :] prev_coords,
@@ -539,22 +597,9 @@ cpdef closed_ring_coords(py_coords,
 
         return np.array(coords)
 
-    cdef int i
-    cdef double energy = 0.0
-    cdef double min_energy = 999999.9
-
-    for i in range(50):
-
-        angles = np.random.uniform(low=-np.pi, high=np.pi, size=len(py_curr_angles))
-        _rotate(coords, angles, axes, origins, rot_idxs)
-
-        energy = _minimise(_close_energy, coords, axes, origins,
-                           rot_idxs, rep_idxs, close_idxs, r0,
-                           tol=0.1)
-
-        if energy < min_energy:
-            min_energy = energy
-            _set_coords(min_coords, coords)
+    # Use a random search over dihedrals
+    _stochastic_global_minimise(_close_energy, coords, min_coords, axes, origins,
+                                rot_idxs, rep_idxs, close_idxs, r0)
 
     return np.array(min_coords)
 
@@ -603,6 +648,7 @@ cpdef rotate(py_coords,
 
     # Use memory views of the numpy arrays
     cdef double [:, :] coords = py_coords
+    cdef double [:, :] min_coords = np.copy(py_coords)
 
     cdef double [:] angles = py_angles
     cdef int [:, :] axes = py_axes
@@ -620,8 +666,14 @@ cpdef rotate(py_coords,
 
     # Apply all the rotations in place
     if minimise:
-        _minimise(_rep_energy, coords, axes, origins, rot_idxs,  rep_idxs,
-                  pair_idxs=np.zeros(2, dtype='i4'),
-                  distance=0.0)
+        _stochastic_global_minimise(_rep_energy,
+                                    coords,
+                                    min_coords,
+                                    axes,
+                                    origins,
+                                    rot_idxs,
+                                    rep_idxs,
+                                    pair_idxs=np.zeros(2, dtype='i4'),
+                                    distance=0.0)
 
     return np.array(coords)
