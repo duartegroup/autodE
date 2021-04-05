@@ -22,6 +22,19 @@ def built_molecule_is_reasonable(smiles):
     return are_coords_reasonable(mol.coordinates)
 
 
+def built_molecule_is_usually_reasonable(smiles, n_trys=10):
+
+    for _ in range(n_trys):
+        try:
+            return built_molecule_is_reasonable(smiles)
+
+        except AssertionError:
+            continue
+
+    raise AssertionError('Failed to generate a reasonable goemetry in '
+                         f'{n_trys} trys')
+
+
 def test_base_builder():
 
     # Builder needs SMILESAtom-s
@@ -246,7 +259,7 @@ def test_macrocycle():
     # Large macrocyclic ring with stereochemistry
     macro_smiles = ('C/C1=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C'
                     '/CC/C=C/C(OC1)=O')
-    assert built_molecule_is_reasonable(smiles=macro_smiles)
+    assert built_molecule_is_usually_reasonable(smiles=macro_smiles)
 
 
 def test_branches_on_rings():
