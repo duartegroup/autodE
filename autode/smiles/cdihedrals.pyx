@@ -1,5 +1,6 @@
 # cython: boundscheck=False
 # cython: wraparound=False
+# cython: initializedcheck=False
 # cython: cdivision=True
 from libc.math cimport cos, sin, sqrt
 import numpy as np
@@ -314,19 +315,21 @@ cdef void _stochastic_global_minimise(energy_func_type energy_func,
                                       double final_tol=1E-3,
                                       int max_iters=50):
     """
+    Minimise an energy function byu selecting random points in the dihedral
+    space and minimising. will set the coordinates of the lowest energy set
     
     Arguments:
-        energy_func: 
-        coords: 
-        axes: 
-        origins: 
-        rot_idxs: 
-        rep_idxs: 
-        pair_idxs: 
-        distance: 
-        search_tol: 
-        final_tol: 
-        max_iters: 
+        energy_func (energy_func): 
+        coords (array): 
+        axes (array): 
+        origins (array): 
+        rot_idxs (array): 
+        rep_idxs (array): 
+        pair_idxs (array): 
+        distance (double): 
+        search_tol (double): 
+        final_tol (double): 
+        max_iters (int): 
     """
 
     n_angles = int(origins.shape[0])
@@ -348,6 +351,7 @@ cdef void _stochastic_global_minimise(energy_func_type energy_func,
             min_energy = energy
             _set_coords(min_coords, coords)
 
+    # Perform a final minimisation on the lowest energy coordinates
     _minimise(energy_func, min_coords, axes, origins, rot_idxs, rep_idxs,
               pair_idxs, distance,
               tol=final_tol)
@@ -648,7 +652,6 @@ cpdef rotate(py_coords,
 
     # Use memory views of the numpy arrays
     cdef double [:, :] coords = py_coords
-    cdef double [:, :] min_coords = np.copy(py_coords)
 
     cdef double [:] angles = py_angles
     cdef int [:, :] axes = py_axes
@@ -662,17 +665,18 @@ cpdef rotate(py_coords,
 
     cdef int [:, :] rep_idxs = py_rep_idxs
 
+    # Apply all the rotations in place
+
     _rotate(coords, angles, axes, origins, rot_idxs)
 
-    # Apply all the rotations in place
     if minimise:
-        _stochastic_global_minimise(_rep_energy,
-                                    coords,
-                                    min_coords,
-                                    axes,
-                                    origins,
-                                    rot_idxs,
-                                    rep_idxs,
+        _stochastic_global_minimise(energy_func=_rep_energy,
+                                    coords=coords,
+                                    min_coords=np.copy(py_coords),
+                                    axes=axes,
+                                    origins=origins,
+                                    rot_idxs=rot_idxs,
+                                    rep_idxs=rep_idxs,
                                     pair_idxs=np.zeros(2, dtype='i4'),
                                     distance=0.0)
 

@@ -225,14 +225,12 @@ def test_chiral_tetrahedral():
     assert calc_heavy_atom_rmsd(s_mol.atoms, r_mol.atoms) > 0.1
 
 
-def _test_macrocycle():
+def test_macrocycle():
 
     # Large linear structure with stereochemistry
     lin_smiles = ('C/C=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C'
                   '/CC/C=C/C(OC)=O')
-    # assert built_molecule_is_reasonable(smiles=lin_smiles)
-
-    # TODO: unbreak this
+    assert built_molecule_is_reasonable(smiles=lin_smiles)
 
     # Large macrocyclic ring with stereochemistry
     macro_smiles = ('C/C1=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C'
