@@ -433,7 +433,8 @@ class Builder:
 
         phi = np.pi # Default to a trans double bond
 
-        if (all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
+        if ((all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
+            and not self.atoms[idx_x].has_stereochem)
             or stro_x == stro_y == 'al_up'
             or stro_x == stro_y == 'al_down'):
             phi = 0
