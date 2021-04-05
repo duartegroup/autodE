@@ -4,7 +4,7 @@ from autode import Molecule
 from autode.atoms import Atom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds
-from autode.smiles.builder import Builder, Dihedral
+from autode.smiles.builder import Builder, Angle, Dihedral
 from autode.exceptions import SMILESBuildFailed
 
 parser = Parser()
@@ -61,6 +61,17 @@ def test_explicit_hs():
                 if parser.atoms[i].label == parser.atoms[j].label == 'C']) == 4
     builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
     assert builder.n_atoms == 17
+
+
+def test_angle():
+
+    water = Molecule(smiles='O')
+    angle = Angle(idxs=[1, 0, 2])   # H, O, H
+
+    assert angle.phi_ideal is None
+    assert np.isclose(angle.phi0, np.deg2rad(100), atol=10)
+    assert np.isclose(angle.value(atoms=water.atoms), np.deg2rad(105),
+                      atol=np.deg2rad(15))  # ±15 degrees, a pretty loose tol
 
 
 def test_dihedrals():
@@ -250,6 +261,20 @@ def test_aromatics():
 
     assert built_molecule_is_reasonable(smiles='C1=CC=CC=C1')  # benzene
     assert built_molecule_is_reasonable(smiles='c1ccccc1')     # benzene
+
+
+def test_small_rings():
+    """Small rings may need angle adjustment to be reasonable"""
+
+    parser.parse(smiles='C1CC1')
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+    assert 1.3 < mol.distance(1, 2) < 1.7    # Closing CC bond should be close
+
+    parser.parse(smiles='C1CCC1')
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+    assert 1.3 < mol.distance(2, 3) < 1.7    # Closing CC bond should be close
 
 
 def _test_tmp():

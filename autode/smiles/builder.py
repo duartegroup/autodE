@@ -168,6 +168,44 @@ class Builder:
 
             raise SMILESBuildFailed(f'No ring containing {inc_idxs}')
 
+    def _ring_path(self, ring_bond):
+        """
+        Find the path which traverses a ring closed by a ring bond
+
+                 C2----C3
+               /       |        -->  1, 2, 3, 4
+             C1  ****  C4
+                 ^
+             ring bond
+
+        Args:
+            ring_bond (autode.smiles.SMILESBond):
+
+        Returns:
+            (nx.path_generator):
+
+        Raises:
+            (SMILESBuildFailed): If a suitable path is not found
+        """
+        ring_idxs = self._ring_idxs(ring_bond)
+
+        paths = nx.shortest_simple_paths(self.graph,
+                                         source=ring_bond[0],
+                                         target=ring_bond[1])
+
+        for possible_path in paths:
+
+            # Can always have a path that traverses the ring bond (C1-C4 above)
+            if len(possible_path) == 2:
+                continue
+
+            # For multiple fused rings there may be other paths that could be
+            # traversed, so only take the one that has the appropriate idxs
+            if all(idx in ring_idxs for idx in possible_path):
+                return possible_path
+
+        raise SMILESBuildFailed('Could not find path in ring')
+
     def _ring_dihedrals(self, ring_bond):
         """
         Given a ring bond find all the rotatable dihedrals that can be adjusted
@@ -183,45 +221,20 @@ class Builder:
             (autode.exceptions.SMILESBuildFailed): If dihedrals cannot be
                                                    located
         """
-        ring_idxs = self._ring_idxs(ring_bond)
-
-        # Find the path along which dihedrals can be defined e.g.
-        #
-        #         C2----C3
-        #       /       |        -->  1, 2, 3, 4
-        #     C1        C4
-        #
-        paths = nx.shortest_simple_paths(self.graph,
-                                         source=ring_bond[0],
-                                         target=ring_bond[1])
-        path = None
-        for possible_path in paths:
-
-            # Can always have a path that traverses the ring bond (C1-C4 above)
-            if len(possible_path) == 2:
-                continue
-
-            # For multiple fused rings there may be other paths that could be
-            # traversed, so only take the one that has the appropriate idxs
-            if all(idx in ring_idxs for idx in possible_path):
-                path = possible_path
-                break
-
-        if path is None:
-            raise SMILESBuildFailed('Could not find path in ring')
+        path = self._ring_path(ring_bond=ring_bond)
 
         # The dihedrals are then the all the 4 atom tuples in sequence
-        dihedrals = [tuple(path[i:i + 4]) for i in range(len(path) - 3)]
+        dihedral_idxs = [tuple(path[i:i + 4]) for i in range(len(path) - 3)]
 
         # so only add the indexes where the bond (edge) order is one
-        for i, dihedral_idxs in enumerate(dihedrals):
+        for i, dihedral_idxs in enumerate(dihedral_idxs):
 
             dihedral = Dihedral(dihedral_idxs)
 
             # If both atoms either side of this one are 'pi' atoms e.g. in a
             # benzene ring, then the ideal angle must be 0 to close the ring
             if all(self.atoms[idx].is_pi for idx in dihedral.mid_idxs):
-                dihedral.phi0 = 0.0
+                dihedral.phi_ideal = 0.0
 
             # Only yield single bonds, that can be rotated freely
             if self.graph.get_edge_data(*dihedral.mid_idxs)['order'] == 1:
@@ -240,12 +253,92 @@ class Builder:
                          + list(other_idxs if other_idxs is not None else [])):
 
             logger.info(f'Resetting sites on atom {idx_i}')
+
             atom = self.atoms[idx_i]
             atom.type.reset_onto(points=[self.atoms[idx].coord
                                          for idx in atom.neighbours],
                                  coord=atom.coord)
-
         return None
+
+    def _adjust_ring_dihedrals(self, ring_bond, dihedrals):
+        """Outsource the ring closure to an external function"""
+
+        logger.info('Adjusting ring dihedrals to close the ring')
+
+        start_time = time()
+        coords = closed_ring_coords(py_coords=self.coordinates,
+                                    py_curr_angles=dihedrals.values(self.atoms),
+                                    py_ideal_angles=dihedrals.ideal_angles,
+                                    py_axes=dihedrals.axes,
+                                    py_rot_idxs=dihedrals.rot_idxs,
+                                    py_origins=dihedrals.origins,
+                                    py_rep_idxs=self.non_bonded_idx_matrix,
+                                    py_close_idxs=np.array(tuple(ring_bond),
+                                                           dtype='i4'),
+                                    py_r0=ring_bond.r0)
+        self.coordinates = coords
+        logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
+        return
+
+    def _adjust_ring_angles(self, ring_bond):
+        """Shift angles in a ring to close  """
+
+        path = self._ring_path(ring_bond=ring_bond)
+
+        angles_idxs = [tuple(path[i:i + 3]) for i in range(len(path) - 2)]
+        logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
+
+        angles = Angles()
+
+        for angle_idxs in angles_idxs:
+
+            graph = self.graph.copy()
+            graph.remove_edge(ring_bond[0], ring_bond[1])
+
+            angle = Angle(idxs=angle_idxs,
+                          phi0=(np.pi - (2.0 * np.pi / len(path))))
+            angle.find_rot_idxs(graph=graph, atoms=self.atoms)
+
+            angle_alt = Angle(idxs=angle_idxs,
+                              rot_idxs=angle.inverse_rot_idxs(self.atoms),
+                              phi0=angle.phi0)
+
+            angles.append(angle)
+            angles.append(angle_alt)
+
+        coords = self.coordinates
+        axes = []
+        rot_idxs = [angle.rot_idxs for angle in angles]
+
+        for i, angle in enumerate(angles):
+            idx_x, idx_y, idx_z = angle.idxs
+
+            axis = np.cross(coords[idx_x, :] - coords[idx_y, :],
+                            coords[idx_z, :] - coords[idx_y, :])
+
+            # Alternate between forward and reverse rotations
+            if i % 2 == 0:
+                axis *= -1
+
+            # Append the axis onto the coordinates
+            coords = np.concatenate((coords,
+                                     np.expand_dims(axis + coords[idx_y, :], axis=0)))
+
+            # Now the axis is coords[-1] - coods[idx_y], so
+            axes.append([coords.shape[0] - 1, idx_y])
+
+            # Append zeros to the rotated indexes corresponding to the
+            # number of added coordinates (axes)
+            rot_idxs[i] += len(angles) * [0]
+
+        coords = rotate(py_coords=coords,
+                        py_angles=angles.dvalues(self.atoms) / 2,
+                        py_axes=np.array(axes, dtype='i4'),
+                        py_rot_idxs=np.array(rot_idxs, dtype='i4'),
+                        py_origins=angles.origins)
+
+        self.coordinates = coords[:-len(angles), :]
+        return
 
     def _close_ring(self, ring_bond):
         """
@@ -277,23 +370,18 @@ class Builder:
 
         if len(dihedrals) == 0:
             logger.info('No dihedrals to adjust to close the ring')
-            return
 
-        start_time = time()
+        else:
+            self._adjust_ring_dihedrals(ring_bond, dihedrals=dihedrals)
 
-        coords = closed_ring_coords(py_coords=self.coordinates,
-                                    py_curr_angles=dihedrals.values(self.atoms),
-                                    py_ideal_angles=dihedrals.ideal_angles,
-                                    py_axes=dihedrals.axes,
-                                    py_rot_idxs=dihedrals.rot_idxs,
-                                    py_origins=dihedrals.origins,
-                                    py_rep_idxs=self.non_bonded_idx_matrix,
-                                    py_close_idxs=np.array(tuple(ring_bond),
-                                                           dtype='i4'),
-                                    py_r0=ring_bond.r0)
-        self.coordinates = coords
+        # Calculate the bond length of the closing bond in the new coords
+        r_c = np.linalg.norm(self.atoms[ring_bond[0]].coord
+                             - self.atoms[ring_bond[1]].coord)
 
-        logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
+        if len(dihedrals) < 3 and not np.isclose(r_c, ring_bond.r0, atol=0.2):
+            logger.info('Have a small ring that was poorly closed '
+                        f'(r = {r_c:.2f} Å) - adjusting angles')
+            self._adjust_ring_angles(ring_bond)
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
         return None
@@ -860,7 +948,133 @@ class TetrahedralIAtom(TetrahedralAtom):
         self.is_chiral = True
 
 
-class Dihedrals(list):
+class Angle:
+
+    def __str__(self):
+        return f'Angle(idxs={self.idxs})'
+
+    def __repr__(self):
+        return self.__str__()
+
+    def value(self, atoms):
+        """
+
+        Args:
+            atoms (list(autode.atoms.Atom)):
+
+        Returns:
+            (float): Angle in radians
+        """
+
+        idx_x, idx_y, idx_z = self.idxs
+        vec1 = atoms[idx_x].coord - atoms[idx_y].coord
+        vec2 = atoms[idx_z].coord - atoms[idx_y].coord
+
+        return np.arccos(np.dot(vec1, vec2)
+                         / (np.linalg.norm(vec1) * np.linalg.norm(vec2)))
+
+    def _find_rot_idxs_from_pair(self, graph, atoms, pair):
+        """
+        Split the graph across a pair of indexes and set the atom indexes
+        to be rotated
+
+        Arguments:
+            graph (nx.Graph):
+            atoms (list(autode.atoms.Atom)):
+            pair (list(int)): len == 2
+        """
+        graph.remove_edge(*pair)
+
+        # Remove all the nodes in the graph that have not been shifted, thus
+        # the rotation indexes only include atoms that have been 'built'
+        for idx, atom in enumerate(atoms):
+            if hasattr(atom, 'is_shifted') and not atom.is_shifted:
+                graph.remove_node(idx)
+
+        components = [graph.subgraph(c) for c in
+                      nx.connected_components(graph)]
+
+        if len(components) != 2:
+            raise FailedToSetRotationIdxs('Splitting over this dihedral did '
+                                          'not afford two fragments')
+
+        # Choose the components that will be rotated
+        cpnt_idx = 0 if pair[0] in components[0].nodes else 1
+
+        self.rot_idxs = [1 if i in components[cpnt_idx].nodes else 0
+                         for i in range(len(atoms))]
+        return None
+
+    def find_rot_idxs(self, graph, atoms):
+        """Find the atom indexes to rotate by splitting rhe graph across
+        the edge that appears first in the angle, e.g.::
+
+                   Z
+                  /
+            X  - Y
+              ^
+        split across this bond
+        """
+        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.idxs[:2])
+
+    def inverse_rot_idxs(self, atoms):
+        """
+        Return the inverse of a set of rotation indexes for e.g. rotating
+        the atoms on the other side of the angle. Skip any atoms that
+        have not been moved
+
+        Returns:
+            (list(int)):
+        """
+        return [1 if (hasattr(atom, 'is_shifted') and atom.is_shifted)
+                and self.rot_idxs[i] != 1 else 0
+                for i, atom in enumerate(atoms)]
+
+    @property
+    def phi0(self):
+        """A non-None ideal angle, default to 100 degrees"""
+        return 1.74533 if self.phi_ideal is None else self.phi_ideal
+
+    def __init__(self, idxs, rot_idxs=None, phi0=None):
+        """Angle between a set of atoms. In order"""
+
+        self.idxs = idxs
+        self.phi_ideal = phi0
+        self.rot_idxs = rot_idxs
+
+
+class Angles(list):
+
+    @property
+    def axes(self):
+        raise NotImplementedError
+
+    @property
+    def origins(self):
+        """Origins for the rotation, as the central atom of the trio"""
+        return np.array([angle.idxs[1] for angle in self], dtype='i4')
+
+    @property
+    def rot_idxs(self):
+        """Matrix of atom indexes to rotate"""
+        return np.array([angle.rot_idxs for angle in self], dtype='i4')
+
+    @property
+    def ideal_angles(self):
+        """Ideal angle vector (float | None)"""
+        return [angle.phi_ideal for angle in self]
+
+    def values(self, atoms):
+        """Current angle vector in radians"""
+        return np.array([angle.value(atoms) for angle in self], dtype='f8')
+
+    def dvalues(self, atoms):
+        """Difference between the current and ideal angles"""
+        return np.array([angle.phi0 - angle.value(atoms) for angle in self],
+                        dtype='f8')
+
+
+class Dihedrals(Angles):
 
     @property
     def axes(self):
@@ -876,22 +1090,8 @@ class Dihedrals(list):
 
         return np.array(origins, dtype='i4')
 
-    @property
-    def rot_idxs(self):
-        return np.array([dihedral.rot_idxs for dihedral in self], dtype='i4')
 
-    @property
-    def ideal_angles(self):
-        """Ideal dihedral angles (float | None)"""
-        return [dihedral.phi_ideal for dihedral in self]
-
-    def values(self, atoms):
-        """Current dihedral values"""
-        return np.array([dihedral.value(atoms) for dihedral in self],
-                        dtype='f8')
-
-
-class Dihedral:
+class Dihedral(Angle):
     """A dihedral defined by 4 atom indexes e.g.
 
        X       W
@@ -901,17 +1101,10 @@ class Dihedral:
     def __str__(self):
         return f'Dihedral(idxs={self.idxs})'
 
-    def __repr__(self):
-        return self.__str__()
-
     @property
     def phi0(self):
         """A non-None ideal angle for this dihedral"""
-        return 0 if self.phi_ideal is None else self.phi_ideal
-
-    @phi0.setter
-    def phi0(self, value):
-        self.phi_ideal = float(value)
+        return 0.0 if self.phi_ideal is None else self.phi_ideal
 
     def value(self, atoms):
         """
@@ -960,26 +1153,7 @@ class Dihedral:
             graph (nx.Graph):
             atoms (list(autode.atoms.Atom)):
         """
-        graph.remove_edge(*self.mid_idxs)
-
-        # Remove all the nodes in the graph that have not been shifted, thus
-        # the rotation indexes only include atoms that have been 'built'
-        for idx, atom in enumerate(atoms):
-            if hasattr(atom, 'is_shifted') and not atom.is_shifted:
-                graph.remove_node(idx)
-
-        components = [graph.subgraph(c) for c in nx.connected_components(graph)]
-
-        if len(components) != 2:
-            raise FailedToSetRotationIdxs('Splitting over this dihedral did '
-                                          'not afford two fragments')
-
-        # Choose the components that will be rotated
-        cpnt_idx = 0 if self.mid_idxs[0] in components[0].nodes else 1
-
-        self.rot_idxs = [1 if i in components[cpnt_idx].nodes else 0
-                         for i in range(len(atoms))]
-        return None
+        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs)
 
     def __init__(self, idxs, rot_idxs=None, phi0=None):
         """
@@ -1000,16 +1174,10 @@ class Dihedral:
             rot_idxs (list(int) | None): Indexes to rotate, 1 if the atoms
                                          should be rotated else 0
 
-            ring_n (int | None): Number of atoms in the ring for which this
-                                 dihedral is a part, if None then not in a ring
-
             phi0 (float | None): Ideal angle for this dihedral (radians)
         """
-        self.idxs = idxs
-        self.phi_ideal = phi0
+        super().__init__(idxs=idxs, rot_idxs=rot_idxs, phi0=phi0)
 
         # Atom indexes of the central two atoms (X, Y)
         _, idx_y, idx_z, _ = idxs
         self.mid_idxs = (idx_y, idx_z)
-
-        self.rot_idxs = rot_idxs
