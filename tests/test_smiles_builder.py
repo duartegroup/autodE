@@ -79,7 +79,8 @@ def test_explicit_hs():
 def test_d8():
     d8_smiles_list = ['[PH3]=[Pd](Cl)(Cl)=[PH3]',
                       '[PH3+][Pd-2](Cl)([PH3+])Cl',
-                      #TODO Add some more test cases here]
+                      #TODO Add some more test cases here
+                      ]
 
     for smiles in d8_smiles_list:
 
