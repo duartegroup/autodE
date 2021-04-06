@@ -1,6 +1,7 @@
 from autode import atoms
 from autode.atoms import Atom
 import numpy as np
+import pytest
 
 
 def test_atoms():
@@ -23,6 +24,10 @@ def test_atom():
     assert h.label == 'H'
     assert h.atomic_number == 1
     assert h.atomic_symbol == 'H'
+    assert not h.is_metal
+    assert h.group == 1
+    assert h.period == 1
+
     assert type(h.coord) == np.ndarray
     assert len(h.coord) == 3
     assert h.coord[0] == 0
@@ -45,6 +50,22 @@ def test_atom():
     assert len(str(h)) > 0
 
     assert Atom('C').atomic_number == 6
+    assert Atom('C').period == 2
+    assert Atom('C').group == 14
 
     dummy = atoms.DummyAtom(0.0, 0.0, 0.0)
     assert dummy.atomic_number == 0
+
+
+def test_periodic_table():
+
+    with pytest.raises(ValueError):
+        _ = atoms.PeriodicTable.period(n=0)   # Periods are indexed from 1
+        _ = atoms.PeriodicTable.period(n=8)   # and don't exceed 8
+
+    period2 = atoms.PeriodicTable.period(n=2)
+    assert len(period2) == 18
+    assert period2[0] == 'Li'
+
+    group13 = atoms.PeriodicTable.group(n=13)
+    assert 'B' in group13

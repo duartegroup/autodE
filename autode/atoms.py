@@ -19,6 +19,33 @@ class Atom:
         """A more interpretable alias for label"""
         return self.label
 
+    @property
+    def is_metal(self):
+        """Is this atom a metal?"""
+        return self.label in metals
+
+    @property
+    def group(self):
+        """Group of the periodic table is this atom in. 0 if not found"""
+
+        for group_idx in range(1, 18):
+
+            if self.label in PeriodicTable.group(group_idx):
+                return group_idx
+
+        return 0
+
+    @property
+    def period(self):
+        """Group of the periodic table is this atom in. 0 if not found"""
+
+        for period_idx in range(1, 7):
+
+            if self.label in PeriodicTable.period(period_idx):
+                return period_idx
+
+        return 0
+
     def translate(self, vec):
         """
         Translate this atom by a vector
@@ -98,9 +125,57 @@ elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
             'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn',
             'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']
 
-pnictogens = group15 = ['N', 'P', 'As', 'Sb', 'Po']
-chalcogens = group16 = ['O', 'S', 'Se', 'Te', 'Po']
-halogens = group17 = ['F', 'Cl', 'Br', 'I', 'At']
+
+class PeriodicTable:
+
+    table = np.array([['H',    '',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',   '',   '',   '',   '',   '', 'He'],
+                      ['Li', 'Be',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',  'B',  'C',  'N',  'O',  'F', 'Ne'],
+                      ['Na', 'Mg',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '', 'Al', 'Si',  'P',  'S', 'Cl', 'Ar'],
+                      ['K',  'Ca', 'Sc', 'Ti',  'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr'],
+                      ['Rb', 'Sr',  'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te',  'I', 'Xe'],
+                      ['Cs', 'Ba',   '', 'Hf', 'Ta',  'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn'],
+                      ['Fr', 'Ra',   '', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']],
+                     dtype=str)
+
+    @classmethod
+    def period(cls, n: int):
+        """Period of the periodic table, with 1 being the first period
+
+        Arguments:
+            n (int):
+
+        Returns:
+            (np.ndarray(str)):
+
+        Raises:
+            (ValueError): If n is not valid period index
+        """
+        if n < 1 or n > 7:
+            raise ValueError('Not a valid period. Must be 1-7')
+
+        return cls.table[n - 1, :]
+
+    @classmethod
+    def group(cls, n: int):
+        """Group of the periodic table, with 1 being the first period
+
+        Arguments:
+            n (int):
+
+        Returns:
+            (np.ndarray(str)):
+
+        Raises:
+            (ValueError): If n is not valid group index
+        """
+        if n < 1 or n > 18:
+            raise ValueError('Not a valid group. Must be 1-18')
+
+        return cls.table[:, n - 1]
+
+    lanthanoids = lanthanide = np.array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu'], dtype=str)
+    actinoids = actinides = np.array(['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr'], dtype=str)
+
 
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],
