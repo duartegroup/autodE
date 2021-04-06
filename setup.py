@@ -6,7 +6,7 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
               Extension('cdihedrals', ['autode/smiles/cdihedrals.pyx'])]
 
 setup(name='autode',
-      version='1.0.2',
+      version='1.0.3',
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',
