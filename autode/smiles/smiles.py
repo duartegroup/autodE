@@ -7,8 +7,7 @@ from autode.exceptions import RDKitFailed
 from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
-from autode.smiles.parser import Parser
-from autode.smiles.builder import Builder
+from autode.smiles import Parser, Builder
 
 
 def calc_multiplicity(molecule, n_radical_electrons):

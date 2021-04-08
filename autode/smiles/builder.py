@@ -476,8 +476,8 @@ class Builder:
                              - self.atoms[ring_bond[1]].coord)
 
         if not np.isclose(r_c, ring_bond.r0, atol=0.2):
-            logger.info('Have a small ring that was poorly closed '
-                        f'(r = {r_c:.2f} Å) - adjusting angles')
+            logger.info(f'Have a ring that was poorly closed (r = {r_c:.2f} Å)'
+                        f' - adjusting angles')
             self._adjust_ring_angles(ring_bond)
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
