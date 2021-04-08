@@ -18,7 +18,6 @@ autode/conformers/__pycache__/
 
 autode/transition_states/__pycache__/
 
-
 autode/conformers/cconf_gen.c
 
 autode/solvent/csolvent.c
@@ -37,6 +36,8 @@ tests/htmlcov/
 htmlcov/
 
 tests/.autode_calculations
+
+tests/data/__MACOSX/
 
 tests/data/conformers/.autode_calculations
 

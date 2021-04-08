@@ -59,9 +59,11 @@ def init_organic_smiles(molecule, smiles):
     parser.parse(smiles)
     builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
-    if builder.max_ring_n >= 8:
-        logger.info('Have a medium to large size ring, falling back to '
-                    'autodE builder')
+    # RDKit struggles with large rings or single atoms
+    if builder.max_ring_n >= 8 or builder.n_atoms == 1:
+        logger.info('Falling back to autodE builder')
+
+        # TODO: currently the SMILES is parsed twice, which is not ideal
         return init_smiles(molecule=molecule, smiles=smiles)
 
     try:

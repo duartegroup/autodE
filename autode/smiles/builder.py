@@ -153,10 +153,11 @@ class Builder:
             atom.neighbours = list(self.graph.neighbors(i))
             atom.in_ring = len(self._ring_idxs([i], return_empty=True)) > 0
 
-            # To build linear molecules the sites on atom types (templates)
-            # need to be reversed for every other atom, otherwise the next atom
-            # will be added to the same site forming a ring
-            if atom.n_bonded == 1:                             # e.g. H2, FCH3
+            if atom.n_bonded == 0:
+                # No type is needed for an isolated atom
+                continue
+
+            elif atom.n_bonded == 1:                            # e.g. H2, FCH3
                 atom.type = TerminalAtom()
 
             elif atom.n_bonded == 2:                           # e.g. OH2, SR2
