@@ -306,6 +306,29 @@ def test_small_rings():
     assert 1.3 < mol.distance(2, 3) < 1.7    # Closing CC bond should be close
 
 
+def test_wikipedia_examples():
+    """From: wikipedia.org/wiki/Simplified_molecular-input_ine-entry_system"""
+
+    smiles_list = ['O=Cc1ccc(O)c(OC)c1',
+                   'COc1cc(C=O)ccc1O',
+                   'CC(=O)NCCC1=CNc2c1cc(OC)cc2']
+
+    for smiles in smiles_list:
+        assert built_molecule_is_reasonable(smiles=smiles)
+
+
+def test_metal_complexes():
+
+    # Check some simple complexes with CN > 4                      [Co(Cl)5]2-
+    assert built_molecule_is_reasonable(smiles='Cl[Co-2](Cl)(Cl)(Cl)Cl')
+    #                                                              [Co(Cl)6]3-
+    assert built_molecule_is_reasonable(smiles='Cl[Co-3](Cl)(Cl)(Cl)(Cl)Cl')
+
+    # Some higher coordinations (unphysical)
+    assert built_molecule_is_reasonable(smiles='F[Co](F)(F)(F)(F)(F)F')
+    assert built_molecule_is_reasonable(smiles='F[Co](F)(F)(F)(F)(F)(F)F')
+
+
 def _test_tmp():
 
     parser.parse(smiles='C1CCCC1')
