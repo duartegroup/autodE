@@ -126,7 +126,7 @@ class Builder:
                 h_atoms.append(SMILESAtom('H', n_hydrogens=0))
 
                 # Add the bond between the current atom and the new H
-                h_idx = len(self.atoms) + len(h_atoms) - 1
+                h_idx = self.n_atoms + len(h_atoms) - 1
                 self.bonds.append(SMILESBond(idx, h_idx, symbol='-'))
 
             # zero the number of implicit hydrogens bonded to this atom now
@@ -475,7 +475,7 @@ class Builder:
         r_c = np.linalg.norm(self.atoms[ring_bond[0]].coord
                              - self.atoms[ring_bond[1]].coord)
 
-        if np.isclose(r_c, ring_bond.r0, atol=0.2):
+        if not np.isclose(r_c, ring_bond.r0, atol=0.2):
             logger.info('Have a small ring that was poorly closed '
                         f'(r = {r_c:.2f} Å) - adjusting angles')
             self._adjust_ring_angles(ring_bond)

@@ -11,10 +11,6 @@ def test_base_properties():
     assert parser.n_atoms == 0
     assert parser.charge == 0
 
-    # Cannot generate canonical atoms if the SMILES string has not been parsed
-    with pytest.raises(ValueError):
-        _ = parser.canonical_atoms
-
     with pytest.raises(InvalidSmilesString):
         parser.smiles = 'C*C'
 
@@ -234,7 +230,7 @@ def test_hydrogens():
     assert parser.n_atoms == 5
     assert parser.n_bonds == 4
 
-    assert len(parser.canonical_atoms) == 5
+    assert len(parser.atoms) == 5
 
 
 def test_cis_trans():
@@ -366,3 +362,15 @@ def test_multiplicity():
     # Multiple unpaired electrons default to singlets..
     parser.parse(smiles='C[C]C')
     assert parser.mult == 1
+
+
+def _test_alt_ring_branch():
+
+    parser = Parser()
+    smiles = ('[H][Rh]12([C]=O)([P+](C3=CC=CC4=C3OC5=C([P+](C6=CC=CC=C6)2C7='
+              'CC=CC=C7)C=CC=C5C4(C)C)(C8=CC=CC=C8)C9=CC=CC=C9)CC1')
+
+    parser.parse(smiles)
+    num_h_atoms = sum(atom.n_hydrogens for atom in parser.atoms)
+
+    assert parser.n_atoms + num_h_atoms == 84
