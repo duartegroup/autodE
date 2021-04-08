@@ -113,6 +113,8 @@ def test_molecule_opt():
 def calc_mult():
 
     h = Molecule(name='H', smiles='[H]')
+    assert h.mult == 2
+
     assert calc_multiplicity(h, n_radical_electrons=1) == 2
 
     # Setting the multiplicity manually should override the number of radical

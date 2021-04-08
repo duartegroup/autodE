@@ -566,9 +566,9 @@ class Builder:
         nbrs_x = [idx for idx in self.atoms[idx_x].neighbours if idx != idx_y]
         nbrs_y = [idx for idx in self.atoms[idx_y].neighbours if idx != idx_x]
 
-        if len(nbrs_x) + len(nbrs_y) < 4:
-            logger.info('Had a double bond with fewer than 4 neighbours - no '
-                        'need to rotate the dihedral')
+        if len(nbrs_x) < 2 or len(nbrs_y) < 2:
+            logger.info('Had a double bond cointaining an atom with < 2 '
+                        'neighbours - no need to rotate the dihedral')
             return
 
         # Index W is the closest atom index to X, that isn't Y

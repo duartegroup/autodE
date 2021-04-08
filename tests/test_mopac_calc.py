@@ -222,6 +222,8 @@ def test_mopac_keywords():
     assert any('grad' == kw.lower() for kw in keywords)
 
     h = Molecule(name='H', smiles='[H]')
+    assert h.mult == 2
+
     keywords = get_keywords(calc_input=calc_input, molecule=h)
     assert any('doublet' == kw.lower() for kw in keywords)
 

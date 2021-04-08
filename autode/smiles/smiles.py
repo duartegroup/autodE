@@ -11,7 +11,7 @@ from autode.smiles.parser import Parser
 from autode.smiles.builder import Builder
 
 
-def calc_multiplicity(molecule, n_radical_electrons=None, mult=None):
+def calc_multiplicity(molecule, n_radical_electrons):
     """Calculate the spin multiplicity 2S + 1 where S is the number of
     unpaired electrons. Will only override non-default (unity multiplicity)
 
@@ -20,17 +20,10 @@ def calc_multiplicity(molecule, n_radical_electrons=None, mult=None):
 
     Keyword Arguments:
         n_radical_electrons (int | None):
-        mult (int | None):
 
     Returns:
         (int): multiplicity of the molecule
     """
-    if mult is not None:
-        n_radical_electrons = (mult - 1) // 2
-
-    if mult is None and n_radical_electrons is None:
-        raise ValueError('Must have either a multiplicity or '
-                         'n_radical_electrons to set the multiplicity')
 
     if molecule.mult == 1 and n_radical_electrons == 1:
         # Cannot have multiplicity = 1 and 1 radical electrons – override
@@ -137,7 +130,7 @@ def init_smiles(molecule, smiles):
     builder.build(atoms=parser.atoms, bonds=parser.bonds)
 
     molecule.charge = parser.charge
-    molecule.mult = calc_multiplicity(molecule=molecule, mult=parser.mult)
+    molecule.mult = parser.mult
     molecule.atoms = builder.canonical_atoms
 
     make_graph(molecule, bond_list=parser.bonds)
