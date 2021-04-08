@@ -78,7 +78,7 @@ class Builder:
     def max_ring_n(self):
         """Maximum ring size in this molecule"""
 
-        if self.rings_idxs is None:
+        if self.rings_idxs is None or len(self.rings_idxs) == 0:
             return 0
 
         return max(len(idxs) for idxs in self.rings_idxs)
