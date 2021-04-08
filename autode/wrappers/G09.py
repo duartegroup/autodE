@@ -590,7 +590,7 @@ class G09(ElectronicStructureMethod):
                     # Ha / a0
                     force = np.array([float(fx), float(fy), float(fz)])
 
-                    grad = -force / Constants.a02ang
+                    grad = -force / Constants.a0_to_ang
                     gradients.append(grad)
 
                 except ValueError:

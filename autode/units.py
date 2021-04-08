@@ -7,9 +7,9 @@ class Unit:
 
 class KjMol(Unit):
     name = 'kJ mol$^{-1}$'
-    conversion = Constants.ha2kJmol
+    conversion = Constants.ha_to_kJmol
 
 
 class KcalMol(Unit):
     name = 'kcal mol$^{-1}$'
-    conversion = Constants.ha2kcalmol
+    conversion = Constants.ha_to_kcalmol

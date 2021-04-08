@@ -9,9 +9,10 @@ from autode.exceptions import MethodUnavailable
 from autode.log import logger
 
 """
-Functions to get the high and low level electronic structure methods to use for example high-level methods would be
-orca and Gaussian09 which can perform DFT/WF theory calculations, low level methods are for example xtb and mopac which
-are non ab-initio methods and are therefore considerably faster
+Functions to get the high and low level electronic structure methods to use 
+for example high-level methods would be orca and Gaussian09 which can perform 
+DFT/WF theory calculations, low level methods are for example xtb and mopac 
+which are non ab-initio methods and are therefore considerably faster
 """
 
 high_level_method_names = ['orca', 'g09', 'g16', 'nwchem']

@@ -227,7 +227,7 @@ def calc_atom_entropy(atom_label, temp):
 
     s = k_b * n_a * (np.log(q_trans) + 2.5)
     # Convert from J K-1 mol-1 to K-1 Ha
-    return s / (Constants.ha2kJmol * 1000)
+    return s / (Constants.ha_to_kJmol * 1000)
 
 
 class ORCA(ElectronicStructureMethod):
@@ -501,7 +501,7 @@ class ORCA(ElectronicStructureMethod):
                     vec = [float(dadx), float(dady), float(dadz)]
 
                     # Convert from Ha a0^-1 to Ha A-1
-                    gradients.append(np.array(vec) / Constants.a02ang)
+                    gradients.append(np.array(vec) / Constants.a0_to_ang)
 
         return np.array(gradients)
 

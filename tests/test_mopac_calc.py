@@ -32,7 +32,7 @@ def test_mopac_opt_calculation():
     assert len(calc.get_final_atoms()) == 5
 
     # Actual energy in Hartrees
-    energy = Constants.eV2ha * -430.43191
+    energy = Constants.eV_to_ha * -430.43191
     assert energy - 0.0001 < calc.get_energy() < energy + 0.0001
 
     assert calc.output.exists()
@@ -67,7 +67,7 @@ def test_mopac_with_pc():
     assert len(calc.get_final_atoms()) == 5
 
     # Actual energy in Hartrees without any point charges
-    energy = Constants.eV2ha * -430.43191
+    energy = Constants.eV_to_ha * -430.43191
     assert np.abs(calc.get_energy() - energy) > 0.0001
 
 

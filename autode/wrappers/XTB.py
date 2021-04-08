@@ -250,9 +250,9 @@ class XTB(ElectronicStructureMethod):
                 x, y, z, atom_label = line.split()
 
                 atom = Atom(atom_label,
-                            x=float(x) * Constants.a02ang,
-                            y=float(y) * Constants.a02ang,
-                            z=float(z) * Constants.a02ang)
+                            x=float(x) * Constants.a0_to_ang,
+                            y=float(y) * Constants.a0_to_ang,
+                            z=float(z) * Constants.a0_to_ang)
 
                 atoms.append(atom)
 
@@ -325,7 +325,7 @@ class XTB(ElectronicStructureMethod):
             os.remove('gradient')
 
         # Convert from Ha a0^-1 to Ha A-1
-        gradients = [grad / Constants.a02ang for grad in gradients]
+        gradients = [grad / Constants.a0_to_ang for grad in gradients]
         return np.array(gradients)
 
     def __init__(self):

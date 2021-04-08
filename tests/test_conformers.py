@@ -94,7 +94,7 @@ def test_unique_confs_none():
 
     # Conformer with energy just below the threshold
     conf2 = Conformer()
-    conf2.energy = 0.1 + (0.9 / Constants.ha2kJmol)
+    conf2.energy = 0.1 + (0.9 / Constants.ha_to_kJmol)
 
     unique_confs = get_unique_confs(conformers=[conf1, conf2],
                                     energy_threshold_kj=1)
@@ -102,7 +102,7 @@ def test_unique_confs_none():
 
     # If the energy is above the threshold there should be two unique
     # conformers
-    conf2.energy += 0.2 / Constants.ha2kJmol
+    conf2.energy += 0.2 / Constants.ha_to_kJmol
     unique_confs = get_unique_confs(conformers=[conf1, conf2],
                                     energy_threshold_kj=1)
     assert len(unique_confs) == 2

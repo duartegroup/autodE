@@ -11,25 +11,21 @@ class Config:
     # Total number of cores available
     #
     n_cores = 4
-    #
     # -------------------------------------------------------------------------
     # Per core memory available in MB
     #
     max_core = 4000
-    #
     # -------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code
     # will be used:
     # 1. 'orca', 2. 'g09' 3. 'nwchem'
     #
     hcode = None
-    #
     # -------------------------------------------------------------------------
     # Semi-empirical/tight binding method to use. If set to None then the
     # highest priority available will be used:   1. 'xtb', 2. 'mopac'
     #
     lcode = None
-    #
     # -------------------------------------------------------------------------
     # When using explicit solvent is stable this will be uncommented
     #
@@ -39,35 +35,31 @@ class Config:
     # Setting to keep input files, otherwise they will be removed
     #
     keep_input_files = True
-    #
     # -------------------------------------------------------------------------
     # Use a different base directory for calculations with low-level methods
     # e.g. /dev/shm with a low level method, if None then will use the default
     # in tempfile.mkdtemp
     #
     ll_tmp_dir = None
-    #
     # -------------------------------------------------------------------------
     # By default templates are saved to /path/to/autode/transition_states/lib/
     # unless ts_template_folder_path is set
     #
     ts_template_folder_path = None
-    #
+    # -------------------------------------------------------------------------
     # Whether or not to create and save transition state templates
     #
     make_ts_template = True
-    #
     # -------------------------------------------------------------------------
     # Save plots with dpi = 400
-    high_quality_plots = True
     #
+    high_quality_plots = True
     # -------------------------------------------------------------------------
     # RMSD in angstroms threshold for conformers. Larger values will remove
     # more conformers that need to be calculated but also reduces the chance
     # that the lowest energy conformer is found
     #
     rmsd_threshold = 0.3
-    #
     # -------------------------------------------------------------------------
     # Total number of conformers generated in find_lowest_energy_conformer()
     # for single molecules/TSs

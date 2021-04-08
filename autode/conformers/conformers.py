@@ -52,7 +52,7 @@ def get_unique_confs(conformers, energy_threshold_kj=1):
     n_conformers = len(conformers)
 
     # Conformer.energy is in Hartrees
-    threshold = energy_threshold_kj / Constants.ha2kJmol
+    threshold = energy_threshold_kj / Constants.ha_to_kJmol
 
     # The first conformer must be unique, if it has an energy
     unique_conformers = []

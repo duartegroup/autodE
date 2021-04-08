@@ -13,6 +13,7 @@ def are_coords_reasonable(coords):
 
     Arguments:
         coords (np.ndarray): Species coordinates as a n_atoms x 3 array
+
     Returns:
         bool:
     """
@@ -79,8 +80,8 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     https://en.wikipedia.org/wiki/Kabsch_algorithm
 
     Arguments:
-        p_matrix: (np.ndarray)
-        q_matrix: (np.ndarray)
+        p_matrix (np.ndarray):
+        q_matrix (np.ndarray):
 
     Returns:
         (np.ndarray): rotation matrix

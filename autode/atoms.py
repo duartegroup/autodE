@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Union
 from autode.log import logger
 from autode.geom import get_rot_mat_euler
 
@@ -8,6 +9,9 @@ class Atom:
     def __repr__(self):
         x, y, z = self.coord
         return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def atomic_number(self):
@@ -46,7 +50,7 @@ class Atom:
 
         return 0
 
-    def translate(self, vec):
+    def translate(self, vec: np.ndarray):
         """
         Translate this atom by a vector
 
@@ -56,7 +60,10 @@ class Atom:
         self.coord += vec
         return None
 
-    def rotate(self, axis, theta, origin=None):
+    def rotate(self,
+               axis: np.ndarray,
+               theta: float,
+               origin: Union[np.ndarray, None] = None):
         """Rotate this atom theta radians around an axis given an origin
 
         Arguments:

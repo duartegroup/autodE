@@ -234,7 +234,7 @@ def test_mp2_numerical_gradients():
 
     gradients = calc.get_gradients()
     assert len(gradients) == 6
-    expected = np.array([-0.00971201,  -0.00773534,  -0.02473580]) / Constants.a02ang
+    expected = np.array([-0.00971201,  -0.00773534,  -0.02473580]) / Constants.a0_to_ang
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
     # Test for different printing with numerical..
@@ -242,7 +242,7 @@ def test_mp2_numerical_gradients():
     calc.output.file_lines = open(calc.output.filename, 'r').readlines()
     gradients = calc.get_gradients()
     assert len(gradients) == 6
-    expected = np.array([0.012397372, 0.071726232, -0.070942743]) / Constants.a02ang
+    expected = np.array([0.012397372, 0.071726232, -0.070942743]) / Constants.a0_to_ang
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
 
