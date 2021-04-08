@@ -8,7 +8,6 @@ as of 03/2021
 """
 from time import time
 from autode.log import logger
-from autode.atoms import Atom
 from autode.atoms import elements
 from autode.exceptions import InvalidSmilesString
 from autode.smiles.base import (SMILESAtom, SMILESBond, SMILESBonds, RingBond,
@@ -31,19 +30,6 @@ class Parser:
     def charge(self):
         """Return the total charge on all the atoms"""
         return sum(atom.charge for atom in self.atoms)
-
-    @property
-    def canonical_atoms(self):
-        """Generate canonical autodE atoms from this set"""
-        if self.n_atoms == 0:
-            raise ValueError('Had no atoms - cannot return a canonical set')
-
-        atoms = []
-        for atom in self.atoms:
-            x, y, z = atom.coord
-            atoms.append(Atom(atom.label, x=x, y=y, z=z))
-
-        return atoms
 
     @property
     def mult(self):

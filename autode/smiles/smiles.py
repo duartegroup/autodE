@@ -7,23 +7,30 @@ from autode.exceptions import RDKitFailed
 from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
-from autode.smiles.smiles_parser import parse_smiles
-from copy import deepcopy
+from autode.smiles.parser import Parser
+from autode.smiles.builder import Builder
 
 
-def calc_multiplicity(molecule, n_radical_electrons):
+def calc_multiplicity(molecule, n_radical_electrons=None, mult=None):
     """Calculate the spin multiplicity 2S + 1 where S is the number of
-    unpaired electrons
+    unpaired electrons. Will only override non-default (unity multiplicity)
 
     Arguments:
         molecule (autode.molecule.Molecule):
-        n_radical_electrons (int):
-    Returns:
-        int: multiplicity of the molecule
-    """
 
-    if molecule.mult == 1 and n_radical_electrons == 0:
-        return 1
+    Keyword Arguments:
+        n_radical_electrons (int | None):
+        mult (int | None):
+
+    Returns:
+        (int): multiplicity of the molecule
+    """
+    if mult is not None:
+        n_radical_electrons = (mult - 1) // 2
+
+    if mult is None and n_radical_electrons is None:
+        raise ValueError('Must have either a multiplicity or '
+                         'n_radical_electrons to set the multiplicity')
 
     if molecule.mult == 1 and n_radical_electrons == 1:
         # Cannot have multiplicity = 1 and 1 radical electrons – override
@@ -47,30 +54,41 @@ def init_organic_smiles(molecule, smiles):
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
     """
+    parser, builder = Parser(), Builder()
+
+    parser.parse(smiles)
+    builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+
+    if builder.max_ring_n >= 8:
+        logger.info('Have a medium to large size ring, falling back to '
+                    'autodE builder')
+        return init_smiles(molecule=molecule, smiles=smiles)
 
     try:
-        molecule.rdkit_mol_obj = Chem.MolFromSmiles(smiles)
+        rdkit_mol = Chem.MolFromSmiles(smiles)
 
-        if molecule.rdkit_mol_obj is None:
+        if rdkit_mol is None:
             logger.warning('RDKit failed to initialise a molecule')
             return init_smiles(molecule, smiles)
 
-        molecule.rdkit_mol_obj = Chem.AddHs(molecule.rdkit_mol_obj)
+        rdkit_mol = Chem.AddHs(rdkit_mol)
+
     except RuntimeError:
         raise RDKitFailed
 
-    molecule.charge = Chem.GetFormalCharge(molecule.rdkit_mol_obj)
+    molecule.charge = Chem.GetFormalCharge(rdkit_mol)
     molecule.mult = calc_multiplicity(molecule,
-                                      NumRadicalElectrons(molecule.rdkit_mol_obj))
+                                      NumRadicalElectrons(rdkit_mol))
+
     bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
-             for bond in molecule.rdkit_mol_obj.GetBonds()]
+             for bond in rdkit_mol.GetBonds()]
 
     # Generate a single 3D structure using RDKit's ETKDG conformer generation
     # algorithm
     method = AllChem.ETKDGv2()
     method.randomSeed = 0xf00d
-    AllChem.EmbedMultipleConfs(molecule.rdkit_mol_obj, numConfs=1, params=method)
-    molecule.atoms = atoms_from_rdkit_mol(molecule.rdkit_mol_obj, conf_id=0)
+    AllChem.EmbedMultipleConfs(rdkit_mol, numConfs=1, params=method)
+    molecule.atoms = atoms_from_rdkit_mol(rdkit_mol, conf_id=0)
     make_graph(molecule, bond_list=bonds)
 
     # Revert back to RR if RDKit fails to return a sensible geometry
@@ -78,18 +96,22 @@ def init_organic_smiles(molecule, smiles):
         molecule.rdkit_conf_gen_is_fine = False
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
-    for atom, _ in Chem.FindMolChiralCenters(molecule.rdkit_mol_obj):
+    for atom, _ in Chem.FindMolChiralCenters(rdkit_mol):
         molecule.graph.nodes[atom]['stereo'] = True
 
-    for bond in molecule.rdkit_mol_obj.GetBonds():
+    for bond in rdkit_mol.GetBonds():
+        idx_i, idx_j = bond.GetBeginAtomIdx(),bond.GetEndAtomIdx()
+
         if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
-            molecule.graph.edges[bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()]['pi'] = True
+            molecule.graph.edges[idx_i, idx_j]['pi'] = True
+
         if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:
-            molecule.graph.nodes[bond.GetBeginAtomIdx()]['stereo'] = True
-            molecule.graph.nodes[bond.GetEndAtomIdx()]['stereo'] = True
+            molecule.graph.nodes[idx_i]['stereo'] = True
+            molecule.graph.nodes[idx_j]['stereo'] = True
 
-    check_bonds(molecule, bonds=molecule.rdkit_mol_obj.GetBonds())
+    check_bonds(molecule, bonds=rdkit_mol.GetBonds())
 
+    molecule.rdkit_mol_obj = rdkit_mol
     return None
 
 
@@ -107,21 +129,24 @@ def init_smiles(molecule, smiles):
     if '.' in smiles:
         raise ValueError('Could not parse SMILES with non-bonded components')
 
-    parser = parse_smiles(smiles)
+    parser, builder = Parser(),  Builder()
+
+    parser.parse(smiles)
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
 
     molecule.charge = parser.charge
-    molecule.mult = calc_multiplicity(molecule=molecule,
-                                      n_radical_electrons=parser.n_radical_electrons)
-
-    molecule.atoms = parser.atoms
+    molecule.mult = calc_multiplicity(molecule=molecule, mult=parser.mult)
+    molecule.atoms = builder.canonical_atoms
 
     make_graph(molecule, bond_list=parser.bonds)
 
-    for stereocentre in parser.stereocentres:
-        molecule.graph.nodes[stereocentre]['stereo'] = True
-    for bond_index in parser.bond_order_dict.keys():
-        bond = parser.bonds[bond_index]
-        molecule.graph.edges[bond]['pi'] = True
+    for idx, atom in enumerate(builder.atoms):
+
+        if atom.has_stereochem:
+            molecule.graph.nodes[idx]['stereo'] = True
+
+    for bond in parser.bonds:
+        molecule.graph.edges[tuple(bond)]['pi'] = True
 
     molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
     check_bonds(molecule, bonds=parser.bonds)
@@ -138,7 +163,7 @@ def check_bonds(molecule, bonds):
         molecule (autode.molecule.Molecule):
         bonds (list):
     """
-    check_molecule = deepcopy(molecule)
+    check_molecule = molecule.copy()
     make_graph(check_molecule)
 
     if len(bonds) != check_molecule.graph.number_of_edges():

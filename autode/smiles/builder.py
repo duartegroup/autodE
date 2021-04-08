@@ -3,6 +3,7 @@ import networkx as nx
 from time import time
 from scipy.spatial import distance_matrix
 from autode.log import logger
+from autode.atoms import Atom
 from autode.bonds import get_avg_bond_length
 from autode.geom import get_rot_mat_kabsch
 from autode.exceptions import SMILESBuildFailed, FailedToSetRotationIdxs
@@ -26,6 +27,17 @@ class Builder:
     @property
     def n_atoms(self):
         return 0 if self.atoms is None else len(self.atoms)
+
+    @property
+    def canonical_atoms(self):
+        """Generate canonical autodE atoms from this set"""
+
+        atoms = []
+        for atom in self.atoms:
+            x, y, z = atom.coord
+            atoms.append(Atom(atom.label, x=x, y=y, z=z))
+
+        return atoms
 
     @property
     def coordinates(self):
@@ -61,6 +73,15 @@ class Builder:
                 idxs[i, :] = idxs[:, i] = 0
 
         return idxs
+
+    @property
+    def max_ring_n(self):
+        """Maximum ring size in this molecule"""
+
+        if self.rings_idxs is None:
+            return 0
+
+        return max(len(idxs) for idxs in self.rings_idxs)
 
     def _atom_is_d8(self, idx):
         """
@@ -344,6 +365,10 @@ class Builder:
 
         path = self._ring_path(ring_bond=ring_bond)
 
+        if len(path) > 5:
+            logger.warning('Closing large rings not implemented')
+            return
+
         angles_idxs = [tuple(path[i:i + 3]) for i in range(len(path) - 2)]
         logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
 
@@ -372,6 +397,10 @@ class Builder:
 
             angles.append(angle)
             angles.append(angle_alt)
+
+        if len(angles) == 0:
+            logger.error('Found no suitable angles to rotate')
+            return
 
         coords = self.coordinates
         axes = []
@@ -445,7 +474,7 @@ class Builder:
         r_c = np.linalg.norm(self.atoms[ring_bond[0]].coord
                              - self.atoms[ring_bond[1]].coord)
 
-        if len(dihedrals) < 3 and not np.isclose(r_c, ring_bond.r0, atol=0.2):
+        if np.isclose(r_c, ring_bond.r0, atol=0.2):
             logger.info('Have a small ring that was poorly closed '
                         f'(r = {r_c:.2f} Å) - adjusting angles')
             self._adjust_ring_angles(ring_bond)
@@ -516,43 +545,6 @@ class Builder:
         self.coordinates = coords
         logger.info(f'Performed final dihedral rotation in '
                     f'{(time() - start_time)*1000:.2f} ms')
-        return None
-
-    def _set_atoms_bonds(self, atoms, bonds):
-        """
-        From a list of SMILESAtoms, and SMILESBonds set the required attributes
-        and convert all implicit hydrogens into explicit atoms
-        """
-        if atoms is None or len(atoms) == 0:
-            raise SMILESBuildFailed('Cannot build a structure with no atoms')
-
-        # Set attributes
-        self.atoms, self.bonds = atoms, bonds
-        self.graph = nx.Graph()
-        self.queued_atoms = []
-        self.queued_dihedrals = Dihedrals()
-
-        self._explicit_all_hydrogens()
-
-        # Add nodes for all the atom indexes, without attributes for e.g
-        # atomic symbol as a normal molecular graph would have
-        for i in range(self.n_atoms):
-            self.graph.add_node(i)
-
-        # Set the ideal bond lengths and the graph edges
-        for bond in self.bonds:
-            idx_i, idx_j = bond
-            self.graph.add_edge(idx_i, idx_j, order=bond.order)
-
-            bond.r0 = get_avg_bond_length(self.atoms[idx_i].label,
-                                          self.atoms[idx_j].label)
-
-        self._set_atom_types()
-
-        # Add the first atom to the queue of atoms to be translated etc.
-        self.queued_atoms.append(0)
-        # perturb the first atom's coordinate slightly
-        self.atoms[0].translate(vec=np.array([0.001, 0.001, 0.001]))
         return None
 
     def _queue_double_bond_dihedral(self, bond):
@@ -687,6 +679,43 @@ class Builder:
 
         return None
 
+    def set_atoms_bonds(self, atoms, bonds):
+        """
+        From a list of SMILESAtoms, and SMILESBonds set the required attributes
+        and convert all implicit hydrogens into explicit atoms
+        """
+        if atoms is None or len(atoms) == 0:
+            raise SMILESBuildFailed('Cannot build a structure with no atoms')
+
+        # Set attributes
+        self.atoms, self.bonds = atoms, bonds
+        self.graph = nx.Graph()
+        self.queued_atoms = []
+        self.queued_dihedrals = Dihedrals()
+
+        self._explicit_all_hydrogens()
+
+        # Add nodes for all the atom indexes, without attributes for e.g
+        # atomic symbol as a normal molecular graph would have
+        for i in range(self.n_atoms):
+            self.graph.add_node(i)
+
+        # Set the ideal bond lengths and the graph edges
+        for bond in self.bonds:
+            idx_i, idx_j = bond
+            self.graph.add_edge(idx_i, idx_j, order=bond.order)
+
+            bond.r0 = get_avg_bond_length(self.atoms[idx_i].label,
+                                          self.atoms[idx_j].label)
+
+        self._set_atom_types()
+
+        # Add the first atom to the queue of atoms to be translated etc.
+        self.queued_atoms.append(0)
+        # perturb the first atom's coordinate slightly
+        self.atoms[0].translate(vec=np.array([0.001, 0.001, 0.001]))
+        return None
+
     def build(self, atoms, bonds):
         """
         Build a molecule by iterating through all the atoms adding it and
@@ -711,7 +740,7 @@ class Builder:
             bonds (autode.smiles.SMILESBonds):
         """
         start_time = time()
-        self._set_atoms_bonds(atoms, bonds)
+        self.set_atoms_bonds(atoms, bonds)
 
         while not self.built:
 

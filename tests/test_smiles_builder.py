@@ -59,7 +59,7 @@ def test_base_builder():
 def test_explicit_hs():
 
     parser.parse(smiles='C')
-    builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+    builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
     # Should convert all implicit Hs to explicit atoms
     assert len(builder.atoms) == 5
@@ -72,7 +72,7 @@ def test_explicit_hs():
     parser.parse(smiles='CC(C)(C)C')
     assert len([True for (i, j) in parser.bonds
                 if parser.atoms[i].label == parser.atoms[j].label == 'C']) == 4
-    builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+    builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
     assert builder.n_atoms == 17
 
 
@@ -85,7 +85,7 @@ def test_d8():
     for smiles in d8_smiles_list:
 
         parser.parse(smiles)
-        builder._set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+        builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
         pd_idx = next(idx for idx, atom in enumerate(builder.atoms)
                       if atom.label == 'Pd')
@@ -200,7 +200,7 @@ def test_simple_ring():
     """Small unsubstituted rings"""
 
     parser.parse(smiles='C1CCCCC1')                          # cyclohexane
-    builder._set_atoms_bonds(parser.atoms, parser.bonds)
+    builder.set_atoms_bonds(parser.atoms, parser.bonds)
     ring_dihedrals = list(builder._ring_dihedrals(ring_bond=[3, 4]))
     assert len(ring_dihedrals) == 3
 
