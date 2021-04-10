@@ -1,4 +1,5 @@
 import numpy as np
+from autode import Molecule
 from c_rb import minimised_rb_coords
 from autode.geom import are_coords_reasonable
 
@@ -14,8 +15,8 @@ def test_construction():
     r0 = np.array([[0.0, 1.0],
                    [1.0, 0.0]], dtype='f8')
 
-    k = np.array([[0.0, 1.0],
-                  [1.0, 0.0]], dtype='f8')
+    k = np.array([[0.0, 10.0],
+                  [10.0, 0.0]], dtype='f8')
 
     c = np.array([[0.0, 0.1],
                   [0.1, 0.0]], dtype='f8')
@@ -27,10 +28,8 @@ def test_construction():
                                  py_c_matrix=c,
                                  py_exponent=4)
 
-
-    from autode import Molecule
     h2 = Molecule(smiles='[H][H]')
     h2.coordinates = coords
     h2.print_xyz_file(filename='tmp.xyz')
 
-    # assert are_coords_reasonable(coords)
+    assert are_coords_reasonable(coords)

@@ -4,29 +4,21 @@
 #include <cmath>
 #include "potentials.h"
 
-#include "iostream"
-
 
 namespace autode{
 
-    void Potential::check_grad(autode::Molecule &molecule,
-                               double tol) {
+    void Potential::set_energy_and_numerical_grad(autode::Molecule &molecule,
+                                                  double eps) {
         /*
-         * Check the analytic gradient against the numerical analogue
+         * Calculate a finite difference gradient
          *
          * Arguments:
-         *    molecule:
+         *     molecule:
          *
-         * Raises:
-         *    runtime_error: If the norm is greater than tol
+         *     eps: δ on each x
          */
-        double eps = 1E-10;
-
-        set_energy_and_grad(molecule);
-        double energy = molecule.energy;
-
-        // copy of the analytic gradient
-        std::vector<double> analytic_grad(molecule.grad);
+        set_energy(molecule);
+        auto energy = molecule.energy;
 
         std::vector<double> num_grad(molecule.grad.size(), 0.0);
 
@@ -47,9 +39,30 @@ namespace autode{
             } // j
         } // i
 
+    }
+
+
+    void Potential::check_grad(autode::Molecule &molecule,
+                               double tol) {
+        /*
+         * Check the analytic gradient against the numerical analogue
+         *
+         * Arguments:
+         *    molecule:
+         *
+         * Raises:
+         *    runtime_error: If the norm is greater than tol
+         */
+        set_energy_and_grad(molecule);
+
+        // copy of the analytic gradient
+        std::vector<double> analytic_grad(molecule.grad);
+
+        set_energy_and_numerical_grad(molecule);
+
         double sq_norm = 0;
-        for (int i = 0; i < analytic_grad.size(); i++){
-            sq_norm += pow(num_grad[i] - analytic_grad[i], 2);
+        for (int i = 0; i < 3 * molecule.n_atoms; i++){
+            sq_norm += pow(molecule.grad[i] - analytic_grad[i], 2);
         }
 
         if (sqrt(sq_norm) > tol){

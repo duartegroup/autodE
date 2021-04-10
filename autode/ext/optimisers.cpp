@@ -19,7 +19,19 @@ namespace autode {
                           double energy_tol,
                           double init_step_size) {
         /*
+         * Steepest decent optimiser
          *
+         * Arguments:
+         *     potential:
+         *
+         *     molecule:
+         *
+         *     max_iterations: Maximum number of macro iterations
+         *                     (total = max_iterations * max_micro_iterations)
+         *
+         *     energy_tol: ΔE between iterations to signal convergence
+         *
+         *     init_step_size: (Å)
          */
         double max_micro_iterations = 10;
         double curr_energy = 0.0;
@@ -32,42 +44,28 @@ namespace autode {
                and iteration < max_iterations){
 
             int micro_iteration = 0;
-            curr_energy = molecule.energy;
             double step_factor = init_step_size;
 
             // Run a set of micro iterations as a line search in the steepest
             // decent direction: -∇V
             while (micro_iteration < max_micro_iterations){
 
+                curr_energy = molecule.energy;
                 step(molecule, step_factor);
+
                 potential.set_energy(molecule);
-                micro_iteration += 1;
 
-                // Backtrack until the new energy is lower than the current
-                // if the step was too large
-                while (molecule.energy > curr_energy) {
-
-                    // Σ_n=1 2^-n = 1 ! with enough steps this must work..
-                    step_factor /= 2.0;
+                // Backtrack if the energy rises
+                if (molecule.energy > curr_energy){
                     step(molecule, -step_factor);
-                    potential.set_energy(molecule);
-                    std::cout << iteration << '\t' << micro_iteration << '\t' << curr_energy << '\t' << molecule.energy << std::endl;
-
-                    // This still counts to the number of iterations, possibly
-                    // a very large number required..
-                    if (micro_iteration > max_micro_iterations){
-                        break;
-                    }
-
-                    micro_iteration += 1;
+                    molecule.energy = curr_energy;
+                    step_factor /= 2.0;
                 }
-                std::cout << iteration << '\t' << micro_iteration << '\t' << curr_energy << '\t' << molecule.energy << std::endl;
 
-
+                micro_iteration += 1;
             } // Micro
-        iteration += 1;
 
-        std::cout << iteration << '\t' << curr_energy << '\t' << molecule.energy << std::endl;
+            iteration += 1;
         } // Macro
     }
 

@@ -11,11 +11,18 @@ namespace autode {
         // energy and gradient
     public:
 
+        void check_grad(autode::Molecule &molecule, double tol = 1E-6);
+        void set_energy_and_numerical_grad(autode::Molecule &molecule,
+                                           double eps = 1E-10);
+
+        // All potentials have a gradient method that defaults to numerical
+        virtual void set_energy_and_grad(autode::Molecule &molecule){
+            set_energy_and_numerical_grad(molecule);
+        };
+
         // Abstract functions that must be implemented in derived classes
-        virtual void set_energy_and_grad(autode::Molecule &molecule) = 0;
         virtual void set_energy(autode::Molecule &molecule) = 0;
 
-        void check_grad(autode::Molecule &molecule, double tol = 1E-6);
     };
 
     class RBPotential: public Potential{
