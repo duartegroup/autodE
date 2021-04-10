@@ -14,6 +14,8 @@ namespace autode {
         // Abstract functions that must be implemented in derived classes
         virtual void set_energy_and_grad(autode::Molecule &molecule) = 0;
         virtual void set_energy(autode::Molecule &molecule) = 0;
+
+        void check_grad(autode::Molecule &molecule, double tol = 1E-6);
     };
 
     class RBPotential: public Potential{

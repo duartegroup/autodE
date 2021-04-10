@@ -1,10 +1,62 @@
 #include <stdexcept>
+#include <algorithm>
 #include <utility>
 #include <cmath>
 #include "potentials.h"
 
+#include "iostream"
+
 
 namespace autode{
+
+    void Potential::check_grad(autode::Molecule &molecule,
+                               double tol) {
+        /*
+         * Check the analytic gradient against the numerical analogue
+         *
+         * Arguments:
+         *    molecule:
+         *
+         * Raises:
+         *    runtime_error: If the norm is greater than tol
+         */
+        double eps = 1E-10;
+
+        set_energy_and_grad(molecule);
+        double energy = molecule.energy;
+
+        // copy of the analytic gradient
+        std::vector<double> analytic_grad(molecule.grad);
+
+        std::vector<double> num_grad(molecule.grad.size(), 0.0);
+
+        for (int i = 0; i < molecule.n_atoms; i++){  // atoms
+            for (int j = 0; j < 3; j++){             // x, y, z
+                int idx = 3 * i + j;
+
+                // Shift by δ in each coordinate, calculate the energy
+                molecule.coords[idx] += eps;
+                set_energy(molecule);
+
+                // and the finite difference gradient
+                num_grad[idx] = (molecule.energy - energy) / eps;
+
+                // and shift the modified coordinates back
+                molecule.coords[idx] -= eps;
+
+            } // j
+        } // i
+
+        double sq_norm = 0;
+        for (int i = 0; i < analytic_grad.size(); i++){
+            sq_norm += pow(num_grad[i] - analytic_grad[i], 2);
+        }
+
+        if (sqrt(sq_norm) > tol){
+            throw std::runtime_error("Difference between the analytic and "
+                                     "numerical gradients exceeded the tolerance");
+        }
+    }
 
     RBPotential::RBPotential() = default;
 
@@ -46,18 +98,13 @@ namespace autode{
         double energy = 0.0;
 
         for (int i = 0; i < mol.n_atoms; i++){
-            for (int j = 0; j < mol.n_atoms; j++) {
-
-                // Only loop over unique pairs
-                if (i < j) {
-                    continue;
-                }
+            for (int j = i+1; j < mol.n_atoms; j++) {
 
                 int pair_idx = i * mol.n_atoms + j;  // Compound index
 
                 double dx = mol.coords[3*i + 0] - mol.coords[3*j + 0];
                 double dy = mol.coords[3*i + 1] - mol.coords[3*j + 1];
-                double dz = mol.coords[3*i + 2] - mol.coords[3*j + 1];
+                double dz = mol.coords[3*i + 2] - mol.coords[3*j + 2];
 
                 // Square euclidean distance
                 double r = sqrt(dx*dx + dy*dy + dz*dz);
@@ -68,8 +115,8 @@ namespace autode{
                 if (! mol.bonds[pair_idx]){
                     continue;
                 }
-
                 energy += k[pair_idx] * pow(r - r0[pair_idx], 2);
+
             } // j
         } // i
 
@@ -90,7 +137,7 @@ namespace autode{
 
             for (int j = 0; j < mol.n_atoms; j++) {
 
-                // Only loop over unique pairs
+                // Only loop over non identical pairs
                 if (i == j) {
                     continue;
                 }
@@ -99,7 +146,7 @@ namespace autode{
 
                 double dx = mol.coords[3*i + 0] - mol.coords[3*j + 0];
                 double dy = mol.coords[3*i + 1] - mol.coords[3*j + 1];
-                double dz = mol.coords[3*i + 2] - mol.coords[3*j + 1];
+                double dz = mol.coords[3*i + 2] - mol.coords[3*j + 2];
 
                 // Square euclidean distance
                 double r = sqrt(dx*dx + dy*dy + dz*dz);
@@ -124,11 +171,10 @@ namespace autode{
                 }
 
                 // Calculate the harmonic energy
-                double e_bonded = k[pair_idx] * pow(r - r0[pair_idx], 2);
-                energy += 0.5 * e_bonded;
+                energy += 0.5 * k[pair_idx] * pow(r - r0[pair_idx], 2);
 
                 // and set the gradient contribution from the harmonic bonds
-                auto bonded_ftr = 2.0 * e_bonded / r;
+                auto bonded_ftr = 2.0 * k[pair_idx] * (1.0 - r0[pair_idx] / r);
                 mol.grad[3*i + 0] += bonded_ftr * dx;
                 mol.grad[3*i + 1] += bonded_ftr * dy;
                 mol.grad[3*i + 2] += bonded_ftr * dz;

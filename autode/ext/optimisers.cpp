@@ -2,6 +2,7 @@
 #include <utility>
 #include <cmath>
 #include <stdexcept>
+#include "iostream"
 
 namespace autode {
 
@@ -50,16 +51,24 @@ namespace autode {
                     step_factor /= 2.0;
                     step(molecule, -step_factor);
                     potential.set_energy(molecule);
+                    std::cout << iteration << '\t' << micro_iteration << '\t' << curr_energy << '\t' << molecule.energy << std::endl;
 
                     // This still counts to the number of iterations, possibly
                     // a very large number required..
+                    if (micro_iteration > max_micro_iterations){
+                        break;
+                    }
+
                     micro_iteration += 1;
                 }
+                std::cout << iteration << '\t' << micro_iteration << '\t' << curr_energy << '\t' << molecule.energy << std::endl;
+
 
             } // Micro
+        iteration += 1;
+
+        std::cout << iteration << '\t' << curr_energy << '\t' << molecule.energy << std::endl;
         } // Macro
-
-
     }
 
 }
