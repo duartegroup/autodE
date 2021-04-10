@@ -4,7 +4,7 @@ from setuptools.extension import Extension
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
               Extension('cdihedrals', ['autode/smiles/cdihedrals.pyx']),
-              Extension('c_rb', ['autode/ext/c_rb.pyx'])]
+              Extension('c_rb', ['autode/ext/c_rb.pyx'], laguage='c++')]
 
 setup(name='autode',
       version='1.0.3',

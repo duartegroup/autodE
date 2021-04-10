@@ -3,7 +3,7 @@ from c_rb import minimised_rb_coords
 from autode.geom import are_coords_reasonable
 
 
-def _test_construction():
+def test_construction():
 
     coords = np.array([[0.0, 0.0, 0.0],
                        [0.0, 0.0, 1.1]], dtype='f8')
@@ -26,5 +26,11 @@ def _test_construction():
                                  py_k_matrix=k,
                                  py_c_matrix=c,
                                  py_exponent=4)
+
+
+    from autode import Molecule
+    h2 = Molecule(smiles='[H][H]')
+    h2.coordinates = coords
+    h2.print_xyz_file(filename='tmp.xyz')
 
     # assert are_coords_reasonable(coords)
