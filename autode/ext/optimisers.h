@@ -31,6 +31,10 @@ namespace autode {
 
         private:
             static void step(autode::Molecule &molecule, double step_factor);
+            static void trust_step(autode::Molecule &molecule,
+                                   double step_factor,
+                                   double trust_radius = 0.1);
+
     };
 }
 
