@@ -190,7 +190,7 @@ def get_ts_guess(species, reactant, product, name):
                        'returning None')
         return None
 
-    if species.is_explicitly_solvated():
+    if species.is_explicitly_solvated:
         raise NotImplementedError
 
     return TSguess(species.atoms, reactant=reactant, product=product,

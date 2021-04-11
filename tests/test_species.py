@@ -37,7 +37,7 @@ def test_species_class():
     assert mol.mult == 1
     assert mol.name == 'H2'
 
-    assert not mol.is_explicitly_solvated()
+    assert not mol.is_explicitly_solvated
 
     # A not very sensible water geometry!
     water = Species(name='H2O', charge=0, mult=1,

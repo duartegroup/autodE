@@ -304,7 +304,7 @@ class TransitionState(TSbase):
 def get_ts_object(ts_guess):
     """Creates TransitionState for the TSguess. If it is a SolvatedTSguess,
     a SolvatedTransitionState is returned"""
-    if ts_guess.is_explicitly_solvated():
+    if ts_guess.is_explicitly_solvated:
         raise NotImplementedError
 
     return TransitionState(ts_guess=ts_guess)
