@@ -58,6 +58,25 @@ def test_basic_attributes():
     os.remove('tmp_H.xyz')
 
 
+def test_bond_matrix():
+
+    water = Molecule(smiles='O')
+    # check there are bonds where they are expected
+
+    bond_matrix = water.bond_matrix
+
+    assert not bond_matrix[0, 0]
+    assert bond_matrix[0, 1]       # O-H
+    assert bond_matrix[0, 2]       # O-H
+    assert bond_matrix[1, 0]       # H-O
+    assert bond_matrix[2, 0]       # H-O
+    assert not bond_matrix[1, 2]   # H-H
+
+    # No self bonds
+    assert not bond_matrix[1, 1]
+    assert not bond_matrix[2, 2]
+
+
 def test_gen_conformers():
 
     ethane = Molecule(name='ethane', smiles='CC')
@@ -141,7 +160,7 @@ def test_molecule_from_xyz():
     h2 = Molecule('h2_conf0.xyz')
     assert h2.name == 'h2_conf0'
     assert h2.n_atoms == 2
-    assert h2.formula() == 'H2'
+    assert h2.formula == 'H2'
 
 
 def test_rdkit_possible_fail():

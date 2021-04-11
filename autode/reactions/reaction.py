@@ -142,12 +142,12 @@ class Reaction:
         # Add all the reactants and products with interpretable names
         for i, reac_smiles in enumerate(reacs_smiles.split('.')):
             reac = Reactant(smiles=reac_smiles)
-            reac.name = f'r{i}_{reac.formula()}'
+            reac.name = f'r{i}_{reac.formula}'
             self.reacs.append(reac)
 
         for i, prod_smiles in enumerate(prods_smiles.split('.')):
             prod = Product(smiles=prod_smiles)
-            prod.name = f'p{i}_{prod.formula()}'
+            prod.name = f'p{i}_{prod.formula}'
             self.prods.append(prod)
 
         return None

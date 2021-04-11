@@ -30,11 +30,15 @@ class Species:
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
+    def copy(self):
+        return deepcopy(self)
+
+    @property
     def formula(self):
         """Return the molecular formula of this species"""
 
         if self.atoms is None:
-            return None
+            return ""
 
         symbols = [atom.label for atom in self.atoms]
 
@@ -45,9 +49,6 @@ class Species:
 
         return formula_str
 
-    def copy(self):
-        return deepcopy(self)
-
     @property
     def n_atoms(self):
         """Number of atoms in this species"""
@@ -56,9 +57,10 @@ class Species:
     @property
     @requires_atoms()
     def coordinates(self):
-        """Return a np.ndarray of size n_atoms x 3 containing the xyz
-        coordinates of the molecule in Å. Will return a copy"""
-        return np.array([atom.coord for atom in self.atoms], copy=True)
+        """np.ndarray of size n_atoms x 3 containing a copy of the xyz
+        coordinates of the molecule in Å"""
+        return np.array([atom.coord for atom in self.atoms],
+                        copy=True, dtype='f8')
 
     @coordinates.setter
     def coordinates(self, coords):
@@ -70,6 +72,21 @@ class Species:
             self.atoms[i].coord = coords[i]
 
     @property
+    @requires_atoms()
+    def bond_matrix(self):
+        """Return a np.ndarray boolian array of the bonds"""
+
+        matrix = np.zeros(shape=(self.n_atoms, self.n_atoms), dtype=bool)
+
+        if self.graph is None:
+            raise ValueError('No molecular graph set. Bonds are not defined')
+
+        for bond in self.graph.edges:
+            matrix[tuple(bond)] = matrix[tuple(reversed(bond))] = True
+
+        return matrix
+
+    @property
     def radius(self):
         """Calculate an approximate radius of this species"""
         if self.n_atoms == 0:
@@ -77,6 +94,10 @@ class Species:
 
         coords = self.coordinates
         return np.max(distance_matrix(coords, coords)) / 2.0
+
+    @property
+    def is_explicitly_solvated(self):
+        return isinstance(self.solvent, ExplicitSolvent)
 
     def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
         """
@@ -189,9 +210,6 @@ class Species:
 
         logger.info('Species is linear')
         return True
-
-    def is_explicitly_solvated(self):
-        return isinstance(self.solvent, ExplicitSolvent)
 
     @requires_atoms()
     def translate(self, vec):

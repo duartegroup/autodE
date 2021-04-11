@@ -156,7 +156,7 @@ class Molecule(Species):
 
         # If the name is unassigned use a more interpretable chemical formula
         if name == 'molecule' and self.atoms is not None:
-            self.name = self.formula()
+            self.name = self.formula
 
 
 class SolvatedMolecule(Molecule):

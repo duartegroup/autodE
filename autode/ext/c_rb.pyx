@@ -45,7 +45,7 @@ def minimised_rb_coords(py_coords,
 
     # finally a steepest decent optimiser to use
     cdef SDOptimiser optimiser
-    optimiser.run(potential, molecule, 100, 1E-4, 1E-1)
+    optimiser.run(potential, molecule, 500, 1E-4, 1E-1)
 
     py_coords = np.asarray(molecule.coords).reshape(-1, 3)
     return py_coords
