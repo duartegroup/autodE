@@ -44,9 +44,9 @@ def test_alkanes():
     rb_minimised_is_reasonable(molecule=Molecule(smiles='CCCC'))
 
 
-def test_tmp():
+def _test_tmp():
 
-    butane = Molecule(smiles='CCCCCCCCCCCCCCCCC')
+    butane = Molecule(smiles='CCCCCCCC')
 
     from autode.conformers.conf_gen import get_simanl_conformer
     tmp = get_simanl_conformer(butane, save_xyz=False)

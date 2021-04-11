@@ -75,7 +75,7 @@ namespace autode {
             while (micro_iteration < max_micro_iterations){
 
                 curr_micro_energy = molecule.energy;
-                trust_step(molecule, step_size);
+                step(molecule, step_size);
 
                 potential.set_energy(molecule);
                 //TODO remove: std::cout << "\t\t\t\t" << molecule.energy << '\t' << curr_micro_energy << '\t' << step_size << std::endl;
@@ -83,16 +83,20 @@ namespace autode {
                 // Backtrack if the energy rises
                 if (molecule.energy > curr_micro_energy){
                     //std::cout << "reducing the step size" << std::endl;
-                    trust_step(molecule, -step_size);
+                    step(molecule, -step_size);
                     molecule.energy = curr_micro_energy;
-                    step_size *= 0.5;
-                }
-                //TODO remove:
-                // std::cout << iteration << '\t' << micro_iteration << '\t' << molecule.energy << std::endl;
-                micro_iteration += 1;
-            } // Micro
 
-            //TODO remove: std::cout << std::abs(molecule.energy - curr_energy) << std::endl;
+                    step_size *= 0.5;
+                    micro_iteration += 1;
+                }
+                else{
+                    break;
+                }
+
+            } // Micro
+            //TODO remove:
+            //std::cout << iteration << '\t' << micro_iteration << '\t' << molecule.energy << std::endl;
+
             iteration += 1;
         } // Macro
     }
