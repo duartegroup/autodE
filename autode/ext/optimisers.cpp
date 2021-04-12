@@ -54,7 +54,7 @@ namespace autode {
          *
          *     init_step_size: (Å)
          */
-        double max_micro_iterations = 5;
+        double max_micro_iterations = 20;
         double curr_energy = 999999999999999;
         double curr_micro_energy;
 
@@ -70,6 +70,9 @@ namespace autode {
             // Recompute the energy and gradient
             potential.set_energy_and_grad(molecule);
 
+            //TODO remove:
+            //std::cout << iteration << '\t' << micro_iteration << '\t' << molecule.energy << '\t' << curr_energy << std::endl;
+
             // Run a set of micro iterations as a line search in the steepest
             // decent direction: -∇V
             while (micro_iteration < max_micro_iterations){
@@ -78,24 +81,34 @@ namespace autode {
                 step(molecule, step_size);
 
                 potential.set_energy(molecule);
-                //TODO remove: std::cout << "\t\t\t\t" << molecule.energy << '\t' << curr_micro_energy << '\t' << step_size << std::endl;
+                //TODO remove:
+                //std::cout << "\t\t\t\t" << molecule.energy << '\t' << curr_micro_energy << '\t' << step_size << std::endl;
 
                 // Backtrack if the energy rises
-                if (molecule.energy > curr_micro_energy){
-                    //std::cout << "reducing the step size" << std::endl;
+                if (micro_iteration == 0
+                    and molecule.energy > curr_micro_energy){
+
                     step(molecule, -step_size);
                     molecule.energy = curr_micro_energy;
-
                     step_size *= 0.5;
-                    micro_iteration += 1;
+
+                    continue;
                 }
-                else{
+
+                if (molecule.energy > curr_micro_energy){
+                    // Energy has risen but at least one step has been taken
+                    // so return the previous step
+                    step(molecule, -step_size);
                     break;
                 }
 
+                // Prevent very small step sizes
+                if (step_size < 1E-3){
+                    break;
+                }
+
+                micro_iteration += 1;
             } // Micro
-            //TODO remove:
-            //std::cout << iteration << '\t' << micro_iteration << '\t' << molecule.energy << std::endl;
 
             iteration += 1;
         } // Macro
