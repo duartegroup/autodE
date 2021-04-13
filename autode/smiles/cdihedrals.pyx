@@ -340,7 +340,8 @@ cdef void _stochastic_global_minimise(energy_func_type energy_func,
 
     for i in range(max_iters):
 
-        angles = np.random.uniform(low=-0.6, high=0.6, size=n_angles)
+        angles = np.random.uniform(low=-np.pi/2, high=np.pi/2, size=n_angles)
+
         _rotate(coords, angles, axes, origins, rot_idxs)
 
         energy = _minimise(energy_func, coords, axes, origins,
@@ -602,8 +603,12 @@ cpdef closed_ring_coords(py_coords,
         return np.array(coords)
 
     # Use a random search over dihedrals
+    cdef int max_iters = 10 * len(py_curr_angles)
     _stochastic_global_minimise(_close_energy, coords, min_coords, axes, origins,
-                                rot_idxs, rep_idxs, close_idxs, r0)
+                                rot_idxs, rep_idxs, close_idxs, r0,
+                                search_tol=1E-1,
+                                final_tol = 1E-3,
+                                max_iters=max_iters)
 
     return np.array(min_coords)
 

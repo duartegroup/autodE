@@ -22,17 +22,15 @@ def built_molecule_is_reasonable(smiles):
     return are_coords_reasonable(mol.coordinates)
 
 
-def built_molecule_is_usually_reasonable(smiles, n_trys=10):
+def built_molecule_is_usually_reasonable(smiles, n_trys=3):
+    """Is building this molecule mostly sensible?"""
 
     for _ in range(n_trys):
-        try:
-            return built_molecule_is_reasonable(smiles)
 
-        except AssertionError:
-            continue
+        if built_molecule_is_reasonable(smiles):
+            return True
 
-    raise AssertionError('Failed to generate a reasonable goemetry in '
-                         f'{n_trys} trys')
+    return False
 
 
 def test_base_builder():
