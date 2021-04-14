@@ -160,7 +160,8 @@ class PeriodicTable:
         if n < 1 or n > 7:
             raise ValueError('Not a valid period. Must be 1-7')
 
-        return cls.table[n - 1, :]
+        # Exclude the empty strings of non-present elements
+        return np.array([elem for elem in cls.table[n - 1, :] if elem != ''])
 
     @classmethod
     def group(cls, n: int):
@@ -178,9 +179,33 @@ class PeriodicTable:
         if n < 1 or n > 18:
             raise ValueError('Not a valid group. Must be 1-18')
 
-        return cls.table[:, n - 1]
+        # Exclude the empty strings of non-present elements
+        return np.array([elem for elem in cls.table[:, n - 1] if elem != ''])
 
-    lanthanoids = lanthanide = np.array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu'], dtype=str)
+    @classmethod
+    def element(cls, period: int, group: int):
+        """
+        Element given it's index in the periodic table, excluding
+        lanthanides and actinides.
+
+        Arguments:
+            period (int):
+
+            group (int):
+
+        Raises:
+            (IndexError): If such an element does not exist
+        """
+        try:
+            elem = cls.table[period-1, group-1]  # Convert from 1 -> 0 indexing
+            assert elem != ''
+
+        except (IndexError, AssertionError):
+            raise IndexError('Index of the element not found')
+
+        return elem
+
+    lanthanoids = lanthanides = np.array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu'], dtype=str)
     actinoids = actinides = np.array(['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr'], dtype=str)
 
 

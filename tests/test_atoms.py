@@ -55,6 +55,8 @@ def test_atom():
 
     dummy = atoms.DummyAtom(0.0, 0.0, 0.0)
     assert dummy.atomic_number == 0
+    assert dummy.period == 0
+    assert dummy.group == 0
 
 
 def test_periodic_table():
@@ -63,9 +65,21 @@ def test_periodic_table():
         _ = atoms.PeriodicTable.period(n=0)   # Periods are indexed from 1
         _ = atoms.PeriodicTable.period(n=8)   # and don't exceed 8
 
+        _ = atoms.PeriodicTable.period(n=19)   # Groups don't exceed 18
+
     period2 = atoms.PeriodicTable.period(n=2)
-    assert len(period2) == 18
+    assert len(period2) == 8
     assert period2[0] == 'Li'
+
+    assert len(atoms.PeriodicTable.period(n=1)) == 2
+    assert len(atoms.PeriodicTable.period(n=3)) == 8
+    assert len(atoms.PeriodicTable.period(n=4)) == 18
 
     group13 = atoms.PeriodicTable.group(n=13)
     assert 'B' in group13
+
+    with pytest.raises(IndexError):
+        _ = atoms.PeriodicTable.element(0, 0)
+        _ = atoms.PeriodicTable.element(0, 3)
+
+    assert atoms.PeriodicTable.element(2, 13) == 'B'
