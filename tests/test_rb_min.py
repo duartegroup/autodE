@@ -35,7 +35,7 @@ def test_h2():
     h2.graph.add_edge(0, 1)
 
     rb_minimised_is_reasonable(h2)
-    assert np.isclose(h2.distance(0, 1), 1.0, atol=0.05)
+    assert np.isclose(h2.distance(0, 1), 0.8, atol=0.1)
 
 
 def test_alkanes():

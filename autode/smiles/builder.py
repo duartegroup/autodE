@@ -335,8 +335,8 @@ class Builder:
 
             # Resetting an atom onto two atoms can fail to apply the stereochem
             # thus only set it onto one
-            if atom.has_stereochem:
-                logger.info('Resetting chiral atom - only resetting onto one'
+            if atom.has_stereochem and len(points) == 2:
+                logger.info('Resetting chiral atom - only resetting onto one '
                             'atom')
                 points = points[:1]
 
