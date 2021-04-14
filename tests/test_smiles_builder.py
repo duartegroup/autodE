@@ -327,6 +327,22 @@ def test_metal_complexes():
     assert built_molecule_is_reasonable(smiles='F[Co](F)(F)(F)(F)(F)(F)F')
 
 
+def test_fused_rings():
+    """Test building fused rings, for which dihedral adjustment
+    is not sufficent"""
+
+    # Fused cyclobutane/cyclopentane
+    parser.parse(smiles='C1CC2C(C1)CC2')
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+    # mol.print_xyz_file(filename='tmp.xyz')
+
+    assert are_coords_reasonable(mol.coordinates)
+    assert all(1.3 < mol.distance(*pair) < 1.7 for pair in mol.graph.edges
+               if mol.atoms[pair[0]].label == 'C'
+                  and mol.atoms[pair[1]].label == 'C')
+
+
 def _test_tmp():
 
     parser.parse(smiles='C1CCCC1')

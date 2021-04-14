@@ -6,12 +6,12 @@ from libcpp cimport bool as bool_t
 from autode.ext.wrappers cimport Molecule, RBPotential, SDOptimiser
 
 
-def minimised_rb_coords(py_coords,
-                        py_bonded_matrix,
-                        py_r0_matrix,
-                        py_k_matrix,
-                        py_c_matrix,
-                        py_exponent):
+def opt_rb_coords(py_coords,
+                  py_bonded_matrix,
+                  py_r0_matrix,
+                  py_k_matrix,
+                  py_c_matrix,
+                  py_exponent):
     """
     Minimise a set of coordinates using a repulsion + bonded potential
 

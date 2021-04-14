@@ -6,9 +6,12 @@ from autode.log import logger
 from autode.atoms import Atom
 from autode.bonds import get_avg_bond_length
 from autode.geom import get_rot_mat_kabsch
-from autode.exceptions import SMILESBuildFailed, FailedToSetRotationIdxs
 from autode.smiles.base import SMILESAtom, SMILESBond
 from cdihedrals import rotate, closed_ring_coords
+from c_rb import opt_rb_coords
+from autode.exceptions import (SMILESBuildFailed,
+                               FailedToSetRotationIdxs,
+                               FailedToAdjustAngles)
 
 
 class Builder:
@@ -38,6 +41,11 @@ class Builder:
             atoms.append(Atom(atom.label, x=x, y=y, z=z))
 
         return atoms
+
+    @property
+    def built_atom_idxs(self):
+        """Atom indexes that have been built"""
+        return [i for i in range(self.n_atoms) if self.atoms[i].is_shifted]
 
     @property
     def coordinates(self):
@@ -323,9 +331,17 @@ class Builder:
             logger.info(f'Resetting sites on atom {idx_i}')
 
             atom = self.atoms[idx_i]
-            atom.type.reset_onto(points=[self.atoms[idx].coord
-                                         for idx in atom.neighbours],
-                                 coord=atom.coord)
+            points = [self.atoms[idx].coord for idx in atom.neighbours]
+
+            # Resetting an atom onto two atoms can fail to apply the stereochem
+            # thus only set it onto one
+            if atom.has_stereochem:
+                logger.info('Resetting chiral atom - only resetting onto one'
+                            'atom')
+                points = points[:1]
+
+            atom.type.reset_onto(points, coord=atom.coord)
+
         return None
 
     def _adjust_ring_dihedrals(self, ring_bond, dihedrals):
@@ -368,7 +384,7 @@ class Builder:
 
         if len(path) > 5:
             logger.warning('Closing large rings not implemented')
-            return
+            raise FailedToAdjustAngles
 
         angles_idxs = [tuple(path[i:i + 3]) for i in range(len(path) - 2)]
         logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
@@ -388,9 +404,7 @@ class Builder:
 
             except FailedToSetRotationIdxs:
                 logger.warning(f'Could not adjust angle {angle_idxs}')
-
-                # TODO: This could be more precise for fused rings
-                continue
+                raise FailedToAdjustAngles
 
             angle_alt = Angle(idxs=angle_idxs,
                               rot_idxs=angle.inverse_rot_idxs(self.atoms),
@@ -398,10 +412,6 @@ class Builder:
 
             angles.append(angle)
             angles.append(angle_alt)
-
-        if len(angles) == 0:
-            logger.error('Found no suitable angles to rotate')
-            return
 
         coords = self.coordinates
         axes = []
@@ -437,6 +447,49 @@ class Builder:
         self.coordinates = coords[:-len(angles), :]
         return
 
+    def _ff_minimise(self):
+        """Minimise all built atoms using a forcefield"""
+
+        built_idxs = self.built_atom_idxs
+        n_atoms = len(built_idxs)
+
+        # Define ideal distances for pairs of atoms that are bonded
+        r0 = np.zeros((n_atoms, n_atoms), dtype='f8')
+        bond_matrix = np.zeros(shape=(n_atoms, n_atoms), dtype=bool)
+        c = np.ones((n_atoms, n_atoms), dtype='f8')
+
+        for bond in self.bonds:
+            idx_i, idx_j = bond
+
+            if idx_i in built_idxs and idx_j in built_idxs:
+                # Indexes are different as only a subset of atoms will
+                # be minimised and their coordinates set
+                i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
+
+                # This pair is bonded
+                bond_matrix[i, j] = bond_matrix[j, i] = True
+
+                # and has an already set ideal distance
+                r0[i, j] = r0[j, i] = bond.r0
+
+        # No repulsion between bonded atoms
+        c -= np.asarray(bond_matrix, dtype='f8')
+
+        # Now minimise all coordinates that are bonded
+        coords = self.coordinates
+        opt_cs = opt_rb_coords(py_coords=coords[built_idxs],
+                               py_bonded_matrix=bond_matrix,
+                               py_r0_matrix=np.asarray(r0, dtype='f8'),
+                               py_k_matrix=np.ones((n_atoms, n_atoms),
+                                                   dtype='f8'),
+                               py_c_matrix=c,
+                               py_exponent=4)
+
+        # Set the partial coordinate set
+        coords[built_idxs] = opt_cs
+        self.coordinates = coords
+        return None
+
     def _close_ring(self, ring_bond):
         """
         Adjust ring dihedrals such that a ring is formed
@@ -471,14 +524,16 @@ class Builder:
         else:
             self._adjust_ring_dihedrals(ring_bond, dihedrals=dihedrals)
 
-        # Calculate the bond length of the closing bond in the new coords
-        r_c = np.linalg.norm(self.atoms[ring_bond[0]].coord
-                             - self.atoms[ring_bond[1]].coord)
+        if not np.isclose(ring_bond.distance(self.atoms),
+                          ring_bond.r0, atol=0.2):
+            logger.info(f'A ring was poorly closed - adjusting angles')
+            try:
+                self._adjust_ring_angles(ring_bond)
 
-        if not np.isclose(r_c, ring_bond.r0, atol=0.2):
-            logger.info(f'Have a ring that was poorly closed (r = {r_c:.2f} Å)'
-                        f' - adjusting angles')
-            self._adjust_ring_angles(ring_bond)
+            except FailedToAdjustAngles:
+                logger.warning('Failed to close a ring, minimsing on '
+                               'all atoms')
+                self._ff_minimise()
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
         return None

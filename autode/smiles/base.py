@@ -102,6 +102,11 @@ class SMILESBond:
         """Is this bond a trans double bond?"""
         return self.order == 2 and not self.is_cis(atoms)
 
+    def distance(self, atoms):
+        """Distance of this bond (Å) given a set of atoms"""
+        idx_i, idx_j = self._list
+        return np.linalg.norm(atoms[idx_i].coord - atoms[idx_j].coord)
+
     @property
     def symbol(self):
         """SMILES symbol for this bond e.g. # for a triple bond"""

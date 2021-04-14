@@ -99,6 +99,10 @@ class FailedToSetRotationIdxs(Exception):
     pass
 
 
+class FailedToAdjustAngles(Exception):
+    pass
+
+
 class CouldNotGetProperty(CalculationException):
     def __init__(self, name):
         super().__init__(f'Could not get {name}')
