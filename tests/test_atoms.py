@@ -43,7 +43,9 @@ def test_atom():
     assert np.linalg.norm(h.coord - np.array([0.0, 0.0, -1.0])) < 1E-6
 
     # Perform a rotation about a different origin e.g. (1, 0, -1)
-    h.rotate(axis=np.array([0.0, 0.0, 1.0]), theta=np.pi, origin=np.array([1.0, 0.0, -1.0]))
+    h.rotate(axis=np.array([0.0, 0.0, 1.0]),
+             theta=np.pi,
+             origin=np.array([1.0, 0.0, -1.0]))
     assert np.linalg.norm(h.coord - np.array([2.0, 0.0, -1.0])) < 1E-6
 
     # Ensure that the atoms has a string representation

@@ -461,16 +461,22 @@ class Builder:
         for bond in self.bonds:
             idx_i, idx_j = bond
 
-            if idx_i in built_idxs and idx_j in built_idxs:
-                # Indexes are different as only a subset of atoms will
-                # be minimised and their coordinates set
-                i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
+            if idx_i not in built_idxs or idx_j not in built_idxs:
+                continue
 
-                # This pair is bonded
-                bond_matrix[i, j] = bond_matrix[j, i] = True
+            # Indexes are different as only a subset of atoms will
+            # be minimised and their coordinates set
+            i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
 
-                # and has an already set ideal distance
-                r0[i, j] = r0[j, i] = bond.r0
+            # This pair is bonded
+            bond_matrix[i, j] = bond_matrix[j, i] = True
+
+            # and has an already set ideal distance
+            r0[i, j] = r0[j, i] = bond.r0
+
+            if bond.order == 2:
+                # TODO: add double bond constraint
+                pass
 
         # No repulsion between bonded atoms
         c -= np.asarray(bond_matrix, dtype='f8')
@@ -536,6 +542,10 @@ class Builder:
                 self._ff_minimise()
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
+
+        from autode.input_output import atoms_to_xyz_file
+        atoms_to_xyz_file(atoms=self.atoms, filename='tmp2.xyz')
+
         return None
 
     def _minimise_non_ring_dihedrals(self):
@@ -691,10 +701,21 @@ class Builder:
         """
         atom = self.atoms[idx]
 
-        for bond in self.bonds.involving(idx):
+        # Sort the bonds to this atom first by those that are in rings
+        # and thus need to be considered first
+        bonds = sorted(self.bonds.involving(idx),
+                       key=lambda b: -len(self._ring_idxs(inc_idxs=[idx, *b],
+                                                          return_empty=True)))
+
+        for bond in bonds:
             bonded_idx = bond[0] if bond[1] == idx else bond[1]
 
             if bonded_idx in self.queued_atoms:
+
+                # Delete one of the empty sites
+                if atom.type.n_empty_sites > 0:
+                    _ = atom.type.empty_site()
+
                 self._close_ring(ring_bond=bond)
                 continue
 
@@ -830,6 +851,11 @@ class Builder:
 
 class AtomType:
 
+    @property
+    def n_empty_sites(self):
+        """Number of empty sites on this template"""
+        return len(self._site_coords)
+
     def empty_site(self):
         """Iterator for the coordinate of the next free site"""
         return self._site_coords.pop(0)
@@ -870,6 +896,10 @@ class AtomType:
 
         # Take a copy of the template coordinates to rotate and delete
         site_coords = np.copy(self.template_site_coords)
+
+        if len(site_coords) == len(points):
+            logger.warning('No reset needed - sites were all occupied')
+            return
 
         logger.info(f'Rotating {len(site_coords)} sites onto'
                     f' {len(points)} points')

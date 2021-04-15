@@ -303,13 +303,16 @@ class Parser:
 
                 # This bond is in the dictionary and can be closed and removed
                 if ring_idx in unclosed_bonds.keys():
+
                     ring_bond = unclosed_bonds.pop(ring_idx)
                     ring_bond.close(self.n_atoms-1, symbol=bond_symbol)
-                    self.bonds.append(ring_bond)
+
+                    self.bonds.insert(ring_bond.bond_idx, ring_bond)
                     continue
 
                 unclosed_bonds[ring_idx] = RingBond(idx_i=self.n_atoms-1,
-                                                    symbol=bond_symbol)
+                                                    symbol=bond_symbol,
+                                                    bond_idx=len(self.bonds))
 
             # Any square bracketed atom with hydrogens defined e.g. [OH], [Fe]
             elif char == '[':

@@ -37,6 +37,21 @@ class SMILESAtom(Atom):
         """How many atoms are bonded to this one?"""
         return 0 if self.neighbours is None else len(self.neighbours)
 
+    def invert_stereochem(self):
+        """Invert the stereochemistry at this centre"""
+        logger.info('Inverting stereochemistry..')
+
+        if self.stereochem == '@':
+            self.stereochem = '@@'
+
+        elif self.stereochem == '@@':
+            self.stereochem = '@'
+
+        else:
+            logger.info('No change needed')
+
+        return
+
     def __init__(self, label, stereochem=None, n_hydrogens=None, charge=0):
         """
         SMILES atom initialised at the origin
@@ -132,13 +147,14 @@ class SMILESBond:
             raise InvalidSmilesString(f'{symbol} is an unknown bond type')
 
         self.in_ring = False
+        self.closes_ring = False
         self.order = bond_order_symbols.index(symbol) + 1
 
         self.r0 = None                               # Ideal bond distance (Å)
 
 
 class RingBond(SMILESBond):
-    """Dangling bond created with a ring is found"""
+    """Dangling bond created when a ring is found"""
 
     def __repr__(self):
         return f'RingSMILESBond({self._list}, order={self.order})'
@@ -153,13 +169,29 @@ class RingBond(SMILESBond):
 
         return None
 
-    def __init__(self, idx_i, symbol):
-        """Initialise the bond with a non-existent large index"""
+    def __init__(self, idx_i, symbol, bond_idx=None):
+        """Initialise the bond with a non-existent large index
+
+        Arguments:
+            idx_i (int): Index of one atom in this bond
+
+            symbol (str): Symbol of this bond, in bond_order_symbols
+
+        Keyword Arguments:
+            bond_idx (None | int): Index for this bond in the bond list
+        """
         super().__init__(idx_i=idx_i, idx_j=99999, symbol=symbol)
+
         self.in_ring = True
+        self.closes_ring = True
+        self.bond_idx = bond_idx
 
 
 class SMILESBonds(list):
+
+    def _bond_exists(self, bond):
+        """Does this bond already exist in this set of bonds?"""
+        return any(bond.atom_indexes == item.atom_indexes for item in self)
 
     def n_involving(self, idx):
         """How many bonds does an atom (given as a index) have?"""
@@ -172,12 +204,15 @@ class SMILESBonds(list):
     def append(self, bond: SMILESBond):
         """Add another SMILESBond to this list"""
 
-        if len(bond.atom_indexes) != 2:
-            logger.warning('Could not bond an atom to itself etc. - skipping')
-            return None
-
-        if any(bond.atom_indexes == item.atom_indexes for item in self):
-            logger.warning('Attempted to add a bond already present- skipping')
-            return None
+        if self._bond_exists(bond) or len(set(bond.atom_indexes)) != 2:
+            return
 
         return super().append(bond)
+
+    def insert(self, index: int, bond: SMILESBond):
+        """Insert a bond into this list if it does not already exist"""
+
+        if self._bond_exists(bond) or len(set(bond.atom_indexes)) != 2:
+            return
+
+        return super().insert(index, bond)

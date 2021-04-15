@@ -6,6 +6,7 @@ from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds
 from autode.smiles.builder import Builder, Angle, Dihedral
 from autode.exceptions import SMILESBuildFailed
+from autode.mol_graphs import get_mapping
 
 parser = Parser()
 builder = Builder()
@@ -261,6 +262,52 @@ def test_chiral_tetrahedral():
 
     # Different chirality should have RMSD > 0.1 Å on heavy atoms
     assert calc_heavy_atom_rmsd(s_mol.atoms, r_mol.atoms) > 0.1
+
+
+def test_chiral_tetrahedral2():
+
+    s_smiles = 'F[C@]([H])(C)Cl'
+    parser.parse(s_smiles)
+    builder.build(parser.atoms, parser.bonds)
+    s_mol = Molecule(atoms=builder.atoms)
+
+    parser.parse(smiles='F[C@H](C)Cl')
+    builder.build(parser.atoms, parser.bonds)
+    s_mol = Molecule(atoms=builder.atoms)
+
+    # Two representations should be the same
+    assert calc_heavy_atom_rmsd(s_mol.atoms, builder.atoms) < 0.1
+
+
+def test_chiral_tetrahedral3():
+    """Equivalent SMILES strings from http://opensmiles.org/opensmiles.html"""
+
+    parser.parse(smiles='N[C@](Br)(O)C')
+    builder.build(parser.atoms, parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+    mol.print_xyz_file()
+
+    equiv_smiles = ['N[C@](Br)(O)C',
+                    'Br[C@](O)(N)C',
+                    'O[C@](Br)(C)N',
+                    'Br[C@](C)(O)N',
+                    'C[C@](Br)(N)O',
+                    'Br[C@](N)(C)O',
+                    'C[C@@](Br)(O)N',
+                    'Br[C@@](N)(O)C',
+                    '[C@@](C)(Br)(O)N',
+                    '[C@@](Br)(N)(O)C']
+
+    for smiles in equiv_smiles:
+        parser.parse(smiles)
+        builder.build(parser.atoms, parser.bonds)
+        equiv_mol = Molecule(atoms=builder.atoms)
+
+        # Atoms may not be in the same order, so map them
+        mapping = get_mapping(equiv_mol.graph, mol.graph)
+        atoms = [equiv_mol.atoms[i] for i in sorted(mapping, key=mapping.get)]
+
+        assert calc_heavy_atom_rmsd(mol.atoms, atoms) < 0.2
 
 
 def test_macrocycle():
