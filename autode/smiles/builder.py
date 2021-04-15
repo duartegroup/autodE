@@ -488,7 +488,7 @@ class Builder:
                                py_r0_matrix=np.asarray(r0, dtype='f8'),
                                py_k_matrix=np.ones((n_atoms, n_atoms),
                                                    dtype='f8'),
-                               py_c_matrix=c,
+                               py_c_matrix=0.1 * c,
                                py_exponent=4)
 
         # Set the partial coordinate set
@@ -701,13 +701,7 @@ class Builder:
         """
         atom = self.atoms[idx]
 
-        # Sort the bonds to this atom first by those that are in rings
-        # and thus need to be considered first
-        bonds = sorted(self.bonds.involving(idx),
-                       key=lambda b: -len(self._ring_idxs(inc_idxs=[idx, *b],
-                                                          return_empty=True)))
-
-        for bond in bonds:
+        for bond in self.bonds.involving(idx):
             bonded_idx = bond[0] if bond[1] == idx else bond[1]
 
             if bonded_idx in self.queued_atoms:

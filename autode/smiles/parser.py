@@ -306,6 +306,7 @@ class Parser:
 
                     ring_bond = unclosed_bonds.pop(ring_idx)
                     ring_bond.close(self.n_atoms-1, symbol=bond_symbol)
+                    self.atoms[-1].invert_stereochem()
 
                     self.bonds.insert(ring_bond.bond_idx, ring_bond)
                     continue
