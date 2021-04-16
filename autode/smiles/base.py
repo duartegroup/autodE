@@ -195,11 +195,25 @@ class SMILESBonds(list):
 
     def n_involving(self, idx):
         """How many bonds does an atom (given as a index) have?"""
-        return len(self.involving(idx=idx))
+        return len(self.involving(idx))
 
-    def involving(self, idx):
-        """Get all the bonds involving a particular atom (given as a index)"""
-        return [bond for bond in self if idx in bond]
+    def involving(self, *args):
+        """Get all the bonds involving a particular atom (given as a index)
+
+        Arguments:
+            args (int):
+
+        Returns:
+            (list(autode.smiles.SMILESBond)):
+        """
+        idxs = set(args)
+
+        return [bond for bond in self if idxs.issubset(set(bond.atom_indexes))]
+
+    def first_involving(self, *args):
+        """First bond that includes some atom indexes"""
+        idxs = set(args)
+        return next(b for b in self if idxs.issubset(set(b.atom_indexes)))
 
     def append(self, bond: SMILESBond):
         """Add another SMILESBond to this list"""

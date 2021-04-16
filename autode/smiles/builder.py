@@ -447,7 +447,7 @@ class Builder:
         self.coordinates = coords[:-len(angles), :]
         return
 
-    def _ff_minimise(self):
+    def _ff_minimise(self, distance_constraints=None):
         """Minimise all built atoms using a forcefield"""
 
         built_idxs = self.built_atom_idxs
@@ -468,15 +468,21 @@ class Builder:
             # be minimised and their coordinates set
             i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
 
-            # This pair is bonded
+            # This pair is bonded and has an already set ideal distance
             bond_matrix[i, j] = bond_matrix[j, i] = True
-
-            # and has an already set ideal distance
             r0[i, j] = r0[j, i] = bond.r0
 
             if bond.order == 2:
-                # TODO: add double bond constraint
+                # TODO: add double bond constraint that does not override
+                # any distance constraint
                 pass
+
+        if distance_constraints is not None:
+            for (idx_i, idx_j), distance in distance_constraints.items():
+                i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
+
+                bond_matrix[i, j] = bond_matrix[j, i] = True
+                r0[i, j] = r0[j, i] = distance
 
         # No repulsion between bonded atoms
         c -= np.asarray(bond_matrix, dtype='f8')
@@ -537,15 +543,11 @@ class Builder:
                 self._adjust_ring_angles(ring_bond)
 
             except FailedToAdjustAngles:
-                logger.warning('Failed to close a ring, minimsing on '
+                logger.warning('Failed to close a ring, minimising on '
                                'all atoms')
                 self._ff_minimise()
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
-
-        from autode.input_output import atoms_to_xyz_file
-        atoms_to_xyz_file(atoms=self.atoms, filename='tmp2.xyz')
-
         return None
 
     def _minimise_non_ring_dihedrals(self):
@@ -613,6 +615,49 @@ class Builder:
                     f'{(time() - start_time)*1000:.2f} ms')
         return None
 
+    def _force_double_bond_stereochem(self, dihedral):
+        """
+        For double bonds in rings (>8 members usually) stereochemistry needs to
+        be generated, but may not be possible, so minimise the energy under
+        the constraint defining the E/Z over a specific dihedral
+
+                      Z
+                      |
+              X -----Y
+             /
+            W
+
+        Arguments:
+            dihedral (autode.smiles.builder.Dihedral):
+        """
+        # Get the bond lengths for the three bonds
+        r_wx = self.bonds.first_involving(*dihedral.idxs[:2]).r0
+        r_xy = self.bonds.first_involving(*dihedral.mid_idxs).r0
+        r_yz = self.bonds.first_involving(*dihedral.idxs[-2:]).r0
+
+        if np.isclose(dihedral.phi0, np.pi):
+            r_wz = np.sqrt(((r_wx + r_yz) * np.sin(np.pi/3.0))**2
+                        + ((r_wx + r_yz) * np.cos(np.pi/3.0) + r_xy)**2)
+
+        elif np.isclose(dihedral.phi0, 0.0):
+            r_wz = (r_wx + r_yz) * np.sin(np.pi/6.0) + r_xy
+
+        else:
+            raise ValueError('Expecting a zero or 180º dihedral for E/Z')
+
+        def c_cosine_rule(a, b, gamma):
+            return np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma))
+
+        r_wy = c_cosine_rule(r_wx, r_xy, 2.0*np.pi/3.0)
+        r_xz = c_cosine_rule(r_xy, r_yz, 2.0*np.pi/3.0)
+
+        dist_consts = {dihedral.end_idxs: r_wz,
+                       (dihedral.idxs[0], dihedral.idxs[2]): r_wy,
+                       (dihedral.idxs[1], dihedral.idxs[3]): r_xz,
+                       dihedral.mid_idxs: r_xy}
+
+        return self._ff_minimise(distance_constraints=dist_consts)
+
     def _queue_double_bond_dihedral(self, bond):
         """
         For a double bond queue the dihedral rotation to be applied such that::
@@ -632,7 +677,7 @@ class Builder:
         nbrs_y = [idx for idx in self.atoms[idx_y].neighbours if idx != idx_x]
 
         if len(nbrs_x) < 2 or len(nbrs_y) < 2:
-            logger.info('Had a double bond cointaining an atom with < 2 '
+            logger.info('Had a double bond containing an atom with < 2 '
                         'neighbours - no need to rotate the dihedral')
             return
 
@@ -644,7 +689,7 @@ class Builder:
         # Is this bond cis or trans?
         stro_x, stro_y = self.atoms[idx_x].stereochem, self.atoms[idx_y].stereochem
 
-        phi = np.pi # Default to a trans double bond
+        phi = np.pi  # Default to a trans double bond
 
         if ((all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
             and not self.atoms[idx_x].has_stereochem)
@@ -657,14 +702,15 @@ class Builder:
         try:
             dihedral.find_rot_idxs(graph=self.graph.copy(),
                                    atoms=self.atoms)
+
         except FailedToSetRotationIdxs:
-            if self.atoms[idx_x].stereochem is not None:
-                logger.error(f'Could not queue {dihedral} for {bond} E/Z'
-                             f'stereochemistry may be wrong')
+            if (self.atoms[idx_x].stereochem is not None
+               and abs(dihedral.dphi(self.atoms)) > np.pi/3):
 
-            else:
-                logger.warning(f'Could not queue {dihedral} for {bond}')
+                # Dihedral is too far away from that defined by the stereochem
+                self._force_double_bond_stereochem(dihedral)
 
+            logger.warning(f'Could not queue {dihedral} for {bond}')
             return
 
         logger.info(f'Queuing {dihedral}')
@@ -1367,9 +1413,18 @@ class Dihedral(Angle):
         return f'Dihedral(idxs={self.idxs})'
 
     @property
+    def end_idxs(self):
+        """Atoms defining the end of the dihedral"""
+        return self.idxs[0], self.idxs[-1]
+
+    @property
     def phi0(self):
         """A non-None ideal angle for this dihedral"""
         return 0.0 if self.phi_ideal is None else self.phi_ideal
+
+    def dphi(self, atoms):
+        """∆φ = φ_curr - φ_ideal"""
+        return self.value(atoms=atoms) - self.phi0
 
     def value(self, atoms):
         """
