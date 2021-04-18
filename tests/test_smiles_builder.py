@@ -390,6 +390,32 @@ def test_fused_rings():
                   and mol.atoms[pair[1]].label == 'C')
 
 
+def test_trans_small_rings():
+    """Rings with trans double bonds need to be possible"""
+
+    parser.parse(smiles='C1CCC/C=C/CC1')
+    builder.build(parser.atoms, parser.bonds)
+    assert are_coords_reasonable(builder.coordinates)
+
+    dihedral = Dihedral(idxs=[3, 4, 5, 6])
+    # Should be close to zero with no defined stereochem
+    parser.parse(smiles='C1CCCC=CCC1')
+    builder.build(parser.atoms, parser.bonds)
+    assert -np.pi/2.0 < dihedral.value(builder.atoms) < np.pi/2.0
+
+    # or defined as cis
+    parser.parse(smiles=r'C1CCC/C=C\CC1')
+    builder.build(parser.atoms, parser.bonds)
+    assert -np.pi/2.0 < dihedral.value(builder.atoms) < np.pi/2.0
+
+    # but should be close to π if defined as trans
+    parser.parse(smiles='C1CCC/C=C/CC1')
+    builder.build(parser.atoms, parser.bonds)
+    assert np.isclose(np.abs(dihedral.value(builder.atoms)),
+                      np.pi,
+                      atol=np.pi/2.0)
+
+
 def _test_tmp():
 
     parser.parse(smiles='C1CCCC1')

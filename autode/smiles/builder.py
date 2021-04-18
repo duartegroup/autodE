@@ -630,6 +630,8 @@ class Builder:
         Arguments:
             dihedral (autode.smiles.builder.Dihedral):
         """
+        logger.info(f'Needed to force the stereochemistry around {dihedral}')
+
         # Get the bond lengths for the three bonds
         r_wx = self.bonds.first_involving(*dihedral.idxs[:2]).r0
         r_xy = self.bonds.first_involving(*dihedral.mid_idxs).r0
@@ -646,6 +648,7 @@ class Builder:
             raise ValueError('Expecting a zero or 180º dihedral for E/Z')
 
         def c_cosine_rule(a, b, gamma):
+            """"""
             return np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma))
 
         r_wy = c_cosine_rule(r_wx, r_xy, 2.0*np.pi/3.0)
@@ -656,7 +659,9 @@ class Builder:
                        (dihedral.idxs[1], dihedral.idxs[3]): r_xz,
                        dihedral.mid_idxs: r_xy}
 
-        return self._ff_minimise(distance_constraints=dist_consts)
+        self._ff_minimise(distance_constraints=dist_consts)
+        self._reset_queued_atom_sites(other_idxs=dihedral.mid_idxs)
+        return None
 
     def _queue_double_bond_dihedral(self, bond):
         """
