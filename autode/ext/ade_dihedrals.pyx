@@ -61,8 +61,7 @@ def rotate(py_coords,
 
         molecule._dihedrals.push_back(dihedral)
 
-
-    # Rotate and minimise, the latter 'globally'
+    # Rotate and minimise if required, the latter 'globally'
     molecule.rotate_dihedrals()
 
 

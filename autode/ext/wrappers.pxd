@@ -2,6 +2,7 @@
 from libcpp.vector cimport vector
 from libcpp cimport bool as bool_t
 
+
 cdef extern from "molecule.h" namespace "autode":
     cdef cppclass Molecule:
         # Constructors
@@ -12,7 +13,7 @@ cdef extern from "molecule.h" namespace "autode":
         int n_atoms
         double energy
         vector[double] coords
-        Dihedrals _dihedrals
+        vector[Dihedral] _dihedrals
 
         void rotate_dihedrals()
 
@@ -56,8 +57,6 @@ cdef extern from "optimisers.h" namespace "autode":
         SDDihedralOptimiser()
 
 
-
-
 cdef extern from "dihedrals.h" namespace "autode":
     cdef cppclass Dihedral:
         Dihedral()
@@ -65,12 +64,3 @@ cdef extern from "dihedrals.h" namespace "autode":
                  vector[int],      # Axis
                  vector[bool_t],   # Rotation indexes
                  int)              # Origin
-
-
-cdef extern from "dihedrals.h" namespace "autode":
-    cdef cppclass Dihedrals:
-        Dihedrals()
-        Dihedrals(vector[Dihedral])
-
-        void push_back(Dihedral &)
-        void rotate(Molecule &)

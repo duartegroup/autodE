@@ -24,7 +24,7 @@ namespace autode {
         double sq_distance(int i, int j);
         double distance(int i, int j);
 
-        void rotate(autode::Dihedral dihedral);
+        void rotate(autode::Dihedral &dihedral);
         void rotate(std::vector<autode::Dihedral> &dihedrals);
 
         void rotate_dihedrals();

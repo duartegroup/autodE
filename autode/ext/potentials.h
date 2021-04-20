@@ -3,6 +3,7 @@
 #include "vector"
 #include "molecule.h"
 
+
 namespace autode {
 
     class Potential{

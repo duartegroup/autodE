@@ -1,9 +1,8 @@
 #ifndef ADE_EXT_OPTIMISERS_H
 #define ADE_EXT_OPTIMISERS_H
 #include "vector"
-#include "molecule.h"
 #include "potentials.h"
-#include "dihedrals.h"
+
 
 namespace autode {
 

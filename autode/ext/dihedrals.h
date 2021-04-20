@@ -1,7 +1,6 @@
 #ifndef ADE_EXT_DIHEDRALS_H
 #define ADE_EXT_DIHEDRALS_H
 #include "vector"
-#include "molecule.h"
 
 namespace autode {
 

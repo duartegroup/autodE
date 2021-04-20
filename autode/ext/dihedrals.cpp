@@ -1,9 +1,5 @@
 #include "cmath"
-#include "potentials.h"
 #include "dihedrals.h"
-
-#include "iostream"
-using namespace std;
 
 
 namespace autode{

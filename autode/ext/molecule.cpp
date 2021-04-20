@@ -1,5 +1,6 @@
 #include "cmath"
 #include "molecule.h"
+#include "dihedrals.h"
 
 
 namespace autode {
@@ -67,7 +68,7 @@ namespace autode {
     }
 
 
-    void Molecule::rotate(autode::Dihedral dihedral){
+    void Molecule::rotate(autode::Dihedral &dihedral){
         // Rotate a single dihedral angle
 
         dihedral.update_origin(coords);

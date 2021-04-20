@@ -1,13 +1,8 @@
 #include <stdexcept>
-#include "exception"
-#include <algorithm>
-#include <utility>
 #include <cmath>
 #include <iostream>
 #include "potentials.h"
 
-
-using namespace std;
 
 namespace autode{
 
@@ -90,7 +85,7 @@ namespace autode{
          */
 
         if (rep_exponent % 2 != 0){
-            throw runtime_error("Repulsion exponent must be even");
+            throw std::runtime_error("Repulsion exponent must be even");
         }
 
         this->half_rep_exponent = rep_exponent / 2;
