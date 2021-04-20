@@ -3,7 +3,7 @@ import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
-from autode.smiles.parser import Parser, SMILESBonds
+from autode.smiles.parser import Parser, SMILESBonds, RingBond
 from autode.smiles.builder import Builder, Angle, Dihedral
 from autode.exceptions import SMILESBuildFailed
 from autode.mol_graphs import get_mapping
