@@ -1,64 +1,66 @@
 #include <stdexcept>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <utility>
 #include "potentials.h"
 
 
 namespace autode{
 
-    void CartesianPotential::set_energy_and_num_grad(autode::Molecule &molecule,
+    void CartesianPotential::set_energy_and_num_grad(autode::Molecule &mol,
                                                      double eps) {
         /*
          * Calculate a finite difference gradient
          *
          * Arguments:
-         *     molecule:
+         *     mol:
          *
          *     eps: δ on each x
          */
-        set_energy(molecule);
-        auto energy = molecule.energy;
+        set_energy(mol);
+        auto energy = mol.energy;
 
-        for (int i = 0; i < molecule.n_atoms; i++){  // atoms
+        for (int i = 0; i < mol.n_atoms; i++){  // atoms
             for (int j = 0; j < 3; j++){             // x, y, z
                 int idx = 3 * i + j;
 
                 // Shift by δ in each coordinate, calculate the energy
-                molecule.coords[idx] += eps;
-                set_energy(molecule);
+                mol.coords[idx] += eps;
+                set_energy(mol);
 
                 // and the finite difference gradient
-                molecule.grad[idx] = (molecule.energy - energy) / eps;
+                mol.grad[idx] = (mol.energy - energy) / eps;
 
                 // and shift the modified coordinates back
-                molecule.coords[idx] -= eps;
+                mol.coords[idx] -= eps;
 
             } // j
         } // i
     }
 
 
-    void Potential::check_grad(autode::Molecule &molecule,
+    void Potential::check_grad(autode::Molecule &mol,
                                double tol) {
         /*
          * Check the analytic gradient against the numerical analogue
          *
          * Arguments:
-         *    molecule:
+         *    mol:
          *
          * Raises:
          *    runtime_error: If the norm is greater than tol
          */
-        set_energy_and_grad(molecule);
+        set_energy_and_grad(mol);
 
         // copy of the analytic gradient
-        std::vector<double> analytic_grad(molecule.grad);
+        std::vector<double> analytic_grad(mol.grad);
 
-        set_energy_and_num_grad(molecule, 1E-10);
+        set_energy_and_num_grad(mol, 1E-10);
 
         double sq_norm = 0;
-        for (int i = 0; i < 3 * molecule.n_atoms; i++){
-            sq_norm += pow(molecule.grad[i] - analytic_grad[i], 2);
+        for (int i = 0; i < 3 * mol.n_atoms; i++){
+            sq_norm += pow(mol.grad[i] - analytic_grad[i], 2);
         }
 
         if (sqrt(sq_norm) > tol){
@@ -109,25 +111,94 @@ namespace autode{
     }
 
 
-    void DihedralPotential::set_energy_and_num_grad(autode::Molecule &molecule,
+    void DihedralPotential::set_energy_and_num_grad(autode::Molecule &mol,
                                                      double eps) {
-        set_energy(molecule);
-        auto energy = molecule.energy;
+        set_energy(mol);
+        auto energy = mol.energy;
 
-        for (auto &dihedral : molecule._dihedrals){
+        for (auto &dihedral : mol._dihedrals){
 
             // Shift by δ on a dihedral
             dihedral.angle = eps;
-            molecule.rotate(dihedral);
-            set_energy(molecule);
+            mol.rotate(dihedral);
+            set_energy(mol);
 
             // calculate the finite difference gradient
-            dihedral.grad = (molecule.energy - energy) / eps;
+            dihedral.grad = (mol.energy - energy) / eps;
 
             // and shift the modified coordinates back
             dihedral.angle = -eps;
-            molecule.rotate(dihedral);
+            mol.rotate(dihedral);
 
+        } // i
+    }
+
+
+    RRingDihedralPotential::RRingDihedralPotential() = default;
+    RRingDihedralPotential::RRingDihedralPotential(int rep_exponent,
+                                                   std::vector<bool> rep_pairs,
+                                                   std::vector<int> close_pair,
+                                                   double close_distance) {
+        /* Repulsive dihedral potential in a ring e.g.::
+         *
+         *     X       Z
+         *     |      /
+         *     Y---- W
+         *
+         *  for a 4 membered ring with a single dihedral (X, Y, W, Z)
+         *
+         *       V(x) = 1/n Σ_ij 1 / r_ij^rep_exponent + (r_XZ - r0)^2
+         *
+         *  Arguments:
+         *
+         *      rep_exponent:
+         */
+
+        if (rep_exponent % 2 != 0){
+            throw std::runtime_error("Repulsion exponent must be even");
+        }
+
+        this->half_rep_exponent = rep_exponent / 2;
+        this->rep_pairs = std::move(rep_pairs);
+
+        if (close_pair.size() != 2){
+            throw std::runtime_error("Must have a pair of atoms that close a "
+                                     "ring");
+        }
+
+        if ((close_distance < 0.5) || (close_distance > 3.0)){
+            throw std::runtime_error("Had an unexpected distance between two "
+                                     "atoms that close a ring");
+        }
+
+        // Sort the pair so i <= j
+        std::sort(close_pair.begin(), close_pair.end());
+
+        this->close_idx_i = close_pair[0];
+        this->close_idx_j = close_pair[1];
+        this->close_distance = close_distance;
+    }
+
+    void RRingDihedralPotential::set_energy(autode::Molecule &mol) {
+        // Energy for repulsion + closure
+
+        mol.energy = 0.0;
+        double c = 1.0 / mol.n_atoms;
+
+        for (int i = 0; i < mol.n_atoms; i++){
+            for (int j = i+1; j < mol.n_atoms; j++) {
+
+                // 1 / r_ij^rep_exponent
+                if (rep_pairs[i * mol.n_atoms + j]){
+                    mol.energy += c / pow(mol.sq_distance(i, j), half_rep_exponent);
+                }
+
+                // (r_ij - r0)^2
+                if (i == close_idx_i && j == close_idx_j){
+                    mol.energy += pow(mol.distance(i, j) - close_distance, 2);
+                }
+
+            } // j
         } // i
     }
 

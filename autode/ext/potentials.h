@@ -11,7 +11,7 @@ namespace autode {
     // energy and gradient
 
     public:
-        void check_grad(autode::Molecule &molecule, double tol = 1E-6);
+        void check_grad(autode::Molecule &mol, double tol = 1E-6);
 
         // Abstract functions that must be implemented in derived classes
         virtual void set_energy(autode::Molecule &molecule) = 0;
@@ -27,7 +27,7 @@ namespace autode {
 
     class CartesianPotential: public Potential{
         // Potential energy the gradient of which is in cartesian coordinates
-        void set_energy_and_num_grad(autode::Molecule &molecule,
+        void set_energy_and_num_grad(autode::Molecule &mol,
                                      double eps) override;
     };
 
@@ -36,7 +36,7 @@ namespace autode {
         // Potential energy the gradient of which is with respect to dihedral
         // rotations
 
-        void set_energy_and_num_grad(autode::Molecule &molecule,
+        void set_energy_and_num_grad(autode::Molecule &mol,
                                      double eps) override;
     };
 
@@ -53,6 +53,29 @@ namespace autode {
                                     std::vector<bool> rep_pairs);
 
         void set_energy(autode::Molecule &molecule) override;
+
+    };
+
+
+    class RRingDihedralPotential: public DihedralPotential{
+        // Dihedral potential for a ring, with a repulsive (R) plus single
+        // harmonic term to the energy over the atom pair that closes thr ring
+
+        public:
+            int half_rep_exponent = 0;
+            std::vector<bool> rep_pairs;
+
+            int close_idx_i = 0;            // Assume at least two atoms..
+            int close_idx_j = 1;
+            double close_distance = 1.5;    // Reasonable default distance (Å)
+
+            explicit RRingDihedralPotential();
+            explicit RRingDihedralPotential(int rep_exponent,
+                                            std::vector<bool> rep_pairs,
+                                            std::vector<int> close_pair,
+                                            double close_distance);
+
+            void set_energy(autode::Molecule &mol) override;
 
     };
 

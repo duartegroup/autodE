@@ -115,8 +115,6 @@ namespace autode {
          *
          *     molecule:
          *
-         *     dihedrals:
-         *
          *     step_factor: Multiplier on the SD step
          */
 

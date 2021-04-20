@@ -452,3 +452,39 @@ def _test_tmp():
     # print(mol.distance(9, 15))
     #assert built_molecule_is_reasonable(smiles=r'O[C@@H]1[C@H](/C=C\CC/C=C'
     #                                           r'\C(CC/C(C)=C/[C@H]1C)=O)OC')
+
+
+def _test_close_flat_ring():
+
+    unclosed_coords = np.array([[ 2.227521, -0.038228, -2.175656],
+                                [-1.704563,  1.083528,  1.226912],
+                                [-1.030701,  0.949700,  0.029400],
+                                [ 0.303700,  1.342600, -0.014200],
+                                [ 1.298500,  0.393400, -0.042500],
+                                [ 1.462636, -0.467365, -1.114587],
+                                [ 2.347920, -0.711203, -2.998888],
+                                [-2.742329,  0.782273,  1.276031],
+                                [-1.527315,  0.551663, -0.845852],
+                                [ 0.505600,  2.411600, -0.024200],
+                                [ 1.971412,  0.321051,  0.801897],
+                                [ 0.984661, -1.435514, -1.071969]])
+
+    # populate everything by parsing normally
+    parser.parse('c1ccccc1')
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
+
+    # Set the coordinates as something that is nor already closed
+    builder.coordinates = unclosed_coords
+
+    bond = RingBond(0, symbol='-')   # 0-1 atom indexes define the closing bond
+    bond.close(idx=1, symbol='-')
+    bond.r0 = np.linalg.norm(unclosed_coords[3] - unclosed_coords[2])
+
+    # re-apply the closure
+    builder._close_ring(ring_bond=bond)
+
+    mol = Molecule(atoms=builder.atoms)
+    mol.print_xyz_file(filename='tmp.xyz')
+
+    # TODO: Check that it's flat!
+
