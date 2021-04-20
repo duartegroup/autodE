@@ -7,8 +7,9 @@ from autode.atoms import Atom
 from autode.bonds import get_avg_bond_length
 from autode.geom import get_rot_mat_kabsch
 from autode.smiles.base import SMILESAtom, SMILESBond
-from cdihedrals import rotate, closed_ring_coords
-from c_rb import opt_rb_coords
+from cdihedrals import closed_ring_coords
+from ade_dihedrals import rotate
+from ade_rb_opt import opt_rb_coords
 from autode.exceptions import (SMILESBuildFailed,
                                FailedToSetRotationIdxs,
                                FailedToAdjustAngles)
@@ -630,7 +631,12 @@ class Builder:
         Arguments:
             dihedral (autode.smiles.builder.Dihedral):
         """
-        logger.info(f'Needed to force the stereochemistry around {dihedral}')
+        logger.info(f'Forcing stereochemistry for {dihedral}')
+
+        if not (self.graph.edges[dihedral.mid_idxs]['order'] == 2
+                and np.isclose(dihedral.phi0 % np.pi, 0)):
+            raise ValueError('Expecting a 0º or 180º dihedral for E/Z'
+                             'over a double bond - cannot rotate')
 
         # Get the bond lengths for the three bonds
         r_wx = self.bonds.first_involving(*dihedral.idxs[:2]).r0
@@ -638,22 +644,24 @@ class Builder:
         r_yz = self.bonds.first_involving(*dihedral.idxs[-2:]).r0
 
         if np.isclose(dihedral.phi0, np.pi):
+            # Distance constraint for a trans double bond
             r_wz = np.sqrt(((r_wx + r_yz) * np.sin(np.pi/3.0))**2
-                        + ((r_wx + r_yz) * np.cos(np.pi/3.0) + r_xy)**2)
+                           + ((r_wx + r_yz) * np.cos(np.pi/3.0) + r_xy)**2)
 
-        elif np.isclose(dihedral.phi0, 0.0):
+        else:  # and similarly for cis
             r_wz = (r_wx + r_yz) * np.sin(np.pi/6.0) + r_xy
 
-        else:
-            raise ValueError('Expecting a zero or 180º dihedral for E/Z')
-
         def c_cosine_rule(a, b, gamma):
-            """"""
+            """c = √a^2 + b^2 - 2ab cos(γ)"""
             return np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma))
 
         r_wy = c_cosine_rule(r_wx, r_xy, 2.0*np.pi/3.0)
         r_xz = c_cosine_rule(r_xy, r_yz, 2.0*np.pi/3.0)
 
+        # Apply distance constraints over the all the pairwise distances,
+        # such that the correct geometry is the only minimum (with just r_wz)
+        # constraints the WXY and XYZ angles change to accommodate r_wz, rather
+        # than there being any dihedral rotation)
         dist_consts = {dihedral.end_idxs: r_wz,
                        (dihedral.idxs[0], dihedral.idxs[2]): r_wy,
                        (dihedral.idxs[1], dihedral.idxs[3]): r_xz,

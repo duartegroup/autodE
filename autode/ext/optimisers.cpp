@@ -1,15 +1,14 @@
 #include "optimisers.h"
-#include <utility>
-#include <cmath>
-#include <stdexcept>
 #include "iostream"
+#include <cmath>
+
+using namespace std;
 
 namespace autode {
 
     void SDOptimiser::step(autode::Molecule &molecule, double step_factor){
         // Perform a SD step in the direction of the gradient
         for (int i = 0; i < 3 * molecule.n_atoms; i++) {
-            //TODO remove std::cout << step_factor * molecule.grad[i] << std::endl;
             molecule.coords[i] -= step_factor * molecule.grad[i];
         }
     }
@@ -70,9 +69,6 @@ namespace autode {
             // Recompute the energy and gradient
             potential.set_energy_and_grad(molecule);
 
-            //TODO remove:
-            //std::cout << iteration << '\t' << micro_iteration << '\t' << molecule.energy << '\t' << curr_energy << std::endl;
-
             // Run a set of micro iterations as a line search in the steepest
             // decent direction: -∇V
             while (micro_iteration < max_micro_iterations){
@@ -81,8 +77,6 @@ namespace autode {
                 step(molecule, step_size);
 
                 potential.set_energy(molecule);
-                //TODO remove:
-                //std::cout << "\t\t\t\t" << molecule.energy << '\t' << curr_micro_energy << '\t' << step_size << std::endl;
 
                 // Backtrack if the energy rises
                 if (micro_iteration == 0
@@ -114,4 +108,23 @@ namespace autode {
         } // Macro
     }
 
+    void SDDihedralOptimiser::step(autode::Molecule &molecule,
+                                   double step_factor) {
+        /*
+         * Apply a set of dihedral rotations given a new gradient
+         *
+         * Arguments:
+         *
+         *     molecule:
+         *
+         *     dihedrals:
+         *
+         *     step_factor: Multiplier on the SD step
+         */
+
+        for (auto &dihedral: molecule._dihedrals){
+            dihedral.angle = -step_factor * dihedral.grad;
+            molecule.rotate(dihedral);
+        }
+    }
 }

@@ -4,7 +4,11 @@ from setuptools.extension import Extension
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
               Extension('cdihedrals', ['autode/smiles/cdihedrals.pyx']),
-              Extension('c_rb', ['autode/ext/c_rb.pyx'],
+              Extension('ade_dihedrals', ['autode/ext/ade_dihedrals.pyx'],
+                        language='c++',
+                        extra_compile_args=["-std=c++11"],
+                        extra_link_args=["-std=c++11"]),
+              Extension('ade_rb_opt', ['autode/ext/ade_rb_opt.pyx'],
                         language='c++',
                         extra_compile_args=["-std=c++11"],
                         extra_link_args=["-std=c++11"])]

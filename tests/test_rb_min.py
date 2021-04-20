@@ -1,7 +1,7 @@
 import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
-from c_rb import opt_rb_coords
+from ade_rb_opt import opt_rb_coords
 from autode.geom import are_coords_reasonable
 from autode.bonds import get_ideal_bond_length_matrix
 

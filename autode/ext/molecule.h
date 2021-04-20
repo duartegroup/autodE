@@ -1,6 +1,7 @@
 #ifndef ADE_EXT_MOLECULE_H
 #define ADE_EXT_MOLECULE_H
 #include "vector"
+#include "dihedrals.h"
 
 
 namespace autode {
@@ -9,15 +10,24 @@ namespace autode {
     public:
 
         int n_atoms = 0;
-        std::vector<double> coords;
-        std::vector<bool> bonds;
-
         double energy = 0.0;
+
+        std::vector<autode::Dihedral> _dihedrals;
+
+        std::vector<double> coords;
         std::vector<double> grad;
 
+        // Constructors
         explicit Molecule();
-        explicit Molecule(std::vector<double> coords,
-                          std::vector<bool> bonds);
+        explicit Molecule(std::vector<double> coords);
+
+        double sq_distance(int i, int j);
+        double distance(int i, int j);
+
+        void rotate(autode::Dihedral dihedral);
+        void rotate(std::vector<autode::Dihedral> &dihedrals);
+
+        void rotate_dihedrals();
     };
 
 }

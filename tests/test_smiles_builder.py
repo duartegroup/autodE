@@ -133,7 +133,8 @@ def test_dihedrals():
 def test_cdihedral_rotation():
 
     try:
-        from cdihedrals import rotate
+        # from ade_dihedrals import rotate
+        from ade_dihedrals import rotate
 
     except ModuleNotFoundError:
         return
@@ -160,6 +161,21 @@ def test_cdihedral_rotation():
     mol.coordinates = rot_coords
 
     assert np.isclose(dihedral.value(mol.atoms), 0.0, atol=1E-5)
+    assert are_coords_reasonable(mol.coordinates)
+
+    # Minimising on this dihedral should rotate it from 0º, however as
+    # 0.0 is a saddle point there needs to be a slight displacement, and
+    # should minimise to the next minimum at a 60º dihedral
+    rot_coords = rotate(py_coords=np.array(mol.coordinates, dtype='f8'),
+                        py_angles=np.array([0.1], dtype='f8'),
+                        py_axes=np.array([[1, 0]], dtype='i4'),
+                        py_rot_idxs=rot_idxs,
+                        py_origins=np.array([0], dtype='i4'),
+                        minimise=True)
+
+    mol.coordinates = rot_coords
+
+    assert np.isclose(dihedral.value(mol.atoms), np.deg2rad(60), atol=0.1)
     assert are_coords_reasonable(mol.coordinates)
 
 
@@ -285,7 +301,6 @@ def test_chiral_tetrahedral3():
     parser.parse(smiles='N[C@](Br)(O)C')
     builder.build(parser.atoms, parser.bonds)
     mol = Molecule(atoms=builder.atoms)
-    mol.print_xyz_file()
 
     equiv_smiles = ['N[C@](Br)(O)C',
                     'Br[C@](O)(N)C',
@@ -414,6 +429,18 @@ def test_trans_small_rings():
     assert np.isclose(np.abs(dihedral.value(builder.atoms)),
                       np.pi,
                       atol=np.pi/2.0)
+
+
+def test_dihedral_force():
+
+    parser.parse(smiles='CCCC')
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
+
+    dihedral = Dihedral(idxs=[0, 1, 2, 3], phi0=np.pi/2.0)
+
+    # Can only force to 0º or 180º, distances are hard coded
+    with pytest.raises(ValueError):
+        builder._force_double_bond_stereochem(dihedral=dihedral)
 
 
 def _test_tmp():

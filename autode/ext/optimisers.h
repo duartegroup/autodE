@@ -3,6 +3,7 @@
 #include "vector"
 #include "molecule.h"
 #include "potentials.h"
+#include "dihedrals.h"
 
 namespace autode {
 
@@ -17,6 +18,9 @@ namespace autode {
                              int max_iterations,
                              double energy_tol,
                              double init_step_size) = 0;
+
+            virtual void step(autode::Molecule &molecule,
+                              double step_factor) = 0;
     };
 
     class SDOptimiser: public Optimiser{
@@ -30,11 +34,19 @@ namespace autode {
                      double init_step_size) override;
 
         private:
-            static void step(autode::Molecule &molecule, double step_factor);
-            static void trust_step(autode::Molecule &molecule,
-                                   double step_factor,
-                                   double trust_radius = 0.1);
+            void step(autode::Molecule &molecule, double step_factor) override;
+            void trust_step(autode::Molecule &molecule,
+                            double step_factor,
+                            double trust_radius = 0.1);
 
+    };
+
+
+    class SDDihedralOptimiser: public SDOptimiser{
+        // Steepest decent optimiser on a set of dihedral angles
+
+        private:
+            void step(autode::Molecule &molecule, double step_factor) override;
     };
 }
 

@@ -1,14 +1,18 @@
 #include <stdexcept>
+#include "exception"
 #include <algorithm>
 #include <utility>
 #include <cmath>
+#include <iostream>
 #include "potentials.h"
 
 
+using namespace std;
+
 namespace autode{
 
-    void Potential::set_energy_and_numerical_grad(autode::Molecule &molecule,
-                                                  double eps) {
+    void CartesianPotential::set_energy_and_num_grad(autode::Molecule &molecule,
+                                                     double eps) {
         /*
          * Calculate a finite difference gradient
          *
@@ -20,8 +24,6 @@ namespace autode{
         set_energy(molecule);
         auto energy = molecule.energy;
 
-        std::vector<double> num_grad(molecule.grad.size(), 0.0);
-
         for (int i = 0; i < molecule.n_atoms; i++){  // atoms
             for (int j = 0; j < 3; j++){             // x, y, z
                 int idx = 3 * i + j;
@@ -31,14 +33,13 @@ namespace autode{
                 set_energy(molecule);
 
                 // and the finite difference gradient
-                num_grad[idx] = (molecule.energy - energy) / eps;
+                molecule.grad[idx] = (molecule.energy - energy) / eps;
 
                 // and shift the modified coordinates back
                 molecule.coords[idx] -= eps;
 
             } // j
         } // i
-
     }
 
 
@@ -58,7 +59,7 @@ namespace autode{
         // copy of the analytic gradient
         std::vector<double> analytic_grad(molecule.grad);
 
-        set_energy_and_numerical_grad(molecule);
+        set_energy_and_num_grad(molecule, 1E-10);
 
         double sq_norm = 0;
         for (int i = 0; i < 3 * molecule.n_atoms; i++){
@@ -71,9 +72,74 @@ namespace autode{
         }
     }
 
+
+    RDihedralPotential::RDihedralPotential() = default;
+    RDihedralPotential::RDihedralPotential(int rep_exponent,
+                                           std::vector<bool> rep_pairs) {
+        /* Purely repulsive energy
+         *
+         *   V(X) = Σ_ij 1 / r_ij^rep_exponent
+         *
+         * Arguments:
+         *     rep_exponent: Integer exponent
+         *
+         *     rep_pairs: Boolean row major vector (flat matrix) of atom pairs
+         *                that should be considered for a pairwise repulsion
+         *                should be a flat symmetric matrix, but only the
+         *                upper triangle is used (column index > row index)
+         */
+
+        if (rep_exponent % 2 != 0){
+            throw runtime_error("Repulsion exponent must be even");
+        }
+
+        this->half_rep_exponent = rep_exponent / 2;
+        this->rep_pairs = std::move(rep_pairs);
+    }
+
+    void RDihedralPotential::set_energy(autode::Molecule &mol) {
+        // Repulsion energy
+
+        mol.energy = 0.0;
+
+        for (int i = 0; i < mol.n_atoms; i++){
+            for (int j = i+1; j < mol.n_atoms; j++) {
+
+                if (rep_pairs[i * mol.n_atoms + j]){
+                    mol.energy += 1.0 / pow(mol.sq_distance(i, j), half_rep_exponent);
+                }
+
+            } // j
+        } // i
+    }
+
+
+    void DihedralPotential::set_energy_and_num_grad(autode::Molecule &molecule,
+                                                     double eps) {
+        set_energy(molecule);
+        auto energy = molecule.energy;
+
+        for (auto &dihedral : molecule._dihedrals){
+
+            // Shift by δ on a dihedral
+            dihedral.angle = eps;
+            molecule.rotate(dihedral);
+            set_energy(molecule);
+
+            // calculate the finite difference gradient
+            dihedral.grad = (molecule.energy - energy) / eps;
+
+            // and shift the modified coordinates back
+            dihedral.angle = -eps;
+            molecule.rotate(dihedral);
+
+        } // i
+    }
+
     RBPotential::RBPotential() = default;
 
     RBPotential::RBPotential(int rep_exponent,
+                             std::vector<bool> bonds,
                              std::vector<double> r0,
                              std::vector<double> k,
                              std::vector<double> c) {
@@ -88,6 +154,9 @@ namespace autode{
          *  Arguments:
          *      rep_exponent: Power of the repulsive r^-n term
          *
+         *      Bonds: Row major vector of the existence of a 'bond' for each
+         *             pairwise interation
+         *
          *      r0: Row major vector of equilibrium distances. Only used for
          *          bonded pairs
          *
@@ -99,6 +168,7 @@ namespace autode{
          */
 
         this->rep_exponent = rep_exponent ;
+        this->bonds = std::move(bonds);
         this->r0 = std::move(r0);
         this->k = std::move(k);
         this->c = std::move(c);
@@ -115,17 +185,13 @@ namespace autode{
 
                 int pair_idx = i * mol.n_atoms + j;  // Compound index
 
-                double dx = mol.coords[3*i + 0] - mol.coords[3*j + 0];
-                double dy = mol.coords[3*i + 1] - mol.coords[3*j + 1];
-                double dz = mol.coords[3*i + 2] - mol.coords[3*j + 2];
-
                 // Square euclidean distance
-                double r = sqrt(dx*dx + dy*dy + dz*dz);
+                double r = mol.distance(i, j);
                 energy += c[pair_idx] / pow(r, rep_exponent);;
 
                 // Check the bond matrix for if these atoms are bonded, don't
                 // add a harmonic term if not
-                if (! mol.bonds[pair_idx]){
+                if (! bonds[pair_idx]){
                     continue;
                 }
                 energy += k[pair_idx] * pow(r - r0[pair_idx], 2);
@@ -161,9 +227,7 @@ namespace autode{
                 double dy = mol.coords[3*i + 1] - mol.coords[3*j + 1];
                 double dz = mol.coords[3*i + 2] - mol.coords[3*j + 2];
 
-                // Square euclidean distance
                 double r = sqrt(dx*dx + dy*dy + dz*dz);
-
                 double e_rep = c[pair_idx] / pow(r, rep_exponent);
 
                 // Add half the energy term to prevent double counting
@@ -179,7 +243,7 @@ namespace autode{
 
                 // Check the bond matrix for if these atoms are bonded, don't
                 // add a harmonic term if not
-                if (! mol.bonds[pair_idx]){
+                if (! bonds[pair_idx]){
                     continue;
                 }
 
