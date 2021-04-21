@@ -73,7 +73,8 @@ cdef extern from "optimisers.h" namespace "autode":
         void run(Potential &,
                  Molecule &,
                  int,        # Maximum number of grid points
-                 double)     # Energy difference for final SD
+                 double,     # Energy difference for final SD
+                 double)  # Initial step size for SD minimisation
 
 
 cdef extern from "optimisers.h" namespace "autode":
@@ -83,8 +84,8 @@ cdef extern from "optimisers.h" namespace "autode":
         void run(Potential &,
                  Molecule &,
                  int,        # Number of maximum total steps
-                 double)     # Final tolerance on SD minimisation
-
+                 double,     # Final tolerance on SD minimisation
+                 double)     # Initial step size for SD minimisation
 
 cdef extern from "dihedrals.h" namespace "autode":
     cdef cppclass Dihedral:

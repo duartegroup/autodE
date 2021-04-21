@@ -98,7 +98,7 @@ def rotate(py_coords,
                       molecule,
                       50,              # Maximum number of iterations
                       1E-5,            # Tolerance on ∆E_k->k+1 for a step k
-                      1)               # Initial step size (Å)
+                      1.0)             # Initial step size (Å)
 
     py_coords = np.asarray(molecule.coords).reshape(-1, 3)
     return py_coords
@@ -187,13 +187,14 @@ cpdef closed_ring_coords(py_coords,
         grid_optimiser.run(potential,
                            molecule,
                            500,     # Maximum number of grid points
-                           1E-5)    # SD tolerance on ∆E_k->k+1 for a step k
-
+                           1E-5,    # SD tolerance on ∆E_k->k+1 for a step k
+                           1.0)
     else:
         optimiser.run(potential,
                       molecule,
                       100 * n_angles,      # Number of total steps
-                      1E-5)                # Final tolerance on SD minimisation
+                      1E-5,                # Final tolerance on SD minimisation
+                      1.0)
 
     py_coords = np.asarray(molecule.coords).reshape(-1, 3)
     return py_coords

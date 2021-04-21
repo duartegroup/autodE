@@ -1,6 +1,6 @@
 #include "optimisers.h"
 #include <cmath>
-
+//#include "iostream"
 
 namespace autode {
 
@@ -76,6 +76,11 @@ namespace autode {
 
                 potential.set_energy(molecule);
 
+                // Prevent very small step sizes
+                if (step_size < 1E-3){
+                    break;
+                }
+
                 // Backtrack if the energy rises
                 if (micro_iteration == 0
                     and molecule.energy > curr_micro_energy){
@@ -91,11 +96,6 @@ namespace autode {
                     // Energy has risen but at least one step has been taken
                     // so return the previous step
                     step(molecule, -step_size);
-                    break;
-                }
-
-                // Prevent very small step sizes
-                if (step_size < 1E-3){
                     break;
                 }
 
@@ -117,10 +117,41 @@ namespace autode {
          *
          *     step_factor: Multiplier on the SD step
          */
-
+        
         for (auto &dihedral: molecule._dihedrals){
             dihedral.angle = -step_factor * dihedral.grad;
             molecule.rotate(dihedral);
         }
     }
+
+    void GridDihedralOptimiser::run(autode::Potential &potential,
+                                    autode::Molecule &molecule,
+                                    int max_num_points,
+                                    double energy_tol,
+                                    double init_step_size) {
+        // Do grid
+    }
+
+    void GridDihedralOptimiser::step(autode::Molecule &molecule,
+                                     double step_factor) {
+        // Take a step on the grid
+    }
+
+    void SGlobalDihedralOptimiser::run(autode::Potential &potential,
+                                       autode::Molecule &molecule,
+                                       int max_total_steps,
+                                       double energy_tol,
+                                       double init_step_size) {
+        /* Stochastic global minimisation
+         *
+         */
+    }
+
+    void SGlobalDihedralOptimiser::step(autode::Molecule &molecule,
+                                        double step_factor) {
+        /* Take a random step, then minimise from this point
+         *
+         */
+    }
+
 }
