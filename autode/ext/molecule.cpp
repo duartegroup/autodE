@@ -99,6 +99,15 @@ namespace autode {
     }
 
 
+    void Molecule::zero_dihedrals() {
+         // Set all the dihedral angle changes to be applied to zero
+
+        for (auto &dihedral: _dihedrals){
+            dihedral.angle = 0.0;
+        }
+    }
+
+
     void Molecule::rotate_dihedrals(){
         rotate(_dihedrals);
     }

@@ -17,7 +17,7 @@ namespace autode {
                              double energy_tol,
                              double init_step_size) = 0;
 
-        private:
+        protected:
             virtual void step(autode::Molecule &molecule,
                               double step_factor) = 0;
 
@@ -34,7 +34,7 @@ namespace autode {
                      double energy_tol,
                      double init_step_size) override;
 
-        private:
+        protected:
             void step(autode::Molecule &molecule, double step_factor) override;
             void trust_step(autode::Molecule &molecule,
                             double step_factor,
@@ -46,12 +46,12 @@ namespace autode {
     class SDDihedralOptimiser: public SDOptimiser{
         // Steepest decent optimiser on a set of dihedral angles
 
-        private:
+        protected:
             void step(autode::Molecule &molecule, double step_factor) override;
     };
 
 
-    class GridDihedralOptimiser: public Optimiser{
+    class GridDihedralOptimiser: public SDDihedralOptimiser{
         // Steepest decent optimiser
 
         public:
@@ -61,12 +61,12 @@ namespace autode {
                      double energy_tol,
                      double init_step_size) override;
 
-        private:
+        protected:
             void step(autode::Molecule &molecule, double step_factor) override;
     };
 
 
-    class SGlobalDihedralOptimiser: public Optimiser{
+    class SGlobalDihedralOptimiser: public SDDihedralOptimiser{
 
         public:
             void run(autode::Potential &potential,
@@ -75,7 +75,7 @@ namespace autode {
                      double energy_tol,
                      double init_step_size) override;
 
-        private:
+        protected:
             void step(autode::Molecule &molecule, double step_factor) override;
     };
 }

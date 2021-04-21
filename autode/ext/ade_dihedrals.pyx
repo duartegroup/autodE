@@ -186,15 +186,15 @@ cpdef closed_ring_coords(py_coords,
     if n_angles <= 3:
         grid_optimiser.run(potential,
                            molecule,
-                           500,     # Maximum number of grid points
+                           513,     # Maximum number of grid points
                            1E-5,    # SD tolerance on ∆E_k->k+1 for a step k
-                           1.0)
+                           0.1)
     else:
         optimiser.run(potential,
                       molecule,
                       100 * n_angles,      # Number of total steps
                       1E-5,                # Final tolerance on SD minimisation
-                      1.0)
+                      0.1)
 
     py_coords = np.asarray(molecule.coords).reshape(-1, 3)
     return py_coords

@@ -351,6 +351,12 @@ class Builder:
         logger.info('Adjusting ring dihedrals to close the ring')
 
         start_time = time()
+
+        # TODO: implement SD global
+        # from ade_dihedrals import closed_ring_coords
+
+
+
         coords = closed_ring_coords(py_coords=self.coordinates,
                                     py_curr_angles=dihedrals.values(self.atoms),
                                     py_ideal_angles=dihedrals.ideal_angles,
@@ -540,6 +546,7 @@ class Builder:
         if not np.isclose(ring_bond.distance(self.atoms),
                           ring_bond.r0, atol=0.2):
             logger.info(f'A ring was poorly closed - adjusting angles')
+
             try:
                 self._adjust_ring_angles(ring_bond)
 

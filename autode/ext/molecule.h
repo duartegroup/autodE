@@ -27,6 +27,7 @@ namespace autode {
         void rotate(autode::Dihedral &dihedral);
         void rotate(std::vector<autode::Dihedral> &dihedrals);
 
+        void zero_dihedrals();
         void rotate_dihedrals();
     };
 
