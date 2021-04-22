@@ -54,6 +54,14 @@ namespace autode {
     class GridDihedralOptimiser: public SDDihedralOptimiser{
         // Steepest decent optimiser
 
+        double spacing = 0.0;
+
+        int num_1d_points = 0;
+        int num_points = 0;
+        int n_angles = 0;
+
+        std::vector<int> counter;
+
         public:
             void run(autode::Potential &potential,
                      autode::Molecule &molecule,
@@ -62,6 +70,9 @@ namespace autode {
                      double init_step_size) override;
 
         protected:
+
+            void apply_single_rotation(autode::Molecule &molecule, int curr_step);
+
             void step(autode::Molecule &molecule, double step_factor) override;
     };
 
@@ -71,7 +82,7 @@ namespace autode {
         public:
             void run(autode::Potential &potential,
                      autode::Molecule &molecule,
-                     int max_total_steps,
+                     int max_init_points,
                      double energy_tol,
                      double init_step_size) override;
 

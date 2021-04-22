@@ -7,8 +7,7 @@ from autode.atoms import Atom
 from autode.bonds import get_avg_bond_length
 from autode.geom import get_rot_mat_kabsch
 from autode.smiles.base import SMILESAtom, SMILESBond
-from cdihedrals import closed_ring_coords
-from ade_dihedrals import rotate
+from ade_dihedrals import rotate, closed_ring_coords
 from ade_rb_opt import opt_rb_coords
 from autode.exceptions import (SMILESBuildFailed,
                                FailedToSetRotationIdxs,
@@ -351,11 +350,6 @@ class Builder:
         logger.info('Adjusting ring dihedrals to close the ring')
 
         start_time = time()
-
-        # TODO: implement SD global
-        # from ade_dihedrals import closed_ring_coords
-
-
 
         coords = closed_ring_coords(py_coords=self.coordinates,
                                     py_curr_angles=dihedrals.values(self.atoms),
@@ -958,7 +952,7 @@ class AtomType:
         site_coords = np.copy(self.template_site_coords)
 
         if len(site_coords) == len(points):
-            logger.warning('No reset needed - sites were all occupied')
+            logger.info('No reset needed - sites were all occupied')
             return
 
         logger.info(f'Rotating {len(site_coords)} sites onto'

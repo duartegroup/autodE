@@ -3,7 +3,6 @@ from Cython.Build import cythonize
 from setuptools.extension import Extension
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
-              Extension('cdihedrals', ['autode/smiles/cdihedrals.pyx']),
               Extension('ade_dihedrals',
                         sources=['autode/ext/ade_dihedrals.pyx',
                                  'autode/ext/molecule.cpp',

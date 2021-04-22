@@ -222,7 +222,7 @@ def test_simple_ring():
     assert built_molecule_is_reasonable(smiles='C1CCCC1')     # cyclopentane
     assert built_molecule_is_reasonable(smiles='C1CCCCC1')    # cyclohexane
     assert built_molecule_is_reasonable(smiles='C1CCCCCC1')   # cycloheptane
-    assert built_molecule_is_reasonable(smiles='C1CCCCCCC1')  # cycloctane
+    assert built_molecule_is_usually_reasonable(smiles='C1CCCCCCC1')  # cycloctane
 
 
 def test_double_bonds():
@@ -443,7 +443,7 @@ def test_dihedral_force():
         builder._force_double_bond_stereochem(dihedral=dihedral)
 
 
-def _test_tmp():
+def test_tmp():
 
     parser.parse(smiles='C1CCCC1')
     builder.build(parser.atoms, parser.bonds)
@@ -454,7 +454,7 @@ def _test_tmp():
     #                                           r'\C(CC/C(C)=C/[C@H]1C)=O)OC')
 
 
-def _test_close_flat_ring():
+def test_close_flat_ring():
 
     unclosed_coords = np.array([[ 2.227521, -0.038228, -2.175656],
                                 [-1.704563,  1.083528,  1.226912],
@@ -482,9 +482,23 @@ def _test_close_flat_ring():
 
     # re-apply the closure
     builder._close_ring(ring_bond=bond)
-
     mol = Molecule(atoms=builder.atoms)
-    mol.print_xyz_file(filename='tmp.xyz')
 
-    # TODO: Check that it's flat!
+    for atom_i in range(0, 5):
+        # All C-C distances should be ~1.5 Å in a benzene ring
+        assert np.isclose(mol.distance(atom_i, atom_i+1), 1.5, atol=0.2)
 
+    # mol.print_xyz_file(filename='tmp.xyz')
+
+
+def test_close_non_flat_ring():
+
+    parser.parse('C1CCCCCC1')
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
+    mol = Molecule(atoms=builder.atoms)
+
+    assert are_coords_reasonable(mol.coordinates)
+
+    for atom_i in range(0, 5):
+        # All C-C distances should be ~1.5 Å in a cyclohexane ring
+        assert np.isclose(mol.distance(atom_i, atom_i+1), 1.5, atol=0.2)

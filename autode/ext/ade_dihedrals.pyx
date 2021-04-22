@@ -1,5 +1,5 @@
 # distutils: language = c++
-# distutils: sources = [autode/ext/dihedrals.cpp, autode/ext/molecule.cpp, autode/ext/optimisers.cpp, autode/ext/potentials.cpp]
+# distutils: sources = [autode/ext/dihedrals.cpp, autode/ext/molecule.cpp, autode/ext/optimisers.cpp, autode/ext/potentials.cpp, autode/ext/utils.cpp]
 import numpy as np
 from autode.ext.wrappers cimport (Molecule,
                                   Dihedral,
@@ -169,7 +169,7 @@ cpdef closed_ring_coords(py_coords,
                       py_rot_idxs=py_rot_idxs,
                       py_origins=py_origins)
 
-    # There are at least one dihedral to optimise on...
+    # There are at least one dihedral to optimise on-
     cdef Molecule molecule = molecule_with_dihedrals(py_coords,
                                                      py_axes,
                                                      py_rot_idxs,
@@ -192,8 +192,8 @@ cpdef closed_ring_coords(py_coords,
     else:
         optimiser.run(potential,
                       molecule,
-                      100 * n_angles,      # Number of total steps
-                      1E-5,                # Final tolerance on SD minimisation
+                      10 * n_angles,      # Number of total steps
+                      1E-5,               # Final tolerance on SD minimisation
                       0.1)
 
     py_coords = np.asarray(molecule.coords).reshape(-1, 3)

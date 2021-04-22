@@ -1,7 +1,8 @@
 #include "optimisers.h"
+#include "utils.h"
+#include <random>
 #include <stdexcept>
 #include <cmath>
-
 
 
 namespace autode {
@@ -34,6 +35,7 @@ namespace autode {
         }
     }
 
+
     void SDOptimiser::run(autode::Potential &potential,
                           autode::Molecule &molecule,
                           int max_iterations,
@@ -55,7 +57,7 @@ namespace autode {
          *     init_step_size: (Å)
          */
         double max_micro_iterations = 20;
-        double curr_energy = 999999999999999;
+        double curr_energy = 99999999.9;
         double curr_micro_energy;
 
         int iteration = 0;
@@ -109,6 +111,7 @@ namespace autode {
         } // Macro
     }
 
+
     void SDDihedralOptimiser::step(autode::Molecule &molecule,
                                    double step_factor) {
         /*
@@ -126,6 +129,7 @@ namespace autode {
             molecule.rotate(dihedral);
         }
     }
+
 
     void GridDihedralOptimiser::run(autode::Potential &potential,
                                     autode::Molecule &molecule,
@@ -149,7 +153,7 @@ namespace autode {
          *      init_step_size: For SD
          */
 
-        int n_angles = molecule._dihedrals.size();
+        n_angles = static_cast<int>(molecule._dihedrals.size());
 
         if (n_angles == 0){
             // Nothing to be done with no dihedrals to rotate
@@ -162,57 +166,31 @@ namespace autode {
                                      "supported");
         }
 
-        // Calculate the grid spacing in a single dimension
-        auto d_1d_points = std::pow(static_cast<double>(max_num_points),
-                                    1.0 / static_cast<double>(n_angles));
-        auto num_1d_pointsd = std::floor(d_1d_points);
-        int num_1d_points = static_cast<int>(num_1d_pointsd);
+        num_1d_points = autode::utils::fpowi(max_num_points, n_angles);
+        num_points = autode::utils::powi(num_1d_points, n_angles);
 
-        // Actual number of points that will be sampled in the space
-        int num_points = static_cast<int>(std::pow(static_cast<double>(num_1d_points),
-                                                   static_cast<double>(n_angles)));
         molecule.zero_dihedrals();
 
         // Spacing is taken over 0 -> 2π - π/3, as the dihedral is periodic
-        double spacing = 5.2 / static_cast<double>(num_1d_points);
+        spacing = 5.2 / static_cast<double>(num_1d_points);
 
         /*  Generate a counter wheel for each dihedral, which when it reaches
          *  num_1d_points then the adjacent wheel is incremented etc.
          *
-         *   |              |
-         *   |  0    0    0 |
-         *   |              |
+         *   |                    |
+         *   |  0    0    0   ... |
+         *   |                    |
+         *
+         *   Initialised at 0 on every angle
          */
-        std::vector<int> counter(n_angles, 0);
+        counter = std::vector<int>(n_angles, 0);
 
         std::vector<double> min_coords;
-        double min_energy = 99999999999999999999.9;
+        double min_energy = 99999999.9;
 
         for (int i=0; i < num_points; i++){
 
-            // TODO: function this unreadable mess
-            for (int j=0; j < n_angles; j++){
-
-                int value = ((i
-                              / static_cast<int>(std::pow(num_1d_pointsd, j))
-                              ) % num_1d_points);
-
-                if (value == num_1d_points - 1){
-                    counter[j] = 0;
-                    continue;
-                }
-
-                if (value != counter[j]){
-                    molecule._dihedrals[j].angle = spacing;
-                    molecule.rotate(molecule._dihedrals[j]);
-
-                    counter[j] = value;
-                    break;
-                }
-
-                counter[j] = value;
-            }
-
+            apply_single_rotation(molecule, i);
             potential.set_energy(molecule);
 
             if (molecule.energy < min_energy) {
@@ -232,27 +210,108 @@ namespace autode {
 
     }
 
+
     void GridDihedralOptimiser::step(autode::Molecule &molecule,
                                      double step_factor) {
         // Take a step on the grid
         SDDihedralOptimiser::step(molecule, step_factor);
     }
 
+
+    void GridDihedralOptimiser::apply_single_rotation(autode::Molecule &molecule,
+                                                      int curr_step) {
+        /* Apply a single rotation to one dihedral in sequence, depending on
+         * the value of the counter
+         *
+         * Arguments:
+         *
+         *     molecule:
+         *
+         *
+         *     curr_step: Current step on the N-dimensional grid
+         */
+        for (int j=0; j < n_angles; j++){
+
+            int value = ((curr_step
+                          / autode::utils::powi(num_1d_points, j)
+                         ) % num_1d_points);
+
+            if (value == num_1d_points - 1){
+                counter[j] = 0;
+                continue;
+            }
+
+            if (value != counter[j]){
+                molecule._dihedrals[j].angle = spacing;
+                molecule.rotate(molecule._dihedrals[j]);
+
+                counter[j] = value;
+                break;
+            }
+        }
+    }
+
+
     void SGlobalDihedralOptimiser::run(autode::Potential &potential,
                                        autode::Molecule &molecule,
-                                       int max_total_steps,
+                                       int max_init_points,
                                        double energy_tol,
                                        double init_step_size) {
         /* Stochastic global minimisation
          *
+         * Arguments:
+         *
+         *     potential:
+         *
+         *     molecule:
+         *
+         *     max_init_points: Number of initial points to start SD
+         *                      optimisations from, each of which is subject to
+         *                      a fast (few step) optimisation
+         *
+         *     energy_tol: Energy tolerance on the final SD minimisation
+         *
+         *
+         *     init_step_size: Initial step size for all (search + final)
+         *                     optimisations
          */
+        std::vector<double> min_coords;
+        double min_energy = 99999999.9;
+
+        std::random_device rand_device;
+
+        std::uniform_real_distribution<double> unif_distro(-2.5, 2.5);
+        std::default_random_engine rand_generator(rand_device());
+
+
+        for (int iteration=0; iteration < max_init_points; iteration++){
+
+            for (auto &dihedral : molecule._dihedrals){
+                dihedral.angle = unif_distro(rand_generator);
+                molecule.rotate(dihedral);
+            }
+
+            // Apply a steepest decent minimisation for a few steps
+            SDDihedralOptimiser::run(potential,
+                                     molecule,
+                                     10,
+                                     1E-1,
+                                     init_step_size);
+
+            if (molecule.energy < min_energy) {
+                min_coords = std::vector<double>(molecule.coords);
+                min_energy = molecule.energy;
+            }
+        }
+
+        // Set the minimum energy coordinates
+        molecule.coords = min_coords;
     }
+
 
     void SGlobalDihedralOptimiser::step(autode::Molecule &molecule,
                                         double step_factor) {
-        /* Take a random step, then minimise from this point
-         *
-         */
+        // Apply a steepest decent step
         SDDihedralOptimiser::step(molecule, step_factor);
     }
 
