@@ -433,18 +433,18 @@ class Builder(AtomCollection):
         self.coordinates = coords[:-len(angles), :]
         return
 
-    def _ff_minimise(self, distance_constraints=None):
-        """Minimise all built atoms using a forcefield"""
+    def _ff_distance_matrix(self, dist_consts):
+        """Generate a distance matrix for all pairs of atoms
 
+        Arguments:
+            dist_consts (dict | None): Keyed with atoms pairs and values of
+                                       the distances
+        """
+
+        dist_consts = dist_consts if dist_consts is not None else {}
         built_idxs = self.built_atom_idxs
-        n_atoms = len(built_idxs)
-        if distance_constraints is None:
-            distance_constraints = {}
 
-        # Define ideal distances for pairs of atoms that are bonded
-        r0 = np.zeros((n_atoms, n_atoms), dtype='f8')
-        bond_matrix = np.zeros(shape=(n_atoms, n_atoms), dtype=bool)
-        c = np.ones((n_atoms, n_atoms), dtype='f8')
+        r0 = np.zeros((len(built_idxs), len(built_idxs)), dtype='f8')
 
         for bond in self.bonds:
             idx_i, idx_j = bond
@@ -457,24 +457,50 @@ class Builder(AtomCollection):
             i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
 
             # This pair is bonded and has an already set ideal distance
-            bond_matrix[i, j] = bond_matrix[j, i] = True
             r0[i, j] = r0[j, i] = bond.r0
 
-            if bond.order == 2:
-                logger.info('Double bond - adding constraint')
-                pair = (self.atoms[idx_i].neighbours[0],
-                        self.atoms[idx_i].neighbours[1])
+            if bond.order != 2:
+                continue
 
-                if pair not in distance_constraints:
-                    distance_constraints[pair] = self.distance(*pair)
+            logger.info('Double bond - adding constraint')
+            try:
+                idx_in = next(idx for idx in iter(self.atoms[idx_i].neighbours)
+                              if self.atoms[idx].is_shifted)
+                idx_jn = next(idx for idx in iter(self.atoms[idx_j].neighbours)
+                              if self.atoms[idx].is_shifted)
 
-        for (idx_i, idx_j), distance in distance_constraints.items():
+                pair = (idx_in, idx_jn)
+
+            except StopIteration:
+                logger.warning('Could not ifx stereochemistry, no neighbours '
+                               'to add constraints to')
+                continue
+
+            # A single distance constraint will be enough?!
+            if all(p not in dist_consts  for p in (pair, reversed(pair))):
+                dist_consts[pair] = self.distance(*pair)
+
+        # Set the items in the distance matrix, given that this may be a subset
+        # of the full atoms, with different indexes
+        for (idx_i, idx_j), distance in dist_consts.items():
             i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
-
-            bond_matrix[i, j] = bond_matrix[j, i] = True
             r0[i, j] = r0[j, i] = distance
 
+        return r0
+
+    def _ff_minimise(self, distance_constraints=None):
+        """Minimise all built atoms using a forcefield"""
+
+        built_idxs = self.built_atom_idxs
+        n_atoms = len(built_idxs)
+
+        # Define ideal distances for pairs of atoms that are bonded
+        r0 = self._ff_distance_matrix(distance_constraints)
+        bond_matrix = np.zeros(shape=(n_atoms, n_atoms), dtype=bool)
+        bond_matrix[r0 != 0.0] = True
+
         # No repulsion between bonded atoms
+        c = np.ones((n_atoms, n_atoms), dtype='f8')
         c -= np.asarray(bond_matrix, dtype='f8')
 
         # Now minimise all coordinates that are bonded
