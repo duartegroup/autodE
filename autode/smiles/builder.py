@@ -3,7 +3,7 @@ import networkx as nx
 from time import time
 from scipy.spatial import distance_matrix
 from autode.log import logger
-from autode.atoms import Atom
+from autode.atoms import Atom, AtomCollection
 from autode.bonds import get_avg_bond_length
 from autode.geom import get_rot_mat_kabsch
 from autode.smiles.base import SMILESAtom, SMILESBond
@@ -14,7 +14,7 @@ from autode.exceptions import (SMILESBuildFailed,
                                FailedToAdjustAngles)
 
 
-class Builder:
+class Builder(AtomCollection):
     """3D geometry builder
 
     Atoms:  C, 4H               H  H
@@ -26,10 +26,6 @@ class Builder:
     def built(self):
         """Have all the atoms been shifted appropriately"""
         return self.atoms is not None and len(self.queued_atoms) == 0
-
-    @property
-    def n_atoms(self):
-        return 0 if self.atoms is None else len(self.atoms)
 
     @property
     def canonical_atoms(self):
@@ -46,17 +42,6 @@ class Builder:
     def built_atom_idxs(self):
         """Atom indexes that have been built"""
         return [i for i in range(self.n_atoms) if self.atoms[i].is_shifted]
-
-    @property
-    def coordinates(self):
-        """Numpy array of coordinates"""
-        return np.array([a.coord for a in self.atoms], dtype='f8')
-
-    @coordinates.setter
-    def coordinates(self, value):
-        """Set the coordinates from a numpy array"""
-        for i, atom in enumerate(self.atoms):
-            atom.coord = value[i]
 
     @property
     def non_bonded_idx_matrix(self):
@@ -453,6 +438,8 @@ class Builder:
 
         built_idxs = self.built_atom_idxs
         n_atoms = len(built_idxs)
+        if distance_constraints is None:
+            distance_constraints = {}
 
         # Define ideal distances for pairs of atoms that are bonded
         r0 = np.zeros((n_atoms, n_atoms), dtype='f8')
@@ -474,16 +461,18 @@ class Builder:
             r0[i, j] = r0[j, i] = bond.r0
 
             if bond.order == 2:
-                # TODO: add double bond constraint that does not override
-                # any distance constraint
-                pass
+                logger.info('Double bond - adding constraint')
+                pair = (self.atoms[idx_i].neighbours[0],
+                        self.atoms[idx_i].neighbours[1])
 
-        if distance_constraints is not None:
-            for (idx_i, idx_j), distance in distance_constraints.items():
-                i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
+                if pair not in distance_constraints:
+                    distance_constraints[pair] = self.distance(*pair)
 
-                bond_matrix[i, j] = bond_matrix[j, i] = True
-                r0[i, j] = r0[j, i] = distance
+        for (idx_i, idx_j), distance in distance_constraints.items():
+            i, j = built_idxs.index(idx_i), built_idxs.index(idx_j)
+
+            bond_matrix[i, j] = bond_matrix[j, i] = True
+            r0[i, j] = r0[j, i] = distance
 
         # No repulsion between bonded atoms
         c -= np.asarray(bond_matrix, dtype='f8')
@@ -891,6 +880,8 @@ class Builder:
         them. This builder should generate something *reasonable* that can
         be cleaned up with a forcefield
         """
+        super().__init__()
+
         self.atoms = None              # list(SMILESAtom)
         self.bonds = None              # SMILESBonds
         self.graph = None              # nx.Graph

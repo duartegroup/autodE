@@ -4,6 +4,65 @@ from autode.log import logger
 from autode.geom import get_rot_mat_euler
 
 
+class AtomCollection:
+
+    @property
+    def n_atoms(self):
+        """Number of atoms in this set"""
+        return 0 if self.atoms is None else len(self.atoms)
+
+    @property
+    def coordinates(self):
+        """Numpy array of coordinates"""
+        if self.atoms is None:
+            return None
+
+        return np.array([a.coord for a in self.atoms], dtype='f8', copy=True)
+
+    @coordinates.setter
+    def coordinates(self, value: np.ndarray):
+        """Set the coordinates from a numpy array
+
+        Arguments:
+            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
+                                row major vector
+        """
+        if self.atoms is None:
+            raise ValueError('Must have atoms set to be able to set the '
+                             'coordinates of them')
+
+        if value.ndim == 1:
+            assert value.shape == (3 * self.n_atoms,)
+            value = value.reshape((-1, 3))
+
+        elif value.ndim == 2:
+            assert value.shape == (self.n_atoms, 3)
+
+        else:
+            raise AssertionError('Cannot set coordinates from a array with'
+                                 f'shape: {value.shape}. Must be 1 or 2 '
+                                 f'dimensional')
+
+        for i, atom in enumerate(self.atoms):
+            atom.coord = value[i]
+
+    def distance(self, i, j):
+        """Get the distance between two atoms (Å)"""
+        if any(idx < 0 or idx >= self.n_atoms for idx in (i, j)):
+            raise ValueError(f'Cannot calculate the distance between {i}-{j}')
+
+        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+
+    def __init__(self, atoms=None):
+        """
+        Collection of atoms, used as a a base class for a species etc
+
+        Arguments:
+            atoms (list(autode.atoms.Atom)):
+        """
+        self.atoms = atoms
+
+
 class Atom:
 
     def __repr__(self):

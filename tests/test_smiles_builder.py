@@ -443,7 +443,7 @@ def test_dihedral_force():
         builder._force_double_bond_stereochem(dihedral=dihedral)
 
 
-def test_tmp():
+def _test_tmp():
 
     parser.parse(smiles='C1CCCC1')
     builder.build(parser.atoms, parser.bonds)

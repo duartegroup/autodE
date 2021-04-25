@@ -18,6 +18,44 @@ def test_atoms():
     assert atoms.is_pi_atom(atom_label='Aa', valency=9) is False
 
 
+def test_atom_collection():
+
+    h2 = atoms.AtomCollection()
+    assert h2.n_atoms == 0
+
+    # Cannot set coordinates without atoms
+    with pytest.raises(ValueError):
+        h2.coordinates = np.array([1.0, 1.0, 1.0])
+
+    h2.atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H')]
+    assert h2.n_atoms == 2
+
+    assert type(h2.coordinates) == np.ndarray
+
+    coord = h2.coordinates[0]
+    coord += 1.0
+
+    # Shift of coordinates should not be in place
+    assert not np.allclose(h2.coordinates[0], coord)
+
+    # Cannot set coordinates with anything but a 3xn_atoms flat array, or
+    # 2-dimensional array (matrix)
+    with pytest.raises(AssertionError):
+        h2.coordinates = np.array([])
+
+    with pytest.raises(AssertionError):
+        h2.coordinates = np.array([1.0, 0.1])
+
+    with pytest.raises(AssertionError):
+        h2.coordinates = np.array([[[1.0], [1.0]]])
+
+    with pytest.raises(ValueError):
+        h2.distance(-1, 0)
+
+    with pytest.raises(ValueError):
+        h2.distance(0, 2)
+
+
 def test_atom():
 
     h = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)

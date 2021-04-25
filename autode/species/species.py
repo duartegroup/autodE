@@ -1,6 +1,7 @@
 import numpy as np
 from copy import deepcopy
-from scipy.spatial import  distance_matrix
+from scipy.spatial import distance_matrix
+from autode.atoms import AtomCollection
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
@@ -18,7 +19,7 @@ from autode.utils import work_in
 from autode.utils import requires_conformers
 
 
-class Species:
+class Species(AtomCollection):
 
     def __str__(self):
         """Unique species identifier"""
@@ -48,28 +49,6 @@ class Species:
             formula_str += f'{symbol}{num if num > 1 else ""}'
 
         return formula_str
-
-    @property
-    def n_atoms(self):
-        """Number of atoms in this species"""
-        return 0 if self.atoms is None else len(self.atoms)
-
-    @property
-    @requires_atoms()
-    def coordinates(self):
-        """np.ndarray of size n_atoms x 3 containing a copy of the xyz
-        coordinates of the molecule in Å"""
-        return np.array([atom.coord for atom in self.atoms],
-                        copy=True, dtype='f8')
-
-    @coordinates.setter
-    def coordinates(self, coords):
-        """For coordinates as a np.ndarray with shape Nx3 set the coordinates
-        of each atom"""
-        assert coords.shape == (self.n_atoms, 3)
-
-        for i in range(self.n_atoms):
-            self.atoms[i].coord = coords[i]
 
     @property
     @requires_atoms()
@@ -334,11 +313,6 @@ class Species:
 
         return None
 
-    @requires_atoms()
-    def distance(self, i, j):
-        """Get the distance between two atoms in the species"""
-        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
-
     @work_in('conformers')
     def find_lowest_energy_conformer(self, lmethod=None, hmethod=None):
         """
@@ -410,9 +384,10 @@ class Species:
         Keyword Arguments:
             solvent_name (str): Name of the solvent_name, or None
         """
+        super().__init__(atoms=atoms)
+
         self.name = name
 
-        self.atoms = atoms
         self.charge = int(charge)
         self.mult = int(mult)
 
