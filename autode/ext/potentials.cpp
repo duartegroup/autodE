@@ -103,7 +103,14 @@ namespace autode{
             for (int j = i+1; j < mol.n_atoms; j++) {
 
                 if (rep_pairs[i * mol.n_atoms + j]){
-                    mol.energy += 1.0 / pow(mol.sq_distance(i, j), half_rep_exponent);
+
+                    if (half_rep_exponent == 1){
+                        mol.energy += 1.0 / mol.sq_distance(i, j);
+                    }
+                    else {
+                        mol.energy += 1.0 / pow(mol.sq_distance(i, j),
+                                                half_rep_exponent);
+                    }
                 }
 
             } // j

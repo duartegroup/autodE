@@ -112,6 +112,20 @@ namespace autode {
     }
 
 
+    void SDDihedralOptimiser::check_dihedrals(autode::Molecule &molecule) {
+        /*  Ensure that there is at least one dihedral to minimise on
+         *
+         *  Arguments:
+         *
+         *      molecule:
+         */
+        if (molecule._dihedrals.empty()){
+            throw std::runtime_error("Cannot run a dihedral minimisation "
+                                     "without any dihedrals!");
+        }
+    }
+
+
     void SDDihedralOptimiser::step(autode::Molecule &molecule,
                                    double step_factor) {
         /*
@@ -152,6 +166,7 @@ namespace autode {
          *
          *      init_step_size: For SD
          */
+        SDDihedralOptimiser::check_dihedrals(molecule);
 
         n_angles = static_cast<int>(molecule._dihedrals.size());
 
@@ -275,6 +290,8 @@ namespace autode {
          *     init_step_size: Initial step size for all (search + final)
          *                     optimisations
          */
+        SDDihedralOptimiser::check_dihedrals(molecule);
+
         std::vector<double> min_coords;
         double min_energy = 99999999.9;
 

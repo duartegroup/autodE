@@ -1,3 +1,4 @@
+#include "stdexcept"
 #include "cmath"
 #include "molecule.h"
 #include "dihedrals.h"
@@ -19,6 +20,11 @@ namespace autode {
          *    bonds: Existence of a bond between a pair of atoms i, j as a flat
          *           vector. i,e, n_atoms*n_atoms long in row major indexing
          */
+
+        if (coords.size() % 3 != 0){
+            throw std::runtime_error("Coordinate must be a flat vector with "
+                                     "size 3xn_atoms");
+        }
 
         this->coords = std::move(coords);
         this->n_atoms = static_cast<int>(this->coords.size()) / 3;

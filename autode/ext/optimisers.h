@@ -47,7 +47,8 @@ namespace autode {
         // Steepest decent optimiser on a set of dihedral angles
 
         protected:
-            void step(autode::Molecule &molecule, double step_factor) override;
+        void check_dihedrals(autode::Molecule &molecule);
+        void step(autode::Molecule &molecule, double step_factor) override;
     };
 
 
@@ -70,9 +71,7 @@ namespace autode {
                      double init_step_size) override;
 
         protected:
-
             void apply_single_rotation(autode::Molecule &molecule, int curr_step);
-
             void step(autode::Molecule &molecule, double step_factor) override;
     };
 
