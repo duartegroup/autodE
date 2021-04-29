@@ -94,7 +94,7 @@ def init_organic_smiles(molecule, smiles):
         molecule.graph.nodes[atom]['stereo'] = True
 
     for bond in rdkit_mol.GetBonds():
-        idx_i, idx_j = bond.GetBeginAtomIdx(),bond.GetEndAtomIdx()
+        idx_i, idx_j = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
 
         if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
             molecule.graph.edges[idx_i, idx_j]['pi'] = True
@@ -142,7 +142,11 @@ def init_smiles(molecule, smiles):
     for bond in parser.bonds:
         molecule.graph.edges[tuple(bond)]['pi'] = True
 
-    molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
+    if not are_coords_reasonable(molecule.coordinates):
+        logger.warning('3D builder did not make a sensible geometry, '
+                       'minimising whole structure.')
+        molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
+
     check_bonds(molecule, bonds=parser.bonds)
 
     return None
@@ -161,6 +165,6 @@ def check_bonds(molecule, bonds):
     make_graph(check_molecule)
 
     if len(bonds) != check_molecule.graph.number_of_edges():
-        logger.error('Bonds and graph do no match')
+        logger.warning('Bonds and graph do no match')
 
     return None

@@ -502,3 +502,19 @@ def test_close_non_flat_ring():
     for atom_i in range(0, 5):
         # All C-C distances should be ~1.5 Å in a cyclohexane ring
         assert np.isclose(mol.distance(atom_i, atom_i+1), 1.5, atol=0.2)
+
+
+def test_double_bond_stereo_branch():
+    """Check that a double bond stereochemisty is well defined over
+    explicit hydrogens"""
+
+    parser.parse(smiles=r'C/C([H])=C([H])/C')
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
+
+    # Carbon dihedral should be ~π for this trans double bond, as hydrogens
+    # don't count
+    dihedral = Dihedral(idxs=[i for i, atom in enumerate(builder.atoms)
+                              if atom.label == 'C'])
+    assert np.isclose(np.abs(dihedral.value(builder.atoms)),
+                      np.pi,
+                      atol=0.1)

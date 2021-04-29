@@ -350,6 +350,39 @@ class Builder(AtomCollection):
         logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
         return
 
+    def _small_ring_angles(self, idxs):
+        """
+        Calculate the ideal angles for a small ring (<5 membered) given a set
+        of atom indexes
+
+        Arguments:
+            idxs (list(tuple(int))):
+
+        Returns:
+            (list(float)): Angles in radians
+        """
+        def length(i, j):
+            return get_avg_bond_length(self.atoms[i].label, self.atoms[j].label)
+
+        def cosine_angle(i, j, k):
+            """Cosine rule for the angle given all side lengths"""
+            a, b, c = length(i, j), length(k, j), length(i, k)
+            return np.arccos((a ** 2 + b ** 2 - c ** 2) / (2.0 * a * b))
+
+        if len(idxs) == 1:
+            logger.info('Setting angle for 3-membered ring')
+            return [cosine_angle(*idxs[0])]
+
+        elif len(idxs) == 2:
+            logger.info('Setting two angles for a 4-membered ring')
+
+            # this is far from the optimal set
+            return [np.pi/2.0, cosine_angle(*idxs[1])]
+
+        else:
+            raise NotImplementedError('Can only support small rings')
+
+
     def _adjust_ring_angles(self, ring_bond):
         """Shift angles in a ring to close e.g. in a cyclopropane the 109º
         angles between carbons are much to large to generate a sensible
@@ -367,8 +400,9 @@ class Builder(AtomCollection):
         """
 
         path = self._ring_path(ring_bond=ring_bond)
+        ring_n = len(path)
 
-        if len(path) > 5:
+        if ring_n >= 5:
             logger.warning('Closing large rings not implemented')
             raise FailedToAdjustAngles
 
@@ -376,6 +410,7 @@ class Builder(AtomCollection):
         logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
 
         angles = Angles()
+        angle_phi0s = self._small_ring_angles(angles_idxs)
 
         for angle_idxs in angles_idxs:
 
@@ -383,7 +418,7 @@ class Builder(AtomCollection):
             graph.remove_edge(ring_bond[0], ring_bond[1])
 
             angle = Angle(idxs=angle_idxs,
-                          phi0=(np.pi - (2.0 * np.pi / len(path))))
+                          phi0=(np.pi - (2.0 * np.pi / ring_n)))
 
             try:
                 angle.find_rot_idxs(graph=graph, atoms=self.atoms)
@@ -709,6 +744,11 @@ class Builder(AtomCollection):
             logger.info('Had a double bond containing an atom with < 2 '
                         'neighbours - no need to rotate the dihedral')
             return
+
+        # Remove any hydrogen atoms from the neighbours, as they are skipped
+        # when defining the stereochem
+        nbrs_x = [idx for idx in nbrs_x if self.atoms[idx].label != 'H']
+        nbrs_y = [idx for idx in nbrs_y if self.atoms[idx].label != 'H']
 
         # Index W is the closest atom index to X, that isn't Y
         idx_w = nbrs_x[np.abs(np.array(nbrs_x) - idx_x).argmin()]
@@ -1315,7 +1355,8 @@ class Angle:
         return np.arccos(np.dot(vec1, vec2)
                          / (np.linalg.norm(vec1) * np.linalg.norm(vec2)))
 
-    def _find_rot_idxs_from_pair(self, graph, atoms, pair):
+    def _find_rot_idxs_from_pair(self, graph, atoms, pair,
+                                 max_bond_distance=4.0):
         """
         Split the graph across a pair of indexes and set the atom indexes
         to be rotated
@@ -1324,6 +1365,11 @@ class Angle:
             graph (nx.Graph):
             atoms (list(autode.atoms.Atom)):
             pair (list(int)): len == 2
+
+        Keyword Arguments:
+            max_bond_distance (float): Maximum distance in Å that two atoms
+                                       that appear in the graph edges (bonds)
+                                       that constitutes a bond
         """
         graph.remove_edge(*pair)
 
@@ -1332,6 +1378,15 @@ class Angle:
         for idx, atom in enumerate(atoms):
             if hasattr(atom, 'is_shifted') and not atom.is_shifted:
                 graph.remove_node(idx)
+
+        # Delete edges that are too far away (i.e. unclosed rings)
+        for (idx_i, idx_j) in graph.edges:
+            if np.linalg.norm(atoms[idx_i].coord
+                              - atoms[idx_j].coord) > max_bond_distance:
+                logger.info(f'Bond {idx_i}-{idx_j} was not present, removing '
+                            f'from graph for idx location')
+
+                graph.remove_edge(idx_i, idx_j)
 
         components = [graph.subgraph(c) for c in
                       nx.connected_components(graph)]
@@ -1441,7 +1496,7 @@ class Dihedral(Angle):
        Y---- Z
     """
     def __str__(self):
-        return f'Dihedral(idxs={self.idxs})'
+        return f'Dihedral(idxs={self.idxs}, φ0={round(self.phi0, 2)})'
 
     @property
     def end_idxs(self):

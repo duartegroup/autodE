@@ -364,6 +364,15 @@ def test_multiplicity():
     assert parser.mult == 1
 
 
+def test_double_bond_stereo_branch():
+
+    parser = Parser()
+    parser.parse(smiles=r'C/C([H])=C([H])/C')
+
+    assert next(bond for bond in parser.bonds
+                if bond.order == 2).is_trans(parser.atoms)
+
+
 def _test_alt_ring_branch():
 
     parser = Parser()

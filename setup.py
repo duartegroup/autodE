@@ -11,7 +11,6 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
 
               Extension('ade_rb_opt',
                         sources=['autode/ext/ade_rb_opt.pyx'],
-                        include_dirs=['autode/ext/'],
                         language='c++',
                         extra_compile_args=["-std=c++11"],
                         extra_link_args=["-std=c++11"])]
