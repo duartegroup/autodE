@@ -350,38 +350,6 @@ class Builder(AtomCollection):
         logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
         return
 
-    def _small_ring_angles(self, idxs):
-        """
-        Calculate the ideal angles for a small ring (<5 membered) given a set
-        of atom indexes
-
-        Arguments:
-            idxs (list(tuple(int))):
-
-        Returns:
-            (list(float)): Angles in radians
-        """
-        def length(i, j):
-            return get_avg_bond_length(self.atoms[i].label, self.atoms[j].label)
-
-        def cosine_angle(i, j, k):
-            """Cosine rule for the angle given all side lengths"""
-            a, b, c = length(i, j), length(k, j), length(i, k)
-            return np.arccos((a ** 2 + b ** 2 - c ** 2) / (2.0 * a * b))
-
-        if len(idxs) == 1:
-            logger.info('Setting angle for 3-membered ring')
-            return [cosine_angle(*idxs[0])]
-
-        elif len(idxs) == 2:
-            logger.info('Setting two angles for a 4-membered ring')
-
-            # this is far from the optimal set
-            return [np.pi/2.0, cosine_angle(*idxs[1])]
-
-        else:
-            raise NotImplementedError('Can only support small rings')
-
     def _adjust_ring_angles(self, ring_bond):
         """Shift angles in a ring to close e.g. in a cyclopropane the 109º
         angles between carbons are much to large to generate a sensible
@@ -409,7 +377,6 @@ class Builder(AtomCollection):
         logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
 
         angles = Angles()
-        angle_phi0s = self._small_ring_angles(angles_idxs)
 
         for angle_idxs in angles_idxs:
 
