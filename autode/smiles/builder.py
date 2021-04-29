@@ -382,7 +382,6 @@ class Builder(AtomCollection):
         else:
             raise NotImplementedError('Can only support small rings')
 
-
     def _adjust_ring_angles(self, ring_bond):
         """Shift angles in a ring to close e.g. in a cyclopropane the 109º
         angles between carbons are much to large to generate a sensible
@@ -747,8 +746,14 @@ class Builder(AtomCollection):
 
         # Remove any hydrogen atoms from the neighbours, as they are skipped
         # when defining the stereochem
-        nbrs_x = [idx for idx in nbrs_x if self.atoms[idx].label != 'H']
-        nbrs_y = [idx for idx in nbrs_y if self.atoms[idx].label != 'H']
+        nbrs_x_noH = [idx for idx in nbrs_x if self.atoms[idx].label != 'H']
+        nbrs_y_noH = [idx for idx in nbrs_y if self.atoms[idx].label != 'H']
+
+        if len(nbrs_x_noH) > 0:
+            nbrs_x = nbrs_x_noH
+
+        if len(nbrs_y_noH) > 0:
+            nbrs_y = nbrs_y_noH
 
         # Index W is the closest atom index to X, that isn't Y
         idx_w = nbrs_x[np.abs(np.array(nbrs_x) - idx_x).argmin()]
@@ -768,20 +773,6 @@ class Builder(AtomCollection):
 
         dihedral = Dihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
 
-        try:
-            dihedral.find_rot_idxs(graph=self.graph.copy(),
-                                   atoms=self.atoms)
-
-        except FailedToSetRotationIdxs:
-            if (self.atoms[idx_x].stereochem is not None
-               and abs(dihedral.dphi(self.atoms)) > np.pi/3):
-
-                # Dihedral is too far away from that defined by the stereochem
-                self._force_double_bond_stereochem(dihedral)
-
-            logger.warning(f'Could not queue {dihedral} for {bond}')
-            return
-
         logger.info(f'Queuing {dihedral}')
         self.queued_dihedrals.append(dihedral)
         return None
@@ -792,6 +783,23 @@ class Builder(AtomCollection):
             return   # Nothing to be done
 
         logger.info(f'Have {len(self.queued_dihedrals)} dihedral(s) to rotate')
+
+        for i, dihedral in enumerate(self.queued_dihedrals):
+            try:
+                dihedral.find_rot_idxs(graph=self.graph.copy(),
+                                       atoms=self.atoms)
+
+            except FailedToSetRotationIdxs:
+                logger.warning(f'Could not apply rotation {dihedral}')
+
+                if dihedral.needs_forcing(atoms=self.atoms):
+                    logger.info('Dihedral is too far away from that defined '
+                                'by the stereochemistry - forcing')
+                    self._force_double_bond_stereochem(dihedral)
+
+                # Delete this dihedral, that has beed forced, and continue
+                del self.queued_dihedrals[i]
+                return self._rotate_dihedrals()
 
         dphis = [dihedral.phi0 - dihedral.value(self.atoms)
                  for dihedral in self.queued_dihedrals]
@@ -1381,6 +1389,11 @@ class Angle:
 
         # Delete edges that are too far away (i.e. unclosed rings)
         for (idx_i, idx_j) in graph.edges:
+
+            if {idx_i, idx_j} == set(pair):
+                logger.error('Cannot cut across a ring')
+                continue
+
             if np.linalg.norm(atoms[idx_i].coord
                               - atoms[idx_j].coord) > max_bond_distance:
                 logger.info(f'Bond {idx_i}-{idx_j} was not present, removing '
@@ -1508,6 +1521,20 @@ class Dihedral(Angle):
         """A non-None ideal angle for this dihedral"""
         return 0.0 if self.phi_ideal is None else self.phi_ideal
 
+    @property
+    def bonded_idxs(self):
+        """List of atom index pairs that are bonded in this dihedral"""
+        idx_w, idx_x, idx_y, idx_z = self.idxs
+
+        return [(idx_w, idx_x), (idx_x, idx_y), (idx_y, idx_z)]
+
+    def needs_forcing(self, atoms):
+        """Does this dihedral angle need to be forced? i.e. has defined
+        stereochemistry that is not respected"""
+
+        return (atoms[self.mid_idxs[0]].stereochem is not None
+                and abs(self.dphi(atoms)) > np.pi / 3)
+
     def dphi(self, atoms):
         """∆φ = φ_curr - φ_ideal"""
         return self.value(atoms=atoms) - self.phi0
@@ -1585,5 +1612,5 @@ class Dihedral(Angle):
         super().__init__(idxs=idxs, rot_idxs=rot_idxs, phi0=phi0)
 
         # Atom indexes of the central two atoms (X, Y)
-        _, idx_y, idx_z, _ = idxs
-        self.mid_idxs = (idx_y, idx_z)
+        _, idx_x, idx_y, _ = idxs
+        self.mid_idxs = (idx_x, idx_y)
