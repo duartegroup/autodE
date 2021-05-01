@@ -54,6 +54,20 @@ def test_base_builder():
     assert builder.non_bonded_idx_matrix[0, 0] == 0   # O-O
     assert builder.non_bonded_idx_matrix[1, 2] == 1   # H-H
 
+    for atom in builder.canonical_atoms:
+        assert isinstance(atom, Atom)
+        assert hasattr(atom, 'coord')
+
+
+def test_build_single_atom():
+    """No building needed for a single atom, but the builder should be fine"""
+
+    parser.parse(smiles='[H]')
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
+
+    assert builder.n_atoms == 1
+    assert parser.mult == 2
+
 
 def test_explicit_hs():
 
@@ -219,6 +233,8 @@ def test_simple_ring():
     ring_dihedrals = list(builder._ring_dihedrals(ring_bond=[3, 4]))
     assert len(ring_dihedrals) == 3
 
+    assert builder.max_ring_n == 6
+
     assert built_molecule_is_reasonable(smiles='C1CCCC1')     # cyclopentane
     assert built_molecule_is_reasonable(smiles='C1CCCCC1')    # cyclohexane
     assert built_molecule_is_reasonable(smiles='C1CCCCCC1')   # cycloheptane
@@ -323,6 +339,27 @@ def test_chiral_tetrahedral3():
         atoms = [equiv_mol.atoms[i] for i in sorted(mapping, key=mapping.get)]
 
         assert calc_heavy_atom_rmsd(mol.atoms, atoms) < 0.2
+
+
+def test_sq_planar_xe():
+
+    parser.parse(smiles='F[Xe](F)(F)F')
+    builder.build(atoms=parser.atoms, bonds=parser.bonds)
+    coords = builder.coordinates
+
+    assert builder.atoms[1].label == 'Xe'
+
+    normal = np.cross((coords[0] - coords[1]),
+                      (coords[2] - coords[1]))
+
+    for f_atom_idx in range(2, 4):
+        dot_product = np.dot((coords[f_atom_idx] - coords[1]),
+                             normal)
+
+        # Dot product should be close to zero as the Xe-F vectors should be
+        # roughly orthogonal to the normal out of the plane, if the geometry
+        # is square planar
+        assert np.isclose(dot_product, 0.0, atol=0.1)
 
 
 def test_macrocycle():

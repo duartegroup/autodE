@@ -1488,13 +1488,6 @@ class Dihedral(Angle):
         """A non-None ideal angle for this dihedral"""
         return 0.0 if self.phi_ideal is None else self.phi_ideal
 
-    @property
-    def bonded_idxs(self):
-        """List of atom index pairs that are bonded in this dihedral"""
-        idx_w, idx_x, idx_y, idx_z = self.idxs
-
-        return [(idx_w, idx_x), (idx_x, idx_y), (idx_y, idx_z)]
-
     def needs_forcing(self, atoms):
         """Does this dihedral angle need to be forced? i.e. has defined
         stereochemistry that is not respected"""

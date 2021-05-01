@@ -105,16 +105,26 @@ class SMILESBond:
         return {self._list[0], self._list[1]}
 
     def is_cis(self, atoms):
-        """Is this bond a cis double bond?"""
+        """Is this bond a cis double bond?
+
+        Arguments:
+            atoms (list(autode.smiles.base.SMILESAtom)):
+        """
         i, j = self._list
 
-        if atoms[i].stereochem is None:
+        if atoms[i].stereochem is None or atoms[j].stereochem is None:
             return False
 
         return self.order == 2 and atoms[i].stereochem == atoms[j].stereochem
 
     def is_trans(self, atoms):
-        """Is this bond a trans double bond?"""
+        """Is this bond a trans double bond?
+
+        Undefined stereochemistry defaults to trans
+
+        Arguments:
+            atoms (list(autode.smiles.base.SMILESAtom)):
+        """
         return self.order == 2 and not self.is_cis(atoms)
 
     def distance(self, atoms):

@@ -1,182 +1,385 @@
-from autode.smiles.smiles_parser import parse_smiles, divide_smiles
-from autode.smiles.smiles_parser import SmilesParser
-from autode.exceptions import InvalidSmilesString
-from autode.geom import calc_rmsd
 import pytest
-import numpy as np
+from autode.exceptions import InvalidSmilesString
+from autode.smiles.parser import Parser
 
 
-def test_parse_smiles():
-    parser = parse_smiles('CC')
+def test_base_properties():
 
-    assert len(parser.atoms) == 8
-    assert len(parser.bonds) == 7
-    assert parser.stereocentres == []
+    parser = Parser()
+
+    assert parser.mult == 1
+    assert parser.n_atoms == 0
     assert parser.charge == 0
-    assert parser.n_radical_electrons == 0
 
     with pytest.raises(InvalidSmilesString):
-        _ = parse_smiles('CC1')
+        parser.smiles = 'C*C'
+
+    # Should allow for SMILES typos with leading or final empty spaces
+    parser.parse(smiles='C ')
+
+    # parser treats hydrogens as attributes of atoms
+    assert parser.n_atoms == 1
+    assert parser.atoms[0].n_hydrogens == 4
+
+    assert str(parser.atoms[0]) is not None
 
 
-def test_divide_smiles():
-    divided_smiles = list(divide_smiles('CCl=[](())/C1=2'))
-    assert divided_smiles == [('C', 'atom'),
-                              ('Cl', 'atom'),
-                              ('=', 'bond'),
-                              ('[]', 'bracket_atom'),
-                              ('(())', 'branch'),
-                              ('/', 'double_bond_stereochem'),
-                              ('C1=2', 'atom')]
+def test_sq_brackets_parser():
 
-    # Invalid characters divide into characters
-    divided_smiles = list(divide_smiles('££££'))
-    assert len(divided_smiles) == 4
+    parser = Parser()
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='[C')
 
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='[C[')
 
-def test_double_bonds_in_ring():
+    # Needs at least one element
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='[]')
 
-    parser = parse_smiles('C1=C=C=1')
+    parser.parse(smiles='[C]')
+    assert parser.n_atoms == 1
+    assert parser.atoms[0].label == 'C'
+    assert parser.parsed  # should have parsed the SMILES fully
 
-    assert len(parser.bonds) == 3
-    assert parser.charge == 0
+    parser.parse(smiles='[Cu]')
+    assert parser.n_atoms == 1
+    assert parser.atoms[0].label == 'Cu'
+    assert parser.atoms[0].charge == 0
 
+    # Item in a square bracket must start with an element
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='[674]')
 
-def test_charge():
-    parser = parse_smiles('C[O-]')
+    # Can't have multiple heavy (non-hydrogenic atoms) in a square bracket
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='[CC]')
+
+    parser.parse(smiles='[CH3-]')
+    assert parser.atoms[0].charge == -1
+    assert parser.atoms[0].n_hydrogens == 3
+
+    parser.parse(smiles='[Cu+]')
+    assert parser.atoms[0].charge == 1
+
+    parser.parse(smiles='[N+4]')
+    assert parser.atoms[0].charge == 4
+    assert parser.charge == 4
+
+    parser.parse(smiles='[Cu++]')
+    assert parser.atoms[0].charge == 2
+
+    parser.parse(smiles='[N--]')
+    assert parser.atoms[0].charge == -2
+
+    parser.parse(smiles='[OH-1]')
+    assert parser.atoms[0].charge == -1
+
+    parser.parse(smiles='[NH-]')
+    assert parser.atoms[0].charge == -1
+
+    parser.parse(smiles='[N-2]')
+    assert parser.atoms[0].charge == -2
+
+    parser.parse(smiles='[Si@H3-]')
+    assert parser.atoms[0].stereochem == '@'
+    assert parser.atoms[0].charge == -1
+    assert parser.atoms[0].n_hydrogens == 3
+
+    parser.parse(smiles='[C@@H2-]')
+    assert parser.atoms[0].has_stereochem
+    assert parser.atoms[0].stereochem == '@@'
+    assert parser.atoms[0].charge == -1
+    assert parser.atoms[0].n_hydrogens == 2
     assert parser.charge == -1
 
-    parser = parse_smiles('[O-]S(=O)([O-])=O')
-    assert parser.charge == -2
 
-    parser = parse_smiles('C[N-2]')
-    assert parser.charge == -2
+def test_multiple_atoms():
+
+    parser = Parser()
+    parser.parse(smiles='CC')
+    assert parser.n_atoms == 2
+    assert str(parser.bonds[0]) is not None
+    assert parser.bonds[0].symbol == '-'
+
+    assert all(atom.label == 'C' for atom in parser.atoms)
+    assert all(atom.charge == 0 for atom in parser.atoms)
+
+    assert len(parser.bonds) == 1
+    assert parser.bonds[0].order == 1
+
+    parser.parse(smiles='[H][H]')
+    assert parser.n_atoms == 2
+    assert len(parser.bonds) == 1
+
+    parser.parse(smiles='CN')
+    assert parser.n_atoms == 2
+    assert parser.bonds[0].order == 1
+
+    parser.parse(smiles='N#N')
+    assert parser.n_atoms == 2
+    assert parser.bonds[0].order == 3
+
+    parser.parse(smiles='C=O')
+    assert parser.n_atoms == 2
+    assert parser.bonds[0].order == 2
+
+    parser.parse(smiles='CN=C=O')
+    assert parser.n_atoms == 4
+    assert len(parser.bonds) == 3
 
 
-def test_alkene_stereochem():
-    parser = parse_smiles('C/C=C/C')
-    assert len(parser.alkene_stero_dict.keys()) > 0
+def test_branches():
 
-    parser = parse_smiles('C/C=C/C#C')
-    assert len(parser.alkene_stero_dict.keys()) > 0
+    # Propane, but with a branch from the first atom
+    parser = Parser()
+    parser.parse(smiles='C(C)C')
+    assert parser.n_atoms == 3
+    assert parser.n_bonds == 2
+
+    b1, b2 = parser.bonds
+    assert (b1[0] == 0 and b1[1] == 1) or (b1[0] == 1 and b1[1] == 0)
+    assert (b2[0] == 0 and b2[1] == 2) or (b2[0] == 2 and b2[1] == 0)
+
+    # isobutane - properly branched
+    parser.parse(smiles='CC(C)C')
+    assert parser.n_atoms == 4
+    assert parser.n_bonds == 3
+
+    # octachlorodirhenate
+    parser.parse(smiles='[Rh-](Cl)(Cl)(Cl)(Cl)$[Rh-](Cl)(Cl)(Cl)Cl')
+    assert parser.n_atoms == 10
+    assert parser.n_bonds == 9
+
+    # should have a single quadruple bond
+    assert any(bond.order == 4 for bond in parser.bonds)
+
+    # 2-propyl-3-isopropyl-1-propanol
+    parser.parse(smiles='OCC(CCC)C(C(C)C)CCC')
+    assert parser.n_atoms == 13
+    assert parser.n_bonds == 12
+
+    # thiosulfate
+    parser.parse(smiles='OS(=O)(=S)O')
+    assert parser.n_atoms == 5
+    assert parser.n_bonds == 4
 
 
-def test_analyse_char():
-    parser = SmilesParser()
+def test_rings():
 
-    parser.analyse_char('C', 'atom')
-    assert parser.atoms[0].label == 'C'
-    assert len(parser.ring_dict) == 0
+    parser = Parser()
 
-    parser.analyse_char('[C+]', 'bracket_atom')
+    # cyclohexane
+    parser.parse(smiles='C1CCCCC1')
+    assert parser.n_atoms == parser.n_bonds == 6
+
+    with pytest.raises(InvalidSmilesString):
+        parser.parse(smiles='C1CCCCC')
+
+    # Should be able to resolve multiple cyclohexenes to the same structure
+    def n_double_bonds():
+        return len([bond for bond in parser.bonds if bond.order == 2])
+
+    cychexene_smiles = ['C=1CCCCC=1', 'C=1CCCCC1', 'C1CCCCC=1 ']
+    for smiles in cychexene_smiles:
+
+        parser.parse(smiles)
+        assert parser.n_atoms == parser.n_bonds == 6
+        assert n_double_bonds() == 1
+
+    # perhydroisoquinoline
+    parser.parse(smiles='N1CC2CCCC2CC1')
+    assert parser.n_bonds == 10
+    assert parser.n_atoms == 9
+
+    ring_bonds = [bond for bond in parser.bonds if bond.in_ring]
+    assert len(ring_bonds) == 2
+
+    # Reusing ring closures is fine..
+    bicylcohexyl_smiles = ['C1CCCCC1C2CCCCC2', 'C1CCCCC1C1CCCCC1']
+    for smiles in bicylcohexyl_smiles:
+        parser.parse(smiles)
+        assert parser.n_atoms == 12
+        assert parser.n_bonds == 13
+
+    # Should be able to parse atoms with multiple dangling bonds to the
+    # same atom
+    parser.parse(smiles='C12(CCCCC1)CCCCC2')
+    assert parser.n_atoms == 11
+
+    # Should correct for atoms bonded to themselves
+    parser.parse(smiles='C11')
+    assert parser.n_atoms == 1
+    assert parser.n_bonds == 0
+
+
+def test_aromatic():
+
+    parser = Parser()
+    parser.parse(smiles='c1occc1')
+    assert parser.n_atoms == 5
+    assert parser.n_bonds == 5
+
+
+def test_hydrogens():
+
+    parser = Parser()
+
+    # H atoms defined explicitly are treated as atoms
+    parser.parse(smiles='[H]C([H])([H])[H]')
+    assert parser.n_atoms == 5
+    assert parser.n_bonds == 4
+
+    assert len(parser.atoms) == 5
+
+
+def test_cis_trans():
+
+    parser = Parser()
+
+    # Check that without defined stereochem the C-C double bond is present
+    parser.parse(smiles='C(F)=CF')
+    double_bond = next(bond for bond in parser.bonds if bond.order == 2)
+    idx_i, idx_j = double_bond
+    assert parser.atoms[idx_i].label == 'C'
+    assert parser.atoms[idx_j].label == 'C'
+
+    # trans (E) diflorouethene
+    trans_dfe_smiles = ['F/C=C/F', r'F\C=C\F', r'C(\F)=C/F']
+
+    for smiles in trans_dfe_smiles:
+        parser.parse(smiles)
+
+        double_bond = next(bond for bond in parser.bonds if bond.order == 2)
+        assert double_bond.is_trans(atoms=parser.atoms)
+        assert not double_bond.is_cis(atoms=parser.atoms)
+
+    # test the cis equivalent
+    cis_dfe_smiles = [r'F\C=C/F', r'F\C=C/F', 'C(/F)=C/F']
+
+    for smiles in cis_dfe_smiles:
+        parser.parse(smiles)
+        double_bond = next(bond for bond in parser.bonds if bond.order == 2)
+        assert double_bond.is_cis(atoms=parser.atoms)
+
+    parser.parse(smiles='F/C(CC)=C/F')
+    double_bonds = [bond for bond in parser.bonds if bond.order == 2]
+    assert len(double_bonds) == 1
+    assert double_bonds[0].is_trans(atoms=parser.atoms)
+
+    # Test allene stereochem
+    parser.parse(smiles=r'F/C=C=C=C/F')
+    # First carbon should be assigned stereochemistry
     assert parser.atoms[1].label == 'C'
-    assert parser.charge_dict[1] == 1
-
-    parser.analyse_char('(C)', 'branch')
-    assert parser.bonds[1] == (1, 2)
-    assert parser.prev_atom_no == 1
-
-    parser.analyse_char('=', 'bond')
-    assert parser.bond_order_dict[2] == 2
-
-    parser.analyse_char('/', 'double_bond_stereochem')
-    assert parser.alkene_stero_dict[3] == '/'
+    assert parser.atoms[1].has_stereochem
 
 
-def test_add_atom():
-    parser = SmilesParser()
-    parser.add_atom('C')
-    assert parser.add_atom('Cl1') == '1'
-    assert parser.bonds == [(0, 1)]
-    assert parser.atoms[0].label == 'C'
-    assert np.allclose(parser.atoms[0].coord, [0, 0, 0])
-    assert parser.atoms[1].label == 'Cl'
+def test_is_pi_atom():
+
+    parser = Parser()
+
+    parser.parse(smiles='C1=CC=CC=C1')   # benzene
+    assert all(atom.is_pi for atom in parser.atoms)
+
+    parser.parse(smiles='c1ccccc1')       # benzene, but with aromatic atoms
+    assert all(atom.is_pi for atom in parser.atoms)
 
 
-def test_analyse_bond_ring_string():
-    parser = SmilesParser()
-    parser.analyse_bond_ring_string('=1')
-    assert parser.ring_dict[1] == (0, 2)
+def test_implicit_hydrogens():
 
-    parser.prev_atom_no = 2
-    parser.analyse_bond_ring_string('1')
-    assert parser.bonds == [(0, 2)]
-    assert parser.ring_dict == {}
+    parser = Parser()
+    parser.parse(smiles='CC')
+    # ethane carbons should have three hydrogens each
+    assert parser.atoms[0].n_hydrogens == parser.atoms[1].n_hydrogens == 3
 
-    parser.analyse_bond_ring_string('23')
-    assert parser.ring_dict[2] == (2, None)
-    assert parser.ring_dict[3] == (2, None)
+    parser.parse(smiles='B')
+    assert parser.atoms[0].n_hydrogens == 3
 
-    parser.prev_atom_no = 5
-    parser.analyse_bond_ring_string('%15')
-    assert parser.ring_dict[15] == (5, None)
+    parser.parse(smiles='BC')
+    assert parser.atoms[0].n_hydrogens == 2
 
+    parser.parse(smiles='CBC')
+    assert parser.atoms[1].n_hydrogens == 1
 
-def test_analyse_atom_details():
-    parser = SmilesParser()
-    parser.add_atom('C')
-    parser.analyse_atom_details('H+2@')
-    assert parser.charge_dict[0] == 2
-    assert parser.hydrogen_dict[0] == 1
-    assert parser.stereochem_dict[0] == '@td'
+    parser.parse(smiles='P')
+    assert parser.atoms[0].n_hydrogens == 3
 
-    parser.add_atom('C')
-    parser.analyse_atom_details('-2@@')
-    assert parser.charge_dict[1] == -2
-    assert parser.hydrogen_dict[1] == 0
-    assert parser.stereochem_dict[1] == '@@td'
+    # For PF3 no hydrogens should be added
+    parser.parse(smiles='FP(F)F')
+    assert parser.atoms[1].n_hydrogens == 0
 
+    # Should fill the valance of P up to 5 if currently is 4
+    parser.parse(smiles='FP(F)(F)F')
+    assert parser.bonds.n_involving(idx=1) == 4
+    assert parser.atoms[1].n_hydrogens == 1
 
-def test_add_hs():
-    parser = SmilesParser()
-    parser.add_atom('C')
-    parser.analyse_atom_details('H2')
-    parser.add_atom('C')
-    parser.add_atom('C')
-    parser.bond_order_dict[1] = 2
-    parser.add_hs()
-    assert len(parser.atoms) == 8
-    assert len(parser.bonds) == 7
-    assert parser.n_radical_electrons == 1
+    # Should fill the valance of S up to 6 if currently is 5
+    parser.parse(smiles='FS(F)(F)(F)F')
+    assert parser.bonds.n_involving(idx=1) == 5
+    assert parser.atoms[1].n_hydrogens == 1
 
+    for halogen in ('F', 'Cl', 'Br', 'I'):
+        parser.parse(smiles=f'C{halogen}')
+        assert parser.atoms[0].n_hydrogens == 3
+        assert parser.atoms[1].n_hydrogens == 0
 
-def test_stereochem():
+    # Should fill up to HCl etc.
+    parser.parse(smiles='Cl')
+    assert parser.n_atoms == 1
+    assert parser.atoms[0].n_hydrogens == 1
 
-    parser = parse_smiles('N[C@](Br)(O)C')
-    parser_coords = np.array([atom.coord for atom in parser.atoms][:5])
-    desired_coords = np.array([[1.26597, 0.60740, -0.09729],
-                               [-0.26307, 0.59858, -0.07141],
-                               [-0.91282, 2.25811, 0.01409],
-                               [-0.72365, -0.12709, 1.01313],
-                               [-0.64392, 0.13084, -1.00380]])
-    assert calc_rmsd(parser_coords, desired_coords) < 0.5
+    # Should not overfill an oxygen valance that is already exceeded
+    parser.parse(smiles='CO(C)O')
+    assert parser.atoms[1].n_hydrogens == 0
 
-    parser = parse_smiles('N[C@@H](Br)(O)')
-    parser_coords = np.array([atom.coord for atom in parser.atoms][:4]
-                             + [parser.atoms[6].coord])
-    desired_coords = np.array([[1.26597, 0.60740, -0.09729],
-                               [-0.26307, 0.59858, -0.07141],
-                               [-0.72365, -0.12709, 1.01313],
-                               [-0.91282, 2.25811, 0.01409],
-                               [-0.64392, 0.13084, -1.00380]])
-    assert calc_rmsd(parser_coords, desired_coords) < 0.5
+    parser.parse(smiles='O=[N]=O')
+    assert parser.n_bonds == 2
+    assert parser.bonds[0].order == parser.bonds[1].order == 2
+    assert parser.atoms[1].n_hydrogens == 0
 
-    parser = parse_smiles('F/C=C/F')
-    parser_coords = np.array([atom.coord for atom in parser.atoms])
-    desired_coords = np.array([[-4.14679, 1.36072, 0.92663],
-                               [-3.58807, 1.44785, -0.00000],
-                               [-2.26409, 1.31952, 0.00000],
-                               [-1.70538, 1.40665, -0.92663],
-                               [-4.11965, 1.64066, -0.92663],
-                               [-1.73251, 1.12671, 0.92663]])
-    assert calc_rmsd(parser_coords, desired_coords) < 0.5
+    # Should be able to parse aromatic structures
+    parser.parse(smiles='c1ccccc1')
+    assert all(atom.n_hydrogens == 1 for atom in parser.atoms)
+
+    parser.parse(smiles='c1occc1')
+    assert all(atom.n_hydrogens == 0 for atom in parser.atoms
+               if atom.label == 'O')
+    assert all(atom.n_hydrogens == 1 for atom in parser.atoms
+               if atom.label == 'C')
 
 
-def test_alt_ring_branch():
+def test_multiplicity():
 
+    parser = Parser()
+
+    # Test some simple examples
+    parser.parse(smiles='[H]')
+    assert parser.mult == 2
+
+    parser.parse(smiles='C')
+    assert parser.mult == 1
+
+    # Multiple unpaired electrons default to singlets..
+    parser.parse(smiles='C[C]C')
+    assert parser.mult == 1
+
+
+def test_double_bond_stereo_branch():
+
+    parser = Parser()
+    parser.parse(smiles=r'C/C([H])=C([H])/C')
+
+    assert next(bond for bond in parser.bonds
+                if bond.order == 2).is_trans(parser.atoms)
+
+
+def _test_alt_ring_branch():
+
+    parser = Parser()
     smiles = ('[H][Rh]12([C]=O)([P+](C3=CC=CC4=C3OC5=C([P+](C6=CC=CC=C6)2C7='
               'CC=CC=C7)C=CC=C5C4(C)C)(C8=CC=CC=C8)C9=CC=CC=C9)CC1')
-    parser = parse_smiles(smiles)
 
-    # Should be valid and not raise InvalidSmilesString
-    assert len(parser.atoms) == 84
+    parser.parse(smiles)
+    num_h_atoms = sum(atom.n_hydrogens for atom in parser.atoms)
+
+    assert parser.n_atoms + num_h_atoms == 84

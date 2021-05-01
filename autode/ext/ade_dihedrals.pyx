@@ -1,5 +1,5 @@
 # distutils: language = c++
-# distutils: sources = [autode/ext/dihedrals.cpp, autode/ext/molecule.cpp, autode/ext/optimisers.cpp, autode/ext/potentials.cpp, autode/ext/utils.cpp]
+# distutils: sources = [autode/ext/src/dihedrals.cpp, autode/ext/src/molecule.cpp, autode/ext/src/optimisers.cpp, autode/ext/src/potentials.cpp, autode/ext/src/utils.cpp]
 import numpy as np
 from autode.ext.wrappers cimport (Molecule,
                                   Dihedral,
