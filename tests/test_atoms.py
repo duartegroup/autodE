@@ -71,6 +71,7 @@ def test_atom():
     assert h.atomic_number == 1
     assert h.atomic_symbol == 'H'
     assert not h.is_metal
+    assert h.tm_row is None
     assert h.group == 1
     assert h.period == 1
 
@@ -133,5 +134,11 @@ def test_periodic_table():
     with pytest.raises(IndexError):
         _ = atoms.PeriodicTable.element(0, 0)
         _ = atoms.PeriodicTable.element(0, 3)
+
+    with pytest.raises(Exception):
+        _ = atoms.PeriodicTable.transition_metals(row=0)
+        _ = atoms.PeriodicTable.transition_metals(row=10)
+
+    assert 'Fe' in atoms.PeriodicTable.transition_metals(row=1)
 
     assert atoms.PeriodicTable.element(2, 13) == 'B'

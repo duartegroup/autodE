@@ -373,11 +373,11 @@ def test_double_bond_stereo_branch():
                 if bond.order == 2).is_trans(parser.atoms)
 
 
-def _test_alt_ring_branch():
+def test_alt_ring_branch():
 
     parser = Parser()
-    smiles = ('[H][Rh]12([C]=O)([P+](C3=CC=CC4=C3OC5=C([P+](C6=CC=CC=C6)2C7='
-              'CC=CC=C7)C=CC=C5C4(C)C)(C8=CC=CC=C8)C9=CC=CC=C9)CC1')
+    smiles = ('O=C=[Rh]12(CC2)([H])=P(C3=CC=CC=C3)(C4=CC=CC=C4)C(C=CC=C5C6'
+              '(C)C)=C5OC7=C6C=CC=C7P=1(C8=CC=CC=C8)C9=CC=CC=C9')
 
     parser.parse(smiles)
     num_h_atoms = sum(atom.n_hydrogens for atom in parser.atoms)

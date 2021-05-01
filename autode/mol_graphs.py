@@ -42,6 +42,9 @@ def make_graph(species,
         bond_list (list(tuple)):
 
         allow_invalid_valancies (bool):
+
+    Raises:
+        NoAtomsInMolecule:
     """
     if species.n_atoms == 0:
         raise ex.NoAtomsInMolecule('Could not build a molecular graph with no '

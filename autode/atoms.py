@@ -109,6 +109,20 @@ class Atom:
 
         return 0
 
+    @property
+    def tm_row(self):
+        """
+        Row of transition metals that this element is in
+
+        Returns:
+            (int | None):
+        """
+        for row in [1, 2, 3]:
+            if self.label in PeriodicTable.transition_metals(row):
+                return row
+
+        return None
+
     def translate(self, vec: np.ndarray):
         """
         Translate this atom by a vector
@@ -252,6 +266,9 @@ class PeriodicTable:
 
             group (int):
 
+        Returns:
+            (str): Atomic symbol of the element
+
         Raises:
             (IndexError): If such an element does not exist
         """
@@ -263,6 +280,28 @@ class PeriodicTable:
             raise IndexError('Index of the element not found')
 
         return elem
+
+    @classmethod
+    def transition_metals(cls, row: int):
+        """
+        Collection of transition metals (TMs) of a defined row. e.g.
+
+        row = 1 -> [Sc, Ti .. Zn]
+
+        Arguments:
+            row (int): Colloquial name for TMs period
+
+        Returns:
+            (np.ndarray(str)):
+
+        Raises:
+            (ValueError): If the row is not valid
+        """
+        if row < 1 or row > 3:
+            raise ValueError('Not a valid row of TMs. Must be 1-3')
+
+        tms = [elem for elem in cls.period(row+3) if elem in metals]
+        return np.array(tms, dtype=str)
 
     lanthanoids = lanthanides = np.array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu'], dtype=str)
     actinoids = actinides = np.array(['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr'], dtype=str)
