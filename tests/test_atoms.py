@@ -22,6 +22,7 @@ def test_atom_collection():
 
     h2 = atoms.AtomCollection()
     assert h2.n_atoms == 0
+    assert h2.coordinates is None
 
     # Cannot set coordinates without atoms
     with pytest.raises(ValueError):
@@ -31,6 +32,13 @@ def test_atom_collection():
     assert h2.n_atoms == 2
 
     assert type(h2.coordinates) == np.ndarray
+
+    # Should be able to set coordinate from a flat array (row major)
+    h2.coordinates = np.zeros(shape=(6,))
+    assert h2.coordinates[0] is not None
+    assert h2.n_atoms == 2
+
+    assert np.isclose(h2.distance(0, 1), 0.0, atol=1E-5)
 
     coord = h2.coordinates[0]
     coord += 1.0
@@ -117,6 +125,10 @@ def test_periodic_table():
 
     group13 = atoms.PeriodicTable.group(n=13)
     assert 'B' in group13
+
+    with pytest.raises(Exception):
+        _ = atoms.PeriodicTable.group(0)   # No group 0
+        _ = atoms.PeriodicTable.group(19)  # or 19
 
     with pytest.raises(IndexError):
         _ = atoms.PeriodicTable.element(0, 0)
