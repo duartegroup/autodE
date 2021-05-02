@@ -1,6 +1,53 @@
 Changelog
 =========
 
+1.0.3
+--------
+----------
+
+A minor API revision from 1.0.2 but adds C++ extension which should be extensible to
+further developments of fast C-based code.
+
+Usability improvements
+**********************
+
+- :code:`autode.Species()` inherit from a :code:`AtomCollection()` base class for more flexibility
+
+- :code:`autode.Constants` attributes have more readable names (while retaining backwards compatability)
+
+- :code:`autode.geom.length()` as an explicit alias of :code:`np.linalg.norm` has been removed
+
+- :code:`autode.input_output.xyz_file_to_atoms()` throws more informative errors
+
+- :code:`autode.mol_graphs.make_graph()` throws NoAtomsInMolecule for a species with no atoms
+
+- :code:`species.formula` and :code:`species.is_explicitly_solvated` are now a properties
+
+- :code:`autode.smiles.parser` has been rewritten & is (hopefully) a more robust SMILES parser
+
+
+Functionality improvements
+**************************
+
+- Metal complex initial geometries can now be generated with the correct stereochemistry
+
+- Macrocycles default to an **autodE** builder that conserves SMILES stereochemistry (`RDKit#1852 <https://github.com/rdkit/rdkit/issues/1852>`_)
+
+- :code:`species.coordinates` can be set from either 3xN matrices or 3N length vectors
+
+- :code:`autode.Atom()`s have :code:`.group` :code:`.perioid` and :code:`.tm_row` properties referring to their location in the periodic table
+
+- :code:`autode.atoms.PeriodicTable` added
+
+- :code:`species.bond_matrix` added as a property and returns a boolean array for interactions between all atom pairs
+
+
+Bug Fixes
+*********
+
+- :code:`reaction.calculate_complexes()` calls :code:`reaction.find_complexes()` if needed thus can be called in isolation
+
+
 
 1.0.2
 --------
