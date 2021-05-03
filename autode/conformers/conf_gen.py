@@ -4,9 +4,9 @@ import autode as ade
 from copy import deepcopy
 from itertools import combinations
 from scipy.optimize import minimize
-from time import time
 from autode.conformers.conformer import get_conformer
 import autode.exceptions as ex
+from autode.utils import log_time
 from autode.bonds import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.mol_graphs import split_mol_across_bond
@@ -317,6 +317,7 @@ def get_coords_no_init_structure(atoms, species, d0, constrained_bonds):
     return coords, energy
 
 
+@log_time(prefix='Generated RR atoms in:', units='s')
 def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True,
                      also_return_energy=False):
     """
@@ -397,8 +398,6 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True,
         # Randomise in a 10 Å cubic box
         [atom.translate(vec=rand.uniform(-5, 5, 3)) for atom in atoms]
 
-    logger.info('Minimising species...')
-    st = time()
     if reasonable_init_coords:
         init_coords = np.array([atom.coord for atom in atoms])
         coords, energy = get_coords_energy(coords=init_coords,
@@ -408,8 +407,6 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True,
     else:
         coords, energy = get_coords_no_init_structure(atoms, species, d0,
                                                       constrained_bonds)
-
-    logger.info(f'                 ... ({time()-st:.3f} s)')
 
     # Set the coordinates of the new atoms
     for i, atom in enumerate(atoms):

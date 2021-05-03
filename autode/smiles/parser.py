@@ -6,8 +6,8 @@
 
 as of 03/2021
 """
-from time import time
 from autode.log import logger
+from autode.utils import log_time
 from autode.atoms import elements
 from autode.exceptions import InvalidSmilesString
 from autode.smiles.base import (SMILESAtom,
@@ -282,6 +282,7 @@ class Parser:
 
         return None
 
+    @log_time(prefix='Parsed SMILES in:', units='ms')
     def parse(self, smiles: str):
         """
         Parse a SMILES string e.g. '[He]', 'C'
@@ -289,7 +290,6 @@ class Parser:
         self.smiles = smiles
         logger.info(f'Parsing {self.smiles}')
 
-        start_time = time()
         branch_idxs = []     # Indexes of branch points
         unclosed_bonds = {}  # Bonds that must be closed
         prev_idx = None      # Index of the previous atom to bond the next to
@@ -377,7 +377,6 @@ class Parser:
             raise InvalidSmilesString('Found unclosed rings')
 
         self._set_implicit_hs()
-        logger.info(f'Parsed SMILES in {(time() - start_time)*1E3:.2f} ms')
         return None
 
     def __init__(self):

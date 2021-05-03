@@ -1,8 +1,8 @@
 import numpy as np
 import networkx as nx
 import autode.smiles.atom_types as atom_types
-from time import time
 from autode.log import logger
+from autode.utils import log_time
 from autode.atoms import Atom, AtomCollection
 from autode.bonds import get_avg_bond_length
 from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
@@ -332,12 +332,10 @@ class Builder(AtomCollection):
 
         return None
 
+    @log_time(prefix='Closed ring in:', units='ms')
     def _adjust_ring_dihedrals(self, ring_bond, dihedrals):
         """Outsource the ring closure to an external function"""
-
         logger.info('Adjusting ring dihedrals to close the ring')
-
-        start_time = time()
 
         coords = closed_ring_coords(py_coords=self.coordinates,
                                     py_curr_angles=dihedrals.values(self.atoms),
@@ -350,7 +348,6 @@ class Builder(AtomCollection):
                                                            dtype='i4'),
                                     py_r0=ring_bond.r0)
         self.coordinates = coords
-        logger.info(f'Closed ring in {(time() - start_time) * 1000:.2f} ms')
         return
 
     def _adjust_ring_angles(self, ring_bond):
@@ -571,6 +568,7 @@ class Builder(AtomCollection):
         self._reset_queued_atom_sites(other_idxs=ring_bond)
         return None
 
+    @log_time(prefix='Performed final dihedral rotation in:', units='ms')
     def _minimise_non_ring_dihedrals(self):
         """
         Minimise the repulsive pairwise energy with respect to all non-ring
@@ -584,7 +582,6 @@ class Builder(AtomCollection):
 
         """
         logger.info('Minimising non-bonded repulsion by dihedral rotation')
-        start_time = time()
 
         dihedrals = Dihedrals()
 
@@ -621,7 +618,6 @@ class Builder(AtomCollection):
             return  # No rotation required
 
         logger.info(f'Have {len(dihedrals)} dihedrals to rotate')
-        logger.info(f'Populated list in {(time() - start_time)*1000:.2f} ms')
 
         coords = rotate(py_coords=self.coordinates,
                         py_angles=np.zeros(len(dihedrals)),
@@ -632,8 +628,6 @@ class Builder(AtomCollection):
                         py_rep_idxs=self.non_bonded_idx_matrix)
 
         self.coordinates = coords
-        logger.info(f'Performed final dihedral rotation in '
-                    f'{(time() - start_time)*1000:.2f} ms')
         return None
 
     def _force_double_bond_stereochem(self, dihedral):
@@ -881,6 +875,7 @@ class Builder(AtomCollection):
         self.atoms[0].translate(vec=np.array([0.001, 0.001, 0.001]))
         return None
 
+    @log_time(prefix='Built 3D in:', units='ms')
     def build(self, atoms, bonds):
         """
         Build a molecule by iterating through all the atoms adding it and
@@ -904,7 +899,6 @@ class Builder(AtomCollection):
 
             bonds (autode.smiles.SMILESBonds):
         """
-        start_time = time()
         self.set_atoms_bonds(atoms, bonds)
 
         while not self.built:
@@ -916,7 +910,6 @@ class Builder(AtomCollection):
             logger.info(f'Queue: {self.queued_atoms}')
 
         self._minimise_non_ring_dihedrals()
-        logger.info(f'Built 3D in {(time() - start_time)*1E3:.2f} ms')
         return None
 
     def __init__(self):

@@ -245,5 +245,3 @@ class SMILESBonds(list):
             return
 
         return super().insert(index, bond)
-
-

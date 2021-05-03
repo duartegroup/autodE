@@ -1,15 +1,16 @@
-from functools import wraps
 import os
 import shutil
+from time import time
+from functools import wraps
 from subprocess import Popen, DEVNULL, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing
 import multiprocessing.pool
-from autode.exceptions import NoAtomsInMolecule
-from autode.exceptions import NoCalculationOutput
-from autode.exceptions import NoConformers
-from autode.exceptions import NoMolecularGraph
 from autode.log import logger
+from autode.exceptions import (NoAtomsInMolecule,
+                               NoCalculationOutput,
+                               NoConformers,
+                               NoMolecularGraph)
 
 
 def run_external(params, output_filename):
@@ -157,6 +158,35 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
     return func_decorator
 
 
+def log_time(prefix='Executed in: ', units='ms'):
+    """A function requiring a number of atoms to run"""
+
+    if units.lower() == 's' or units.lower() == 'seconds':
+        s_to_units = 1.0
+
+    elif units.lower() == 'ms' or units.lower() == 'milliseconds':
+        s_to_units = 1000.0
+
+    else:
+        raise ValueError(f'Unsupported time unit: {units}')
+
+    def func_decorator(func):
+
+        @wraps(func)
+        def wrapped_function(*args, **kwargs):
+            start_time = time()
+
+            result = func(*args, **kwargs)
+
+            logger.info(f'{prefix} '
+                        f'{(time() - start_time) * s_to_units:.2f} {units}')
+
+            return result
+
+        return wrapped_function
+    return func_decorator
+
+
 def requires_atoms():
     """A function requiring a number of atoms to run"""
 
@@ -290,4 +320,3 @@ class NoDaemonPool(multiprocessing.pool.Pool):
     def __init__(self, *args, **kwargs):
         kwargs['context'] = NoDaemonContext()
         super().__init__(*args, **kwargs)
-
