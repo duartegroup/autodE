@@ -107,6 +107,9 @@ def test_atom():
     assert dummy.period == 0
     assert dummy.group == 0
 
+    fe = Atom(atomic_symbol='Fe')
+    assert fe.tm_row == 1
+
 
 def test_periodic_table():
 

@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-import autode.smiles.atom_types as atom_types
+from autode.smiles import atom_types
 from autode.log import logger
 from autode.utils import log_time
 from autode.atoms import Atom, AtomCollection
