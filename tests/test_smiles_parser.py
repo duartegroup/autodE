@@ -1,5 +1,6 @@
 import pytest
 from autode.exceptions import InvalidSmilesString
+from autode.smiles.base import SMILESStereoChem
 from autode.smiles.parser import Parser
 
 
@@ -82,13 +83,13 @@ def test_sq_brackets_parser():
     assert parser.atoms[0].charge == -2
 
     parser.parse(smiles='[Si@H3-]')
-    assert parser.atoms[0].stereochem == '@'
+    assert parser.atoms[0].stereochem == SMILESStereoChem.TET_NORMAL
     assert parser.atoms[0].charge == -1
     assert parser.atoms[0].n_hydrogens == 3
 
     parser.parse(smiles='[C@@H2-]')
     assert parser.atoms[0].has_stereochem
-    assert parser.atoms[0].stereochem == '@@'
+    assert parser.atoms[0].stereochem == SMILESStereoChem.TET_INVERTED
     assert parser.atoms[0].charge == -1
     assert parser.atoms[0].n_hydrogens == 2
     assert parser.charge == -1

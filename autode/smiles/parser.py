@@ -10,7 +10,11 @@ from time import time
 from autode.log import logger
 from autode.atoms import elements
 from autode.exceptions import InvalidSmilesString
-from autode.smiles.base import (SMILESAtom, SMILESBond, SMILESBonds, RingBond,
+from autode.smiles.base import (SMILESAtom,
+                                SMILESBond,
+                                SMILESBonds,
+                                RingBond,
+                                SMILESStereoChem,
                                 aromatic_symbols,
                                 organic_symbols,
                                 bond_order_symbols)
@@ -48,9 +52,14 @@ class Parser:
 
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
-        unsupported_chars = [':', '.', '*', '%']
-        if any(char in self._string for char in unsupported_chars):
-            raise InvalidSmilesString(f'{self._string} had invalid characters')
+        present_invalid_chars = [char for char in (':', '.', '*', '%')
+                                 if char in self._string]
+
+        if len(present_invalid_chars) > 0:
+            raise InvalidSmilesString(f'{self._string} had invalid characters:'
+                                      f'{present_invalid_chars}')
+
+        return None
 
     @property
     def smiles(self):
@@ -136,13 +145,12 @@ class Parser:
             raise InvalidSmilesString('Bracket "]" not closed')
 
         # [C] -> 'C',  [CH4] -> 'CH4'
-        bracketed_sec = self.smiles[idx + 1:].split(']')[0]
-        n_bracket_chars = len(bracketed_sec)
+        bracketed_sec = closing_brackets_sec[0]
         self._parse_sq_bracket(bracketed_sec)
 
         # Have now parsed i+1 -- n_bracket_chars+1 inclusive
         # where the +1 is from the final ]
-        self.parsed_idxs.update(list(range(idx, idx + n_bracket_chars + 2)))
+        self.parsed_idxs.update(list(range(idx, idx + len(bracketed_sec) + 2)))
         return None
 
     def _add_bond(self, symbol, idx, prev_atom_idx=None):
@@ -198,11 +206,11 @@ class Parser:
         # double bond, with respect to the next (or previous) atom
         for char in self._string[idx:]:
             if char == '/':
-                self.atoms[atom_idx_i].stereochem = 'al_up'
+                self.atoms[atom_idx_i].stereochem = SMILESStereoChem.ALKENE_UP
                 break
 
             if char == '\\':
-                self.atoms[atom_idx_i].stereochem = 'al_down'
+                self.atoms[atom_idx_i].stereochem = SMILESStereoChem.ALKENE_DOWN
                 break
 
         # Parse backwards from the final atom to assign the stereochemistry of
@@ -217,13 +225,15 @@ class Parser:
                 branched = False
 
             if char == '\\':
-                stereo = 'al_up' if not branched else 'al_down'
-                self.atoms[atom_idx_j].stereochem = stereo
+                self.atoms[atom_idx_j].stereochem = (SMILESStereoChem.ALKENE_UP
+                                                     if not branched else
+                                                     SMILESStereoChem.ALKENE_DOWN)
                 break
 
             if char == '/':
-                stereo = 'al_down' if not branched else 'al_up'
-                self.atoms[atom_idx_j].stereochem = stereo
+                self.atoms[atom_idx_j].stereochem = (SMILESStereoChem.ALKENE_DOWN
+                                                     if not branched else
+                                                     SMILESStereoChem.ALKENE_UP)
                 break
 
         return None
@@ -440,11 +450,11 @@ def atomic_sterochem(string):
 
         if item == '@':
             if next_char(string, i) == '@':
-                return '@@'
+                return SMILESStereoChem.TET_INVERTED
 
-            return '@'
+            return SMILESStereoChem.TET_NORMAL
 
-    return None
+    return SMILESStereoChem.NONE
 
 
 def atomic_n_hydrogens(string):

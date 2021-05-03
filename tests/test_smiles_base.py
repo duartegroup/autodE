@@ -1,23 +1,23 @@
 import pytest
 import autode.exceptions as ex
-from autode.smiles.base import SMILESAtom, SMILESBond
+from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
 
 
 def test_smiles_atom():
 
-    atom = SMILESAtom('C', stereochem='@')
+    atom = SMILESAtom('C', stereochem=SMILESStereoChem.TET_NORMAL)
     atom.invert_stereochem()
-    assert atom.stereochem == '@@'
+    assert atom.stereochem == SMILESStereoChem.TET_INVERTED
 
     # Invert back
     atom.invert_stereochem()
-    assert atom.stereochem == '@'
+    assert atom.stereochem == SMILESStereoChem.TET_NORMAL
 
 
 def test_smiles_bond():
 
-    atoms = [SMILESAtom('C', stereochem='al_up'),
-             SMILESAtom('C', stereochem='al_up')]
+    atoms = [SMILESAtom('C', stereochem=SMILESStereoChem.ALKENE_UP),
+             SMILESAtom('C', stereochem=SMILESStereoChem.ALKENE_UP)]
 
     bond = SMILESBond(0, 1, symbol='=')
     assert bond.is_cis(atoms=atoms)

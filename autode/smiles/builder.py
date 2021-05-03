@@ -1,12 +1,12 @@
 import numpy as np
 import networkx as nx
+import autode.smiles.atom_types as atom_types
 from time import time
-from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, AtomCollection
 from autode.bonds import get_avg_bond_length
-from autode.geom import get_rot_mat_kabsch
-from autode.smiles.base import SMILESAtom, SMILESBond
+from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
+from autode.smiles.angles import Dihedral, Dihedrals, Angle, Angles
 from ade_dihedrals import rotate, closed_ring_coords
 from ade_rb_opt import opt_rb_coords
 from autode.exceptions import (SMILESBuildFailed,
@@ -111,9 +111,9 @@ class Builder(AtomCollection):
         for idx, atom in enumerate(self.atoms):
 
             if not hasattr(atom, 'n_hydrogens') or atom.n_hydrogens is None:
-                raise SMILESBuildFailed('All atoms must have a defined number '
-                                        f'of hydrogens to build. {atom} had '
-                                        f'n_hydrogens = None')
+                logger.warning(f'{atom} did not have a defined number of '
+                               'hydrogens. Assuming 0')
+                atom.n_hydrogens = 0
 
             for _ in range(atom.n_hydrogens):
                 h_atoms.append(SMILESAtom('H', n_hydrogens=0))
@@ -146,56 +146,59 @@ class Builder(AtomCollection):
             atom.neighbours = list(self.graph.neighbors(i))
             atom.in_ring = len(self._ring_idxs([i], return_empty=True)) > 0
 
+            if not isinstance(atom, SMILESAtom):
+                raise SMILESBuildFailed('Builder requires SMILESAtom-s')
+
             if atom.n_bonded == 0:
                 # No type is needed for an isolated atom
                 continue
 
             elif atom.n_bonded == 1:                            # e.g. H2, FCH3
-                atom.type = TerminalAtom()
+                atom.type = atom_types.TerminalAtom()
 
             elif atom.n_bonded == 2:                           # e.g. OH2, SR2
                 if atom.group == 16:
-                    atom.type = BentAtom()
+                    atom.type = atom_types.BentAtom()
 
                 else:                                          # e.g. AuR2
-                    atom.type = LinearAtom()
+                    atom.type = atom_types.LinearAtom()
 
             elif atom.n_bonded == 3:                           # e.g. NH3
                 if atom.group == 15:
-                    atom.type = TrigonalPyramidalAtom()
+                    atom.type = atom_types.TrigonalPyramidalAtom()
 
                 else:                                          # e.g. BH3
-                    atom.type = TrigonalAtom()
+                    atom.type = atom_types.TrigonalAtom()
 
             elif atom.n_bonded == 4:                           # e.g. CH4
 
                 if atom.atomic_symbol == 'Xe':                 # e.g. XeF4
-                    atom.type = SquarePlanarAtom()
+                    atom.type = atom_types.SquarePlanarAtom()
 
                 # Second row transition metals that are d8 should be sq planar
                 elif self._atom_is_d8(idx=i) and atom.period == 5:
-                    atom.type = SquarePlanarAtom()
+                    atom.type = atom_types.SquarePlanarAtom()
 
-                elif atom.stereochem == '@':
-                    atom.type = TetrahedralNAtom()
+                elif atom.stereochem == SMILESStereoChem.TET_NORMAL:
+                    atom.type = atom_types.TetrahedralNAtom()
 
-                elif atom.stereochem == '@@':
-                    atom.type = TetrahedralIAtom()
+                elif atom.stereochem == SMILESStereoChem.TET_INVERTED:
+                    atom.type = atom_types.TetrahedralIAtom()
 
                 else:
-                    atom.type = TetrahedralAtom()
+                    atom.type = atom_types.TetrahedralAtom()
 
             elif atom.n_bonded == 5:
-                atom.type = TrigonalBipyramidalAtom()
+                atom.type = atom_types.TrigonalBipyramidalAtom()
 
             elif atom.n_bonded == 6:
-                atom.type = OctahedralAtom()
+                atom.type = atom_types.OctahedralAtom()
 
             elif atom.n_bonded == 7:
-                atom.type = PentagonalBipyramidalAtom()
+                atom.type = atom_types.PentagonalBipyramidalAtom()
 
             elif atom.n_bonded == 8:
-                atom.type = SquareAntiprismAtom()
+                atom.type = atom_types.SquareAntiprismAtom()
 
             else:
                 raise NotImplementedError('Coordination numbers >8 are not'
@@ -473,7 +476,7 @@ class Builder(AtomCollection):
                 pair = (idx_in, idx_jn)
 
             except StopIteration:
-                logger.warning('Could not ifx stereochemistry, no neighbours '
+                logger.warning('Could not fix stereochemistry, no neighbours '
                                'to add constraints to')
                 continue
 
@@ -734,8 +737,8 @@ class Builder(AtomCollection):
 
         if ((all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
             and not self.atoms[idx_x].has_stereochem)
-            or stro_x == stro_y == 'al_up'
-            or stro_x == stro_y == 'al_down'):
+            or stro_x == stro_y == SMILESStereoChem.ALKENE_UP
+            or stro_x == stro_y == SMILESStereoChem.ALKENE_DOWN):
             phi = 0
 
         dihedral = Dihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
@@ -830,7 +833,7 @@ class Builder(AtomCollection):
             bonded_atom.translate(coord)
 
             # Atoms that are not terminal need to be added to the queue
-            if not isinstance(self.atoms[bonded_idx].type, TerminalAtom):
+            if not isinstance(self.atoms[bonded_idx].type, atom_types.TerminalAtom):
                 # and the atom type rotated so an empty site is coincident
                 # with this atom
                 bonded_atom.type.rotate_empty_onto(point=atom.coord,
@@ -873,7 +876,8 @@ class Builder(AtomCollection):
 
         # Add the first atom to the queue of atoms to be translated etc.
         self.queued_atoms.append(0)
-        # perturb the first atom's coordinate slightly
+        # perturb the first atom's coordinate slightly, such that it is treated
+        # as being shifted (built)
         self.atoms[0].translate(vec=np.array([0.001, 0.001, 0.001]))
         return None
 
@@ -933,644 +937,3 @@ class Builder(AtomCollection):
 
         # A queue of dihedrals that need to be applied
         self.queued_dihedrals = Dihedrals()
-
-
-class AtomType:
-
-    @property
-    def n_empty_sites(self):
-        """Number of empty sites on this template"""
-        return len(self._site_coords)
-
-    def empty_site(self):
-        """Iterator for the coordinate of the next free site"""
-        return self._site_coords.pop(0)
-
-    def empty_site_mr(self, point, other_coords):
-        """Return the site on this atom that is furthest from all other
-        coordinates using a simple 1/r potential where r is the distance from
-        the site to the other coordinates
-
-        Arguments:
-            point (np.ndarray): Coordinate of this atom, shape = (3,)
-            other_coords (np.ndarray): Other coordinates, shape = (N, 3)
-
-        Returns:
-            (np.ndarray): Coordinate of the site centered at the origin
-        """
-        dists = np.array([np.linalg.norm(other_coords - (site + point), axis=1)
-                          for site in self._site_coords])
-
-        repulsion = np.sum(np.power(dists, -1), axis=1)
-        return self._site_coords.pop(np.argmin(repulsion))
-
-    def reset_onto(self, points, coord):
-        """
-        Reset the site coordinates given a set of points. Ignore any points
-        located exactly at the origin and, once fitted, remove the sites
-        that are coincident with the points
-
-        Arguments:
-            points (iterable(np.ndarray)): List (or iterable) of points that
-                   that the sites need to be reset onto
-            coord (np.ndarray): Coordinate of this atom
-        """
-        origin = np.zeros(3)
-        points = np.array([(point - coord) / np.linalg.norm(point - coord)
-                           for point in points
-                           if not np.allclose(point, origin)])
-
-        # Take a copy of the template coordinates to rotate and delete
-        site_coords = np.copy(self.template_site_coords)
-
-        if len(site_coords) == len(points):
-            logger.info('No reset needed - sites were all occupied')
-            return
-
-        logger.info(f'Rotating {len(site_coords)} sites onto'
-                    f' {len(points)} points')
-
-        # Rotate all the sites such that n sites are optimally orientated onto
-        # the (fixed) points
-        rot_mat = get_rot_mat_kabsch(p_matrix=site_coords[:len(points)],
-                                     q_matrix=points)
-
-        site_coords = np.dot(rot_mat, site_coords.T).T
-
-        # For each point (row) calculate the minimum distance to a site on
-        # this atom
-        min_dists = np.min(distance_matrix(site_coords, points), axis=1)
-
-        # Re-populate the empty sites, which are the sites that are not the
-        # closest to the points
-        self._site_coords = [coord for i, coord in enumerate(site_coords)
-                             if i not in np.argsort(min_dists)[:len(points)]]
-        return None
-
-    def rotate_empty_onto(self, point, coord):
-        """Rotate the site coordinates such that an empty site is coincident
-        with the vector from a coordinate to a point, and remove the site
-        from the list of available sites"""
-        return self.rotate_onto(point, coord, site=self.empty_site())
-
-    def rotate_randomly(self):
-        """Rotate the sites randomly to prevent zero cross products"""
-        point = np.copy(self._site_coords[0])
-        point += np.random.uniform(0.01, 0.02, size=3)
-
-        self.rotate_onto(point=point, coord=np.zeros(3),
-                         site=self._site_coords[0])
-        return
-
-    def rotate_onto(self, point, coord, site):
-        """
-        Rotate this atom type so a site is coincident with a point if this
-        atom is at a coord i.e.
-
-                           site
-                           /
-                          /         -->
-        point--------coord                 point--site--coord
-
-
-        -----------------------------------------------------------------------
-        Arguments:
-            point (np.ndarray): shape = (3,)
-
-            coord (np.ndarray): shape = (3,)
-
-            site (np.ndarray): shapte = (3,)
-        """
-        vector = point - coord
-
-        normal = np.cross(site, vector)
-        normal /= np.linalg.norm(normal)
-
-        # Sites are normal vectors, no no need for mod
-        arg = np.dot(site, vector) / np.linalg.norm(vector)
-
-        # cos(-θ/2) = √(arg + 1) / √2
-        # sin(-θ/2) = √(1-arg) / √2
-        a = np.sqrt(1.0 + arg) / np.sqrt(2)
-        b, c, d = -normal * (np.sqrt(1.0 - arg) / np.sqrt(2))
-
-        # 3D rotation matrix from the Euler–Rodrigues formula
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        rot_matrix = np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                               [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                               [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
-
-        # Rotate all the sites (no need to translate as they're already
-        # positioned around the origin)
-        self._site_coords = [np.matmul(rot_matrix, site)
-                             for site in self._site_coords]
-        return None
-
-    def __init__(self, site_coords, is_chiral=False):
-        """Base atom type class
-
-        Arguments:
-            site_coords (list(np.ndarray)): Shape = (n, 3) should contain a
-                        list of unit vectors pointing in directions where other
-                        atoms can be added
-
-        Keyword Arguments:
-            is_chiral (bool): Is this atom type chiral e.g. a tetrahedral atom
-                              with four different substituents
-        """
-        self.template_site_coords = np.copy(site_coords)
-        self._site_coords = site_coords
-
-        self.is_chiral = is_chiral
-        self.rotate_randomly()
-
-
-class TerminalAtom(AtomType):
-
-    def __init__(self):
-        """
-        Terminal atom with a site pointing along the x-axis::
-
-                    Atom--->
-        """
-        site_coords = [np.array([1.0, 0.0, 0.0])]
-
-        super().__init__(site_coords)
-
-
-class LinearAtom(AtomType):
-
-    def __init__(self):
-        """
-        Linear atom with sites pointing along the x-axis::
-
-                    <---Atom--->
-        """
-        site_coords = [np.array([1.0, 0.0, 0.0]),
-                       np.array([-1.0, 0.0, 0.0])]
-
-        super().__init__(site_coords)
-
-
-class BentAtom(AtomType):
-
-    def __init__(self):
-        """
-        Bent atom with sites generated by optimisation of H2O::
-
-                       Atom
-                     /     \
-        """
-        site_coords = [np.array([-0.78226654, -0.62294387, 0.0]),
-                       np.array([0.78322832, -0.62173419, 0.0])]
-
-        super().__init__(site_coords)
-
-
-class TrigonalPyramidalAtom(AtomType):
-
-    def __init__(self):
-        """
-        Trigonal pyramidal atom e.g. P in PH3, obtained from optimisation of
-        ammonia (then normalising  NH distances to 1 Å)::
-
-                      Atom
-                    /  |  \
-        """
-        site_coords = [np.array([0.90023489, -0.14794295, -0.40949973]),
-                       np.array([-0.58738609, -0.70512041, -0.39721881]),
-                       np.array([-0.32432922, 0.85865859, -0.39688283])]
-
-        super().__init__(site_coords)
-
-
-class TrigonalAtom(AtomType):
-
-    def __init__(self):
-        """
-        Trigonal atom e.g. [CR3]+ , obtained from optimisation of BH3
-        (then normalising  NH distances to 1 Å)::
-
-                               /
-                       --- Atom
-                              \
-        """
-        site_coords = [np.array([-0.506363095, -0.862320319, 0.0]),
-                       np.array([-0.495155944, 0.868804058, 0.0]),
-                       np.array([0.999977780, -0.006666131, 0.0])]
-
-        super().__init__(site_coords)
-
-
-class TetrahedralAtom(AtomType):
-
-    def __init__(self):
-        """
-        Tetrahedral atom with sites generated by optimisation of methane
-        (then normalising CH distances to 1 Å)::
-
-                         |  /
-                       Atom
-                     /     \
-
-        """
-        site_coords = [np.array([-0.404709,  0.86798519, -0.28777090]),
-                       np.array([-0.580775, -0.75435372, -0.30602419]),
-                       np.array([0.0763827, -0.01927872,  0.99689218]),
-                       np.array([0.9089159, -0.09390161, -0.40626889])]
-
-        super().__init__(site_coords)
-
-
-class TetrahedralNAtom(TetrahedralAtom):
-    """A 'normal' order chiral tetrahedral atom"""
-
-    def __init__(self):
-        super().__init__()
-        self.is_chiral = True
-
-
-class TetrahedralIAtom(TetrahedralAtom):
-    """An 'inverted' order chiral tetrahedral atom"""
-
-    def empty_site(self):
-        """Swap the first two yielded site coordinates, effectively swapping
-        the chirality this atom's neighbours are added"""
-
-        if len(self._site_coords) == 3:
-            return self._site_coords.pop(1)
-
-        else:
-            return super().empty_site()
-
-    def __init__(self):
-        super().__init__()
-        self.is_chiral = True
-
-
-class SquarePlanarAtom(AtomType):
-
-    def __init__(self):
-        """
-        Square planar atom with sites generated by optimisation of XeF4::
-
-                       |
-                   -- Atom --
-                       |
-        """
-        site_coords = [np.array([-0.99779169,  0.06642094,  0.0]),
-                       np.array([0.06641523, 0.99779207, 0.0]),
-                       np.array([ 0.99779219, -0.06641349,  0.0]),
-                       np.array([-0.06642889, -0.99779116,  0.0])]
-
-        super().__init__(site_coords)
-
-
-class TrigonalBipyramidalAtom(AtomType):
-
-    def __init__(self):
-        """
-        Trigonal bipyramidal atom with sites generated by optimisation of
-        [Cn(Cl)5]-::
-
-                        |
-                        |
-                  --- Atom --
-                    /  |
-                       |
-        """
-        site_coords = [np.array([-0.96060076, 0.0333159, -0.27592795]),
-                       np.array([0.27025683, -0.50748281, 0.8181824]),
-                       np.array([0.68796654, 0.4787655, -0.54542243]),
-                       np.array([-0.13392744,  0.82131359, 0.55453352]),
-                       np.array([0.13543747, -0.82200953, -0.55313383])]
-
-        super().__init__(site_coords)
-
-
-class OctahedralAtom(AtomType):
-
-    def __init__(self):
-        """
-        Octahedral atom with sites generated by optimisation of [Co(Cl)6]3-::
-
-                        |
-                        | /
-                  --- Atom --
-                    /  |
-                       |
-        """
-        site_coords = [np.array([0.06037748, 0.86107926, 0.50487332]),
-                       np.array([-0.96772781, -0.0717284, 0.24157384]),
-                       np.array([-0.06059905, -0.86084488, -0.50524632]),
-                       np.array([-0.2330902, 0.50187662, -0.83293986]),
-                       np.array([0.23246809, -0.50140995, 0.83339465]),
-                       np.array([0.96764951, 0.07148532, -0.24195925])]
-
-        super().__init__(site_coords)
-
-
-class PentagonalBipyramidalAtom(AtomType):
-
-    def __init__(self):
-        """Approximate trigonal pentagonal geometry by optimisation of IF7"""
-
-        site_coords = [np.array([-0.82513358, 0.19948399, 0.52854584]),
-                       np.array([0.36100434, 0.82474278, 0.4352875]),
-                       np.array([-0.2989535, - 0.86729114, -0.39803628]),
-                       np.array([0.07965322, - 0.50323863, 0.86046862]),
-                       np.array([-0.68679889, 0.35535251, -0.63405984]),
-                       np.array([0.92361199, - 0.38311825, 0.0127003]),
-                       np.array([0.4702203,  0.36157889, -0.80507986])]
-
-        super().__init__(site_coords)
-
-
-class SquareAntiprismAtom(AtomType):
-
-    def __init__(self):
-        """
-        Approximate square antiprism geometry by optimisation of [XeF8]2-
-        """
-        site_coords = [np.array([-0.12556124, 0.56801979, -0.81338053]),
-                       np.array([-0.9236697, -0.18379172, -0.33623635]),
-                       np.array([-0.13553555, -0.94631881, 0.29344647]),
-                       np.array([0.19928886, -0.57504162, -0.79348036]),
-                       np.array([0.54323185, -0.11585026, 0.83155148]),
-                       np.array([-0.62763462, 0.12547974, 0.76832911]),
-                       np.array([0.10138916, 0.94996354, 0.29544797]),
-                       np.array([0.95080191, 0.18740602, -0.24668749])]
-
-        super().__init__(site_coords)
-
-
-class Angle:
-
-    def __str__(self):
-        return f'Angle(idxs={self.idxs})'
-
-    def __repr__(self):
-        return self.__str__()
-
-    def value(self, atoms):
-        """
-
-        Args:
-            atoms (list(autode.atoms.Atom)):
-
-        Returns:
-            (float): Angle in radians
-        """
-
-        idx_x, idx_y, idx_z = self.idxs
-        vec1 = atoms[idx_x].coord - atoms[idx_y].coord
-        vec2 = atoms[idx_z].coord - atoms[idx_y].coord
-
-        return np.arccos(np.dot(vec1, vec2)
-                         / (np.linalg.norm(vec1) * np.linalg.norm(vec2)))
-
-    def _find_rot_idxs_from_pair(self, graph, atoms, pair,
-                                 max_bond_distance=4.0):
-        """
-        Split the graph across a pair of indexes and set the atom indexes
-        to be rotated
-
-        Arguments:
-            graph (nx.Graph):
-            atoms (list(autode.atoms.Atom)):
-            pair (list(int)): len == 2
-
-        Keyword Arguments:
-            max_bond_distance (float): Maximum distance in Å that two atoms
-                                       that appear in the graph edges (bonds)
-                                       that constitutes a bond
-        """
-        graph.remove_edge(*pair)
-
-        # Remove all the nodes in the graph that have not been shifted, thus
-        # the rotation indexes only include atoms that have been 'built'
-        for idx, atom in enumerate(atoms):
-            if hasattr(atom, 'is_shifted') and not atom.is_shifted:
-                graph.remove_node(idx)
-
-        # Delete edges that are too far away (i.e. unclosed rings)
-        for (idx_i, idx_j) in graph.edges:
-
-            if {idx_i, idx_j} == set(pair):
-                logger.error('Cannot cut across a ring')
-                continue
-
-            if np.linalg.norm(atoms[idx_i].coord
-                              - atoms[idx_j].coord) > max_bond_distance:
-                logger.info(f'Bond {idx_i}-{idx_j} was not present, removing '
-                            f'from graph for idx location')
-
-                graph.remove_edge(idx_i, idx_j)
-
-        components = [graph.subgraph(c) for c in
-                      nx.connected_components(graph)]
-
-        if len(components) != 2:
-            raise FailedToSetRotationIdxs(f'Splitting over {pair} did '
-                                          'not afford two fragments')
-
-        # Choose the components that will be rotated
-        cpnt_idx = 0 if pair[0] in components[0].nodes else 1
-
-        self.rot_idxs = [1 if i in components[cpnt_idx].nodes else 0
-                         for i in range(len(atoms))]
-        return None
-
-    def find_rot_idxs(self, graph, atoms):
-        """Find the atom indexes to rotate by splitting rhe graph across
-        the edge that appears first in the angle, e.g.::
-
-                   Z
-                  /
-            X  - Y
-              ^
-        split across this bond
-        """
-        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.idxs[:2])
-
-    def inverse_rot_idxs(self, atoms):
-        """
-        Return the inverse of a set of rotation indexes for e.g. rotating
-        the atoms on the other side of the angle. Skip any atoms that
-        have not been moved
-
-        Returns:
-            (list(int)):
-        """
-        return [1 if (hasattr(atom, 'is_shifted') and atom.is_shifted)
-                and self.rot_idxs[i] != 1 else 0
-                for i, atom in enumerate(atoms)]
-
-    @property
-    def phi0(self):
-        """A non-None ideal angle, default to 100 degrees"""
-        return 1.74533 if self.phi_ideal is None else self.phi_ideal
-
-    def __init__(self, idxs, rot_idxs=None, phi0=None):
-        """Angle between a set of atoms. In order"""
-
-        self.idxs = idxs
-        self.phi_ideal = phi0
-        self.rot_idxs = rot_idxs
-
-
-class Angles(list):
-
-    @property
-    def axes(self):
-        raise NotImplementedError
-
-    @property
-    def origins(self):
-        """Origins for the rotation, as the central atom of the trio"""
-        return np.array([angle.idxs[1] for angle in self], dtype='i4')
-
-    @property
-    def rot_idxs(self):
-        """Matrix of atom indexes to rotate"""
-        return np.array([angle.rot_idxs for angle in self], dtype='i4')
-
-    @property
-    def ideal_angles(self):
-        """Ideal angle vector (float | None)"""
-        return [angle.phi_ideal for angle in self]
-
-    def values(self, atoms):
-        """Current angle vector in radians"""
-        return np.array([angle.value(atoms) for angle in self], dtype='f8')
-
-    def dvalues(self, atoms):
-        """Difference between the current and ideal angles"""
-        return np.array([angle.phi0 - angle.value(atoms) for angle in self],
-                        dtype='f8')
-
-
-class Dihedrals(Angles):
-
-    @property
-    def axes(self):
-        return np.array([dihedral.mid_idxs for dihedral in self], dtype='i4')
-
-    @property
-    def origins(self):
-
-        origins = []
-        for dihedral in self:
-            idx_i, idx_j = dihedral.mid_idxs
-            origins.append(idx_i if dihedral.rot_idxs[idx_i] == 1 else idx_j)
-
-        return np.array(origins, dtype='i4')
-
-
-class Dihedral(Angle):
-    """A dihedral defined by 4 atom indexes e.g.
-
-       X       W
-       |      /
-       Y---- Z
-    """
-    def __str__(self):
-        return f'Dihedral(idxs={self.idxs}, φ0={round(self.phi0, 2)})'
-
-    @property
-    def end_idxs(self):
-        """Atoms defining the end of the dihedral"""
-        return self.idxs[0], self.idxs[-1]
-
-    @property
-    def phi0(self):
-        """A non-None ideal angle for this dihedral"""
-        return 0.0 if self.phi_ideal is None else self.phi_ideal
-
-    def needs_forcing(self, atoms):
-        """Does this dihedral angle need to be forced? i.e. has defined
-        stereochemistry that is not respected"""
-
-        return (atoms[self.mid_idxs[0]].stereochem is not None
-                and abs(self.dphi(atoms)) > np.pi / 3)
-
-    def dphi(self, atoms):
-        """∆φ = φ_curr - φ_ideal"""
-        return self.value(atoms=atoms) - self.phi0
-
-    def value(self, atoms):
-        """
-        Calculate the value of a dihedral defined by some atoms with non-zero
-        positions
-
-        Arguments:
-            atoms (list(autode.atoms.Atom)):
-
-        Returns:
-            (float): The dihedral angle in radians
-        """
-        idx_x, idx_y, idx_z, idx_w = self.idxs
-
-        vec_yx = atoms[idx_x].coord - atoms[idx_y].coord
-        vec_zw = atoms[idx_w].coord - atoms[idx_z].coord
-        vec_yz = atoms[idx_z].coord - atoms[idx_y].coord
-
-        vec1 = np.cross(vec_yx, vec_yz)
-        vec2 = np.cross(-vec_yz, vec_zw)
-
-        zero_vec = np.zeros(3)
-        if np.allclose(vec1, zero_vec) or np.allclose(vec2, zero_vec):
-            raise ValueError('Cannot calculate a dihedral - one zero vector')
-
-        # Normalise everything
-        vec1 /= np.linalg.norm(vec1)
-        vec2 /= np.linalg.norm(vec2)
-        vec_yz /= np.linalg.norm(vec_yz)
-
-        """
-        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
-        angle between groups A and D is then considered to be positive if 
-        the bond A-B is rotated in a clockwise direction through less than
-        180 degrees"
-        """
-        angle = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
-                            np.dot(vec1, vec2))
-        return angle
-
-    def find_rot_idxs(self, graph, atoms):
-        """
-        Find the atom indexes that should be rotated for this dihedral
-
-        Arguments:
-            graph (nx.Graph):
-            atoms (list(autode.atoms.Atom)):
-        """
-        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs)
-
-    def __init__(self, idxs, rot_idxs=None, phi0=None):
-        """
-        A dihedral constructed from atom indexes and possibly indexes that
-        should be rotated, if this dihedral is altered::
-
-             W
-              \
-               X --- Y
-                     |
-                     Z
-
-        -----------------------------------------------------------------------
-        Arguments:
-            idxs (list(int)): 4 atom indexes defining the dihedral
-
-        Keyword Arguments:
-            rot_idxs (list(int) | None): Indexes to rotate, 1 if the atoms
-                                         should be rotated else 0
-
-            phi0 (float | None): Ideal angle for this dihedral (radians)
-        """
-        super().__init__(idxs=idxs, rot_idxs=rot_idxs, phi0=phi0)
-
-        # Atom indexes of the central two atoms (X, Y)
-        _, idx_x, idx_y, _ = idxs
-        self.mid_idxs = (idx_x, idx_y)

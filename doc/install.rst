@@ -55,8 +55,7 @@ A Linux installation tutorial is available through the following link: https://y
 
 
 .. note::
-    Windows is not currently supported
-
+    Windows is not currently supported, but *should* be fine in Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_)
 
 ******
 

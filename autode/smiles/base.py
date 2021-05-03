@@ -1,4 +1,6 @@
+import enum
 import numpy as np
+from typing import Union
 from autode.log import logger
 from autode.atoms import Atom
 from autode.exceptions import InvalidSmilesString
@@ -6,6 +8,17 @@ from autode.exceptions import InvalidSmilesString
 bond_order_symbols = ['-', '=', '#', '$']
 organic_symbols = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
 aromatic_symbols = ['b', 'c', 'n', 'o', 's', 'p']
+
+
+@enum.unique
+class SMILESStereoChem(enum.Enum):
+    NONE = 0
+
+    TET_NORMAL = 1
+    TET_INVERTED = -1
+
+    ALKENE_UP = 2
+    ALKENE_DOWN = -2
 
 
 class SMILESAtom(Atom):
@@ -30,7 +43,7 @@ class SMILESAtom(Atom):
     @property
     def has_stereochem(self):
         """Does this atom have associated stereochemistry?"""
-        return self.stereochem is not None
+        return self.stereochem is not SMILESStereoChem.NONE
 
     @property
     def n_bonded(self):
@@ -39,20 +52,15 @@ class SMILESAtom(Atom):
 
     def invert_stereochem(self):
         """Invert the stereochemistry at this centre"""
-        logger.info('Inverting stereochemistry..')
-
-        if self.stereochem == '@':
-            self.stereochem = '@@'
-
-        elif self.stereochem == '@@':
-            self.stereochem = '@'
-
-        else:
-            logger.info('No change needed')
-
+        logger.info('Inverting stereochemistry')
+        self.stereochem = SMILESStereoChem(-self.stereochem.value)
         return
 
-    def __init__(self, label, stereochem=None, n_hydrogens=None, charge=0):
+    def __init__(self,
+                 label: str,
+                 stereochem: SMILESStereoChem = SMILESStereoChem.NONE,
+                 n_hydrogens: Union[None, int] = None,
+                 charge: int = 0):
         """
         SMILES atom initialised at the origin
 
@@ -64,7 +72,7 @@ class SMILESAtom(Atom):
             n_hydrogens (int | None): Number of hydrogens, None means unset and
                                       should be determined implicitly
 
-            stereochem (str | None):
+            stereochem (SMILESStereoChem):
 
             charge (int): Formal charge on this atom
         """
@@ -86,9 +94,6 @@ class SMILESAtom(Atom):
 
 class SMILESBond:
     """Bond in a SMILES string"""
-
-    def __len__(self):
-        return len(self._list)
 
     def __str__(self):
         return self.__repr__()
@@ -240,3 +245,5 @@ class SMILESBonds(list):
             return
 
         return super().insert(index, bond)
+
+

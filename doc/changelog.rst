@@ -35,7 +35,7 @@ Functionality improvements
 
 - :code:`species.coordinates` can be set from either 3xN matrices or 3N length vectors
 
-- :code:`autode.Atom()`s have :code:`.group` :code:`.perioid` and :code:`.tm_row` properties referring to their location in the periodic table
+- :code:`autode.Atom()`s have :code:`.group` :code:`.period` and :code:`.tm_row` properties referring to their location in the periodic table
 
 - :code:`autode.atoms.PeriodicTable` added
 

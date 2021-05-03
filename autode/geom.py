@@ -97,6 +97,18 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     return rot_matrix
 
 
+def get_rot_mat_euler_from_terms(a, b, c, d):
+    """3D rotation matrix from terms unique terms in the matrix"""
+
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                           [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                           [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+    return rot_matrix
+
+
 def get_rot_mat_euler(axis, theta):
     """
     Compute the 3D rotation matrix using the Euler Rodrigues formula
@@ -115,11 +127,7 @@ def get_rot_mat_euler(axis, theta):
 
     a = np.cos(theta / 2.0)
     b, c, d = -axis * np.sin(theta / 2.0)
-    aa, bb, cc, dd = a * a, b * b, c * c, d * d
-    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-    rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                           [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                           [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+    rot_matrix = get_rot_mat_euler_from_terms(a=a, b=b, c=c, d=d)
 
     return rot_matrix
 
