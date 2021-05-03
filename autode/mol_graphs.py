@@ -13,7 +13,9 @@ from autode.log import logger
 from autode.atoms import get_atomic_weight
 
 
-def make_graph(species, rel_tolerance=0.25, bond_list=None,
+def make_graph(species,
+               rel_tolerance=0.25,
+               bond_list=None,
                allow_invalid_valancies=False):
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria
@@ -36,9 +38,18 @@ def make_graph(species, rel_tolerance=0.25, bond_list=None,
 
     Keyword Arguments:
         rel_tolerance (float):
+
         bond_list (list(tuple)):
+
         allow_invalid_valancies (bool):
+
+    Raises:
+        NoAtomsInMolecule:
     """
+    if species.n_atoms == 0:
+        raise ex.NoAtomsInMolecule('Could not build a molecular graph with no '
+                                   'atoms')
+
     logger.info('Generating molecular graph with NetworkX')
 
     graph = nx.Graph()

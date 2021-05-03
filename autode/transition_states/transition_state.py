@@ -89,9 +89,7 @@ class TransitionState(TSbase):
 
     def _generate_conformers(self, n_confs=None):
         """Generate conformers at the TS """
-        from autode.conformers.conformer import Conformer
-        from autode.conformers.conf_gen import get_simanl_atoms
-        from autode.conformers.conformers import conf_is_unique_rmsd
+        from autode.conformers.conf_gen import get_simanl_conformer
 
         n_confs = Config.num_conformers if n_confs is None else n_confs
         self.conformers = []
@@ -99,23 +97,12 @@ class TransitionState(TSbase):
         distance_consts = get_distance_constraints(self)
 
         with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(get_simanl_atoms, (self, distance_consts, i))
+            results = [pool.apply_async(get_simanl_conformer, (self, distance_consts, i))
                        for i in range(n_confs)]
 
-            conf_atoms_list = [res.get(timeout=None) for res in results]
+            conformers = [res.get(timeout=None) for res in results]
 
-        for i, atoms in enumerate(conf_atoms_list):
-            conf = Conformer(name=f'{self.name}_conf{i}', charge=self.charge,
-                             mult=self.mult, atoms=atoms,
-                             dist_consts=distance_consts)
-
-            # If the conformer is unique on an RMSD threshold
-            if conf_is_unique_rmsd(conf, self.conformers):
-                conf.solvent = self.solvent
-                conf.graph = deepcopy(self.graph)
-                self.conformers.append(conf)
-
-        logger.info(f'Generated {len(self.conformers)} conformer(s)')
+        self._set_unique_conformers_rmsd(conformers)
         return None
 
     @requires_atoms()
@@ -317,7 +304,7 @@ class TransitionState(TSbase):
 def get_ts_object(ts_guess):
     """Creates TransitionState for the TSguess. If it is a SolvatedTSguess,
     a SolvatedTransitionState is returned"""
-    if ts_guess.is_explicitly_solvated():
+    if ts_guess.is_explicitly_solvated:
         raise NotImplementedError
 
     return TransitionState(ts_guess=ts_guess)

@@ -1,9 +1,9 @@
 from copy import deepcopy
 import numpy as np
+from numpy.linalg import norm as length
 from autode.atoms import DummyAtom
 from autode.mol_graphs import connected_components
 from autode.bonds import get_avg_bond_length
-from autode.geom import length
 from autode.log import logger
 
 
@@ -59,7 +59,9 @@ def get_substitution_centres(reactant, bond_rearrangement, shift_factor):
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
+
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+
         shift_factor (float): The multiplier in the ideal A--C distance where
                               A is an attacking atom and C a substitution
                               centre

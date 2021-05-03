@@ -1,5 +1,66 @@
 import numpy as np
+from typing import Union
 from autode.log import logger
+from autode.geom import get_rot_mat_euler
+
+
+class AtomCollection:
+
+    @property
+    def n_atoms(self):
+        """Number of atoms in this set"""
+        return 0 if self.atoms is None else len(self.atoms)
+
+    @property
+    def coordinates(self):
+        """Numpy array of coordinates"""
+        if self.atoms is None:
+            return None
+
+        return np.array([a.coord for a in self.atoms], dtype='f8', copy=True)
+
+    @coordinates.setter
+    def coordinates(self, value: np.ndarray):
+        """Set the coordinates from a numpy array
+
+        Arguments:
+            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
+                                row major vector
+        """
+        if self.atoms is None:
+            raise ValueError('Must have atoms set to be able to set the '
+                             'coordinates of them')
+
+        if value.ndim == 1:
+            assert value.shape == (3 * self.n_atoms,)
+            value = value.reshape((-1, 3))
+
+        elif value.ndim == 2:
+            assert value.shape == (self.n_atoms, 3)
+
+        else:
+            raise AssertionError('Cannot set coordinates from a array with'
+                                 f'shape: {value.shape}. Must be 1 or 2 '
+                                 f'dimensional')
+
+        for i, atom in enumerate(self.atoms):
+            atom.coord = value[i]
+
+    def distance(self, i, j):
+        """Get the distance between two atoms (Å)"""
+        if any(idx < 0 or idx >= self.n_atoms for idx in (i, j)):
+            raise ValueError(f'Cannot calculate the distance between {i}-{j}')
+
+        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+
+    def __init__(self, atoms=None):
+        """
+        Collection of atoms, used as a a base class for a species etc
+
+        Arguments:
+            atoms (list(autode.atoms.Atom)):
+        """
+        self.atoms = atoms
 
 
 class Atom:
@@ -7,6 +68,9 @@ class Atom:
     def __repr__(self):
         x, y, z = self.coord
         return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
+
+    def __str__(self):
+        return self.__repr__()
 
     @property
     def atomic_number(self):
@@ -18,7 +82,48 @@ class Atom:
         """A more interpretable alias for label"""
         return self.label
 
-    def translate(self, vec):
+    @property
+    def is_metal(self):
+        """Is this atom a metal?"""
+        return self.label in metals
+
+    @property
+    def group(self):
+        """Group of the periodic table is this atom in. 0 if not found"""
+
+        for group_idx in range(1, 18):
+
+            if self.label in PeriodicTable.group(group_idx):
+                return group_idx
+
+        return 0
+
+    @property
+    def period(self):
+        """Group of the periodic table is this atom in. 0 if not found"""
+
+        for period_idx in range(1, 7):
+
+            if self.label in PeriodicTable.period(period_idx):
+                return period_idx
+
+        return 0
+
+    @property
+    def tm_row(self):
+        """
+        Row of transition metals that this element is in
+
+        Returns:
+            (int | None):
+        """
+        for row in [1, 2, 3]:
+            if self.label in PeriodicTable.transition_metals(row):
+                return row
+
+        return None
+
+    def translate(self, vec: np.ndarray):
         """
         Translate this atom by a vector
 
@@ -28,7 +133,10 @@ class Atom:
         self.coord += vec
         return None
 
-    def rotate(self, axis, theta, origin=None):
+    def rotate(self,
+               axis: np.ndarray,
+               theta: float,
+               origin: Union[np.ndarray, None] = None):
         """Rotate this atom theta radians around an axis given an origin
 
         Arguments:
@@ -40,28 +148,15 @@ class Atom:
                                  if no origin is specified then the atom
                                  is rotated without translation.
         """
-        # If specified shift so that the origin is at (0, 0, 0), apply the
-        # rotation, and shift back
+        # If specified shift so that the origin is at (0, 0, 0)
         if origin is not None:
             self.translate(vec=-origin)
 
-        # Normalise the axis
-        axis = np.asarray(axis)
-        axis = axis / np.linalg.norm(axis)
-
-        # Compute the 3D rotation matrix using
-        # https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
-        a = np.cos(theta / 2.0)
-        b, c, d = -axis * np.sin(theta / 2.0)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                               [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                               [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-
-        # Apply the rotation
+        # apply the rotation
+        rot_matrix = get_rot_mat_euler(axis=axis, theta=theta)
         self.coord = np.matmul(rot_matrix, self.coord)
 
+        # and shift back, if required
         if origin is not None:
             self.translate(vec=origin)
 
@@ -109,6 +204,108 @@ elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
             'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md',
             'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn',
             'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']
+
+
+class PeriodicTable:
+
+    table = np.array([['H',    '',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',   '',   '',   '',   '',   '', 'He'],
+                      ['Li', 'Be',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',  'B',  'C',  'N',  'O',  'F', 'Ne'],
+                      ['Na', 'Mg',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '', 'Al', 'Si',  'P',  'S', 'Cl', 'Ar'],
+                      ['K',  'Ca', 'Sc', 'Ti',  'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr'],
+                      ['Rb', 'Sr',  'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te',  'I', 'Xe'],
+                      ['Cs', 'Ba',   '', 'Hf', 'Ta',  'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn'],
+                      ['Fr', 'Ra',   '', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']],
+                     dtype=str)
+
+    @classmethod
+    def period(cls, n: int):
+        """Period of the periodic table, with 1 being the first period
+
+        Arguments:
+            n (int):
+
+        Returns:
+            (np.ndarray(str)):
+
+        Raises:
+            (ValueError): If n is not valid period index
+        """
+        if n < 1 or n > 7:
+            raise ValueError('Not a valid period. Must be 1-7')
+
+        # Exclude the empty strings of non-present elements
+        return np.array([elem for elem in cls.table[n - 1, :] if elem != ''])
+
+    @classmethod
+    def group(cls, n: int):
+        """Group of the periodic table, with 1 being the first period
+
+        Arguments:
+            n (int):
+
+        Returns:
+            (np.ndarray(str)):
+
+        Raises:
+            (ValueError): If n is not valid group index
+        """
+        if n < 1 or n > 18:
+            raise ValueError('Not a valid group. Must be 1-18')
+
+        # Exclude the empty strings of non-present elements
+        return np.array([elem for elem in cls.table[:, n - 1] if elem != ''])
+
+    @classmethod
+    def element(cls, period: int, group: int):
+        """
+        Element given it's index in the periodic table, excluding
+        lanthanides and actinides.
+
+        Arguments:
+            period (int):
+
+            group (int):
+
+        Returns:
+            (str): Atomic symbol of the element
+
+        Raises:
+            (IndexError): If such an element does not exist
+        """
+        try:
+            elem = cls.table[period-1, group-1]  # Convert from 1 -> 0 indexing
+            assert elem != ''
+
+        except (IndexError, AssertionError):
+            raise IndexError('Index of the element not found')
+
+        return elem
+
+    @classmethod
+    def transition_metals(cls, row: int):
+        """
+        Collection of transition metals (TMs) of a defined row. e.g.
+
+        row = 1 -> [Sc, Ti .. Zn]
+
+        Arguments:
+            row (int): Colloquial name for TMs period
+
+        Returns:
+            (np.ndarray(str)):
+
+        Raises:
+            (ValueError): If the row is not valid
+        """
+        if row < 1 or row > 3:
+            raise ValueError('Not a valid row of TMs. Must be 1-3')
+
+        tms = [elem for elem in cls.period(row+3) if elem in metals]
+        return np.array(tms, dtype=str)
+
+    lanthanoids = lanthanides = np.array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu'], dtype=str)
+    actinoids = actinides = np.array(['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr'], dtype=str)
+
 
 # A set of reasonable valances for anionic/neutral/cationic atoms
 valid_valances = {'H': [0, 1],

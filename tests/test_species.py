@@ -37,11 +37,17 @@ def test_species_class():
     assert mol.mult == 1
     assert mol.name == 'H2'
 
-    assert not mol.is_explicitly_solvated()
+    assert not mol.is_explicitly_solvated
 
     # A not very sensible water geometry!
     water = Species(name='H2O', charge=0, mult=1,
                     atoms=[Atom('O'), Atom('H', z=-1), Atom('H', z=1)])
+
+    assert water.formula == 'H2O' or water.formula == 'OH2'
+
+    # Species without a molecular graph cannot define a bond matrix
+    with pytest.raises(ValueError):
+        _ = water.bond_matrix
 
     # very approximate molecular radius
     assert 0.5 < water.radius < 2.5
@@ -168,10 +174,10 @@ def test_species_copy():
 
 def test_species_formula():
 
-    assert mol.formula() == 'H2'
+    assert mol.formula == 'H2'
     
     mol_no_atoms = Molecule()
-    assert mol_no_atoms.formula() is None
+    assert mol_no_atoms.formula == ""
 
 
 def test_generate_conformers():

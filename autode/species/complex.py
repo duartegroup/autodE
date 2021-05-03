@@ -314,7 +314,7 @@ def is_solvated_reactant_complex(molecule_complex):
 def get_complexes(reaction):
     """Creates Reactant and Product complexes for the reaction"""
 
-    if reaction.reacs[0].is_explicitly_solvated():
+    if reaction.reacs[0].is_explicitly_solvated:
         raise NotImplementedError
 
     reac = ReactantComplex(*reaction.reacs,

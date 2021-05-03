@@ -2,11 +2,23 @@ from setuptools import setup
 from Cython.Build import cythonize
 from setuptools.extension import Extension
 
+extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
+              Extension('ade_dihedrals',
+                        sources=['autode/ext/ade_dihedrals.pyx'],
+                        include_dirs=['autode/ext/include'],
+                        language='c++',
+                        extra_compile_args=["-std=c++11"],
+                        extra_link_args=["-std=c++11"]),
 
-extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx'])]
+              Extension('ade_rb_opt',
+                        sources=['autode/ext/ade_rb_opt.pyx'],
+                        include_dirs=['autode/ext/include'],
+                        language='c++',
+                        extra_compile_args=["-std=c++11"],
+                        extra_link_args=["-std=c++11"])]
 
 setup(name='autode',
-      version='1.0.2',
+      version='1.0.3',
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',

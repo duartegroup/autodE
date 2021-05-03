@@ -1,6 +1,7 @@
 import numpy as np
 from copy import deepcopy
-from scipy.spatial import  distance_matrix
+from scipy.spatial import distance_matrix
+from autode.atoms import AtomCollection
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
@@ -9,6 +10,7 @@ from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
+from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
@@ -17,7 +19,7 @@ from autode.utils import work_in
 from autode.utils import requires_conformers
 
 
-class Species:
+class Species(AtomCollection):
 
     def __str__(self):
         """Unique species identifier"""
@@ -29,11 +31,15 @@ class Species:
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
+    def copy(self):
+        return deepcopy(self)
+
+    @property
     def formula(self):
         """Return the molecular formula of this species"""
 
         if self.atoms is None:
-            return None
+            return ""
 
         symbols = [atom.label for atom in self.atoms]
 
@@ -44,29 +50,20 @@ class Species:
 
         return formula_str
 
-    def copy(self):
-        return deepcopy(self)
-
-    @property
-    def n_atoms(self):
-        """Number of atoms in this species"""
-        return 0 if self.atoms is None else len(self.atoms)
-
     @property
     @requires_atoms()
-    def coordinates(self):
-        """Return a np.ndarray of size n_atoms x 3 containing the xyz
-        coordinates of the molecule in Å. Will return a copy"""
-        return np.array([atom.coord for atom in self.atoms], copy=True)
+    def bond_matrix(self):
+        """Return a np.ndarray boolian array of the bonds"""
 
-    @coordinates.setter
-    def coordinates(self, coords):
-        """For coordinates as a np.ndarray with shape Nx3 set the coordinates
-        of each atom"""
-        assert coords.shape == (self.n_atoms, 3)
+        matrix = np.zeros(shape=(self.n_atoms, self.n_atoms), dtype=bool)
 
-        for i in range(self.n_atoms):
-            self.atoms[i].coord = coords[i]
+        if self.graph is None:
+            raise ValueError('No molecular graph set. Bonds are not defined')
+
+        for bond in self.graph.edges:
+            matrix[tuple(bond)] = matrix[tuple(reversed(bond))] = True
+
+        return matrix
 
     @property
     def radius(self):
@@ -76,6 +73,44 @@ class Species:
 
         coords = self.coordinates
         return np.max(distance_matrix(coords, coords)) / 2.0
+
+    @property
+    def is_explicitly_solvated(self):
+        return isinstance(self.solvent, ExplicitSolvent)
+
+    def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
+        """
+        Given a list of conformers add those that are unique based on an RMSD
+        tolerance. In addition, discard any very high or very low energy
+        conformers more than n_sigma σ (std. devs) away from the average
+
+        Args:
+            conformers (Iterable(autode.conformers.Conformer):
+
+            n_sigma (int): Number of standard deviations a conformer energy
+                           must be from the average for it not to be added
+        """
+        energies = std_dev_e = avg_e = None
+
+        # Populate an array of energies in any units to calculate std. dev. etc
+        if all(conf.energy is not None for conf in conformers):
+            energies = np.array([conf.energy for conf in conformers])
+            std_dev_e, avg_e = np.std(energies), np.average(energies)
+
+        for i, conf in enumerate(conformers):
+
+            if energies is not None:
+                if np.abs(conf.energy - avg_e)/std_dev_e > n_sigma:
+                    logger.warning(f'Conformer {i} had an energy >{n_sigma}σ '
+                                   f'from the average - not adding')
+                    continue
+
+            if conf_is_unique_rmsd(conf, self.conformers):
+                conf.graph = deepcopy(self.graph.copy)
+                self.conformers.append(conf)
+
+        logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
+        return None
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '
@@ -154,9 +189,6 @@ class Species:
 
         logger.info('Species is linear')
         return True
-
-    def is_explicitly_solvated(self):
-        return isinstance(self.solvent, ExplicitSolvent)
 
     @requires_atoms()
     def translate(self, vec):
@@ -281,11 +313,6 @@ class Species:
 
         return None
 
-    @requires_atoms()
-    def distance(self, i, j):
-        """Get the distance between two atoms in the species"""
-        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
-
     @work_in('conformers')
     def find_lowest_energy_conformer(self, lmethod=None, hmethod=None):
         """
@@ -357,9 +384,10 @@ class Species:
         Keyword Arguments:
             solvent_name (str): Name of the solvent_name, or None
         """
+        super().__init__(atoms=atoms)
+
         self.name = name
 
-        self.atoms = atoms
         self.charge = int(charge)
         self.mult = int(mult)
 

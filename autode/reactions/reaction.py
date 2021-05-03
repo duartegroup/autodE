@@ -142,12 +142,12 @@ class Reaction:
         # Add all the reactants and products with interpretable names
         for i, reac_smiles in enumerate(reacs_smiles.split('.')):
             reac = Reactant(smiles=reac_smiles)
-            reac.name = f'r{i}_{reac.formula()}'
+            reac.name = f'r{i}_{reac.formula}'
             self.reacs.append(reac)
 
         for i, prod_smiles in enumerate(prods_smiles.split('.')):
             prod = Product(smiles=prod_smiles)
-            prod.name = f'p{i}_{prod.formula()}'
+            prod.name = f'p{i}_{prod.formula}'
             self.prods.append(prod)
 
         return None
@@ -292,6 +292,11 @@ class Reaction:
         using optimisation and single points"""
         h_method = get_hmethod()
         conf_hmethod = h_method if Config.hmethod_conformers else None
+
+        # Set the 'complexes' comprised of all reactants and products if
+        # they are not currently set
+        if self.reactant is None or self.product is None:
+            self.find_complexes()
 
         for species in [self.reactant, self.product]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)

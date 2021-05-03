@@ -18,8 +18,6 @@ autode/conformers/__pycache__/
 
 autode/transition_states/__pycache__/
 
-*.pyc
-
 autode/conformers/cconf_gen.c
 
 autode/solvent/csolvent.c
@@ -31,33 +29,16 @@ tests/htmlcov/
 
 *.inp
 
+*.pyc
+
+*.xyz
+
 htmlcov/
-
-tests/data/pes2d/*.xyz
-
-tests/data/pes2d/xcontrol*
-
-tests/data/locate_ts/transition_states/NEB_init_path/*
-
-tests/data/locate_ts/transition_states/NEB/*
-
-tests/data/template_ts_guess_constrained_opt_ll_xtb.xyz
-
-tests/data/xcontrol_template_ts_guess_constrained_opt_ll
-
-tests/data/opt_nwchem.nw
 
 tests/.autode_calculations
 
-tests/data/complex_conf*.xyz
-
-tests/data/*.com
+tests/data/__MACOSX/
 
 tests/data/conformers/.autode_calculations
 
-tests/data/orca/.autode_calculations
-
-tests/data/xtb/.autode_calculations
-
-
-complex.xyz
+autode/smiles/cdihedrals.c

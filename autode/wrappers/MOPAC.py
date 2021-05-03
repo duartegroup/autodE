@@ -162,7 +162,7 @@ def print_point_charges(calc, atoms):
 
         # Distance in Å need to be converted to a0 and then the energy
         # Ha e^-1 to kcal mol-1 e^-1
-        potentials.append(Constants.ha2kcalmol * Constants.a02ang * potential)
+        potentials.append(Constants.ha_to_kcalmol * Constants.a0_to_ang * potential)
 
     with open(f'{calc.name}_mol.in', 'w') as pc_file:
         print(f'\n{len(atoms)} 0', file=pc_file)
@@ -267,7 +267,7 @@ class MOPAC(ElectronicStructureMethod):
         for line in calc.output.file_lines:
             if 'TOTAL ENERGY' in line:
                 # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return Constants.eV2ha * float(line.split()[3])
+                return Constants.eV_to_ha * float(line.split()[3])
 
         return None
 
@@ -339,7 +339,7 @@ class MOPAC(ElectronicStructureMethod):
             raise CouldNotGetProperty(name='gradients')
 
         # Convert flat array of gradients from kcal mol-1 Å^-1 to Ha Å^-1
-        grad_array = np.array(gradients) / Constants.ha2kcalmol
+        grad_array = np.array(gradients) / Constants.ha_to_kcalmol
         grad_array = grad_array.reshape((calc.molecule.n_atoms, 3))
 
         return grad_array

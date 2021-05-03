@@ -40,6 +40,41 @@ methane = Molecule(name='methane', charge=0, mult=1,
                           Atom('H', 0.33899, 1.93529, -0.55331)])
 
 
+def test_bcp_confs(tmpdir):
+    os.chdir(tmpdir)
+
+    mol = Molecule(smiles='C1CC2C1C2')
+    mol.rdkit_conf_gen_is_fine = False
+    mol.populate_conformers(n_confs=100)
+
+    assert all(conf.energy is not None for conf in mol.conformers)
+    energies = np.array([conf.energy for conf in mol.conformers])
+    avg, std = np.average(energies), np.std(energies)
+
+    if np.isclose(std, 0, atol=1E-5):
+        return  # Should be random, but might not be
+
+    # This fused ring system has a reasonable probability of generating a
+    # high energy conformer with RR, with a minimum that is very congested
+    # it should be removed when the conformers are set
+    assert all(np.abs(conf.energy - avg)/std < 5 for conf in mol.conformers)
+
+    assert len(mol.conformers) > 0
+
+    os.chdir(here)
+
+
+def test_setero_metal(tmpdir):
+    os.chdir(tmpdir)
+
+    # (R)-sec butyl lithium
+    mol = Molecule(smiles='[Li][C@H](C)CC')
+    mol.print_xyz_file()
+    assert are_coords_reasonable(coords=mol.coordinates)
+
+    os.chdir(here)
+
+
 def test_conf_gen(tmpdir):
     os.chdir(tmpdir)
 
@@ -58,6 +93,15 @@ def test_conf_gen(tmpdir):
 
     assert regen.graph.edges == methane.graph.edges
     assert regen.graph.nodes == methane.graph.nodes
+
+    # Should be able to generate a conformer directly using the method
+    conf = conf_gen.get_simanl_conformer(species=methane)
+    assert len(atoms) == 5
+    assert are_coords_reasonable(conf.coordinates)
+    assert conf.energy is not None
+    assert conf.solvent is None
+
+    os.remove('methane_conf0_siman.xyz')
 
     os.chdir(here)
 
@@ -160,18 +204,20 @@ def test_butene(tmpdir):
 def test_ts_conformer(tmpdir):
     os.chdir(tmpdir)
 
-    ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl',  1.63664,  0.02010, -0.05829),
-                                              Atom('C', -0.14524, -0.00136,  0.00498),
-                                              Atom('H', -0.52169, -0.54637, -0.86809),
-                                              Atom('H', -0.45804, -0.50420,  0.92747),
-                                              Atom('H', -0.51166,  1.03181, -0.00597)])
+    ch3cl = Reactant(charge=0, mult=1,
+                     atoms=[Atom('Cl',  1.63664,  0.02010, -0.05829),
+                            Atom('C', -0.14524, -0.00136,  0.00498),
+                            Atom('H', -0.52169, -0.54637, -0.86809),
+                            Atom('H', -0.45804, -0.50420,  0.92747),
+                            Atom('H', -0.51166,  1.03181, -0.00597)])
     f = Reactant(charge=-1, mult=1, atoms=[Atom('F', 4.0, 0.0, 0.0)])
 
-    ch3f = Product(charge=0, mult=1, atoms=[Atom('C', -0.05250,  0.00047, -0.00636),
-                                            Atom('F',  1.31229, -0.01702,  0.16350),
-                                            Atom('H', -0.54993, -0.04452,  0.97526),
-                                            Atom('H', -0.34815,  0.92748, -0.52199),
-                                            Atom('H', -0.36172, -0.86651, -0.61030)])
+    ch3f = Product(charge=0, mult=1,
+                   atoms=[Atom('C', -0.05250,  0.00047, -0.00636),
+                          Atom('F',  1.31229, -0.01702,  0.16350),
+                          Atom('H', -0.54993, -0.04452,  0.97526),
+                          Atom('H', -0.34815,  0.92748, -0.52199),
+                          Atom('H', -0.36172, -0.86651, -0.61030)])
     cl = Reactant(charge=-1, mult=1, atoms=[Atom('Cl', 4.0, 0.0, 0.0)])
 
     f_ch3cl_tsguess = TSguess(reactant=ReactantComplex(f, ch3cl),

@@ -141,7 +141,7 @@ def print_constraints(inp_file, molecule, force_constant=20):
     # nwchem indexes atoms from 1 so increment atom ids by 1
     if molecule.constraints.distance is not None:
         for (i, j), dist in molecule.constraints.distance.items():
-            dist_a0 = dist / Constants.a02ang  # Constraints are in Bohr
+            dist_a0 = dist / Constants.a0_to_ang  # Constraints are in Bohr
 
             print(f'  spring bond {i+1} {j+1} {force_constant} {dist_a0:.3f}',
                   file=inp_file)
@@ -419,7 +419,7 @@ class NWChem(ElectronicStructureMethod):
                 gradients.append(np.array([float(x), float(y), float(z)]))
 
         # Convert from Ha a0^-1 to Ha A-1
-        gradients = [grad / Constants.a02ang for grad in gradients]
+        gradients = [grad / Constants.a0_to_ang for grad in gradients]
         return np.array(gradients)
 
     def __init__(self):

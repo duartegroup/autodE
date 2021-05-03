@@ -1,11 +1,13 @@
-[![DOI](https://zenodo.org/badge/196085570.svg)](https://zenodo.org/badge/latestdoi/196085570) [![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=master)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/master) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:python) [![conda](https://anaconda.org/conda-forge/autode/badges/installer/conda.svg)](https://anaconda.org/conda-forge/autode) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/duartegroup/autodE.svg?branch=master)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/master) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:python) [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:cpp) [![Conda Recipe](https://img.shields.io/badge/recipe-autode-green.svg)](https://anaconda.org/conda-forge/autode) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/autode.svg)](https://anaconda.org/conda-forge/autode)
 
 ![alt text](autode/common/llogo.png)
 ***
 ## Introduction
 
-**autodE** is a Python module designed for the automated calculation of reaction profiles from just SMILES strings of 
-reactant(s) and product(s). 
+**autodE** is a Python module initially designed for the automated calculation of reaction profiles from SMILES strings of 
+reactant(s) and product(s). Current features include: transition state location, conformer searching, atom mapping,
+Python wrappers for a range of electronic structure theory codes, SMILES parsing, association complex generation, and
+ reaction profile generation.
 
 
 ### Dependencies
@@ -54,7 +56,10 @@ additional documentation.
 ## Development
 
 Pull requests are very welcome but must pass all the unit tests prior to being merged. Please write code and tests!
-Bugs and feature requests should be raised on the [issue page](https://github.com/duartegroup/autodE/issues).
+See the [todo list](https://github.com/duartegroup/autodE/projects/1) for features on the horizon. 
+Bugs and feature requests should be raised on the [issue page](https://github.com/duartegroup/autodE/issues). 
+
+> **_NOTE:_**  We'd love more contributors to this project! 
 
 
 ## Citation
