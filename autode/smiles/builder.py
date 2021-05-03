@@ -287,7 +287,7 @@ class Builder(AtomCollection):
         """
         path = self._ring_path(ring_bond=ring_bond)
 
-        # The dihedrals are then the all the 4 atom tuples in sequence
+        # The dihedrals are then all the 4 atom tuples in sequence
         dihedral_idxs = [tuple(path[i:i + 4]) for i in range(len(path) - 3)]
 
         # so only add the indexes where the bond (edge) order is one
