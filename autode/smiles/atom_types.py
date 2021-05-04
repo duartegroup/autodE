@@ -172,9 +172,13 @@ class LinearAtom(AtomType):
         Linear atom with sites pointing along the x-axis::
 
                     <---Atom--->
+
+        WARNING: Completely linear cause failures for internal coordinate
+                 optimisation algorithms and have undefined cross products.
+                 Site coordinates are therefore not precisely linear
         """
         site_coords = [np.array([1.0, 0.0, 0.0]),
-                       np.array([-1.0, 0.0, 0.0])]
+                       np.array([-1.0, 0.001, 0.0])]
 
         super().__init__(site_coords)
 

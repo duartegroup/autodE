@@ -39,6 +39,11 @@ class Builder(AtomCollection):
         return atoms
 
     @property
+    def canonical_atoms_at_origin(self):
+        """Canonical set of autodE atoms all located at the origin"""
+        return [Atom(atom.label) for atom in self.atoms]
+
+    @property
     def built_atom_idxs(self):
         """Atom indexes that have been built"""
         return [i for i in range(self.n_atoms) if self.atoms[i].is_shifted]
