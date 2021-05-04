@@ -58,6 +58,9 @@ def test_base_builder():
         assert isinstance(atom, Atom)
         assert hasattr(atom, 'coord')
 
+    for atom in builder.canonical_atoms_at_origin:
+        assert np.isclose(np.linalg.norm(atom.coord), 0.0, atol=1E-4)
+
 
 def test_build_single_atom():
     """No building needed for a single atom, but the builder should be fine"""
@@ -67,6 +70,14 @@ def test_build_single_atom():
 
     assert builder.n_atoms == 1
     assert parser.mult == 2
+
+
+def test_too_high_valance():
+
+    parser.parse(smiles='CC(C)(C)(C)(C)(C)(C)(C)(C)C')
+
+    with pytest.raises(Exception):
+        builder.build(atoms=parser.atoms, bonds=parser.bonds)
 
 
 def test_explicit_hs():
@@ -140,7 +151,7 @@ def test_dihedrals():
             Atom('C', 2.61201, -1.79454, 0.87465)]
 
     # Can't have a dihedral with vectors of zero length
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         _ = dihedral.value(zero)
 
 

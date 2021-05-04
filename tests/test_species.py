@@ -87,6 +87,12 @@ def test_species_translate():
     assert np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, -1.0])) < 1E-9
     assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
 
+    # Centering should move the middle of the molecule to the origin
+    mol_copy.centre()
+    assert np.allclose(np.average(mol_copy.coordinates, axis=0),
+                       np.zeros(3),
+                       atol=1E-4)
+
 
 def test_species_rotate():
     mol_copy = deepcopy(mol)

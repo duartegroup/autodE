@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-import autode.smiles.atom_types as atom_types
+from autode.smiles import atom_types
 from autode.log import logger
 from autode.utils import log_time
 from autode.atoms import Atom, AtomCollection
@@ -37,6 +37,11 @@ class Builder(AtomCollection):
             atoms.append(Atom(atom.label, x=x, y=y, z=z))
 
         return atoms
+
+    @property
+    def canonical_atoms_at_origin(self):
+        """Canonical set of autodE atoms all located at the origin"""
+        return [Atom(atom.label) for atom in self.atoms]
 
     @property
     def built_atom_idxs(self):

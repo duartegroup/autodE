@@ -1,7 +1,8 @@
 import numpy as np
 import networkx as nx
 from autode.log import logger
-from autode.exceptions import (FailedToSetRotationIdxs)
+from autode.exceptions import (FailedToSetRotationIdxs,
+                               SMILESBuildFailed)
 
 
 class Angle:
@@ -208,6 +209,9 @@ class Dihedral(Angle):
 
         Returns:
             (float): The dihedral angle in radians
+
+        Raises:
+            (SMILESBuildFailed):
         """
         idx_x, idx_y, idx_z, idx_w = self.idxs
 
@@ -220,7 +224,8 @@ class Dihedral(Angle):
 
         zero_vec = np.zeros(3)
         if np.allclose(vec1, zero_vec) or np.allclose(vec2, zero_vec):
-            raise ValueError('Cannot calculate a dihedral - one zero vector')
+            raise SMILESBuildFailed('Cannot calculate a dihedral '
+                                    '- one zero vector')
 
         # Normalise everything
         vec1 /= np.linalg.norm(vec1)

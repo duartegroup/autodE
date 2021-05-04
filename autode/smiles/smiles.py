@@ -3,7 +3,7 @@ from rdkit.Chem.Descriptors import NumRadicalElectrons
 from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import atoms_from_rdkit_mol
-from autode.exceptions import RDKitFailed
+from autode.exceptions import RDKitFailed, SMILESBuildFailed
 from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
@@ -112,30 +112,29 @@ def init_organic_smiles(molecule, smiles):
 def init_smiles(molecule, smiles):
     """
     Initialise a molecule from a SMILES string
+
     Arguments:
         molecule (autode.molecule.Molecule):
         smiles (str): SMILES string
     """
-    # Assume that the RDKit conformer generation algorithm is not okay for
-    # metals
     molecule.rdkit_conf_gen_is_fine = False
-
-    if '.' in smiles:
-        raise ValueError('Could not parse SMILES with non-bonded components')
 
     parser, builder = Parser(),  Builder()
 
     parser.parse(smiles)
-    builder.build(atoms=parser.atoms, bonds=parser.bonds)
-
     molecule.charge = parser.charge
     molecule.mult = parser.mult
-    molecule.atoms = builder.canonical_atoms
+
+    try:
+        builder.build(atoms=parser.atoms, bonds=parser.bonds)
+        molecule.atoms = builder.canonical_atoms
+
+    except (SMILESBuildFailed, NotImplementedError):
+        molecule.atoms = builder.canonical_atoms_at_origin
 
     make_graph(molecule, bond_list=parser.bonds)
 
     for idx, atom in enumerate(builder.atoms):
-
         if atom.has_stereochem:
             molecule.graph.nodes[idx]['stereo'] = True
 
@@ -144,7 +143,7 @@ def init_smiles(molecule, smiles):
 
     if not are_coords_reasonable(molecule.coordinates):
         logger.warning('3D builder did not make a sensible geometry, '
-                       'minimising whole structure.')
+                       'Falling back to random minimisation.')
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
     check_bonds(molecule, bonds=parser.bonds)

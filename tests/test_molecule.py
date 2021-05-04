@@ -96,7 +96,7 @@ def test_gen_conformers():
         mol._generate_conformers()
 
     # Metal complexes must be completely bonded entities
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         _ = Molecule(smiles='[Pd]C.C')
 
 
@@ -108,6 +108,10 @@ def test_siman_conf_gen(tmpdir):
     assert are_coords_reasonable(coords=rh_complex.coordinates)
     assert rh_complex.n_atoms == 14
     assert 12 < rh_complex.graph.number_of_edges() < 15  # What is a bond even
+
+    # Should be able to generate even crazy molecules
+    mol = Molecule(smiles='C[Fe](C)(C)(C)(C)(C)(C)(C)C')
+    assert mol.atoms is not None
 
     os.chdir(here)
 
