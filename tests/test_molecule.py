@@ -96,7 +96,7 @@ def test_gen_conformers():
         mol._generate_conformers()
 
     # Metal complexes must be completely bonded entities
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         _ = Molecule(smiles='[Pd]C.C')
 
 
