@@ -140,7 +140,7 @@ def test_dihedrals():
             Atom('C', 2.61201, -1.79454, 0.87465)]
 
     # Can't have a dihedral with vectors of zero length
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         _ = dihedral.value(zero)
 
 
