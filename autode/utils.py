@@ -12,6 +12,9 @@ from autode.exceptions import (NoAtomsInMolecule,
                                NoConformers,
                                NoMolecularGraph)
 
+# Needed for additional pickle-ability
+multiprocessing.set_start_method("fork")
+
 
 def run_external(params, output_filename):
     """
