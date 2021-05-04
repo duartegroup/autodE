@@ -109,6 +109,10 @@ def test_siman_conf_gen(tmpdir):
     assert rh_complex.n_atoms == 14
     assert 12 < rh_complex.graph.number_of_edges() < 15  # What is a bond even
 
+    # Should be able to generate even crazy molecules
+    mol = Molecule(smiles='C[Fe](C)(C)(C)(C)(C)(C)(C)C')
+    assert mol.atoms is not None
+
     os.chdir(here)
 
 

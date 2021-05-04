@@ -129,7 +129,7 @@ def init_smiles(molecule, smiles):
         builder.build(atoms=parser.atoms, bonds=parser.bonds)
         molecule.atoms = builder.canonical_atoms
 
-    except SMILESBuildFailed:
+    except (SMILESBuildFailed, NotImplementedError):
         molecule.atoms = builder.canonical_atoms_at_origin
 
     make_graph(molecule, bond_list=parser.bonds)
