@@ -508,6 +508,12 @@ class Builder(AtomCollection):
         # No repulsion between bonded atoms
         c = np.ones((n_atoms, n_atoms), dtype='f8')
         c -= np.asarray(bond_matrix, dtype='f8')
+        c *= 0.8
+
+        # and less repulsion between H and other atoms
+        h_idxs = np.array([built_idxs.index(idx) for idx in built_idxs
+                           if self.atoms[idx].label == 'H'], dtype=int)
+        c[h_idxs, h_idxs] *= 0.01
 
         # Now minimise all coordinates that are bonded
         coords = self.coordinates
@@ -516,7 +522,7 @@ class Builder(AtomCollection):
                                py_r0_matrix=np.asarray(r0, dtype='f8'),
                                py_k_matrix=np.ones((n_atoms, n_atoms),
                                                    dtype='f8'),
-                               py_c_matrix=0.1 * c,
+                               py_c_matrix=c,
                                py_exponent=4)
 
         # Set the partial coordinate set
