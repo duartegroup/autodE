@@ -566,3 +566,10 @@ def test_double_bond_stereo_branch():
     assert np.isclose(np.abs(dihedral.value(builder.atoms)),
                       np.pi,
                       atol=0.1)
+
+
+def test_fused_ring_system():
+    """Multiply fused rings should be buildable - repulsion needed"""
+    
+    assert built_molecule_is_reasonable(smiles='[SiH3]C12[C@@]3(CCC4)C4=C'
+                                               '[C@@H](C1C=CC2)C3')
