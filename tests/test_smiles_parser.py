@@ -384,3 +384,19 @@ def test_alt_ring_branch():
     num_h_atoms = sum(atom.n_hydrogens for atom in parser.atoms)
 
     assert parser.n_atoms + num_h_atoms == 84
+
+
+def test_ring_connectivity():
+
+    parser = Parser()
+    # Structure has a C-S(O2)-C motif
+    parser.parse('CC12[C@@]3(CCC4)C4=C[C@@H](C1C=CO2)S(=O)3=O')
+
+    atom_symbols_in_bonds = [{parser.atoms[i].label, parser.atoms[j].label}
+                             for i, j in parser.bonds]
+
+    n_c_s_bonds = len([pair for pair in atom_symbols_in_bonds
+                       if pair == {'C', 'S'}])
+
+    # and has two carbon-sulfur bonds
+    assert n_c_s_bonds == 2
