@@ -400,3 +400,11 @@ def test_ring_connectivity():
 
     # and has two carbon-sulfur bonds
     assert n_c_s_bonds == 2
+
+
+def test_multiplicity_metals():
+
+    parser = Parser()
+
+    parser.parse(smiles='[Na]C1=CC=CC=C1')
+    assert parser.mult == 1

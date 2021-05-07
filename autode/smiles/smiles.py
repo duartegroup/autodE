@@ -70,6 +70,8 @@ def init_organic_smiles(molecule, smiles):
     except RuntimeError:
         raise RDKitFailed
 
+    logger.info('Using RDKit to initialise')
+
     molecule.charge = Chem.GetFormalCharge(rdkit_mol)
     molecule.mult = calc_multiplicity(molecule,
                                       NumRadicalElectrons(rdkit_mol))
