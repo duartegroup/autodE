@@ -300,6 +300,10 @@ class Builder(AtomCollection):
 
             dihedral = Dihedral(dihedral_idxs)
 
+            # Optimum distance between the two middle atoms, used for
+            # determining if a bond exists thus a dihedral can be rotated
+            dihedral.mid_dist = self.bonds.first_involving(*dihedral.mid_idxs).r0
+
             # If both atoms either side of this one are 'pi' atoms e.g. in a
             # benzene ring, then the ideal angle must be 0 to close the ring
             if all(self.atoms[idx].is_pi for idx in dihedral.mid_idxs):

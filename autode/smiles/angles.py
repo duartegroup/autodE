@@ -250,9 +250,10 @@ class Dihedral(Angle):
             graph (nx.Graph):
             atoms (list(autode.atoms.Atom)):
         """
-        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs)
+        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs,
+                                             max_bond_distance=1.5*self.mid_dist)
 
-    def __init__(self, idxs, rot_idxs=None, phi0=None):
+    def __init__(self, idxs, rot_idxs=None, phi0=None, mid_dist=2.0):
         """
         A dihedral constructed from atom indexes and possibly indexes that
         should be rotated, if this dihedral is altered::
@@ -272,9 +273,13 @@ class Dihedral(Angle):
                                          should be rotated else 0
 
             phi0 (float | None): Ideal angle for this dihedral (radians)
+
+            mid_dist (float): Optimum distance between X-Y
         """
         super().__init__(idxs=idxs, rot_idxs=rot_idxs, phi0=phi0)
 
         # Atom indexes of the central two atoms (X, Y)
         _, idx_x, idx_y, _ = idxs
+
         self.mid_idxs = (idx_x, idx_y)
+        self.mid_dist = mid_dist
