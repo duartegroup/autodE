@@ -40,8 +40,12 @@ class Parser:
         """Approximate spin multiplicity (2S+1). For multiple unpaired
         electrons will default to a singlet"""
 
-        n_electrons = (sum([atom.atomic_number for atom in self.atoms])
+        n_electrons = (sum([at.atomic_number for at in self.atoms])
                        - self.charge)
+
+        # Atoms have implicit hydrogens, so add them
+        n_electrons += sum(at.n_hydrogens if at.n_hydrogens is not None else 0
+                           for at in self.atoms)
 
         return (n_electrons % 2) + 1
 
