@@ -2,14 +2,17 @@
 #include <cmath>
 #include "points.h"
 
+
 namespace autode {
 
-    PointGenerator::PointGenerator(int n_points,
-                                   int dimension,
-                                   double min_val = -3.145,
-                                   double max_val = 3.145) {
-        /* Generate a set of n points evenly spaced in a cube with dimension d,
-         * with dimensions l = max_val - min_val
+    CubePointGenerator::CubePointGenerator(int n_points,
+                                           int dimension,
+                                           double min_val,
+                                           double max_val) {
+        /* Generate a set of n points evenly spaced in a (hyper)cube with
+         * dimension d, with side length
+         *
+         *      l = max_val - min_val
          *
          * Arguments:
          *     n: Number of points to generate
@@ -18,23 +21,42 @@ namespace autode {
          *
          *     min_val: Minimum value of the
          */
+        if (n_points < 2){
+            throw std::runtime_error("Must have at least 2 points to generate "
+                                     "a point set");
+        }
+
         this->n = n_points;
         this->dim = dimension;
 
         this->min_val = min_val;
         this->max_val = max_val;
 
+        this->box_length = (max_val - min_val);
+        this->half_box_length = (max_val - min_val) / 2.0;
+
+        if (half_box_length < 0){
+            throw std::runtime_error("Must have a positive side length. i.e. "
+                                     "min_val < max_val");
+        }
+
+        // ∆X_ij = {(x_i - x_j), (y_i - y_j), ...}
+        this->delta_point = std::vector<double>(dimension, 0.0);
+
         set_init_random_points();
     }
 
 
-    void PointGenerator::set_init_random_points(){
-        /* Set the set of points using random uniform distribution
+    void CubePointGenerator::set_init_random_points(){
+        /* Set the set of points using random uniform distribution within a
+         * box, centred at the origin (for more simple periodic
+         * boundary conditions)
          */
 
         std::random_device rand_device;
 
-        std::uniform_real_distribution<double> unif_distro(min_val, max_val);
+        std::uniform_real_distribution<double> unif_distro(-half_box_length,
+                                                           half_box_length);
         std::default_random_engine rand_generator(rand_device());
 
         // Initialise all the points randomly in the space
@@ -55,7 +77,7 @@ namespace autode {
     }
 
 
-    double PointGenerator::norm_grad() {
+    double CubePointGenerator::norm_grad() {
         /* Calculate the norm of the gradient vector
          */
         double norm = 0.0;
@@ -70,7 +92,59 @@ namespace autode {
     }
 
 
-    void PointGenerator::set_grad(){
+    void CubePointGenerator::set_delta_point_pbc(int i, int j){
+        /* Calculate the components of the ∆X_ij vector, in 2D
+         *
+         *   ∆X_ij = {(x_i - x_j), (y_i - y_j)}
+         *
+         *  with periodic boundary conditions, such that in each direction
+         *  the nearest atom is, at most, half a box length away.
+         *
+         *  Arguments:
+         *      i: Index of one point
+         *
+         *      j: Index of another point
+         */
+
+        for (int k = 0; k < dim; k++){
+            delta_point[k] = points[i][k] - points[j][k];
+
+            // Apply the nearest image convention in all directions
+           if (delta_point[k] > half_box_length){
+               delta_point[k] -= box_length;
+           }
+           else if (delta_point[k] < -half_box_length){
+               delta_point[k] += box_length;
+           }
+
+        } // k
+    }
+
+    void CubePointGenerator::shift_box_centre(){
+        /* Shift the box back such that the center is between min_val, max_val
+         * in all dimensions
+         */
+        for (auto &point : points) {
+            for (auto &component: point) {
+                component += (max_val - min_val) / 2.0;
+            } // k
+        }
+    }
+
+    double CubePointGenerator::norm_squared_delta_point(){
+        /*
+         *
+         */
+        double norm_squared = 0.0;
+
+        for (auto &component : delta_point){
+            norm_squared += component * component;
+        }
+
+        return norm_squared;
+    }
+
+    void CubePointGenerator::set_grad(){
         /* Calculate the gradient with respect to the points
          *
          *  E = Σ'_ij 1 / |x_i - x_j|
@@ -79,14 +153,13 @@ namespace autode {
          *
          *  |x_i - x_j| = √[(x_i0 x_j0)^2 +  (x_i1 x_j1)^2  + ... ]
          *
-         *  TODO: Periodic boundaries
-         *
          */
 
         for (int i=0; i < n; i++) {
             // Zero the gradient of all (x, y, z, ..) components
             std::fill(s_grad[i].begin(), s_grad[i].end(), 0.0);
 
+            // Should loop for all i, j and j, i but not i = j
             for (int j = 0; j < n; j++) {
 
                 // Only loop over non identical pairs
@@ -94,33 +167,25 @@ namespace autode {
                     continue;
                 }
 
-
-                double r_sq = 0.0;
-
-                for (int k = 0; k < dim; k++){
-                    double d_k = points[i][k] - points[j][k];
-                    r_sq += d_k * d_k;
-                }
-
-                // Repulsion factor
-                auto rep_ftr = -1.0 / r_sq;
+                set_delta_point_pbc(i, j);
+                auto rep_ftr = -1.0 / norm_squared_delta_point();
 
                 for (int k = 0; k < dim; k++){
-                    double d_k = points[i][k] - points[j][k];
-                    s_grad[i][k] += rep_ftr * d_k;
+                    s_grad[i][k] += rep_ftr * delta_point[k];
                 }
 
             } // j
         } // i
-    };
+    }
 
 
-    void PointGenerator::run(double grad_tol = 1E-4,
-                             double step_size = 0.1,
-                             int max_iterations = 100) {
+    void CubePointGenerator::run(double grad_tol = 1E-4,
+                                 double step_size = 0.1,
+                                 int max_iterations = 100) {
         /* Generate a set of n points evenly spaced in a dimension d. Sets
-         * PointGenerator.points. Will minimise the Coulomb energy between the
-         * points (as J. J. Thomson in 1904 in 3D) from a random starting point
+         * CubePointGenerator.points. Will minimise the Coulomb energy between
+         * the points (as J. J. Thomson in 1904 in 3D) from a random starting
+         * point
          *
          *  Arguments:
          *      grad_tol:
@@ -129,18 +194,29 @@ namespace autode {
         set_grad();
         int iteration = 0;
 
-        while (norm_grad() > grad_tol && iteration < max_iterations){
-            for (int point_idx = 0; point_idx < n; point_idx++){
+        while (norm_grad() > grad_tol && iteration < max_iterations) {
+            for (int point_idx = 0; point_idx < n; point_idx++) {
                 // Do a steepest decent step
 
-                for (int k = 0; k < dim; k ++) {
+                for (int k = 0; k < dim; k++) {
+
                     points[point_idx][k] -= step_size * s_grad[point_idx][k];
+
+                    if (points[point_idx][k] > half_box_length) {
+                        points[point_idx][k] -= box_length;
+                    } else if (points[point_idx][k] < -half_box_length) {
+                        points[point_idx][k] += box_length;
+                    }
+
+
                 } // k
             }
 
             set_grad();
             iteration++;
         }
+
+    shift_box_centre();
     }
 
 

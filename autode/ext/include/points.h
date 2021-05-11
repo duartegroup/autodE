@@ -4,27 +4,39 @@
 
 namespace autode {
 
-    class PointGenerator {
+    class CubePointGenerator {
 
         private:
-            double s_energy = 0.0;
+            // Attributes
             std::vector<std::vector<double>> s_grad;
+            std::vector<double> delta_point;
 
+            // Constructor helpers
             void set_init_random_points();
+            void shift_box_centre();
+
+            // Gradient functions
             double norm_grad();
+
+            // Distance functions
+            void set_delta_point_pbc(int i, int j);
+            double norm_squared_delta_point();
 
         public:
             int dim = 0;
             int n = 0;
+
             double min_val;
             double max_val;
+            double box_length;
+            double half_box_length;
 
             std::vector<std::vector<double>> points;
 
-            explicit PointGenerator(int n_points,
-                                    int dimension,
-                                    double min_val,
-                                    double max_val);
+            explicit CubePointGenerator(int n_points,
+                                        int dimension,
+                                        double min_val = -3.145,
+                                        double max_val = 3.145);
 
             void set_grad();
             void run(double grad_tol, double step_size, int max_iterations);
