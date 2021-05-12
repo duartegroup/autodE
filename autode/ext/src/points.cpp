@@ -19,7 +19,9 @@ namespace autode {
          *
          *     dim: Dimension of the space to generate the points in
          *
-         *     min_val: Minimum value of the
+         *     min_val: Minimum value in the box (single dimension)
+         *
+         *     max_val: 
          */
         if (n_points < 2){
             throw std::runtime_error("Must have at least 2 points to generate "
@@ -35,7 +37,7 @@ namespace autode {
         this->box_length = (max_val - min_val);
         this->half_box_length = (max_val - min_val) / 2.0;
 
-        if (half_box_length < 0){
+        if (box_length < 0){
             throw std::runtime_error("Must have a positive side length. i.e. "
                                      "min_val < max_val");
         }
