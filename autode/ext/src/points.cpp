@@ -21,7 +21,7 @@ namespace autode {
          *
          *     min_val: Minimum value in the box (single dimension)
          *
-         *     max_val: 
+         *     max_val:
          */
         if (n_points < 2){
             throw std::runtime_error("Must have at least 2 points to generate "
