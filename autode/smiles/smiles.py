@@ -166,6 +166,6 @@ def check_bonds(molecule, bonds):
     make_graph(check_molecule)
 
     if len(bonds) != check_molecule.graph.number_of_edges():
-        logger.warning('Bonds and graph do no match')
+        logger.warning('Bonds and graph do not match')
 
     return None

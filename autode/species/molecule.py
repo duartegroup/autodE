@@ -1,3 +1,4 @@
+import re
 import rdkit
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
@@ -20,9 +21,14 @@ class Molecule(Species):
 
     def _init_smiles(self, smiles):
         """Initialise a molecule from a SMILES string using RDKit if it's
-        purely organic"""
+        purely organic.
 
-        if any(metal in smiles for metal in metals):
+        Arguments:
+            smiles (str):
+        """
+        at_strings = re.findall(r'\[.*?]', smiles)
+
+        if any(metal in string for metal in metals for string in at_strings):
             init_smiles(self, smiles)
 
         else:

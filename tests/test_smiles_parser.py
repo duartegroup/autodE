@@ -1,4 +1,6 @@
+import re
 import pytest
+from autode.atoms import metals
 from autode.exceptions import InvalidSmilesString
 from autode.smiles.base import SMILESStereoChem
 from autode.smiles.parser import Parser
@@ -408,3 +410,28 @@ def test_multiplicity_metals():
 
     parser.parse(smiles='[Na]C1=CC=CC=C1')
     assert parser.mult == 1
+
+
+def test_aromatic_heteroatoms():
+
+    parser = Parser()
+    parser.parse(smiles='[nH]1cnnc1')
+
+    # Should have 1 atom per carbon, plus one for the defined aromatic N
+    assert sum(atom.n_hydrogens for atom in parser.atoms) == 3
+
+    # also should not have any Hs for aromatic B
+    parser.parse(smiles='c1c[cH-]bc1')
+    assert sum(atom.n_hydrogens for atom in parser.atoms) == 4
+
+
+def test_metal_in_smiles():
+
+    def metal_in_smiles(smiles):
+        at_strings = re.findall(r'\[.*?]', smiles)
+        return any(metal in string for metal in metals for string in at_strings)
+
+    assert not metal_in_smiles(smiles='CnnC')
+    assert metal_in_smiles(smiles='CC[W]')
+    assert metal_in_smiles(smiles='C[Pd]')
+    assert metal_in_smiles(smiles='[Fe3+]CNO[W]')

@@ -3,7 +3,7 @@ import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
-from autode.smiles.parser import Parser, SMILESBonds, RingBond
+from autode.smiles.parser import Parser, SMILESBonds, RingBond, SMILESAtom
 from autode.smiles.builder import Builder, Angle, Dihedral
 from autode.exceptions import SMILESBuildFailed
 from autode.mol_graphs import get_mapping
@@ -570,6 +570,21 @@ def test_double_bond_stereo_branch():
 
 def test_fused_ring_system():
     """Multiply fused rings should be buildable - repulsion needed"""
-    
+
     assert built_molecule_is_reasonable(smiles='[SiH3]C12[C@@]3(CCC4)C4=C'
                                                '[C@@H](C1C=CC2)C3')
+
+
+def test_build_exceptions():
+
+    builder.set_atoms_bonds(atoms=[SMILESAtom('H')], bonds=SMILESBonds())
+
+    # Cannot find a ring with no atoms
+    with pytest.raises(SMILESBuildFailed):
+        builder._ring_idxs(inc_idxs=(0, 1))
+
+    # Cannot find a ring path with no rings
+    bond = RingBond(1, symbol='-')
+    bond.close(1, symbol='-')
+    with pytest.raises(SMILESBuildFailed):
+        builder._ring_path(ring_bond=bond)
