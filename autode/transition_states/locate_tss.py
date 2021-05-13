@@ -22,13 +22,16 @@ from autode.substitution import get_substitution_centres
 
 
 def find_tss(reaction):
-    """Find all the possible the transition states of a reaction
+    """
+    Find all the possible the transition states of a reaction over possible
+    paths from reaction.reactant to reaction.product. Will not search the
+    conformational space of a reaction
 
     Arguments:
-        reaction (list(autode.reaction.Reaction)): Reaction
+        (list(autode.reaction.Reaction)): Reaction
 
     Returns:
-        list: list of transition state objects
+        (list(autode.transition_states.transition_state.TransitionState)):
     """
     logger.info('Finding possible transition states')
     reactant, product = reaction.reactant, reaction.product
