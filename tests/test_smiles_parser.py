@@ -408,3 +408,12 @@ def test_multiplicity_metals():
 
     parser.parse(smiles='[Na]C1=CC=CC=C1')
     assert parser.mult == 1
+
+
+def test_aromatic_triazole():
+
+    parser = Parser()
+    parser.parse(smiles='[nH]1cnnc1')
+
+    # Should have 1 atom per carbon, plus one for the defined aromatic N
+    assert sum(atom.n_hydrogens for atom in parser.atoms) == 3
