@@ -254,8 +254,8 @@ class Parser:
                           'P': (3, 5), 'S': (2, 4, 6), 'F': (1,), 'Cl': (1,),
                           'Br': (1,), 'I': (1,),
                           # Aromatic atoms are distinct
-                          'b': (3,), 'c': (3,), 'n': (2,), 'o': (1,),
-                          'p': (3,), 's': (2,), 'se': (2,), 'as': (3,)}
+                          'b': (2,), 'c': (3,), 'n': (2,), 'o': (1,),
+                          'p': (2,), 's': (1,), 'se': (1,), 'as': (2,)}
 
         for idx, atom in enumerate(self.atoms):
 
