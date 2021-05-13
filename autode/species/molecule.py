@@ -22,7 +22,7 @@ class Molecule(Species):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic"""
 
-        if any(metal in smiles for metal in metals):
+        if any(f'[{metal}]' in smiles for metal in metals):
             init_smiles(self, smiles)
 
         else:
