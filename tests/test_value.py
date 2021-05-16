@@ -36,31 +36,31 @@ def test_energy():
 
     # but can convert to a different type of energy unit
     e1_kcal = e1.to(kcalmol)
-    assert e1_kcal.x == 0.0
+    assert e1_kcal == 0.0
 
     # Conversion is not in place
     assert e1.units == ha
 
     e1 -= 0.1
     assert isinstance(e1, Energy)
-    assert e1.x == -0.1
+    assert e1 == -0.1
 
     e1 *= 10
-    assert np.isclose(e1.x, -1.0)
+    assert np.isclose(e1, -1.0)
 
     # Should be able to add two energies
     e3 = e1 + Energy(1)
-    assert e3.x == 0.0
+    assert e3 == 0.0
 
     e_kcal = Energy(627.509, units=kcalmol)
     e_ha = Energy(1.0)
 
     # Values have implicit type conversion, left precedence
-    assert np.isclose((e_ha + e_kcal).x, 2.0)
+    assert np.isclose((e_ha + e_kcal), 2.0)
     assert (e_ha + e_kcal).units == ha
 
     # So the other way should add in kcal mol-1
-    assert (e_kcal + e_ha).x > 600
+    assert (e_kcal + e_ha) > 600
 
     # Comparisons are viable in different units
     assert Energy(627.509, units=kcalmol) < Energy(2, units=ha)

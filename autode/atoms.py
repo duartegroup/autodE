@@ -1,7 +1,8 @@
 import numpy as np
 from typing import Union
 from autode.log import logger
-from autode.geom import get_rot_mat_euler, convert_rad_to
+from autode.values import Distance, Angle
+from autode.geom import get_rot_mat_euler
 
 
 class AtomCollection:
@@ -47,6 +48,20 @@ class AtomCollection:
         for i, atom in enumerate(self.atoms):
             atom.coord = value[i]
 
+    def _check_idxs_are_present(self, *args):
+        """Are a set of indexes present in the collection of atoms?
+
+        Arguments:
+            args (int):
+
+        Raises:
+            (ValueError):
+        """
+        if not set(args).issubset(set(range(self.n_atoms))):
+            raise ValueError(f'Cannot calculate the value between {args}. '
+                             f'At least one atom not present')
+        return None
+
     def distance(self,
                  i: int,
                  j: int):
@@ -62,38 +77,31 @@ class AtomCollection:
         Raises:
             (ValueError):
         """
-        if not {i, j}.issubset(set(range(self.n_atoms))):
-            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
-                             f'At least one atom not present')
+        self._check_idxs_are_present(i, j)
 
-        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+        value = np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+
+        return Distance(value)
 
     def angle(self,
               i: int,
               j: int,
-              k: int,
-              units: str = 'deg'
-              ):
+              k: int):
         """
         Angle between three atoms i-j-k
 
         Arguments:
-            i (int):
-            j (int):
-            k (int):
-
-        Keyword Arguments:
-            units (str): Units for the angle
+            i (int): Atom index of the left hand side in the angle
+            j (int):                ---     middle    ---
+            k (int):                -- right hand side --
 
         Returns:
-            (float): Angle
+            (autode.values.Angle):
 
         Raises:
             (ValueError):
         """
-        if not {i, j, k}.issubset(set(range(self.n_atoms))):
-            raise ValueError(f'Cannot calculate the angle {i}-{j}-{k}. '
-                             f'At least one atom not present in the set')
+        self._check_idxs_are_present(i, j, k)
 
         vec1 = self.atoms[i].coord - self.atoms[j].coord
         vec2 = self.atoms[k].coord - self.atoms[j].coord
@@ -104,45 +112,53 @@ class AtomCollection:
             raise ValueError(f'Cannot calculate the angle {i}-{j}-{k} - at '
                              f'least one zero vector')
 
-        angle = convert_rad_to(angle=np.arccos(np.dot(vec1, vec2) / norms),
-                               units=units)
-        return angle
+        value = np.arccos(np.dot(vec1, vec2) / norms)
+
+        return Angle(value)
 
     def dihedral(self,
                  w: int,
                  x: int,
                  y: int,
-                 z: int,
-                 units: str = 'deg'):
+                 z: int):
         """
         Dihedral angle between four atoms
 
         Arguments:
-            w (int):
-            x (int):
-            y (int):
-            z (int):
-
-        Keyword Arguments:
-            units (str): Units for the angle
+            w (int): Atom index of the first atom in the dihedral
+            x (int):               -- second --
+            y (int):               -- third  --
+            z (int):               -- fourth --
 
         Returns:
+            (autode.values.Angle):
 
+        Raises:
+            (ValueError):
         """
+        self._check_idxs_are_present(w, x, y, z)
+
         vec_yx = self.atoms[x].coord - self.atoms[y].coord
         vec_zw = self.atoms[w].coord - self.atoms[z].coord
         vec_yz = self.atoms[z].coord - self.atoms[y].coord
 
         vec1, vec2 = np.cross(vec_yx, vec_yz), np.cross(-vec_yz, vec_zw)
 
+        # Normalise and ensure no zero vectors, for which the dihedral is not
+        # defined
         for vec in (vec1, vec2, vec_yz):
-            vec /= np.linalg.norm(vec)
+            norm = np.linalg.norm(vec)
 
-        angle = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
+            if np.isclose(norm, 0.0):
+                raise ValueError(f'Cannot calculate the dihedral angle '
+                                 f'{w}-{x}-{y}-{z} - one zero vector')
+
+            vec /= norm
+
+        value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
                             np.dot(vec1, vec2))
 
-        angle = convert_rad_to(angle, units=units)
-        return angle
+        return Angle(value)
 
     def __init__(self, atoms=None):
         """

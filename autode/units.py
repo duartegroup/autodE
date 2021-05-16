@@ -75,19 +75,19 @@ kcalmol = KcalMol = Unit(name='kcal mol-1',
                          plot_name='kcal mol$^{-1}$')
 
 
-deg = Unit(name='degrees',
-           conversion=57.2958,    # rad -> deg
-           aliases=['deg', '°'])
+deg = Unit(name='°',
+           conversion=Constants.rad_to_deg,
+           aliases=['deg', 'degrees'])
 
 
-rad = Unit(name='radians',
+rad = Unit(name='rad',
            conversion=1.0,
-           aliases=['rad'])
+           aliases=['radians'])
 
 
-ang = Unit(name='angstrom',
+ang = Unit(name='Å',
            conversion=1.0,
-           aliases=['ang'])
+           aliases=['ang', 'angstrom'])
 
 
 a0 = Unit(name='bohr',
@@ -95,13 +95,13 @@ a0 = Unit(name='bohr',
           aliases=['a0'])
 
 nm = Unit(name='nm',
-          conversion=10.0,
+          conversion=Constants.ang_to_nm,
           aliases=['nanometer', 'nano meter'])
 
 pm = Unit(name='pm',
-          conversion=1E-2,
+          conversion=Constants.ang_to_pm,
           aliases=['picometer', 'pico meter'])
 
 m = Unit(name='m',
-         conversion=1E-10,
+         conversion=Constants.ang_to_m,
          aliases=['meter'])

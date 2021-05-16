@@ -16,7 +16,6 @@ import numpy as np
 import pytest
 import os
 
-here = os.path.dirname(os.path.abspath(__file__))
 Config.high_quality_plots = False
 
 
@@ -191,7 +190,7 @@ def test_saving():
 
 def test_energy():
 
-    energy = plotting.Energy(value=5, estimated=False)
+    energy = plotting.Energy(5, estimated=False)
     assert not energy.estimated
     assert energy == 5
 
@@ -202,7 +201,7 @@ def test_energy():
     new_energy = energy - 5
     assert new_energy == 0
 
-    energy2 = plotting.Energy(value=2, estimated=False)
+    energy2 = plotting.Energy(2, estimated=False)
     new_energy = 5 * energy2
     assert new_energy == 10
 

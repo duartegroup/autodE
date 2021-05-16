@@ -146,7 +146,7 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
         ec = 'H'
 
     plt.ylabel(f'∆${ec}$ / {units.plot_name}', fontsize=12)
-    energy_values = [energy.x for energy in energies]
+    energy_values = [energy for energy in energies]
     plt.ylim(min(energy_values)-3, max(energy_values)+3)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)

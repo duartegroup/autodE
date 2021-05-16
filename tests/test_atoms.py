@@ -1,7 +1,9 @@
-from autode import atoms
-from autode.atoms import Atom
 import numpy as np
 import pytest
+from autode import atoms
+from autode.atoms import Atom
+from autode.values import Angle
+
 
 
 def test_atoms():
@@ -72,9 +74,8 @@ def test_atom_collection_angles():
                  Atom('H', x=1.0)]
 
     # Should default to more human readable degree units
-    assert np.isclose(h2o.angle(0, 1, 2), 180)
-    assert np.isclose(h2o.angle(0, 1, 2, units='deg'), 180)
-    assert np.isclose(h2o.angle(0, 1, 2, units='degrees'), 180)
+    assert np.isclose(h2o.angle(0, 1, 2).to('deg'), 180)
+    assert np.isclose(h2o.angle(0, 1, 2).to('degrees'), 180)
 
     # No -1 atom
     with pytest.raises(ValueError):
@@ -84,11 +85,18 @@ def test_atom_collection_angles():
     with pytest.raises(ValueError):
         _ = h2o.angle(0, 0, 1)
 
-    assert np.isclose(np.abs(h2o.angle(0, 1, 2, units='rad')),
-                      np.pi)
+    # Angles default to radians
+    assert np.isclose(np.abs(h2o.angle(0, 1, 2)), np.pi)
 
-    with pytest.raises(ValueError):
-        _ = h2o.angle(0, 1, 2, units='not a valid unit')
+    with pytest.raises(TypeError):
+        _ = h2o.angle(0, 1, 2).to('not a unit')
+
+    assert isinstance(h2o.angle(0, 1, 2).copy(), Angle)
+
+    h2o.atoms[1].coord = np.array([-0.8239, -0.5450, 0.0000])
+    h2o.atoms[2].coord = np.array([0.8272, -0.5443, 0.0000])
+
+    assert 90 < h2o.angle(0, 1, 2).to('deg') < 120
 
 
 def test_atom():

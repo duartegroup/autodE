@@ -8,7 +8,7 @@ from autode.units import (Unit,
                           rad, deg)
 
 
-class Value(ABC):
+class Value(ABC, float):
     """
     Abstract base class for a value with a defined set of units, along with
     perhaps other attributes and methods
@@ -27,7 +27,7 @@ class Value(ABC):
     def copy(self):
         return deepcopy(self)
 
-    def _convert_to_float(self, other):
+    def _other_same_units(self, other):
         """
         Convert another value to these units, do nothing if not a Value
 
@@ -37,11 +37,10 @@ class Value(ABC):
         Returns:
             (float):
         """
-
         if not isinstance(other, Value):
-            return float(other)
+            return other
 
-        return other.to(self.units).x
+        return other.to(self.units)
 
     def __eq__(self, other):
         """Equality of two values, which may be in different units
@@ -49,11 +48,11 @@ class Value(ABC):
 
         if isinstance(other, Value):
             if other.units == self.units:
-                return np.isclose(other.x, self.x)
+                return np.isclose(other, float(self))
             else:
-                return np.isclose(other.to(self.units).x, self.x)
+                return np.isclose(other.to(self.units), float(self))
 
-        return np.isclose(other, self.x)
+        return np.isclose(other, float(self))
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -62,9 +61,9 @@ class Value(ABC):
         """Less than comparison operator"""
 
         if isinstance(other, Value):
-            return self.x < other.to(self.units).x
+            return float(self) < other.to(self.units)
 
-        return self.x < other
+        return float(self) < other
 
     def __gt__(self, other):
         """Greater than comparison operator"""
@@ -80,12 +79,12 @@ class Value(ABC):
 
     def __add__(self, other):
         """Add another value onto this one"""
-        return self.__class__(self.x + self._convert_to_float(other),
+        return self.__class__(float(self) + self._other_same_units(other),
                               units=self.units)
 
     def __mul__(self, other):
         """Multiply this value with another"""
-        return self.__class__(self.x * self._convert_to_float(other),
+        return self.__class__(float(self) * self._other_same_units(other),
                               units=self.units)
 
     def __rmul__(self, other):
@@ -96,15 +95,6 @@ class Value(ABC):
 
     def __sub__(self, other):
         return self.__add__(-other)
-
-    def __float__(self):
-        return self.x
-
-    def __int__(self):
-        return int(self.x)
-
-    def __complex__(self):
-        return complex(self.x)
 
     def to(self,
            units: Union[Unit, str]):
@@ -119,19 +109,19 @@ class Value(ABC):
         Raises:
             (TypeError):
         """
-        if isinstance(units, str):
+        if self.units == units:
+            return self
 
-            for imp_unit in self.implemented_units:
-                if units.lower() in imp_unit.aliases:
-                    units = imp_unit
-                    break
+        try:
+            units = next(imp_unit for imp_unit in self.implemented_units if
+                         units.lower() in imp_unit.aliases)
 
-        if units not in self.implemented_units:
+        except StopIteration:
             raise TypeError(f'No viable type conversion from {self.units} '
                             f'-> {units}')
 
         #                      Convert to the base unit, then to the new units
-        return self.__class__(self.x * units.conversion/self.units.conversion,
+        return self.__class__(self * units.conversion/self.units.conversion,
                               units=units)
 
     def __init__(self, x,
@@ -145,7 +135,7 @@ class Value(ABC):
         Keyword Arguments:
             units (autode.units.Unit | None):
         """
-        self.x = float(x)
+        np.float.__init__(float(x))
         self.units = units
 
 
@@ -156,7 +146,7 @@ class Energy(Value):
     implemented_units = [ha, kcalmol, kjmol, ev]
 
     def __str__(self):
-        return f'Energy({round(self.x, 5)} {self.units.name})'
+        return f'Energy({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ha):
         super().__init__(value, units=units)
@@ -185,7 +175,7 @@ class Distance(Value):
     implemented_units = [ang, a0, pm, nm, m]
 
     def __str__(self):
-        return f'Distance({round(self.x, 5)} {self.units.name})'
+        return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
         super().__init__(value, units=units)
@@ -197,7 +187,7 @@ class Angle(Value):
     implemented_units = [rad, deg]
 
     def __str__(self):
-        return f'Angle({round(self.x, 5)} {self.units.name})'
+        return f'Angle({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=rad):
         super().__init__(value, units=units)
