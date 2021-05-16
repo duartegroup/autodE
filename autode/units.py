@@ -93,3 +93,15 @@ ang = Unit(name='angstrom',
 a0 = Unit(name='bohr',
           conversion=Constants.a0_to_ang,
           aliases=['a0'])
+
+nm = Unit(name='nm',
+          conversion=10.0,
+          aliases=['nanometer', 'nano meter'])
+
+pm = Unit(name='pm',
+          conversion=1E-2,
+          aliases=['picometer', 'pico meter'])
+
+m = Unit(name='m',
+         conversion=1E-10,
+         aliases=['meter'])

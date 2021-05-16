@@ -4,7 +4,7 @@ from typing import Union
 from copy import deepcopy
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev,
-                          ang, a0,
+                          ang, a0, nm, pm, m,
                           rad, deg)
 
 
@@ -177,3 +177,27 @@ class PlottedEnergy(Energy):
         super().__init__(value, units=units)
 
         self.estimated = estimated
+
+
+class Distance(Value):
+    """Distance in some units, defaults to Angstroms"""
+
+    implemented_units = [ang, a0, pm, nm, m]
+
+    def __str__(self):
+        return f'Distance({round(self.x, 5)} {self.units.name})'
+
+    def __init__(self, value, units=ang):
+        super().__init__(value, units=units)
+
+
+class Angle(Value):
+    """Distance in some units, defaults to Angstroms"""
+
+    implemented_units = [rad, deg]
+
+    def __str__(self):
+        return f'Angle({round(self.x, 5)} {self.units.name})'
+
+    def __init__(self, value, units=rad):
+        super().__init__(value, units=units)
