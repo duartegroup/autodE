@@ -4,6 +4,7 @@ from scipy import interpolate
 from numpy.polynomial import polynomial
 import numpy as np
 import os
+from autode.values import PlottedEnergy as Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.optimize import minimize
@@ -144,13 +145,16 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
     elif enthalpy:
         ec = 'H'
 
-    plt.ylabel(f'∆${ec}$ / {units.name}', fontsize=12)
-    energy_values = [energy for energy in energies]
+    plt.ylabel(f'∆${ec}$ / {units.plot_name}', fontsize=12)
+    energy_values = [energy.x for energy in energies]
     plt.ylim(min(energy_values)-3, max(energy_values)+3)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
-    fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left',
-             fontsize=6, wrap=True)
+    fig.text(.1, .05,
+             get_reaction_profile_warnings(reactions),
+             ha='left',
+             fontsize=6,
+             wrap=True)
 
     prefix = '' if name == 'reaction' else f'{name}_'
     return save_plot(plt, filename=f'{prefix}reaction_profile.png')
@@ -407,35 +411,3 @@ def error_on_stationary_points(x, energies):
     energy_difference = energies - np.array(energies_at_stationary_points)
 
     return np.sum(np.square(energy_difference))
-
-
-# TODO: This but general and universal for numbers with units
-
-
-
-
-class Energy(float):
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return f'Energy({super().__str__()})'
-
-    def __new__(cls, value, *args, **kwargs):
-        return super().__new__(cls, value)
-
-    def __add__(self, other):
-        return self.__class__(super().__add__(other),
-                              estimated=self.estimated)
-
-    def __sub__(self, other):
-        return self.__add__(-other)
-
-    def __mul__(self, other):
-        return self.__class__(super().__mul__(other),
-                              estimated=self.estimated)
-
-    def __init__(self, value, estimated=False):
-        float.__init__(value)
-        self.estimated = estimated

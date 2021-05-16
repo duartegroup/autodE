@@ -139,7 +139,7 @@ class Path(list):
                               append=True)
         return None
 
-    def __init__(self, *args, units=KcalMol()):
+    def __init__(self, *args, units=KcalMol):
         """
         Base path class that may be populated with species or nudged elastic
         band images, *must* have .energy attributes
