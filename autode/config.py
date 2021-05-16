@@ -292,6 +292,21 @@ class Config:
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
 
+    class PSI4:
+        # ---------------------------------------------------------------------
+        # Parameters for mopac                             http://openmopac.net
+        # ---------------------------------------------------------------------
+        #
+        # path can be unset and will be assigned if it can be found in $PATH
+        path = None
+
+        # TODO: these need setting
+        keywords = KeywordsSet()
+
+        # PSI4 does not have(????) analytic gradients for solvents, thus should
+        # not run any implicitly solvated calculations
+        implicit_solvation_type = None
+
     # -------------------------------------------------------------------------
     # Use keyword naming prefixes. False to maintain backwards compatibility
     #
