@@ -87,9 +87,9 @@ def test_calculate_reaction_profile_energies():
                                                             units=KcalMol)
 
     # Energies have been set to ∆E = -20 and ∆E‡ = 20 kcal mol-1 respectively
-    assert energies[0].item() == 0
-    assert 19 < energies[1].item() < 21
-    assert -21 < energies[2].item() < -19
+    assert energies[0] == 0
+    assert 19 < energies[1] < 21
+    assert -21 < energies[2] < -19
 
     # Copying the reaction should give relative energies [0, 20, -20, 0, -40]
 
@@ -97,9 +97,9 @@ def test_calculate_reaction_profile_energies():
                                                             units=KcalMol)
 
     # Energies have been set to ∆E = -20 and ∆E‡ = 20 kcal mol-1 respectively
-    assert energies[0].item() == 0
-    assert -0.1 < energies[3].item() < 0.1
-    assert -41 < energies[4].item() < -39
+    assert energies[0] == 0
+    assert -0.1 < energies[3] < 0.1
+    assert -41 < energies[4] < -39
 
 
 def test_reaction_warnings():
@@ -193,17 +193,17 @@ def test_energy():
 
     energy = plotting.Energy(value=5, estimated=False)
     assert not energy.estimated
-    assert energy.item() == 5
+    assert energy == 5
 
     new_energy = energy * 5
-    assert new_energy.item() == 25
+    assert new_energy == 25
     assert not new_energy.estimated
 
     new_energy = energy - 5
-    assert new_energy.item() == 0
+    assert new_energy == 0
 
     energy2 = plotting.Energy(value=2, estimated=False)
     new_energy = 5 * energy2
-    assert new_energy.item() == 10
+    assert new_energy == 10
 
     assert 'energy' in str(energy).lower()

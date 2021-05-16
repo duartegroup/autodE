@@ -18,7 +18,7 @@ def test_atoms():
     assert atoms.is_pi_atom(atom_label='Aa', valency=9) is False
 
 
-def test_atom_collection():
+def test_atom_collection_base():
 
     h2 = atoms.AtomCollection()
     assert h2.n_atoms == 0
@@ -62,6 +62,33 @@ def test_atom_collection():
 
     with pytest.raises(ValueError):
         h2.distance(0, 2)
+
+
+def test_atom_collection_angles():
+
+    h2o = atoms.AtomCollection()
+    h2o.atoms = [Atom('H', x=-1.0),
+                 Atom('O'),
+                 Atom('H', x=1.0)]
+
+    # Should default to more human readable degree units
+    assert np.isclose(h2o.angle(0, 1, 2), 180)
+    assert np.isclose(h2o.angle(0, 1, 2, units='deg'), 180)
+    assert np.isclose(h2o.angle(0, 1, 2, units='degrees'), 180)
+
+    # No -1 atom
+    with pytest.raises(ValueError):
+        _ = h2o.angle(-1, 0, 1)
+
+    # Angle is not defined when one vector is the zero vector
+    with pytest.raises(ValueError):
+        _ = h2o.angle(0, 0, 1)
+
+    assert np.isclose(np.abs(h2o.angle(0, 1, 2, units='rad')),
+                      np.pi)
+
+    with pytest.raises(ValueError):
+        _ = h2o.angle(0, 1, 2, units='not a valid unit')
 
 
 def test_atom():

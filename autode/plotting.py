@@ -145,7 +145,7 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
         ec = 'H'
 
     plt.ylabel(f'∆${ec}$ / {units.name}', fontsize=12)
-    energy_values = [energy.item() for energy in energies]
+    energy_values = [energy for energy in energies]
     plt.ylim(min(energy_values)-3, max(energy_values)+3)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
@@ -170,7 +170,7 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     # Minimise a set of spline points so the stationary points have y values
     # given in the energies array
-    energies_arr = np.array([energy.item() for energy in energies], dtype='f')
+    energies_arr = np.array([energy for energy in energies], dtype='f')
     result = minimize(error_on_stationary_points, x0=energies_arr,
                       args=(energies_arr,),
                       method='BFGS',
@@ -220,7 +220,7 @@ def plot_points(zi_s, energies, ax):
         energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
         ax (matplotlib.axes.Axes):
     """
-    energies_arr = np.array([energy.item() for energy in energies])
+    energies_arr = np.array([energy for energy in energies])
 
     ax.plot(zi_s, energies_arr, ls='--', c='k', marker='o')
 
@@ -322,7 +322,7 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         # warning added to the plot. Effective free energy barrier =
         # 4.35 kcal mol-1 calcd. from k = 4x10^9 at 298 K (10.1021/cr050205w)
         if de_ts is None:
-            de_ts = Energy(0.00694 + max(0.0, de.item()), estimated=True)
+            de_ts = Energy(0.00694 + max(0.0, de), estimated=True)
 
         else:
             de_ts = Energy(de_ts)
@@ -339,11 +339,7 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         energies += [reaction_energies[i][1] + energies[-1],
                      reaction_energies[i][2] + energies[-1]]
 
-    # Convert to the required units
-    for energy in energies:
-        energy.x *= units.conversion
-
-    return energies
+    return [energy * units.conversion for energy in energies]
 
 
 def get_stationary_points(xs, dydx):
@@ -371,9 +367,9 @@ def error_on_stationary_points(x, energies):
     Calculate the difference between the stationary points of an interpolated
     function and those observed (given in the energies array). Example::
 
-          |     .
-        E |.   / \        The points indicate the true stationary points
-          | \_/   \.
+          |      .
+        E |.   / |        The points indicate the true stationary points
+          | |_/  |.
           |_____________
                 zi
 
@@ -413,31 +409,33 @@ def error_on_stationary_points(x, energies):
     return np.sum(np.square(energy_difference))
 
 
-class Energy:
+# TODO: This but general and universal for numbers with units
+
+
+
+
+class Energy(float):
 
     def __repr__(self):
-        return f'Energy({self.x})'
+        return self.__str__()
+
+    def __str__(self):
+        return f'Energy({super().__str__()})'
+
+    def __new__(cls, value, *args, **kwargs):
+        return super().__new__(cls, value)
 
     def __add__(self, other):
-        """Add a number to an energy"""
-        value = self.x + (other.item() if isinstance(other, Energy) else other)
-        return Energy(value, estimated=self.estimated)
+        return self.__class__(super().__add__(other),
+                              estimated=self.estimated)
 
     def __sub__(self, other):
-        """Subtract a number from an energy"""
-        return self.__add__(-other.x if isinstance(other, Energy) else -other)
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
+        return self.__add__(-other)
 
     def __mul__(self, other):
-        """Multiply an energy by a number"""
-        value = self.x * (other.item() if isinstance(other, Energy) else other)
-        return Energy(value, estimated=self.estimated)
-
-    def item(self):
-        return self.x
+        return self.__class__(super().__mul__(other),
+                              estimated=self.estimated)
 
     def __init__(self, value, estimated=False):
-        self.x = value
+        float.__init__(value)
         self.estimated = estimated

@@ -234,10 +234,8 @@ class Dihedral(Angle):
             raise SMILESBuildFailed('Cannot calculate a dihedral '
                                     '- one zero vector')
 
-        # Normalise everything
-        vec1 /= np.linalg.norm(vec1)
-        vec2 /= np.linalg.norm(vec2)
-        vec_yz /= np.linalg.norm(vec_yz)
+        for vec in (vec1, vec2, vec_yz):
+            vec /= np.linalg.norm(vec)
 
         """
         Dihedral angles are defined as from the IUPAC gold book: "the torsion 

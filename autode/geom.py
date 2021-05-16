@@ -36,6 +36,32 @@ def are_coords_reasonable(coords):
     return True
 
 
+def convert_rad_to(angle, units):
+    """
+    Convert radians to a defined set of coordinates
+
+    Args:
+        angle (float):
+        units (str):
+
+    Returns:
+        (float): Angle
+
+    Raises:
+        (ValueError)
+    """
+
+    if units == 'deg' or units == 'degrees':
+        # Numpy defaults to radians, so convert to degrees
+        return np.rad2deg(angle)
+
+    elif units == 'rad' or units == 'radians':
+        return angle
+
+    else:
+        raise ValueError(f'{units} not a valid unit. Choose deg or rad')
+
+
 def get_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
