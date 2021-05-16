@@ -33,6 +33,10 @@ def find_tss(reaction):
     logger.info('Finding possible transition states')
     reactant, product = reaction.reactant, reaction.product
 
+    if reactant is None or product is None:
+        raise ValueError('Reaction must have reaction.reactant and'
+                         ' reaction.product set as species')
+
     if species_are_isomorphic(reactant, product):
         logger.error('Reactant and product complexes are isomorphic. Cannot'
                      ' find a TS')
