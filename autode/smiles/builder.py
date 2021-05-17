@@ -475,6 +475,10 @@ class Builder(AtomCollection):
             if bond.order != 2:
                 continue
 
+            if bond.in_ring(self.rings_idxs) and bond.is_cis(self.atoms):
+                logger.info('cis double bond in ring not adding constraint')
+                continue
+
             logger.info('Double bond - adding constraint')
             try:
                 idx_in = next(idx for idx in iter(self.atoms[idx_i].neighbours)

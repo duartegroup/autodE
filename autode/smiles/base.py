@@ -132,6 +132,23 @@ class SMILESBond:
         """
         return self.order == 2 and not self.is_cis(atoms)
 
+    def in_ring(self, rings_idxs):
+        """
+        Is this bond a constituent of a ring
+
+        Args:
+            rings_idxs (collection(collection(int))):
+
+        Returns:
+            (bool):
+        """
+
+        for ring_idxs in rings_idxs:
+            if set(self._list).issubset(set(ring_idxs)):
+                return True
+
+        return False
+
     def distance(self, atoms):
         """Distance of this bond (Å) given a set of atoms"""
         idx_i, idx_j = self._list
@@ -161,7 +178,6 @@ class SMILESBond:
         if symbol not in bond_order_symbols:
             raise InvalidSmilesString(f'{symbol} is an unknown bond type')
 
-        self.in_ring = False
         self.closes_ring = False
         self.order = bond_order_symbols.index(symbol) + 1
 
@@ -184,6 +200,9 @@ class RingBond(SMILESBond):
 
         return None
 
+    def in_ring(self, rings_idxs):
+        return True
+
     def __init__(self, idx_i, symbol, bond_idx=None):
         """Initialise the bond with a non-existent large index
 
@@ -197,7 +216,6 @@ class RingBond(SMILESBond):
         """
         super().__init__(idx_i=idx_i, idx_j=99999, symbol=symbol)
 
-        self.in_ring = True
         self.closes_ring = True
         self.bond_idx = bond_idx
 
