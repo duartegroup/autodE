@@ -56,7 +56,7 @@ class Parser:
 
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
-        present_invalid_chars = [char for char in (':', '.', '*', '%')
+        present_invalid_chars = [char for char in (':', '.', '*')
                                  if char in self._string]
 
         if len(present_invalid_chars) > 0:
@@ -156,6 +156,44 @@ class Parser:
         # where the +1 is from the final ]
         self.parsed_idxs.update(list(range(idx, idx + len(bracketed_sec) + 2)))
         return None
+
+    def _parse_ring_idx(self, idx):
+        """
+        From a position in the SMILES string determine the ring index, zero
+        indexed
+        e.g.::
+
+            C1CC...    --> 0
+             ^
+             i
+
+             C%99CC... --> 98
+              ^
+              i
+
+        Arguments:
+            idx (int):
+
+        Returns:
+            (int):
+        """
+        curr_char = self._string[idx]
+
+        if curr_char.isdigit():
+            return int(curr_char) - 1
+
+        if curr_char == '%':
+            if len(self._string[idx+1:]) < 2:
+                raise InvalidSmilesString('No ring index found following %')
+
+            try:
+                return int(self._string[idx+1:idx+3]) - 1
+
+            except ValueError:
+                raise InvalidSmilesString('Integer >9 not found following %')
+
+        raise InvalidSmilesString(f'Could not get the ring index {curr_char} '
+                                  f'was neither a number or a %')
 
     def _add_bond(self, symbol, idx, prev_atom_idx=None):
         """
@@ -312,8 +350,9 @@ class Parser:
                 continue
 
             # Integer for a dangling bond e.g. C1, C=1, N3 etc.
-            elif char.isdigit():
-                ring_idx = int(char) - 1
+            elif char.isdigit() or char == '%':
+
+                ring_idx = self._parse_ring_idx(idx=i)
 
                 # This bond is in the dictionary and can be closed and removed
                 if ring_idx in unclosed_bonds.keys():
