@@ -77,8 +77,8 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
         reaction (autode.reaction.Reaction):
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
-    Returns:
-        (list): updated funcs and params list
+    Yields:
+        (tuple(func, args)):
     """
     name = str(reaction)
     scan_name = name
@@ -116,12 +116,16 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
                               n_iters=10):
     """
     Shift a molecule in the reactant complex so that the attacking atoms
-    (a_atoms) are pointing towards the attacked atoms (l_atoms)
+    (a_atoms) are pointing towards the attacked atoms (l_atoms). Applied in
+    place
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
+
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+
         shift_factor (float):
+
         n_iters (int): Number of iterations of translation/rotation to perform
                        to (hopefully) find the global minima
     """
@@ -142,7 +146,8 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
                                              bond_rearrangement,
                                              shift_factor=shift_factor)
 
-    if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0) for sc in subst_centres):
+    if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0)
+           for sc in subst_centres):
         attacking_mol = 0
     else:
         attacking_mol = 1
@@ -220,11 +225,16 @@ def get_truncated_ts(reaction, bond_rearr):
 def reorder_product(reactant, product, bond_rearr):
     """
     Reorder the atoms in the product, and its molecular graph to reflect those
-    in the reactant
+    in the reactant.
+
+    NOTE: This will apply the first valid atom mapping which
+    is closest to the reactant, not necessarily the 'true' mapping
 
     Arguments:
         reactant (autode.complex.ReactantComplex):
+
         product (autode.complex.ProductComplex):
+
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
     """
     reordered_product = product.copy()
