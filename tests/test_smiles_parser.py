@@ -196,7 +196,8 @@ def test_rings():
     assert parser.n_bonds == 10
     assert parser.n_atoms == 9
 
-    ring_bonds = [bond for bond in parser.bonds if bond.in_ring]
+    # has 2 bonds that close rings, but plenty of bonds that form rings
+    ring_bonds = [bond for bond in parser.bonds if bond.closes_ring]
     assert len(ring_bonds) == 2
 
     # Reusing ring closures is fine..
