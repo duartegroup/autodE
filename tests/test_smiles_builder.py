@@ -72,6 +72,20 @@ def test_build_single_atom():
     assert parser.mult == 2
 
 
+def test_ring_path():
+
+    parser.parse(smiles='C1C1')
+    builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+
+    # Define a 'ring' bond in this system of just two atoms in a 'ring'
+    ring_bond = RingBond(idx_i=0, symbol='-')
+    ring_bond.close(idx=1, symbol='-')
+    
+    # There then is no valid path that traverses the ring
+    with pytest.raises(SMILESBuildFailed):
+        _ = builder._ring_path(ring_bond)
+
+
 def test_too_high_valance():
 
     parser.parse(smiles='CC(C)(C)(C)(C)(C)(C)(C)(C)C')
