@@ -63,10 +63,15 @@ class Angle:
 
             if np.linalg.norm(atoms[idx_i].coord
                               - atoms[idx_j].coord) > max_bond_distance:
-                logger.info(f'Bond {idx_i}-{idx_j} was not present, removing '
+                logger.info(f'Bond {idx_i}-{idx_j} was not present, may '
                             f'from graph for idx location')
 
                 graph.remove_edge(idx_i, idx_j)
+
+                # Removing edges is only possible if the graph remains intact,
+                # i.e. there are no stranded atoms
+                if not nx.is_connected(graph):
+                    graph.add_edge(idx_i, idx_j)
 
         components = [graph.subgraph(c) for c in
                       nx.connected_components(graph)]
