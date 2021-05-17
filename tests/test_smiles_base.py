@@ -1,6 +1,9 @@
 import pytest
 import autode.exceptions as ex
-from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
+from autode.smiles.base import (SMILESAtom,
+                                SMILESBond,
+                                SMILESStereoChem,
+                                RingBond)
 
 
 def test_smiles_atom():
@@ -33,3 +36,9 @@ def test_smiles_bond():
     # Invalid bond symbol
     with pytest.raises(ex.InvalidSmilesString):
         _ = SMILESBond(0, 1, symbol='--')
+
+    bond = RingBond(0, symbol='=')
+    bond.close(1, symbol='-')
+
+    assert bond.closes_ring
+    assert bond.in_ring(rings_idxs=[{0, 1}])
