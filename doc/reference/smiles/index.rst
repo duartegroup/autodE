@@ -8,4 +8,5 @@ SMILES
    :maxdepth: 2
 
    smiles
-   smiles_parser
+   parser
+   builder

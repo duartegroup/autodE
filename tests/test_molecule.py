@@ -183,3 +183,12 @@ def test_rdkit_possible_fail():
     # RDKit also may not parse CH5+
     ch5 = Molecule(smiles='[H]C([H])([H])([H])[H+]')
     assert are_coords_reasonable(coords=ch5.coordinates)
+
+
+def test_multi_ring_smiles_init():
+
+    cr_complex = Molecule(smiles='[N+]12=CC=CC3=C1C(C(C=C3)=CC=C4)=[N+]4[Cr]25'
+                                 '6([N+]7=CC=CC8=C7C9=[N+]6C=CC=C9C=C8)[N+]%10'
+                                 '=CC=CC%11=C%10C%12=[N+]5C=CC=C%12C=C%11')
+
+    assert are_coords_reasonable(cr_complex.coordinates)

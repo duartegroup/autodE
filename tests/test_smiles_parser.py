@@ -1,5 +1,6 @@
 import re
 import pytest
+from copy import deepcopy
 from autode.atoms import metals
 from autode.exceptions import InvalidSmilesString
 from autode.smiles.base import SMILESStereoChem
@@ -195,7 +196,8 @@ def test_rings():
     assert parser.n_bonds == 10
     assert parser.n_atoms == 9
 
-    ring_bonds = [bond for bond in parser.bonds if bond.in_ring]
+    # has 2 bonds that close rings, but plenty of bonds that form rings
+    ring_bonds = [bond for bond in parser.bonds if bond.closes_ring]
     assert len(ring_bonds) == 2
 
     # Reusing ring closures is fine..
@@ -435,3 +437,43 @@ def test_metal_in_smiles():
     assert metal_in_smiles(smiles='CC[W]')
     assert metal_in_smiles(smiles='C[Pd]')
     assert metal_in_smiles(smiles='[Fe3+]CNO[W]')
+
+
+def test_lots_of_smiles_rings():
+
+    parser = Parser()
+
+    # Should be able to parse a SMILES with ring closures with multiple
+    # digits
+    parser.parse(smiles='C%99CCCC%99')
+    cyclopentane_atoms = deepcopy(parser.atoms)
+
+    parser.parse(smiles='C1CCCC1')
+    assert all(parser.atoms[i].label == cyclopentane_atoms[i].label
+               for i in range(len(parser.atoms)))
+
+
+def is_invalid(smiles):
+
+    with pytest.raises(InvalidSmilesString):
+        Parser().parse(smiles)
+
+
+def test_parse_ring_idx():
+
+    # % ring closures must be followed by two numbers
+    is_invalid('C%9CC')
+
+    # and have at least two characters following the %
+    is_invalid(smiles='C%')
+
+    # and no non-integer characters
+    is_invalid(smiles='C%$$')
+
+    # Check that the function does reasonable things even if there is no
+    # ring index present
+    parser = Parser()
+
+    parser._string = 'CCCC'
+    with pytest.raises(InvalidSmilesString):
+        parser._parse_ring_idx(idx=0)

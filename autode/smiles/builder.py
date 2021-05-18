@@ -165,6 +165,9 @@ class Builder(AtomCollection):
                 if atom.group == 16:
                     atom.type = atom_types.BentAtom()
 
+                elif atom.group == 15:                         # e.g. H2C=NH
+                    atom.type = atom_types.TrigonalAtom()
+
                 else:                                          # e.g. AuR2
                     atom.type = atom_types.LinearAtom()
 
@@ -472,6 +475,10 @@ class Builder(AtomCollection):
             if bond.order != 2:
                 continue
 
+            if bond.in_ring(self.rings_idxs) and bond.is_cis(self.atoms):
+                logger.info('cis double bond in ring not adding constraint')
+                continue
+
             logger.info('Double bond - adding constraint')
             try:
                 idx_in = next(idx for idx in iter(self.atoms[idx_i].neighbours)
@@ -718,8 +725,8 @@ class Builder(AtomCollection):
         nbrs_x = [idx for idx in self.atoms[idx_x].neighbours if idx != idx_y]
         nbrs_y = [idx for idx in self.atoms[idx_y].neighbours if idx != idx_x]
 
-        if len(nbrs_x) < 2 or len(nbrs_y) < 2:
-            logger.info('Had a double bond containing an atom with < 2 '
+        if len(nbrs_x) == 0 or len(nbrs_y) == 0:
+            logger.info(f'At least one atom forming {bond} had no '
                         'neighbours - no need to rotate the dihedral')
             return
 
