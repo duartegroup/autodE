@@ -2,7 +2,7 @@
 Smiles Parser
 *************
 
-.. automodule:: autode.smiles.smiles_parser
+.. automodule:: autode.smiles.parser
    :members:
    :undoc-members:
    :special-members: __init__

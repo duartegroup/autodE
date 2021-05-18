@@ -725,8 +725,8 @@ class Builder(AtomCollection):
         nbrs_x = [idx for idx in self.atoms[idx_x].neighbours if idx != idx_y]
         nbrs_y = [idx for idx in self.atoms[idx_y].neighbours if idx != idx_x]
 
-        if len(nbrs_x) < 1 or len(nbrs_y) < 1:
-            logger.info(f'At least one atom forming {bond} has < 1 '
+        if len(nbrs_x) == 0 or len(nbrs_y) == 0:
+            logger.info(f'At least one atom forming {bond} had no '
                         'neighbours - no need to rotate the dihedral')
             return
 

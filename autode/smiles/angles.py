@@ -64,7 +64,7 @@ class Angle:
             if np.linalg.norm(atoms[idx_i].coord
                               - atoms[idx_j].coord) > max_bond_distance:
                 logger.info(f'Bond {idx_i}-{idx_j} was not present, may '
-                            f'from graph for idx location')
+                            f'remove from graph for idx location')
 
                 graph.remove_edge(idx_i, idx_j)
 
