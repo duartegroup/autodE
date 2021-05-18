@@ -69,7 +69,8 @@ class Angle:
                 graph.remove_edge(idx_i, idx_j)
 
                 # Removing edges is only possible if the graph remains intact,
-                # i.e. there are no stranded atoms
+                # i.e. there are no stranded atoms formed by splitting, sso
+                # re-add the edge if two separate graphs are formed
                 if not nx.is_connected(graph):
                     graph.add_edge(idx_i, idx_j)
 
