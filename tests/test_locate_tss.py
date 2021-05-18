@@ -7,8 +7,9 @@ from autode.species.complex import Complex
 from autode.reactions.reaction_types import Dissociation
 from autode.species.complex import get_complexes
 from autode.bond_rearrangement import get_bond_rearrangs, BondRearrangement
-from autode.transition_states.locate_tss import get_ts
-from autode.transition_states.locate_tss import get_ts_guess_function_and_params
+from autode.transition_states.locate_tss import (get_ts,
+                                                 get_ts_guess_function_and_params,
+                                                 find_tss)
 
 
 def test_one_to_three_dissociation():
@@ -63,3 +64,12 @@ def test_more_forming_than_breaking():
     # if this is to be supproted
     with pytest.raises(NotImplementedError):
         _ = get_ts(reaction=rxn, reactant=h2_sep, bond_rearr=bond_rearr)
+
+
+def test_find_tss_no_products():
+
+    reaction = Reaction(Reactant(smiles='O'), Product(smiles='O'))
+
+    # Check for no reactant and product before anything else
+    with pytest.raises(ValueError):
+        _ = find_tss(reaction)

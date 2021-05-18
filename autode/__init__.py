@@ -2,6 +2,7 @@ from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
                                       HessianKeywords, SinglePointKeywords)
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
+from autode.atoms import Atom
 from autode.species.molecule import Reactant
 from autode.species.molecule import Product
 from autode.species.molecule import Molecule
@@ -16,7 +17,7 @@ from autode import utils
 from autode import neb
 from autode import mol_graphs
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 __all__ = [
@@ -26,6 +27,7 @@ __all__ = [
     'SinglePointKeywords',
     'Reaction',
     'MultiStepReaction',
+    'Atom',
     'Reactant',
     'Product',
     'Molecule',
