@@ -453,24 +453,27 @@ def test_lots_of_smiles_rings():
                for i in range(len(parser.atoms)))
 
 
+def is_invalid(smiles):
+
+    with pytest.raises(InvalidSmilesString):
+        Parser().parse(smiles)
+
+
 def test_parse_ring_idx():
 
-    parser = Parser()
-
     # % ring closures must be followed by two numbers
-    with pytest.raises(InvalidSmilesString):
-        parser.parse(smiles='C%9CC')
+    is_invalid('C%9CC')
 
     # and have at least two characters following the %
-    with pytest.raises(InvalidSmilesString):
-        parser.parse(smiles='C%')
+    is_invalid(smiles='C%')
 
     # and no non-integer characters
-    with pytest.raises(InvalidSmilesString):
-        parser.parse(smiles='C%$$')
+    is_invalid(smiles='C%$$')
 
     # Check that the function does reasonable things even if there is no
     # ring index present
+    parser = Parser()
+
     parser._string = 'CCCC'
     with pytest.raises(InvalidSmilesString):
         parser._parse_ring_idx(idx=0)
