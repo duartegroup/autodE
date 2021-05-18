@@ -24,15 +24,17 @@ class Parser:
 
     @property
     def n_atoms(self):
+        """Number of atoms in parsed, not including implicit hydrogens"""
         return len(self.atoms)
 
     @property
     def n_bonds(self):
+        """Number of bonds parsed"""
         return len(self.bonds)
 
     @property
     def charge(self):
-        """Return the total charge on all the atoms"""
+        """Total charge on all the atoms"""
         return sum(atom.charge for atom in self.atoms)
 
     @property
@@ -67,6 +69,7 @@ class Parser:
 
     @property
     def smiles(self):
+        """SMILES string being parsed"""
         return self._string
 
     @smiles.setter
@@ -436,12 +439,12 @@ class Parser:
 def atomic_charge(string):
     """
     Parse a section of a SMILES string associated with an atom for the
-    formal charge on the atom, will ignore anything but +, -. e.g.
+    formal charge on the atom, will ignore anything but +, -. e.g.::
 
-    +   ->   1
-    -   ->  -1
-    ++  ->   2
-    H+  ->   1
+        +   ->   1
+        -   ->  -1
+        ++  ->   2
+        H+  ->   1
 
     Returns:
         (int): charge
@@ -476,11 +479,11 @@ def atomic_charge(string):
 def atomic_sterochem(string):
     """
     Extract the first occurring atomic stereochemistry from a partial
-    SMILES i.e
+    SMILES i.e::
 
-    @H3  ->  @
-    @    ->  @
-    @@-  ->  @@
+        @H3  ->  @
+        @    ->  @
+        @@-  ->  @@
 
     Arguments:
         string (str):
@@ -501,11 +504,11 @@ def atomic_sterochem(string):
 
 def atomic_n_hydrogens(string):
     """
-    Extract the number of hydrogens from a partial SMILES, i.e.
+    Extract the number of hydrogens from a partial SMILES, i.e.::
 
-    H3-  ->  3
-    H    ->  1
-    C    ->  0
+        H3-  ->  3
+        H    ->  1
+        C    ->  0
 
     Arguments:
         string (str):
@@ -537,7 +540,7 @@ def next_char(string, idx):
         idx (idx): Index of the current position in the string
 
     Returns:
-        (str):
+        (str): Next character in the string
     """
     if idx >= len(string) - 1:
         return ''

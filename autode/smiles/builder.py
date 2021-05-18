@@ -15,21 +15,29 @@ from autode.exceptions import (SMILESBuildFailed,
 
 
 class Builder(AtomCollection):
-    """3D geometry builder
+    """3D geometry builder::
 
-    Atoms:  C, 4H               H  H
-    Bonds:  4 x C-H      -->     C
-                               H  H
+        Atoms:  C, 4H               H  H
+        Bonds:  4 x C-H      -->     C
+                                   H  H
     """
 
     @property
     def built(self):
-        """Have all the atoms been shifted appropriately"""
+        """Have all the atoms been shifted appropriately?
+
+        Returns:
+            (bool):
+        """
         return self.atoms is not None and len(self.queued_atoms) == 0
 
     @property
     def canonical_atoms(self):
-        """Generate canonical autodE atoms from this set"""
+        """Generate canonical autodE atoms from this set
+
+        Returns:
+            (list(autode.atoms.Atom)): Atoms
+        """
 
         atoms = []
         for atom in self.atoms:
@@ -40,12 +48,20 @@ class Builder(AtomCollection):
 
     @property
     def canonical_atoms_at_origin(self):
-        """Canonical set of autodE atoms all located at the origin"""
+        """Canonical set of autodE atoms all located at the origin
+
+        Returns:
+            (list(autode.atoms.Atom)): Atoms all with atom.coord = [0, 0, 0]
+        """
         return [Atom(atom.label) for atom in self.atoms]
 
     @property
     def built_atom_idxs(self):
-        """Atom indexes that have been built"""
+        """Atom indexes that have been built
+
+        Returns:
+            (list(int)): Atom indexes
+        """
         return [i for i in range(self.n_atoms) if self.atoms[i].is_shifted]
 
     @property
@@ -74,7 +90,11 @@ class Builder(AtomCollection):
 
     @property
     def max_ring_n(self):
-        """Maximum ring size in this molecule"""
+        """Maximum ring size in this molecule
+
+        Returns:
+            (int): Maximum ring size
+        """
 
         if self.rings_idxs is None or len(self.rings_idxs) == 0:
             return 0
@@ -374,8 +394,7 @@ class Builder(AtomCollection):
            C1                                 C1 ---C3
 
         Arguments:
-
-
+            ring_bond (autode.smiles.base.RingBond):
         """
 
         path = self._ring_path(ring_bond=ring_bond)
@@ -863,6 +882,10 @@ class Builder(AtomCollection):
         """
         From a list of SMILESAtoms, and SMILESBonds set the required attributes
         and convert all implicit hydrogens into explicit atoms
+
+        Arguments:
+            atoms (list(autode.smiles.base.SMILESAtom)):
+            bonds (auode.smiles.base.SMILESBonds):
         """
         if atoms is None or len(atoms) == 0:
             raise SMILESBuildFailed('Cannot build a structure with no atoms')
