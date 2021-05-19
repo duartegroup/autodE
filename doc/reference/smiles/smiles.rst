@@ -1,6 +1,6 @@
-******
-Smiles
-******
+*********************
+Molecules from SMILES
+*********************
 
 .. automodule:: autode.smiles.smiles
    :members:

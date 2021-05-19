@@ -1,6 +1,37 @@
 Changelog
 =========
 
+1.0.4
+--------
+----------
+
+Bug fixes in SMILES parser and 3D geometry builder from 1.0.3.
+
+
+Usability improvements
+**********************
+
+- Improves doc strings
+- Throws interpertable error when calling :code:`find_tss`  without :code:`reaction.reactant` set
+
+Functionality improvements
+**************************
+
+- SMILES strings with >9 ring closures are parsed correctly
+- cis-double bonds in rings no longer minimise with constraints, which is a little faster
+
+Bug Fixes
+*********
+- Tweaks repulsion parameters in minimisation to build fused rings
+- Enables SMILES parsing with "X(...)1" branching
+- Fixes spin multiplicity for odd numbers of hydrogens
+- Improves ring closure 3D build
+- Fixes incorrect implicit valency for aromatic heteroatoms
+- Improves metal finding in SMILES strings with regex
+- Corrects atom type for sp2 group 16 elements
+- Fixes dihedral rotation with atoms not close to any other
+
+
 1.0.3
 --------
 ----------

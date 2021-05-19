@@ -1,10 +1,10 @@
 Configuration
 =============
 
-The *Config* can be modified from the input script for full customization of
-the calculations. By default low level optimisations are performed at PBE-D3BJ/def2-SVP,
-optimisations at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in
-ORCA if it is available.
+Configuration is handled with :code:`ade.Config` and can be modified for full
+customization of the calculations. By default optimisations are performed at
+PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in ORCA if it is
+available.
 
 ------------
 
@@ -18,15 +18,16 @@ For example, to use Gaussian09 as the high level electronic structure method
 
 .. code-block:: python
 
-  >>> Config.hcode = 'g09'
+  >>> import autode as ade
+  >>> ade.Config.hcode = 'g09'
 
 To set the number of cores available and the memory per core (in MB), to use a maximum
 of 32 GB for the whole calculation
 
 .. code-block:: python
 
-  >>> Config.n_cores = 8
-  >>> Config.max_core = 4000
+  >>> ade.Config.n_cores = 8
+  >>> ade.Config.max_core = 4000
 
 ------------
 
@@ -39,7 +40,7 @@ B3LYP/def2-TZVP single point energies in ORCA
 .. code-block:: python
 
   >>> from autode.wrappers.keywords import SinglePointKeywords
-  >>> Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
+  >>> ade.Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
 
 a cleaner solution uses
 
@@ -50,7 +51,7 @@ basis set for optimisations
 
 .. code-block:: python
 
-  >>> Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
+  >>> ade.Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
 
 .. note::
     `set_opt_basis_set` sets the basis set in keywords.grad, keywords.opt_ts
@@ -66,12 +67,12 @@ and some default options
 
 .. code-block:: python
 
-  >>> Config.G16.keywords.sp = SinglePointKeywords([f"external='xtb-gaussian'"])
-  >>> Config.G16.keywords.low_opt = OptKeywords([f"external='xtb-gaussian'", "opt=loose"])
-  >>> Config.G16.keywords.opt = OptKeywords([f"external='xtb-gaussian'", "opt"])
-  >>> Config.G16.keywords.opt_ts = OptKeywords([f"external='xtb-gaussian'", 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', "freq"])
-  >>> Config.G16.keywords.hess = HessianKeywords([f"external='xtb-gaussian'", 'freq'])
-  >>> Config.G16.keywords.grad = GradientKeywords([f"external='xtb-gaussian'", 'Force(NoStep)'])
+  >>> ade.Config.G16.keywords.sp = SinglePointKeywords([f"external='xtb-gaussian'"])
+  >>> ade.Config.G16.keywords.low_opt = OptKeywords([f"external='xtb-gaussian'", "opt=loose"])
+  >>> ade.Config.G16.keywords.opt = OptKeywords([f"external='xtb-gaussian'", "opt"])
+  >>> ade.Config.G16.keywords.opt_ts = OptKeywords([f"external='xtb-gaussian'", 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', "freq"])
+  >>> ade.Config.G16.keywords.hess = HessianKeywords([f"external='xtb-gaussian'", 'freq'])
+  >>> ade.Config.G16.keywords.grad = GradientKeywords([f"external='xtb-gaussian'", 'Force(NoStep)'])
 
 ------------
 

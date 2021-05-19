@@ -10,3 +10,6 @@ SMILES
    smiles
    parser
    builder
+   atom_types
+   angles
+   base

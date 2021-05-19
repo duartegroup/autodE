@@ -4,6 +4,7 @@ from autode import Molecule
 from autode.atoms import Atom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds, RingBond, SMILESAtom
+from autode.smiles.base import SMILESStereoChem
 from autode.smiles.builder import Builder, Angle, Dihedral
 from autode.exceptions import SMILESBuildFailed
 from autode.mol_graphs import get_mapping
@@ -80,7 +81,7 @@ def test_ring_path():
     # Define a 'ring' bond in this system of just two atoms in a 'ring'
     ring_bond = RingBond(idx_i=0, symbol='-')
     ring_bond.close(idx=1, symbol='-')
-    
+
     # There then is no valid path that traverses the ring
     with pytest.raises(SMILESBuildFailed):
         _ = builder._ring_path(ring_bond)
@@ -602,3 +603,15 @@ def test_build_exceptions():
     bond.close(1, symbol='-')
     with pytest.raises(SMILESBuildFailed):
         builder._ring_path(ring_bond=bond)
+
+
+def test_ff_dist_matrix():
+
+    parser.parse(smiles='C=O')
+    builder_ = Builder()
+    builder_.build(atoms=parser.atoms, bonds=parser.bonds)
+
+    # Should not try and add any distance constraints across the double
+    # bond with no neighbours on oxygen
+    dist_matrix = builder_._ff_distance_matrix()
+    assert dist_matrix.shape == (builder_.n_atoms, builder_.n_atoms)

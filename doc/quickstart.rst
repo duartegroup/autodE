@@ -13,7 +13,8 @@ Diels Alder
 
 For the simple [4+2] Diels-Alder reaction between ethene and butadiene the
 reaction profile can be calculated in a couple of lines, where **autodE**
-identifies reactants and products from the reaction SMILES.
+identifies reactants and products from the reaction SMILES and executes
+using 8 CPU cores in around 10 minutes or so using ORCA/XTB.
 
 .. code-block:: python
 
@@ -23,6 +24,10 @@ identifies reactants and products from the reaction SMILES.
     >>> rxn = ade.Reaction('C=CC=C.C=C>>C1=CCCCC1', name='DA')
     >>> rxn.calculate_reaction_profile()
 
+A *DA/* directory should be created where electronic structure calculations have
+been performed and an image of the reaction profile saved in the current working directory.
+
+.. image:: common/diels_alder_quickstart.png
 
 
 ------------
