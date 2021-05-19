@@ -1,8 +1,8 @@
 *************
-SMILES Parser
+SMILES Angles
 *************
 
-.. automodule:: autode.smiles.parser
+.. automodule:: autode.smiles.angles
    :members:
    :undoc-members:
    :special-members: __init__

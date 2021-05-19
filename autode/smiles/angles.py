@@ -175,11 +175,12 @@ class Dihedrals(Angles):
 
 
 class Dihedral(Angle):
-    """A dihedral defined by 4 atom indexes e.g.
+    """A dihedral defined by 4 atom indexes e.g.::
 
-       X       W
-       |      /
-       Y---- Z
+           X       W
+           |      /
+           Y---- Z
+
     """
     def __str__(self):
         return f'Dihedral(idxs={self.idxs}, φ0={round(self.phi0, 2)})'

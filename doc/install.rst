@@ -7,17 +7,17 @@ Dependencies
 * `Python <https://www.python.org/>`_ > v. 3.5
 * One of:
 
-  * `ORCA <https://sites.google.com/site/orcainputlibrary/home/>`_ > v. 4.1
+  * `ORCA <https://sites.google.com/site/orcainputlibrary/home/>`_ ≥ v. 4.1
   * `Gaussian09 <https://gaussian.com/glossary/g09/>`_
   * `Gaussian16 <https://gaussian.com/gaussian16/>`_
-  * `NWChem <http://www.nwchem-sw.org/index.php/Main_Page>`_
+  * `NWChem <http://www.nwchem-sw.org/index.php/Main_Page>`_ v. 6.6
 * One of:
 
   * `XTB <https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/>`_ > v. 6.1
   * `MOPAC <http://openmopac.net/>`_ v. 2016
 
 
-The Python dependencies are listed in requirements.txt best satisfied using conda
+The Python dependencies are listed `here <https://github.com/duartegroup/autodE/blob/master/requirements.txt>` and are best satisfied using conda
 (`anaconda <https://www.anaconda.com/distribution>`_ or `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_);
 the following guide assumes a conda install.
 
@@ -55,14 +55,14 @@ A Linux installation tutorial is available through the following link: https://y
 
 
 .. note::
-    Windows is not currently supported, but *should* be fine in Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_)
+    Windows installation is not currently supported, but *should* be possible through Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_)
 
 ******
 
 Installation Check
 ------------------
 
-**autodE** will pick up any electronic structure theory packages with implemented wrappers (ORCA, NWChem, Gaussian09, XTB
+**autodE** will find any electronic structure theory packages with implemented wrappers (ORCA, NWChem, Gaussian09, XTB
 and MOPAC) that are available from your *PATH* environment variable. To check the expected high and low level methods are
 available:
 
@@ -97,5 +97,5 @@ of H\ :sub:`2`\:
   >>> h2.atoms
   [[H, 0.3805, 0.0000, 0.0000], [H, -0.3805, 0.0000, 0.0000]]
 
-If an AtomsNotFound exception is raised it is likely that the electronic structure
+If an :code:`AtomsNotFound` exception is raised it is likely that the electronic structure
 package is not correctly installed.

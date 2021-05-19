@@ -129,6 +129,7 @@ class Atom:
 
          Arguments:
              vec (np.ndarray): Shape = (3,)
+
         """
         self.coord += vec
         return None
