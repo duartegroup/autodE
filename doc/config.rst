@@ -1,10 +1,10 @@
 Configuration
 =============
 
-Configuration is handled with :code:`ade.Config` can be modified from the
-input script for full customization of the calculations. By default low level
-optimisations are performed at PBE0-D3BJ/def2-SVP and single points at
-PBE0-D3BJ/def2-TZVP in ORCA if it is available.
+Configuration is handled with :code:`ade.Config` and can be modified for full
+customization of the calculations. By default optimisations are performed at
+PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in ORCA if it is
+available.
 
 ------------
 
