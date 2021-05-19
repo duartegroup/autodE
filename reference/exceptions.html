@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Exceptions &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Geometry" href="geom.html" />
+    <link rel="prev" title="Constants" href="constants.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Exceptions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/exceptions.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.exceptions">
+<span id="exceptions"></span><h1>Exceptions<a class="headerlink" href="#module-autode.exceptions" title="Permalink to this headline">¶</a></h1>
+<dl class="exception">
+<dt id="autode.exceptions.AtomsNotFound">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">AtomsNotFound</code><a class="headerlink" href="#autode.exceptions.AtomsNotFound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.BondsInSMILESAndGraphDontMatch">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">BondsInSMILESAndGraphDontMatch</code><a class="headerlink" href="#autode.exceptions.BondsInSMILESAndGraphDontMatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.CalculationException">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CalculationException</code><a class="headerlink" href="#autode.exceptions.CalculationException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.CannotSplitAcrossBond">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CannotSplitAcrossBond</code><a class="headerlink" href="#autode.exceptions.CannotSplitAcrossBond" title="Permalink to this definition">¶</a></dt>
+<dd><p>A molecule cannot be partitioned by deleting one bond</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.CouldNotGetProperty">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CouldNotGetProperty</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.CouldNotGetProperty" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.exceptions.CouldNotGetProperty.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.CouldNotGetProperty.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.CouldNotPlotSmoothProfile">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CouldNotPlotSmoothProfile</code><a class="headerlink" href="#autode.exceptions.CouldNotPlotSmoothProfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.FailedToAdjustAngles">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">FailedToAdjustAngles</code><a class="headerlink" href="#autode.exceptions.FailedToAdjustAngles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.FailedToSetRotationIdxs">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">FailedToSetRotationIdxs</code><a class="headerlink" href="#autode.exceptions.FailedToSetRotationIdxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.FitFailed">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">FitFailed</code><a class="headerlink" href="#autode.exceptions.FitFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.InvalidSmilesString">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">InvalidSmilesString</code><a class="headerlink" href="#autode.exceptions.InvalidSmilesString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.MethodUnavailable">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">MethodUnavailable</code><a class="headerlink" href="#autode.exceptions.MethodUnavailable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoAtomsInMolecule">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoAtomsInMolecule</code><a class="headerlink" href="#autode.exceptions.NoAtomsInMolecule" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoCalculationOutput">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoCalculationOutput</code><a class="headerlink" href="#autode.exceptions.NoCalculationOutput" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoClosestSpecies">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoClosestSpecies</code><a class="headerlink" href="#autode.exceptions.NoClosestSpecies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoConformers">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoConformers</code><a class="headerlink" href="#autode.exceptions.NoConformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoInputError">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoInputError</code><a class="headerlink" href="#autode.exceptions.NoInputError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoMapping">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoMapping</code><a class="headerlink" href="#autode.exceptions.NoMapping" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoMolecularGraph">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoMolecularGraph</code><a class="headerlink" href="#autode.exceptions.NoMolecularGraph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.NoNormalModesFound">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoNormalModesFound</code><a class="headerlink" href="#autode.exceptions.NoNormalModesFound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.RDKitFailed">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">RDKitFailed</code><a class="headerlink" href="#autode.exceptions.RDKitFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.ReactionFormationFalied">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">ReactionFormationFalied</code><a class="headerlink" href="#autode.exceptions.ReactionFormationFalied" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.SMILESBuildFailed">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SMILESBuildFailed</code><a class="headerlink" href="#autode.exceptions.SMILESBuildFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.SolventNotFound">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SolventNotFound</code><a class="headerlink" href="#autode.exceptions.SolventNotFound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.SolventUnavailable">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SolventUnavailable</code><a class="headerlink" href="#autode.exceptions.SolventUnavailable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.SolventsDontMatch">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SolventsDontMatch</code><a class="headerlink" href="#autode.exceptions.SolventsDontMatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.TemplateLoadingFailed">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">TemplateLoadingFailed</code><a class="headerlink" href="#autode.exceptions.TemplateLoadingFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.UnbalancedReaction">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">UnbalancedReaction</code><a class="headerlink" href="#autode.exceptions.UnbalancedReaction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.UnsuppportedCalculationInput">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">UnsuppportedCalculationInput</code><span class="sig-paren">(</span><em class="sig-param">message='Parameters not supported'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.UnsuppportedCalculationInput" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.exceptions.UnsuppportedCalculationInput.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">message='Parameters not supported'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.UnsuppportedCalculationInput.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.XYZfileDidNotExist">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">XYZfileDidNotExist</code><a class="headerlink" href="#autode.exceptions.XYZfileDidNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="autode.exceptions.XYZfileWrongFormat">
+<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">XYZfileWrongFormat</code><a class="headerlink" href="#autode.exceptions.XYZfileWrongFormat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="geom.html" class="btn btn-neutral float-right" title="Geometry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="constants.html" class="btn btn-neutral float-left" title="Constants" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

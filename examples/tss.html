@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Transition States &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changelog" href="../changelog.html" />
+    <link rel="prev" title="RMSD" href="rmsd.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Transition States</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#default-reaction">Default: Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default-reactants-and-products">Default: Reactants and products</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ci-neb">CI-NEB</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Transition States</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/tss.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="transition-states">
+<h1>Transition States<a class="headerlink" href="#transition-states" title="Permalink to this headline">¶</a></h1>
+<p>In addition to generating full reaction profiles directly <strong>autodE</strong> provides
+automated access to transition states (TSs). TSs are found either from a
+reaction, where bond rearrangements are found and TS located along each
+possible path, or from 3D structures of reactants &amp; products, and a given bond
+rearrangement.</p>
+<hr class="docutils" />
+<section id="default-reaction">
+<h2>Default: Reaction<a class="headerlink" href="#default-reaction" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/curtius.png" src="../_images/curtius.png" />
+<p>For a simple Curtius rearrangement copied as a SMILES string directly from
+Chemdraw<sup>TM</sup> (selecting reactants and products with arrows and ‘+’ then Edit-&gt;Copy As-&gt;SMILES)
+the TS can be located with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">8</span>
+
+<span class="n">rxn</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;CC(N=[N+]=[N-])=O&gt;&gt;CN=C=O.N#N&#39;</span><span class="p">)</span>
+<span class="n">rxn</span><span class="o">.</span><span class="n">locate_transition_state</span><span class="p">()</span>
+<span class="n">rxn</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;ts.xyz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out (visualised)</p>
+<a class="reference internal image-reference" href="../_images/curtius_ts.png"><img alt="../_images/curtius_ts.png" class="align-center" src="../_images/curtius_ts.png" style="width: 450px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="code docutils literal notranslate"><span class="pre">locate_transition_state</span></code> only locates a single transtion state for
+each possible bond rearrangment and does not attempt to search the conformational
+space.</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="default-reactants-and-products">
+<h2>Default: Reactants and products<a class="headerlink" href="#default-reactants-and-products" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/cope.png" src="../_images/cope.png" />
+<p>Given a specific bond rearrangement generating a TS from known structures of
+reactants and products can be achieved for a simple Cope rearrangement with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Reactant</span><span class="p">,</span> <span class="n">Product</span><span class="p">,</span> <span class="n">Reaction</span>
+<span class="kn">from</span> <span class="nn">autode.bond_rearrangement</span> <span class="kn">import</span> <span class="n">BondRearrangement</span>
+<span class="kn">from</span> <span class="nn">autode.transition_states.locate_tss</span> <span class="kn">import</span> <span class="n">get_ts</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">Reactant</span><span class="p">(</span><span class="s1">&#39;cope_r.xyz&#39;</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="s1">&#39;cope_p.xyz&#39;</span><span class="p">)</span>
+<span class="n">reaction</span> <span class="o">=</span> <span class="n">Reaction</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cope&#39;</span><span class="p">)</span>
+
+<span class="c1"># Define the bond rearrangement as tuples for each forming and breaking bond</span>
+<span class="n">bond_rearr</span> <span class="o">=</span> <span class="n">BondRearrangement</span><span class="p">(</span><span class="n">forming_bonds</span><span class="o">=</span><span class="p">[(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">)],</span>
+                               <span class="n">breaking_bonds</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<span class="n">ts</span> <span class="o">=</span> <span class="n">get_ts</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">bond_rearr</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">imaginary_frequencies</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">-</span><span class="mf">544.36</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>where the xyz files used are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">16</span>
+<span class="n">cope_r</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">3.81378</span>  <span class="mf">1.50918</span>   <span class="o">-</span><span class="mf">0.42762</span> 
+<span class="n">C</span>   <span class="o">-</span><span class="mf">3.82420</span>  <span class="mf">0.24881</span>   <span class="mf">0.43260</span>  
+<span class="n">C</span>   <span class="o">-</span><span class="mf">2.67944</span>  <span class="mf">2.45824</span>   <span class="o">-</span><span class="mf">0.18641</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">4.74498</span>  <span class="mf">2.05850</span>   <span class="o">-</span><span class="mf">0.24893</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">3.81859</span>  <span class="mf">1.22830</span>   <span class="o">-</span><span class="mf">1.48511</span> 
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.70880</span>  <span class="mf">2.33008</span>   <span class="mf">0.69796</span>  
+<span class="n">C</span>   <span class="o">-</span><span class="mf">2.75771</span>  <span class="o">-</span><span class="mf">0.75949</span>  <span class="mf">0.13047</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">4.79223</span>  <span class="o">-</span><span class="mf">0.24884</span>  <span class="mf">0.30663</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">3.75504</span>  <span class="mf">0.52760</span>   <span class="mf">1.48828</span>  
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.82973</span>  <span class="o">-</span><span class="mf">0.68042</span>  <span class="o">-</span><span class="mf">0.80397</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.70861</span>  <span class="mf">3.33648</span>   <span class="o">-</span><span class="mf">0.82157</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.62202</span>  <span class="mf">1.47460</span>   <span class="mf">1.34487</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.93932</span>  <span class="mf">3.07647</span>   <span class="mf">0.79882</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.80278</span>  <span class="o">-</span><span class="mf">1.63873</span>  <span class="mf">0.76331</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.73286</span>  <span class="mf">0.17028</span>   <span class="o">-</span><span class="mf">1.45550</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.11248</span>  <span class="o">-</span><span class="mf">1.47036</span>  <span class="o">-</span><span class="mf">0.95135</span> 
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">16</span>
+<span class="n">cope_p</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">3.85244</span>  <span class="mf">2.05536</span>   <span class="o">-</span><span class="mf">1.17116</span> 
+<span class="n">C</span>   <span class="o">-</span><span class="mf">3.80275</span>  <span class="o">-</span><span class="mf">0.29321</span>  <span class="mf">1.21552</span>  
+<span class="n">C</span>   <span class="o">-</span><span class="mf">2.84417</span>  <span class="mf">2.42679</span>   <span class="o">-</span><span class="mf">0.40545</span> 
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.74215</span>  <span class="mf">1.55918</span>   <span class="mf">0.12155</span>  
+<span class="n">C</span>   <span class="o">-</span><span class="mf">2.88884</span>  <span class="o">-</span><span class="mf">0.72155</span>  <span class="mf">0.36566</span>  
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.80138</span>  <span class="mf">0.08651</span>   <span class="o">-</span><span class="mf">0.27423</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.89753</span>  <span class="mf">0.00533</span>   <span class="o">-</span><span class="mf">1.36099</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.84584</span>  <span class="o">-</span><span class="mf">0.38118</span>  <span class="o">-</span><span class="mf">0.01205</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.87644</span>  <span class="o">-</span><span class="mf">1.76732</span>  <span class="mf">0.08031</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">3.86897</span>  <span class="mf">0.73424</span>   <span class="mf">1.52734</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">4.53650</span>  <span class="o">-</span><span class="mf">0.96148</span>  <span class="mf">1.63378</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">4.59013</span>  <span class="mf">2.76366</span>   <span class="o">-</span><span class="mf">1.50908</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">3.99873</span>  <span class="mf">1.03663</span>   <span class="o">-</span><span class="mf">1.48417</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.75557</span>  <span class="mf">3.46607</span>   <span class="o">-</span><span class="mf">0.10991</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.72244</span>  <span class="mf">1.64120</span>   <span class="mf">1.21238</span>  
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.79484</span>  <span class="mf">1.97646</span>   <span class="o">-</span><span class="mf">0.23753</span> 
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="ci-neb">
+<h2>CI-NEB<a class="headerlink" href="#ci-neb" title="Permalink to this headline">¶</a></h2>
+<p>Minimum energy pathways can also be generated using nudged elastic band (NEB)
+calculations. To find the peak species suitable as a TS guess geometry for
+the prototypical Claisen rearrangement ([3,3]-sigmatropic rearrangement of
+allyl phenyl ether)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+
+<span class="n">reac</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reactant</span><span class="p">(</span><span class="s1">&#39;claisen_r.xyz&#39;</span><span class="p">)</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Product</span><span class="p">(</span><span class="s1">&#39;claisen_p.xyz&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create an 8 image nudged elastic band with intermediate images interpolated</span>
+<span class="c1"># from the final points, thus they must be structurally similar</span>
+<span class="n">neb</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">neb</span><span class="o">.</span><span class="n">CINEB</span><span class="p">(</span><span class="n">initial_species</span><span class="o">=</span><span class="n">reac</span><span class="p">,</span>
+                    <span class="n">final_species</span><span class="o">=</span><span class="n">prod</span><span class="p">,</span>
+                    <span class="n">num</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="c1"># minimise with XTB</span>
+<span class="n">neb</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">(),</span> <span class="n">n_cores</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># print the geometry of the peak species</span>
+<span class="n">peak_species</span> <span class="o">=</span> <span class="n">neb</span><span class="o">.</span><span class="n">get_species_saddle_point</span><span class="p">()</span>
+<span class="n">peak_species</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;peak.xyz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out:</p>
+<img alt="../_images/claisen_neb_optimised.png" src="../_images/claisen_neb_optimised.png" />
+<p>Out (visualised):</p>
+<a class="reference internal image-reference" href="../_images/claisen_peak.png"><img alt="../_images/claisen_peak.png" class="align-center" src="../_images/claisen_peak.png" style="width: 300px;" /></a>
+<p>where the xyz files used are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">20</span>
+<span class="n">claisen_r</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">3.98726</span>   <span class="mf">0.74520</span>  <span class="mf">0.45281</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">4.50106</span>  <span class="o">-</span><span class="mf">0.55204</span>  <span class="mf">0.38563</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">2.98263</span>   <span class="mf">1.15687</span> <span class="o">-</span><span class="mf">0.42991</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">2.51083</span>   <span class="mf">0.25840</span> <span class="o">-</span><span class="mf">1.40799</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">3.03021</span>  <span class="o">-</span><span class="mf">1.03906</span> <span class="o">-</span><span class="mf">1.47415</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">4.01895</span>  <span class="o">-</span><span class="mf">1.44546</span> <span class="o">-</span><span class="mf">0.57369</span>
+<span class="n">O</span>  <span class="o">-</span><span class="mf">2.47596</span>   <span class="mf">2.40755</span> <span class="o">-</span><span class="mf">0.27307</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">1.33638</span>   <span class="mf">2.94073</span> <span class="o">-</span><span class="mf">0.85085</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">1.73709</span>   <span class="mf">0.54678</span> <span class="o">-</span><span class="mf">2.10649</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">2.65792</span>  <span class="o">-</span><span class="mf">1.73268</span> <span class="o">-</span><span class="mf">2.21661</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">4.41017</span>  <span class="o">-</span><span class="mf">2.45344</span> <span class="o">-</span><span class="mf">0.61689</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">4.35505</span>   <span class="mf">1.42777</span>  <span class="mf">1.20883</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">5.26464</span>  <span class="o">-</span><span class="mf">0.86554</span>  <span class="mf">1.08531</span>
+<span class="n">C</span>  <span class="o">-</span><span class="mf">0.04683</span>   <span class="mf">2.27939</span> <span class="o">-</span><span class="mf">0.39973</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">1.28052</span>   <span class="mf">4.00673</span> <span class="o">-</span><span class="mf">0.54623</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">1.40915</span>   <span class="mf">2.91149</span> <span class="o">-</span><span class="mf">1.95905</span>
+<span class="n">C</span>   <span class="mf">0.04395</span>   <span class="mf">1.20681</span>  <span class="mf">0.40079</span>
+<span class="n">H</span>   <span class="mf">0.87953</span>   <span class="mf">2.71662</span> <span class="o">-</span><span class="mf">0.75770</span>
+<span class="n">H</span>  <span class="o">-</span><span class="mf">0.81785</span>   <span class="mf">0.69435</span>  <span class="mf">0.80686</span>
+<span class="n">H</span>   <span class="mf">1.01980</span>   <span class="mf">0.81060</span>  <span class="mf">0.65942</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">20</span>
+<span class="n">claisen_p</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">4.34571</span>   <span class="mf">0.63520</span>   <span class="mf">0.57310</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">4.49777</span>  <span class="o">-</span><span class="mf">0.68069</span>   <span class="mf">0.34490</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">3.23250</span>   <span class="mf">1.40679</span>   <span class="mf">0.03037</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">2.22119</span>   <span class="mf">0.64743</span>  <span class="o">-</span><span class="mf">0.81975</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">2.49978</span>  <span class="o">-</span><span class="mf">0.80349</span>  <span class="o">-</span><span class="mf">0.98985</span> 
+<span class="n">C</span>   <span class="o">-</span><span class="mf">3.56127</span>  <span class="o">-</span><span class="mf">1.41597</span>  <span class="o">-</span><span class="mf">0.45542</span> 
+<span class="n">O</span>   <span class="o">-</span><span class="mf">3.11541</span>   <span class="mf">2.59776</span>   <span class="mf">0.24431</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">0.59568</span>   <span class="mf">3.13650</span>  <span class="o">-</span><span class="mf">1.35460</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.24578</span>   <span class="mf">1.10277</span>  <span class="o">-</span><span class="mf">1.81941</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.78329</span>  <span class="o">-</span><span class="mf">1.35547</span>  <span class="o">-</span><span class="mf">1.58358</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">3.73211</span>  <span class="o">-</span><span class="mf">2.47147</span>  <span class="o">-</span><span class="mf">0.60583</span> 
+<span class="n">H</span>   <span class="o">-</span><span class="mf">5.04256</span>   <span class="mf">1.18717</span>   <span class="mf">1.18701</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">5.33408</span>  <span class="o">-</span><span class="mf">1.21816</span>   <span class="mf">0.77022</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">0.15430</span>   <span class="mf">2.17960</span>  <span class="o">-</span><span class="mf">0.56309</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.03493</span>   <span class="mf">4.04448</span>  <span class="o">-</span><span class="mf">1.49486</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.53872</span>   <span class="mf">3.08831</span>  <span class="o">-</span><span class="mf">1.87085</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">0.79076</span>   <span class="mf">0.85415</span>  <span class="o">-</span><span class="mf">0.27213</span>
+<span class="n">H</span>    <span class="mf">0.79501</span>   <span class="mf">2.30610</span>  <span class="o">-</span><span class="mf">0.05582</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.80710</span>   <span class="mf">0.70442</span>   <span class="mf">0.81159</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.14130</span>   <span class="mf">0.07563</span>  <span class="o">-</span><span class="mf">0.68902</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="rmsd.html" class="btn btn-neutral float-left" title="RMSD" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Transition State &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Truncation" href="truncation.html" />
+    <link rel="prev" title="Templates" href="templates.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Transition States</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="locate_tss.html">Locate TSs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="templates.html">Templates</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Transition State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="truncation.html">Truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ts_guess.html">TS Guess</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Transition States</a> &raquo;</li>
+        
+      <li>Transition State</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/transition_states/transition_state.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.transition_states.transition_state">
+<span id="transition-state"></span><h1>Transition State<a class="headerlink" href="#module-autode.transition_states.transition_state" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.transition_states.transition_state.TransitionState">
+<em class="property">class </em><code class="sig-prename descclassname">autode.transition_states.transition_state.</code><code class="sig-name descname">TransitionState</code><span class="sig-paren">(</span><em class="sig-param">ts_guess</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">ts_guess</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transition State</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ts_guess</strong> (<a class="reference internal" href="ts_guess.html#autode.transition_states.ts_guess.TSguess" title="autode.transition_states.ts_guess.TSguess"><em>autode.transition_states.ts_guess.TSguess</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.calc_g_cont">
+<code class="sig-name descname">calc_g_cont</code><span class="sig-paren">(</span><em class="sig-param">method=None</em>, <em class="sig-param">calc=None</em>, <em class="sig-param">temp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.calc_g_cont" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the free energy (G) contribution</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.calc_h_cont">
+<code class="sig-name descname">calc_h_cont</code><span class="sig-paren">(</span><em class="sig-param">method=None</em>, <em class="sig-param">calc=None</em>, <em class="sig-param">temp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.calc_h_cont" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the enthalpy (H) contribution</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.find_lowest_energy_ts_conformer">
+<code class="sig-name descname">find_lowest_energy_ts_conformer</code><span class="sig-paren">(</span><em class="sig-param">rmsd_threshold=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.find_lowest_energy_ts_conformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the lowest energy transition state conformer by performing
+constrained optimisations</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.is_true_ts">
+<code class="sig-name descname">is_true_ts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.is_true_ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this TS a ‘true’ TS i.e. has at least on imaginary mode in the
+hessian and is the correct mode</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.optimise">
+<code class="sig-name descname">optimise</code><span class="sig-paren">(</span><em class="sig-param">name_ext='optts'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.optimise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimise this TS to a true TS</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.print_imag_vector">
+<code class="sig-name descname">print_imag_vector</code><span class="sig-paren">(</span><em class="sig-param">mode_number=6</em>, <em class="sig-param">name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.print_imag_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a .xyz file with multiple structures visualising the largest
+magnitude imaginary mode</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode_number</strong> (<em>int</em>) – Number of the normal mode to visualise,
+6 (default) is the lowest frequency vibration
+i.e. largest magnitude imaginary, if present</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.transition_state.TransitionState.save_ts_template">
+<code class="sig-name descname">save_ts_template</code><span class="sig-paren">(</span><em class="sig-param">folder_path=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.TransitionState.save_ts_template" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Save a transition state template containing the active bond lengths,</dt><dd><p>solvent and charge in folder_path</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_path</strong> (<em>str</em>) – folder to save the TS template to</p></li>
+<li><p><strong>(</strong><strong>default</strong> – {None})</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.transition_state.get_ts_object">
+<code class="sig-prename descclassname">autode.transition_states.transition_state.</code><code class="sig-name descname">get_ts_object</code><span class="sig-paren">(</span><em class="sig-param">ts_guess</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.transition_state.get_ts_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates TransitionState for the TSguess. If it is a SolvatedTSguess,
+a SolvatedTransitionState is returned</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="truncation.html" class="btn btn-neutral float-right" title="Truncation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="templates.html" class="btn btn-neutral float-left" title="Templates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,463 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>1D PES Generation &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2D PES Generation" href="pes2d.html" />
+    <link rel="prev" title="Molecular Manipulation" href="manipulation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">1D PES Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unrelaxed">Unrelaxed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#relaxed">Relaxed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>1D PES Generation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/pes1d.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="d-pes-generation">
+<h1>1D PES Generation<a class="headerlink" href="#d-pes-generation" title="Permalink to this headline">¶</a></h1>
+<p><strong>autodE</strong> allows for both potential energy surface (PES) to be constructed
+where other degrees of freedom are frozen (unrelaxed) or allowed to
+optimise (relaxed).</p>
+<section id="unrelaxed">
+<h2>Unrelaxed<a class="headerlink" href="#unrelaxed" title="Permalink to this headline">¶</a></h2>
+<p>For the O-H dissociation curve in H<sub>2</sub>O at the XTB level</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">autode.calculation</span> <span class="kn">import</span> <span class="n">Calculation</span>
+<span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">XTB</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Initialise the electronic structure method (XTB)</span>
+<span class="n">xtb</span> <span class="o">=</span> <span class="n">XTB</span><span class="p">()</span>
+
+<span class="n">water</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="c1"># water.atoms = [[O, x, y, z], [H, x&#39;, y&#39;, z&#39;], [H, x&#39;&#39;, y&#39;&#39;, z&#39;&#39;]]</span>
+
+<span class="c1"># Array of distances (Å) to calculate the energy for</span>
+<span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1"># List of energies to be populated</span>
+<span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">:</span>
+
+    <span class="n">o_atom</span><span class="p">,</span> <span class="n">h_atom</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">atoms</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">curr_r</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># current O-H distance</span>
+
+    <span class="c1"># Shift the hydrogen atom to the required distance</span>
+    <span class="c1"># vector =  (h_atom.coord - o_atom.coord) / curr_r * (r - curr_r)</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_atom</span><span class="o">.</span><span class="n">coord</span> <span class="o">-</span> <span class="n">o_atom</span><span class="o">.</span><span class="n">coord</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="n">curr_r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">h_atom</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+
+    <span class="c1"># Set up and run the calculation</span>
+    <span class="n">calc</span> <span class="o">=</span> <span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;H2O_scan_</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                       <span class="n">molecule</span><span class="o">=</span><span class="n">water</span><span class="p">,</span>
+                       <span class="n">method</span><span class="o">=</span><span class="n">xtb</span><span class="p">,</span>
+                       <span class="n">keywords</span><span class="o">=</span><span class="n">xtb</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span><span class="p">)</span>
+    <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="c1"># Get the potential energy from the calculation</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">get_energy</span><span class="p">()</span>
+    <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+
+<span class="c1"># Plot the relative energy against the distance. 627.5 kcal mol-1 Ha-1</span>
+<span class="n">rel_energies</span> <span class="o">=</span> <span class="mf">627.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">energies</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">rel_energies</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;ΔE / kcal mol$^{-1}$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;r / Å&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;OH_PES_unrelaxed.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out (OH_PES_unrelaxed.png):</p>
+<img alt="../_images/OH_PES_unrelaxed.png" src="../_images/OH_PES_unrelaxed.png" />
+<p>For the same O-H 1D PES scan using a selection of different DFT methods</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">SinglePointKeywords</span>
+<span class="kn">from</span> <span class="nn">autode.calculation</span> <span class="kn">import</span> <span class="n">Calculation</span>
+<span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">ORCA</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Initialise the electronic structure method and a list of different</span>
+<span class="c1"># single point energy keywords</span>
+<span class="n">orca</span> <span class="o">=</span> <span class="n">ORCA</span><span class="p">()</span>
+
+<span class="n">keywords_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PBE&#39;</span><span class="p">:</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;PBE&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-SVP&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;PBE0&#39;</span><span class="p">:</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;PBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-SVP&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;B3LYP&#39;</span><span class="p">:</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;B3LYP&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-SVP&#39;</span><span class="p">])}</span>
+
+<span class="n">water</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+
+<span class="c1"># For the three different DFT functionals calculate the PES and plot the line</span>
+<span class="k">for</span> <span class="n">dft_name</span><span class="p">,</span> <span class="n">keywords</span> <span class="ow">in</span> <span class="n">keywords_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+    <span class="c1"># Create arrays for OH distances and their energies</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Calculate the energy array</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">:</span>
+
+        <span class="n">o_atom</span><span class="p">,</span> <span class="n">h_atom</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">atoms</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">curr_r</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">vector</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_atom</span><span class="o">.</span><span class="n">coord</span> <span class="o">-</span> <span class="n">o_atom</span><span class="o">.</span><span class="n">coord</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="n">curr_r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">h_atom</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+
+        <span class="c1"># Set up and run the calculation</span>
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;H2O_scan_</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                           <span class="n">molecule</span><span class="o">=</span><span class="n">water</span><span class="p">,</span>
+                           <span class="n">method</span><span class="o">=</span><span class="n">orca</span><span class="p">,</span>
+                           <span class="n">keywords</span><span class="o">=</span><span class="n">keywords</span><span class="p">)</span>
+        <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="c1"># Get the potential energy from the calculation</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">get_energy</span><span class="p">()</span>
+        <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+
+    <span class="c1"># Plot the relative energy against the distance. 627.5 kcal mol-1 Ha-1</span>
+    <span class="n">rel_energies</span> <span class="o">=</span> <span class="mf">627.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">energies</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">rel_energies</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">dft_name</span><span class="p">)</span>
+
+<span class="c1"># Add labels to the plot and save the figure</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;ΔE / kcal mol$^{-1}$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;r / Å&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;OH_PES_unrelaxed2.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out (OH_PES_unrelaxed2.png):</p>
+<img alt="../_images/OH_PES_unrelaxed2.png" src="../_images/OH_PES_unrelaxed2.png" />
+</section>
+<section id="relaxed">
+<h2>Relaxed<a class="headerlink" href="#relaxed" title="Permalink to this headline">¶</a></h2>
+<p><strong>autodE</strong> provides two ways of generating relaxed PESs the first in a similar
+vain to the above is performing optimisations with distance constraints</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">autode.calculation</span> <span class="kn">import</span> <span class="n">Calculation</span>
+<span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">XTB</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Initialise the electronic structure method (XTB)</span>
+<span class="n">xtb</span> <span class="o">=</span> <span class="n">XTB</span><span class="p">()</span>
+
+<span class="n">water</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="n">rs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="c1"># List of energies to be populated for the single point (unrelaxed)</span>
+<span class="c1"># and constrained optimisations (relaxed) calculations</span>
+<span class="n">sp_energies</span><span class="p">,</span> <span class="n">opt_energies</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rs</span><span class="p">:</span>
+
+    <span class="n">o_atom</span><span class="p">,</span> <span class="n">h_atom</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">atoms</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">curr_r</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># current O-H distance</span>
+
+    <span class="c1"># Shift the hydrogen atom to the required distance</span>
+    <span class="c1"># vector =  (h_atom.coord - o_atom.coord) / curr_r * (r - curr_r)</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_atom</span><span class="o">.</span><span class="n">coord</span> <span class="o">-</span> <span class="n">o_atom</span><span class="o">.</span><span class="n">coord</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="n">curr_r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">h_atom</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+
+    <span class="c1"># Set up and run the single point energy evaluation</span>
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;H2O_scan_unrelaxed_</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                     <span class="n">molecule</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">xtb</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="n">xtb</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span><span class="p">)</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">sp_energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">get_energy</span><span class="p">())</span>
+
+    <span class="c1"># Set up the constrained optimisation calculation where the distance</span>
+    <span class="c1"># constraints are given as a dictionary keyed with a tuple of atom indexes</span>
+    <span class="c1"># with the distance as the value</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;H2O_scan_relaxed_</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                      <span class="n">molecule</span><span class="o">=</span><span class="n">water</span><span class="p">,</span>
+                      <span class="n">method</span><span class="o">=</span><span class="n">xtb</span><span class="p">,</span>
+                      <span class="n">keywords</span><span class="o">=</span><span class="n">xtb</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">low_opt</span><span class="p">,</span>
+                      <span class="n">distance_constraints</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="n">r</span><span class="p">})</span>
+    <span class="n">opt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="n">opt_energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">get_energy</span><span class="p">())</span>
+
+<span class="c1"># Plot the relative energy against the distance. 627.5 kcal mol-1 Ha-1</span>
+<span class="n">rel_sp_energies</span> <span class="o">=</span> <span class="mf">627.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">sp_energies</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">sp_energies</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">rel_sp_energies</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;unrelaxed&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+<span class="c1"># And the same for the relaxed points</span>
+<span class="n">rel_opt_energies</span> <span class="o">=</span> <span class="mf">627.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">opt_energies</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">opt_energies</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">rel_opt_energies</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;relaxed&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;ΔE / kcal mol$^{-1}$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;r / Å&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;OH_PES_comparison.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out (OH_PES_comparison.png):</p>
+<img alt="../_images/OH_PES_comparison.png" src="../_images/OH_PES_comparison.png" />
+<p>Alternatively, a 1D PES can be generated using a <a class="reference internal" href="../reference/pes/pes_1d.html#pes1d"><span class="std std-ref">PES1d</span></a> object.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="kn">from</span> <span class="nn">autode.pes.pes_1d</span> <span class="kn">import</span> <span class="n">PES1d</span>
+<span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">XTB</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Initialise the electronic structure method (XTB) and water molecule</span>
+<span class="n">xtb</span> <span class="o">=</span> <span class="n">XTB</span><span class="p">()</span>
+
+<span class="n">water</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+
+<span class="c1"># Initialise a potential energy surface where the reactant and product is</span>
+<span class="c1"># the same. A product is required to call pes.products_made() to check products</span>
+<span class="c1"># are generated somewhere on the surface via graph isomorphism</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">PES1d</span><span class="p">(</span><span class="n">reactant</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">product</span><span class="o">=</span><span class="n">water</span><span class="p">,</span>
+            <span class="n">rs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+            <span class="n">r_idxs</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="c1"># Calculate the potential energy surface at the XTB level optimising</span>
+<span class="c1"># all degrees of freedom other than the O-H distance</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;OH_PES&#39;</span><span class="p">,</span>
+              <span class="n">method</span><span class="o">=</span><span class="n">xtb</span><span class="p">,</span>
+              <span class="n">keywords</span><span class="o">=</span><span class="n">xtb</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">low_opt</span><span class="p">)</span>
+
+<span class="c1"># Print the r values and energies</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">pes</span><span class="o">.</span><span class="n">n_points</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pes</span><span class="o">.</span><span class="n">rs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">pes</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Out:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="p">(</span><span class="n">Å</span><span class="p">)</span>  <span class="n">E</span> <span class="p">(</span><span class="n">Ha</span><span class="p">)</span>
+
+<span class="mf">0.650</span> <span class="o">-</span><span class="mf">4.8712</span>
+<span class="mf">0.721</span> <span class="o">-</span><span class="mf">4.9765</span>
+<span class="mf">0.792</span> <span class="o">-</span><span class="mf">5.0333</span>
+<span class="mf">0.863</span> <span class="o">-</span><span class="mf">5.0606</span>
+<span class="mf">0.934</span> <span class="o">-</span><span class="mf">5.0700</span>
+<span class="mf">1.005</span> <span class="o">-</span><span class="mf">5.0690</span>
+<span class="mf">1.076</span> <span class="o">-</span><span class="mf">5.0619</span>
+<span class="mf">1.147</span> <span class="o">-</span><span class="mf">5.0514</span>
+<span class="mf">1.218</span> <span class="o">-</span><span class="mf">5.0391</span>
+<span class="mf">1.289</span> <span class="o">-</span><span class="mf">5.0257</span>
+<span class="mf">1.361</span> <span class="o">-</span><span class="mf">5.0119</span>
+<span class="mf">1.432</span> <span class="o">-</span><span class="mf">4.9980</span>
+<span class="mf">1.503</span> <span class="o">-</span><span class="mf">4.9843</span>
+<span class="mf">1.574</span> <span class="o">-</span><span class="mf">4.9710</span>
+<span class="mf">1.645</span> <span class="o">-</span><span class="mf">4.9584</span>
+<span class="mf">1.716</span> <span class="o">-</span><span class="mf">4.9464</span>
+<span class="mf">1.787</span> <span class="o">-</span><span class="mf">4.9351</span>
+<span class="mf">1.858</span> <span class="o">-</span><span class="mf">4.9246</span>
+<span class="mf">1.929</span> <span class="o">-</span><span class="mf">4.9149</span>
+<span class="mf">2.000</span> <span class="o">-</span><span class="mf">4.9060</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pes2d.html" class="btn btn-neutral float-right" title="2D PES Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="manipulation.html" class="btn btn-neutral float-left" title="Molecular Manipulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Species &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Molecules" href="molecules.html" />
+    <link rel="prev" title="Examples" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Species</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rotation-and-translation">Rotation and Translation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solvents">Solvents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#species-from-files">Species from Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Species</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/species.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="species">
+<h1>Species<a class="headerlink" href="#species" title="Permalink to this headline">¶</a></h1>
+<p><strong>autodE</strong> provides Molecule classes built from a base
+<a class="reference internal" href="../reference/species/species.html#species"><span class="std std-ref">Species</span></a> class. A Species needs to be initialised from
+a name, set of atoms (or possibly None), charge and
+<a class="reference external" href="https://en.wikipedia.org/wiki/Multiplicity_(chemistry)/">spin multiplicity</a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.species</span> <span class="kn">import</span> <span class="n">Species</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">species</span><span class="o">.</span><span class="n">n_atoms</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>Atoms are a list of <a class="reference internal" href="../reference/atoms.html#atoms"><span class="std std-ref">Atom</span></a> objects and can be used to initialise
+a species i.e.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.atoms</span> <span class="kn">import</span> <span class="n">Atom</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2&#39;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">),</span> <span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span><span class="o">.</span><span class="n">n_atoms</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>Atoms contain a coordinate as a numpy array (shape = (3,), initialised at the
+origin) and a label</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span> <span class="o">=</span> <span class="n">h2</span><span class="o">.</span><span class="n">atoms</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span>
+<span class="go">[H, 0.0000, 0.0000, 0.0000]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">coord</span>
+<span class="go">array([0., 0., 0.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">label</span>
+<span class="go">&#39;H&#39;</span>
+</pre></div>
+</div>
+<section id="rotation-and-translation">
+<h2>Rotation and Translation<a class="headerlink" href="#rotation-and-translation" title="Permalink to this headline">¶</a></h2>
+<p>Atoms can be translated and rotated e.g. to shift the first hydrogen atom
+from the origin along 1 Å in the x axis then rotate in the z-axis</p>
+<img alt="../_images/translation_rotation.png" src="../_images/translation_rotation.png" />
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">coord</span>
+<span class="go">array([1., 0., 0.])</span>
+</pre></div>
+</div>
+<p>To rotate this atom 180° (π radians) in the z-axis at the origin</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">theta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">coord</span>
+<span class="go">array([-1., 0., 0.])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Rotations are performed anticlockwise</p>
+</div>
+<p>Translations and rotations are performed in place so the h2 atoms are modified</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span><span class="o">.</span><span class="n">atoms</span>
+<span class="go">[[H, -1.0000, 0.0000, 0.0000], [H, 0.0000, 0.0000, 0.0000]]</span>
+</pre></div>
+</div>
+</section>
+<section id="solvents">
+<h2>Solvents<a class="headerlink" href="#solvents" title="Permalink to this headline">¶</a></h2>
+<p>Species also support an solvent which need not be specified for a species in
+the gas phase</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span><span class="o">.</span><span class="n">solvent</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>For example, to initialise a fluoride ion in dichloromethane</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;F-&#39;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">)],</span> <span class="n">solvent_name</span><span class="o">=</span><span class="s1">&#39;DCM&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">solvent</span>
+<span class="go">&lt;autode.solvent.solvents.Solvent object at XxXXXXXX&gt;</span>
+</pre></div>
+</div>
+<p>Given a solvent name string a <a class="reference internal" href="../reference/solvent/solvents.html#solvents"><span class="std std-ref">Solvent</span></a> is added as an attribute
+to the species. A Solvent contains a set of aliases and names of the implicit
+solvent in different electronic structure theory packages e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">solvent</span><span class="o">.</span><span class="n">g09</span>
+<span class="go">&#39;Dichloromethane&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">solvent</span><span class="o">.</span><span class="n">xtb</span>
+<span class="go">&#39;CH2Cl2&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="species-from-files">
+<h2>Species from Files<a class="headerlink" href="#species-from-files" title="Permalink to this headline">¶</a></h2>
+<p>Species may be initialised from <a class="reference external" href="https://en.wikipedia.org/wiki/XYZ_file_format/">xyz files</a>
+using the io module</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.input_output</span> <span class="kn">import</span> <span class="n">xyz_file_to_atoms</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;CH4&#39;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                  <span class="n">atoms</span><span class="o">=</span><span class="n">xyz_file_to_atoms</span><span class="p">(</span><span class="s1">&#39;methane.xyz&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span><span class="o">.</span><span class="n">n_atoms</span>
+<span class="go">5</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only .xyz files are supported currently. Other molecular file formats can
+be converted to .xyz with <a class="reference external" href="https://anaconda.org/openbabel/openbabel/">openbabel</a></p>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="molecules.html" class="btn btn-neutral float-right" title="Molecules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

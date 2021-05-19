@@ -1,0 +1,384 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Utilities &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Troubleshooting" href="../troubleshooting.html" />
+    <link rel="prev" title="Units" href="units.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Utilities</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.utils">
+<span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-autode.utils" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.utils.NoDaemonContext">
+<em class="property">class </em><code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">NoDaemonContext</code><a class="headerlink" href="#autode.utils.NoDaemonContext" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.utils.NoDaemonContext.Process">
+<code class="sig-name descname">Process</code><a class="headerlink" href="#autode.utils.NoDaemonContext.Process" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#autode.utils.NoDaemonProcess" title="autode.utils.NoDaemonProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">NoDaemonProcess</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.utils.NoDaemonPool">
+<em class="property">class </em><code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">NoDaemonPool</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclass of Pool to allow child multiprocessing</p>
+<dl class="method">
+<dt id="autode.utils.NoDaemonPool.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.utils.NoDaemonProcess">
+<em class="property">class </em><code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">NoDaemonProcess</code><span class="sig-paren">(</span><em class="sig-param">group=None</em>, <em class="sig-param">target=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">args=()</em>, <em class="sig-param">kwargs={}</em>, <em class="sig-param">*</em>, <em class="sig-param">daemon=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonProcess" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.utils.NoDaemonProcess.daemon">
+<em class="property">property </em><code class="sig-name descname">daemon</code><a class="headerlink" href="#autode.utils.NoDaemonProcess.daemon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether process is a daemon</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.log_time">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">log_time</code><span class="sig-paren">(</span><em class="sig-param">prefix='Executed in: '</em>, <em class="sig-param">units='ms'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.log_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function requiring a number of atoms to run</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.requires_atoms">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function requiring a number of atoms to run</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.requires_conformers">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_conformers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_conformers" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function requiring the species to have a list of conformers</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.requires_graph">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function requiring a number of atoms to run</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.requires_output">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function requiring an output file and output file lines</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.run_external">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">run_external</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">output_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.run_external" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard method to run a EST calculation with subprocess writing the
+output to the calculation output filename</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_filename</strong> (<em>str</em>) – </p></li>
+<li><p><strong>params</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – e.g. [/path/to/method, input-filename]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.run_external_monitored">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">run_external_monitored</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">output_filename</em>, <em class="sig-param">break_word='MPI_ABORT'</em>, <em class="sig-param">break_words=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.run_external_monitored" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run an external process monitoring the standard output and error for a
+word that will terminate the process</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – </p></li>
+<li><p><strong>output_filename</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>break_word</strong> (<em>str</em>) – String that if found will terminate the process</p></li>
+<li><p><strong>break_words</strong> (<em>list</em><em>(</em><em>str</em><em>) </em><em>| None</em>) – List of break_word-s</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.timeout">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">timeout</code><span class="sig-paren">(</span><em class="sig-param">seconds</em>, <em class="sig-param">return_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function dectorator that times-out after a number of seconds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seconds</strong> (<em>float</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>return_value</strong> (<em>Any</em>) – Value returned if the function times out</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of the function | return_value</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(Any)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.work_in">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">work_in</code><span class="sig-paren">(</span><em class="sig-param">dir_ext</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.work_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a function in a different directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.utils.work_in_tmp_dir">
+<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">work_in_tmp_dir</code><span class="sig-paren">(</span><em class="sig-param">filenames_to_copy</em>, <em class="sig-param">kept_file_exts</em>, <em class="sig-param">use_ll_tmp=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.work_in_tmp_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a function in a temporary directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames_to_copy</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – Filenames to copy to the temp dir</p></li>
+<li><p><strong>kept_file_exts</strong> (<em>list</em><em>(</em><em>str</em>) – Filename extensions to copy back from
+the temp dir</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="units.html" class="btn btn-neutral float-left" title="Units" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

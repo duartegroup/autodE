@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Complex &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Molecule" href="molecule.html" />
+    <link rel="prev" title="Species" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Species</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Complex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="molecule.html">Molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="species.html">Species</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Species</a> &raquo;</li>
+        
+      <li>Complex</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/species/complex.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.species.complex">
+<span id="complex"></span><h1>Complex<a class="headerlink" href="#module-autode.species.complex" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.species.complex.Complex">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">Complex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.species.complex.Complex.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molecular complex e.g. VdW complex of one or more Molecules</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*args</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>do_init_translation</strong> (<em>bool</em>) – Translate molecules initially such
+that they do not overlap</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.Complex.calc_repulsion">
+<code class="sig-name descname">calc_repulsion</code><span class="sig-paren">(</span><em class="sig-param">mol_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.calc_repulsion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the repulsion between a molecule and the rest of the
+complex</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.Complex.get_atom_indexes">
+<code class="sig-name descname">get_atom_indexes</code><span class="sig-paren">(</span><em class="sig-param">mol_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.get_atom_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the first and last atom indexes of a molecule in a Complex</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.Complex.n_molecules">
+<em class="property">property </em><code class="sig-name descname">n_molecules</code><a class="headerlink" href="#autode.species.complex.Complex.n_molecules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of molecules in this molecular complex</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.Complex.populate_conformers">
+<code class="sig-name descname">populate_conformers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.populate_conformers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate and optimise with a low level method a set of conformers, the
+number of which is
+Config.num_complex_sphere_points ×  Config.num_complex_random_rotations</p>
+<blockquote>
+<div><p>^ (n molecules in complex - 1)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.Complex.rotate_mol">
+<code class="sig-name descname">rotate_mol</code><span class="sig-paren">(</span><em class="sig-param">axis</em>, <em class="sig-param">theta</em>, <em class="sig-param">mol_index</em>, <em class="sig-param">origin=array([0.</em>, <em class="sig-param">0.</em>, <em class="sig-param">0.])</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.rotate_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a molecule within a complex an angle theta about an axis given
+an origin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>np.ndarray</em>) – Length 3 vector</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Length 3 vector</p></li>
+<li><p><strong>origin</strong> (<em>np.ndarray</em>) – Length 3 vector</p></li>
+<li><p><strong>mol_index</strong> (<em>int</em>) – <p>Index of the molecule to translate. e.g. 2 will
+translate molecule 1 in the complex</p>
+<blockquote>
+<div><p>they are indexed from 0</p>
+</div></blockquote>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.Complex.translate_mol">
+<code class="sig-name descname">translate_mol</code><span class="sig-paren">(</span><em class="sig-param">vec</em>, <em class="sig-param">mol_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.translate_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate a molecule within a complex by a vector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vec</strong> (<em>np.ndarray</em>) – Length 3 vector</p></li>
+<li><p><strong>mol_index</strong> (<em>int</em>) – Index of the molecule to translate. e.g. 2 will
+translate molecule 1 in the complex
+they are indexed from 0</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.species.complex.NCIComplex">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">NCIComplex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.NCIComplex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.species.complex.ProductComplex">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">ProductComplex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ProductComplex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.species.complex.ReactantComplex">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">ReactantComplex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ReactantComplex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.species.complex.SolvatedReactantComplex">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">SolvatedReactantComplex</code><span class="sig-paren">(</span><em class="sig-param">solvent_mol</em>, <em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.species.complex.SolvatedReactantComplex.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">solvent_mol</em>, <em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molecular complex e.g. VdW complex of one or more Molecules</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*args</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>do_init_translation</strong> (<em>bool</em>) – Translate molecules initially such
+that they do not overlap</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.complex.SolvatedReactantComplex.run_const_opt">
+<code class="sig-name descname">run_const_opt</code><span class="sig-paren">(</span><em class="sig-param">const_opt</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex.run_const_opt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a constrained optimisation of the ReactantComplex</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.species.complex.get_complex_conformer_atoms">
+<code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">get_complex_conformer_atoms</code><span class="sig-paren">(</span><em class="sig-param">molecules</em>, <em class="sig-param">rotations</em>, <em class="sig-param">points</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.get_complex_conformer_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a conformer of a complex given a set of molecules, rotations for
+each and points on which to shift</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>molecules</strong> (<em>list</em><em>(</em><em>autode.species.Species</em><em>)</em>) – </p></li>
+<li><p><strong>rotations</strong> (<em>list</em><em>(</em><em>np.ndarray</em><em>)</em>) – <p>List of len 4 np arrays containing the
+[theta, x, y, z] defining the rotation</p>
+<blockquote>
+<div><p>amount and axis</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>points</strong> – (list(np.ndarray)): List of length 3 np arrays containing the</p></li>
+<li><p><strong>to add the molecule with index i</strong> (<em>point</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(list(autode.atoms.Atom))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.species.complex.get_complexes">
+<code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">get_complexes</code><span class="sig-paren">(</span><em class="sig-param">reaction</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.get_complexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates Reactant and Product complexes for the reaction</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.species.complex.is_solvated_reactant_complex">
+<code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">is_solvated_reactant_complex</code><span class="sig-paren">(</span><em class="sig-param">molecule_complex</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.is_solvated_reactant_complex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="molecule.html" class="btn btn-neutral float-right" title="Molecule" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

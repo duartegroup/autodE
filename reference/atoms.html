@@ -1,0 +1,594 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Atoms &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Bonds" href="bond_lengths.html" />
+    <link rel="prev" title="XTB" href="wrappers/xtb.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Atoms</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/atoms.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="atoms">
+<span id="id1"></span><h1>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-autode.atoms"></span><dl class="class">
+<dt id="autode.atoms.Atom">
+<em class="property">class </em><code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">Atom</code><span class="sig-paren">(</span><em class="sig-param">atomic_symbol</em>, <em class="sig-param">x=0.0</em>, <em class="sig-param">y=0.0</em>, <em class="sig-param">z=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.atoms.Atom.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atomic_symbol</em>, <em class="sig-param">x=0.0</em>, <em class="sig-param">y=0.0</em>, <em class="sig-param">z=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom class. Centered at the origin by default</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atomic_symbol</strong> (<em>str</em>) – Symbol of an element e.g. ‘C’ for carbon</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x coordinate in 3D space (Å)</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y coordinate in 3D space (Å)</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – z coordinate in 3D space (Å)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.__repr__">
+<code class="sig-name descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.atomic_number">
+<em class="property">property </em><code class="sig-name descname">atomic_number</code><a class="headerlink" href="#autode.atoms.Atom.atomic_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atomic numbers are the position in the elements, plus one</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.atomic_symbol">
+<em class="property">property </em><code class="sig-name descname">atomic_symbol</code><a class="headerlink" href="#autode.atoms.Atom.atomic_symbol" title="Permalink to this definition">¶</a></dt>
+<dd><p>A more interpretable alias for label</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.group">
+<em class="property">property </em><code class="sig-name descname">group</code><a class="headerlink" href="#autode.atoms.Atom.group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group of the periodic table is this atom in. 0 if not found</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.is_metal">
+<em class="property">property </em><code class="sig-name descname">is_metal</code><a class="headerlink" href="#autode.atoms.Atom.is_metal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this atom a metal?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.period">
+<em class="property">property </em><code class="sig-name descname">period</code><a class="headerlink" href="#autode.atoms.Atom.period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group of the periodic table is this atom in. 0 if not found</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.rotate">
+<code class="sig-name descname">rotate</code><span class="sig-paren">(</span><em class="sig-param">axis: numpy.ndarray</em>, <em class="sig-param">theta: float</em>, <em class="sig-param">origin: Optional[numpy.ndarray] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate this atom theta radians around an axis given an origin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>np.ndarray</em>) – Axis to rotate in. shape = (3,)</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Angle in radians (float)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>origin</strong> (<em>np.ndarray</em>) – Rotate about this origin. shape = (3,)
+if no origin is specified then the atom
+is rotated without translation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.tm_row">
+<em class="property">property </em><code class="sig-name descname">tm_row</code><a class="headerlink" href="#autode.atoms.Atom.tm_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Row of transition metals that this element is in</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.Atom.translate">
+<code class="sig-name descname">translate</code><span class="sig-paren">(</span><em class="sig-param">vec: numpy.ndarray</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.Atom.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate this atom by a vector</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Arguments:</dt><dd><p>vec (np.ndarray): Shape = (3,)</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.atoms.AtomCollection">
+<em class="property">class </em><code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">AtomCollection</code><span class="sig-paren">(</span><em class="sig-param">atoms=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.AtomCollection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.atoms.AtomCollection.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atoms=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.AtomCollection.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection of atoms, used as a a base class for a species etc</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.AtomCollection.coordinates">
+<em class="property">property </em><code class="sig-name descname">coordinates</code><a class="headerlink" href="#autode.atoms.AtomCollection.coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array of coordinates</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.AtomCollection.distance">
+<code class="sig-name descname">distance</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">j</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.AtomCollection.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the distance between two atoms (Å)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.AtomCollection.n_atoms">
+<em class="property">property </em><code class="sig-name descname">n_atoms</code><a class="headerlink" href="#autode.atoms.AtomCollection.n_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of atoms in this set</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.atoms.DummyAtom">
+<em class="property">class </em><code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">DummyAtom</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.DummyAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.atoms.DummyAtom.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.DummyAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom class. Centered at the origin by default</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atomic_symbol</strong> (<em>str</em>) – Symbol of an element e.g. ‘C’ for carbon</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – x coordinate in 3D space (Å)</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – y coordinate in 3D space (Å)</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – z coordinate in 3D space (Å)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.DummyAtom.atomic_number">
+<em class="property">property </em><code class="sig-name descname">atomic_number</code><a class="headerlink" href="#autode.atoms.DummyAtom.atomic_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>The atomic number is defined as 0 for a dummy atom</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.atoms.PeriodicTable">
+<em class="property">class </em><code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">PeriodicTable</code><a class="headerlink" href="#autode.atoms.PeriodicTable" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.atoms.PeriodicTable.actinides">
+<code class="sig-name descname">actinides</code><em class="property"> = array(['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es',        'Fm', 'Md', 'No', 'Lr'], dtype='&lt;U2')</em><a class="headerlink" href="#autode.atoms.PeriodicTable.actinides" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.atoms.PeriodicTable.actinoids">
+<code class="sig-name descname">actinoids</code><em class="property"> = array(['Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es',        'Fm', 'Md', 'No', 'Lr'], dtype='&lt;U2')</em><a class="headerlink" href="#autode.atoms.PeriodicTable.actinoids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.PeriodicTable.element">
+<em class="property">classmethod </em><code class="sig-name descname">element</code><span class="sig-paren">(</span><em class="sig-param">period: int</em>, <em class="sig-param">group: int</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.PeriodicTable.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Element given it’s index in the periodic table, excluding
+lanthanides and actinides.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>period</strong> (<em>int</em>) – </p></li>
+<li><p><strong>group</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Atomic symbol of the element</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>IndexError</strong><strong>)</strong> – If such an element does not exist</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.PeriodicTable.group">
+<em class="property">classmethod </em><code class="sig-name descname">group</code><span class="sig-paren">(</span><em class="sig-param">n: int</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.PeriodicTable.group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group of the periodic table, with 1 being the first period</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>int</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray(str))</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If n is not valid group index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autode.atoms.PeriodicTable.lanthanides">
+<code class="sig-name descname">lanthanides</code><em class="property"> = array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho',        'Er', 'Tm', 'Yb', 'Lu'], dtype='&lt;U2')</em><a class="headerlink" href="#autode.atoms.PeriodicTable.lanthanides" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.atoms.PeriodicTable.lanthanoids">
+<code class="sig-name descname">lanthanoids</code><em class="property"> = array(['La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho',        'Er', 'Tm', 'Yb', 'Lu'], dtype='&lt;U2')</em><a class="headerlink" href="#autode.atoms.PeriodicTable.lanthanoids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.PeriodicTable.period">
+<em class="property">classmethod </em><code class="sig-name descname">period</code><span class="sig-paren">(</span><em class="sig-param">n: int</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.PeriodicTable.period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Period of the periodic table, with 1 being the first period</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>int</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray(str))</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If n is not valid period index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autode.atoms.PeriodicTable.table">
+<code class="sig-name descname">table</code><em class="property"> = array([['H', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',         '', 'He'],        ['Li', 'Be', '', '', '', '', '', '', '', '', '', '', 'B', 'C',         'N', 'O', 'F', 'Ne'],        ['Na', 'Mg', '', '', '', '', '', '', '', '', '', '', 'Al', 'Si',         'P', 'S', 'Cl', 'Ar'],        ['K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu',         'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr'],        ['Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag',         'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe'],        ['Cs', 'Ba', '', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au',         'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn'],        ['Fr', 'Ra', '', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg',         'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']], dtype='&lt;U2')</em><a class="headerlink" href="#autode.atoms.PeriodicTable.table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.atoms.PeriodicTable.transition_metals">
+<em class="property">classmethod </em><code class="sig-name descname">transition_metals</code><span class="sig-paren">(</span><em class="sig-param">row: int</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.PeriodicTable.transition_metals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection of transition metals (TMs) of a defined row. e.g.</p>
+<p>row = 1 -&gt; [Sc, Ti .. Zn]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>row</strong> (<em>int</em>) – Colloquial name for TMs period</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray(str))</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If the row is not valid</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.get_atomic_weight">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">get_atomic_weight</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.get_atomic_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the atomic weight of an atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_label</strong> (<em>str</em>) – atom label e.g. C or Pd</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>atomic weight of the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.get_maximal_valance">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">get_maximal_valance</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.get_maximal_valance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the maximum valance of an atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_label</strong> (<em>str</em>) – atom label e.g. C or Pd</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>maximal valence of the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.get_vdw_radius">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">get_vdw_radius</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.get_vdw_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the van der waal’s radius of an atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atom_label</strong> (<em>str</em>) – atom label e.g. C or Pd</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>van der waal’s radius of the atom</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.atoms.is_pi_atom">
+<code class="sig-prename descclassname">autode.atoms.</code><code class="sig-name descname">is_pi_atom</code><span class="sig-paren">(</span><em class="sig-param">atom_label</em>, <em class="sig-param">valency</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.atoms.is_pi_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if an atom is a ‘π-atom’ i.e. is unsaturated and is a first or
+second row element</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_label</strong> (<em>str</em>) – </p></li>
+<li><p><strong>valency</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="bond_lengths.html" class="btn btn-neutral float-right" title="Bonds" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="wrappers/xtb.html" class="btn btn-neutral float-left" title="XTB" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

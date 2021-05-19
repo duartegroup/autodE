@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>RMSD &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Transition States" href="tss.html" />
+    <link rel="prev" title="Conformer Generation" href="conformers.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>RMSD</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/rmsd.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="rmsd">
+<h1>RMSD<a class="headerlink" href="#rmsd" title="Permalink to this headline">¶</a></h1>
+<p><strong>autodE</strong> can be used to calculate RMSD values between different molecules. For
+example, a script that compares .xyz files in the current directory and
+copies them to a folder (<em>unique_conformers</em>) if they are unique based on an
+RMSD threshold</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">from</span> <span class="nn">autode.species</span> <span class="kn">import</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">autode.geom</span> <span class="kn">import</span> <span class="n">calc_rmsd</span>
+<span class="kn">from</span> <span class="nn">autode.input_output</span> <span class="kn">import</span> <span class="n">xyz_file_to_atoms</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copyfile</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="n">folder_name</span> <span class="o">=</span> <span class="s1">&#39;unique_conformers&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">get_args</span><span class="p">():</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;filenames&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;.xyz files to compare&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;RMSD threshold (Å)&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-oh&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Only compare heavy atoms&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">get_molecules_no_hydrogens</span><span class="p">(</span><span class="n">molecules</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove all hydrogen atoms from  a list of molecules&quot;&quot;&quot;</span>
+
+    <span class="n">no_h_molecules</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">molecule</span> <span class="ow">in</span> <span class="n">molecules</span><span class="p">:</span>
+        <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">label</span> <span class="o">!=</span> <span class="s1">&#39;H&#39;</span><span class="p">]</span>
+
+        <span class="n">no_h_molecules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">no_h_molecules</span>
+
+
+<span class="k">def</span> <span class="nf">get_and_copy_unique_confs</span><span class="p">(</span><span class="n">xyz_filenames</span><span class="p">,</span> <span class="n">only_heavy_atoms</span><span class="p">,</span> <span class="n">threshold_rmsd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For each xyz file generate a species and copy it to a folder if it is</span>
+<span class="sd">    unique based on an RMSD threshold&quot;&quot;&quot;</span>
+
+    <span class="n">molecules</span> <span class="o">=</span> <span class="p">[</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">fn</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.xyz&#39;</span><span class="p">),</span> <span class="n">atoms</span><span class="o">=</span><span class="n">xyz_file_to_atoms</span><span class="p">(</span><span class="n">fn</span><span class="p">),</span>
+                         <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">xyz_filenames</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">only_heavy_atoms</span><span class="p">:</span>
+        <span class="n">molecules</span> <span class="o">=</span> <span class="n">get_molecules_no_hydrogens</span><span class="p">(</span><span class="n">molecules</span><span class="p">)</span>
+
+    <span class="n">unique_mol_ids</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">molecules</span><span class="p">)):</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">molecules</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">is_unique</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">unique_mol_ids</span><span class="p">:</span>
+            <span class="n">rmsd</span> <span class="o">=</span> <span class="n">calc_rmsd</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">molecules</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">rmsd</span> <span class="o">&lt;</span> <span class="n">threshold_rmsd</span><span class="p">:</span>
+                <span class="n">is_unique</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">is_unique</span><span class="p">:</span>
+            <span class="n">unique_mol_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Number of unique molecules = &#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_mol_ids</span><span class="p">))</span>
+
+    <span class="c1"># Copy all the unique .xyz files to a new folder</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder_name</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder_name</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">unique_mol_ids</span><span class="p">:</span>
+        <span class="n">xyz_filename</span> <span class="o">=</span> <span class="n">xyz_filenames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">copyfile</span><span class="p">(</span><span class="n">xyz_filename</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_name</span><span class="p">,</span> <span class="n">xyz_filename</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.xyz&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">filenames</span><span class="p">)</span>
+
+    <span class="n">get_and_copy_unique_confs</span><span class="p">(</span><span class="n">xyz_filenames</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">filenames</span><span class="p">,</span>
+                              <span class="n">only_heavy_atoms</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">oh</span><span class="p">,</span>
+                              <span class="n">threshold_rmsd</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which can be used:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python rmsd.py conformer1.xyz. conformer2.xyz -t 0.1
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are many other Python packages to calculate RMSD e.g.
+<a class="reference external" href="https://github.com/charnley/rmsd/">rmsd</a> and
+<a class="reference external" href="https://github.com/RMeli/spyrmsd/">spyrmsd</a> which may be better!</p>
+</div>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tss.html" class="btn btn-neutral float-right" title="Transition States" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="conformers.html" class="btn btn-neutral float-left" title="Conformer Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

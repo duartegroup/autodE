@@ -1,0 +1,512 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Bond Rearrangement &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Calculation" href="calculation.html" />
+    <link rel="prev" title="Bonds" href="bond_lengths.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Bond Rearrangement</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/bond_rearrangement.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.bond_rearrangement">
+<span id="bond-rearrangement"></span><h1>Bond Rearrangement<a class="headerlink" href="#module-autode.bond_rearrangement" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.bond_rearrangement.BondRearrangement">
+<em class="property">class </em><code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">BondRearrangement</code><span class="sig-paren">(</span><em class="sig-param">forming_bonds=None</em>, <em class="sig-param">breaking_bonds=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.__eq__">
+<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self==value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">forming_bonds=None</em>, <em class="sig-param">breaking_bonds=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bond rearrangement</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forming_bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em><em>)</em>) – List of atom pairs that are
+forming in this reaction</p></li>
+<li><p><strong>breaking_bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em><em>)</em>) – List of atom pairs that are
+breaking in the reaction</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.__str__">
+<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.active_atoms">
+<em class="property">property </em><code class="sig-name descname">active_atoms</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.active_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique atom indexes in forming or breaking bonds</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.batoms">
+<em class="property">property </em><code class="sig-name descname">batoms</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.batoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique atoms indexes involved in breaking bonds</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.fatoms">
+<em class="property">property </em><code class="sig-name descname">fatoms</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.fatoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique atoms indexes involved in forming bonds</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists">
+<code class="sig-name descname">get_active_atom_neighbour_lists</code><span class="sig-paren">(</span><em class="sig-param">mol_complex</em>, <em class="sig-param">depth</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get neighbour lists of all the active atoms in the molecule
+(reactant complex)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol_complex</strong> (<em>autode.species.Complex</em>) – </p></li>
+<li><p><strong>depth</strong> (<em>int</em>) – Depth of the neighbour list to consider</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(list(str)))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.n_bbonds">
+<em class="property">property </em><code class="sig-name descname">n_bbonds</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_bbonds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.n_fbonds">
+<em class="property">property </em><code class="sig-name descname">n_fbonds</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_fbonds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.bond_rearrangement.BondRearrangement.n_membered_rings">
+<code class="sig-name descname">n_membered_rings</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_membered_rings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the membered-ness of the rings involved in this bond rearrangement
+will add the forming bonds to the graph to determine</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>autode.species.Species</strong><strong>)</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(int))</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.add_bond_rearrangment">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">add_bond_rearrangment</code><span class="sig-paren">(</span><em class="sig-param">bond_rearrangs</em>, <em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">fbonds</em>, <em class="sig-param">bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.add_bond_rearrangment" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a possible bond rearrangement, sees if the products are made, and
+adds it to the bond rearrang list if it does</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bond_rearrangs</strong> (<em>list</em><em>(</em><em>autode.bond_rearrangements.BondRearrangement</em><em>)</em>) – list of working bond rearrangments</p></li>
+<li><p><strong>reactant</strong> (<em>autode.species.Complex</em>) – Reactant complex</p></li>
+<li><p><strong>product</strong> (<em>autode.species.Complex</em>) – Product complex</p></li>
+<li><p><strong>fbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be made</p></li>
+<li><p><strong>bbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be broken</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(autode.bond_rearrangements.BondRearrangement))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.generate_rearranged_graph">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">generate_rearranged_graph</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">fbonds</em>, <em class="sig-param">bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.generate_rearranged_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a rearranged graph by breaking bonds (edge) and forming others
+(edge)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> (<em>nx.Graph</em>) – reactant graph</p></li>
+<li><p><strong>fbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be made</p></li>
+<li><p><strong>bbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be broken</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>rearranged graph</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>nx.Graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_bond_rearrangs">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_bond_rearrangs</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">name</em>, <em class="sig-param">save=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_bond_rearrangs" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a reactant and product (mol_complex) find the set of breaking and
+forming bonds that will turn reactants into products. This works by
+determining the types of bonds that have been made/broken (i.e CH) and
+then only considering rearrangements involving those bonds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactant</strong> (<em>autode.species.ReactantComplex</em>) – </p></li>
+<li><p><strong>product</strong> (<em>autode.species.ProductComplex</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>save</strong> (<em>bool</em>) – Save bond rearrangements to a file for fast reloading</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(autode.bond_rearrangements.BondRearrangement))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_bond_rearrangs_from_file">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_bond_rearrangs_from_file</code><span class="sig-paren">(</span><em class="sig-param">filename='bond_rearrangs.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_bond_rearrangs_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract a list of bond rearrangements from a file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(autode.bond_rearrangements.BondRearrangement))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_fbonds_bbonds_1b">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_1b</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_fbonds_bbonds_1b1f">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_1b1f</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b1f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_fbonds_bbonds_2b">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_2b</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_fbonds_bbonds_2b1f">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_2b1f</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b1f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.get_fbonds_bbonds_2b2f">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_2b2f</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b2f" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.prune_small_ring_rearrs">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">prune_small_ring_rearrs</code><span class="sig-paren">(</span><em class="sig-param">possible_brs</em>, <em class="sig-param">mol</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.prune_small_ring_rearrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any bond rearrangements that go via small (3, 4) rings if there is
+an alternative that goes vie</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>possible_brs</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>BondRearrangement</em></a><em>)</em>) – </p></li>
+<li><p><strong>mol</strong> (<em>autode.species.Complex</em>) – Reactant</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.save_bond_rearrangs_to_file">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">save_bond_rearrangs_to_file</code><span class="sig-paren">(</span><em class="sig-param">brs</em>, <em class="sig-param">filename='bond_rearrangs.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.save_bond_rearrangs_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a list of bond rearrangements to a file in plane text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>brs</strong> – (list(autode.bond_rearrangements.BondRearrangement))</p></li>
+<li><p><strong>filename</strong> – (str)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.bond_rearrangement.strip_equiv_bond_rearrs">
+<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">strip_equiv_bond_rearrs</code><span class="sig-paren">(</span><em class="sig-param">possible_brs</em>, <em class="sig-param">mol</em>, <em class="sig-param">depth=6</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.strip_equiv_bond_rearrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any bond rearrangement from possible_brs for which
+there is already an equivalent in the unique_bond_rearrangements list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>possible_brs</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>BondRearrangement</em></a><em>)</em>) – </p></li>
+<li><p><strong>mol</strong> (<em>autode.species.Complex</em>) – Reactant</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>depth</strong> (<em>int</em>) – Depth of neighbour list that must be identical for a set
+of atoms to be considered equivalent (default: {6})</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>stripped list of BondRearrangement objects</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement">BondRearrangement</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="calculation.html" class="btn btn-neutral float-right" title="Calculation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bond_lengths.html" class="btn btn-neutral float-left" title="Bonds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2D PES Generation &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Conformer Generation" href="conformers.html" />
+    <link rel="prev" title="1D PES Generation" href="pes1d.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>2D PES Generation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/pes2d.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="d-pes-generation">
+<h1>2D PES Generation<a class="headerlink" href="#d-pes-generation" title="Permalink to this headline">¶</a></h1>
+<p>2D scans in <strong>autodE</strong> are available over distances and are optimally parallelised
+over the available number of cores. For example, to calculate and plot the 2D
+relaxed surface over the C-C distances in a Diels-Alder reaction between ethene
+and butadiene</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="n">reac</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reactant</span><span class="p">(</span><span class="s1">&#39;DA_r.xyz&#39;</span><span class="p">)</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Product</span><span class="p">(</span><span class="s1">&#39;DA_p.xyz&#39;</span><span class="p">)</span>
+
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">PES2d</span><span class="p">(</span><span class="n">reac</span><span class="p">,</span> <span class="n">prod</span><span class="p">,</span>
+                    <span class="n">r1s</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">1.45</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                    <span class="n">r1_idxs</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+                    <span class="n">r2s</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">1.45</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                    <span class="n">r2_idxs</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;da_surface&#39;</span><span class="p">,</span>
+              <span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">(),</span>
+              <span class="n">keywords</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">OptKeywords</span><span class="p">([]))</span>
+
+<span class="c1"># Save the matrix of energies (Ha) over the grid</span>
+<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="s1">&#39;da_surface.txt&#39;</span><span class="p">,</span> <span class="n">pes</span><span class="o">.</span><span class="n">energies</span><span class="p">())</span>
+<span class="c1"># and print the 2D surface</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">print_plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Out:</p>
+<img alt="../_images/DA_PES2d.png" src="../_images/DA_PES2d.png" />
+<p>where the xyz files used are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">16</span>
+<span class="n">DA_r</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.25524</span>  <span class="mf">0.55843</span>   <span class="o">-</span><span class="mf">0.45127</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">0.11901</span>  <span class="mf">1.52914</span>   <span class="o">-</span><span class="mf">0.34083</span>
+<span class="n">C</span>   <span class="mf">1.12810</span>   <span class="mf">1.05947</span>   <span class="o">-</span><span class="mf">0.22343</span>
+<span class="n">C</span>   <span class="mf">1.36167</span>   <span class="o">-</span><span class="mf">0.42098</span>  <span class="o">-</span><span class="mf">0.26242</span>
+<span class="n">C</span>   <span class="mf">0.31173</span>   <span class="o">-</span><span class="mf">1.21999</span>  <span class="mf">0.53472</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.08411</span>  <span class="o">-</span><span class="mf">0.56797</span>  <span class="mf">0.57151</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.28068</span>  <span class="mf">0.12348</span>   <span class="o">-</span><span class="mf">1.46969</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.22404</span>  <span class="mf">1.06103</span>   <span class="o">-</span><span class="mf">0.30930</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.31910</span>  <span class="mf">2.60539</span>   <span class="o">-</span><span class="mf">0.34475</span>
+<span class="n">H</span>   <span class="mf">1.98105</span>   <span class="mf">1.73907</span>   <span class="o">-</span><span class="mf">0.13515</span>
+<span class="n">H</span>   <span class="mf">2.37438</span>   <span class="o">-</span><span class="mf">0.67767</span>  <span class="mf">0.08526</span>
+<span class="n">H</span>   <span class="mf">1.32299</span>   <span class="o">-</span><span class="mf">0.74206</span>  <span class="o">-</span><span class="mf">1.32088</span>
+<span class="n">H</span>   <span class="mf">0.25137</span>   <span class="o">-</span><span class="mf">2.23441</span>  <span class="mf">0.11110</span>
+<span class="n">H</span>   <span class="mf">0.67503</span>   <span class="o">-</span><span class="mf">1.34778</span>  <span class="mf">1.56617</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.86306</span>  <span class="o">-</span><span class="mf">1.33147</span>  <span class="mf">0.42039</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.26117</span>  <span class="o">-</span><span class="mf">0.13357</span>  <span class="mf">1.56876</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">16</span>
+<span class="n">DA_p</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.18472</span>  <span class="mf">0.95433</span>   <span class="o">-</span><span class="mf">0.92636</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">0.13534</span>  <span class="mf">1.56836</span>   <span class="o">-</span><span class="mf">0.38499</span>
+<span class="n">C</span>   <span class="mf">1.20970</span>   <span class="mf">1.03499</span>   <span class="o">-</span><span class="mf">0.32021</span>
+<span class="n">C</span>   <span class="mf">1.59510</span>   <span class="o">-</span><span class="mf">0.14847</span>  <span class="o">-</span><span class="mf">0.79157</span>
+<span class="n">C</span>   <span class="mf">0.04730</span>   <span class="o">-</span><span class="mf">1.52193</span>  <span class="mf">1.10408</span>
+<span class="n">C</span>   <span class="o">-</span><span class="mf">1.17811</span>  <span class="o">-</span><span class="mf">1.03523</span>  <span class="mf">1.04232</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.09694</span>  <span class="mf">0.02359</span>   <span class="o">-</span><span class="mf">1.45646</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">2.16627</span>  <span class="mf">1.39654</span>   <span class="o">-</span><span class="mf">0.90380</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">0.27920</span>  <span class="mf">2.52394</span>   <span class="mf">0.10351</span>
+<span class="n">H</span>   <span class="mf">1.92714</span>   <span class="mf">1.64950</span>   <span class="mf">0.20903</span>
+<span class="n">H</span>   <span class="mf">2.60676</span>   <span class="o">-</span><span class="mf">0.49718</span>  <span class="o">-</span><span class="mf">0.67227</span>
+<span class="n">H</span>   <span class="mf">0.93837</span>   <span class="o">-</span><span class="mf">0.78520</span>  <span class="o">-</span><span class="mf">1.35572</span>
+<span class="n">H</span>   <span class="mf">0.35115</span>   <span class="o">-</span><span class="mf">2.37971</span>  <span class="mf">0.52750</span>
+<span class="n">H</span>   <span class="mf">0.79119</span>   <span class="o">-</span><span class="mf">1.10854</span>  <span class="mf">1.76348</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.93524</span>  <span class="o">-</span><span class="mf">1.47207</span>  <span class="mf">0.41268</span>
+<span class="n">H</span>   <span class="o">-</span><span class="mf">1.49104</span>  <span class="o">-</span><span class="mf">0.20275</span>  <span class="mf">1.64900</span>
+</pre></div>
+</div>
+<p>and the plot has been generated using a 2-dimensional polynomial fit up to order 3.</p>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="conformers.html" class="btn btn-neutral float-right" title="Conformer Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pes1d.html" class="btn btn-neutral float-left" title="1D PES Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

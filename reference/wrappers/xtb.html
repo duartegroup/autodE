@@ -1,0 +1,542 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>XTB &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Atoms" href="../atoms.html" />
+    <link rel="prev" title="ORCA" href="orca.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Wrappers</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="g09.html">Gaussian09</a></li>
+<li class="toctree-l3"><a class="reference internal" href="keywords.html">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mopac.html">MOPAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nwchem.html">NWChem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orca.html">ORCA</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">XTB</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Wrappers</a> &raquo;</li>
+        
+      <li>XTB</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/wrappers/xtb.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.wrappers.XTB">
+<span id="xtb"></span><h1>XTB<a class="headerlink" href="#module-autode.wrappers.XTB" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.wrappers.XTB.XTB">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.XTB.</code><code class="sig-name descname">XTB</code><a class="headerlink" href="#autode.wrappers.XTB.XTB" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.wrappers.XTB.XTB.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arguments:
+name (str): wrapper name. ALSO the name of the executable
+path (str): absolute path to the executable
+keywords_set (autode.wrappers.keywords.KeywordsSet):
+implicit_solvation_type (autode.wrappers.</p>
+<blockquote>
+<div><p>keywords.ImplicitSolventType):</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.calculation_terminated_normally">
+<code class="sig-name descname">calculation_terminated_normally</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
+<dd><p>Did the calculation terminate correctly?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.execute">
+<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute an XTB calculation using the runtime flags</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.generate_input">
+<code class="sig-name descname">generate_input</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.generate_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate any input files required</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calculation</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>molecule</strong> (<em>any</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_atomic_charges">
+<code class="sig-name descname">get_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(float))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_energy">
+<code class="sig-name descname">get_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the potential energy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_enthalpy">
+<code class="sig-name descname">get_enthalpy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_enthalpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the free energy (enthalpy)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_final_atoms">
+<code class="sig-name descname">get_final_atoms</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_final_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.AtomsNotFound" title="autode.exceptions.AtomsNotFound"><strong>autode.exceptions.AtomsNotFound</strong></a><strong>)</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_free_energy">
+<code class="sig-name descname">get_free_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_free_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the free energy (G)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_gradients">
+<code class="sig-name descname">get_gradients</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Raisese:</dt><dd><p>(autode.exceptions.CouldNotGetProperty)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_imaginary_freqs">
+<code class="sig-name descname">get_imaginary_freqs</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_imaginary_freqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(float))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_input_filename">
+<code class="sig-name descname">get_input_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_input_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_normal_mode_displacements">
+<code class="sig-name descname">get_normal_mode_displacements</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_normal_mode_displacements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>mode_number</strong> (<em>int</em>) – Number of the normal mode to get the</p></li>
+<li><p><strong>along 6 == first imaginary mode</strong> (<em>displacements</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_output_filename">
+<code class="sig-name descname">get_output_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_output_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output filename from the calculation name e.g. filename.out</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.get_version">
+<code class="sig-name descname">get_version</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.get_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the XTB version from the output file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.optimisation_converged">
+<code class="sig-name descname">optimisation_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.optimisation_converged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.XTB.XTB.optimisation_nearly_converged">
+<code class="sig-name descname">optimisation_nearly_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.XTB.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.XTB.print_cartesian_constraints">
+<code class="sig-prename descclassname">autode.wrappers.XTB.</code><code class="sig-name descname">print_cartesian_constraints</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">molecule</em>, <em class="sig-param">force_constant=20</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.print_cartesian_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add cartesian constraints to an xtb input file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.XTB.print_distance_constraints">
+<code class="sig-prename descclassname">autode.wrappers.XTB.</code><code class="sig-name descname">print_distance_constraints</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">molecule</em>, <em class="sig-param">force_constant=20</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.print_distance_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add distance constraints to the input file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.XTB.print_point_charge_file">
+<code class="sig-prename descclassname">autode.wrappers.XTB.</code><code class="sig-name descname">print_point_charge_file</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.print_point_charge_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a point charge file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.XTB.print_xcontrol_file">
+<code class="sig-prename descclassname">autode.wrappers.XTB.</code><code class="sig-name descname">print_xcontrol_file</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.XTB.print_xcontrol_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print an XTB input file with constraints and point charges</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../atoms.html" class="btn btn-neutral float-right" title="Atoms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="orca.html" class="btn btn-neutral float-left" title="ORCA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

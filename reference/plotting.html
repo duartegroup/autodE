@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Plotting &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Point Charges" href="point_charges.html" />
+    <link rel="prev" title="Molecular Graphs" href="mol_graphs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Plotting</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/plotting.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.plotting">
+<span id="plotting"></span><h1>Plotting<a class="headerlink" href="#module-autode.plotting" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.plotting.Energy">
+<em class="property">class </em><code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">Energy</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">estimated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.Energy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.plotting.Energy.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">estimated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.Energy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.plotting.Energy.item">
+<code class="sig-name descname">item</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.Energy.item" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.calculate_reaction_profile_energies">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">calculate_reaction_profile_energies</code><span class="sig-paren">(</span><em class="sig-param">reactions</em>, <em class="sig-param">units</em>, <em class="sig-param">free_energy=False</em>, <em class="sig-param">enthalpy=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.calculate_reaction_profile_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a list of energies comprising the reaction profile</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactions</strong> (<em>list</em><em>(</em><em>autode.reaction.Reaction</em><em>)</em>) – </p></li>
+<li><p><strong>units</strong> (<em>autode.units.Units</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>free_energy</strong> (<em>bool</em>) – Calculate ∆Gs</p></li>
+<li><p><strong>enthalpy</strong> (<em>bool</em>) – Calculate ∆Hs</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>(np.ndarray(autode.plotting.Energy))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.error_on_stationary_points">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">error_on_stationary_points</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">energies</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.error_on_stationary_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the difference between the stationary points of an interpolated
+function and those observed (given in the energies array). Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">|</span>     <span class="o">.</span>
+<span class="n">E</span> <span class="o">|.</span>   <span class="o">/</span> \        <span class="n">The</span> <span class="n">points</span> <span class="n">indicate</span> <span class="n">the</span> <span class="n">true</span> <span class="n">stationary</span> <span class="n">points</span>
+  <span class="o">|</span> \<span class="n">_</span><span class="o">/</span>   \<span class="o">.</span>
+  <span class="o">|</span><span class="n">_____________</span>
+        <span class="n">zi</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – Points that will be splined that generate stationary
+points that ≈ energies</p></li>
+<li><p><strong>energies</strong> (<em>np.ndarray</em>) – Observed stationary points</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A measure of the error</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.get_reaction_profile_warnings">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">get_reaction_profile_warnings</code><span class="sig-paren">(</span><em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.get_reaction_profile_warnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a string of warnings for a reaction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>reactions</strong> (<em>list</em><em>(</em><em>autode.reaction.Reaction</em><em>)</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of warnings to annotate the plot with</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.get_stationary_points">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">get_stationary_points</code><span class="sig-paren">(</span><em class="sig-param">xs</em>, <em class="sig-param">dydx</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.get_stationary_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the productive of the derivative at points x(i-1) and x(i) which
+is negative if there is a point x(k)
+between x(i-1) and x(i) that has dy/dx|x(k) = 0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xs</strong> (<em>np.ndarray</em>) – </p></li>
+<li><p><strong>dydx</strong> (<em>function</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.plot_1dpes">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_1dpes</code><span class="sig-paren">(</span><em class="sig-param">rs</em>, <em class="sig-param">rel_energies</em>, <em class="sig-param">method_name</em>, <em class="sig-param">name='1d_scan'</em>, <em class="sig-param">xlabel='$r$ / Å'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_1dpes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.plot_2dpes">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_2dpes</code><span class="sig-paren">(</span><em class="sig-param">r1</em>, <em class="sig-param">r2</em>, <em class="sig-param">coeff_mat</em>, <em class="sig-param">mep=None</em>, <em class="sig-param">name='2d_scan'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_2dpes" title="Permalink to this definition">¶</a></dt>
+<dd><p>For flat lists of r1, r2 and relative energies plot the PES by
+interpolating on a 50x50 grid after fitting with
+a 2d polynomial function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r1</strong> (<em>np.ndarray</em>) – r1 distance points</p></li>
+<li><p><strong>r2</strong> (<em>np.ndarray</em>) – r2 distance points</p></li>
+<li><p><strong>coeff_mat</strong> (<em>np.array</em>) – matrix of polynomial coefficients for the energy
+surface</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>mep</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of coordinates on the grid for the min energy</p></li>
+<li><p><strong>across the surface</strong><strong> (</strong><strong>default</strong> (<em>pathway</em>) – {None})</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – name of the plot (default: {‘2d_scan’})</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.plot_points">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_points</code><span class="sig-paren">(</span><em class="sig-param">zi_s</em>, <em class="sig-param">energies</em>, <em class="sig-param">ax</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a reaction profile just adding the points to the graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zi_s</strong> (<em>np.ndarray</em>) – Estimate of reaction coordinate points</p></li>
+<li><p><strong>energies</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.plotting.Energy" title="autode.plotting.Energy"><em>autode.plotting.Energy</em></a><em>)</em>) – len(energies) = len(zi_s)</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.plot_reaction_profile">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_reaction_profile</code><span class="sig-paren">(</span><em class="sig-param">reactions</em>, <em class="sig-param">units</em>, <em class="sig-param">name</em>, <em class="sig-param">free_energy=False</em>, <em class="sig-param">enthalpy=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_reaction_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a set of reactions plot the reaction profile using matplotlib</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactions</strong> (<em>list</em><em>(</em><em>(</em><em>autode.reaction.Reaction</em><em>)</em>) – </p></li>
+<li><p><strong>units</strong> (<em>autode.units.Units</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>free_energy</strong> (<em>bool</em>) – Plot the free energy profile (G)</p></li>
+<li><p><strong>enthalpy</strong> (<em>bool</em>) – Plot the enthalpic profile (H)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.plot_smooth_profile">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_smooth_profile</code><span class="sig-paren">(</span><em class="sig-param">zi_s</em>, <em class="sig-param">energies</em>, <em class="sig-param">ax</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_smooth_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a smooth reaction profile by spline interpolation and finding the
+stationary points. This will not afford the correct number of stationary
+points for some energy arrays, so raise an exception if it fails</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zi_s</strong> (<em>np.ndarray</em>) – Estimate of reaction coordinate points</p></li>
+<li><p><strong>energies</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.plotting.Energy" title="autode.plotting.Energy"><em>autode.plotting.Energy</em></a><em>)</em>) – len(energies) = len(zi_s)</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.plotting.save_plot">
+<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">save_plot</code><span class="sig-paren">(</span><em class="sig-param">plot</em>, <em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.save_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a plot</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="point_charges.html" class="btn btn-neutral float-right" title="Point Charges" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mol_graphs.html" class="btn btn-neutral float-left" title="Molecular Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

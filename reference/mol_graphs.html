@@ -1,0 +1,651 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Molecular Graphs &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Plotting" href="plotting.html" />
+    <link rel="prev" title="Methods" href="methods.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Molecular Graphs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/mol_graphs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.mol_graphs">
+<span id="molecular-graphs"></span><h1>Molecular Graphs<a class="headerlink" href="#module-autode.mol_graphs" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="autode.mol_graphs.connected_components">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">connected_components</code><span class="sig-paren">(</span><em class="sig-param">graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.connected_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connected sections of the nx.Graph</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.find_cycles">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">find_cycles</code><span class="sig-paren">(</span><em class="sig-param">graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.find_cycles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all the cycles in a graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>graph</strong> (<em>nx.Graph</em>) – the molecular graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>each list has the atoms in a cycle</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list(list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_atom_ids_sorted_type">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_atom_ids_sorted_type</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_atom_ids_sorted_type" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Get a list of atom ids sorted by increasing atomic weight, useful for when</dt><dd><p>a molecular graph depends on the order</p>
+</dd>
+</dl>
+<p>of atoms in what will be considered bonded</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(int))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_bond_type_list">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_bond_type_list</code><span class="sig-paren">(</span><em class="sig-param">graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_bond_type_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the types (i.e CH) of all the bonds in a molecular graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>graph</strong> (<em>nx.Graph</em>) – Molecular graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>key = bond type, value = list of bonds of this</dt><dd><p>type</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bond_list_dict (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_fbonds">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_fbonds</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_fbonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the possible forming bonds of a certain type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> (<em>nx.Graph</em>) – graph object of a molecule</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – string representing the bond type to be examined</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of bonds that can be made of this type</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_graph_no_active_edges">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_graph_no_active_edges</code><span class="sig-paren">(</span><em class="sig-param">graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_graph_no_active_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a molecular graph without the active edges</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>graph</strong> (<em>nx.Graph</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(nx.Graph)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_graphs_ignoring_active_edges">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_graphs_ignoring_active_edges</code><span class="sig-paren">(</span><em class="sig-param">graph1</em>, <em class="sig-param">graph2</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_graphs_ignoring_active_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any active edges that are in either graph1 or graph2 from both
+graphs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph1</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>graph2</strong> (<em>nx.Graph</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(tuple(nx.Graph))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_mapping">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_mapping</code><span class="sig-paren">(</span><em class="sig-param">graph1</em>, <em class="sig-param">graph2</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a sorted mapping of nodes between two graphs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph1</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>graph2</strong> (<em>nx.Graph</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_mapping_ts_template">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_mapping_ts_template</code><span class="sig-paren">(</span><em class="sig-param">larger_graph</em>, <em class="sig-param">smaller_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_mapping_ts_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the mapping for a graph onto a TS template (smaller). Can raise
+StopIteration with no match!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>larger_graph</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>smaller_graph</strong> (<em>nx.Graph</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Mapping</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_separate_subgraphs">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_separate_subgraphs</code><span class="sig-paren">(</span><em class="sig-param">graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_separate_subgraphs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all the unconnected graphs in a graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>graph</strong> (<em>nx.Graph</em>) – graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of graphs separate graphs</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.get_truncated_active_mol_graph">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">get_truncated_active_mol_graph</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">active_bonds=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_truncated_active_mol_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a truncated graph of a graph that only contains the active bond
+atoms and their nearest neighbours</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>active_bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.gm_is_isomorphic">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">gm_is_isomorphic</code><span class="sig-paren">(</span><em class="sig-param">gm</em>, <em class="sig-param">result</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.gm_is_isomorphic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.graph_matcher">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">graph_matcher</code><span class="sig-paren">(</span><em class="sig-param">graph1</em>, <em class="sig-param">graph2</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.graph_matcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a networkX graph matcher between two graphs, matching on atom
+types and active bonds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph1</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>graph2</strong> (<em>nx.Graph</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(nx.GraphMatcher)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.is_chiral_atom">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">is_chiral_atom</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">atom_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_chiral_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if an atom is chiral, by seeing if any of the bonded groups
+are the same</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.is_chiral_pi_bond">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">is_chiral_pi_bond</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">bond</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_chiral_pi_bond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a pi bond is chiral, by seeing if either atom has the same
+group bonded to it twice</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.is_subgraph_isomorphic">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">is_subgraph_isomorphic</code><span class="sig-paren">(</span><em class="sig-param">larger_graph</em>, <em class="sig-param">smaller_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_subgraph_isomorphic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the smaller graph subgraph isomorphic to the larger graph?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>larger_graph</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>smaller_graph</strong> (<em>nx.Graph</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.make_graph">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">make_graph</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">rel_tolerance=0.25</em>, <em class="sig-param">bond_list=None</em>, <em class="sig-param">allow_invalid_valancies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.make_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the molecular graph from the ‘bonds’ determined on a distance criteria
+or a smiles parser object. All attributes default to false:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Nodes</span> <span class="n">attributes</span><span class="p">;</span>
+    <span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="n">atom_label</span><span class="p">:</span> <span class="n">Atomic</span> <span class="n">symbol</span> <span class="n">of</span> <span class="n">this</span> <span class="n">atom</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="n">stereo</span><span class="p">:</span> <span class="n">Is</span> <span class="n">this</span> <span class="n">atom</span> <span class="n">part</span> <span class="n">of</span> <span class="n">some</span> <span class="n">stereochemistry</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">R</span><span class="o">/</span><span class="n">S</span> <span class="ow">or</span>
+                <span class="n">E</span><span class="o">/</span><span class="n">Z</span>
+
+<span class="n">Edge</span> <span class="n">attributes</span><span class="p">;</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="n">pi</span><span class="p">:</span> <span class="n">Is</span> <span class="n">this</span> <span class="n">bond</span> <span class="n">a</span> <span class="n">pi</span> <span class="n">bond</span><span class="o">.</span> <span class="n">If</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">then</span> <span class="n">there</span> <span class="n">should</span> <span class="n">be</span> <span class="n">no</span>
+            <span class="n">rotation</span> <span class="n">the</span> <span class="n">bond</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">conformer</span> <span class="n">generation</span>
+    <span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="n">active</span><span class="p">:</span> <span class="n">Is</span> <span class="n">this</span> <span class="n">bond</span> <span class="n">being</span> <span class="n">made</span><span class="o">/</span><span class="n">broken</span>
+               <span class="p">(</span><span class="n">applies</span> <span class="n">only</span> <span class="n">to</span> <span class="n">TransitionState</span> <span class="n">objects</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rel_tolerance</strong> (<em>float</em>) – </p></li>
+<li><p><strong>bond_list</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – </p></li>
+<li><p><strong>allow_invalid_valancies</strong> (<em>bool</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="exceptions.html#autode.exceptions.NoAtomsInMolecule" title="autode.exceptions.NoAtomsInMolecule"><strong>NoAtomsInMolecule</strong></a> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.reac_graph_to_prod_graph">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">reac_graph_to_prod_graph</code><span class="sig-paren">(</span><em class="sig-param">reac_graph</em>, <em class="sig-param">bond_rearrang</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.reac_graph_to_prod_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes the graph of the product from the reactant and the bond
+rearrangement, so it has the indices of the reactant</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reac_graph</strong> (<em>nx.Graph</em>) – Graph of the reactant</p></li>
+<li><p><strong>bond_rearrang</strong> (<a class="reference internal" href="bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – The bond
+rearrangement linking reactants and products</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Graph of the product with each atom indexed as in the</dt><dd><p>reactants</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(nx.Graph)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.remove_bonds_invalid_valancies">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">remove_bonds_invalid_valancies</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.remove_bonds_invalid_valancies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove invalid valencies for atoms that exceed their maximum valencies e.g.
+H should have no more than 1 ‘bond’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.reorder_nodes">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">reorder_nodes</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">mapping</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.reorder_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder the nodes in a graph using a mapping. NetworkX uses the inverse
+mapping so the dict is swapped before the nodes are relabeled</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>mapping</strong> (<em>dict</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(nx.Graph)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.set_active_mol_graph">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">set_active_mol_graph</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">active_bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.set_active_mol_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a molecular graph that includes ‘active edges’ i.e. bonds that are
+either made or broken in the reaction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>active_bonds</strong> – (list(tuple(int)))</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.set_graph_attributes">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">set_graph_attributes</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.set_graph_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a molecular species set the π bonds and stereocentres in the molecular
+graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.species_are_isomorphic">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">species_are_isomorphic</code><span class="sig-paren">(</span><em class="sig-param">species1</em>, <em class="sig-param">species2</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.species_are_isomorphic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if two complexes are isomorphic in at least one of their conformers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species1</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>species2</strong> (<em>autode.species.Species</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.split_mol_across_bond">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">split_mol_across_bond</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">bond</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.split_mol_across_bond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of atoms on either side of a bond. Should be separable
+into two graphs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> (<em>nx.Graph</em>) – Molecular graph</p></li>
+<li><p><strong>bond</strong> (<em>tuple</em><em>(</em><em>int</em><em>)</em>) – Bond to be split across e.g. (0, 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of atom indexes (as a list of integers)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(list(int)))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.mol_graphs.union">
+<code class="sig-prename descclassname">autode.mol_graphs.</code><code class="sig-name descname">union</code><span class="sig-paren">(</span><em class="sig-param">graphs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.union" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the union of two graphs. The disjoint union is returned</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="plotting.html" class="btn btn-neutral float-right" title="Plotting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="methods.html" class="btn btn-neutral float-left" title="Methods" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

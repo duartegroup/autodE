@@ -1,0 +1,529 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Keywords &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="MOPAC" href="mopac.html" />
+    <link rel="prev" title="Gaussian09" href="g09.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Wrappers</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="g09.html">Gaussian09</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mopac.html">MOPAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nwchem.html">NWChem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orca.html">ORCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="xtb.html">XTB</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Wrappers</a> &raquo;</li>
+        
+      <li>Keywords</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/wrappers/keywords.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.wrappers.keywords">
+<span id="keywords"></span><h1>Keywords<a class="headerlink" href="#module-autode.wrappers.keywords" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.wrappers.keywords.BasisSet">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">BasisSet</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.BasisSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basis set for a QM method</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.DispersionCorrection">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">DispersionCorrection</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.DispersionCorrection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functional for a DFT method</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.ECP">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">ECP</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">min_atomic_number=37</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.ECP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Effective core potential</p>
+<dl class="method">
+<dt id="autode.wrappers.keywords.ECP.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">min_atomic_number=37</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.ECP.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>An effective core potential that applies to all atoms with atomic
+numbers larger than min_atomic_number</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>min_atomic_number</strong> (<em>int</em>) – </p></li>
+<li><p><strong>doi</strong> (<em>str</em>) – </p></li>
+<li><p><strong>doi_list</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – </p></li>
+<li><p><strong>kwargs</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.Functional">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">Functional</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functional for a DFT method</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.GradientKeywords">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">GradientKeywords</code><span class="sig-paren">(</span><em class="sig-param">keyword_list</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.GradientKeywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.HessianKeywords">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">HessianKeywords</code><span class="sig-paren">(</span><em class="sig-param">keyword_list</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.HessianKeywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.ImplicitSolventType">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">ImplicitSolventType</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.ImplicitSolventType" title="Permalink to this definition">¶</a></dt>
+<dd><p>A type of implicit solvent model. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cpcm</span> <span class="o">=</span> <span class="n">ImplicitSolventType</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;cpcm&#39;</span><span class="p">,</span> <span class="n">doi</span><span class="o">=</span><span class="s1">&#39;10.the_doi&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.Keyword">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">Keyword</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keyword" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.wrappers.keywords.Keyword.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keyword.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>A keyword for an electronic structure theory method e.g. basis set or
+functional, with possibly a an associated reference or set of
+references.</p>
+<p>e.g.
+keyword = Keyword(name=’pbe’)
+keyword = Keyword(name=’pbe’, g09=’xpbe96 cpbe96’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – (str) Name of the keyword/method</p></li>
+<li><p><strong>doi</strong> – (str) Digital object identifier for the method’s paper</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>kwargs</strong> – (str) Keyword in a particular electronic structure theory
+package e.g. Keyword(…, orca=’PBE0’) for a
+functional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keyword.doi_str">
+<code class="sig-name descname">doi_str</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keyword.doi_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keyword.has_only_name">
+<code class="sig-name descname">has_only_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keyword.has_only_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if only a name has been set, in which case it will
+be printed verbatim into an input file, otherwise needs keyword.method
+to be set, where method is e.g. orca</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keyword.lower">
+<code class="sig-name descname">lower</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keyword.lower" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keyword.upper">
+<code class="sig-name descname">upper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keyword.upper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.Keywords">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">Keywords</code><span class="sig-paren">(</span><em class="sig-param">keyword_list</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keywords" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">keyword_list</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keywords.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read only list of keywords</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>keyword_list</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – List of keywords used in a QM calculation</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">item</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keywords.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.basis_set">
+<em class="property">property </em><code class="sig-name descname">basis_set</code><a class="headerlink" href="#autode.wrappers.keywords.Keywords.basis_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the functional in this set of keywords</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keywords.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.dispersion">
+<em class="property">property </em><code class="sig-name descname">dispersion</code><a class="headerlink" href="#autode.wrappers.keywords.Keywords.dispersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the dispersion keyword in this set of keywords</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.ecp">
+<em class="property">property </em><code class="sig-name descname">ecp</code><a class="headerlink" href="#autode.wrappers.keywords.Keywords.ecp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the effective core potential used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.functional">
+<em class="property">property </em><code class="sig-name descname">functional</code><a class="headerlink" href="#autode.wrappers.keywords.Keywords.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the functional in this set of keywords</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.method_string">
+<code class="sig-name descname">method_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keywords.method_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string with refs (dois) for this method e.g. PBE0-D3BJ</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">item</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.Keywords.remove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.Keywords.wf_method">
+<em class="property">property </em><code class="sig-name descname">wf_method</code><a class="headerlink" href="#autode.wrappers.keywords.Keywords.wf_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the wavefunction method in this set of keywords</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.KeywordsSet">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">KeywordsSet</code><span class="sig-paren">(</span><em class="sig-param">low_opt=None</em>, <em class="sig-param">grad=None</em>, <em class="sig-param">opt=None</em>, <em class="sig-param">opt_ts=None</em>, <em class="sig-param">hess=None</em>, <em class="sig-param">optts_block=''</em>, <em class="sig-param">sp=None</em>, <em class="sig-param">ecp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.wrappers.keywords.KeywordsSet.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">low_opt=None</em>, <em class="sig-param">grad=None</em>, <em class="sig-param">opt=None</em>, <em class="sig-param">opt_ts=None</em>, <em class="sig-param">hess=None</em>, <em class="sig-param">optts_block=''</em>, <em class="sig-param">sp=None</em>, <em class="sig-param">ecp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keywords used to specify the type and method used in electronic
+structure theory calculations. The input file for a single point
+calculation will look something like:</p>
+<p>&lt;keyword line directive&gt; autode.Keywords.sp[0] autode.Keywords.sp[1]
+autode.Keywords.optts_block</p>
+<p>&lt;coordinate directive&gt; &lt;charge&gt; &lt;multiplicity&gt;
+.
+.
+coordinates
+.
+.
+&lt;end of coordinate directive&gt;
+———————————————————————
+:keyword low_opt: List of keywords for a low level optimisation
+:kwtype low_opt: list(str)
+:keyword grad: List of keywords for a gradient calculation
+:kwtype grad: list(str)
+:keyword opt: List of keywords for a low level optimisation
+:kwtype opt: list(str)
+:keyword opt_ts: List of keywords for a low level optimisation
+:kwtype opt_ts: list(str)
+:keyword hess: List of keywords for a low level optimisation
+:kwtype hess: list(str)
+:keyword optts_block: String as extra input for a TS optimisation
+:kwtype optts_block: str
+:keyword sp: List of keywords for a single point calculation
+:kwtype sp: list(str)
+:keyword ecp: Effective core</p>
+<blockquote>
+<div><p>potential for atoms heavier than</p>
+</div></blockquote>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.KeywordsSet.set_dispersion">
+<code class="sig-name descname">set_dispersion</code><span class="sig-paren">(</span><em class="sig-param">dispersion</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet.set_dispersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the dispersion correction for all calculation types</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.KeywordsSet.set_ecp">
+<code class="sig-name descname">set_ecp</code><span class="sig-paren">(</span><em class="sig-param">ecp</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet.set_ecp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the effective core potential for all calculation types</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.KeywordsSet.set_functional">
+<code class="sig-name descname">set_functional</code><span class="sig-paren">(</span><em class="sig-param">functional</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet.set_functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the functional for all calculation types</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.KeywordsSet.set_opt_basis_set">
+<code class="sig-name descname">set_opt_basis_set</code><span class="sig-paren">(</span><em class="sig-param">basis_set</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet.set_opt_basis_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the basis set for all optimisation and gradient calculations</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.keywords.KeywordsSet.set_opt_functional">
+<code class="sig-name descname">set_opt_functional</code><span class="sig-paren">(</span><em class="sig-param">functional</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.KeywordsSet.set_opt_functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the functional for all optimisation and gradient calculations</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.OptKeywords">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">OptKeywords</code><span class="sig-paren">(</span><em class="sig-param">keyword_list</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.OptKeywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.RI">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">RI</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.RI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolution of identity approximation</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.SinglePointKeywords">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">SinglePointKeywords</code><span class="sig-paren">(</span><em class="sig-param">keyword_list</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.SinglePointKeywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.wrappers.keywords.WFMethod">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.keywords.</code><code class="sig-name descname">WFMethod</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.keywords.WFMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keyword for a wavefunction method e.g. HF or CCSD(T)</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mopac.html" class="btn btn-neutral float-right" title="MOPAC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="g09.html" class="btn btn-neutral float-left" title="Gaussian09" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

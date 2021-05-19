@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PES 2D &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Saddle Points" href="saddle_points.html" />
+    <link rel="prev" title="PES 1D" href="pes_1d.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">PES</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="min_energy_pathway.html">Min Energy Pathway</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pes.html">PES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pes_1d.html">PES 1D</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">PES 2D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="saddle_points.html">Saddle Points</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">PES</a> &raquo;</li>
+        
+      <li>PES 2D</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/pes/pes_2d.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.pes.pes_2d">
+<span id="pes-2d"></span><h1>PES 2D<a class="headerlink" href="#module-autode.pes.pes_2d" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.pes.pes_2d.PES2d">
+<em class="property">class </em><code class="sig-prename descclassname">autode.pes.pes_2d.</code><code class="sig-name descname">PES2d</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">r1s</em>, <em class="sig-param">r1_idxs</em>, <em class="sig-param">r2s</em>, <em class="sig-param">r2_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">r1s</em>, <em class="sig-param">r1_idxs</em>, <em class="sig-param">r2s</em>, <em class="sig-param">r2_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>A two dimensional potential energy surface:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">/</span>
+<span class="n">r2</span> <span class="o">/</span>
+  <span class="o">/</span>
+ <span class="o">/</span><span class="n">___________</span>
+      <span class="n">r1</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactant</strong> (<em>autode.complex.ReactantComplex</em>) – Species at r1s[0] and r2s[0]</p></li>
+<li><p><strong>r1s</strong> (<em>np.ndarray</em>) – Bond length array in r1</p></li>
+<li><p><strong>r1_idxs</strong> (<em>tuple</em>) – Atom indexes that the PES will be calculated over in r1</p></li>
+<li><p><strong>r2s</strong> (<em>np.ndarray</em>) – Bond length array in r2</p></li>
+<li><p><strong>r2_idxs</strong> (<em>tuple</em>) – Atom indexes that the PES will be calculated over in r2</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.calculate">
+<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculations on the surface with a method using the a decomposition
+similar to the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Calculation order            Indexes
+
+   4  5  6  7          .        .        .
+
+   3  4  5  6        (0, 2)     .        .
+
+   2  3  4  5        (0, 1)  (1, 1)      .
+
+   1  2  3  4        (0, 0)  (1, 0)    (2, 0)
+                        ↖       ↖         ↖
+                    sum = 0   sum = 1    sum = 2
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>method</strong> (<em>autode.wrappers.ElectronicStructureMethod</em>) – </p></li>
+<li><p><strong>keywords</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.energies">
+<code class="sig-name descname">energies</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a matrix of absolute energies over the two dimensions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>shape = (n_points_r1, self.n_points_r2)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">polynomial_order</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit an analytic 2d surface</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.get_species_saddle_point">
+<code class="sig-name descname">get_species_saddle_point</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the species at the true saddle point on the surface</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.print_plot">
+<code class="sig-name descname">print_plot</code><span class="sig-paren">(</span><em class="sig-param">name='PES2d'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.print_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the fitted 2D surface using matplotlib</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.pes.pes_2d.PES2d.products_made">
+<code class="sig-name descname">products_made</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.PES2d.products_made" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that somewhere on the surface the molecular graph is
+isomorphic to the product</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.pes.pes_2d.get_ts_guess_2d">
+<code class="sig-prename descclassname">autode.pes.pes_2d.</code><code class="sig-name descname">get_ts_guess_2d</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">bond1</em>, <em class="sig-param">bond2</em>, <em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em>, <em class="sig-param">polynomial_order=3</em>, <em class="sig-param">dr=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.get_ts_guess_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scan the distance between two sets of two atoms and return a guess for
+the TS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactant</strong> (<em>autode.complex.ReactantComplex</em>) – </p></li>
+<li><p><strong>product</strong> (<em>autode.complex.ProductComplex</em>) – </p></li>
+<li><p><strong>bond1</strong> (<em>autode.pes.ScannedBond</em>) – </p></li>
+<li><p><strong>bond2</strong> (<em>autode.pes.ScannedBond</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – name of reaction</p></li>
+<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – electronic</p></li>
+<li><p><strong>wrapper to use for the calcs</strong> (<em>structure</em>) – </p></li>
+<li><p><strong>keywords</strong> (<em>autode.keywords.Keywords</em>) – keywords_list to use in the calcs</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>polynomial_order</strong> (<em>int</em>) – order of polynomial to fit the data to
+(default: {3})</p></li>
+<li><p><strong>dr</strong> (<em>float</em>) – Δr on the surface <em>absolute value</em></p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>(autode.transition_states.ts_guess.TSguess)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.pes.pes_2d.polyfit2d">
+<code class="sig-prename descclassname">autode.pes.pes_2d.</code><code class="sig-name descname">polyfit2d</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">z</em>, <em class="sig-param">order</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_2d.polyfit2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes x and y coordinates and their resultant z value, and creates a
+matrix where element i,j is the coefficient of the desired order polynomial</p>
+<blockquote>
+<div><p>x ** i * y ** j</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.array</em>) – flat array of x coordinates</p></li>
+<li><p><strong>y</strong> (<em>np.array</em>) – flat array of y coordinates</p></li>
+<li><p><strong>z</strong> (<em>np.array</em>) – flat array of z value at the corresponding x and y value</p></li>
+<li><p><strong>order</strong> (<em>int</em>) – max order of polynomial to work out</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>matrix of polynomial coefficients</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="saddle_points.html" class="btn btn-neutral float-right" title="Saddle Points" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pes_1d.html" class="btn btn-neutral float-left" title="PES 1D" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

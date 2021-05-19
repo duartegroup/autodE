@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Truncation &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="TS Guess" href="ts_guess.html" />
+    <link rel="prev" title="Transition State" href="transition_state.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Transition States</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="locate_tss.html">Locate TSs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="templates.html">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transition_state.html">Transition State</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ts_guess.html">TS Guess</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Transition States</a> &raquo;</li>
+        
+      <li>Truncation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/transition_states/truncation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.transition_states.truncation">
+<span id="truncation"></span><h1>Truncation<a class="headerlink" href="#module-autode.transition_states.truncation" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="autode.transition_states.truncation.add_capping_atom">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">add_capping_atom</code><span class="sig-paren">(</span><em class="sig-param">atom_index</em>, <em class="sig-param">n_atom_index</em>, <em class="sig-param">graph</em>, <em class="sig-param">s_molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.add_capping_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a capping atom. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>         <span class="n">H</span>
+        <span class="o">/</span>
+<span class="n">C_a</span><span class="o">---</span><span class="n">C_b</span> <span class="o">-</span> <span class="n">H</span>   <span class="o">-&gt;</span>   <span class="n">C_a</span><span class="o">--</span><span class="n">H</span>          <span class="n">where</span> <span class="n">C_a</span> <span class="ow">is</span> <span class="n">numbered</span> <span class="n">atom_index</span><span class="p">,</span>
+       \                             <span class="n">C_b</span> <span class="ow">is</span> <span class="n">numbered</span> <span class="n">n_atom_index</span>
+                          <span class="n">H</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_index</strong> (<em>int</em>) – </p></li>
+<li><p><strong>n_atom_index</strong> (<em>int</em>) – </p></li>
+<li><p><strong>graph</strong> (<em>nx.Graph</em>) – Current molecular graph of the stripped/truncated
+molecule</p></li>
+<li><p><strong>s_molecule</strong> (<em>autode.species.Species</em>) – Stripped molecule</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.truncation.add_capping_atoms">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">add_capping_atoms</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">s_molecule</em>, <em class="sig-param">truncated_graph</em>, <em class="sig-param">curr_nodes</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.add_capping_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add capping atoms to the graph, truncating over C-C single bonds where
+appropriate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>molecule</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>s_molecule</strong> (<em>autode.species.Species</em>) – Stripped molecule</p></li>
+<li><p><strong>truncated_graph</strong> (<em>nx.Graph</em>) – </p></li>
+<li><p><strong>curr_nodes</strong> (<em>list</em><em>(</em><em>int</em><em>)</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.truncation.add_core_pi_bonds">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">add_core_pi_bonds</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">s_molecule</em>, <em class="sig-param">truncated_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.add_core_pi_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Add π bonds that are nearest neighbours to the current atoms in the</dt><dd><p>truncated graph</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>molecule</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>s_molecule</strong> (<em>autode.species.Species</em>) – Stripped molecule</p></li>
+<li><p><strong>truncated_graph</strong> (<em>nx.Graph</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.truncation.add_remaining_atoms">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">add_remaining_atoms</code><span class="sig-paren">(</span><em class="sig-param">truncated_graph</em>, <em class="sig-param">full_graph</em>, <em class="sig-param">s_molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.add_remaining_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Truncation can lead to a split across a C-C bond in a ring where one
+of the carbons is no longer has 4 nearest neighbours</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.truncation.add_remaining_bonds">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">add_remaining_bonds</code><span class="sig-paren">(</span><em class="sig-param">truncated_graph</em>, <em class="sig-param">full_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.add_remaining_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Truncation by adding atoms and their nearest neighbours may miss bonds
+between sections that aren’t connected initially, so add them</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.truncation.get_truncated_complex">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">get_truncated_complex</code><span class="sig-paren">(</span><em class="sig-param">r_complex</em>, <em class="sig-param">bond_rearrangement</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.get_truncated_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>From a truncated reactant complex by removing non core atoms and adding
+capping atoms where appropriate</p>
+<p>r_complex -&gt; t_complex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r_complex</strong> (<em>autode.complex.ReactantComplex</em>) – </p></li>
+<li><p><strong>bond_rearrangement</strong> (<a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(autode.complex.ReactantComplex)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.truncation.is_worth_truncating">
+<code class="sig-prename descclassname">autode.transition_states.truncation.</code><code class="sig-name descname">is_worth_truncating</code><span class="sig-paren">(</span><em class="sig-param">reactant_complex</em>, <em class="sig-param">bond_rearrangement</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.truncation.is_worth_truncating" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate whether it is worth truncating a complex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactant_complex</strong> (<em>autode.complex.ReactantComplex</em>) – </p></li>
+<li><p><strong>bond_rearrangement</strong> (<a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ts_guess.html" class="btn btn-neutral float-right" title="TS Guess" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="transition_state.html" class="btn btn-neutral float-left" title="Transition State" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

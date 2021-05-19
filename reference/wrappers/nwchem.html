@@ -1,0 +1,559 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>NWChem &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="ORCA" href="orca.html" />
+    <link rel="prev" title="MOPAC" href="mopac.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Wrappers</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="g09.html">Gaussian09</a></li>
+<li class="toctree-l3"><a class="reference internal" href="keywords.html">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mopac.html">MOPAC</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">NWChem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="orca.html">ORCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="xtb.html">XTB</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Wrappers</a> &raquo;</li>
+        
+      <li>NWChem</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/wrappers/nwchem.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.wrappers.NWChem">
+<span id="nwchem"></span><h1>NWChem<a class="headerlink" href="#module-autode.wrappers.NWChem" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.wrappers.NWChem.NWChem">
+<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">NWChem</code><a class="headerlink" href="#autode.wrappers.NWChem.NWChem" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arguments:
+name (str): wrapper name. ALSO the name of the executable
+path (str): absolute path to the executable
+keywords_set (autode.wrappers.keywords.KeywordsSet):
+implicit_solvation_type (autode.wrappers.</p>
+<blockquote>
+<div><p>keywords.ImplicitSolventType):</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.calculation_terminated_normally">
+<code class="sig-name descname">calculation_terminated_normally</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
+<dd><p>Did the calculation terminate correctly?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.execute">
+<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the calculation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.generate_input">
+<code class="sig-name descname">generate_input</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.generate_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate any input files required</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calculation</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>molecule</strong> (<em>any</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_atomic_charges">
+<code class="sig-name descname">get_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>e.g.</dt><dd><p>Atom              Coordinates                           Charge</p>
+<blockquote>
+<div><p>ESP</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>1 C    -0.000814    0.000010    0.001095   -0.266058
+. .       .            .            .          .</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_energy">
+<code class="sig-name descname">get_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the potential energy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_enthalpy">
+<code class="sig-name descname">get_enthalpy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_enthalpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the free energy (enthalpy)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_final_atoms">
+<code class="sig-name descname">get_final_atoms</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_final_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.AtomsNotFound" title="autode.exceptions.AtomsNotFound"><strong>autode.exceptions.AtomsNotFound</strong></a><strong>)</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_free_energy">
+<code class="sig-name descname">get_free_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_free_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the free energy (G)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_gradients">
+<code class="sig-name descname">get_gradients</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Raisese:</dt><dd><p>(autode.exceptions.CouldNotGetProperty)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_imaginary_freqs">
+<code class="sig-name descname">get_imaginary_freqs</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_imaginary_freqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(float))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_input_filename">
+<code class="sig-name descname">get_input_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_input_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_normal_mode_displacements">
+<code class="sig-name descname">get_normal_mode_displacements</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_normal_mode_displacements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>mode_number</strong> (<em>int</em>) – Number of the normal mode to get the</p></li>
+<li><p><strong>along 6 == first imaginary mode</strong> (<em>displacements</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_output_filename">
+<code class="sig-name descname">get_output_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_output_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the output filename from the calculation name e.g. filename.out</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.get_version">
+<code class="sig-name descname">get_version</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the NWChem version from the output file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.optimisation_converged">
+<code class="sig-name descname">optimisation_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.optimisation_converged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.wrappers.NWChem.NWChem.optimisation_nearly_converged">
+<code class="sig-name descname">optimisation_nearly_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function implemented in individual child classes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.NWChem.ecp_block">
+<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">ecp_block</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.ecp_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a block of input for any effective core potentials to add</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>molecule</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>keywords</strong> (<a class="reference internal" href="keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.NWChem.get_keywords">
+<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">calc_input</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.get_keywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a keywords list and adding solvent</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.NWChem.print_added_internals">
+<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">print_added_internals</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">calc_input</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.print_added_internals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add internal coordinates to the input file for added internals and
+distance constraints</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.wrappers.NWChem.print_constraints">
+<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">print_constraints</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">molecule</em>, <em class="sig-param">force_constant=20</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.print_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add distance and cartesian constraints to the input file</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="orca.html" class="btn btn-neutral float-right" title="ORCA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mopac.html" class="btn btn-neutral float-left" title="MOPAC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

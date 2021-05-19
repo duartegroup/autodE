@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Base &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Locate TSs" href="locate_tss.html" />
+    <link rel="prev" title="Transition States" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Transition States</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="locate_tss.html">Locate TSs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="templates.html">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transition_state.html">Transition State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="truncation.html">Truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ts_guess.html">TS Guess</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Transition States</a> &raquo;</li>
+        
+      <li>Base</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/transition_states/base.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.transition_states.base">
+<span id="base"></span><h1>Base<a class="headerlink" href="#module-autode.transition_states.base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.transition_states.base.TSbase">
+<em class="property">class </em><code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">TSbase</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">reactant=None</em>, <em class="sig-param">product=None</em>, <em class="sig-param">name='ts_guess'</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.transition_states.base.TSbase.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">reactant=None</em>, <em class="sig-param">product=None</em>, <em class="sig-param">name='ts_guess'</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parent transition state class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>reactant</strong> (<em>autode.species.Species</em>) – If None then mode checking will
+not be available</p></li>
+<li><p><strong>product</strong> (<em>autode.species.Species</em>) – If None then mode checking will
+not be available</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>charge</strong> (<em>int</em>) – </p></li>
+<li><p><strong>mult</strong> (<em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.base.TSbase.could_have_correct_imag_mode">
+<code class="sig-name descname">could_have_correct_imag_mode</code><span class="sig-paren">(</span><em class="sig-param">method=None</em>, <em class="sig-param">threshold=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.could_have_correct_imag_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a point on the PES could have the correct imaginary mode.
+This must have</p>
+<ol class="arabic simple" start="0">
+<li><p>An imaginary frequency      (quoted as negative in most EST codes)</p></li>
+<li><p>The most negative(/imaginary) is more negative that a threshold</p></li>
+</ol>
+<dl>
+<dt>Keywords Arguments:</dt><dd><p>method (autode.wrappers.base.ElectronicStructureMethod):</p>
+<dl class="simple">
+<dt>threshold (float | None): Negative float (rather than imaginary</dt><dd><p>complex number) if None then the default
+Config.min_imag_freq is used</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.transition_states.base.TSbase.has_correct_imag_mode">
+<code class="sig-name descname">has_correct_imag_mode</code><span class="sig-paren">(</span><em class="sig-param">calc=None</em>, <em class="sig-param">method=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.has_correct_imag_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that the imaginary mode is ‘correct’ set the calculation
+(hessian or optts)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.base.f_b_isomorphic_to_r_p">
+<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">f_b_isomorphic_to_r_p</code><span class="sig-paren">(</span><em class="sig-param">forwards</em>, <em class="sig-param">backwards</em>, <em class="sig-param">reactant</em>, <em class="sig-param">product</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.f_b_isomorphic_to_r_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the forward/backward displacement to reactants/products?</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.base.get_displaced_atoms_along_mode">
+<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">get_displaced_atoms_along_mode</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em>, <em class="sig-param">disp_magnitude=1.0</em>, <em class="sig-param">atoms=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.get_displaced_atoms_along_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displace the geometry along the imaginary mode with mode number
+iterating from 0, where 0-2 are translational normal modes, 3-5 are
+rotational modes and 6 is the largest imaginary mode. To displace along
+the second imaginary mode we have mode_number=7</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>mode_number</strong> (<em>int</em>) – Mode number to displace along</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>disp_magnitude</strong> (<em>float</em>) – Distance to displace (default: {1.0})</p></li>
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – Atoms to displace, if None then the
+final set of atoms from the calc are used</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.base.get_optimised_species">
+<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">get_optimised_species</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">method</em>, <em class="sig-param">direction</em>, <em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.get_optimised_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the species that is optimised from an initial set of atoms in a
+particular direction (i.e. forwards or backwards along a normal mode)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – </p></li>
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.base.imag_mode_generates_other_bonds">
+<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">imag_mode_generates_other_bonds</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">f_species</em>, <em class="sig-param">b_species</em>, <em class="sig-param">bond_rearrangement</em>, <em class="sig-param">allow_mx=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.imag_mode_generates_other_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the forward or backwards displaced molecule break or make
+bonds that aren’t in all the active bonds bond_rearrangement.all. Will be
+fairly conservative here</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>f_species</strong> (<em>autode.species.Species</em>) – Forward displaced species</p></li>
+<li><p><strong>b_species</strong> (<em>autode.species.Species</em>) – Backward displaced species</p></li>
+<li><p><strong>bond_rearrangement</strong> (<a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – </p></li>
+<li><p><strong>allow_mx</strong> (<em>bool</em>) – Allow any metal-X bonds where X is another element</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.base.imag_mode_has_correct_displacement">
+<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">imag_mode_has_correct_displacement</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">bond_rearrangement</em>, <em class="sig-param">disp_mag=1.0</em>, <em class="sig-param">delta_threshold=0.3</em>, <em class="sig-param">req_all=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.imag_mode_has_correct_displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether the imaginary mode in a calculation with a hessian forms and
+breaks the correct bonds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>bond_rearrangement</strong> (<a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>disp_mag</strong> (<em>float</em>) – </p></li>
+<li><p><strong>delta_threshold</strong> (<em>float</em>) – Required ∆r on a bond for the bond to be
+considered as forming</p></li>
+<li><p><strong>req_all</strong> (<em>bool</em>) – Require all the bonds to have the correct displacements</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.transition_states.base.imag_mode_links_reactant_products">
+<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">imag_mode_links_reactant_products</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">method</em>, <em class="sig-param">disp_mag=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.imag_mode_links_reactant_products" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displaces atoms along the imaginary mode forwards (f) and backwards (b)
+to see if products and reactants are made</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>reactant</strong> (<em>autode.complex.ReactantComplex</em>) – </p></li>
+<li><p><strong>product</strong> (<em>autode.complex.ProductComplex</em>) – </p></li>
+<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>disp_mag</strong> (<em>int</em>) – Distance to be displaced along the imag mode
+(default: )</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>if the imag mode is correct or not</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="locate_tss.html" class="btn btn-neutral float-right" title="Locate TSs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Transition States" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

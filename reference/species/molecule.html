@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Molecule &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Species" href="species.html" />
+    <link rel="prev" title="Complex" href="complex.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Species</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="complex.html">Complex</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="species.html">Species</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Species</a> &raquo;</li>
+        
+      <li>Molecule</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/species/molecule.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.species.molecule">
+<span id="molecule"></span><span id="molecules"></span><h1>Molecule<a class="headerlink" href="#module-autode.species.molecule" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.species.molecule.Molecule">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.molecule.</code><code class="sig-name descname">Molecule</code><span class="sig-paren">(</span><em class="sig-param">name='molecule'</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">atoms=None</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.Molecule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.species.molecule.Molecule.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name='molecule'</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">atoms=None</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.Molecule.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molecule class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the molecule or a .xyz filename</p></li>
+<li><p><strong>smiles</strong> (<em>str</em>) – Standard SMILES string. e.g. generated by
+Chemdraw</p></li>
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – List of atoms in the species</p></li>
+<li><p><strong>solvent_name</strong> (<em>str</em>) – Solvent that the molecule is immersed in</p></li>
+<li><p><strong>charge</strong> (<em>int</em>) – Charge on the molecule</p></li>
+<li><p><strong>mult</strong> (<em>int</em>) – Spin multiplicity on the molecule</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.molecule.Molecule.populate_conformers">
+<code class="sig-name descname">populate_conformers</code><span class="sig-paren">(</span><em class="sig-param">n_confs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.Molecule.populate_conformers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populate self.conformers with a list of Conformer objects</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.species.molecule.Product">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.molecule.</code><code class="sig-name descname">Product</code><span class="sig-paren">(</span><em class="sig-param">name='molecule'</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">atoms=None</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.Product" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.species.molecule.Reactant">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.molecule.</code><code class="sig-name descname">Reactant</code><span class="sig-paren">(</span><em class="sig-param">name='molecule'</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">atoms=None</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.Reactant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="autode.species.molecule.SolvatedMolecule">
+<em class="property">class </em><code class="sig-prename descclassname">autode.species.molecule.</code><code class="sig-name descname">SolvatedMolecule</code><span class="sig-paren">(</span><em class="sig-param">name='solvated_molecule'</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">atoms=None</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em>, <em class="sig-param">solvent_mol=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.SolvatedMolecule" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="autode.species.molecule.SolvatedMolecule.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name='solvated_molecule'</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">atoms=None</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em>, <em class="sig-param">solvent_mol=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.SolvatedMolecule.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molecule class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the molecule or a .xyz filename</p></li>
+<li><p><strong>smiles</strong> (<em>str</em>) – Standard SMILES string. e.g. generated by
+Chemdraw</p></li>
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – List of atoms in the species</p></li>
+<li><p><strong>solvent_name</strong> (<em>str</em>) – Solvent that the molecule is immersed in</p></li>
+<li><p><strong>charge</strong> (<em>int</em>) – Charge on the molecule</p></li>
+<li><p><strong>mult</strong> (<em>int</em>) – Spin multiplicity on the molecule</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.species.molecule.SolvatedMolecule.optimise">
+<code class="sig-name descname">optimise</code><span class="sig-paren">(</span><em class="sig-param">method</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.SolvatedMolecule.optimise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimise the geometry using a method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>reset_graph</strong> (<em>bool</em>) – Reset the molecular graph</p></li>
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – Different e.g. constrained
+optimisation calculation</p></li>
+<li><p><strong>keywords</strong> (<a class="reference internal" href="../wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CalculationException" title="autode.exceptions.CalculationException"><strong>autode.exceptions.CalculationException</strong></a><strong>)</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.species.molecule.product_to_reactant">
+<code class="sig-prename descclassname">autode.species.molecule.</code><code class="sig-name descname">product_to_reactant</code><span class="sig-paren">(</span><em class="sig-param">product</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.product_to_reactant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="autode.species.molecule.reactant_to_product">
+<code class="sig-prename descclassname">autode.species.molecule.</code><code class="sig-name descname">reactant_to_product</code><span class="sig-paren">(</span><em class="sig-param">reactant</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.molecule.reactant_to_product" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="species.html" class="btn btn-neutral float-right" title="Species" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="complex.html" class="btn btn-neutral float-left" title="Complex" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

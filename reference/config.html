@@ -1,0 +1,508 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Constants" href="constants.html" />
+    <link rel="prev" title="Calculation" href="calculation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Configuration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/config.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.config">
+<span id="configuration"></span><h1>Configuration<a class="headerlink" href="#module-autode.config" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.config.Config">
+<em class="property">class </em><code class="sig-prename descclassname">autode.config.</code><code class="sig-name descname">Config</code><a class="headerlink" href="#autode.config.Config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="class">
+<dt id="autode.config.Config.G09">
+<em class="property">class </em><code class="sig-name descname">G09</code><a class="headerlink" href="#autode.config.Config.G09" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.config.Config.G09.grid">
+<code class="sig-name descname">grid</code><em class="property"> = 'integral=ultrafinegrid'</em><a class="headerlink" href="#autode.config.Config.G09.grid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G09.implicit_solvation_type">
+<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = smd</em><a class="headerlink" href="#autode.config.Config.G09.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G09.keywords">
+<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.G09.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G09.path">
+<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.G09.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G09.ts_str">
+<code class="sig-name descname">ts_str</code><em class="property"> = 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)'</em><a class="headerlink" href="#autode.config.Config.G09.ts_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.config.Config.G16">
+<em class="property">class </em><code class="sig-name descname">G16</code><a class="headerlink" href="#autode.config.Config.G16" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.config.Config.G16.implicit_solvation_type">
+<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = smd</em><a class="headerlink" href="#autode.config.Config.G16.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G16.keywords">
+<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.G16.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G16.path">
+<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.G16.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.G16.ts_str">
+<code class="sig-name descname">ts_str</code><em class="property"> = 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, RecalcFC=30)'</em><a class="headerlink" href="#autode.config.Config.G16.ts_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.config.Config.MOPAC">
+<em class="property">class </em><code class="sig-name descname">MOPAC</code><a class="headerlink" href="#autode.config.Config.MOPAC" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.config.Config.MOPAC.implicit_solvation_type">
+<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = cosmo</em><a class="headerlink" href="#autode.config.Config.MOPAC.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.MOPAC.keywords">
+<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.MOPAC.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.MOPAC.path">
+<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.MOPAC.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.config.Config.NWChem">
+<em class="property">class </em><code class="sig-name descname">NWChem</code><a class="headerlink" href="#autode.config.Config.NWChem" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.config.Config.NWChem.implicit_solvation_type">
+<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = smd</em><a class="headerlink" href="#autode.config.Config.NWChem.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.NWChem.keywords">
+<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.NWChem.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.NWChem.loose_opt_block">
+<code class="sig-name descname">loose_opt_block</code><em class="property"> = 'driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\n  maxiter 50\nend'</em><a class="headerlink" href="#autode.config.Config.NWChem.loose_opt_block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.NWChem.opt_block">
+<code class="sig-name descname">opt_block</code><em class="property"> = 'driver\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\n  maxiter 100\nend'</em><a class="headerlink" href="#autode.config.Config.NWChem.opt_block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.NWChem.path">
+<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.NWChem.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.config.Config.ORCA">
+<em class="property">class </em><code class="sig-name descname">ORCA</code><a class="headerlink" href="#autode.config.Config.ORCA" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.config.Config.ORCA.implicit_solvation_type">
+<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = cpcm</em><a class="headerlink" href="#autode.config.Config.ORCA.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.ORCA.keywords">
+<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.ORCA.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.ORCA.path">
+<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.ORCA.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="autode.config.Config.XTB">
+<em class="property">class </em><code class="sig-name descname">XTB</code><a class="headerlink" href="#autode.config.Config.XTB" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="autode.config.Config.XTB.implicit_solvation_type">
+<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = gbsa</em><a class="headerlink" href="#autode.config.Config.XTB.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.XTB.keywords">
+<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.XTB.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.XTB.path">
+<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.XTB.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.adaptive_neb_k">
+<code class="sig-name descname">adaptive_neb_k</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.adaptive_neb_k" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.hcode">
+<code class="sig-name descname">hcode</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.hcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.high_quality_plots">
+<code class="sig-name descname">high_quality_plots</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.high_quality_plots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.hmethod_conformers">
+<code class="sig-name descname">hmethod_conformers</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.hmethod_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.hmethod_sp_conformers">
+<code class="sig-name descname">hmethod_sp_conformers</code><em class="property"> = False</em><a class="headerlink" href="#autode.config.Config.hmethod_sp_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.keep_input_files">
+<code class="sig-name descname">keep_input_files</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.keep_input_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.keyword_prefixes">
+<code class="sig-name descname">keyword_prefixes</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.keyword_prefixes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.lcode">
+<code class="sig-name descname">lcode</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.lcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.ll_tmp_dir">
+<code class="sig-name descname">ll_tmp_dir</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.ll_tmp_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.make_ts_template">
+<code class="sig-name descname">make_ts_template</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.make_ts_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.max_atom_displacement">
+<code class="sig-name descname">max_atom_displacement</code><em class="property"> = 4.0</em><a class="headerlink" href="#autode.config.Config.max_atom_displacement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.max_core">
+<code class="sig-name descname">max_core</code><em class="property"> = 4000</em><a class="headerlink" href="#autode.config.Config.max_core" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.max_num_complex_conformers">
+<code class="sig-name descname">max_num_complex_conformers</code><em class="property"> = 300</em><a class="headerlink" href="#autode.config.Config.max_num_complex_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.max_step_size">
+<code class="sig-name descname">max_step_size</code><em class="property"> = 0.3</em><a class="headerlink" href="#autode.config.Config.max_step_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.min_imag_freq">
+<code class="sig-name descname">min_imag_freq</code><em class="property"> = -40</em><a class="headerlink" href="#autode.config.Config.min_imag_freq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.min_step_size">
+<code class="sig-name descname">min_step_size</code><em class="property"> = 0.05</em><a class="headerlink" href="#autode.config.Config.min_step_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.n_cores">
+<code class="sig-name descname">n_cores</code><em class="property"> = 4</em><a class="headerlink" href="#autode.config.Config.n_cores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.num_complex_random_rotations">
+<code class="sig-name descname">num_complex_random_rotations</code><em class="property"> = 10</em><a class="headerlink" href="#autode.config.Config.num_complex_random_rotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.num_complex_sphere_points">
+<code class="sig-name descname">num_complex_sphere_points</code><em class="property"> = 10</em><a class="headerlink" href="#autode.config.Config.num_complex_sphere_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.num_conformers">
+<code class="sig-name descname">num_conformers</code><em class="property"> = 300</em><a class="headerlink" href="#autode.config.Config.num_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.rmsd_threshold">
+<code class="sig-name descname">rmsd_threshold</code><em class="property"> = 0.3</em><a class="headerlink" href="#autode.config.Config.rmsd_threshold" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.skip_small_ring_tss">
+<code class="sig-name descname">skip_small_ring_tss</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.skip_small_ring_tss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="autode.config.Config.ts_template_folder_path">
+<code class="sig-name descname">ts_template_folder_path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.ts_template_folder_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="constants.html" class="btn btn-neutral float-right" title="Constants" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="calculation.html" class="btn btn-neutral float-left" title="Calculation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

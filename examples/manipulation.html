@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Molecular Manipulation &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="1D PES Generation" href="pes1d.html" />
+    <link rel="prev" title="Non-covalent Interaction Complexes" href="nci.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Molecular Manipulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fragmentation">Fragmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functionalisation">Functionalisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">molfunc</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Molecular Manipulation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/manipulation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="molecular-manipulation">
+<h1>Molecular Manipulation<a class="headerlink" href="#molecular-manipulation" title="Permalink to this headline">¶</a></h1>
+<p><strong>autodE</strong> provides some simple methods for molecular manipulation and more
+functionality when combined with <a class="reference external" href="https://github.com/duartegroup/molfunc/">molfunc</a>.</p>
+<section id="fragmentation">
+<h2>Fragmentation<a class="headerlink" href="#fragmentation" title="Permalink to this headline">¶</a></h2>
+<p>From a molecular graph representation of a molecule its fragmentation is
+relatively straightforward. For example, to fragment methane to CH<sub>3</sub>• +
+H•</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;CH4&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span><span class="o">.</span><span class="n">atoms</span>
+<span class="go">[[C,  0.000,   0.004, -0.020],</span>
+<span class="go"> [H, -0.657,  -0.848, -0.321],</span>
+<span class="go"> [H, -0.458,   0.975, -0.306],</span>
+<span class="go"> [H,  0.085,  -0.025,  1.080],</span>
+<span class="go"> [H,  1.030,  -0.105, -0.432]]</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.mol_graphs</span> <span class="kn">import</span> <span class="n">split_mol_across_bond</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ch3_nodes</span><span class="p">,</span> <span class="n">h_nodes</span> <span class="o">=</span> <span class="n">split_mol_across_bond</span><span class="p">(</span><span class="n">methane</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">bond</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ch3</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;CH3&#39;</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">methane</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ch3_nodes</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ch3</span><span class="o">.</span><span class="n">atoms</span>
+<span class="go">[[C,  0.000,   0.004, -0.020],</span>
+<span class="go"> [H, -0.458,   0.975, -0.306],</span>
+<span class="go"> [H,  0.085,  -0.025,  1.080],</span>
+<span class="go"> [H,  1.030,  -0.105, -0.432]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">methane</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">h_nodes</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h</span><span class="o">.</span><span class="n">atoms</span>
+<span class="go">[[H, -0.657,  -0.848, -0.321]]</span>
+</pre></div>
+</div>
+</section>
+<section id="functionalisation">
+<h2>Functionalisation<a class="headerlink" href="#functionalisation" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/functionalisation.png" src="../_images/functionalisation.png" />
+<p>Swapping fragments on a structure (e.g. H → Me) can be achieved using SMILES
+concatenation. For example to stitch two methyl fragments to generate an
+ethane molecule</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ethane</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;C2H6&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;C%99.C%99&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ethane</span><span class="o">.</span><span class="n">n_atoms</span>
+<span class="go">8</span>
+</pre></div>
+</div>
+<p>Multiple fragments can be added to the same core by specifying multiple sites
+on a single atom</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">propane</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;C3H8&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;C</span><span class="si">%99%</span><span class="s1">98.C%99.C%98&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">propane</span><span class="o">.</span><span class="n">n_atoms</span>
+<span class="go">11</span>
+</pre></div>
+</div>
+<p>This method regenerates the whole structure which may not be desirable if the
+molecule is a transition state (TS) or a particular conformation of interest.</p>
+<section id="id1">
+<h3>molfunc<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Adding a fragment to a fixed core structure can be achieved with
+<a class="reference external" href="https://github.com/duartegroup/molfunc/">molfunc</a> and can be installed
+with: <code class="code docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">molfunc</span></code>. <strong>molfunc</strong> requires a xyz file to
+initialise a molecule and indexes atoms from 1 so that atom 2 is the first
+hydrogen atom in methane</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">molfunc</span> <span class="kn">import</span> <span class="n">CoreMolecule</span><span class="p">,</span> <span class="n">CombinedMolecule</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">methane_core</span> <span class="o">=</span> <span class="n">CoreMolecule</span><span class="p">(</span><span class="n">xyz_filename</span><span class="o">=</span><span class="s1">&#39;CH4.xyz&#39;</span><span class="p">,</span> <span class="n">atoms_to_del</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ethane</span> <span class="o">=</span> <span class="n">CombinedMolecule</span><span class="p">(</span><span class="n">methane_core</span><span class="p">,</span> <span class="n">frag_smiles</span><span class="o">=</span><span class="s1">&#39;C[*]&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;C2H6&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ethane</span><span class="o">.</span><span class="n">n_atoms</span>
+<span class="go">8</span>
+</pre></div>
+</div>
+<p>A set of fragments can be iterated through using <strong>molfunc</strong> to generate a
+library rapidly e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">molfunc</span> <span class="kn">import</span> <span class="n">CoreMolecule</span><span class="p">,</span> <span class="n">CombinedMolecule</span>
+
+<span class="n">fragments</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;NMe2&#39;</span><span class="p">:</span> <span class="s1">&#39;CN([Fr])C&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;NH2&#39;</span><span class="p">:</span>  <span class="s1">&#39;N[Fr]&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;OH&#39;</span><span class="p">:</span>   <span class="s1">&#39;O[Fr]&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;Me&#39;</span><span class="p">:</span>   <span class="s1">&#39;C[Fr]&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;F&#39;</span><span class="p">:</span>    <span class="s1">&#39;F[Fr]&#39;</span><span class="p">}</span>
+
+<span class="n">methane</span> <span class="o">=</span> <span class="n">CoreMolecule</span><span class="p">(</span><span class="n">xyz_filename</span><span class="o">=</span><span class="s1">&#39;CH4.xyz&#39;</span><span class="p">,</span> <span class="n">atoms_to_del</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">fragments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+    <span class="n">combined</span> <span class="o">=</span> <span class="n">CombinedMolecule</span><span class="p">(</span><span class="n">core_mol</span><span class="o">=</span><span class="n">methane</span><span class="p">,</span>
+                                <span class="n">frag_smiles</span><span class="o">=</span><span class="n">smiles</span><span class="p">,</span>
+                                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;CH3_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">combined</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Out (visualised):</p>
+<img alt="../_images/molfunc_functionalisation.png" src="../_images/molfunc_functionalisation.png" />
+</section>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pes1d.html" class="btn btn-neutral float-right" title="1D PES Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nci.html" class="btn btn-neutral float-left" title="Non-covalent Interaction Complexes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

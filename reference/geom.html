@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Geometry &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Input Output" href="input_output.html" />
+    <link rel="prev" title="Exceptions" href="exceptions.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Geometry</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/reference/geom.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.geom">
+<span id="geometry"></span><h1>Geometry<a class="headerlink" href="#module-autode.geom" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="autode.geom.are_coords_reasonable">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">are_coords_reasonable</code><span class="sig-paren">(</span><em class="sig-param">coords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.are_coords_reasonable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if a set of coords are reasonable. No distances can be &lt; 0.7 Å
+and if there are more than 4 atoms ensure they do not all lie in the same
+plane. The latter possibility arises from RDKit’s conformer generation
+algorithm breaking</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>coords</strong> (<em>np.ndarray</em>) – Species coordinates as a n_atoms x 3 array</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.calc_heavy_atom_rmsd">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">calc_heavy_atom_rmsd</code><span class="sig-paren">(</span><em class="sig-param">atoms1</em>, <em class="sig-param">atoms2</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.calc_heavy_atom_rmsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the RMSD between two sets of atoms considering only the ‘heavy’
+atoms, i.e. the non-hydrogen atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms1</strong> (<em>list</em><em>(</em><a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p></li>
+<li><p><strong>atoms2</strong> (<em>list</em><em>(</em><a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RMSD between the two sets</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.calc_rmsd">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">calc_rmsd</code><span class="sig-paren">(</span><em class="sig-param">coords1</em>, <em class="sig-param">coords2</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.calc_rmsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the RMSD between two sets of coordinates using the Kabsch
+algorithm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords1</strong> (<em>np.ndarray</em>) – shape = (n, 3)</p></li>
+<li><p><strong>coords2</strong> (<em>np.ndarray</em>) – shape = (n ,3)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Root mean squared distance</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_atoms_linear_interp">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_atoms_linear_interp</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">bonds</em>, <em class="sig-param">final_distances</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_atoms_linear_interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a geometry defined by a set of xyzs, set the constrained bonds to
+the correct lengths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – list of atoms</p></li>
+<li><p><strong>bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – List of bond ids on for which the final_distances
+apply</p></li>
+<li><p><strong>final_distances</strong> (<em>list</em><em>(</em><em>float</em><em>)</em>) – List of final bond distances for the
+bonds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Shifted atoms</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(<a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_distance_constraints">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_distance_constraints</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_distance_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set all the distance constraints required in an optimisation as the
+active bonds</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Keyed with atom indexes for the active atoms (tuple) and</dt><dd><p>equal to the constrained value</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_neighbour_list">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_neighbour_list</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">atom_i</em>, <em class="sig-param">index_set</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_neighbour_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate a neighbour list from atom i as a list of atom labels</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atom_i</strong> (<em>int</em>) – index of the atom</p></li>
+<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>index_set</strong> (<em>set</em><em>(</em><em>int</em><em>) </em><em>| None</em>) – Indexes that are possible neighbours for
+atom_i, if None then all atoms are ok</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of atom ids in ascending distance away from i</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(int))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_points_on_sphere">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_points_on_sphere</code><span class="sig-paren">(</span><em class="sig-param">n_points</em>, <em class="sig-param">r=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_points_on_sphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find n evenly spaced points on a sphere using the “How to generate
+equidistributed points on the surface of a sphere” by Markus Deserno, 2004.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_points</strong> (<em>int</em>) – number of points to generate</p></li>
+<li><p><strong>r</strong> (<em>float</em>) – radius of the sphere</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(list(np.ndarray))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_rot_mat_euler">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_rot_mat_euler</code><span class="sig-paren">(</span><em class="sig-param">axis</em>, <em class="sig-param">theta</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_rot_mat_euler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the 3D rotation matrix using the Euler Rodrigues formula
+<a class="reference external" href="https://en.wikipedia.org/wiki/Euler">https://en.wikipedia.org/wiki/Euler</a>–Rodrigues_formula
+for an anticlockwise rotation of theta radians about a given axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>np.ndarray</em>) – Axis to rotate in. shape = (3,)</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Angle in radians (float)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Rotation matrix. shape = (3, 3)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_rot_mat_euler_from_terms">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_rot_mat_euler_from_terms</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em>, <em class="sig-param">c</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_rot_mat_euler_from_terms" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D rotation matrix from terms unique terms in the matrix</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="autode.geom.get_rot_mat_kabsch">
+<code class="sig-prename descclassname">autode.geom.</code><code class="sig-name descname">get_rot_mat_kabsch</code><span class="sig-paren">(</span><em class="sig-param">p_matrix</em>, <em class="sig-param">q_matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_rot_mat_kabsch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
+<a class="reference external" href="https://en.wikipedia.org/wiki/Kabsch_algorithm">https://en.wikipedia.org/wiki/Kabsch_algorithm</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_matrix</strong> (<em>np.ndarray</em>) – </p></li>
+<li><p><strong>q_matrix</strong> (<em>np.ndarray</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>rotation matrix</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="input_output.html" class="btn btn-neutral float-right" title="Input Output" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="exceptions.html" class="btn btn-neutral float-left" title="Exceptions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

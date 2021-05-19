@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Molecules &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Non-covalent Interaction Complexes" href="nci.html" />
+    <link rel="prev" title="Species" href="species.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Molecules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#simple-example">Simple Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geometry-manipulation">Geometry Manipulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calculations">Calculations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Molecules</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/molecules.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="molecules">
+<h1>Molecules<a class="headerlink" href="#molecules" title="Permalink to this headline">¶</a></h1>
+<p>Reactants and Products are <a class="reference internal" href="../reference/species/molecule.html#molecules"><span class="std std-ref">Molecules</span></a> and are initialised
+much like their <a class="reference internal" href="../reference/species/species.html#species"><span class="std std-ref">Species</span></a> parent, but have charge and
+multiplicity defaults (0, 1 respectively) and can be built from
+<a class="reference external" href="https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system/">SMILES</a>
+strings</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">molecule</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;molecule&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">molecule</span><span class="o">.</span><span class="n">charge</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">molecule</span><span class="o">.</span><span class="n">mult</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>or from 3D structures given as xyz files directly</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ch4</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;methane.xyz&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ch4</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;methane&#39;</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<section id="simple-example">
+<h2>Simple Example<a class="headerlink" href="#simple-example" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/water.png" src="../_images/water.png" />
+<p>To generate a water Molecule from its SMILES string (‘O’), where hydrogen atoms
+are implied</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;h2o&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">atoms</span>
+<span class="go">[[O, -0.00, 0.36, -0.00], [H, -0.86, -0.18, -0.00], [H, 0.83, -0.18, 0.00]]</span>
+</pre></div>
+</div>
+<p>Molecules also add a molecular graph atribute as a NetworkX <a class="reference external" href="https://networkx.github.io/documentation/stable/reference/introduction.html#graphs/">Graph</a>
+object and contain node (atoms) and edge (bonds) attributes</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">graph</span>
+<span class="go">&lt;networkx.classes.graph.Graph object at XXXXXXXXX&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span>
+<span class="go">NodeView((0, 1, 2))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">edges</span>
+<span class="go">EdgeView([(0, 1), (0, 2)])</span>
+</pre></div>
+</div>
+<p>where in water there are three atoms {0, 1, 2} and two bonds. The 3D structure
+can be generated as a .xyz file for viewing in molecular visualisation software
+(Avogadro, Chimera, VMD, Mercury, Maestro etc.)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>where ‘h2o.xyz’ is generated in the current working directory.</p>
+</section>
+<hr class="docutils" />
+<section id="geometry-manipulation">
+<h2>Geometry Manipulation<a class="headerlink" href="#geometry-manipulation" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/water_shift.png" src="../_images/water_shift.png" />
+<p>Whole molecules can be translated and rotated. For example, to translate the
+water molecule so the oxygen atom is centred at the origin</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">coordinates</span>
+<span class="go">array([[-0.0011,  0.3631, -0.    ],</span>
+<span class="go">       [-0.825 , -0.1819, -0.    ],</span>
+<span class="go">       [ 0.8261, -0.1812,  0.    ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">o_atom</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">vec</span><span class="o">=-</span><span class="n">o_atom</span><span class="o">.</span><span class="n">coord</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">coordinates</span>
+<span class="go">array([[ 0.    ,  0.    ,  0.    ],</span>
+<span class="go">       [-0.8250, -0.1819,  0.    ],</span>
+<span class="go">       [ 0.8261, -0.1812,  0.    ]])</span>
+</pre></div>
+</div>
+<p>then rotate around the x axis</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span> <span class="n">theta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">coordinates</span>
+<span class="go">array([[ 0.    ,  0.   ,  0.    ],</span>
+<span class="go">       [-0.8250, 0.1819,  0.    ],</span>
+<span class="go">       [ 0.8261, 0.1812,  0.    ]])</span>
+</pre></div>
+</div>
+<p>Pairwise distances between atoms in a molecule can be calculated</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">0.8448</span>
+</pre></div>
+</div>
+<p>where atoms are indexed from 0, so that r<sub>01</sub> is r(O-H) in Å.</p>
+</section>
+<section id="calculations">
+<h2>Calculations<a class="headerlink" href="#calculations" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/water_opt_energy.png" src="../_images/water_opt_energy.png" />
+<p><strong>autodE</strong> provides wrappers around common electronic structure theory packages
+(ORCA, XTB, NWChem, MOPAC, Gaussian09) so geometries may be optimised and
+energies calculated. Energies are in atomic Hartrees and gradients in
+Ha / Å.</p>
+<p>For example, to optimise the geometry at the XTB level and then perform a
+single point energy evaluation with ORCA</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">XTB</span><span class="p">,</span> <span class="n">ORCA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">XTB</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">energy</span>
+<span class="go">-5.07054</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">single_point</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ORCA</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">energy</span>
+<span class="go">-76.377649534992</span>
+</pre></div>
+</div>
+<p>where the default single point method in ORCA is PBE0-D3BJ/def2-TZVP. Modifying
+the method is possible by setting the keywords</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">SinglePointKeywords</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orca</span> <span class="o">=</span> <span class="n">ORCA</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">orca</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;PBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;D3BJ&#39;</span><span class="p">,</span> <span class="s1">&#39;ma-def2-TZVP&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">single_point</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">orca</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">energy</span>
+<span class="go">-76.379214493975</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Structure optimisation resets the positions of the atoms to their optimised
+value.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nci.html" class="btn btn-neutral float-right" title="Non-covalent Interaction Complexes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="species.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

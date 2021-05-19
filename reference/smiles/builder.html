@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3D Geometry Builder &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="SMILES Atom Types" href="atom_types.html" />
+    <link rel="prev" title="SMILES Parser" href="parser.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">SMILES</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smiles.html">Molecules from SMILES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parser.html">SMILES Parser</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">3D Geometry Builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="atom_types.html">SMILES Atom Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="angles.html">SMILES Angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base.html">SMILES Base</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">SMILES</a> &raquo;</li>
+        
+      <li>3D Geometry Builder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/reference/smiles/builder.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-autode.smiles.builder">
+<span id="d-geometry-builder"></span><h1>3D Geometry Builder<a class="headerlink" href="#module-autode.smiles.builder" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="autode.smiles.builder.Builder">
+<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.builder.</code><code class="sig-name descname">Builder</code><a class="headerlink" href="#autode.smiles.builder.Builder" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D geometry builder:</p>
+<p>Atoms:  C, 4H               H  H
+Bonds:  4 x C-H      –&gt;     C</p>
+<blockquote>
+<div><p>H  H</p>
+</div></blockquote>
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinate builder initialised from a set of atoms and bonds connecting
+them. This builder should generate something <em>reasonable</em> that can
+be cleaned up with a forcefield</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a molecule by iterating through all the atoms adding it and
+each of it’s neighbours. i.e.</p>
+<p>atoms = [C, H, H, H]</p>
+<ol class="arabic simple">
+<li><p>Add C at origin</p></li>
+<li><p>Add all neighbours</p></li>
+<li><p>Done</p></li>
+</ol>
+<p>atoms = [C, C, C, 8xH]</p>
+<ol class="arabic simple">
+<li><p>Add C at origin</p></li>
+<li><p>Add H3, C neighbours &amp; update queued atoms to include the C
+that has been translated but needs it’s neighbours adding to it</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><em>autode.smiles.SMILESAtoms</em><em>)</em>) – </p></li>
+<li><p><strong>bonds</strong> (<em>autode.smiles.SMILESBonds</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.built">
+<em class="property">property </em><code class="sig-name descname">built</code><a class="headerlink" href="#autode.smiles.builder.Builder.built" title="Permalink to this definition">¶</a></dt>
+<dd><p>Have all the atoms been shifted appropriately?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.built_atom_idxs">
+<em class="property">property </em><code class="sig-name descname">built_atom_idxs</code><a class="headerlink" href="#autode.smiles.builder.Builder.built_atom_idxs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom indexes that have been built</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Atom indexes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(int))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.canonical_atoms">
+<em class="property">property </em><code class="sig-name descname">canonical_atoms</code><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate canonical autodE atoms from this set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Atoms</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.canonical_atoms_at_origin">
+<em class="property">property </em><code class="sig-name descname">canonical_atoms_at_origin</code><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms_at_origin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Canonical set of autodE atoms all located at the origin</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Atoms all with atom.coord = [0, 0, 0]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.max_ring_n">
+<em class="property">property </em><code class="sig-name descname">max_ring_n</code><a class="headerlink" href="#autode.smiles.builder.Builder.max_ring_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum ring size in this molecule</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Maximum ring size</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.non_bonded_idx_matrix">
+<em class="property">property </em><code class="sig-name descname">non_bonded_idx_matrix</code><a class="headerlink" href="#autode.smiles.builder.Builder.non_bonded_idx_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a matrix of ones if atoms are non-bonded and zero if for
+self pairs or they are bonded</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>shape = (n_atoms, n_atoms)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="autode.smiles.builder.Builder.set_atoms_bonds">
+<code class="sig-name descname">set_atoms_bonds</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.set_atoms_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>From a list of SMILESAtoms, and SMILESBonds set the required attributes
+and convert all implicit hydrogens into explicit atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="base.html#autode.smiles.base.SMILESAtom" title="autode.smiles.base.SMILESAtom"><em>autode.smiles.base.SMILESAtom</em></a><em>)</em>) – </p></li>
+<li><p><strong>bonds</strong> (<em>auode.smiles.base.SMILESBonds</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="atom_types.html" class="btn btn-neutral float-right" title="SMILES Atom Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="parser.html" class="btn btn-neutral float-left" title="SMILES Parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

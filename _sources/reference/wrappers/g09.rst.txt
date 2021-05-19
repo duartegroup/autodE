@@ -1,0 +1,8 @@
+**********
+Gaussian09
+**********
+
+.. automodule:: autode.wrappers.G09
+   :members:
+   :undoc-members:
+   :special-members: __init__

@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration &mdash; autodE  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reference" href="reference/index.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#calculations">Calculations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#keywords">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xtb-as-a-hmethod">XTB as a hmethod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other">Other</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Configuration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/config.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>Configuration is handled with <code class="code docutils literal notranslate"><span class="pre">ade.Config</span></code> and can be modified for full
+customization of the calculations. By default optimisations are performed at
+PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in ORCA if it is
+available.</p>
+<hr class="docutils" />
+<section id="calculations">
+<h2>Calculations<a class="headerlink" href="#calculations" title="Permalink to this headline">¶</a></h2>
+<section id="general">
+<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<p>For example, to use Gaussian09 as the high level electronic structure method</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">hcode</span> <span class="o">=</span> <span class="s1">&#39;g09&#39;</span>
+</pre></div>
+</div>
+<p>To set the number of cores available and the memory per core (in MB), to use a maximum
+of 32 GB for the whole calculation</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">max_core</span> <span class="o">=</span> <span class="mi">4000</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="keywords">
+<h3>Keywords<a class="headerlink" href="#keywords" title="Permalink to this headline">¶</a></h3>
+<p>Calculation parameters (keywords) also can be changed, e.g to use
+B3LYP/def2-TZVP single point energies in ORCA</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.wrappers.keywords</span> <span class="kn">import</span> <span class="n">SinglePointKeywords</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;SP&#39;</span><span class="p">,</span> <span class="s1">&#39;B3LYP&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-TZVP&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>a cleaner solution uses</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">&#39;B3LYP&#39;</span>
+</pre></div>
+</div>
+<p>To add diffuse functions with the ma scheme to the def2-SVP default optimisation
+basis set for optimisations</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">set_opt_basis_set</span><span class="p">(</span><span class="s1">&#39;ma-def2-SVP&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>set_opt_basis_set</cite> sets the basis set in keywords.grad, keywords.opt_ts
+keywords.opt, keywords.low_opt and keywords.hess.</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="xtb-as-a-hmethod">
+<h3>XTB as a hmethod<a class="headerlink" href="#xtb-as-a-hmethod" title="Permalink to this headline">¶</a></h3>
+<p>To use XTB as the <em>hmethod</em> for minima and TS optimisations with the <a class="reference external" href="https://github.com/aspuru-guzik-group/xtb-gaussian">xtb-gaussian</a> wrapper
+and some default options</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">low_opt</span> <span class="o">=</span> <span class="n">OptKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;opt=loose&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="n">OptKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;opt&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">opt_ts</span> <span class="o">=</span> <span class="n">OptKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)&#39;</span><span class="p">,</span> <span class="s2">&quot;freq&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">hess</span> <span class="o">=</span> <span class="n">HessianKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;freq&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">GradientKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;Force(NoStep)&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="other">
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<p>See the <a class="reference external" href="https://github.com/duartegroup/autodE/blob/master/autode/config.py">config file</a>
+to see all the options.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>NWChem currently only supports solvents for DFT, other methods must not have
+a solvent.</p>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>To set the logging level to one of {INFO, WARNING, ERROR} set the AUTODE_LOG_LEVEL
+environment variable, in bash:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export AUTODE_LOG_LEVEL=INFO
+</pre></div>
+</div>
+<p>to output the log to a file set e.g. <em>autode.log</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export AUTODE_LOG_FILE=autode.log
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="reference/index.html" class="btn btn-neutral float-right" title="Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Tom Young, Joseph Silcock
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
