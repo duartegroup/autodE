@@ -356,8 +356,6 @@ class Builder(AtomCollection):
             # Resetting an atom onto two atoms can fail to apply the stereochem
             # thus only set it onto one
             if atom.has_stereochem and len(points) == 2:
-                logger.info('Resetting chiral atom - only resetting onto one '
-                            'atom')
                 points = points[:1]
 
             atom.type.reset_onto(points, coord=atom.coord)
@@ -465,8 +463,9 @@ class Builder(AtomCollection):
         self.coordinates = coords[:-len(angles), :]
         return
 
-    def _ff_distance_matrix(self, dist_consts):
-        """Generate a distance matrix for all pairs of atoms
+    def _ff_distance_matrix(self, dist_consts=None):
+        """Generate a distance matrix for all pairs of atoms and
+        update any distance constraints that are required
 
         Arguments:
             dist_consts (dict | None): Keyed with atoms pairs and values of
