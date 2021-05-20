@@ -1,4 +1,5 @@
 import numpy as np
+import autode as ade
 from abc import ABC, abstractmethod
 from typing import Union
 from copy import deepcopy
@@ -25,6 +26,7 @@ class Value(ABC, float):
         """String representation of this value"""
 
     def copy(self):
+        """Copy this value, with it's units"""
         return deepcopy(self)
 
     def _other_same_units(self, other):
@@ -121,11 +123,11 @@ class Value(ABC, float):
                             f'-> {units}')
 
         #                      Convert to the base unit, then to the new units
-        return self.__class__(self * units.conversion/self.units.conversion,
+        return self.__class__(self * units.conversion / self.units.conversion,
                               units=units)
 
     def __init__(self, x,
-                 units: Union[str, None] = None):
+                 units: Union[Unit, None] = None):
         """
         Value constructor
 
@@ -148,8 +150,26 @@ class Energy(Value):
     def __str__(self):
         return f'Energy({round(self, 5)} {self.units.name})'
 
-    def __init__(self, value, units=ha):
+    def __init__(self,
+                 value,
+                 units: Unit = ha,
+                 keywords: Union[ade.Keywords, None] = None):
+        """
+        Energy unit
+
+        ----------------------------------------------------------------------
+        Arguments:
+
+            value: Float-able number
+
+            units (autode.units.Unit): Unit type, allowing conversion
+
+            keywords (autode.wrappers.keywords.Keywords | None): Set of
+                     keywords which this energy has been calculated at
+        """
         super().__init__(value, units=units)
+
+        self.keyword_str = str(keywords) if keywords is not None else ''
 
 
 class PlottedEnergy(Energy):
@@ -182,7 +202,7 @@ class Distance(Value):
 
 
 class Angle(Value):
-    """Distance in some units, defaults to Angstroms"""
+    """Angle in some units, defaults to radians"""
 
     implemented_units = [rad, deg]
 

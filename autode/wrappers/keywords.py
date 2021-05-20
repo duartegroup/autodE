@@ -108,7 +108,7 @@ class Keywords:
     def _string(self, prefix):
         """Return a string defining the keywords, with or without a prefix"""
         from autode.config import Config
-        base_str = '_'.join([str(kw) for kw in self.keyword_list])
+        base_str = ' '.join([str(kw) for kw in self.keyword_list])
 
         if Config.keyword_prefixes:
             return f'{prefix}({base_str})'

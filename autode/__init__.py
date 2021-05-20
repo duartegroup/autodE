@@ -1,5 +1,6 @@
 from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
-                                      HessianKeywords, SinglePointKeywords)
+                                      HessianKeywords, SinglePointKeywords,
+                                      Keywords)
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.atoms import Atom
