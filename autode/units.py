@@ -12,6 +12,7 @@ class Unit(ABC):
         return self.__str__()
 
     def lower(self):
+        """Lower case name of the unit"""
         return self.name.lower()
 
     def __eq__(self, other):
@@ -49,14 +50,27 @@ class Unit(ABC):
         self.plot_name = plot_name if plot_name is not None else name
 
 
-ha = Unit(name='Ha',
-          conversion=1.0,
-          aliases=['hartree', 'Eh'],
-          plot_name='Ha')
+class BaseUnit(Unit):
+    """A unit in the base unit system, thus an identity conversion factor"""
+
+    def __init__(self,
+                 name: str,
+                 aliases: Union[Collection, None] = None,
+                 plot_name: Union[str, None] = None):
+
+        super().__init__(name,
+                         conversion=1.0,
+                         aliases=aliases,
+                         plot_name=plot_name)
+
+
+ha = BaseUnit(name='Ha',
+              aliases=['hartree', 'Eh'],
+              plot_name='Ha')
 
 
 ev = Unit(name='eV',
-          conversion=27.2114,
+          conversion=Constants.ha_to_eV,
           aliases=['electron volt', 'electronvolt'],
           plot_name='eV')
 
@@ -75,23 +89,21 @@ kcalmol = KcalMol = Unit(name='kcal mol-1',
                          plot_name='kcal mol$^{-1}$')
 
 
+rad = BaseUnit(name='rad',
+               aliases=['radians'])
+
+
 deg = Unit(name='°',
            conversion=Constants.rad_to_deg,
            aliases=['deg', 'degrees'])
 
 
-rad = Unit(name='rad',
-           conversion=1.0,
-           aliases=['radians'])
-
-
-ang = Unit(name='Å',
-           conversion=1.0,
-           aliases=['ang', 'angstrom'])
+ang = BaseUnit(name='Å',
+               aliases=['ang', 'angstrom'])
 
 
 a0 = Unit(name='bohr',
-          conversion=Constants.a0_to_ang,
+          conversion=Constants.ang_to_a0,
           aliases=['a0'])
 
 nm = Unit(name='nm',

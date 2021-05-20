@@ -2,7 +2,8 @@ class Constants:
 
     ha_to_kcalmol = ha2kcalmol = 627.509      # Hartee^-1 kcal mol^-1
     ha_to_kJmol = ha2kJmol = 2625.50          # Hartree^-1 kJ mol^-1
-    eV_to_ha = eV2ha = 0.0367493              # Hartree ev^-1
+    eV_to_ha = eV2ha = 0.0367493              # Hartree eV^-1
+    ha_to_eV = ha2eV = 1.0 / eV_to_ha         # eV Hartree^-1
 
     kcal_to_kJ = kcal2kJ = 4.184              # kJ kcal^-1
 
