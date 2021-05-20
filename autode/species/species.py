@@ -1,7 +1,8 @@
 import numpy as np
 from copy import deepcopy
+from typing import Union, Collection
 from scipy.spatial import distance_matrix
-from autode.atoms import AtomCollection
+from autode.atoms import Atom, AtomCollection
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent
@@ -23,20 +24,45 @@ class Species(AtomCollection):
 
     def __str__(self):
         """Unique species identifier"""
-        assert self.atoms is not None
 
-        # Only use the first 100 atoms
-        atoms_str = ''.join([atom.label for atom in self.atoms[:100]])
+        if self.atoms is None:
+            atoms_str = ''
+
+        else:
+            # Only use the first 100 atoms
+            atoms_str = ''.join([atom.label for atom in self.atoms[:100]])
+
         solv_str = self.solvent.name if self.solvent is not None else 'none'
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
+    def _repr(self, prefix):
+
+        string = (f'{prefix}('
+                  f'n_atoms={self.n_atoms}, '
+                  f'charge={self.charge}, '
+                  f'mult={self.mult})')
+
+        return string
+
+    def __repr__(self):
+        """Brief representation of this species"""
+        return self._repr(prefix='Species')
+
     def copy(self):
+        """Copy this whole molecule"""
         return deepcopy(self)
 
     @property
     def formula(self):
-        """Return the molecular formula of this species"""
+        """Return the molecular formula of this species, e.g.::
+
+            self.atoms = None                 ->   ""
+            self.atoms = [Atom(H), Atom(H)]   ->  "H2"
+
+        Returns:
+            (str):
+        """
 
         if self.atoms is None:
             return ""
@@ -100,6 +126,12 @@ class Species(AtomCollection):
         for i, conf in enumerate(conformers):
 
             if energies is not None:
+
+                if np.abs(conf.energy - avg_e) < 1E-8:
+                    logger.warning(f'Conformer {i} had an identical energy'
+                                   f' - not adding')
+                    continue
+
                 if np.abs(conf.energy - avg_e)/std_dev_e > n_sigma:
                     logger.warning(f'Conformer {i} had an energy >{n_sigma}σ '
                                    f'from the average - not adding')
@@ -368,21 +400,31 @@ class Species(AtomCollection):
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
 
-    def __init__(self, name, atoms, charge, mult, solvent_name=None):
+    def __init__(self,
+                 name:         str,
+                 atoms:        Union[Collection[Atom], None],
+                 charge:       Union[float, int],
+                 mult:         Union[float, int],
+                 solvent_name: Union[str, None] = None):
         """
         A molecular species. A collection of atoms with a charge and spin
         multiplicity in a solvent (None is gas phase)
 
+        ----------------------------------------------------------------------
         Arguments:
             name (str): Name of the species
+
             atoms (list(autode.atoms.Atom)): List of atoms in the species,
-                                              or None
+                                             or None
+
             charge (int): Charge on the species
+
             mult (int): Spin multiplicity of the species. 2S+1, where S is the
                         number of unpaired electrons
 
         Keyword Arguments:
-            solvent_name (str): Name of the solvent_name, or None
+            solvent_name (str | None): Name of the solvent_name, or None for a
+                                       species  in the gas phase
         """
         super().__init__(atoms=atoms)
 

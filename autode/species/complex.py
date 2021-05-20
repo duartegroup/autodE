@@ -81,6 +81,9 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
 class Complex(Species):
 
+    def __repr__(self):
+        return self._repr(prefix='Complex')
+
     @property
     def n_molecules(self):
         """Number of molecules in this molecular complex"""

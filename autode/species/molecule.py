@@ -19,6 +19,9 @@ from autode.utils import requires_atoms
 
 class Molecule(Species):
 
+    def __repr__(self):
+        return self._repr(prefix='Molecule')
+
     def _init_smiles(self, smiles):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic.
