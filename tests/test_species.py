@@ -28,6 +28,9 @@ def test_species_class():
     assert blank_mol.n_atoms == 0
     assert blank_mol.radius == 0
 
+    assert str(blank_mol) != ''   # Should have some string representations
+    assert repr(blank_mol) != ''
+
     assert hasattr(mol, 'print_xyz_file')
     assert hasattr(mol, 'translate')
     assert hasattr(mol, 'rotate')
