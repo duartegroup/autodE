@@ -5,7 +5,6 @@ from autode.atoms import Atom
 from autode.values import Angle
 
 
-
 def test_atoms():
 
     assert atoms.get_maximal_valance(atom_label='C') == 4
@@ -97,6 +96,26 @@ def test_atom_collection_angles():
     h2o.atoms[2].coord = np.array([0.8272, -0.5443, 0.0000])
 
     assert 90 < h2o.angle(0, 1, 2).to('deg') < 120
+
+
+def test_atom_collection_dihedral():
+
+    h2o2 = atoms.AtomCollection()
+    h2o2.atoms = [Atom('O', -0.85156, -0.20464,  0.31961),
+                  Atom('O',  0.41972,  0.06319,  0.10395),
+                  Atom('H', -1.31500,  0.08239, -0.50846),
+                  Atom('H',  0.58605,  0.91107,  0.59006)]
+
+    assert np.isclose(h2o2.dihedral(2, 0, 1, 3).to('deg'),
+                      100.8,
+                      atol=1.0)
+
+    # Undefined dihedral with a zero vector between teo atoms
+    with pytest.raises(ValueError):
+        h2o2.atoms[0].coord = np.zeros(3)
+        h2o2.atoms[1].coord = np.zeros(3)
+
+        _ = h2o2.dihedral(2, 0, 1, 3)
 
 
 def test_atom():

@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
 from autode.log import logger
+from autode.atoms import AtomCollection
 from autode.exceptions import (FailedToSetRotationIdxs,
                                SMILESBuildFailed)
 
@@ -220,32 +221,9 @@ class Dihedral(Angle):
         Raises:
             (SMILESBuildFailed):
         """
-        idx_x, idx_y, idx_z, idx_w = self.idxs
+        atoms_ = AtomCollection(atoms)
 
-        vec_yx = atoms[idx_x].coord - atoms[idx_y].coord
-        vec_zw = atoms[idx_w].coord - atoms[idx_z].coord
-        vec_yz = atoms[idx_z].coord - atoms[idx_y].coord
-
-        vec1 = np.cross(vec_yx, vec_yz)
-        vec2 = np.cross(-vec_yz, vec_zw)
-
-        zero_vec = np.zeros(3)
-        if np.allclose(vec1, zero_vec) or np.allclose(vec2, zero_vec):
-            raise SMILESBuildFailed('Cannot calculate a dihedral '
-                                    '- one zero vector')
-
-        for vec in (vec1, vec2, vec_yz):
-            vec /= np.linalg.norm(vec)
-
-        """
-        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
-        angle between groups A and D is then considered to be positive if 
-        the bond A-B is rotated in a clockwise direction through less than
-        180 degrees"
-        """
-        angle = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
-                            np.dot(vec1, vec2))
-        return angle
+        return float(atoms_.dihedral(*self.idxs))
 
     def find_rot_idxs(self, graph, atoms):
         """

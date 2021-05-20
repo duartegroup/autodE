@@ -117,10 +117,10 @@ class AtomCollection:
         return Angle(value)
 
     def dihedral(self,
-                 w: int,
                  x: int,
                  y: int,
-                 z: int):
+                 z: int,
+                 w: int):
         """
         Dihedral angle between four atoms
 
@@ -152,9 +152,14 @@ class AtomCollection:
             if np.isclose(norm, 0.0):
                 raise ValueError(f'Cannot calculate the dihedral angle '
                                  f'{w}-{x}-{y}-{z} - one zero vector')
-
             vec /= norm
 
+        """
+        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
+        angle between groups A and D is then considered to be positive if 
+        the bond A-B is rotated in a clockwise direction through less than
+        180 degrees"
+        """
         value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
                             np.dot(vec1, vec2))
 

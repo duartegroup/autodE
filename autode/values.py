@@ -137,7 +137,7 @@ class Value(ABC, float):
         Keyword Arguments:
             units (autode.units.Unit | None):
         """
-        np.float.__init__(float(x))
+        float.__init__(float(x))
         self.units = units
 
 
