@@ -150,6 +150,10 @@ class Energy(Value):
     def __str__(self):
         return f'Energy({round(self, 5)} {self.units.name})'
 
+    def __eq__(self, other):
+        """Is an energy equal to another? Compares only the value"""
+        return super().__eq__(other)
+
     def __init__(self,
                  value,
                  units: Unit = ha,

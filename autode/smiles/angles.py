@@ -222,8 +222,11 @@ class Dihedral(Angle):
             (SMILESBuildFailed):
         """
         atoms_ = AtomCollection(atoms)
+        try:
+            return float(atoms_.dihedral(*self.idxs))
 
-        return float(atoms_.dihedral(*self.idxs))
+        except ValueError:
+            raise SMILESBuildFailed
 
     def find_rot_idxs(self, graph, atoms):
         """
