@@ -1,10 +1,13 @@
+import os
+import numpy as np
 from abc import ABC
 from abc import abstractmethod
+from typing import Union
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
+from autode.values import Energy
 from copy import deepcopy
-import os
 
 
 class ElectronicStructureMethod(ABC):
@@ -22,6 +25,10 @@ class ElectronicStructureMethod(ABC):
         logger.info(f'{self.__name__} is not available')
         return False
 
+    @property
+    def doi_str(self):
+        return " ".join(self.doi_list)
+
     @abstractmethod
     def generate_input(self, calculation, molecule):
         """
@@ -31,52 +38,56 @@ class ElectronicStructureMethod(ABC):
             calculation (autode.calculation.Calculation):
             molecule (any):
         """
-        pass
 
     @abstractmethod
-    def get_output_filename(self, calc):
+    def get_output_filename(self, calc) -> str:
         """
         Get the output filename from the calculation name e.g. filename.out
 
         Arguments:
             calc (autode.calculation.Calculation):
+
+        Returns:
+            (str): Name of the output file
         """
-        pass
 
     @abstractmethod
-    def get_input_filename(self, calc):
+    def get_input_filename(self, calc) -> str:
         """
         Get the input filename from the calculation name e.g. filename.inp
 
         Arguments:
             calc (autode.calculation.Calculation):
+
+        Returns:
+            (str): Name of the input file
         """
-        pass
 
     @abstractmethod
-    def get_version(self, calc):
+    def get_version(self, calc) -> str:
         """
         Get the version of the method e.g. ORCA v. 4.2.1. Function implemented
         in individual child classes
 
         Arguments:
             calc (autode.calculation.Calculation):
+
+        Returns:
+            (str): Version of the electronic structure method
         """
-        pass
 
     @abstractmethod
-    def execute(self, calc):
+    def execute(self, calc) -> None:
         """
         Execute the calculation
 
         Arguments:
             calc (autode.calculation.Calculation):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def calculation_terminated_normally(self, calc):
+    def calculation_terminated_normally(self, calc) -> bool:
         """
         Did the calculation terminate correctly?
 
@@ -86,11 +97,10 @@ class ElectronicStructureMethod(ABC):
         Returns:
             (bool):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_energy(self, calc):
+    def get_energy(self, calc) -> Union[None, Energy]:
         """
         Return the potential energy
 
@@ -98,13 +108,12 @@ class ElectronicStructureMethod(ABC):
             calc (autode.calculation.Calculation):
 
         Returns:
-            (float | None):
+            (autode.values.Energy | None):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_free_energy(self, calc):
+    def get_free_energy(self, calc) -> Union[None, Energy]:
         """
         Return the free energy (G)
 
@@ -112,13 +121,12 @@ class ElectronicStructureMethod(ABC):
             calc (autode.calculation.Calculation):
 
         Returns:
-            (float | None):
+            (autode.values.Energy | None):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_enthalpy(self, calc):
+    def get_enthalpy(self, calc) -> Union[None, Energy]:
         """
         Return the free energy (enthalpy)
 
@@ -126,13 +134,12 @@ class ElectronicStructureMethod(ABC):
             calc (autode.calculation.Calculation):
 
         Returns:
-            (float | None):
+            (autode.values.Energy | None):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def optimisation_converged(self, calc):
+    def optimisation_converged(self, calc) -> bool:
         """
         Function implemented in individual child classes
 
@@ -142,11 +149,10 @@ class ElectronicStructureMethod(ABC):
         Returns:
             (bool):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def optimisation_nearly_converged(self, calc):
+    def optimisation_nearly_converged(self, calc) -> bool:
         """
         Function implemented in individual child classes
 
@@ -156,11 +162,10 @@ class ElectronicStructureMethod(ABC):
         Returns:
             (bool):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_imaginary_freqs(self, calc):
+    def get_imaginary_freqs(self, calc) -> list[float]:
         """
         Function implemented in individual child classes
 
@@ -170,11 +175,10 @@ class ElectronicStructureMethod(ABC):
         Returns:
             (list(float)):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_normal_mode_displacements(self, calc, mode_number):
+    def get_normal_mode_displacements(self, calc, mode_number) -> np.ndarray:
         """
         Function implemented in individual child classes
 
@@ -186,11 +190,10 @@ class ElectronicStructureMethod(ABC):
         Returns:
             (np.ndarray):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_final_atoms(self, calc):
+    def get_final_atoms(self, calc) -> list:
         """
         Function implemented in individual child classes
 
@@ -203,11 +206,10 @@ class ElectronicStructureMethod(ABC):
         Raises:
             (autode.exceptions.AtomsNotFound)
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_atomic_charges(self, calc):
+    def get_atomic_charges(self, calc) -> list:
         """
         Function implemented in individual child classes
 
@@ -217,11 +219,10 @@ class ElectronicStructureMethod(ABC):
         Returns:
             (list(float)):
         """
-        pass
 
     @abstractmethod
     @requires_output()
-    def get_gradients(self, calc):
+    def get_gradients(self, calc) -> np.ndarray:
         """
         Function implemented in individual child classes
 
@@ -234,10 +235,6 @@ class ElectronicStructureMethod(ABC):
         Raisese:
             (autode.exceptions.CouldNotGetProperty)
         """
-        pass
-
-    def doi_str(self):
-        return " ".join(self.doi_list)
 
     def __init__(self, name, path, keywords_set, implicit_solvation_type,
                  doi=None, doi_list=None):

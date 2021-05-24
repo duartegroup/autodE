@@ -176,6 +176,18 @@ class Energy(Value):
         self.keyword_str = str(keywords) if keywords is not None else ''
 
 
+class FreeEnergy(Energy):
+
+    def __str__(self):
+        return f'FreeEnergy({round(self, 5)} {self.units.name})'
+
+
+class Enthalpy(Energy):
+
+    def __str__(self):
+        return f'Enthalpy({round(self, 5)} {self.units.name})'
+
+
 class PlottedEnergy(Energy):
 
     def __eq__(self, other):

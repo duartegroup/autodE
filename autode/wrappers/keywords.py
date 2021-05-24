@@ -208,19 +208,19 @@ class Keywords:
 
         func = self.functional
         if func is not None:
-            string += f'{func.upper()}({func.doi_str()})'
+            string += f'{func.upper()}({func.doi_str})'
 
         disp = self.dispersion
         if disp is not None:
-            string += f'-{disp.upper()}({disp.doi_str()})'
+            string += f'-{disp.upper()}({disp.doi_str})'
 
         wf = self.wf_method
         if wf is not None:
-            string += f'{str(wf)}({wf.doi_str()})'
+            string += f'{str(wf)}({wf.doi_str})'
 
         ri = self._get_keyword(keyword_type=RI)
         if ri is not None:
-            string += f'({ri.upper()}, {ri.doi_str()})'
+            string += f'({ri.upper()}, {ri.doi_str})'
 
         if len(string) == 0:
             logger.warning('Unknown method')
@@ -297,6 +297,7 @@ class Keyword:
     def upper(self):
         return self.name.upper()
 
+    @property
     def doi_str(self):
         return ' '.join(self.doi_list)
 

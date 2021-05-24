@@ -176,7 +176,7 @@ class Calculation:
 
         methods.add(f'Calculations were performed using {self.method.name} v. '
                     f'{self.method.get_version(self)} '
-                    f'({self.method.doi_str()}).')
+                    f'({self.method.doi_str}).')
 
         # Type of calculation ----
         if isinstance(self.input.keywords, kws.SinglePointKeywords):
@@ -198,11 +198,11 @@ class Calculation:
         basis = self.input.keywords.basis_set
         if basis is not None:
             string += (f' in combination with the {str(basis)} '
-                       f'({basis.doi_str()}) basis set')
+                       f'({basis.doi_str}) basis set')
 
         if self.input.solvent is not None:
             solv_type = self.method.implicit_solvation_type
-            doi = solv_type.doi_str() if hasattr(solv_type, 'doi_str') else '?'
+            doi = solv_type.doi_str if hasattr(solv_type, 'doi_str') else '?'
 
             string += (f' and {solv_type.upper()} ({doi}) '
                        f'solvation, with parameters appropriate for '

@@ -5,6 +5,7 @@ from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
+from autode.values import Energy, FreeEnergy, Enthalpy
 from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
@@ -416,7 +417,7 @@ class G09(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
             if 'Sum of electronic and thermal Enthalpies' in line:
-                return float(line.split()[-1])
+                return Enthalpy(line.split()[-1])
 
         logger.error('Could not get the enthalpy from the calculation. '
                      'A frequency must be requested')
@@ -427,24 +428,25 @@ class G09(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
             if 'Sum of electronic and thermal Free Energies' in line:
-                return float(line.split()[-1])
+                return FreeEnergy(line.split()[-1])
 
         logger.error('Could not get the enthalpy from the calculation. '
                      'A frequency must be requested')
         return None
 
     def get_energy(self, calc):
+
         for line in reversed(calc.output.file_lines):
             if 'SCF Done' in line:
-                return float(line.split()[4])
+                return Energy(line.split()[4])
             if 'E(CORR)' in line:
-                return float(line.split()[3])
+                return Energy(line.split()[3])
             if 'E(CI)' in line:
-                return float(line.split()[3])
+                return Energy(line.split()[3])
             if 'E(CIS)' in line:
-                return float(line.split()[4])
+                return Energy(line.split()[4])
             if 'E(CIS(D))' in line:
-                return float(line.split()[5])
+                return Energy(line.split()[5])
 
         return None
 

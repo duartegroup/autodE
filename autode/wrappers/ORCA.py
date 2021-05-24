@@ -3,6 +3,7 @@ import os
 import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
+from autode.values import Energy, Enthalpy, FreeEnergy
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom, get_atomic_weight
 from autode.config import Config
@@ -308,9 +309,10 @@ class ORCA(ElectronicStructureMethod):
         return False
 
     def get_energy(self, calc):
+
         for line in reversed(calc.output.file_lines):
             if 'FINAL SINGLE POINT ENERGY' in line:
-                return float(line.split()[4])
+                return Energy(line.split()[4])
 
         return None
 
@@ -321,7 +323,7 @@ class ORCA(ElectronicStructureMethod):
             if 'Total Enthalpy' in line:
 
                 try:
-                    return float(line.split()[-2])
+                    return Enthalpy(line.split()[-2])
 
                 except ValueError:
                     break
@@ -348,7 +350,7 @@ class ORCA(ElectronicStructureMethod):
                     or 'Final Gibbs free enthalpy' in line):
 
                 try:
-                    return float(line.split()[-2])
+                    return FreeEnergy(line.split()[-2])
 
                 except ValueError:
                     break

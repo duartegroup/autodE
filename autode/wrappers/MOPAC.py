@@ -1,11 +1,11 @@
-from copy import deepcopy
+import os
 import numpy as np
+from copy import deepcopy
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
-from autode.wrappers.keywords import Keywords
-from autode.wrappers.keywords import SinglePointKeywords
-from autode.wrappers.keywords import GradientKeywords
 from autode.atoms import Atom
+from autode.values import Energy
+from autode.units import ev
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import UnsuppportedCalculationInput
@@ -13,7 +13,7 @@ from autode.geom import get_atoms_linear_interp
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CouldNotGetProperty
-import os
+from autode.wrappers.keywords import Keywords, SinglePointKeywords, GradientKeywords
 
 
 # dielectrics from Gaussian solvent list
@@ -267,7 +267,7 @@ class MOPAC(ElectronicStructureMethod):
         for line in calc.output.file_lines:
             if 'TOTAL ENERGY' in line:
                 # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return Constants.eV_to_ha * float(line.split()[3])
+                return Energy(line.split()[3], units=ev).to('ha')
 
         return None
 
