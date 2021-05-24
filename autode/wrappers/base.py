@@ -2,7 +2,7 @@ import os
 import numpy as np
 from abc import ABC
 from abc import abstractmethod
-from typing import Union
+from typing import Union, Collection
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
@@ -165,7 +165,7 @@ class ElectronicStructureMethod(ABC):
 
     @abstractmethod
     @requires_output()
-    def get_imaginary_freqs(self, calc) -> list[float]:
+    def get_imaginary_freqs(self, calc) -> Collection[float]:
         """
         Function implemented in individual child classes
 
