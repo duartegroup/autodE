@@ -4,7 +4,7 @@ from autode.constants import Constants
 from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
-from autode.values import Value, Energy, Distance, Angle
+from autode.values import Value, Energy, Distance, Angle, PlottedEnergy
 
 
 class TmpValue(Value):
@@ -96,8 +96,22 @@ def test_energy():
     assert Energy(1.0, units=ha) == Energy(1.0*Constants.ha_to_kcalmol,
                                            units=kcalmol)
 
+    assert np.isclose(Energy(1.0, units=kcalmol),
+                      Energy(4.0, units=kjmol).to('kcal'),
+                      atol=0.5)
+
+    assert np.isclose(Energy(27, units=ev),
+                      Energy(1, units=ha).to(ev),
+                      atol=0.5)
+
     assert (Energy(1.0) * 10.0) == 10
     assert (10.0 * Energy(1.0)) == 10
+
+
+def test_plotted_energy():
+
+    # Equality does not check estimation
+    assert PlottedEnergy(1, estimated=True) == PlottedEnergy(1, estimated=False)
 
 
 def test_distance():
@@ -108,6 +122,10 @@ def test_distance():
     assert np.isclose(Distance(1.0, units=ang),
                       Distance(2.0, units=a0).to(ang),
                       atol=0.3)
+
+    assert Distance(1.0, units=ang) == Distance(0.1, units=nm)
+    assert Distance(1.0, units=ang) == Distance(100, units=pm)
+    assert Distance(1.0, units=ang) == Distance(1E-10, units=m)
 
 
 def test_angle():

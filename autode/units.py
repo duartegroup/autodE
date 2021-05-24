@@ -76,7 +76,7 @@ ev = Unit(name='eV',
 
 
 # Upper case name to maintain backwards compatibility
-kjmol = KjMol = Unit(name='kj mol-1',
+kjmol = KjMol = Unit(name='kJ mol-1',
                      conversion=Constants.ha_to_kJmol,
                      aliases=['kjmol', 'kjmol-1', 'kj', 'kj mol'],
                      plot_name='kJ mol$^{-1}$')

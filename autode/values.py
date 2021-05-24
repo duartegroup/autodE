@@ -178,6 +178,11 @@ class Energy(Value):
 
 class PlottedEnergy(Energy):
 
+    def __eq__(self, other):
+        """Is an energy equal to another? Compares only the value, not
+        whether they are estimated"""
+        return super().__eq__(other)
+
     def __init__(self, value, units=kcalmol, estimated=False):
         """
         An energy to be plotted on a reaction profile
