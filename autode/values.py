@@ -119,7 +119,7 @@ class Value(ABC, float):
                          units.lower() in imp_unit.aliases)
 
         except StopIteration:
-            raise TypeError(f'No viable type conversion from {self.units} '
+            raise TypeError(f'No viable unit conversion from {self.units} '
                             f'-> {units}')
 
         #                      Convert to the base unit, then to the new units
