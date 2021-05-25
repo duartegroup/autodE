@@ -1,5 +1,5 @@
 import numpy as np
-import autode as ade
+from autode.log import logger
 from abc import ABC, abstractmethod
 from typing import Union
 from copy import deepcopy
@@ -48,6 +48,9 @@ class Value(ABC, float):
         """Equality of two values, which may be in different units
         use default numpy close-ness to compare"""
 
+        if other is None:
+            return False
+
         if isinstance(other, Value):
             if other.units == self.units:
                 return np.isclose(other, float(self))
@@ -81,11 +84,17 @@ class Value(ABC, float):
 
     def __add__(self, other):
         """Add another value onto this one"""
+        if isinstance(other, np.ndarray):
+            return other + float(self)
+
         return self.__class__(float(self) + self._other_same_units(other),
                               units=self.units)
 
     def __mul__(self, other):
         """Multiply this value with another"""
+        if isinstance(other, np.ndarray):
+            return other * float(self)
+
         return self.__class__(float(self) * self._other_same_units(other),
                               units=self.units)
 
@@ -157,9 +166,12 @@ class Energy(Value):
     def __init__(self,
                  value,
                  units: Unit = ha,
-                 keywords: Union[ade.Keywords, None] = None):
+                 method=None,
+                 keywords=None):
         """
-        Energy unit
+        Energy as a value. Has a method_str attribute which is set using a
+        method used to calculate the energy along with any keywords e.g.
+        PBE0/def2-SVP used to calculate it
 
         ----------------------------------------------------------------------
         Arguments:
@@ -168,12 +180,19 @@ class Energy(Value):
 
             units (autode.units.Unit): Unit type, allowing conversion
 
+            method (autode.wrappers.base import ElectronicStructureMethod
+
             keywords (autode.wrappers.keywords.Keywords | None): Set of
                      keywords which this energy has been calculated at
         """
         super().__init__(value, units=units)
 
-        self.keyword_str = str(keywords) if keywords is not None else ''
+        self.method_str = method.name if method is not None else 'unknown'
+        self.method_str = str(keywords) if keywords is not None else ''
+
+
+class ElectronicEnergy(Energy):
+    """Potential electronic energy"""
 
 
 class FreeEnergy(Energy):
@@ -232,3 +251,68 @@ class Angle(Value):
 
     def __init__(self, value, units=rad):
         super().__init__(value, units=units)
+
+
+class Energies(list):
+
+    def append(self, other: Energy):
+        """
+        Add another energy to this list, if it does not already appear
+
+        Arguments:
+             other (autode.values.Energy):
+        """
+
+        for item in self:
+            if other == item:
+                logger.warning(f'Not appending {other} to the energies - '
+                               f'already present')
+                return
+
+        return super().append(other)
+
+    def _delta_to_electronic(self, energy_type):
+        """
+        Calculate X - E_elec, where X is perhaps a free energy or enthalpy
+
+        Arguments:
+            energy_type (autode.energies.Energy):
+
+        Returns:
+            (autode.energies.Energy | None):
+        """
+        try:
+            # Select the final energy in this list with the correct type
+            energy_with_type = next(e for e in reversed(self)
+                                    if isinstance(e, energy_type))
+
+            # and the corresponding electronic energy, calculated at the
+            # same method, so the ∆ between is correct
+            elec_energy = next(e for e in reversed(self)
+                               if e.method_str == energy_with_type.method_str
+                               and isinstance(e, ElectronicEnergy))
+
+            return Energy(energy_with_type - elec_energy)
+
+        except StopIteration:
+            return None
+
+    @property
+    def h_cont(self) -> Union[Energy, None]:
+        """
+        Return the enthalpic contribution to the energy
+
+        Returns:
+             (autode.values.Energy | None): H_cont = H - E_elec
+        """
+        return self._delta_to_electronic(energy_type=Enthalpy)
+
+    @property
+    def g_cont(self) -> Union[Energy, None]:
+        """
+        Return the free energy contribution to the energy
+
+        Returns:
+             (autode.values.Energy | None): G_cont = G - E_elec
+        """
+        return self._delta_to_electronic(energy_type=FreeEnergy)

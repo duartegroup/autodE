@@ -4,7 +4,8 @@ from autode.constants import Constants
 from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
-from autode.values import Value, Energy, Distance, Angle, PlottedEnergy
+from autode.values import (Value, Distance, Angle,
+                           Energy, PlottedEnergy, Energies)
 
 
 class TmpValue(Value):
@@ -35,7 +36,7 @@ def test_energy():
 
     e1 = Energy(0.0)
     assert 'energy' in str(e1).lower()
-    assert type(e1.keyword_str) is str
+    assert type(e1.method_str) is str
 
     assert e1 == 0.0
     assert -0.001 < e1 < 0.001
@@ -133,3 +134,13 @@ def test_angle():
     assert 'ang' in str(Angle(1.0)).lower()
 
     assert Angle(np.pi, units=rad) == Angle(180.0, units=deg)
+
+
+def test_energies():
+
+    energies = Energies()
+    energies.append(Energy(1.0))
+    energies.append(Energy(1.0))
+
+    # Should not append identical energies
+    assert len(energies) == 1

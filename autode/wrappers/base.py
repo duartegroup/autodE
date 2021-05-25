@@ -10,7 +10,13 @@ from autode.values import Energy
 from copy import deepcopy
 
 
-class ElectronicStructureMethod(ABC):
+class Method:
+    """Base class for all EST and other energy/force/hessian methods"""
+
+    name = 'unknown'
+
+
+class ElectronicStructureMethod(Method, ABC):
 
     @property
     def available(self):

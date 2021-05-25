@@ -63,10 +63,10 @@ class Conformer(Species):
                           n_cores=Config.n_cores,
                           distance_constraints=self.dist_consts)
         opt.run()
-        self.energy = opt.get_energy()
 
         try:
             self.atoms = opt.get_final_atoms()
+            self.energy = opt.get_energy()
 
         except AtomsNotFound:
             logger.error(f'Atoms not found for {self.name} but not critical')

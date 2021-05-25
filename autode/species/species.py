@@ -5,8 +5,7 @@ from scipy.spatial import distance_matrix
 from autode.atoms import Atom, AtomCollection
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
-from autode.solvent.solvents import ExplicitSolvent
-from autode.solvent.solvents import get_solvent
+from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
@@ -15,9 +14,11 @@ from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
-from autode.utils import requires_atoms
-from autode.utils import work_in
-from autode.utils import requires_conformers
+from autode.values import (Energy, Enthalpy, FreeEnergy, ElectronicEnergy,
+                           Energies, Distance)
+from autode.utils import (requires_atoms,
+                          work_in,
+                          requires_conformers)
 
 
 class Species(AtomCollection):
@@ -36,7 +37,7 @@ class Species(AtomCollection):
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
-    def _repr(self, prefix):
+    def _repr(self, prefix: str):
 
         string = (f'{prefix}('
                   f'n_atoms={self.n_atoms}, '
@@ -52,6 +53,19 @@ class Species(AtomCollection):
     def copy(self):
         """Copy this whole molecule"""
         return deepcopy(self)
+
+    @AtomCollection.atoms.setter
+    def atoms(self,
+              value: Union[Collection[Atom], None]):
+        """
+        Set the atoms for this species, and reset the energies
+
+        Arguments:
+            value (list(autode.atoms.Atom) | None):
+        """
+        self.energies.clear()
+        self._atoms = value
+        return None
 
     @property
     def formula(self):
@@ -92,17 +106,53 @@ class Species(AtomCollection):
         return matrix
 
     @property
-    def radius(self):
+    def radius(self) -> Distance:
         """Calculate an approximate radius of this species"""
         if self.n_atoms == 0:
-            return 0
+            return Distance(0.0)
 
         coords = self.coordinates
-        return np.max(distance_matrix(coords, coords)) / 2.0
+        return Distance(np.max(distance_matrix(coords, coords)) / 2.0)
 
     @property
-    def is_explicitly_solvated(self):
+    def is_explicitly_solvated(self) -> bool:
         return isinstance(self.solvent, ExplicitSolvent)
+
+    @property
+    def energy(self) -> Union[Energy, None]:
+        """Last computed energy"""
+
+        if len(self.energies) > 0:
+            return self.energies[-1]
+
+        return None
+
+    @energy.setter
+    def energy(self, value: Union[Energy, None]):
+        """Add an energy to the list"""
+
+        if value is not None:
+            self.energies.append(value)
+
+    @property
+    def h_cont(self) -> Union[Energy, None]:
+        """
+        Return the enthalpic contribution to the energy
+
+        Returns:
+             (autode.values.Energy | None): H - E_elec
+        """
+        return self.energies.h_cont
+
+    @property
+    def g_cont(self) -> Union[Energy, None]:
+        """
+        Return the Gibbs (free) contribution to the energy
+
+        Returns:
+             (autode.values.Energy | None): G - E_elec
+        """
+        return self.energies.g_cont
 
     def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
         """
@@ -186,8 +236,8 @@ class Species(AtomCollection):
                 lowest_energy = conformer.energy
 
             if conformer.energy <= lowest_energy:
-                self.energy = conformer.energy
                 self.atoms = conformer.atoms
+                self.energy = conformer.energy
                 lowest_energy = conformer.energy
 
         return None
@@ -286,8 +336,8 @@ class Species(AtomCollection):
             assert isinstance(calc, Calculation)
 
         calc.run()
-        self.energy = calc.get_energy()
         self.atoms = calc.get_final_atoms()
+        self.energy = calc.get_energy()
 
         method_name = '' if method is None else method.name
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
@@ -300,35 +350,25 @@ class Species(AtomCollection):
     @requires_atoms()
     def calc_g_cont(self, method=None, calc=None, temp=298.15):
         """Calculate the free energy contribution for a species"""
-        assert self.energy is not None
 
         if calc is None:
             calc = self._run_hess_calculation(method=method, temp=temp)
 
-        free_energy = calc.get_free_energy()
+        self.energies.append(calc.get_energy())
+        self.energies.append(calc.get_free_energy())
 
-        if free_energy is None:
-            logger.error('Could not calculate g_cont, free energy not found')
-            return
-
-        self.g_cont = free_energy - self.energy
         return None
 
     @requires_atoms()
     def calc_h_cont(self, method=None, calc=None, temp=298.15):
         """Calculate the free energy contribution for a species"""
-        assert self.energy is not None
 
         if calc is None:
             calc = self._run_hess_calculation(method=method, temp=temp)
 
-        enthalpy = calc.get_enthalpy()
+        self.energies.append(calc.get_energy())
+        self.energies.append(calc.get_enthalpy())
 
-        if enthalpy is None:
-            logger.error(f'Could not calculate H for {self.name}, not h_cont')
-            return
-
-        self.h_cont = enthalpy - self.energy
         return None
 
     @requires_atoms()
@@ -435,10 +475,6 @@ class Species(AtomCollection):
 
         self.solvent = get_solvent(solvent_name=solvent_name)
 
-        self.energy = None      # Total electronic energy in Hartrees (float)
-        self.h_cont = None      # Enthalpic contribution to the energy in Ha
-        self.g_cont = None      # Gibbs energy contribution to the energy in Ha
-
-        self.graph = None       # NetworkX.Graph object with atoms and bonds
-
-        self.conformers = None  # List autode.conformers.conformers.Conformer
+        self.energies = Energies()  # All energies calculated at a geometry
+        self.graph = None           # NetworkX.Graph with atoms(V) and bonds(E)
+        self.conformers = None      # List autode.conformers.Conformer

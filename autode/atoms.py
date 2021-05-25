@@ -48,6 +48,17 @@ class AtomCollection:
         for i, atom in enumerate(self.atoms):
             atom.coord = value[i]
 
+    @property
+    def atoms(self):
+        """Constituent atoms of this collection"""
+        # NOTE: Defined as a property for sub-class implementations
+        return self._atoms
+
+    @atoms.setter
+    def atoms(self, value):
+        """Set the constituent atoms of this collection"""
+        self._atoms = value
+
     def _check_idxs_are_present(self, *args):
         """Are a set of indexes present in the collection of atoms?
 
@@ -170,9 +181,9 @@ class AtomCollection:
         Collection of atoms, used as a a base class for a species etc
 
         Arguments:
-            atoms (list(autode.atoms.Atom)):
+            atoms (list(autode.atoms.Atom) | None):
         """
-        self.atoms = atoms
+        self._atoms = atoms
 
 
 class Atom:
