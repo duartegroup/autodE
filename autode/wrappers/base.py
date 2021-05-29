@@ -6,7 +6,6 @@ from typing import Union, Collection
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
-from autode.values import Energy
 from copy import deepcopy
 
 
@@ -106,7 +105,7 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output()
-    def get_energy(self, calc) -> Union[None, Energy]:
+    def get_energy(self, calc) -> Union[None, float]:
         """
         Return the potential energy
 
@@ -119,7 +118,7 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output()
-    def get_free_energy(self, calc) -> Union[None, Energy]:
+    def get_free_energy(self, calc) -> Union[None, float]:
         """
         Return the free energy (G)
 
@@ -132,7 +131,7 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output()
-    def get_enthalpy(self, calc) -> Union[None, Energy]:
+    def get_enthalpy(self, calc) -> Union[None, float]:
         """
         Return the free energy (enthalpy)
 

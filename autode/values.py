@@ -160,7 +160,13 @@ class Energy(Value):
         return f'Energy({round(self, 5)} {self.units.name})'
 
     def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value"""
+        """Is an energy equal to another? Compares only the value, with
+        implicit unit conversion"""
+
+        # A PotentialEnergy is not equal to a FreeEnergy, for example
+        if isinstance(other, Energy) and not isinstance(other, self.__class__):
+            return False
+
         return super().__eq__(other)
 
     def __init__(self,
@@ -180,19 +186,19 @@ class Energy(Value):
 
             units (autode.units.Unit): Unit type, allowing conversion
 
-            method (autode.wrappers.base import ElectronicStructureMethod
+            method (autode.wrappers.base.Method):
 
             keywords (autode.wrappers.keywords.Keywords | None): Set of
                      keywords which this energy has been calculated at
         """
         super().__init__(value, units=units)
 
-        self.method_str = method.name if method is not None else 'unknown'
-        self.method_str = str(keywords) if keywords is not None else ''
+        self.method_str = f'{method.name} ' if method is not None else 'unknown'
+        self.method_str += keywords.bstring if keywords is not None else ''
 
 
-class ElectronicEnergy(Energy):
-    """Potential electronic energy"""
+class PotentialEnergy(Energy):
+    """Potential electronic energy (0 K, no zero-point energy)"""
 
 
 class FreeEnergy(Energy):
@@ -290,11 +296,13 @@ class Energies(list):
             # same method, so the ∆ between is correct
             elec_energy = next(e for e in reversed(self)
                                if e.method_str == energy_with_type.method_str
-                               and isinstance(e, ElectronicEnergy))
+                               and isinstance(e, PotentialEnergy))
 
             return Energy(energy_with_type - elec_energy)
 
         except StopIteration:
+            logger.warning(f'Failed to calculate {energy_type.__name__} '
+                           f'- {PotentialEnergy.__name__}')
             return None
 
     @property
@@ -316,3 +324,11 @@ class Energies(list):
              (autode.values.Energy | None): G_cont = G - E_elec
         """
         return self._delta_to_electronic(energy_type=FreeEnergy)
+
+    def __init__(self, *args: Energy):
+        """
+
+        Arguments:
+            *args (autode.values.Energy):
+        """
+        super().__init__(args)

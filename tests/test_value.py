@@ -5,7 +5,8 @@ from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
 from autode.values import (Value, Distance, Angle,
-                           Energy, PlottedEnergy, Energies)
+                           Energy, PlottedEnergy, Energies,
+                           PotentialEnergy, Enthalpy, FreeEnergy)
 
 
 class TmpValue(Value):
@@ -109,6 +110,19 @@ def test_energy():
     assert (10.0 * Energy(1.0)) == 10
 
 
+def test_enthalpy():
+
+    assert Enthalpy(1.0) != PotentialEnergy(1.0)
+    assert PotentialEnergy(1.0) != Enthalpy(1.0)
+
+
+def test_free_energy():
+
+    assert FreeEnergy(1.0) != PotentialEnergy(1.0)
+    assert FreeEnergy(1.0) != Enthalpy(1.0)
+    assert PotentialEnergy(1.0) != FreeEnergy(1.0)
+
+
 def test_plotted_energy():
 
     # Equality does not check estimation
@@ -144,3 +158,14 @@ def test_energies():
 
     # Should not append identical energies
     assert len(energies) == 1
+
+    energies = Energies(Energy(1.0), FreeEnergy(0.1))
+
+    # Free energy contribution is not defined without both a potential and
+    # free energy
+    assert energies.g_cont is None
+
+    energies = Energies(PotentialEnergy(1.0), FreeEnergy(1.1))
+
+    assert isinstance(energies.g_cont, Energy)
+    assert energies.g_cont == 0.1

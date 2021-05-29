@@ -25,8 +25,8 @@ def calc_delta(attr, left, right):
         return None
 
     if any(getattr(mol, attr) is None for mol in left + right):
-        logger.error('Cannot calculate ∆. At least one required attribute'
-                     ' was None')
+        logger.error(f'Cannot calculate ∆ for {attr}. At least one required '
+                     f'attribute was None')
         return None
 
     return (sum([getattr(mol, attr) for mol in right]) -

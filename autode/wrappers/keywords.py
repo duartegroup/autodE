@@ -202,6 +202,7 @@ class Keywords:
         """Set the functional in a set of keywords"""
         self._set_keyword(basis_set, keyword_type=BasisSet)
 
+    @property
     def method_string(self):
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
         string = ''
@@ -225,6 +226,26 @@ class Keywords:
         if len(string) == 0:
             logger.warning('Unknown method')
             string = '???'
+
+        return string
+
+    @property
+    def bstring(self):
+        """Brief string without dois of the method e.g. PBE0-D3BJ/def2-SVP"""
+
+        string = ''
+
+        if self.functional is not None:
+            string += self.functional.upper()
+
+        if self.wf_method is not None:
+            string += f'-{self.wf_method.upper()}'
+
+        if self.dispersion is not None:
+            string += f'-{self.dispersion.upper()}'
+
+        if self.basis_set is not None:
+            string += f'/{self.basis_set.name}'
 
         return string
 

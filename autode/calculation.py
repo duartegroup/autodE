@@ -4,9 +4,9 @@ import hashlib
 import base64
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
+from autode.values import PotentialEnergy, FreeEnergy, Enthalpy
 from autode.point_charges import PointCharge
-from autode.solvent.solvents import get_available_solvent_names
-from autode.solvent.solvents import get_solvent
+from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
 from autode.solvent.solvents import Solvent
 from autode.log import logger
@@ -94,17 +94,18 @@ class Calculation:
             (float): Energy in Hartrees, or None
         """
         logger.info(f'Getting energy from {self.output.filename}')
+        kwargs = {'method': self.method, 'keywords': self.input.keywords}
 
         if self.terminated_normally() or force:
 
             if h:
-                return self.method.get_enthalpy(self)
+                return Enthalpy(self.method.get_enthalpy(self), **kwargs)
 
             if g:
-                return self.method.get_free_energy(self)
+                return FreeEnergy(self.method.get_free_energy(self), **kwargs)
 
             if e:
-                return self.method.get_energy(self)
+                return PotentialEnergy(self.method.get_energy(self), **kwargs)
 
         logger.error('Calculation did not terminate normally. Energy = None')
         return None
@@ -193,7 +194,7 @@ class Calculation:
 
         # Level of theory ----
         string += (f'calculations performed at the '
-                   f'{self.input.keywords.method_string()} level')
+                   f'{self.input.keywords.method_string} level')
 
         basis = self.input.keywords.basis_set
         if basis is not None:
