@@ -2,7 +2,7 @@ import os
 import numpy as np
 from abc import ABC
 from abc import abstractmethod
-from typing import Union, Collection
+from typing import Collection
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output

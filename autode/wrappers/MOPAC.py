@@ -4,8 +4,6 @@ from copy import deepcopy
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
-from autode.values import Energy
-from autode.units import ev
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import UnsuppportedCalculationInput

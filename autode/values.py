@@ -395,7 +395,7 @@ class Gradients(ValueArray):
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
     def __str__(self):
-        return f'{super(np.ndarray, self).__str__()} {self.units.name}'
+        return f'Gradients({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls,  input_array, units=ha_per_ang):
         return super().__new__(cls, input_array, units)
