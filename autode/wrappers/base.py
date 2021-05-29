@@ -105,41 +105,50 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output()
-    def get_energy(self, calc) -> Union[None, float]:
+    def get_energy(self, calc) -> float:
         """
-        Return the potential energy
+        Return the potential energy in electronic Hartrees
 
         Arguments:
             calc (autode.calculation.Calculation):
 
         Returns:
-            (autode.values.Energy | None):
+            (float):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
         """
 
     @abstractmethod
     @requires_output()
-    def get_free_energy(self, calc) -> Union[None, float]:
+    def get_free_energy(self, calc) -> float:
         """
-        Return the free energy (G)
+        Return the free energy (G) in electronic Hartrees
 
         Arguments:
             calc (autode.calculation.Calculation):
 
         Returns:
-            (autode.values.Energy | None):
+            (float):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
         """
 
     @abstractmethod
     @requires_output()
-    def get_enthalpy(self, calc) -> Union[None, float]:
+    def get_enthalpy(self, calc) -> float:
         """
-        Return the free energy (enthalpy)
+        Return the free energy (enthalpy) in electronic Hartrees
 
         Arguments:
             calc (autode.calculation.Calculation):
 
         Returns:
-            (autode.values.Energy | None):
+            (float):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
         """
 
     @abstractmethod
@@ -237,7 +246,7 @@ class ElectronicStructureMethod(Method, ABC):
         Returns:
             (np.ndarray):
 
-        Raisese:
+        Raises:
             (autode.exceptions.CouldNotGetProperty)
         """
 

@@ -2,10 +2,9 @@ import numpy as np
 import autode.wrappers.keywords as kws
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external_monitored
-from autode.values import Energy
 from autode.atoms import Atom
 from autode.config import Config
-from autode.exceptions import UnsuppportedCalculationInput
+from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
 from autode.log import logger
 from autode.constants import Constants
 from autode.utils import work_in_tmp_dir
@@ -281,12 +280,12 @@ class NWChem(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
             if any(string in line for string in ['Total DFT energy', 'Total SCF energy']):
-                return Energy(line.split()[4])
+                return float(line.split()[4])
 
             if any(string in line for string in wf_strings):
-                return Energy(line.split()[3])
+                return float(line.split()[3])
 
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):
 

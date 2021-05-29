@@ -6,7 +6,34 @@ from copy import deepcopy
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
-                          rad, deg)
+                          rad, deg,
+                          ha_per_ang, ha_per_a0, ev_per_ang)
+
+
+def _to(value,
+        units: Union[Unit, str]):
+    """Convert a value or value array to a new unit and return a copy
+
+    Arguments:
+        units (autode.units.Unit | str):
+
+    Returns:
+        (autode.values.Value):
+    """
+    if value.units == units:
+        return value
+
+    try:
+        units = next(imp_unit for imp_unit in value.implemented_units if
+                     units.lower() in imp_unit.aliases)
+
+    except StopIteration:
+        raise TypeError(f'No viable unit conversion from {value.units} '
+                        f'-> {units}')
+
+    #                      Convert to the base unit, then to the new units
+    return value.__class__(value * units.conversion / value.units.conversion,
+                           units=units)
 
 
 class Value(ABC, float):
@@ -107,8 +134,7 @@ class Value(ABC, float):
     def __sub__(self, other):
         return self.__add__(-other)
 
-    def to(self,
-           units: Union[Unit, str]):
+    def to(self, units):
         """Convert this value to a new unit, returning a copy
 
         Arguments:
@@ -120,20 +146,7 @@ class Value(ABC, float):
         Raises:
             (TypeError):
         """
-        if self.units == units:
-            return self
-
-        try:
-            units = next(imp_unit for imp_unit in self.implemented_units if
-                         units.lower() in imp_unit.aliases)
-
-        except StopIteration:
-            raise TypeError(f'No viable unit conversion from {self.units} '
-                            f'-> {units}')
-
-        #                      Convert to the base unit, then to the new units
-        return self.__class__(self * units.conversion / self.units.conversion,
-                              units=units)
+        return _to(self, units)
 
     def __init__(self, x,
                  units: Union[Unit, None] = None):
@@ -213,53 +226,8 @@ class Enthalpy(Energy):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
-class PlottedEnergy(Energy):
-
-    def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value, not
-        whether they are estimated"""
-        return super().__eq__(other)
-
-    def __init__(self, value, units=kcalmol, estimated=False):
-        """
-        An energy to be plotted on a reaction profile
-
-        Arguments:
-            value (float):
-
-            estimated (bool): Has this energy been estimated rather than
-                              calculated
-        """
-        super().__init__(value, units=units)
-
-        self.estimated = estimated
-
-
-class Distance(Value):
-    """Distance in some units, defaults to Angstroms"""
-
-    implemented_units = [ang, a0, pm, nm, m]
-
-    def __str__(self):
-        return f'Distance({round(self, 5)} {self.units.name})'
-
-    def __init__(self, value, units=ang):
-        super().__init__(value, units=units)
-
-
-class Angle(Value):
-    """Angle in some units, defaults to radians"""
-
-    implemented_units = [rad, deg]
-
-    def __str__(self):
-        return f'Angle({round(self, 5)} {self.units.name})'
-
-    def __init__(self, value, units=rad):
-        super().__init__(value, units=units)
-
-
 class Energies(list):
+    """List of energies on an identical geometry/structure"""
 
     def append(self, other: Energy):
         """
@@ -332,3 +300,102 @@ class Energies(list):
             *args (autode.values.Energy):
         """
         super().__init__(args)
+
+
+class PlottedEnergy(Energy):
+
+    def __eq__(self, other):
+        """Is an energy equal to another? Compares only the value, not
+        whether they are estimated"""
+        return super().__eq__(other)
+
+    def __init__(self, value, units=kcalmol, estimated=False):
+        """
+        An energy to be plotted on a reaction profile
+
+        Arguments:
+            value (float):
+
+            estimated (bool): Has this energy been estimated rather than
+                              calculated
+        """
+        super().__init__(value, units=units)
+
+        self.estimated = estimated
+
+
+class Distance(Value):
+    """Distance in some units, defaults to Angstroms"""
+
+    implemented_units = [ang, a0, pm, nm, m]
+
+    def __str__(self):
+        return f'Distance({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=ang):
+        super().__init__(value, units=units)
+
+
+class Angle(Value):
+    """Angle in some units, defaults to radians"""
+
+    implemented_units = [rad, deg]
+
+    def __str__(self):
+        return f'Angle({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=rad):
+        super().__init__(value, units=units)
+
+
+class ValueArray(ABC, np.ndarray):
+    """
+    Abstract base class for an array of values, e.g. gradients or a Hessian
+    """
+    implemented_units = []
+
+    @abstractmethod
+    def __str__(self):
+        """String representation of this value array"""
+
+    def __new__(cls,
+                input_array: np.ndarray,
+                units: Union[Unit, None] = None):
+
+        arr = np.asarray(input_array).view(cls)
+        arr.units = units
+
+        return arr
+
+    def to(self, units):
+        """
+        Convert this array to a new unit, returning a copy
+
+        Arguments:
+            units (autode.units.Unit | str):
+
+        Returns:
+            (autode.values.Value):
+
+        Raises:
+            (TypeError):
+        """
+        return _to(self, units)
+
+    def __array_finalize__(self, obj):
+        """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
+
+        if obj is None:
+            return
+        self.units = getattr(obj, 'units', None)
+
+
+class Gradients(ValueArray):
+
+    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
+
+    def __str__(self):
+        return f'{super(np.ndarray, self).__str__()} {self.units.name}'
+
+    def __new__(cls,  input_array, units=ha_per_ang):
+        return super().__new__(cls, input_array, units)

@@ -6,7 +6,7 @@ from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
 from autode.config import Config
-from autode.exceptions import AtomsNotFound
+from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
 from autode.calculation import CalculationOutput
 from autode.calculation import Constraints
@@ -420,7 +420,7 @@ class G09(ElectronicStructureMethod):
 
         logger.error('Could not get the enthalpy from the calculation. '
                      'A frequency must be requested')
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def get_free_energy(self, calc):
         """Get the Gibbs free energy (G) from an g09 calculation output"""
@@ -431,7 +431,7 @@ class G09(ElectronicStructureMethod):
 
         logger.error('Could not get the enthalpy from the calculation. '
                      'A frequency must be requested')
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def get_energy(self, calc):
 
@@ -445,7 +445,7 @@ class G09(ElectronicStructureMethod):
             if 'E(CIS(D))' in line:
                 return float(line.split()[5])
 
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):
         for line in reversed(calc.output.file_lines):

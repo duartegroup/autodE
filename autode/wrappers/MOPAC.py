@@ -267,9 +267,9 @@ class MOPAC(ElectronicStructureMethod):
         for line in calc.output.file_lines:
             if 'TOTAL ENERGY' in line:
                 # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return Energy(line.split()[3], units=ev).to('ha')
+                return float(line.split()[3]) * Constants.eV_to_ha
 
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):
 

@@ -2,9 +2,10 @@ from copy import deepcopy
 import os
 import hashlib
 import base64
+from typing import Union
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
-from autode.values import PotentialEnergy, FreeEnergy, Enthalpy
+from autode.values import PotentialEnergy, FreeEnergy, Enthalpy, Gradients
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
@@ -91,13 +92,17 @@ class Calculation:
             force (bool): Return the energy even if the calculation errored
 
         Returns:
-            (float): Energy in Hartrees, or None
+            (autode.values.Energy | None):
         """
         logger.info(f'Getting energy from {self.output.filename}')
         kwargs = {'method': self.method, 'keywords': self.input.keywords}
 
-        if self.terminated_normally() or force:
+        if not self.terminated_normally() and not force:
+            logger.error('Calculation did not terminate normally. '
+                         'Energy = None')
+            return None
 
+        try:
             if h:
                 return Enthalpy(self.method.get_enthalpy(self), **kwargs)
 
@@ -107,8 +112,9 @@ class Calculation:
             if e:
                 return PotentialEnergy(self.method.get_energy(self), **kwargs)
 
-        logger.error('Calculation did not terminate normally. Energy = None')
-        return None
+        except ex.CouldNotGetProperty:
+            logger.warning('Could not get energy. Energy = None')
+            return None
 
     def _fix_unique(self, register_name='.autode_calculations'):
         """
@@ -212,13 +218,31 @@ class Calculation:
         methods.add(f'{string}.\n')
         return None
 
-    def get_energy(self):
+    def get_energy(self) -> Union[PotentialEnergy, None]:
+        """
+        Total electronic potential energy
+
+        Returns:
+            (autode.values.PotentialEnergy): Energy or None
+        """
         return self._get_energy(e=True)
 
-    def get_enthalpy(self):
+    def get_enthalpy(self) -> Union[Enthalpy, None]:
+        """
+        Total enthalpy
+
+        Returns:
+            (autode.values.Enthalpy): Energy or None
+        """
         return self._get_energy(h=True)
 
-    def get_free_energy(self):
+    def get_free_energy(self) -> Union[FreeEnergy, None]:
+        """
+        Total free energy (G)
+
+        Returns:
+            (autode.values.FreeEnergy): Energy or None
+        """
         return self._get_energy(g=True)
 
     def optimisation_converged(self):
@@ -330,7 +354,7 @@ class Calculation:
                           gradients.shape = (n_atoms, 3)
         """
         logger.info(f'Getting gradients from {self.output.filename}')
-        gradients = self.method.get_gradients(self)
+        gradients = Gradients(self.method.get_gradients(self))
 
         if len(gradients) != self.molecule.n_atoms:
             raise ex.CouldNotGetProperty(name='gradients')

@@ -3,11 +3,10 @@ import os
 import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
-from autode.values import Energy, Enthalpy, FreeEnergy
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom, get_atomic_weight
 from autode.config import Config
-from autode.exceptions import UnsuppportedCalculationInput
+from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
 from autode.exceptions import NoCalculationOutput
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
@@ -312,9 +311,9 @@ class ORCA(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
             if 'FINAL SINGLE POINT ENERGY' in line:
-                return Energy(line.split()[4])
+                return float(line.split()[4])
 
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def get_enthalpy(self, calc):
         """Get the enthalpy (H) from an ORCA calculation output"""
@@ -323,14 +322,14 @@ class ORCA(ElectronicStructureMethod):
             if 'Total Enthalpy' in line:
 
                 try:
-                    return Enthalpy(line.split()[-2])
+                    return float(line.split()[-2])
 
                 except ValueError:
                     break
 
         logger.error('Could not get the free energy from the calculation. '
                      'Was a frequency requested?')
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def get_free_energy(self, calc):
         """Get the Gibbs free energy (G) from an ORCA calculation output"""
@@ -350,14 +349,14 @@ class ORCA(ElectronicStructureMethod):
                     or 'Final Gibbs free enthalpy' in line):
 
                 try:
-                    return FreeEnergy(line.split()[-2])
+                    return float(line.split()[-2])
 
                 except ValueError:
                     break
 
         logger.error('Could not get the free energy from the calculation. '
                      'Was a frequency requested?')
-        return None
+        raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):
 

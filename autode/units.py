@@ -54,14 +54,42 @@ class BaseUnit(Unit):
     """A unit in the base unit system, thus an identity conversion factor"""
 
     def __init__(self,
-                 name: str,
-                 aliases: Union[Collection, None] = None,
+                 name:      str,
+                 aliases:   Union[Collection, None] = None,
                  plot_name: Union[str, None] = None):
 
         super().__init__(name,
                          conversion=1.0,
                          aliases=aliases,
                          plot_name=plot_name)
+
+
+class CompositeUnit(Unit):
+
+    def __init__(self,
+                 *args:   Unit,
+                 per:     Collection[Unit],
+                 aliases: Union[Collection, None] = None):
+        """
+        A unit as a composite of others, e.g. Ha Å^-1
+
+        Arguments:
+            args (autode.units.Unit):
+            per (list(autode.units.Unit)):
+        """
+        top_names = " ".join([u.name for u in args])
+        per_names = " ".join([u.name for u in per])
+
+        conversion = 1.0
+        for unit in args:
+            conversion *= unit.conversion
+
+        for unit in per:
+            conversion /= unit.conversion
+
+        super().__init__(name=f'{top_names}({per_names})^-1',
+                         conversion=conversion,
+                         aliases=aliases)
 
 
 ha = BaseUnit(name='Ha',
@@ -117,3 +145,14 @@ pm = Unit(name='pm',
 m = Unit(name='m',
          conversion=Constants.ang_to_m,
          aliases=['meter'])
+
+
+ha_per_ang = CompositeUnit(ha, per=[ang],
+                           aliases=['ha/ang'])
+
+ha_per_a0 = CompositeUnit(ha, per=[a0],
+                          aliases=['ha/bohr'])
+
+
+ev_per_ang = CompositeUnit(ev, per=[ang],
+                           aliases=['ev/ang'])
