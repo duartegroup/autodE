@@ -1,6 +1,7 @@
 branches:
   only:
     - master
+    - v1.1dev
 dist: xenial
 language: python
 python:
