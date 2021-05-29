@@ -42,9 +42,9 @@ B3LYP/def2-TZVP single point energies in ORCA
   >>> from autode.wrappers.keywords import SinglePointKeywords
   >>> ade.Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
 
-a cleaner solution uses
+Alternatively, to just change the functional
 
-  >>> Config.ORCA.keywords.sp.functional = 'B3LYP'
+  >>> ade.Config.ORCA.keywords.sp.functional = 'B3LYP'
 
 To add diffuse functions with the ma scheme to the def2-SVP default optimisation
 basis set for optimisations
@@ -96,7 +96,12 @@ environment variable, in bash::
 
     $ export AUTODE_LOG_LEVEL=INFO
 
-to output the log to a file set e.g. *autode.log*::
+To output the log to a file set e.g. *autode.log*::
 
     $ export AUTODE_LOG_FILE=autode.log
+
+To log with timestamps and colours::
+
+    $ conda install coloredlogs
+
 

@@ -95,14 +95,21 @@ then rotate around the x axis
          [-0.8250, 0.1819,  0.    ],
          [ 0.8261, 0.1812,  0.    ]])
 
-Pairwise distances between atoms in a molecule can be calculated
+Angles between atoms in a molecule can be also calculated
 
 .. code-block:: python
 
-  >>> water.distance(0, 1)
-  0.8448
+  >>> water.angle(1, 0, 2)
+  Angle(1.9752 rad)
 
-where atoms are indexed from 0, so that r\ :sub:`01`\  is r(O-H) in Å.
+where atoms are indexed from 0, so the angle is θ(H-O-H). As with distances,
+explicit unit conversion is supported
+
+.. code-block:: python
+
+  >>> water.angle(1, 0, 2).to('deg')
+  Angle(113.17085 °)
+
 
 
 Calculations
@@ -123,13 +130,34 @@ single point energy evaluation with ORCA
   >>> from autode.methods import XTB, ORCA
   >>> water.optimise(method=XTB())
   >>> water.energy
-  -5.07054
+  Energy(-5.07054 Ha)
   >>> water.single_point(method=ORCA())
   >>> water.energy
-  -76.377649534992
+  Energy(-76.37766 Ha)
 
-where the default single point method in ORCA is PBE0-D3BJ/def2-TZVP. Modifying
-the method is possible by setting the keywords
+where the default single point method in ORCA is PBE0-D3BJ/def2-TZVP. Like with
+other values (distances, angles, dihedrals) converting to different units is as
+simple as
+
+.. code-block:: python
+
+  >>> water.energy.to('kcal')
+  Energy(-47927.6682 kcal mol-1)
+
+The :code:`water.energy` returns the most recently evaluated energy at this geometry,
+but the XTB energy is still saved as code:`water.energies`. Printing the energies
+along with their associated methods
+
+.. code-block:: python
+
+  >>> for energy in water.energies:
+  ...     print(energy, energy.method_str)
+  ...
+  Energy(-5.07054 Ha) xtb
+  Energy(-76.37766 Ha) orca PBE0-D3BJ/def2-TZVP
+
+
+Modifying the method is possible by setting the keywords
 
 .. code-block:: python
 

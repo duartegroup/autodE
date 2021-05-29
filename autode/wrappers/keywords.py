@@ -47,20 +47,21 @@ class KeywordsSet:
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
-        calculation will look something like:
+        calculation will look something like::
 
-        ---------------------------------------------------------------------
-        <keyword line directive> autode.Keywords.sp[0] autode.Keywords.sp[1]
-        autode.Keywords.optts_block
+            -------------------------------------------------------------------
+            <keyword line directive> autode.Keywords.x[0] ...
+            autode.Keywords.optts_block
 
-        <coordinate directive> <charge> <multiplicity>
-        .
-        .
-        coordinates
-        .
-        .
-        <end of coordinate directive>
-        ---------------------------------------------------------------------
+            <coordinate directive> <charge> <multiplicity>
+            .
+            .
+            coordinates
+            .
+            .
+            <end of coordinate directive>
+            -------------------------------------------------------------------
+
         Keyword Arguments:
 
             low_opt (list(str)): List of keywords for a low level optimisation

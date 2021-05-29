@@ -1,6 +1,40 @@
 Changelog
 =========
 
+
+1.1.0
+--------
+----------
+
+API improvements while broadly maintaining backwards compatibility.
+
+
+Usability improvements
+**********************
+- Adds more argument and return types
+- Changes :code:`AtomCollection.atoms` to a property for more flexible sub-classing
+- Changes :code:`ElectronicStructureMethod.doi_str` and :code:`Keyword.doi_str` to properties
+- Adds interpretable :code:`repr(Species)`
+- :code:`Species.energies` is zeroed when the :code:`Species.atoms` are reset or change
+- :code:`Species.energy` is a property of the last computed energy on that species
+
+
+Functionality improvements
+**************************
+
+- Adds angle and dihedral angle properties to an :code:`AtomCollection`
+- Improves and adds more :code:`Unit` definitions
+= Adds :code:`Value` and :code:`ValueArray` base classes for energies, gradients etc. Allowing for implicit (1 Hartree == 617.509 kcal mol-1) comparisons and explicit conversion (1 Hartree).to('kcal')
+- Adds further conversion factors to :code:`Constants`
+- Adds :code:`Species.energies` as a container of all energies that have been calculated at a geometry
+- Adds :code:`Keywords.bstring` as a 'brief' summary of the keywords e.g. PBE0/def2-SVP and are associated with an :code:`Energy` (a type of :code:`Value`)
+
+
+Bug Fixes
+*********
+
+- Some??
+
 1.0.4
 --------
 ----------
@@ -12,7 +46,7 @@ Usability improvements
 **********************
 
 - Improves doc strings
-- Throws interpertable error when calling :code:`find_tss`  without :code:`reaction.reactant` set
+- Throws interpretable error when calling :code:`find_tss`  without :code:`reaction.reactant` set
 
 Functionality improvements
 **************************

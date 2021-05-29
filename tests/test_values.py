@@ -1,7 +1,5 @@
-import pytest
 import numpy as np
-from autode.constants import Constants
-from autode.units import ha, kjmol, kcalmol, ev, ha_per_ang, ha_per_a0
+from autode.units import ha, ha_per_ang, ha_per_a0
 from autode.values import (ValueArray, Gradients)
 
 
