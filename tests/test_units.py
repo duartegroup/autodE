@@ -6,6 +6,9 @@ from autode.units import (ha, kjmol, kcalmol, ev,
 
 def test_units():
 
+    assert ha == 'ha'
+    assert ha == 'hartree'
+
     # Ensure units have some base attributes
     for unit in (ha, kjmol, kcalmol, ev, ang, a0, nm, pm, m, rad, deg):
 

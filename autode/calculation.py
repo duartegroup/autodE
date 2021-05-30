@@ -2,10 +2,12 @@ from copy import deepcopy
 import os
 import hashlib
 import base64
-from typing import Union
+import numpy as np
+from typing import Union, Collection
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 from autode.values import PotentialEnergy, FreeEnergy, Enthalpy, Gradients
+from autode.atoms import Atom
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
@@ -223,7 +225,7 @@ class Calculation:
         Total electronic potential energy
 
         Returns:
-            (autode.values.PotentialEnergy): Energy or None
+            (autode.values.PotentialEnergy | None):
         """
         return self._get_energy(e=True)
 
@@ -232,7 +234,7 @@ class Calculation:
         Total enthalpy
 
         Returns:
-            (autode.values.Enthalpy): Energy or None
+            (autode.values.Enthalpy | None):
         """
         return self._get_energy(h=True)
 
@@ -241,11 +243,11 @@ class Calculation:
         Total free energy (G)
 
         Returns:
-            (autode.values.FreeEnergy): Energy or None
+            (autode.values.FreeEnergy | None):
         """
         return self._get_energy(g=True)
 
-    def optimisation_converged(self):
+    def optimisation_converged(self) -> bool:
         """Check whether a calculation has has converged to within the theshold
         on energies and graidents specified in the input
 
@@ -258,7 +260,7 @@ class Calculation:
 
         return self.method.optimisation_converged(self)
 
-    def optimisation_nearly_converged(self):
+    def optimisation_nearly_converged(self) -> bool:
         """Check whether a calculation has nearly converged and may just need
         more geometry optimisation steps to complete successfully
 
@@ -271,7 +273,7 @@ class Calculation:
 
         return self.method.optimisation_nearly_converged(self)
 
-    def get_imaginary_freqs(self):
+    def get_imaginary_freqs(self) -> Collection[float]:
         """Get the imaginary frequencies from a calculation output note that
         they are returned as negative to conform with standard QM codes
 
@@ -281,7 +283,7 @@ class Calculation:
         logger.info(f'Getting imaginary frequencies from {self.name}')
         return self.method.get_imaginary_freqs(self)
 
-    def get_normal_mode_displacements(self, mode_number):
+    def get_normal_mode_displacements(self, mode_number) -> np.ndarray:
         """Get the displacements along a mode for each of the n_atoms in the
         structure will return a list of length n_atoms each with 3 components
         (x, y, z)
@@ -301,7 +303,7 @@ class Calculation:
 
         return modes
 
-    def get_final_atoms(self):
+    def get_final_atoms(self) -> Collection[Atom]:
         """
         Get the atoms from the final step of a geometry optimisation
 
@@ -323,7 +325,7 @@ class Calculation:
 
         return atoms
 
-    def get_atomic_charges(self):
+    def get_atomic_charges(self) -> Collection[float]:
         """
         Get the partial atomic charges from a calculation. The method used to
         calculate them depends on the QM method and are implemented in their
@@ -344,14 +346,14 @@ class Calculation:
 
         return charges
 
-    def get_gradients(self):
+    def get_gradients(self) -> Gradients:
         """
         Get the gradient (dE/dr) with respect to atomic displacement from a
         calculation
 
         Returns:
-            (np.ndarray): Gradient vectors for each atom (Ha Å^-1)
-                          gradients.shape = (n_atoms, 3)
+            (autode.values.Gradients): Gradient vectors for each atom (Ha Å^-1)
+                                       gradients.shape = (n_atoms, 3)
         """
         logger.info(f'Getting gradients from {self.output.filename}')
         gradients = Gradients(self.method.get_gradients(self))
@@ -361,7 +363,7 @@ class Calculation:
 
         return gradients
 
-    def terminated_normally(self):
+    def terminated_normally(self) -> bool:
         """Determine if the calculation terminated without error"""
         logger.info(f'Checking for {self.output.filename} normal termination')
 
@@ -371,7 +373,7 @@ class Calculation:
 
         return self.method.calculation_terminated_normally(self)
 
-    def clean_up(self, force=False, everything=False):
+    def clean_up(self, force=False, everything=False) -> None:
         """Clean up input files, if Config.keep_input_files is False"""
 
         if Config.keep_input_files and not force:
@@ -393,7 +395,7 @@ class Calculation:
 
         return None
 
-    def generate_input(self):
+    def generate_input(self) -> None:
         """Generate the required input"""
         logger.info(f'Generating input file(s) for {self.name}')
 
@@ -428,7 +430,7 @@ class Calculation:
 
         return None
 
-    def execute_calculation(self):
+    def execute_calculation(self) -> None:
         """Execute a calculation if it has not been run or finish correctly"""
         logger.info(f'Running {self.input.filename} using {self.method.name}')
 
@@ -452,14 +454,11 @@ class Calculation:
 
         return None
 
-    def run(self):
+    def run(self) -> None:
         """Run the calculation using the EST method """
         logger.info(f'Running calculation {self.name}')
 
-        # Set an input filename and generate the input
         self.generate_input()
-
-        # Set the output filename, run the calculation and clean up the files
         self.output.filename = self.method.get_output_filename(self)
         self.execute_calculation()
         self.clean_up()

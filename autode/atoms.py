@@ -59,7 +59,7 @@ class AtomCollection:
         """Set the constituent atoms of this collection"""
         self._atoms = value
 
-    def _check_idxs_are_present(self, *args):
+    def _idxs_are_present(self, *args):
         """Are a set of indexes present in the collection of atoms?
 
         Arguments:
@@ -68,10 +68,7 @@ class AtomCollection:
         Raises:
             (ValueError):
         """
-        if not set(args).issubset(set(range(self.n_atoms))):
-            raise ValueError(f'Cannot calculate the value between {args}. '
-                             f'At least one atom not present')
-        return None
+        return set(args).issubset(set(range(self.n_atoms)))
 
     def distance(self,
                  i: int,
@@ -88,7 +85,9 @@ class AtomCollection:
         Raises:
             (ValueError):
         """
-        self._check_idxs_are_present(i, j)
+        if not self._idxs_are_present(i, j):
+            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
+                             f'At least one atom not present')
 
         value = np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
 
@@ -112,7 +111,9 @@ class AtomCollection:
         Raises:
             (ValueError):
         """
-        self._check_idxs_are_present(i, j, k)
+        if not self._idxs_are_present(i, j, k):
+            raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
+                             f' At least one atom not present')
 
         vec1 = self.atoms[i].coord - self.atoms[j].coord
         vec2 = self.atoms[k].coord - self.atoms[j].coord
@@ -147,7 +148,10 @@ class AtomCollection:
         Raises:
             (ValueError):
         """
-        self._check_idxs_are_present(w, x, y, z)
+        if not self._idxs_are_present(w, x, y, z):
+            raise ValueError(f'Cannot calculate the dihedral angle involving '
+                             f'atoms {w}-{x}-{y}-{z}. At least one atom not '
+                             f'present')
 
         vec_yx = self.atoms[x].coord - self.atoms[y].coord
         vec_zw = self.atoms[w].coord - self.atoms[z].coord

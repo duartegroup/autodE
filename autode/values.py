@@ -53,7 +53,7 @@ class Value(ABC, float):
         """String representation of this value"""
 
     def copy(self):
-        """Copy this value, with it's units"""
+        """Copy this value, with its units"""
         return deepcopy(self)
 
     def _other_same_units(self, other):
@@ -79,10 +79,7 @@ class Value(ABC, float):
             return False
 
         if isinstance(other, Value):
-            if other.units == self.units:
-                return np.isclose(other, float(self))
-            else:
-                return np.isclose(other.to(self.units), float(self))
+            return np.isclose(other.to(self.units), float(self))
 
         return np.isclose(other, float(self))
 

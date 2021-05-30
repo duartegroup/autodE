@@ -207,7 +207,7 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output()
-    def get_final_atoms(self, calc) -> list:
+    def get_final_atoms(self, calc) -> Collection:
         """
         Function implemented in individual child classes
 
@@ -223,7 +223,7 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output()
-    def get_atomic_charges(self, calc) -> list:
+    def get_atomic_charges(self, calc) -> Collection:
         """
         Function implemented in individual child classes
 
