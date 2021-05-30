@@ -28,6 +28,9 @@ def test_basic_attributes():
 
     assert methane.name == 'methane'
     assert methane.smiles == 'C'
+
+    assert repr(methane) != ''   # Have some simple representation
+
     assert methane.energy is None
     assert methane.n_atoms == 5
     assert methane.graph.number_of_edges() == 4

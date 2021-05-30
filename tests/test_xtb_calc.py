@@ -69,6 +69,22 @@ def test_xtb_calculation():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
+def test_energy_extract_no_energy():
+
+    calc = Calculation(name='opt',
+                       molecule=Molecule(smiles='[H][H]'),
+                       method=method,
+                       keywords=Config.XTB.keywords.sp)
+
+    # Output where the energy is not present
+    calc.output.filename = 'h2_sp_xtb_no_energy.out'
+    calc.output.set_lines()
+
+    assert calc.terminated_normally()
+    assert calc.get_energy() is None
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_point_charge():
     os.chdir(os.path.join(here, 'data', 'xtb'))
 
