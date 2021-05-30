@@ -1,8 +1,9 @@
 import numpy as np
 from copy import deepcopy
-from typing import Union, Collection
+from typing import Union, List
 from scipy.spatial import distance_matrix
 from autode.atoms import Atom, AtomCollection
+from autode.geom import calc_rmsd
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
@@ -55,14 +56,29 @@ class Species(AtomCollection):
 
     @AtomCollection.atoms.setter
     def atoms(self,
-              value: Union[Collection[Atom], None]):
+              value: Union[List[Atom], None]):
         """
         Set the atoms for this species, and reset the energies
 
         Arguments:
             value (list(autode.atoms.Atom) | None):
         """
-        self.energies.clear()
+
+        # If the geometry is identical up to rotations/translations then
+        # energies do not need to be changed
+        if (value is not None
+            and self.n_atoms == len(value)
+            and all(a.label == v.label for a, v in zip(self.atoms, value))):
+
+            rmsd = calc_rmsd(coords1=np.array([v.coord for v in value]),
+                             coords2=np.array([a.coord for a in self.atoms]))
+        else:
+            rmsd = None
+
+        if rmsd is None or rmsd > 1E-8:
+            logger.info(f'Geometry changed- resetting energies of {self.name}')
+            self.energies.clear()
+
         self._atoms = value
         return None
 
@@ -272,7 +288,7 @@ class Species(AtomCollection):
         return True
 
     @requires_atoms()
-    def translate(self, vec):
+    def translate(self, vec: np.ndarray):
         """Translate the molecule by vector (np.ndarray, length 3)"""
         for atom in self.atoms:
             atom.translate(vec)
@@ -280,7 +296,10 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms()
-    def rotate(self, axis, theta, origin=None):
+    def rotate(self,
+               axis: np.ndarray,
+               theta: float,
+               origin: Union[np.ndarray, None] = None):
         """Rotate the molecule by around an axis (np.ndarray, length 3) an
         theta radians"""
         for atom in self.atoms:
@@ -295,7 +314,9 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms()
-    def print_xyz_file(self, title_line='', filename=None):
+    def print_xyz_file(self,
+                       title_line: str = '',
+                       filename: Union[str, None] = None):
         """Print a standard xyz file from the Molecule's atoms"""
 
         if filename is None:
@@ -441,7 +462,7 @@ class Species(AtomCollection):
 
     def __init__(self,
                  name:         str,
-                 atoms:        Union[Collection[Atom], None],
+                 atoms:        Union[List[Atom], None],
                  charge:       Union[float, int],
                  mult:         Union[float, int],
                  solvent_name: Union[str, None] = None):
