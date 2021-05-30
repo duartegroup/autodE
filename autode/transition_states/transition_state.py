@@ -123,7 +123,7 @@ class TransitionState(TSbase):
         for i in range(40):
             atoms = get_displaced_atoms_along_mode(calc=self.optts_calc,
                                                    mode_number=int(mode_number),
-                                                   disp_magnitude=disp,
+                                                   disp_factor=disp,
                                                    atoms=self.atoms)
             atoms_to_xyz_file(atoms=atoms,
                               filename=f'{name}.xyz',
@@ -168,7 +168,7 @@ class TransitionState(TSbase):
 
             self.atoms = get_displaced_atoms_along_mode(self.optts_calc,
                                                         mode_number=7,
-                                                        disp_magnitude=disp_magnitude)
+                                                        disp_factor=disp_magnitude)
 
             self._run_opt_ts_calc(method=get_hmethod(), name_ext=dis_name_ext)
 

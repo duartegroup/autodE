@@ -127,13 +127,13 @@ def test_correct_imag_mode():
     calc.output.set_lines()
 
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=1.0)
+                                                       disp_factor=1.0)
     # Charge & mult are placeholders
     f_species = Species(name='f_displaced', atoms=f_displaced_atoms,
                         charge=0, mult=1)
 
     b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=-1.0)
+                                                       disp_factor=-1.0)
     b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
                         charge=0, mult=1)
 
