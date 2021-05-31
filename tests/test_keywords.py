@@ -4,6 +4,8 @@ from autode.wrappers.keywords import OptKeywords
 from autode.wrappers.keywords import HessianKeywords
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import pbe
+from autode.wrappers.dispersion import d3bj
+from autode.wrappers.wf import hf
 from autode.wrappers.basis_sets import def2tzvp, def2ecp
 from autode.config import Config
 from copy import deepcopy
@@ -33,6 +35,14 @@ def test_keywords():
     assert 'grad' in str(GradientKeywords(None)).lower()
     assert 'sp' in str(SinglePointKeywords(None)).lower()
     Config.keyword_prefixes = False
+
+    keywords = Keywords([pbe, def2tzvp, d3bj])
+    assert keywords.bstring is not None
+    assert 'pbe' in keywords.bstring.lower()
+    assert 'def2' in keywords.bstring.lower()
+    assert 'd3bj' in keywords.bstring.lower()
+
+    assert 'hf' in Keywords([hf, def2tzvp]).bstring.lower()
 
 
 def test_set_keywordsset():

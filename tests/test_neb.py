@@ -70,6 +70,7 @@ def test_contains_peak():
     species_list[2].energy = 5
     assert species_list.contains_peak
 
+    species_list[2].energies.clear()
     species_list[2].energy = None
     assert not species_list.contains_peak
 

@@ -1,7 +1,8 @@
-from autode import atoms
-from autode.atoms import Atom
 import numpy as np
 import pytest
+from autode import atoms
+from autode.atoms import Atom
+from autode.values import Angle
 
 
 def test_atoms():
@@ -18,7 +19,7 @@ def test_atoms():
     assert atoms.is_pi_atom(atom_label='Aa', valency=9) is False
 
 
-def test_atom_collection():
+def test_atom_collection_base():
 
     h2 = atoms.AtomCollection()
     assert h2.n_atoms == 0
@@ -62,6 +63,59 @@ def test_atom_collection():
 
     with pytest.raises(ValueError):
         h2.distance(0, 2)
+
+
+def test_atom_collection_angles():
+
+    h2o = atoms.AtomCollection()
+    h2o.atoms = [Atom('H', x=-1.0),
+                 Atom('O'),
+                 Atom('H', x=1.0)]
+
+    # Should default to more human readable degree units
+    assert np.isclose(h2o.angle(0, 1, 2).to('deg'), 180)
+    assert np.isclose(h2o.angle(0, 1, 2).to('degrees'), 180)
+
+    # No -1 atom
+    with pytest.raises(ValueError):
+        _ = h2o.angle(-1, 0, 1)
+
+    # Angle is not defined when one vector is the zero vector
+    with pytest.raises(ValueError):
+        _ = h2o.angle(0, 0, 1)
+
+    # Angles default to radians
+    assert np.isclose(np.abs(h2o.angle(0, 1, 2)), np.pi)
+
+    with pytest.raises(TypeError):
+        _ = h2o.angle(0, 1, 2).to('not a unit')
+
+    assert isinstance(h2o.angle(0, 1, 2).copy(), Angle)
+
+    h2o.atoms[1].coord = np.array([-0.8239, -0.5450, 0.0000])
+    h2o.atoms[2].coord = np.array([0.8272, -0.5443, 0.0000])
+
+    assert 90 < h2o.angle(0, 1, 2).to('deg') < 120
+
+
+def test_atom_collection_dihedral():
+
+    h2o2 = atoms.AtomCollection()
+    h2o2.atoms = [Atom('O', -0.85156, -0.20464,  0.31961),
+                  Atom('O',  0.41972,  0.06319,  0.10395),
+                  Atom('H', -1.31500,  0.08239, -0.50846),
+                  Atom('H',  0.58605,  0.91107,  0.59006)]
+
+    assert np.isclose(h2o2.dihedral(2, 0, 1, 3).to('deg'),
+                      100.8,
+                      atol=1.0)
+
+    # Undefined dihedral with a zero vector between teo atoms
+    with pytest.raises(ValueError):
+        h2o2.atoms[0].coord = np.zeros(3)
+        h2o2.atoms[1].coord = np.zeros(3)
+
+        _ = h2o2.dihedral(2, 0, 1, 3)
 
 
 def test_atom():

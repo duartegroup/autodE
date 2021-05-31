@@ -231,6 +231,7 @@ def test_free_energy_profile():
     Config.G09.path = here
 
     Config.ts_template_folder_path = os.getcwd()
+    Config.hmethod_conformers = False
 
     method = get_hmethod()
     assert method.name == 'g09'
@@ -286,4 +287,3 @@ def test_unavail_properties():
     # Should not raise an exception(?)
     rxn.find_lowest_energy_ts_conformer()
     rxn.calculate_thermochemical_cont(free_energy=False, enthalpy=False)
-

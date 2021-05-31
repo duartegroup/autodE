@@ -1,3 +1,4 @@
+from autode.wrappers.base import Method
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
 from autode.wrappers.MOPAC import MOPAC
@@ -6,7 +7,6 @@ from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 from autode.config import Config
 from autode.exceptions import MethodUnavailable
-from autode.log import logger
 
 """
 Functions to get the high and low level electronic structure methods to use 
@@ -19,29 +19,26 @@ high_level_method_names = ['orca', 'g09', 'g16', 'nwchem']
 low_level_method_names = ['xtb', 'mopac']
 
 
-def get_hmethod():
-    """Get the high-level electronic structure theory method to use
+def get_hmethod() -> Method:
+    """Get the 'high-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Method
+        (autode.wrappers.base.Method): Method
     """
-    orca = ORCA()
-    g09 = G09()
-    nwchem = NWChem()
-    g16 = G16()
+    h_methods = [ORCA(), G09(), NWChem(), G16()]
 
     if Config.hcode is not None:
         return get_defined_method(name=Config.hcode.lower(),
-                                  possibilities=[orca, g16, g09, nwchem])
+                                  possibilities=h_methods)
     else:
-        return get_first_available_method([orca, g16, g09, nwchem])
+        return get_first_available_method(h_methods)
 
 
-def get_lmethod():
-    """Get the low-level electronic structure theory method to use
+def get_lmethod() -> Method:
+    """Get the 'low-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod):
+        (autode.wrappers.base.Method):
     """
     all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem()]
 
@@ -52,7 +49,7 @@ def get_lmethod():
         return get_first_available_method(all_methods)
 
 
-def get_first_available_method(possibilities):
+def get_first_available_method(possibilities) -> Method:
     """
     Get the first electronic structure method that is available in a list of
     possibilities
@@ -61,18 +58,17 @@ def get_first_available_method(possibilities):
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Method
+        (autode.wrappers.base.Method): Method
     """
     for method in possibilities:
 
         if method.available:
             return method
 
-    logger.critical('No electronic structure methods available')
-    raise MethodUnavailable
+    raise MethodUnavailable('No electronic structure methods available')
 
 
-def get_defined_method(name, possibilities):
+def get_defined_method(name, possibilities) -> Method:
     """
     Get an electronic structure method defined by it's name
 
@@ -81,7 +77,10 @@ def get_defined_method(name, possibilities):
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Method
+        (autode.wrappers.base.Method): Method
+
+    Raises:
+        (autode.exceptions.MethodUnavailable):
     """
 
     for method in possibilities:
@@ -91,8 +90,7 @@ def get_defined_method(name, possibilities):
                 return method
 
             else:
-                logger.critical('Electronic structure method is not available')
-                raise MethodUnavailable
+                raise MethodUnavailable('Electronic structure method is '
+                                        'not available')
 
-    logger.critical('Requested electronic structure code doesn\'t exist')
-    raise MethodUnavailable
+    raise MethodUnavailable('Requested code does not exist')

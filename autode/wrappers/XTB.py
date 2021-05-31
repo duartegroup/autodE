@@ -6,7 +6,7 @@ from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
-from autode.exceptions import AtomsNotFound
+from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
 
@@ -166,11 +166,14 @@ class XTB(ElectronicStructureMethod):
         return False
 
     def get_energy(self, calc):
+
         for line in reversed(calc.output.file_lines):
             if 'total E' in line:
                 return float(line.split()[-1])
             if 'TOTAL ENERGY' in line:
                 return float(line.split()[-3])
+
+        raise CouldNotGetProperty(name='energy')
 
     def get_enthalpy(self, calc):
         raise NotImplementedError
