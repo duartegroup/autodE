@@ -47,20 +47,21 @@ class KeywordsSet:
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
-        calculation will look something like:
+        calculation will look something like::
 
-        ---------------------------------------------------------------------
-        <keyword line directive> autode.Keywords.sp[0] autode.Keywords.sp[1]
-        autode.Keywords.optts_block
+            -------------------------------------------------------------------
+            <keyword line directive> autode.Keywords.x[0] ...
+            autode.Keywords.optts_block
 
-        <coordinate directive> <charge> <multiplicity>
-        .
-        .
-        coordinates
-        .
-        .
-        <end of coordinate directive>
-        ---------------------------------------------------------------------
+            <coordinate directive> <charge> <multiplicity>
+            .
+            .
+            coordinates
+            .
+            .
+            <end of coordinate directive>
+            -------------------------------------------------------------------
+
         Keyword Arguments:
 
             low_opt (list(str)): List of keywords for a low level optimisation
@@ -108,7 +109,7 @@ class Keywords:
     def _string(self, prefix):
         """Return a string defining the keywords, with or without a prefix"""
         from autode.config import Config
-        base_str = '_'.join([str(kw) for kw in self.keyword_list])
+        base_str = ' '.join([str(kw) for kw in self.keyword_list])
 
         if Config.keyword_prefixes:
             return f'{prefix}({base_str})'
@@ -202,29 +203,50 @@ class Keywords:
         """Set the functional in a set of keywords"""
         self._set_keyword(basis_set, keyword_type=BasisSet)
 
+    @property
     def method_string(self):
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
         string = ''
 
         func = self.functional
         if func is not None:
-            string += f'{func.upper()}({func.doi_str()})'
+            string += f'{func.upper()}({func.doi_str})'
 
         disp = self.dispersion
         if disp is not None:
-            string += f'-{disp.upper()}({disp.doi_str()})'
+            string += f'-{disp.upper()}({disp.doi_str})'
 
         wf = self.wf_method
         if wf is not None:
-            string += f'{str(wf)}({wf.doi_str()})'
+            string += f'{str(wf)}({wf.doi_str})'
 
         ri = self._get_keyword(keyword_type=RI)
         if ri is not None:
-            string += f'({ri.upper()}, {ri.doi_str()})'
+            string += f'({ri.upper()}, {ri.doi_str})'
 
         if len(string) == 0:
             logger.warning('Unknown method')
             string = '???'
+
+        return string
+
+    @property
+    def bstring(self):
+        """Brief string without dois of the method e.g. PBE0-D3BJ/def2-SVP"""
+
+        string = ''
+
+        if self.functional is not None:
+            string += self.functional.upper()
+
+        if self.wf_method is not None:
+            string += f'-{self.wf_method.upper()}'
+
+        if self.dispersion is not None:
+            string += f'-{self.dispersion.upper()}'
+
+        if self.basis_set is not None:
+            string += f'/{self.basis_set.name}'
 
         return string
 
@@ -297,6 +319,7 @@ class Keyword:
     def upper(self):
         return self.name.upper()
 
+    @property
     def doi_str(self):
         return ' '.join(self.doi_list)
 

@@ -1,11 +1,12 @@
 import numpy as np
 from copy import deepcopy
+from typing import Union, List
 from scipy.spatial import distance_matrix
-from autode.atoms import AtomCollection
+from autode.atoms import Atom, AtomCollection
+from autode.geom import calc_rmsd
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
-from autode.solvent.solvents import ExplicitSolvent
-from autode.solvent.solvents import get_solvent
+from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
@@ -14,29 +15,83 @@ from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
-from autode.utils import requires_atoms
-from autode.utils import work_in
-from autode.utils import requires_conformers
+from autode.values import Energy, Energies, Distance
+from autode.utils import (requires_atoms,
+                          work_in,
+                          requires_conformers)
 
 
 class Species(AtomCollection):
 
     def __str__(self):
         """Unique species identifier"""
-        assert self.atoms is not None
 
-        # Only use the first 100 atoms
-        atoms_str = ''.join([atom.label for atom in self.atoms[:100]])
+        if self.atoms is None:
+            atoms_str = ''
+
+        else:
+            # Only use the first 100 atoms
+            atoms_str = ''.join([atom.label for atom in self.atoms[:100]])
+
         solv_str = self.solvent.name if self.solvent is not None else 'none'
 
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
+    def _repr(self, prefix: str):
+
+        string = (f'{prefix}('
+                  f'n_atoms={self.n_atoms}, '
+                  f'charge={self.charge}, '
+                  f'mult={self.mult})')
+
+        return string
+
+    def __repr__(self):
+        """Brief representation of this species"""
+        return self._repr(prefix='Species')
+
     def copy(self):
+        """Copy this whole molecule"""
         return deepcopy(self)
+
+    @AtomCollection.atoms.setter
+    def atoms(self,
+              value: Union[List[Atom], None]):
+        """
+        Set the atoms for this species, and reset the energies
+
+        Arguments:
+            value (list(autode.atoms.Atom) | None):
+        """
+
+        # If the geometry is identical up to rotations/translations then
+        # energies do not need to be changed
+        if (value is not None
+            and self.n_atoms == len(value)
+            and all(a.label == v.label for a, v in zip(self.atoms, value))):
+
+            rmsd = calc_rmsd(coords1=np.array([v.coord for v in value]),
+                             coords2=np.array([a.coord for a in self.atoms]))
+        else:
+            rmsd = None
+
+        if rmsd is None or rmsd > 1E-8:
+            logger.info(f'Geometry changed- resetting energies of {self.name}')
+            self.energies.clear()
+
+        self._atoms = value
+        return None
 
     @property
     def formula(self):
-        """Return the molecular formula of this species"""
+        """Return the molecular formula of this species, e.g.::
+
+            self.atoms = None                 ->   ""
+            self.atoms = [Atom(H), Atom(H)]   ->  "H2"
+
+        Returns:
+            (str):
+        """
 
         if self.atoms is None:
             return ""
@@ -66,17 +121,53 @@ class Species(AtomCollection):
         return matrix
 
     @property
-    def radius(self):
+    def radius(self) -> Distance:
         """Calculate an approximate radius of this species"""
         if self.n_atoms == 0:
-            return 0
+            return Distance(0.0)
 
         coords = self.coordinates
-        return np.max(distance_matrix(coords, coords)) / 2.0
+        return Distance(np.max(distance_matrix(coords, coords)) / 2.0)
 
     @property
-    def is_explicitly_solvated(self):
+    def is_explicitly_solvated(self) -> bool:
         return isinstance(self.solvent, ExplicitSolvent)
+
+    @property
+    def energy(self) -> Union[Energy, None]:
+        """Last computed energy"""
+
+        if len(self.energies) > 0:
+            return self.energies[-1]
+
+        return None
+
+    @energy.setter
+    def energy(self, value: Union[Energy, None]):
+        """Add an energy to the list"""
+
+        if value is not None:
+            self.energies.append(value)
+
+    @property
+    def h_cont(self) -> Union[Energy, None]:
+        """
+        Return the enthalpic contribution to the energy
+
+        Returns:
+             (autode.values.Energy | None): H - E_elec
+        """
+        return self.energies.h_cont
+
+    @property
+    def g_cont(self) -> Union[Energy, None]:
+        """
+        Return the Gibbs (free) contribution to the energy
+
+        Returns:
+             (autode.values.Energy | None): G - E_elec
+        """
+        return self.energies.g_cont
 
     def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
         """
@@ -100,6 +191,12 @@ class Species(AtomCollection):
         for i, conf in enumerate(conformers):
 
             if energies is not None:
+
+                if np.abs(conf.energy - avg_e) < 1E-8:
+                    logger.warning(f'Conformer {i} had an identical energy'
+                                   f' - not adding')
+                    continue
+
                 if np.abs(conf.energy - avg_e)/std_dev_e > n_sigma:
                     logger.warning(f'Conformer {i} had an energy >{n_sigma}σ '
                                    f'from the average - not adding')
@@ -154,8 +251,8 @@ class Species(AtomCollection):
                 lowest_energy = conformer.energy
 
             if conformer.energy <= lowest_energy:
-                self.energy = conformer.energy
                 self.atoms = conformer.atoms
+                self.energy = conformer.energy
                 lowest_energy = conformer.energy
 
         return None
@@ -191,7 +288,7 @@ class Species(AtomCollection):
         return True
 
     @requires_atoms()
-    def translate(self, vec):
+    def translate(self, vec: np.ndarray):
         """Translate the molecule by vector (np.ndarray, length 3)"""
         for atom in self.atoms:
             atom.translate(vec)
@@ -199,7 +296,10 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms()
-    def rotate(self, axis, theta, origin=None):
+    def rotate(self,
+               axis: np.ndarray,
+               theta: float,
+               origin: Union[np.ndarray, None] = None):
         """Rotate the molecule by around an axis (np.ndarray, length 3) an
         theta radians"""
         for atom in self.atoms:
@@ -214,7 +314,9 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms()
-    def print_xyz_file(self, title_line='', filename=None):
+    def print_xyz_file(self,
+                       title_line: str = '',
+                       filename: Union[str, None] = None):
         """Print a standard xyz file from the Molecule's atoms"""
 
         if filename is None:
@@ -254,8 +356,8 @@ class Species(AtomCollection):
             assert isinstance(calc, Calculation)
 
         calc.run()
-        self.energy = calc.get_energy()
         self.atoms = calc.get_final_atoms()
+        self.energy = calc.get_energy()
 
         method_name = '' if method is None else method.name
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
@@ -268,35 +370,25 @@ class Species(AtomCollection):
     @requires_atoms()
     def calc_g_cont(self, method=None, calc=None, temp=298.15):
         """Calculate the free energy contribution for a species"""
-        assert self.energy is not None
 
         if calc is None:
             calc = self._run_hess_calculation(method=method, temp=temp)
 
-        free_energy = calc.get_free_energy()
+        self.energies.append(calc.get_energy())
+        self.energies.append(calc.get_free_energy())
 
-        if free_energy is None:
-            logger.error('Could not calculate g_cont, free energy not found')
-            return
-
-        self.g_cont = free_energy - self.energy
         return None
 
     @requires_atoms()
     def calc_h_cont(self, method=None, calc=None, temp=298.15):
         """Calculate the free energy contribution for a species"""
-        assert self.energy is not None
 
         if calc is None:
             calc = self._run_hess_calculation(method=method, temp=temp)
 
-        enthalpy = calc.get_enthalpy()
+        self.energies.append(calc.get_energy())
+        self.energies.append(calc.get_enthalpy())
 
-        if enthalpy is None:
-            logger.error(f'Could not calculate H for {self.name}, not h_cont')
-            return
-
-        self.h_cont = enthalpy - self.energy
         return None
 
     @requires_atoms()
@@ -368,21 +460,31 @@ class Species(AtomCollection):
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
 
-    def __init__(self, name, atoms, charge, mult, solvent_name=None):
+    def __init__(self,
+                 name:         str,
+                 atoms:        Union[List[Atom], None],
+                 charge:       Union[float, int],
+                 mult:         Union[float, int],
+                 solvent_name: Union[str, None] = None):
         """
         A molecular species. A collection of atoms with a charge and spin
         multiplicity in a solvent (None is gas phase)
 
+        ----------------------------------------------------------------------
         Arguments:
             name (str): Name of the species
+
             atoms (list(autode.atoms.Atom)): List of atoms in the species,
-                                              or None
+                                             or None
+
             charge (int): Charge on the species
+
             mult (int): Spin multiplicity of the species. 2S+1, where S is the
                         number of unpaired electrons
 
         Keyword Arguments:
-            solvent_name (str): Name of the solvent_name, or None
+            solvent_name (str | None): Name of the solvent_name, or None for a
+                                       species  in the gas phase
         """
         super().__init__(atoms=atoms)
 
@@ -393,10 +495,6 @@ class Species(AtomCollection):
 
         self.solvent = get_solvent(solvent_name=solvent_name)
 
-        self.energy = None      # Total electronic energy in Hartrees (float)
-        self.h_cont = None      # Enthalpic contribution to the energy in Ha
-        self.g_cont = None      # Gibbs energy contribution to the energy in Ha
-
-        self.graph = None       # NetworkX.Graph object with atoms and bonds
-
-        self.conformers = None  # List autode.conformers.conformers.Conformer
+        self.energies = Energies()  # All energies calculated at a geometry
+        self.graph = None           # NetworkX.Graph with atoms(V) and bonds(E)
+        self.conformers = None      # List autode.conformers.Conformer

@@ -1,6 +1,7 @@
 branches:
   only:
     - master
+    - v1.1dev
 dist: xenial
 language: python
 python:
@@ -13,7 +14,7 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  - conda config --append channels conda-forge --append channels omnia 
+  - conda config --append channels conda-forge
   - conda info -a
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION --file requirements.txt
   - source activate test-env
@@ -31,7 +32,7 @@ jobs:
     - stage: deploy
       name: Deploy to GitHub Pages 
       script:
-        - pip install -r doc/requirements.txt
+        - conda install --file doc/requirements.txt --channel conda-forge
         - cd doc
         - make html
         - touch _build/html/.nojekyll 

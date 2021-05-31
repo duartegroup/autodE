@@ -45,7 +45,7 @@ r = ade.Reactant(name='reactant', smiles='CC[C]([H])[H]')
 p = ade.Product(name='product', smiles='C[C]([H])C')
 
 reaction = ade.Reaction(r, p, name='1-2_shift')
-reaction.calculate_reaction_profile()
+reaction.calculate_reaction_profile()  # creates 1-2_shift/ and saves profile
 ```
 
 See [examples/](https://github.com/duartegroup/autodE/tree/master/examples) for

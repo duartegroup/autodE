@@ -25,7 +25,7 @@ a species i.e.
   2
 
 Atoms contain a coordinate as a numpy array (shape = (3,), initialised at the
-origin) and a label
+origin) and an a few properties
 
 .. code-block:: python
 
@@ -34,8 +34,15 @@ origin) and a label
   [H, 0.0000, 0.0000, 0.0000]
   >>> atom1.coord
   array([0., 0., 0.])
-  >>> atom1.label
+  >>> atom1.atomic_number
+  1
+  >>> atom1.atomic_symbol
   'H'
+  >>> atom1.group
+  1
+  >>> atom1.period
+  1
+
 
 Rotation and Translation
 ------------------------
@@ -70,6 +77,30 @@ Translations and rotations are performed in place so the h2 atoms are modified
 
   >>> h2.atoms
   [[H, -1.0000, 0.0000, 0.0000], [H, 0.0000, 0.0000, 0.0000]]
+
+
+Distances
+---------
+
+Distances between atom pairs can be calculated, where atoms are indexed from 0. To
+calculate the bond length for this species
+
+.. code-block:: python
+
+  >>> h2.distance(0, 1)
+  Distance(1.0 Å)
+
+Distances support conversion into other units (bohr, nano/pico-meters), as well as
+all standard mathematical operations
+
+.. code-block:: python
+
+  >>> h2.distance(0, 1).to('a0')
+  Distance(1.88973 bohr)
+
+  >>> 2 * h2.distance(0, 1)
+  Distance(2.0 Å)
+
 
 Solvents
 --------
@@ -116,5 +147,5 @@ using the io module
 
 .. note::
    Only .xyz files are supported currently. Other molecular file formats can
-   be converted to .xyz with `openbabel <https://anaconda.org/openbabel/openbabel/>`_
+   be converted to .xyz with `openbabel <https://anaconda.org/openbabel/openbabel/>`_.
 

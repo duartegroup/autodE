@@ -18,7 +18,7 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
                         extra_link_args=["-std=c++11"])]
 
 setup(name='autode',
-      version='1.0.5',
+      version='1.1.0dev',
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',

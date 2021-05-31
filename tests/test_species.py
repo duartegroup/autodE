@@ -28,6 +28,9 @@ def test_species_class():
     assert blank_mol.n_atoms == 0
     assert blank_mol.radius == 0
 
+    assert str(blank_mol) != ''   # Should have some string representations
+    assert repr(blank_mol) != ''
+
     assert hasattr(mol, 'print_xyz_file')
     assert hasattr(mol, 'translate')
     assert hasattr(mol, 'rotate')
@@ -57,6 +60,38 @@ def test_species_class():
     # type of species to find conformers
     with pytest.raises(NotImplementedError):
         water.find_lowest_energy_conformer(lmethod=xtb)
+
+
+def test_species_energies_reset():
+
+    tmp_species = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+    tmp_species.energy = 1.0
+
+    assert len(tmp_species.energies) == 1
+
+    # Translating the molecule should leave the energy unchanged
+    tmp_species.atoms = [Atom('H', z=1.0), Atom('H', z=2.0)]
+    assert tmp_species.energy == 1.0
+
+    # and also rotating it
+    tmp_species.atoms = [Atom('H'), Atom('H', x=1.0)]
+    assert tmp_species.energy == 1.0
+
+    # but adjusting the distance should reset the energy
+    tmp_species.atoms = [Atom('H'), Atom('H', z=1.1)]
+    assert tmp_species.energy is None
+
+    # changing the number of atoms should reset the energy
+    tmp_species.energy = 1.0
+    tmp_species.atoms = [Atom('H')]
+    assert tmp_species.energy is None
+
+    # likewise changing the atom number
+    tmp_species.atoms = [Atom('H'), Atom('H', x=1.0)]
+    tmp_species.energy = 1.0
+    tmp_species.atoms = [Atom('H'), Atom('F', x=1.0)]
+
+    assert tmp_species.energy is None
 
 
 def test_species_xyz_file():

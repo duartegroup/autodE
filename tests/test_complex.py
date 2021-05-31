@@ -31,6 +31,8 @@ def test_complex_class():
     assert monomer.mult == 1
     assert monomer.n_atoms == 2
 
+    assert repr(monomer) != ''   # Have some simple representation
+
     assert h2_h.charge == 0
     assert h2_h.mult == 2
     assert h2_h.n_atoms == 3
