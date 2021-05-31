@@ -10,7 +10,7 @@ from autode.values import (Value, Distance, Angle,
 
 
 class TmpValue(Value):
-    def __repr__(self):
+    def __str__(self):
         return ''
 
 
@@ -36,7 +36,7 @@ def test_base_value():
 def test_energy():
 
     e1 = Energy(0.0)
-    assert 'energy' in repr(e1).lower()
+    assert 'energy' in str(e1).lower()
     assert type(e1.method_str) is str
 
     assert e1 == 0.0
@@ -131,7 +131,7 @@ def test_plotted_energy():
 
 def test_distance():
 
-    assert 'dist' in repr(Distance(1.0)).lower()
+    assert 'dist' in str(Distance(1.0)).lower()
 
     # Bohrs are ~2 angstroms
     assert np.isclose(Distance(1.0, units=ang),
@@ -145,7 +145,7 @@ def test_distance():
 
 def test_angle():
 
-    assert 'ang' in repr(Angle(1.0)).lower()
+    assert 'ang' in str(Angle(1.0)).lower()
 
     assert Angle(np.pi, units=rad) == Angle(180.0, units=deg)
 

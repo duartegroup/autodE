@@ -22,7 +22,7 @@ def test_gradients():
     # Default gradient units are Ha Å^-1
     gradients = Gradients(np.arange(2, dtype='f8'))
     assert gradients.units == ha_per_ang
-    assert 'grad' in repr(gradients).lower()
+    assert 'grad' in str(gradients).lower()
 
     gradients_ha_a0 = gradients.to(ha_per_a0)
 

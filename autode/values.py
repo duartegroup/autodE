@@ -45,14 +45,12 @@ class Value(ABC, float):
     """
     implemented_units = []
 
-    @abstractmethod
     def __repr__(self):
-        """Internal representation of this value"""
+        return self.__str__()
 
+    @abstractmethod
     def __str__(self):
         """String representation of this value"""
-        # NOTE: as this may be used in f-strings just return the value as a str
-        return str(float(self))
 
     def copy(self):
         """Copy this value, with its units"""
@@ -168,7 +166,7 @@ class Energy(Value):
 
     implemented_units = [ha, kcalmol, kjmol, ev]
 
-    def __repr__(self):
+    def __str__(self):
         return f'Energy({round(self, 5)} {self.units.name})'
 
     def __eq__(self, other):
@@ -215,13 +213,13 @@ class PotentialEnergy(Energy):
 
 class FreeEnergy(Energy):
 
-    def __repr__(self):
+    def __str__(self):
         return f'FreeEnergy({round(self, 5)} {self.units.name})'
 
 
 class Enthalpy(Energy):
 
-    def __repr__(self):
+    def __str__(self):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
@@ -328,7 +326,7 @@ class Distance(Value):
 
     implemented_units = [ang, a0, pm, nm, m]
 
-    def __repr__(self):
+    def __str__(self):
         return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
@@ -340,7 +338,7 @@ class Angle(Value):
 
     implemented_units = [rad, deg]
 
-    def __repr__(self):
+    def __str__(self):
         return f'Angle({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=rad):
@@ -354,7 +352,7 @@ class ValueArray(ABC, np.ndarray):
     implemented_units = []
 
     @abstractmethod
-    def __repr__(self):
+    def __str__(self):
         """String representation of this value array"""
 
     def __new__(cls,
@@ -393,7 +391,7 @@ class Gradients(ValueArray):
 
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
-    def __repr__(self):
+    def __str__(self):
         return f'Gradients({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls,  input_array, units=ha_per_ang):
