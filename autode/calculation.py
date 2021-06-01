@@ -255,7 +255,7 @@ class Calculation:
             (bool)
         """
         logger.info('Checking to see if the geometry converged')
-        if not self.output.exists():
+        if not self.output.exists:
             return False
 
         return self.method.optimisation_converged(self)
@@ -268,7 +268,7 @@ class Calculation:
             (bool)
         """
         logger.info('Checking to see if the geometry nearly converged')
-        if not self.output.exists():
+        if not self.output.exists:
             return False
 
         return self.method.optimisation_nearly_converged(self)
@@ -312,7 +312,7 @@ class Calculation:
         """
         logger.info(f'Getting final atoms from {self.output.filename}')
 
-        if not self.output.exists():
+        if not self.output.exists:
             logger.error('No calculation output. Could not get atoms')
             raise ex.AtomsNotFound
 
@@ -334,7 +334,7 @@ class Calculation:
         Returns:
             (list(float)): Atomic charges in units of e
         """
-        if not self.output.exists():
+        if not self.output.exists:
             logger.error('No calculation output. Could not get final charges')
             raise ex.CouldNotGetProperty(name='atomic charges')
 
@@ -367,7 +367,7 @@ class Calculation:
         """Determine if the calculation terminated without error"""
         logger.info(f'Checking for {self.output.filename} normal termination')
 
-        if not self.output.exists():
+        if not self.output.exists:
             logger.warning('Calculation did not generate any output')
             return False
 
@@ -380,7 +380,7 @@ class Calculation:
             logger.info('Keeping input files')
             return
 
-        filenames = self.input.get_input_filenames()
+        filenames = self.input.filenames
         if everything:
             filenames.append(self.output.filename)
 
@@ -434,14 +434,14 @@ class Calculation:
         """Execute a calculation if it has not been run or finish correctly"""
         logger.info(f'Running {self.input.filename} using {self.method.name}')
 
-        if not self.input.exists():
+        if not self.input.exists:
             raise ex.NoInputError('Input did not exist')
 
         # If the output file already exists set the output lines
         if self.output.filename is not None and os.path.exists(self.output.filename):
             self.output.set_lines()
 
-        if self.output.exists() and self.terminated_normally():
+        if self.output.exists and self.terminated_normally():
             logger.info('Calculation already terminated normally. Skipping')
             return None
 
@@ -549,6 +549,7 @@ class CalculationOutput:
 
         return None
 
+    @property
     def exists(self):
         """Does the calculation output exist?"""
         return self.filename is not None and self.file_lines is not None
@@ -578,17 +579,17 @@ class CalculationInput:
             assert type(self.added_internals) is list
             assert all(len(idxs) == 2 for idxs in self.added_internals)
 
+    @property
     def exists(self):
         """Does the input (files) exist?"""
+        return all(os.path.exists(fn) for fn in self.filenames)
 
-        if self.filename is None:
-            return False
-
-        return all(os.path.exists(fn) for fn in self.get_input_filenames())
-
-    def get_input_filenames(self):
+    @property
+    def filenames(self):
         """Return a list of all the input files"""
-        assert self.filename is not None
+        if self.filename is None:
+            return self.additional_filenames
+
         return [self.filename] + self.additional_filenames
 
     def __init__(self, keywords, solvent, additional_input,

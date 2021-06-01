@@ -32,7 +32,7 @@ opt_keywords = OptKeywords(['Opt', 'PBE', 'def2-SVP'])
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
-def test_orca_opt_calculation():
+def _test_orca_opt_calculation():
 
     methylchloride = Molecule(name='CH3Cl',
                               smiles='[H]C([H])(Cl)[H]',
@@ -46,7 +46,7 @@ def test_orca_opt_calculation():
     assert os.path.exists('opt_orca.out') is True
     assert len(calc.get_final_atoms()) == 5
     assert -499.735 < calc.get_energy() < -499.730
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.get_imaginary_freqs() == []
     assert calc.input.filename == 'opt_orca.inp'
@@ -75,7 +75,7 @@ def test_orca_opt_calculation():
         execute_calc(calc)
 
 
-def test_calc_bad_mol():
+def _test_calc_bad_mol():
 
     class Mol:
         pass
@@ -105,7 +105,7 @@ def test_calc_bad_mol():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
-def test_orca_optts_calculation():
+def _test_orca_optts_calculation():
 
     methane = SolvatedMolecule(name='methane', smiles='C')
     methane.qm_solvent_atoms = []
@@ -138,7 +138,7 @@ def test_orca_optts_calculation():
     assert -599.469 < calc.get_free_energy() < -599.468
 
 
-def test_bad_orca_output():
+def _test_bad_orca_output():
 
     calc = Calculation(name='no_output', molecule=test_mol, method=method,
                        keywords=opt_keywords)
@@ -156,7 +156,7 @@ def test_bad_orca_output():
     assert calc.terminated_normally() is False
 
 
-def test_solvation():
+def _test_solvation():
 
     methane = Molecule(name='solvated_methane', smiles='C',
                        solvent_name='water')
@@ -187,7 +187,7 @@ def test_solvation():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
-def test_gradients():
+def _test_gradients():
 
     h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
     calc = Calculation(name='h2_grad', molecule=h2,
@@ -223,7 +223,7 @@ def test_gradients():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
-def test_mp2_numerical_gradients():
+def _test_mp2_numerical_gradients():
 
     calc = Calculation(name='tmp',
                        molecule=Molecule(atoms=xyz_file_to_atoms('tmp_orca.xyz')),
@@ -246,7 +246,7 @@ def test_mp2_numerical_gradients():
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
 
-def test_calc_entropy():
+def _test_calc_entropy():
 
     f_entropy_g09 = 0.011799 / 298.15   # TS from g09
     f_entropy = calc_atom_entropy(atom_label='F', temp=298.15)
@@ -256,7 +256,7 @@ def test_calc_entropy():
 
 
 @utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def test_keyword_setting():
+def _test_keyword_setting():
 
     orca = ORCA()
     orca.keywords.sp.functional = 'B3LYP'
@@ -269,7 +269,7 @@ def test_keyword_setting():
                        method=orca,
                        keywords=orca.keywords.sp)
     calc.generate_input()
-    assert calc.input.exists()
+    assert calc.input.exists
 
     # B3LYP should now be in the in input
     inp_lines = open(calc.input.filename, 'r').readlines()
@@ -295,3 +295,19 @@ def test_keyword_setting():
 
     orca.keywords.sp.wf_method = 'HF'
     assert orca.keywords.sp.wf_method == 'HF'
+
+
+def test_hessian_extraction():
+
+    calc = Calculation(name='tmp',
+                       molecule=Molecule(smiles='O'),
+                       method=method,
+                       keywords=method.keywords.hess)
+
+    calc.output.filename = 'H2O_hess_orca.out'
+
+    hessian = method.get_hessian(calc)
+    print(hessian)
+    print(hessian.shape)
+
+

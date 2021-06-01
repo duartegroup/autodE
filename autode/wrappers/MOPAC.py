@@ -219,7 +219,7 @@ class MOPAC(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.mop', '.out'),
                          use_ll_tmp=True)
         def execute_mopac():

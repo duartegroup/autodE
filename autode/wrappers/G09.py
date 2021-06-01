@@ -362,7 +362,7 @@ class G09(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.log', '.com', '.gbs'))
         def execute_g09():
             run_external(params=[calc.method.path, calc.input.filename],

@@ -34,7 +34,7 @@ def test_opt_calc():
     assert len(final_atoms) == 5
     assert type(final_atoms[0]) is Atom
     assert -40.4165 < calc.get_energy() < -40.4164
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.get_imaginary_freqs() == []
     assert calc.input.filename == 'opt_nwchem.nw'

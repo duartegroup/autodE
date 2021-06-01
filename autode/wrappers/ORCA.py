@@ -262,11 +262,11 @@ class ORCA(ElectronicStructureMethod):
 
         return None
 
-    def get_input_filename(self, calculation):
-        return f'{calculation.name}.inp'
+    def get_input_filename(self, calc):
+        return f'{calc.name}.inp'
 
-    def get_output_filename(self, calculation):
-        return f'{calculation.name}.out'
+    def get_output_filename(self, calc):
+        return f'{calc.name}.out'
 
     def get_version(self, calc):
         """Get the version of ORCA used to execute this calculation"""
@@ -280,7 +280,7 @@ class ORCA(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.out', '.hess', '.xyz', '.inp', '.pc'))
         def execute_orca():
             run_external(params=[calc.method.path, calc.input.filename],
@@ -505,6 +505,84 @@ class ORCA(ElectronicStructureMethod):
                     gradients.append(np.array(vec) / Constants.a0_to_ang)
 
         return np.array(gradients)
+
+    @staticmethod
+    def _start_line_hessian(calc, file_lines):
+        """
+        Find the line where the Hessian starts in an ORCA Hessian file
+        e.g. H2O.hess
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+            file_lines (list(str)):
+
+        Returns:
+            (int):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty):
+        """
+
+        for i, line in enumerate(file_lines):
+
+            if '$hessian' not in line:
+                continue
+
+            # Ensure the number of atoms is present, and is the number expected
+            try:
+                n_atoms = int(file_lines[i + 1].split()[0]) // 3
+                assert n_atoms == calc.molecule.n_atoms
+                return i + 3
+
+            except (ValueError, IndexError, AssertionError):
+                raise CouldNotGetProperty(f'Wrong format Hessian file')
+
+        raise CouldNotGetProperty(f'No Hessian found in the Hessian file')
+
+    def get_hessian(self, calc):
+        """Grab the Hessian from the output .hess file
+
+        e.g.::
+
+            $hessian
+            9
+                        0         1
+                               2          3            4
+            0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
+            .         .          .           .           .           .
+        """
+
+        hess_filename = calc.output.filename.replace('.out', '.hess')
+        file_lines = open(hess_filename, 'r', encoding="utf-8").readlines()
+
+        if not os.path.exists(hess_filename):
+            raise CouldNotGetProperty('Could not find Hessian file')
+
+        hessian_blocks = []
+        start_line = self._start_line_hessian(calc, file_lines)
+
+        n_atoms = calc.molecule.n_atoms
+
+        for j, h_line in enumerate(file_lines[start_line:]):
+
+            if len(h_line.split()) == 0:
+                # Assume we're at the end of the Hessian
+                break
+
+            # Skip blank lines in the file, marked by one or more fewer items
+            # than the previous
+            if len(h_line.split()) < len(file_lines[start_line+j-1].split()):
+                continue
+
+            # First item is the coordinate number, thus append all others
+            hessian_blocks.append([float(val) for val in h_line.split()[1:]])
+
+        hessian = [block for block in hessian_blocks[:3*n_atoms]]
+
+        for i, block in enumerate(hessian_blocks[3*n_atoms:]):
+            hessian[i % (3 * n_atoms)] += block
+
+        return np.array(hessian, dtype='f8')
 
     def __init__(self):
         super().__init__('orca', path=Config.ORCA.path,

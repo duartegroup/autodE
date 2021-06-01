@@ -35,7 +35,7 @@ def test_mopac_opt_calculation():
     energy = Constants.eV_to_ha * -430.43191
     assert energy - 0.0001 < calc.get_energy() < energy + 0.0001
 
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_mopac.mop'
     assert calc.output.filename == 'opt_mopac.out'

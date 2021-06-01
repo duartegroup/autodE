@@ -240,7 +240,7 @@ class NWChem(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.nw', '.out'))
         def execute_nwchem():
             params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,

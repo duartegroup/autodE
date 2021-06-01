@@ -38,6 +38,7 @@ class Species(AtomCollection):
         return f'{self.name}_{self.charge}_{self.mult}_{atoms_str}_{solv_str}'
 
     def _repr(self, prefix: str):
+        """Base representation of a Species/Molecule/Complex etc."""
 
         string = (f'{prefix}('
                   f'n_atoms={self.n_atoms}, '
@@ -495,6 +496,17 @@ class Species(AtomCollection):
 
         self.solvent = get_solvent(solvent_name=solvent_name)
 
-        self.energies = Energies()  # All energies calculated at a geometry
-        self.graph = None           # NetworkX.Graph with atoms(V) and bonds(E)
-        self.conformers = None      # List autode.conformers.Conformer
+        #: All energies calculated at a geometry (autode.values.Energies)
+        self.energies = Energies()
+
+        #: Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
+        self.grad = None
+
+        #: Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
+        self.hess = None
+
+        #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
+        self.graph = None
+
+        # Conformers pf this species (list(autode.conformers.Conformer) | None)
+        self.conformers = None

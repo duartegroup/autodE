@@ -105,7 +105,7 @@ def test_gauss_opt_calc():
     assert os.path.exists('opt_g09.log')
     assert len(calc.get_final_atoms()) == 5
     assert calc.get_energy() == -499.729222331
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.get_imaginary_freqs() == []
 

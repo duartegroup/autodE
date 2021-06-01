@@ -140,7 +140,7 @@ class XTB(ElectronicStructureMethod):
             # last file in the list
             flags += ['--input', calc.input.additional_filenames[-1]]
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.xyz', '.out', '.pc', '.grad', 'gradient'),
                          use_ll_tmp=True)
         def execute_xtb():

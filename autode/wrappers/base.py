@@ -2,7 +2,7 @@ import os
 import numpy as np
 from abc import ABC
 from abc import abstractmethod
-from typing import Collection
+from typing import List
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
@@ -35,13 +35,14 @@ class ElectronicStructureMethod(Method, ABC):
         return " ".join(self.doi_list)
 
     @abstractmethod
-    def generate_input(self, calculation, molecule):
+    def generate_input(self, calc, molecule):
         """
         Generate any input files required
 
         Arguments:
-            calculation (autode.calculation.Calculation):
-            molecule (any):
+            calc (autode.calculation.Calculation):
+
+            molecule (autode.species.Species):
         """
 
     @abstractmethod
@@ -121,38 +122,6 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output
-    def get_free_energy(self, calc) -> float:
-        """
-        Return the free energy (G) in electronic Hartrees
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (float):
-
-        Raises:
-            (autode.exceptions.CouldNotGetProperty)
-        """
-
-    @abstractmethod
-    @requires_output
-    def get_enthalpy(self, calc) -> float:
-        """
-        Return the free energy (enthalpy) in electronic Hartrees
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (float):
-
-        Raises:
-            (autode.exceptions.CouldNotGetProperty)
-        """
-
-    @abstractmethod
-    @requires_output
     def optimisation_converged(self, calc) -> bool:
         """
         Function implemented in individual child classes
@@ -179,35 +148,7 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output
-    def get_imaginary_freqs(self, calc) -> Collection[float]:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (list(float)):
-        """
-
-    @abstractmethod
-    @requires_output
-    def get_normal_mode_displacements(self, calc, mode_number) -> np.ndarray:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-            mode_number (int): Number of the normal mode to get the
-            displacements along 6 == first imaginary mode
-
-        Returns:
-            (np.ndarray):
-        """
-
-    @abstractmethod
-    @requires_output
-    def get_final_atoms(self, calc) -> Collection:
+    def get_final_atoms(self, calc) -> List:
         """
         Function implemented in individual child classes
 
@@ -222,7 +163,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @requires_output
-    def get_atomic_charges(self, calc) -> Collection:
+    def get_atomic_charges(self, calc) -> List:
         """
         Function implemented in individual child classes
 
@@ -252,6 +193,18 @@ class ElectronicStructureMethod(Method, ABC):
 
     @requires_output
     def get_hessian(self, calc) -> np.ndarray:
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
+        """
         raise NotImplementedError
 
     def __init__(self, name, path, keywords_set, implicit_solvation_type,
