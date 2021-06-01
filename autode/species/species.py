@@ -106,7 +106,7 @@ class Species(AtomCollection):
         return formula_str
 
     @property
-    @requires_atoms()
+    @requires_atoms
     def bond_matrix(self):
         """Return a np.ndarray boolian array of the bonds"""
 
@@ -226,7 +226,7 @@ class Species(AtomCollection):
         calc.run()
         return calc
 
-    @requires_conformers()
+    @requires_conformers
     def _set_lowest_energy_conformer(self):
         """Set the species energy and atoms as those of the lowest energy
         conformer"""
@@ -257,7 +257,7 @@ class Species(AtomCollection):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def is_linear(self, tol=0.01):
         """Determine if a species is linear i.e all atoms are colinear
 
@@ -287,7 +287,7 @@ class Species(AtomCollection):
         logger.info('Species is linear')
         return True
 
-    @requires_atoms()
+    @requires_atoms
     def translate(self, vec: np.ndarray):
         """Translate the molecule by vector (np.ndarray, length 3)"""
         for atom in self.atoms:
@@ -295,7 +295,7 @@ class Species(AtomCollection):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def rotate(self,
                axis: np.ndarray,
                theta: float,
@@ -307,13 +307,13 @@ class Species(AtomCollection):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def centre(self):
         """Translate this molecule so the centroid (~COM) is at the origin"""
         self.translate(vec=-np.average(self.coordinates, axis=0))
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def print_xyz_file(self,
                        title_line: str = '',
                        filename: Union[str, None] = None):
@@ -324,7 +324,7 @@ class Species(AtomCollection):
 
         return atoms_to_xyz_file(self.atoms, filename, title_line=title_line)
 
-    @requires_atoms()
+    @requires_atoms
     def optimise(self, method=None, reset_graph=False, calc=None, keywords=None):
         """
         Optimise the geometry using a method
@@ -367,7 +367,7 @@ class Species(AtomCollection):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def calc_g_cont(self, method=None, calc=None, temp=298.15):
         """Calculate the free energy contribution for a species"""
 
@@ -379,7 +379,7 @@ class Species(AtomCollection):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def calc_h_cont(self, method=None, calc=None, temp=298.15):
         """Calculate the free energy contribution for a species"""
 
@@ -391,7 +391,7 @@ class Species(AtomCollection):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def single_point(self, method, keywords=None):
         """Calculate the single point energy of the species with a
         autode.wrappers.base.ElectronicStructureMethod"""

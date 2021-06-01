@@ -91,7 +91,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def calculation_terminated_normally(self, calc) -> bool:
         """
         Did the calculation terminate correctly?
@@ -104,7 +104,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_energy(self, calc) -> float:
         """
         Return the potential energy in electronic Hartrees
@@ -120,7 +120,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_free_energy(self, calc) -> float:
         """
         Return the free energy (G) in electronic Hartrees
@@ -136,7 +136,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_enthalpy(self, calc) -> float:
         """
         Return the free energy (enthalpy) in electronic Hartrees
@@ -152,7 +152,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def optimisation_converged(self, calc) -> bool:
         """
         Function implemented in individual child classes
@@ -165,7 +165,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def optimisation_nearly_converged(self, calc) -> bool:
         """
         Function implemented in individual child classes
@@ -178,7 +178,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_imaginary_freqs(self, calc) -> Collection[float]:
         """
         Function implemented in individual child classes
@@ -191,7 +191,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_normal_mode_displacements(self, calc, mode_number) -> np.ndarray:
         """
         Function implemented in individual child classes
@@ -206,7 +206,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_final_atoms(self, calc) -> Collection:
         """
         Function implemented in individual child classes
@@ -221,8 +221,7 @@ class ElectronicStructureMethod(Method, ABC):
             (autode.exceptions.AtomsNotFound)
         """
 
-    @abstractmethod
-    @requires_output()
+    @requires_output
     def get_atomic_charges(self, calc) -> Collection:
         """
         Function implemented in individual child classes
@@ -233,9 +232,10 @@ class ElectronicStructureMethod(Method, ABC):
         Returns:
             (list(float)):
         """
+        raise NotImplementedError
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def get_gradients(self, calc) -> np.ndarray:
         """
         Function implemented in individual child classes
@@ -249,6 +249,10 @@ class ElectronicStructureMethod(Method, ABC):
         Raises:
             (autode.exceptions.CouldNotGetProperty)
         """
+
+    @requires_output
+    def get_hessian(self, calc) -> np.ndarray:
+        raise NotImplementedError
 
     def __init__(self, name, path, keywords_set, implicit_solvation_type,
                  doi=None, doi_list=None):

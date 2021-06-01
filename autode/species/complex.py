@@ -165,7 +165,7 @@ class Complex(Species):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def translate_mol(self, vec, mol_index):
         """
         Translate a molecule within a complex by a vector
@@ -184,7 +184,7 @@ class Complex(Species):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def rotate_mol(self, axis, theta, mol_index, origin=np.zeros(3)):
         """
         Rotate a molecule within a complex an angle theta about an axis given
@@ -209,7 +209,7 @@ class Complex(Species):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def calc_repulsion(self, mol_index):
         """Calculate the repulsion between a molecule and the rest of the
         complex"""

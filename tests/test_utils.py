@@ -79,7 +79,7 @@ def test_calc_output():
                        keywords=Keywords(['PM7']))
 
     # A function that ficticously requires output
-    @utils.requires_output()
+    @utils.requires_output
     def test(calculation):
         print(calculation.molecule.n_atoms)
 
@@ -97,7 +97,7 @@ def test_conformers():
     methane = Molecule(name='methane', smiles='C')
 
     # Function requiring a molecule having a conformer attribute
-    @utils.requires_conformers()
+    @utils.requires_conformers
     def test(mol):
         print(mol.conformers[0].n_atoms)
 

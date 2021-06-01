@@ -18,7 +18,7 @@ from autode.utils import requires_atoms, requires_graph
 
 class TransitionState(TSbase):
 
-    @requires_graph()
+    @requires_graph
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being
         made/broken"""
@@ -105,7 +105,7 @@ class TransitionState(TSbase):
         self._set_unique_conformers_rmsd(conformers)
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def print_imag_vector(self, mode_number=6, name=None):
         """Print a .xyz file with multiple structures visualising the largest
         magnitude imaginary mode
@@ -136,7 +136,7 @@ class TransitionState(TSbase):
 
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def optimise(self, name_ext='optts'):
         """Optimise this TS to a true TS """
         logger.info(f'Optimising {self.name} to a transition state')
