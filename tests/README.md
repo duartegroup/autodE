@@ -23,27 +23,27 @@ on 8 cores.
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-SN2            -490.1         1.8            ✓
-cope           -557.5         4.8            ✓
-DA             -484.4         12.8           ✓
-Hshift         -1899.2        9.3            ✓
-C2N2O          -494.3         2.3            ✓
-cycbut         -741.1         17.0           ✓
-DAcpd          -470.8         6.1            ✓
-ethCF2         -377.9         17.5           ✓
-ene            -967.6         65.1           ✓
-HFloss         -1801.1        28.3           ✓
-oxir           -559.4         57.5           ✓
-Ocope          -525.4         3.7            ✓
-SO2loss        -324.0         48.0           ✓
+SN2            -497.4         1.1            ✓
+cope           -556.5         3.9            ✓
+DA             -497.0         3.6            ✓
+Hshift         -1898.6        12.3           ✓
+C2N2O          -493.8         1.7            ✓
+cycbut         -741.2         12.5           ✓
+DAcpd          -470.9         4.6            ✓
+ethCF2         -377.7         13.6           ✓
+ene            -970.5         54.1           ✓
+HFloss         -1801.7        16.4           ✓
+oxir           -565.3         5.9            ✓
+Ocope          -553.6         3.3            ✓
+SO2loss        -319.6         76.6           ✓
 ```
 
 #### SM (small metal)
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-hydroform1     -436.3         61.1           ✓
-MnInsert       -302.0         136.9          ✓
-grubbs         -119.3         90.0           ✓
-vaskas         -95.5          63.7           ✓
+hydroform1     -433.9         44.1           ✓
+MnInsert       -295.9         85.3           ✓
+grubbs         -118.5         45.1           ✓
+vaskas         -87.8          38.2           ✓
 ```
