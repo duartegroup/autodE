@@ -6,12 +6,6 @@ To run the tests in this directory ensure the requirements are satisfied
 conda install --file requirements.txt
 ```
 
-set $AUTODE_FIXUNIQUE to False, e.g. in bash
-
-```bash
-export AUTODE_FIXUNIQUE=False
-```
-
 then run the tests
 
 ```bash
