@@ -9,7 +9,7 @@ class AtomCollection:
 
     @property
     def n_atoms(self):
-        """Number of atoms in this set"""
+        """Number of atoms in this collection"""
         return 0 if self.atoms is None else len(self.atoms)
 
     @property
@@ -65,22 +65,22 @@ class AtomCollection:
         Arguments:
             args (int):
 
-        Raises:
-            (ValueError):
+        Returns:
+            (bool):
         """
         return set(args).issubset(set(range(self.n_atoms)))
 
     def distance(self,
                  i: int,
-                 j: int):
-        """Distance between two atoms (Å)
+                 j: int) -> Distance:
+        """Distance between two atoms (Å), indexed from 0.
 
         Arguments:
-            i (int):
-            j (int):
+            i (int): Atom index of the first atom
+            j (int): Atom index of the second atom
 
         Returns:
-            (float): Distance
+            (autode.values.Distance): Distance
 
         Raises:
             (ValueError):
@@ -96,7 +96,7 @@ class AtomCollection:
     def angle(self,
               i: int,
               j: int,
-              k: int):
+              k: int) -> Angle:
         """
         Angle between three atoms i-j-k
 
@@ -132,7 +132,7 @@ class AtomCollection:
                  x: int,
                  y: int,
                  z: int,
-                 w: int):
+                 w: int) -> Angle:
         """
         Dihedral angle between four atoms
 
@@ -200,22 +200,22 @@ class Atom:
         return self.__repr__()
 
     @property
-    def atomic_number(self):
+    def atomic_number(self) -> int:
         """Atomic numbers are the position in the elements, plus one"""
         return elements.index(self.label) + 1
 
     @property
-    def atomic_symbol(self):
+    def atomic_symbol(self) -> str:
         """A more interpretable alias for label"""
         return self.label
 
     @property
-    def is_metal(self):
+    def is_metal(self) -> bool:
         """Is this atom a metal?"""
         return self.label in metals
 
     @property
-    def group(self):
+    def group(self) -> int:
         """Group of the periodic table is this atom in. 0 if not found"""
 
         for group_idx in range(1, 18):
@@ -226,7 +226,7 @@ class Atom:
         return 0
 
     @property
-    def period(self):
+    def period(self) -> int:
         """Group of the periodic table is this atom in. 0 if not found"""
 
         for period_idx in range(1, 7):
@@ -237,7 +237,7 @@ class Atom:
         return 0
 
     @property
-    def tm_row(self):
+    def tm_row(self) -> Union[int, None]:
         """
         Row of transition metals that this element is in
 
@@ -250,13 +250,12 @@ class Atom:
 
         return None
 
-    def translate(self, vec: np.ndarray):
+    def translate(self, vec: np.ndarray) -> None:
         """
         Translate this atom by a vector
 
-         Arguments:
+        Arguments:
              vec (np.ndarray): Shape = (3,)
-
         """
         self.coord += vec
         return None
@@ -264,7 +263,7 @@ class Atom:
     def rotate(self,
                axis: np.ndarray,
                theta: float,
-               origin: Union[np.ndarray, None] = None):
+               origin: Union[np.ndarray, None] = None) -> None:
         """Rotate this atom theta radians around an axis given an origin
 
         Arguments:
