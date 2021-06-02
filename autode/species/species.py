@@ -1,6 +1,7 @@
 import numpy as np
 from copy import deepcopy
 from typing import Union, List
+from functools import cached_property
 from scipy.spatial import distance_matrix
 from autode.atoms import Atom, AtomCollection
 from autode.geom import calc_rmsd
@@ -9,13 +10,14 @@ from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
 from autode.config import Config
+from autode.constants import Constants
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
-from autode.values import Energy, Energies, Distance
+from autode.values import Energy, Energies, Distance, Gradients, Hessian, Frequency
 from autode.utils import (requires_atoms,
                           work_in,
                           requires_conformers)
@@ -79,6 +81,8 @@ class Species(AtomCollection):
         if rmsd is None or rmsd > 1E-8:
             logger.info(f'Geometry changed- resetting energies of {self.name}')
             self.energies.clear()
+            self.gradient = None
+            self.hessian = None
 
         self._atoms = value
         return None
@@ -105,6 +109,83 @@ class Species(AtomCollection):
             formula_str += f'{symbol}{num if num > 1 else ""}'
 
         return formula_str
+
+    @property
+    def hessian(self) -> Union[Hessian, None]:
+        """
+        Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
+         shape = (3*n_atoms, 3*n_atoms)
+         """
+        return self._hess
+
+    @hessian.setter
+    def hessian(self, value):
+        """Set the Hessian matrix as a Hessian value"""
+
+        if value is None:
+            self._hess = None
+
+            # Delete the cached frequencies, if they have been calculated
+            if hasattr(self, 'frequencies'):
+                delattr(self, 'frequencies')
+
+        elif not hasattr(value, 'shape'):
+            raise ValueError(f'Could not set Hessian with {value}, Must be '
+                             f'a numpy array')
+
+        elif value.shape != (3*self.n_atoms, 3*self.n_atoms):
+            raise ValueError('Could not set the Hessian. Incorrect shape: '
+                             f'{value.shape} != '
+                             f'{(3*self.n_atoms, 3*self.n_atoms)}')
+
+        else:
+            self._hess = Hessian(value)
+
+    @property
+    def gradient(self) -> Union[Gradients, None]:
+        """
+        Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
+        shape = (n_atoms, 3)
+        """
+        return self._grad
+
+    @gradient.setter
+    def gradient(self, value):
+        """Set the gradient matrix with Gradients"""
+        if value is None:
+            self._grad = None
+
+        elif not hasattr(value, 'shape'):
+            raise ValueError(f'Could not set gradient with {value}, Must be '
+                             f'a numpy array')
+
+        elif value.shape != (self.n_atoms, 3):
+            raise ValueError('Could not set the gradient. Incorrect shape: '
+                             f'{value.shape} != {(self.n_atoms, 3)}')
+
+        else:
+            self._grad = Gradients(value)
+
+    @cached_property
+    def frequencies(self) -> List[Frequency]:
+        """
+        Cached frequencies from Hessian diagonalisation, in cm-1 by default
+
+        Returns:
+            (list(autode.values.Frequency)):
+        """
+        H = self._hess.to('Ha a0^-2')
+        # H = H.mass_weighted(masses=[atom.mass for atom in self.atoms])
+
+        lambdas, modes = np.linalg.eigh(H)
+
+        conversion = (np.sqrt(Constants.J_to_ha / Constants.amu_to_kg)
+                      / (2.0*np.pi * Constants.c_in_cm * Constants.a0_to_m))
+
+        print(conversion * (lambdas))
+
+
+        return []
 
     @property
     @requires_atoms
@@ -214,7 +295,7 @@ class Species(AtomCollection):
         raise NotImplementedError('Could not generate conformers. '
                                   'generate_conformers() not implemented')
 
-    def _run_hess_calculation(self, method, temp):
+    def _run_hess_calculation(self, method):
         """Run a Hessian calculation on this species"""
         method = method if method is not None else get_hmethod()
 
@@ -222,10 +303,11 @@ class Species(AtomCollection):
                            molecule=self,
                            method=method,
                            keywords=method.keywords.hess,
-                           n_cores=Config.n_cores,
-                           temp=temp)
+                           n_cores=Config.n_cores)
         calc.run()
-        return calc
+        self.hess = calc.get_hessian()
+
+        return None
 
     @requires_conformers
     def _set_lowest_energy_conformer(self):
@@ -373,7 +455,7 @@ class Species(AtomCollection):
         """Calculate the free energy contribution for a species"""
 
         if calc is None:
-            calc = self._run_hess_calculation(method=method, temp=temp)
+            calc = self._run_hess_calculation(method=method)
 
         self.energies.append(calc.get_energy())
         self.energies.append(calc.get_free_energy())
@@ -385,7 +467,7 @@ class Species(AtomCollection):
         """Calculate the free energy contribution for a species"""
 
         if calc is None:
-            calc = self._run_hess_calculation(method=method, temp=temp)
+            calc = self._run_hess_calculation(method=method)
 
         self.energies.append(calc.get_energy())
         self.energies.append(calc.get_enthalpy())
@@ -498,12 +580,8 @@ class Species(AtomCollection):
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = Energies()
-
-        #: Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
-        self.grad = None
-
-        #: Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
-        self.hess = None
+        self._grad = None
+        self._hess = None
 
         #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
         self.graph = None

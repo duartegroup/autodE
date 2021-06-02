@@ -3,16 +3,18 @@ import os
 import hashlib
 import base64
 import numpy as np
-from typing import Union, Collection
+from typing import Union, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
-from autode.values import PotentialEnergy, FreeEnergy, Enthalpy, Gradients
 from autode.atoms import Atom
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
 from autode.solvent.solvents import Solvent
 from autode.log import logger
+from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
+                           Gradients,
+                           Hessian)
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')
@@ -273,7 +275,7 @@ class Calculation:
 
         return self.method.optimisation_nearly_converged(self)
 
-    def get_imaginary_freqs(self) -> Collection[float]:
+    def get_imaginary_freqs(self) -> List[float]:
         """Get the imaginary frequencies from a calculation output note that
         they are returned as negative to conform with standard QM codes
 
@@ -303,7 +305,7 @@ class Calculation:
 
         return modes
 
-    def get_final_atoms(self) -> Collection[Atom]:
+    def get_final_atoms(self) -> List[Atom]:
         """
         Get the atoms from the final step of a geometry optimisation
 
@@ -325,7 +327,7 @@ class Calculation:
 
         return atoms
 
-    def get_atomic_charges(self) -> Collection[float]:
+    def get_atomic_charges(self) -> List[float]:
         """
         Get the partial atomic charges from a calculation. The method used to
         calculate them depends on the QM method and are implemented in their
@@ -352,8 +354,10 @@ class Calculation:
         calculation
 
         Returns:
-            (autode.values.Gradients): Gradient vectors for each atom (Ha Å^-1)
-                                       gradients.shape = (n_atoms, 3)
+            (autode.values.Gradients): Gradient vectors. shape = (n_atoms, 3)
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
         """
         logger.info(f'Getting gradients from {self.output.filename}')
         gradients = Gradients(self.method.get_gradients(self))
@@ -362,6 +366,34 @@ class Calculation:
             raise ex.CouldNotGetProperty(name='gradients')
 
         return gradients
+
+    def get_hessian(self) -> Hessian:
+        """
+        Get the Hessian matrix (d^2E/dr^2) i.e. the matrix of second
+        derivatives of the energy with respect to cartesian displacements::
+
+            H =  (d^2E/dx_0^2, d^2E/dx_0dy_0, d^2E/dx_0dz_0, d^2E/dx_0dx_1 ...
+                  d^2E/dy_0dx_0      .               .              .
+                      .              .               .              . )
+
+        Returns:
+            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N) for N
+                                     atoms
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
+        """
+        logger.info(f'Getting Hessian from calculation')
+
+        try:
+            hessian = Hessian(self.method.get_hessian(self))
+            assert hessian.shape == (3*self.molecule.n_atoms,
+                                     3*self.molecule.n_atoms)
+
+        except (ValueError, IndexError, AssertionError):
+            raise ex.CouldNotGetProperty('Could not get the Hessian')
+
+        return hessian
 
     def terminated_normally(self) -> bool:
         """Determine if the calculation terminated without error"""
@@ -466,18 +498,25 @@ class Calculation:
 
         return None
 
-    def __init__(self, name, molecule, method, keywords, n_cores=1,
+    def __init__(self,
+                 name,
+                 molecule,
+                 method,
+                 keywords,
+                 n_cores=1,
                  bond_ids_to_add=None,
                  other_input_block=None,
                  distance_constraints=None,
                  cartesian_constraints=None,
-                 point_charges=None,
-                 temp=None):
+                 point_charges=None):
         """
         Arguments:
             name (str):
+
             molecule (autode.species.Species): Molecule to be calculated
+
             method (autode.wrappers.base.ElectronicStructureMethod):
+
             keywords (autode.wrappers.keywords.Keywords):
 
         Keyword Arguments:
@@ -500,9 +539,6 @@ class Calculation:
             point_charges (list(autode.point_charges.PointCharge)): List of
                                              float of point charges, x, y, z
                                              coordinates for each point charge
-
-            temp (float): Temperature to perform the calculation at in K, or
-                          None
         """
         # Calculation names that start with "-" can break EST methods
         self.name = (f'{name}_{method.name}' if not name.startswith('-')
@@ -524,8 +560,7 @@ class Calculation:
                                       solvent=get_solvent_name(molecule, method),
                                       additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
-                                      point_charges=point_charges,
-                                      temp=temp)
+                                      point_charges=point_charges)
 
         self.output = CalculationOutput()
 
@@ -582,7 +617,8 @@ class CalculationInput:
     @property
     def exists(self):
         """Does the input (files) exist?"""
-        return all(os.path.exists(fn) for fn in self.filenames)
+        return (self.filename is not None
+                and all(os.path.exists(fn) for fn in self.filenames))
 
     @property
     def filenames(self):
@@ -593,7 +629,7 @@ class CalculationInput:
         return [self.filename] + self.additional_filenames
 
     def __init__(self, keywords, solvent, additional_input,
-                 added_internals, point_charges, temp):
+                 added_internals, point_charges):
         """
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
@@ -615,8 +651,11 @@ class CalculationInput:
         """
         self.keywords = keywords
         self.solvent = solvent
-        self.temp = temp
         self.other_block = additional_input
+
+        # TODO REMOVE -----------------------------
+        self.temp = None
+        # TODO ------------------------------------
 
         self.added_internals = added_internals
         self.point_charges = point_charges

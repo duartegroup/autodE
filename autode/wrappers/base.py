@@ -203,7 +203,10 @@ class ElectronicStructureMethod(Method, ABC):
             (np.ndarray):
 
         Raises:
-            (autode.exceptions.CouldNotGetProperty)
+            (autode.exceptions.CouldNotGetProperty |
+            AssertionError |
+            ValueError |
+            IndexError)
         """
         raise NotImplementedError
 

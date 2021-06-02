@@ -520,7 +520,7 @@ class ORCA(ElectronicStructureMethod):
             (int):
 
         Raises:
-            (autode.exceptions.CouldNotGetProperty):
+            (autode.exceptions.CouldNotGetProperty | AssertionError):
         """
 
         for i, line in enumerate(file_lines):
@@ -529,13 +529,9 @@ class ORCA(ElectronicStructureMethod):
                 continue
 
             # Ensure the number of atoms is present, and is the number expected
-            try:
-                n_atoms = int(file_lines[i + 1].split()[0]) // 3
-                assert n_atoms == calc.molecule.n_atoms
-                return i + 3
-
-            except (ValueError, IndexError, AssertionError):
-                raise CouldNotGetProperty(f'Wrong format Hessian file')
+            n_atoms = int(file_lines[i + 1].split()[0]) // 3
+            assert n_atoms == calc.molecule.n_atoms
+            return i + 3
 
         raise CouldNotGetProperty(f'No Hessian found in the Hessian file')
 
@@ -551,17 +547,15 @@ class ORCA(ElectronicStructureMethod):
             0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
             .         .          .           .           .           .
         """
-
         hess_filename = calc.output.filename.replace('.out', '.hess')
-        file_lines = open(hess_filename, 'r', encoding="utf-8").readlines()
 
         if not os.path.exists(hess_filename):
             raise CouldNotGetProperty('Could not find Hessian file')
 
+        file_lines = open(hess_filename, 'r', encoding="utf-8").readlines()
+
         hessian_blocks = []
         start_line = self._start_line_hessian(calc, file_lines)
-
-        n_atoms = calc.molecule.n_atoms
 
         for j, h_line in enumerate(file_lines[start_line:]):
 
@@ -575,17 +569,20 @@ class ORCA(ElectronicStructureMethod):
                 continue
 
             # First item is the coordinate number, thus append all others
-            hessian_blocks.append([float(val) for val in h_line.split()[1:]])
+            hessian_blocks.append([float(v) for v in h_line.split()[1:]])
 
+        n_atoms = calc.molecule.n_atoms
         hessian = [block for block in hessian_blocks[:3*n_atoms]]
 
         for i, block in enumerate(hessian_blocks[3*n_atoms:]):
             hessian[i % (3 * n_atoms)] += block
 
-        return np.array(hessian, dtype='f8')
+        # Hessians printed in Ha/a0^2, so convert to base Ha/Å^2
+        return np.array(hessian, dtype='f8') / Constants.a0_to_ang**2
 
     def __init__(self):
-        super().__init__('orca', path=Config.ORCA.path,
+        super().__init__('orca',
+                         path=Config.ORCA.path,
                          keywords_set=Config.ORCA.keywords,
                          implicit_solvation_type=Config.ORCA.implicit_solvation_type,
                          doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])
