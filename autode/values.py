@@ -1,13 +1,16 @@
 import numpy as np
 from autode.log import logger
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, List
 from copy import deepcopy
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg,
-                          ha_per_ang, ha_per_a0, ev_per_ang)
+                          wavenumber, hz,
+                          amu, kg, m_e,
+                          ha_per_ang, ha_per_a0, ev_per_ang,
+                          ha_per_ang_sq, ha_per_a0_sq)
 
 
 def _to(value,
@@ -347,6 +350,28 @@ class Angle(Value):
         super().__init__(value, units=units)
 
 
+class Frequency(Value):
+
+    implemented_units = [wavenumber, hz]
+
+    def __repr__(self):
+        return f'Frequency({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=wavenumber):
+        super().__init__(value, units=units)
+
+
+class Mass(Value):
+
+    implemented_units = [amu, kg, m_e]
+
+    def __repr__(self):
+        return f'Mass({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=amu):
+        super().__init__(value, units=units)
+
+
 class ValueArray(ABC, np.ndarray):
     """
     Abstract base class for an array of values, e.g. gradients or a Hessian
@@ -398,3 +423,31 @@ class Gradients(ValueArray):
 
     def __new__(cls,  input_array, units=ha_per_ang):
         return super().__new__(cls, input_array, units)
+
+
+class Hessian(ValueArray):
+
+    implemented_units = [ha_per_ang_sq, ha_per_a0_sq]
+
+    def __repr__(self):
+        return f'Hessian({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls,  input_array, units=ha_per_ang_sq):
+        return super().__new__(cls, input_array, units)
+
+    def mass_weighted(self, masses: List[Mass]) -> None:
+        """Mass weight the Hessian matrix
+
+                      H_ij
+        H'_ij  =  ------------
+                   √(m_i x m_j)
+
+        Arguments:
+            masses (list(autode.values.Mass)):
+        """
+
+        m_array = np.repeat(masses, repeats=3, axis=np.newaxis)
+
+        print(np.outer(m_array, m_array))
+
+        return np.asarray(self) * np.sqrt(np.outer(m_array, m_array))
