@@ -646,6 +646,8 @@ class Constraints:
         if self.distance is not None:
             assert type(self.distance) is dict
             assert all(len(key) == 2 for key in self.distance.keys())
+            for key, val in self.distance.items():
+                self.distance[key] = float(val)
 
         if self.cartesian is not None:
             assert type(self.cartesian) is list

@@ -52,12 +52,12 @@ def test_graph_no_other_bonds():
     f_ts = Species(name='f_displaced', charge=0, mult=1,
                    atoms=get_displaced_atoms_along_mode(calc,
                                                         mode_number=6,
-                                                        disp_magnitude=1.0))
+                                                        disp_factor=1.0))
 
     b_ts = Species(name='b_displaced', charge=0, mult=1,
                    atoms=get_displaced_atoms_along_mode(calc,
                                                         mode_number=6,
-                                                        disp_magnitude=-1.0))
+                                                        disp_factor=-1.0))
 
     assert not imag_mode_generates_other_bonds(ts=reac,
                                                f_species=f_ts,

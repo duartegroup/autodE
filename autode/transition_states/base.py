@@ -1,3 +1,4 @@
+import numpy as np
 from copy import deepcopy
 import autode.exceptions as ex
 from autode.atoms import metals
@@ -164,21 +165,28 @@ class TSbase(Species):
         self._init_graph()
 
 
-def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0,
-                                   atoms=None):
-    """Displace the geometry along the imaginary mode with mode number
-    iterating from 0, where 0-2 are translational normal modes, 3-5 are
-    rotational modes and 6 is the largest imaginary mode. To displace along
-    the second imaginary mode we have mode_number=7
+def get_displaced_atoms_along_mode(calc,
+                                   mode_number,
+                                   disp_factor=1.0,
+                                   atoms=None,
+                                   max_atom_disp=99.9):
+    """
+    Displace the geometry along a normal mode with mode number
+    indexed from 0, where 0-2 are translational normal modes, 3-5 are
+    rotational modes and 6 is the largest magnitude imaginary mode.
+    To displace along the second imaginary mode we have mode_number=7
 
     Arguments:
         calc (autode.calculation.Calculation):
         mode_number (int): Mode number to displace along
 
     Keyword Arguments:
-        disp_magnitude (float): Distance to displace (default: {1.0})
+        disp_factor (float): Distance to displace (default: {1.0})
+
         atoms (list(autode.atoms.Atom)): Atoms to displace, if None then the
                                      final set of atoms from the calc are used
+
+        max_atom_disp (float): Maximum displacement of any atom (Å)
 
     Returns:
         (list(autode.atoms.Atom)):
@@ -191,11 +199,25 @@ def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0,
         s_atoms = deepcopy(atoms)
 
     mode_disp_coords = calc.get_normal_mode_displacements(mode_number)
+    coords = np.array([atom.coord for atom in s_atoms])
 
     assert len(s_atoms) == len(mode_disp_coords)
 
-    for i in range(len(s_atoms)):
-        s_atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
+    disp_coords = coords.copy() + disp_factor * mode_disp_coords
+
+    # Ensure the maximum displacement distance any single atom is below the
+    # threshold (max_atom_disp), by incrementing backwards in steps of 0.05 Å,
+    # for disp_factor = 1.0 Å
+    for _ in range(20):
+
+        if np.max(np.linalg.norm(coords - disp_coords, axis=1)) < max_atom_disp:
+            break
+
+        disp_coords -= (disp_factor / 20) * mode_disp_coords
+
+    # Set the displaced coordinates of the returned atoms
+    for atom, coord in zip(s_atoms, disp_coords):
+        atom.coord = coord
 
     return s_atoms
 
@@ -230,13 +252,13 @@ def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
         return False
 
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=disp_mag)
+                                                       disp_factor=disp_mag)
     f_species = Species(name='f_displaced', atoms=f_displaced_atoms,
                         charge=0, mult=1)  # Charge & mult are placeholders
 
     b_displaced_atoms = get_displaced_atoms_along_mode(calc,
                                                        mode_number=6,
-                                                       disp_magnitude=-disp_mag)
+                                                       disp_factor=-disp_mag)
 
     b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
                         charge=0, mult=1)
@@ -361,14 +383,16 @@ def imag_mode_links_reactant_products(calc, reactant, product, method,
 
     # Get the species that is optimised by displacing forwards along the mode
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=disp_mag)
+                                                       disp_factor=disp_mag,
+                                                       max_atom_disp=0.2)
     f_displaced_mol = get_optimised_species(calc, method,
                                             direction='forwards',
                                             atoms=f_displaced_atoms)
 
     # Get the species that is optimised by displacing backwards along the mode
     b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=-disp_mag)
+                                                       disp_factor=-disp_mag,
+                                                       max_atom_disp=0.2)
     b_displaced_mol = get_optimised_species(calc, method,
                                             direction='backwards',
                                             atoms=b_displaced_atoms)

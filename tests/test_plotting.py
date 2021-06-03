@@ -205,4 +205,4 @@ def test_energy():
     new_energy = 5 * energy2
     assert new_energy == 10
 
-    assert 'energy' in str(energy).lower()
+    assert 'energy' in repr(energy).lower()
