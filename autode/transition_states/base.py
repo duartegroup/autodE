@@ -205,9 +205,9 @@ def get_displaced_atoms_along_mode(calc,
 
     disp_coords = coords.copy() + disp_factor * mode_disp_coords
 
-    # Ensure the maximum displacement distance of an atom by applying this
-    # displacement is below the threshold  by incrementing backwards in
-    # steps of 0.05 Å, for disp_factor = 1.0 Å
+    # Ensure the maximum displacement distance any single atom is below the
+    # threshold (max_atom_disp), by incrementing backwards in steps of 0.05 Å,
+    # for disp_factor = 1.0 Å
     for _ in range(20):
 
         if np.max(np.linalg.norm(coords - disp_coords, axis=1)) < max_atom_disp:
