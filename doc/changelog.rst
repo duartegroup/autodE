@@ -28,7 +28,7 @@ Functionality improvements
 - Adds further conversion factors to :code:`Constants`
 - Adds :code:`Species.energies` as a container of all energies that have been calculated at a geometry
 - Adds :code:`Keywords.bstring` as a 'brief' summary of the keywords e.g. PBE0/def2-SVP and are associated with an :code:`Energy` (a type of :code:`Value`)
-
+- Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
 
 Bug Fixes
 *********

@@ -169,7 +169,7 @@ def get_displaced_atoms_along_mode(calc,
                                    mode_number,
                                    disp_factor=1.0,
                                    atoms=None,
-                                   max_disp=99.9):
+                                   max_atom_disp=99.9):
     """
     Displace the geometry along a normal mode with mode number
     indexed from 0, where 0-2 are translational normal modes, 3-5 are
@@ -186,7 +186,7 @@ def get_displaced_atoms_along_mode(calc,
         atoms (list(autode.atoms.Atom)): Atoms to displace, if None then the
                                      final set of atoms from the calc are used
 
-        max_disp (float): Maximum displacement of any atom
+        max_atom_disp (float): Maximum displacement of any atom (Å)
 
     Returns:
         (list(autode.atoms.Atom)):
@@ -207,9 +207,13 @@ def get_displaced_atoms_along_mode(calc,
 
     # Ensure the maximum displacement distance of an atom by applying this
     # displacement is below the threshold  by incrementing backwards in
-    # steps of 0.02 Å
-    while np.max(np.linalg.norm(coords - disp_coords, axis=1)) > max_disp:
-        disp_coords -= 0.02 * np.sign(disp_factor) * mode_disp_coords
+    # steps of 0.05 Å, for disp_factor = 1.0 Å
+    for _ in range(20):
+
+        if np.max(np.linalg.norm(coords - disp_coords, axis=1)) < max_atom_disp:
+            break
+
+        disp_coords -= (disp_factor / 20) * mode_disp_coords
 
     # Set the displaced coordinates of the returned atoms
     for atom, coord in zip(s_atoms, disp_coords):
@@ -380,7 +384,7 @@ def imag_mode_links_reactant_products(calc, reactant, product, method,
     # Get the species that is optimised by displacing forwards along the mode
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
                                                        disp_factor=disp_mag,
-                                                       max_disp=0.2)
+                                                       max_atom_disp=0.2)
     f_displaced_mol = get_optimised_species(calc, method,
                                             direction='forwards',
                                             atoms=f_displaced_atoms)
@@ -388,7 +392,7 @@ def imag_mode_links_reactant_products(calc, reactant, product, method,
     # Get the species that is optimised by displacing backwards along the mode
     b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
                                                        disp_factor=-disp_mag,
-                                                       max_disp=0.2)
+                                                       max_atom_disp=0.2)
     b_displaced_mol = get_optimised_species(calc, method,
                                             direction='backwards',
                                             atoms=b_displaced_atoms)

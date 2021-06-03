@@ -37,9 +37,9 @@ def test_hshift_displacement():
     # applying such a large shift may lead to unphysical geometries, thus
     # use a maximum scale factor
     f_disp_atoms = get_displaced_atoms_along_mode(calc,
-                                                  mode_number=6,     # TS mode
+                                                  mode_number=6,  # TS mode
                                                   disp_factor=1.0,
-                                                  max_disp=0.1)
+                                                  max_atom_disp=0.1)
     f_disp_mol = Molecule(atoms=f_disp_atoms)
     max_disp = np.max(np.linalg.norm(ts.coordinates
                                      - f_disp_mol.coordinates, axis=1))
