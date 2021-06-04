@@ -174,18 +174,16 @@ class Species(AtomCollection):
         Returns:
             (list(autode.values.Frequency)):
         """
-        H = self._hess.to('Ha a0^-2')
-        # H = H.mass_weighted(masses=[atom.mass for atom in self.atoms])
+        H = self._hess.to('J m^-2')
+        H = H.mass_weighted(masses=[atom.mass.to('kg') for atom in self.atoms])
 
         lambdas, modes = np.linalg.eigh(H)
 
-        conversion = (np.sqrt(Constants.J_to_ha / Constants.amu_to_kg)
-                      / (2.0*np.pi * Constants.c_in_cm * Constants.a0_to_m))
+        # Frequencies in cm^-1
+        nus = (np.sqrt(np.clip(lambdas, a_min=0.0, a_max=None))
+               / (2.0 * np.pi * Constants.c_in_cm))
 
-        print(conversion * (lambdas))
-
-
-        return []
+        return [Frequency(nu) for nu in nus]
 
     @property
     @requires_atoms

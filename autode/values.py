@@ -10,7 +10,7 @@ from autode.units import (Unit,
                           wavenumber, hz,
                           amu, kg, m_e,
                           ha_per_ang, ha_per_a0, ev_per_ang,
-                          ha_per_ang_sq, ha_per_a0_sq)
+                          ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq)
 
 
 def _to(value,
@@ -427,7 +427,7 @@ class Gradients(ValueArray):
 
 class Hessian(ValueArray):
 
-    implemented_units = [ha_per_ang_sq, ha_per_a0_sq]
+    implemented_units = [ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq]
 
     def __repr__(self):
         return f'Hessian({np.ndarray.__str__(self)} {self.units.name})'
@@ -447,7 +447,4 @@ class Hessian(ValueArray):
         """
 
         m_array = np.repeat(masses, repeats=3, axis=np.newaxis)
-
-        print(np.outer(m_array, m_array))
-
-        return np.asarray(self) * np.sqrt(np.outer(m_array, m_array))
+        return np.asarray(self) / np.sqrt(np.outer(m_array, m_array))

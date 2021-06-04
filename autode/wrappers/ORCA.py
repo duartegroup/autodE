@@ -499,12 +499,10 @@ class ORCA(ElectronicStructureMethod):
                         continue
 
                     dadx, dady, dadz = grad_line.split()[-3:]
-                    vec = [float(dadx), float(dady), float(dadz)]
+                    gradients.append([float(dadx), float(dady), float(dadz)])
 
-                    # Convert from Ha a0^-1 to Ha A-1
-                    gradients.append(np.array(vec) / Constants.a0_to_ang)
-
-        return np.array(gradients)
+        # Convert from Ha a0^-1 to Ha A-1
+        return np.array(gradients) / Constants.a0_to_ang
 
     @staticmethod
     def _start_line_hessian(calc, file_lines):
