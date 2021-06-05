@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Union
 from autode.log import logger
-from autode.values import Distance, Angle, Mass
+from autode.values import Distance, Angle, Mass, Coordinate, Coordinates
 from autode.geom import get_rot_mat_euler
 
 
@@ -18,7 +18,7 @@ class AtomCollection:
         if self.atoms is None:
             return None
 
-        return np.array([a.coord for a in self.atoms], dtype='f8', copy=True)
+        return Coordinates(np.array([a.coord for a in self.atoms], dtype='f8'))
 
     @coordinates.setter
     def coordinates(self,
@@ -46,7 +46,7 @@ class AtomCollection:
                                  f'dimensional')
 
         for i, atom in enumerate(self.atoms):
-            atom.coord = value[i]
+            atom.coord = Coordinate(*value[i])
 
     @property
     def atoms(self):
@@ -194,7 +194,7 @@ class Atom:
 
     def __repr__(self):
         x, y, z = self.coord
-        return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
+        return f'Atom({self.label}, {x:.4f}, {y:.4f}, {z:.4f})'
 
     def __str__(self):
         return self.__repr__()
@@ -208,6 +208,27 @@ class Atom:
     def atomic_symbol(self) -> str:
         """A more interpretable alias for label"""
         return self.label
+
+    @property
+    def coord(self) -> Coordinate:
+        """Position of this atom in space
+
+        Returns:
+            (autode.values.Coordinate):
+        """
+        return self._coord
+
+    @coord.setter
+    def coord(self, *args):
+        """
+
+        Args:
+            *args (float | list(float) | np.ndarray(float)):
+
+        Raises:
+            (ValueError): If the arguments
+        """
+        self._coord = Coordinate(*args)
 
     @property
     def is_metal(self) -> bool:
@@ -325,7 +346,7 @@ class Atom:
         assert atomic_symbol in elements
 
         self.label = atomic_symbol
-        self.coord = np.array([float(x), float(y), float(z)])
+        self._coord = Coordinate(float(x), float(y), float(z))
 
 
 class DummyAtom(Atom):

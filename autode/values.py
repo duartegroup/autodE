@@ -1,16 +1,16 @@
 import numpy as np
-from autode.log import logger
 from abc import ABC, abstractmethod
-from typing import Union, List
+from typing import Union
 from copy import deepcopy
+from collections.abc import Iterable
+from autode.log import logger
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg,
                           wavenumber, hz,
                           amu, kg, m_e,
-                          ha_per_ang, ha_per_a0, ev_per_ang,
-                          ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq)
+                          ha_per_ang, ha_per_a0, ev_per_ang)
 
 
 def _to(value,
@@ -161,6 +161,7 @@ class Value(ABC, float):
         Keyword Arguments:
             units (autode.units.Unit | None):
         """
+
         float.__init__(float(x))
         self.units = units
 
@@ -354,6 +355,11 @@ class Frequency(Value):
 
     implemented_units = [wavenumber, hz]
 
+    @property
+    def is_imaginary(self):
+        """Imaginary frequencies are quoted as negative for simplicity"""
+        return self < 0
+
     def __repr__(self):
         return f'Frequency({round(self, 5)} {self.units.name})'
 
@@ -399,7 +405,7 @@ class ValueArray(ABC, np.ndarray):
             units (autode.units.Unit | str):
 
         Returns:
-            (autode.values.Value):
+            (autode.values.ValueArray):
 
         Raises:
             (TypeError):
@@ -414,6 +420,40 @@ class ValueArray(ABC, np.ndarray):
         self.units = getattr(obj, 'units', None)
 
 
+class Coordinate(ValueArray):
+
+    implemented_units = [ang, a0, nm, pm, m]
+
+    def __repr__(self):
+        return f'Coordinate({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls, *args, units=ang):
+
+        if len(args) == 3:
+            return super().__new__(cls, np.asarray(args), units)
+
+        elif (len(args) == 1
+              and isinstance(args[0], Iterable)
+              and len(args[0]) == 3):
+            # e.g. a numpy array or list of three elements
+            return super().__new__(cls, np.asarray(args[0]), units)
+
+        else:
+            raise ValueError('Coordinate must be a 3 component vector, got '
+                             f'shape = {len(args)}')
+
+
+class Coordinates(ValueArray):
+
+    implemented_units = [ang, a0, nm, pm, m]
+
+    def __repr__(self):
+        return f'Coordinates({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls, input_array, units=ang):
+        return super().__new__(cls, input_array, units)
+
+
 class Gradients(ValueArray):
 
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
@@ -425,26 +465,4 @@ class Gradients(ValueArray):
         return super().__new__(cls, input_array, units)
 
 
-class Hessian(ValueArray):
 
-    implemented_units = [ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq]
-
-    def __repr__(self):
-        return f'Hessian({np.ndarray.__str__(self)} {self.units.name})'
-
-    def __new__(cls,  input_array, units=ha_per_ang_sq):
-        return super().__new__(cls, input_array, units)
-
-    def mass_weighted(self, masses: List[Mass]) -> None:
-        """Mass weight the Hessian matrix
-
-                      H_ij
-        H'_ij  =  ------------
-                   √(m_i x m_j)
-
-        Arguments:
-            masses (list(autode.values.Mass)):
-        """
-
-        m_array = np.repeat(masses, repeats=3, axis=np.newaxis)
-        return np.asarray(self) / np.sqrt(np.outer(m_array, m_array))

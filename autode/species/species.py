@@ -1,7 +1,6 @@
 import numpy as np
 from copy import deepcopy
 from typing import Union, List
-from functools import cached_property
 from scipy.spatial import distance_matrix
 from autode.atoms import Atom, AtomCollection
 from autode.geom import calc_rmsd
@@ -10,14 +9,14 @@ from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
 from autode.config import Config
-from autode.constants import Constants
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
-from autode.values import Energy, Energies, Distance, Gradients, Hessian, Frequency
+from autode.values import Energy, Energies, Distance, Gradients, Frequency
+from autode.thermo.hessians import Hessian
 from autode.utils import (requires_atoms,
                           work_in,
                           requires_conformers)
@@ -125,21 +124,12 @@ class Species(AtomCollection):
         if value is None:
             self._hess = None
 
-            # Delete the cached frequencies, if they have been calculated
-            if hasattr(self, 'frequencies'):
-                delattr(self, 'frequencies')
-
         elif not hasattr(value, 'shape'):
             raise ValueError(f'Could not set Hessian with {value}, Must be '
-                             f'a numpy array')
-
-        elif value.shape != (3*self.n_atoms, 3*self.n_atoms):
-            raise ValueError('Could not set the Hessian. Incorrect shape: '
-                             f'{value.shape} != '
-                             f'{(3*self.n_atoms, 3*self.n_atoms)}')
+                             f'a numpy array.')
 
         else:
-            self._hess = Hessian(value)
+            self._hess = Hessian(value, atoms=self.atoms)
 
     @property
     def gradient(self) -> Union[Gradients, None]:
@@ -166,24 +156,19 @@ class Species(AtomCollection):
         else:
             self._grad = Gradients(value)
 
-    @cached_property
-    def frequencies(self) -> List[Frequency]:
+    @property
+    def frequencies(self) -> Union[List[Frequency], None]:
         """
-        Cached frequencies from Hessian diagonalisation, in cm-1 by default
+        Frequencies from Hessian diagonalisation, in cm-1 by default
 
         Returns:
-            (list(autode.values.Frequency)):
+            (list(autode.values.Frequency) | None):
         """
-        H = self._hess.to('J m^-2')
-        H = H.mass_weighted(masses=[atom.mass.to('kg') for atom in self.atoms])
+        if self.hessian is None:
+            logger.warning('No Hessian has been calculated - no frequencies')
+            return None
 
-        lambdas, modes = np.linalg.eigh(H)
-
-        # Frequencies in cm^-1
-        nus = (np.sqrt(np.clip(lambdas, a_min=0.0, a_max=None))
-               / (2.0 * np.pi * Constants.c_in_cm))
-
-        return [Frequency(nu) for nu in nus]
+        return self.hessian.frequencies
 
     @property
     @requires_atoms

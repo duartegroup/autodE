@@ -12,9 +12,9 @@ from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
 from autode.solvent.solvents import Solvent
 from autode.log import logger
+from autode.thermo.hessians import Hessian
 from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
-                           Gradients,
-                           Hessian)
+                           Gradients)
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')

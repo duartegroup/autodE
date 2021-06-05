@@ -6,7 +6,8 @@ from autode.units import (ha, kjmol, kcalmol, ev,
                           rad, deg)
 from autode.values import (Value, Distance, Angle,
                            Energy, PlottedEnergy, Energies,
-                           PotentialEnergy, Enthalpy, FreeEnergy)
+                           PotentialEnergy, Enthalpy, FreeEnergy,
+                           Frequency)
 
 
 class TmpValue(Value):
@@ -169,3 +170,11 @@ def test_energies():
 
     assert isinstance(energies.g_cont, Energy)
     assert energies.g_cont == 0.1
+
+
+def test_freqs():
+
+    # Negative frequencies are actually imaginary (accepted convention in QM
+    # codes)
+    assert Frequency(-1.0).is_imaginary
+    assert not Frequency(1.0).is_imaginary

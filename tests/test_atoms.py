@@ -9,7 +9,7 @@ def test_atoms():
 
     assert atoms.get_maximal_valance(atom_label='C') == 4
     assert atoms.get_maximal_valance(atom_label='Aa') == 6
-    assert atoms.get_atomic_weight(atom_label='C') == 12.01
+    assert 11.9 < atoms.get_atomic_weight(atom_label='C') < 12.1
     assert atoms.get_atomic_weight(atom_label='Aa') == 70
     assert 0.9 < atoms.get_vdw_radius(atom_label='H') < 1.2
     assert 2 < atoms.get_vdw_radius(atom_label='Aa') < 3
@@ -31,8 +31,6 @@ def test_atom_collection_base():
 
     h2.atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H')]
     assert h2.n_atoms == 2
-
-    assert type(h2.coordinates) == np.ndarray
 
     # Should be able to set coordinate from a flat array (row major)
     h2.coordinates = np.zeros(shape=(6,))
@@ -129,7 +127,6 @@ def test_atom():
     assert h.group == 1
     assert h.period == 1
 
-    assert type(h.coord) == np.ndarray
     assert len(h.coord) == 3
     assert h.coord[0] == 0
     assert h.coord[1] == 0
@@ -163,6 +160,23 @@ def test_atom():
 
     fe = Atom(atomic_symbol='Fe')
     assert fe.tm_row == 1
+
+
+def test_atom_coord_setting():
+
+    atom = Atom('H', 0.0, 0.0, 0.0)
+
+    with pytest.raises(ValueError):
+        atom.coord = None
+
+    with pytest.raises(ValueError):
+        atom.coord = [1.0, 10]
+
+    with pytest.raises(ValueError):
+        atom.coord = 1.0, 1.0
+
+    atom.coord = np.array([1.0, 0.0, 0.0])
+    assert np.allclose(atom.coord.to('nm'), np.array([0.1, 0.0, 0.0]))
 
 
 def test_periodic_table():

@@ -199,6 +199,10 @@ ha_per_a0_sq = CompositeUnit(ha, per=[a0, a0],
                              aliases=['ha/bohr^2', 'ha/bohr2', 'ha bohr^2',
                                       'ha/a0^2', 'ha/a02', 'ha a0^2'])
 
+J_per_ang_sq = CompositeUnit(J, per=[ang, ang],
+                             name='J ang^-2',
+                             aliases=['J/ang^2', 'J/ang2', 'J ang2'])
+
 J_per_m_sq = CompositeUnit(J, per=[m, m],
                            name='J m^-2',
                            aliases=['J/m^2', 'J/m2', 'J m2'])

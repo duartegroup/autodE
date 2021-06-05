@@ -1,8 +1,28 @@
+import pytest
 import numpy as np
 from autode.species import Molecule
+from autode.values import Frequency
+from autode.thermo.hessians import Hessian
+from autode.units import wavenumber
 
 
-def test_hessian_extraction():
+def test_hessian_set():
+
+    h2o = Molecule(smiles='O')
+
+    # Cannot set the Hessian as a matrix that isn't 3Nx3N
+    with pytest.raises(ValueError):
+        h2o.hessian = np.array([])
+
+    with pytest.raises(ValueError):
+        h2o.hessian = np.arange(0, 3*h2o.n_atoms)
+
+    assert h2o.hessian is None
+    h2o.hessian = np.zeros(shape=(3*h2o.n_atoms, 3*h2o.n_atoms))
+    assert h2o.hessian is not None
+
+
+def test_hessian_freqs():
 
     h2o = Molecule(smiles='O')
     h2o.hessian = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
@@ -33,5 +53,17 @@ def test_hessian_extraction():
                           6.62204039e-10, -1.02974704e-09, -3.07470051e-02,
                           6.85803822e-09, -5.09659842e-09, 4.49197416e-02]])
 
-    print('freqs=', h2o.frequencies)
+    print(h2o.frequencies)
 
+    assert isinstance(h2o.hessian, Hessian)
+    freqs = h2o.hessian.frequencies
+
+    # Should have 2 frequencies in the 3500 cm-1 range for the O-H stretches
+    assert sum([Frequency(3000, units=wavenumber) < freq < Frequency(4000, units=wavenumber)
+                for freq in freqs]) == 2
+
+    # without projection there is an imaginary frequency
+    assert sum(freq.is_imaginary for freq in freqs) == 1
+
+    assert h2o.hessian.normal_modes[0].shape == (h2o.n_atoms, 3)
+    print(h2o.hessian.normal_modes[0])

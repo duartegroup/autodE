@@ -141,7 +141,7 @@ def test_species_rotate():
 def test_get_coordinates():
 
     coords = mol.coordinates
-    assert type(coords) == np.ndarray
+    assert isinstance(coords, np.ndarray)
     assert coords.shape == (2, 3)
 
 
