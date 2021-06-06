@@ -1,193 +1,8 @@
 import numpy as np
-from typing import Union
+from typing import Union, List
 from autode.log import logger
 from autode.values import Distance, Angle, Mass, Coordinate, Coordinates
 from autode.geom import get_rot_mat_euler
-
-
-class AtomCollection:
-
-    @property
-    def n_atoms(self):
-        """Number of atoms in this collection"""
-        return 0 if self.atoms is None else len(self.atoms)
-
-    @property
-    def coordinates(self):
-        """Numpy array of coordinates"""
-        if self.atoms is None:
-            return None
-
-        return Coordinates(np.array([a.coord for a in self.atoms], dtype='f8'))
-
-    @coordinates.setter
-    def coordinates(self,
-                    value: np.ndarray):
-        """Set the coordinates from a numpy array
-
-        Arguments:
-            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
-                                row major vector
-        """
-        if self.atoms is None:
-            raise ValueError('Must have atoms set to be able to set the '
-                             'coordinates of them')
-
-        if value.ndim == 1:
-            assert value.shape == (3 * self.n_atoms,)
-            value = value.reshape((-1, 3))
-
-        elif value.ndim == 2:
-            assert value.shape == (self.n_atoms, 3)
-
-        else:
-            raise AssertionError('Cannot set coordinates from a array with'
-                                 f'shape: {value.shape}. Must be 1 or 2 '
-                                 f'dimensional')
-
-        for i, atom in enumerate(self.atoms):
-            atom.coord = Coordinate(*value[i])
-
-    @property
-    def atoms(self):
-        """Constituent atoms of this collection"""
-        # NOTE: Defined as a property for sub-class implementations
-        return self._atoms
-
-    @atoms.setter
-    def atoms(self, value):
-        """Set the constituent atoms of this collection"""
-        self._atoms = value
-
-    def _idxs_are_present(self, *args):
-        """Are a set of indexes present in the collection of atoms?
-
-        Arguments:
-            args (int):
-
-        Returns:
-            (bool):
-        """
-        return set(args).issubset(set(range(self.n_atoms)))
-
-    def distance(self,
-                 i: int,
-                 j: int) -> Distance:
-        """Distance between two atoms (Å), indexed from 0.
-
-        Arguments:
-            i (int): Atom index of the first atom
-            j (int): Atom index of the second atom
-
-        Returns:
-            (autode.values.Distance): Distance
-
-        Raises:
-            (ValueError):
-        """
-        if not self._idxs_are_present(i, j):
-            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
-                             f'At least one atom not present')
-
-        value = np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
-
-        return Distance(value)
-
-    def angle(self,
-              i: int,
-              j: int,
-              k: int) -> Angle:
-        """
-        Angle between three atoms i-j-k
-
-        Arguments:
-            i (int): Atom index of the left hand side in the angle
-            j (int):                ---     middle    ---
-            k (int):                -- right hand side --
-
-        Returns:
-            (autode.values.Angle):
-
-        Raises:
-            (ValueError):
-        """
-        if not self._idxs_are_present(i, j, k):
-            raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
-                             f' At least one atom not present')
-
-        vec1 = self.atoms[i].coord - self.atoms[j].coord
-        vec2 = self.atoms[k].coord - self.atoms[j].coord
-
-        norms = np.linalg.norm(vec1) * np.linalg.norm(vec2)
-
-        if np.isclose(norms, 0.0):
-            raise ValueError(f'Cannot calculate the angle {i}-{j}-{k} - at '
-                             f'least one zero vector')
-
-        value = np.arccos(np.dot(vec1, vec2) / norms)
-
-        return Angle(value)
-
-    def dihedral(self,
-                 x: int,
-                 y: int,
-                 z: int,
-                 w: int) -> Angle:
-        """
-        Dihedral angle between four atoms
-
-        Arguments:
-            w (int): Atom index of the first atom in the dihedral
-            x (int):               -- second --
-            y (int):               -- third  --
-            z (int):               -- fourth --
-
-        Returns:
-            (autode.values.Angle):
-
-        Raises:
-            (ValueError):
-        """
-        if not self._idxs_are_present(w, x, y, z):
-            raise ValueError(f'Cannot calculate the dihedral angle involving '
-                             f'atoms {w}-{x}-{y}-{z}. At least one atom not '
-                             f'present')
-
-        vec_yx = self.atoms[x].coord - self.atoms[y].coord
-        vec_zw = self.atoms[w].coord - self.atoms[z].coord
-        vec_yz = self.atoms[z].coord - self.atoms[y].coord
-
-        vec1, vec2 = np.cross(vec_yx, vec_yz), np.cross(-vec_yz, vec_zw)
-
-        # Normalise and ensure no zero vectors, for which the dihedral is not
-        # defined
-        for vec in (vec1, vec2, vec_yz):
-            norm = np.linalg.norm(vec)
-
-            if np.isclose(norm, 0.0):
-                raise ValueError(f'Cannot calculate the dihedral angle '
-                                 f'{w}-{x}-{y}-{z} - one zero vector')
-            vec /= norm
-
-        """
-        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
-        angle between groups A and D is then considered to be positive if 
-        the bond A-B is rotated in a clockwise direction through less than
-        180 degrees"
-        """
-        value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
-                            np.dot(vec1, vec2))
-
-        return Angle(value)
-
-    def __init__(self, atoms=None):
-        """
-        Collection of atoms, used as a a base class for a species etc
-
-        Arguments:
-            atoms (list(autode.atoms.Atom) | None):
-        """
-        self._atoms = atoms
 
 
 class Atom:
@@ -365,6 +180,240 @@ class DummyAtom(Atom):
         super().__init__('H', x, y, z)
 
         self.label = 'D'
+
+
+class Atoms(list):
+
+    def __repr__(self):
+        return f'Atoms({super().__repr__()})'
+
+    @property
+    def coordinates(self) -> Coordinates:
+        return Coordinates(np.array([a.coord for a in self]))
+
+    @property
+    def com(self) -> Coordinate:
+        """
+        Calculate the centre of mass of these coordinates
+
+        COM = 1/M Σ_i m_i X_i
+
+        where M is the total mass, m_i the mass of atom i and X_i it's
+        coordinate
+
+        Returns:
+            (autode.values.Coordinate):
+        """
+        if len(self) == 0:
+            raise ValueError('Undefined centre of mass with no atoms')
+
+        com = Coordinate(0.0, 0.0, 0.0)
+
+        for atom in self:
+            com += atom.mass * atom.coord
+
+        return Coordinate(com / sum(atom.mass for atom in self))
+
+
+class AtomCollection:
+
+    @property
+    def n_atoms(self) -> int:
+        """Number of atoms in this collection"""
+        return 0 if self.atoms is None else len(self.atoms)
+
+    @property
+    def coordinates(self) -> Union[Coordinates, None]:
+        """Numpy array of coordinates"""
+        if self.atoms is None:
+            return None
+
+        return self.atoms.coordinates
+
+    @coordinates.setter
+    def coordinates(self,
+                    value: np.ndarray):
+        """Set the coordinates from a numpy array
+
+        Arguments:
+            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
+                                row major vector
+        """
+        if self.atoms is None:
+            raise ValueError('Must have atoms set to be able to set the '
+                             'coordinates of them')
+
+        if value.ndim == 1:
+            assert value.shape == (3 * self.n_atoms,)
+            value = value.reshape((-1, 3))
+
+        elif value.ndim == 2:
+            assert value.shape == (self.n_atoms, 3)
+
+        else:
+            raise AssertionError('Cannot set coordinates from a array with'
+                                 f'shape: {value.shape}. Must be 1 or 2 '
+                                 f'dimensional')
+
+        for i, atom in enumerate(self.atoms):
+            atom.coord = Coordinate(*value[i])
+
+    @property
+    def atoms(self) -> Union[Atoms, None]:
+        """Constituent atoms of this collection"""
+        return self._atoms
+
+    @atoms.setter
+    def atoms(self,
+              value: Union[List[Atom], Atoms, None]):
+        """Set the constituent atoms of this collection"""
+        self._atoms = Atoms(value) if value is not None else None
+
+    @property
+    def com(self) -> Union[Coordinate, None]:
+        """Centre of mass of this atom collection
+
+        Returns:
+            (autode.values.Coordinate): COM
+
+        Raises:
+            (ValueError): If there are no atoms
+        """
+        if self.atoms is None:
+            return None
+
+        return self.atoms.com
+
+    def _idxs_are_present(self, *args):
+        """Are a set of indexes present in the collection of atoms?
+
+        Arguments:
+            args (int):
+
+        Returns:
+            (bool):
+        """
+        return set(args).issubset(set(range(self.n_atoms)))
+
+    def distance(self,
+                 i: int,
+                 j: int) -> Distance:
+        """Distance between two atoms (Å), indexed from 0.
+
+        Arguments:
+            i (int): Atom index of the first atom
+            j (int): Atom index of the second atom
+
+        Returns:
+            (autode.values.Distance): Distance
+
+        Raises:
+            (ValueError):
+        """
+        if not self._idxs_are_present(i, j):
+            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
+                             f'At least one atom not present')
+
+        value = np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+
+        return Distance(value)
+
+    def angle(self,
+              i: int,
+              j: int,
+              k: int) -> Angle:
+        """
+        Angle between three atoms i-j-k
+
+        Arguments:
+            i (int): Atom index of the left hand side in the angle
+            j (int):                ---     middle    ---
+            k (int):                -- right hand side --
+
+        Returns:
+            (autode.values.Angle):
+
+        Raises:
+            (ValueError):
+        """
+        if not self._idxs_are_present(i, j, k):
+            raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
+                             f' At least one atom not present')
+
+        vec1 = self.atoms[i].coord - self.atoms[j].coord
+        vec2 = self.atoms[k].coord - self.atoms[j].coord
+
+        norms = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+
+        if np.isclose(norms, 0.0):
+            raise ValueError(f'Cannot calculate the angle {i}-{j}-{k} - at '
+                             f'least one zero vector')
+
+        value = np.arccos(np.dot(vec1, vec2) / norms)
+
+        return Angle(value)
+
+    def dihedral(self,
+                 x: int,
+                 y: int,
+                 z: int,
+                 w: int) -> Angle:
+        """
+        Dihedral angle between four atoms
+
+        Arguments:
+            w (int): Atom index of the first atom in the dihedral
+            x (int):               -- second --
+            y (int):               -- third  --
+            z (int):               -- fourth --
+
+        Returns:
+            (autode.values.Angle):
+
+        Raises:
+            (ValueError):
+        """
+        if not self._idxs_are_present(w, x, y, z):
+            raise ValueError(f'Cannot calculate the dihedral angle involving '
+                             f'atoms {w}-{x}-{y}-{z}. At least one atom not '
+                             f'present')
+
+        vec_yx = self.atoms[x].coord - self.atoms[y].coord
+        vec_zw = self.atoms[w].coord - self.atoms[z].coord
+        vec_yz = self.atoms[z].coord - self.atoms[y].coord
+
+        vec1, vec2 = np.cross(vec_yx, vec_yz), np.cross(-vec_yz, vec_zw)
+
+        # Normalise and ensure no zero vectors, for which the dihedral is not
+        # defined
+        for vec in (vec1, vec2, vec_yz):
+            norm = np.linalg.norm(vec)
+
+            if np.isclose(norm, 0.0):
+                raise ValueError(f'Cannot calculate the dihedral angle '
+                                 f'{w}-{x}-{y}-{z} - one zero vector')
+            vec /= norm
+
+        """
+        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
+        angle between groups A and D is then considered to be positive if 
+        the bond A-B is rotated in a clockwise direction through less than
+        180 degrees"
+        """
+        value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
+                            np.dot(vec1, vec2))
+
+        return Angle(value)
+
+    def __init__(self,
+                 atoms: Union[List[Atom], Atoms, None] = None):
+        """
+        Collection of atoms, used as a a base class for a species etc
+
+        Arguments:
+            atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
+        """
+        self._atoms = Atoms(atoms) if atoms is not None else None
 
 
 elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',

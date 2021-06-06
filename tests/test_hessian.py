@@ -53,8 +53,6 @@ def test_hessian_freqs():
                           6.62204039e-10, -1.02974704e-09, -3.07470051e-02,
                           6.85803822e-09, -5.09659842e-09, 4.49197416e-02]])
 
-    print(h2o.frequencies)
-
     assert isinstance(h2o.hessian, Hessian)
     freqs = h2o.hessian.frequencies
 
@@ -66,4 +64,10 @@ def test_hessian_freqs():
     assert sum(freq.is_imaginary for freq in freqs) == 1
 
     assert h2o.hessian.normal_modes[0].shape == (h2o.n_atoms, 3)
-    print(h2o.hessian.normal_modes[0])
+
+    # Projecting should give frequencies close to those obtained from ORCA
+    # the vibrational frequencies are the largest three (non-zero)
+    nu_1, nu_2, nu_3 = h2o.hessian.frequencies_proj[-3:]
+    assert np.isclose(nu_1, 1567.610851, atol=1.0)
+    assert np.isclose(nu_2, 3467.698182, atol=1.0)
+    assert np.isclose(nu_3, 3651.462209, atol=1.0)

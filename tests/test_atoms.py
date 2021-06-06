@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
 from autode import atoms
-from autode.atoms import Atom
-from autode.values import Angle
+from autode.atoms import Atom, Atoms
+from autode.values import Angle, Coordinate
 
 
-def test_atoms():
+def test_functions():
 
     assert atoms.get_maximal_valance(atom_label='C') == 4
     assert atoms.get_maximal_valance(atom_label='Aa') == 6
@@ -17,6 +17,27 @@ def test_atoms():
     assert atoms.is_pi_atom(atom_label='C', valency=3) is True
     assert atoms.is_pi_atom(atom_label='C', valency=4) is False
     assert atoms.is_pi_atom(atom_label='Aa', valency=9) is False
+
+
+def test_atoms():
+
+    empty_atoms = Atoms()
+
+    # Undefined COM with no atoms
+    with pytest.raises(ValueError):
+        _ = empty_atoms.com
+
+    h_atoms = Atoms([Atom('H'), Atom('H', x=1.0)])
+    assert isinstance(h_atoms.com, Coordinate)
+
+    assert np.allclose(h_atoms.com, np.array([0.5, 0.0, 0.0]))
+
+    # COM is weighted by mass, so the x-coordinate
+    ch_atoms = Atoms([Atom('H'), Atom('C', x=1.0)])
+
+    assert 0.5 < ch_atoms.com.x < 1.0
+    assert ch_atoms.com.y == 0.0
+    assert ch_atoms.com.z == 0.0
 
 
 def test_atom_collection_base():

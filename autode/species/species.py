@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 from typing import Union, List
 from scipy.spatial import distance_matrix
-from autode.atoms import Atom, AtomCollection
+from autode.atoms import Atom, Atoms, AtomCollection
 from autode.geom import calc_rmsd
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
@@ -66,10 +66,13 @@ class Species(AtomCollection):
             value (list(autode.atoms.Atom) | None):
         """
 
+        if value is None:
+            self._atoms = None
+            return
+
         # If the geometry is identical up to rotations/translations then
         # energies do not need to be changed
-        if (value is not None
-            and self.n_atoms == len(value)
+        if (self.n_atoms == len(value)
             and all(a.label == v.label for a, v in zip(self.atoms, value))):
 
             rmsd = calc_rmsd(coords1=np.array([v.coord for v in value]),
@@ -83,8 +86,8 @@ class Species(AtomCollection):
             self.gradient = None
             self.hessian = None
 
-        self._atoms = value
-        return None
+        self._atoms = Atoms(value)
+        return
 
     @property
     def formula(self):
@@ -113,8 +116,8 @@ class Species(AtomCollection):
     def hessian(self) -> Union[Hessian, None]:
         """
         Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
-         shape = (3*n_atoms, 3*n_atoms)
-         """
+        shape = (3*n_atoms, 3*n_atoms)
+        """
         return self._hess
 
     @hessian.setter
@@ -124,7 +127,7 @@ class Species(AtomCollection):
         if value is None:
             self._hess = None
 
-        elif not hasattr(value, 'shape'):
+        elif not isinstance(value, np.ndarray):
             raise ValueError(f'Could not set Hessian with {value}, Must be '
                              f'a numpy array.')
 

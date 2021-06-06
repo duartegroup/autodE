@@ -25,6 +25,7 @@ mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
 def test_species_class():
 
     blank_mol = Species(name='tmp', atoms=None, charge=0, mult=1)
+
     assert blank_mol.n_atoms == 0
     assert blank_mol.radius == 0
 
@@ -259,8 +260,7 @@ def test_thermal_cont_without_hess_run():
     calc = Calculation(name='test',
                        molecule=mol,
                        method=orca,
-                       keywords=orca.keywords.hess,
-                       temp=298)
+                       keywords=orca.keywords.hess)
     mol.energy = -1
 
     # Some blank output that exists

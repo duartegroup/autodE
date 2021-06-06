@@ -442,6 +442,21 @@ class Coordinate(ValueArray):
             raise ValueError('Coordinate must be a 3 component vector, got '
                              f'shape = {len(args)}')
 
+    @property
+    def x(self):
+        """x component in Cartesian space"""
+        return self[0]
+
+    @property
+    def y(self):
+        """y component in Cartesian space"""
+        return self[1]
+
+    @property
+    def z(self):
+        """z component in Cartesian space"""
+        return self[2]
+
 
 class Coordinates(ValueArray):
 
@@ -451,7 +466,7 @@ class Coordinates(ValueArray):
         return f'Coordinates({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls, input_array, units=ang):
-        return super().__new__(cls, input_array, units)
+        return super().__new__(cls, input_array.reshape(-1, 3), units)
 
 
 class Gradients(ValueArray):
@@ -463,6 +478,3 @@ class Gradients(ValueArray):
 
     def __new__(cls,  input_array, units=ha_per_ang):
         return super().__new__(cls, input_array, units)
-
-
-
