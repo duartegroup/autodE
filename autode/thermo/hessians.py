@@ -68,17 +68,17 @@ class Hessian(ValueArray):
         e_y = np.array([0., 1., 0.])
         e_z = np.array([0., 0., 1.])
 
-        d1 = np.tile(e_x, reps=n_atoms)  # Translation vectors
-        d2 = np.tile(e_y, reps=n_atoms)
-        d3 = np.tile(e_z, reps=n_atoms)
+        t1 = np.tile(e_x, reps=n_atoms)  # Translation vectors
+        t2 = np.tile(e_y, reps=n_atoms)
+        t3 = np.tile(e_z, reps=n_atoms)
 
-        com = self.atoms.com  # Centre of mass
-        d4, d5, d6 = [], [], []  # Rotation vectors
+        com = self.atoms.com     # Centre of mass
+        t4, t5, t6 = [], [], []  # Rotation vectors
 
         for atom in self.atoms:
-            d4 += np.cross(e_x, atom.coord - com).tolist()
-            d5 += np.cross(e_y, atom.coord - com).tolist()
-            d6 += np.cross(e_z, atom.coord - com).tolist()
+            t4 += np.cross(e_x, atom.coord - com).tolist()
+            t5 += np.cross(e_y, atom.coord - com).tolist()
+            t6 += np.cross(e_z, atom.coord - com).tolist()
 
         # Construct M^1/2, which as it's diagonal, is just the roots of the
         # diagonal elements
@@ -86,16 +86,16 @@ class Hessian(ValueArray):
                            axis=np.newaxis)
         m_half = np.diag(np.sqrt(masses))
 
-        for col in (d1, d2, d3, d4, d5, d6):
+        for col in (t1, t2, t3, t4, t5, t6):
             col[:] = np.dot(m_half, np.array(col).T)
             col /= np.linalg.norm(col)
 
         # Generate a transform matrix D with the first columns as translation/
         # rotation vectors with the remainder as random orthogonal columns
-        D = np.random.rand(3 * n_atoms, 3 * n_atoms) - 0.5
+        M = np.random.rand(3 * n_atoms, 3 * n_atoms) - 0.5
+        M[:, :6] = np.column_stack((t1, t2, t3, t4, t5, t6))
 
-        D[:, :6] = np.column_stack((d1, d2, d3, d4, d5, d6))
-        return np.linalg.qr(D)[0]
+        return np.linalg.qr(M)[0]
 
     @cached_property
     def _mass_weighted(self) -> np.ndarray:
@@ -118,14 +118,17 @@ class Hessian(ValueArray):
     @cached_property
     def _proj_mass_weighted(self) -> np.ndarray:
         """
-        Sub-Hessian with the translation and rotation projected out.
+        Hessian with the translation and rotation projected out with an
+        orthonormal transformation::
+
+            H' = T^T H T
 
         Returns:
             (np.ndarray):
         """
-        D = self._proj_matrix
-        H = np.linalg.multi_dot((D.T, self._mass_weighted, D))
-
+        H = np.linalg.multi_dot((self._proj_matrix.T,
+                                 self._mass_weighted,
+                                 self._proj_matrix))
         return H
 
     @cached_property
@@ -156,14 +159,14 @@ class Hessian(ValueArray):
         n_tr = 6                     # Number of translational+rotational modes
         n_vibs = 3*len(self.atoms) - n_tr        # and the number of vibrations
 
-        _, L_prime = np.linalg.eigh(self._proj_mass_weighted[n_tr:, n_tr:])
+        _, S_bar = np.linalg.eigh(self._proj_mass_weighted[n_tr:, n_tr:])
 
         # Re-construct the block matrix
-        L = np.block([[np.zeros((n_tr, n_tr)),     np.zeros((n_tr, n_vibs))],
-                      [np.zeros((n_vibs, n_tr)),           L_prime         ]])
+        S_prime = np.block([[np.zeros((n_tr, n_tr)),  np.zeros((n_tr, n_vibs))],
+                            [np.zeros((n_vibs, n_tr)),         S_bar        ]])
 
         # then apply the back-transformation
-        modes = [Coordinates(np.dot(self._proj_matrix, L[:, i]))
+        modes = [Coordinates(np.dot(self._proj_matrix, S_prime[:, i]))
                  for i in range(6 + n_vibs)]
 
         return modes
