@@ -1,9 +1,8 @@
-from abc import ABC
 from typing import Union, Collection
 from autode.constants import Constants
 
 
-class Unit(ABC):
+class Unit:
 
     def __str__(self):
         return f'Unit({self.name})'
@@ -69,14 +68,15 @@ class CompositeUnit(Unit):
     def __init__(self,
                  *args:   Unit,
                  per:     Collection[Unit],
-                 name: Union[str, None] = None,
+                 name:    Union[str, None] = None,
                  aliases: Union[Collection, None] = None):
         """
         A unit as a composite of others, e.g. Ha Å^-1
 
         Arguments:
-            args (autode.units.Unit):
-            per (list(autode.units.Unit)):
+            args (autode.units.Unit): Units on the numerator
+
+            per (list(autode.units.Unit)): Units on the denominator
         """
 
         if name is None:

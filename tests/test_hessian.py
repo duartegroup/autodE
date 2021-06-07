@@ -5,27 +5,7 @@ from autode.values import Frequency
 from autode.thermo.hessians import Hessian
 from autode.units import wavenumber
 
-
-def test_hessian_set():
-
-    h2o = Molecule(smiles='O')
-
-    # Cannot set the Hessian as a matrix that isn't 3Nx3N
-    with pytest.raises(ValueError):
-        h2o.hessian = np.array([])
-
-    with pytest.raises(ValueError):
-        h2o.hessian = np.arange(0, 3*h2o.n_atoms)
-
-    assert h2o.hessian is None
-    h2o.hessian = np.zeros(shape=(3*h2o.n_atoms, 3*h2o.n_atoms))
-    assert h2o.hessian is not None
-
-
-def test_hessian_freqs():
-
-    h2o = Molecule(smiles='O')
-    h2o.hessian = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
+h2o_hessian_arr = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
                            -1.16433138e+00, -7.61763557e-01, -1.09191486e-09,
                            -1.14970123e+00,  7.46143320e-01, -7.39260002e-09],
                          [1.56179128e-02,  1.27705582e+00, -6.14958440e-09,
@@ -53,6 +33,32 @@ def test_hessian_freqs():
                           6.62204039e-10, -1.02974704e-09, -3.07470051e-02,
                           6.85803822e-09, -5.09659842e-09, 4.49197416e-02]])
 
+h2o_coords = np.array([[-0.0011, 0.3631, -0.0],
+                       [-0.825, -0.1819, -0.0],
+                       [0.8261, -0.1812, 0.0]])
+
+
+def test_hessian_set():
+
+    h2o = Molecule(smiles='O')
+
+    # Cannot set the Hessian as a matrix that isn't 3Nx3N
+    with pytest.raises(ValueError):
+        h2o.hessian = np.array([])
+
+    with pytest.raises(ValueError):
+        h2o.hessian = np.arange(0, 3*h2o.n_atoms)
+
+    assert h2o.hessian is None
+    h2o.hessian = np.zeros(shape=(3*h2o.n_atoms, 3*h2o.n_atoms))
+    assert h2o.hessian is not None
+
+
+def test_hessian_freqs():
+
+    h2o = Molecule(smiles='O')
+    h2o.hessian = h2o_hessian_arr
+
     assert isinstance(h2o.hessian, Hessian)
     freqs = h2o.hessian.frequencies
 
@@ -71,3 +77,24 @@ def test_hessian_freqs():
     assert np.isclose(nu_1, 1567.610851, atol=1.0)
     assert np.isclose(nu_2, 3467.698182, atol=1.0)
     assert np.isclose(nu_3, 3651.462209, atol=1.0)
+
+
+def test_hessian_modes():
+    """Ensure the translational, rotational and vibrational modes are close
+    to the expected values for a projected Hessian"""
+
+    h2o = Molecule(smiles='O')
+    h2o.coordinates = h2o_coords
+    h2o.hessian = h2o_hessian_arr
+
+    for trans_mode in h2o.hessian.normal_modes_proj[:3]:
+        assert np.allclose(trans_mode, np.zeros(shape=(h2o.n_atoms, 3)))
+
+    for rot_mode in h2o.hessian.normal_modes_proj[3:6]:
+        assert np.allclose(rot_mode, np.zeros(shape=(h2o.n_atoms, 3)))
+
+    for vib_mode in h2o.hessian.normal_modes_proj[6:]:
+
+        # Vibrational modes should have no component in the z-axis
+        for i, _ in enumerate(h2o.atoms):
+            assert np.isclose(vib_mode[i, 2], 0.0, atol=1E-4)

@@ -43,6 +43,61 @@ class Hessian(ValueArray):
         return arr
 
     @cached_property
+    def _proj_matrix(self) -> np.ndarray:
+        """
+        Construct the projection matrix to transform the Hessian into block
+        diagonal form::
+
+            H  => ( 0   0)
+                  (0    H')
+
+            F = D^T H D
+
+        Method from:
+        https://chemistry.stackexchange.com/questions/74639/how-to-calculate
+        -wavenumbers-of-normal-modes-from-the-eigenvalues-of-the-cartesi
+
+        see common/hessians.tex for methods
+
+        Returns:
+            (np.ndarray): Transform matrix (D)
+        """
+        n_atoms = len(self.atoms)
+
+        e_x = np.array([1., 0., 0.])
+        e_y = np.array([0., 1., 0.])
+        e_z = np.array([0., 0., 1.])
+
+        d1 = np.tile(e_x, reps=n_atoms)  # Translation vectors
+        d2 = np.tile(e_y, reps=n_atoms)
+        d3 = np.tile(e_z, reps=n_atoms)
+
+        com = self.atoms.com  # Centre of mass
+        d4, d5, d6 = [], [], []  # Rotation vectors
+
+        for atom in self.atoms:
+            d4 += np.cross(e_x, atom.coord - com).tolist()
+            d5 += np.cross(e_y, atom.coord - com).tolist()
+            d6 += np.cross(e_z, atom.coord - com).tolist()
+
+        # Construct M^1/2, which as it's diagonal, is just the roots of the
+        # diagonal elements
+        masses = np.repeat([atom.mass for atom in self.atoms], repeats=3,
+                           axis=np.newaxis)
+        m_half = np.diag(np.sqrt(masses))
+
+        for col in (d1, d2, d3, d4, d5, d6):
+            col[:] = np.dot(m_half, np.array(col).T)
+            col /= np.linalg.norm(col)
+
+        # Generate a transform matrix D with the first columns as translation/
+        # rotation vectors with the remainder as random orthogonal columns
+        D = np.random.rand(3 * n_atoms, 3 * n_atoms) - 0.5
+
+        D[:, :6] = np.column_stack((d1, d2, d3, d4, d5, d6))
+        return np.linalg.qr(D)[0]
+
+    @cached_property
     def _mass_weighted(self) -> np.ndarray:
         """Mass weighted the Hessian matrix
 
@@ -61,6 +116,19 @@ class Hessian(ValueArray):
         return H / np.sqrt(np.outer(mass_array, mass_array))
 
     @cached_property
+    def _proj_mass_weighted(self) -> np.ndarray:
+        """
+        Sub-Hessian with the translation and rotation projected out.
+
+        Returns:
+            (np.ndarray):
+        """
+        D = self._proj_matrix
+        H = np.linalg.multi_dot((D.T, self._mass_weighted, D))
+
+        return H
+
+    @cached_property
     def normal_modes(self) -> List[Coordinates]:
         """
         Calculate the normal modes as the eigenvectors of the Hessian matrix
@@ -77,7 +145,31 @@ class Hessian(ValueArray):
         # individual displacements that can be added to a set of coordinates
         return [Coordinates(mode) for mode in modes.T]
 
-    def _eigenvals_to_freqs(self, lambdas) -> List[Frequency]:
+    @cached_property
+    def normal_modes_proj(self) -> List[Coordinates]:
+        """
+        Normal modes from the projected Hessian without rotation or translation
+
+        Returns:
+            (list(autode.values.Coordinates)):
+        """
+        n_tr = 6                     # Number of translational+rotational modes
+        n_vibs = 3*len(self.atoms) - n_tr        # and the number of vibrations
+
+        _, L_prime = np.linalg.eigh(self._proj_mass_weighted[n_tr:, n_tr:])
+
+        # Re-construct the block matrix
+        L = np.block([[np.zeros((n_tr, n_tr)),     np.zeros((n_tr, n_vibs))],
+                      [np.zeros((n_vibs, n_tr)),           L_prime         ]])
+
+        # then apply the back-transformation
+        modes = [Coordinates(np.dot(self._proj_matrix, L[:, i]))
+                 for i in range(6 + n_vibs)]
+
+        return modes
+
+    @staticmethod
+    def _eigenvalues_to_freqs(lambdas) -> List[Frequency]:
         """
         Convert eigenvalues of the Hessian matrix (SI units) to
         frequencies in wavenumber units
@@ -111,60 +203,22 @@ class Hessian(ValueArray):
             (ValueError): If atoms are not set
         """
         lambdas = np.linalg.eigvalsh(self._mass_weighted)
-        freqs = self._eigenvals_to_freqs(lambdas)
+        freqs = self._eigenvalues_to_freqs(lambdas)
 
         return freqs
 
     @cached_property
     def frequencies_proj(self) -> List[Frequency]:
         """
-        Frequencies with rotation and translation projected out. Method from
-
-        https://chemistry.stackexchange.com/questions/74639/how-to-calculate
-        -wavenumbers-of-normal-modes-from-the-eigenvalues-of-the-cartesi
+        Frequencies with rotation and translation projected out
 
         Returns:
             (list(autode.values.Frequency))
         """
-        n_atoms = len(self.atoms)
-
-        e_x = np.array([1., 0., 0.])
-        e_y = np.array([0., 1., 0.])
-        e_z = np.array([0., 0., 1.])
-
-        d1 = np.tile(e_x, reps=n_atoms)    # Translation vectors
-        d2 = np.tile(e_y, reps=n_atoms)
-        d3 = np.tile(e_z, reps=n_atoms)
-
-        com = self.atoms.com               # Centre of mass
-        d4, d5, d6 = [], [], []            # Rotation vectors
-
-        for atom in self.atoms:
-            d4 += np.cross(e_x, atom.coord - com).tolist()
-            d5 += np.cross(e_y, atom.coord - com).tolist()
-            d6 += np.cross(e_z, atom.coord - com).tolist()
-
-        # Construct M^1/2, which as it's diagonal, is just the roots of the
-        # diagonal elements
-        masses = np.repeat([atom.mass for atom in self.atoms], repeats=3, axis=np.newaxis)
-        m_half = np.diag(np.sqrt(masses))
-
-        for col in (d1, d2, d3, d4, d5, d6):
-            col[:] = np.dot(m_half, np.array(col).T)
-            col /= np.linalg.norm(col)
-
-        # Generate a transform matrix D with the first columns as translation/
-        # rotation vectors with the remainder as random orthogonal columns
-        D = np.random.rand(3*n_atoms, 3*n_atoms) - 0.5
-
-        D[:, 0:6] = np.column_stack((d1, d2, d3, d4, d5, d6))
-        D = np.linalg.qr(D)[0]
-
-        # Apply the orthogonal transformation to the mass weighted Hessian
-        H = np.linalg.multi_dot((D.T, self._mass_weighted, D))
+        lambdas = np.linalg.eigvalsh(self._proj_mass_weighted[6:, 6:])
 
         trans_rot_freqs = [Frequency(0.0) for _ in range(6)]
-        vib_freqs = self._eigenvals_to_freqs(lambdas=np.linalg.eigvalsh(H[6:, 6:]))
+        vib_freqs = self._eigenvalues_to_freqs(lambdas)
 
         return trans_rot_freqs + vib_freqs
 
