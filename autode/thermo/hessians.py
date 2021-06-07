@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-from functools import cached_property
+from autode.utils import cached_property
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.units import (wavenumber,

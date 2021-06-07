@@ -15,6 +15,27 @@ from autode.exceptions import (NoAtomsInMolecule,
 # Needed for additional pickle-ability
 multiprocessing.set_start_method("fork")
 
+try:
+    from functools import cached_property
+
+except ImportError:
+    from functools import lru_cache
+
+    # Define a cached_property equivalent decorator from https://stackoverflow
+    # .com/questions/4037481/caching-class-attributes-in-python
+    def cached_property(func):
+        @property
+        @lru_cache()
+        @wraps(func)
+        def wrapped_function(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapped_function
+
+else:
+    raise ImportError('Could not import cached_property or lru_cache from '
+                      'functools. Please consider upgrading your Python!')
+
 
 def run_external(params, output_filename):
     """
