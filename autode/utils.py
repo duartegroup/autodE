@@ -32,10 +32,6 @@ except ImportError:
 
         return wrapped_function
 
-else:
-    raise ImportError('Could not import cached_property or lru_cache from '
-                      'functools. Please consider upgrading your Python!')
-
 
 def run_external(params, output_filename):
     """
