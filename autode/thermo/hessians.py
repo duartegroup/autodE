@@ -1,7 +1,8 @@
 import numpy as np
-from typing import List
+from typing import List, Tuple
 from autode.utils import cached_property
 from autode.constants import Constants
+from autode.geom import proj
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.units import (wavenumber,
                           ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq)
@@ -46,6 +47,48 @@ class Hessian(ValueArray):
 
         return arr
 
+    def _translation_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Orthonormal translation vectors for Hessian projection
+
+        Returns:
+            (tuple(np.ndarray)):
+        """
+        n_atoms = len(self.atoms)
+
+        t1 = np.tile(np.array([1., 0., 0.]), reps=n_atoms)
+        t2 = np.tile(np.array([0., 1., 0.]), reps=n_atoms)
+        t3 = np.tile(np.array([0., 0., 1.]), reps=n_atoms)
+
+        return t1, t2, t3
+
+    def _rotation_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Rotation vectors for Hessian projection, if linear then choose a
+        set of orthogonal basis vectors that include the major rotation
+        axis
+
+        Returns:
+            (tuple(np.ndarray)):
+        """
+
+        e_x = np.array([1., 0., 0.])
+        e_y = np.array([0., 1., 0.])
+        e_z = np.array([0., 0., 1.])
+
+        if self.atoms.are_linear():
+            raise NotImplementedError
+
+        com = self.atoms.com     # Centre of mass
+        t4, t5, t6 = [], [], []
+
+        for atom in self.atoms:
+            t4 += np.cross(e_x, atom.coord - com).tolist()
+            t5 += np.cross(e_y, atom.coord - com).tolist()
+            t6 += np.cross(e_z, atom.coord - com).tolist()
+
+        return np.array(t4), np.array(t5), np.array(t6)
+
     @cached_property
     def _proj_matrix(self) -> np.ndarray:
         """
@@ -66,23 +109,9 @@ class Hessian(ValueArray):
         Returns:
             (np.ndarray): Transform matrix (D)
         """
-        n_atoms = len(self.atoms)
 
-        e_x = np.array([1., 0., 0.])
-        e_y = np.array([0., 1., 0.])
-        e_z = np.array([0., 0., 1.])
-
-        t1 = np.tile(e_x, reps=n_atoms)  # Translation vectors
-        t2 = np.tile(e_y, reps=n_atoms)
-        t3 = np.tile(e_z, reps=n_atoms)
-
-        com = self.atoms.com     # Centre of mass
-        t4, t5, t6 = [], [], []  # Rotation vectors
-
-        for atom in self.atoms:
-            t4 += np.cross(e_x, atom.coord - com).tolist()
-            t5 += np.cross(e_y, atom.coord - com).tolist()
-            t6 += np.cross(e_z, atom.coord - com).tolist()
+        t1, t2, t3 = self._translation_vecs()
+        t4, t5, t6 = self._rotation_vecs()
 
         # Construct M^1/2, which as it's diagonal, is just the roots of the
         # diagonal elements
@@ -96,7 +125,7 @@ class Hessian(ValueArray):
 
         # Generate a transform matrix D with the first columns as translation/
         # rotation vectors with the remainder as random orthogonal columns
-        M = np.random.rand(3 * n_atoms, 3 * n_atoms) - 0.5
+        M = np.random.rand(3 * len(self.atoms), 3 * len(self.atoms)) - 0.5
         M[:, :6] = np.column_stack((t1, t2, t3, t4, t5, t6))
 
         return np.linalg.qr(M)[0]
@@ -130,6 +159,7 @@ class Hessian(ValueArray):
         Returns:
             (np.ndarray):
         """
+
         H = np.linalg.multi_dot((self._proj_matrix.T,
                                  self._mass_weighted,
                                  self._proj_matrix))
@@ -228,14 +258,3 @@ class Hessian(ValueArray):
         vib_freqs = self._eigenvalues_to_freqs(lambdas)
 
         return trans_rot_freqs + vib_freqs
-
-    @cached_property
-    def frequencies_lproj(self):
-        """
-        Frequencies with rotation and translation projected out for linear
-        species
-
-        Returns:
-
-        """
-        raise NotImplementedError

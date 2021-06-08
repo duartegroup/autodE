@@ -1,6 +1,6 @@
 import numpy as np
 from copy import deepcopy
-from typing import Union, List
+from typing import Optional, Union, List
 from scipy.spatial import distance_matrix
 from autode.atoms import Atom, Atoms, AtomCollection
 from autode.geom import calc_rmsd
@@ -15,8 +15,10 @@ from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod
 from autode.mol_graphs import make_graph
-from autode.values import Energy, Energies, Distance, Gradients, Frequency
 from autode.thermo.hessians import Hessian
+from autode.values import (Angle,
+                           Energy, Energies, Gradients,
+                           Distance, Frequency)
 from autode.utils import (requires_atoms,
                           work_in,
                           requires_conformers)
@@ -58,7 +60,7 @@ class Species(AtomCollection):
 
     @AtomCollection.atoms.setter
     def atoms(self,
-              value: Union[List[Atom], None]):
+              value: Union[List[Atom], Atoms, None]):
         """
         Set the atoms for this species, and reset the energies
 
@@ -90,7 +92,7 @@ class Species(AtomCollection):
         return
 
     @property
-    def formula(self):
+    def formula(self) -> str:
         """Return the molecular formula of this species, e.g.::
 
             self.atoms = None                 ->   ""
@@ -113,7 +115,7 @@ class Species(AtomCollection):
         return formula_str
 
     @property
-    def hessian(self) -> Union[Hessian, None]:
+    def hessian(self) -> Optional[Hessian]:
         """
         Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
         shape = (3*n_atoms, 3*n_atoms)
@@ -135,7 +137,7 @@ class Species(AtomCollection):
             self._hess = Hessian(value, atoms=self.atoms)
 
     @property
-    def gradient(self) -> Union[Gradients, None]:
+    def gradient(self) -> Optional[Gradients]:
         """
         Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
         shape = (n_atoms, 3)
@@ -160,7 +162,7 @@ class Species(AtomCollection):
             self._grad = Gradients(value)
 
     @property
-    def frequencies(self) -> Union[List[Frequency], None]:
+    def frequencies(self) -> Optional[List[Frequency]]:
         """
         Frequencies from Hessian diagonalisation, in cm-1 by default
 
@@ -202,7 +204,7 @@ class Species(AtomCollection):
         return isinstance(self.solvent, ExplicitSolvent)
 
     @property
-    def energy(self) -> Union[Energy, None]:
+    def energy(self) -> Optional[Energy]:
         """Last computed energy"""
 
         if len(self.energies) > 0:
@@ -211,14 +213,14 @@ class Species(AtomCollection):
         return None
 
     @energy.setter
-    def energy(self, value: Union[Energy, None]):
+    def energy(self, value: Optional[Energy]):
         """Add an energy to the list"""
 
         if value is not None:
             self.energies.append(value)
 
     @property
-    def h_cont(self) -> Union[Energy, None]:
+    def h_cont(self) -> Optional[Energy]:
         """
         Return the enthalpic contribution to the energy
 
@@ -228,7 +230,7 @@ class Species(AtomCollection):
         return self.energies.h_cont
 
     @property
-    def g_cont(self) -> Union[Energy, None]:
+    def g_cont(self) -> Optional[Energy]:
         """
         Return the Gibbs (free) contribution to the energy
 
@@ -327,34 +329,24 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms
-    def is_linear(self, tol=0.01):
-        """Determine if a species is linear i.e all atoms are colinear
+    def is_linear(self,
+                  tol:       Optional[float] = None,
+                  angle_tol: Angle = Angle(1.0, units='deg')):
+        """
+        Determine if a species is linear i.e all atoms are colinear
 
         Keyword Arguments:
-            tol (float): Tolerance on |cos(θ)| - 1 where θ is the angle between
-                         the vector from atom 0 to 1 and from 0 to n (n > 1)
+            tol (float | None): Tolerance on |cos(θ)| - 1 where θ is the angle
+                                between the vector from atom 0 to 1 and from
+                                0 to n (n > 1). Present for compatibility and
+                                overrides angle_tol if not None
+
+            angle_tol (Angle): Tolerance on the angle considered to be linear
         """
-        if len(self.atoms) < 2:
-            return False
+        if tol is not None:
+            angle_tol = Angle(np.arccos(1.0 - tol), units='rad')
 
-        # A species with two atoms must be linear
-        if len(self.atoms) == 2:
-            logger.info('Species is linear')
-            return True
-
-        # Check that all atoms are in colinear to the first two, taking the
-        # first atom as the origin
-        vec0 = self.atoms[1].coord - self.atoms[0].coord
-        vec0 /= np.linalg.norm(vec0)    # normalise
-
-        for atom in self.atoms[2:]:
-            vec = atom.coord - self.atoms[0].coord
-            cos_theta = np.dot(vec, vec0) / np.linalg.norm(vec)
-            if np.abs(np.abs(cos_theta) - 1) > tol:
-                return False
-
-        logger.info('Species is linear')
-        return True
+        return self.atoms.are_linear(angle_tol=angle_tol)
 
     @requires_atoms
     def translate(self, vec: np.ndarray):
@@ -366,9 +358,9 @@ class Species(AtomCollection):
 
     @requires_atoms
     def rotate(self,
-               axis: np.ndarray,
-               theta: float,
-               origin: Union[np.ndarray, None] = None):
+               axis:   np.ndarray,
+               theta:  float,
+               origin: Optional[np.ndarray] = None):
         """Rotate the molecule by around an axis (np.ndarray, length 3) an
         theta radians"""
         for atom in self.atoms:
@@ -385,7 +377,7 @@ class Species(AtomCollection):
     @requires_atoms
     def print_xyz_file(self,
                        title_line: str = '',
-                       filename: Union[str, None] = None):
+                       filename:   Optional[str] = None):
         """Print a standard xyz file from the Molecule's atoms"""
 
         if filename is None:
@@ -531,10 +523,10 @@ class Species(AtomCollection):
 
     def __init__(self,
                  name:         str,
-                 atoms:        Union[List[Atom], None],
+                 atoms:        Union[List[Atom], Atoms, None],
                  charge:       Union[float, int],
                  mult:         Union[float, int],
-                 solvent_name: Union[str, None] = None):
+                 solvent_name: Optional[str] = None):
         """
         A molecular species. A collection of atoms with a charge and spin
         multiplicity in a solvent (None is gas phase)

@@ -214,6 +214,40 @@ class Atoms(list):
 
         return Coordinate(com / sum(atom.mass for atom in self))
 
+    def are_linear(self,
+                   angle_tol: Angle = Angle(1, units='deg')) -> bool:
+        """
+        Are these set of atoms colinear?
+
+        Arguments:
+            angle_tol (autode.values.Angle): Tolerance on the angle
+
+        Returns:
+            (bool):
+        """
+        if len(self) < 2:      # Must have at least 2 atoms colinear
+            return False
+
+        if len(self) == 2:     # Two atoms must be linear
+            return True
+
+        tol = np.abs(1.0 - np.cos(angle_tol.to('rad')))
+
+        # Take the normalised first vector
+        vec0 = self[1].coord - self[0].coord
+        vec0 /= np.linalg.norm(vec0)
+
+        for atom in self[2:]:
+            vec = atom.coord - self[0].coord
+            cos_theta = np.dot(vec, vec0) / np.linalg.norm(vec)
+
+            # Both e.g. <179° and >1° should satisfy this condition for
+            # angle_tol = 1°
+            if np.abs(np.abs(cos_theta) - 1) > tol:
+                return False
+
+        return True
+
 
 class AtomCollection:
 

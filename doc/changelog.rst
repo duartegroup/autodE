@@ -17,7 +17,7 @@ Usability improvements
 - Adds interpretable :code:`repr(Species)`
 - :code:`Species.energies` is zeroed when the :code:`Species.atoms` are reset or change
 - :code:`Species.energy` is a property of the last computed energy on that species
-
+- :code:`Species.is_linear` now uses an angle tolerance to determine linearity, which is slightly tighter than the previous float-based tolerance
 
 Functionality improvements
 **************************

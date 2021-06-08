@@ -40,6 +40,29 @@ def _to(value,
                            units=units)
 
 
+def _units_init(value,
+                units: Union[Unit, str, None]):
+    """Initialise the units of this value
+
+    Arguments:
+        units (Unit | str | None)
+
+    Raises:
+        (ValueError): If this is not a valid unit for this value
+    """
+    if units is None:
+        return None
+
+    try:
+        return next(unit for unit in value.implemented_units if
+                    units.lower() in unit.aliases)
+
+    except StopIteration:
+        raise ValueError(f'{units} is not a valid unit for '
+                         f'{repr(value)}. Only {value.implemented_units} '
+                         f'are implemented')
+
+
 class Value(ABC, float):
     """
     Abstract base class for a value with a defined set of units, along with
@@ -152,7 +175,7 @@ class Value(ABC, float):
         return _to(self, units)
 
     def __init__(self, x,
-                 units: Union[Unit, None] = None):
+                 units: Union[Unit, str, None] = None):
         """
         Value constructor
 
@@ -164,7 +187,7 @@ class Value(ABC, float):
         """
 
         float.__init__(float(x))
-        self.units = units
+        self.units = _units_init(self, units)
 
 
 class Energy(Value):
@@ -404,10 +427,10 @@ class ValueArray(ABC, np.ndarray):
 
     def __new__(cls,
                 input_array: np.ndarray,
-                units: Union[Unit, None] = None):
+                units: Union[Unit, str, None] = None):
 
         arr = np.asarray(input_array).view(cls)
-        arr.units = units
+        arr.units = _units_init(cls, units)
 
         return arr
 

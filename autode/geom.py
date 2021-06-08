@@ -36,6 +36,24 @@ def are_coords_reasonable(coords):
     return True
 
 
+def proj(u, v):
+    """
+    Calculate the projection of v onto the direction of u. Useful for
+    https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+
+    Arguments:
+        u (np.ndarray):
+
+        v (np.ndarray):
+
+    Returns:
+        (np.ndarray): proj_u(v)
+    """
+
+    u_hat = u / np.linalg.norm(u)
+    return np.dot(u, v) * u_hat
+
+
 def get_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
