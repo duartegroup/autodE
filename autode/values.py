@@ -18,6 +18,7 @@ def _to(value,
     """Convert a value or value array to a new unit and return a copy
 
     Arguments:
+        value (autode.values.Value | autode.values.ValueArray):
         units (autode.units.Unit | str):
 
     Returns:
@@ -387,6 +388,19 @@ class ValueArray(ABC, np.ndarray):
     @abstractmethod
     def __repr__(self):
         """String representation of this value array"""
+
+    def __eq__(self, other):
+        """Define equality for a valuearray, with implicit type conversion"""
+
+        if (other is None
+                or not hasattr(other, 'shape')
+                or other.shape != self.shape):
+            return False
+
+        if isinstance(other, ValueArray):
+            other = other.to(self.units)
+
+        return np.allclose(self, other)
 
     def __new__(cls,
                 input_array: np.ndarray,

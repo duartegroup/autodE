@@ -14,6 +14,10 @@ class Hessian(ValueArray):
     def __repr__(self):
         return f'Hessian({np.ndarray.__str__(self)} {self.units.name})'
 
+    def __hash__(self):
+        # NOTE: Required for functools.lru_cache (< Python 3.8)
+        return hash(str(self))
+
     def __new__(cls,
                 input_array,
                 units=ha_per_ang_sq,
@@ -157,17 +161,17 @@ class Hessian(ValueArray):
             (list(autode.values.Coordinates)):
         """
         n_tr = 6                     # Number of translational+rotational modes
-        n_vibs = 3*len(self.atoms) - n_tr        # and the number of vibrations
+        n_v = 3*len(self.atoms) - n_tr           # and the number of vibrations
 
         _, S_bar = np.linalg.eigh(self._proj_mass_weighted[n_tr:, n_tr:])
 
         # Re-construct the block matrix
-        S_prime = np.block([[np.zeros((n_tr, n_tr)),  np.zeros((n_tr, n_vibs))],
-                            [np.zeros((n_vibs, n_tr)),         S_bar        ]])
+        S_prime = np.block([[np.zeros((n_tr, n_tr)),  np.zeros((n_tr, n_v))],
+                            [np.zeros((n_v, n_tr)),         S_bar        ]])
 
         # then apply the back-transformation
         modes = [Coordinates(np.dot(self._proj_matrix, S_prime[:, i]))
-                 for i in range(6 + n_vibs)]
+                 for i in range(6 + n_v)]
 
         return modes
 
