@@ -68,7 +68,7 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
 
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
     fig = plt.figure(figsize=(12, 4))
-    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+    ax1 = fig.add_subplot(1, 2, 1, projection=Axes3D.name)
     ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
 
     ax1.view_init(45)

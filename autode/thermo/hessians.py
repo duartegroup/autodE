@@ -86,9 +86,9 @@ class Hessian(ValueArray):
                            axis=np.newaxis)
         m_half = np.diag(np.sqrt(masses))
 
-        for col in (t1, t2, t3, t4, t5, t6):
-            col[:] = np.dot(m_half, np.array(col).T)
-            col /= np.linalg.norm(col)
+        for t_i in (t1, t2, t3, t4, t5, t6):
+            t_i[:] = np.dot(m_half, np.array(t_i).T)
+            t_i /= np.linalg.norm(t_i)
 
         # Generate a transform matrix D with the first columns as translation/
         # rotation vectors with the remainder as random orthogonal columns

@@ -16,12 +16,14 @@ from autode.exceptions import (NoAtomsInMolecule,
 multiprocessing.set_start_method("fork")
 
 try:
-    from functools import cached_property
+    from functools import cached_property            # lgtm [py/unused-import]
+    # LGTM alert is suppressed as this is imported in Python >3.7, but not
+    # under the CI (Python 3.7)
 
 except ImportError:
     from functools import lru_cache
 
-    # Define a cached_property equivalent decorator from https://stackoverflow
+    # Define a cached_property equivalent decorator, from https://stackoverflow
     # .com/questions/4037481/caching-class-attributes-in-python
     def cached_property(func):
         @property
