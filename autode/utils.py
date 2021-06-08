@@ -16,7 +16,7 @@ from autode.exceptions import (NoAtomsInMolecule,
 multiprocessing.set_start_method("fork")
 
 try:
-    from functools import cached_property            # lgtm [py/unused-import]
+    from functools import cached_property # lgtm[py/unused-import]
     # LGTM alert is suppressed as this is imported in Python >3.7, but not
     # under the CI (Python 3.7)
 
