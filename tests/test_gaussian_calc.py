@@ -85,7 +85,6 @@ def test_get_gradients():
     calc = Calculation(name='ester', molecule=ester,
                        method=method, keywords=method.keywords.opt)
     calc.output.filename = 'ester_opt_g09.log'
-    calc.output.set_lines()
 
     gradients = calc.get_gradients()
     assert gradients is not None

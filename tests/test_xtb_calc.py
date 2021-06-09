@@ -61,7 +61,6 @@ def test_xtb_calculation():
     # Write an empty output file
     open('tmp.out', 'w').close()
     const_opt.output.filename = 'tmp.out'
-    const_opt.output.set_lines()
 
     # cannot get atoms from an empty file
     with pytest.raises(AtomsNotFound):
@@ -78,7 +77,6 @@ def test_energy_extract_no_energy():
 
     # Output where the energy is not present
     calc.output.filename = 'h2_sp_xtb_no_energy.out'
-    calc.output.set_lines()
 
     assert calc.terminated_normally()
     assert calc.get_energy() is None
@@ -183,12 +181,9 @@ def test_xtb_6_1_old():
     for filename in ('xtb_6_1_opt.out', 'xtb_no_version_opt.out'):
 
         calc.output.filename = filename
-        calc.output.set_lines()
 
         assert len(calc.get_final_atoms()) == 5
         mol.atoms = calc.get_final_atoms()
 
         assert set([atom.label for atom in mol.atoms]) == {'C', 'H'}
         assert 0.9 < mol.distance(0, 1) < 1.2
-
-        calc.output.set_lines()

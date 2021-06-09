@@ -6,6 +6,7 @@ import numpy as np
 from typing import Union, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
+from autode.utils import cached_property
 from autode.atoms import Atom
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
@@ -469,10 +470,6 @@ class Calculation:
         if not self.input.exists:
             raise ex.NoInputError('Input did not exist')
 
-        # If the output file already exists set the output lines
-        if self.output.filename is not None and os.path.exists(self.output.filename):
-            self.output.set_lines()
-
         if self.output.exists and self.terminated_normally():
             logger.info('Calculation already terminated normally. Skipping')
             return None
@@ -482,7 +479,6 @@ class Calculation:
             raise ex.MethodUnavailable
 
         self.method.execute(self)
-        self.output.set_lines()
 
         return None
 
@@ -567,32 +563,34 @@ class Calculation:
 
 class CalculationOutput:
 
-    def set_lines(self):
+    @cached_property
+    def file_lines(self):
         """
-        Set the output files lines. This may be slow for large files but should
-        not become a bottleneck when running standard DFT/WF calculations
+        Output files lines. This may be slow for large files but should
+        not become a bottleneck when running standard DFT/WF calculations,
+        are cached so only read once
 
         Returns:
-            (None)
+            (list(str)): Lines from the output file
+
+        Raises:
+            (autode.exceptions.NoCalculationOutput):
         """
         logger.info('Setting output file lines')
 
-        if not os.path.exists(self.filename):
+        if self.filename is None or not os.path.exists(self.filename):
             raise ex.NoCalculationOutput
 
-        self.file_lines = open(self.filename, 'r', encoding="utf-8").readlines()
-
-        return None
+        return open(self.filename, 'r', encoding="utf-8").readlines()
 
     @property
     def exists(self):
         """Does the calculation output exist?"""
-        return self.filename is not None and self.file_lines is not None
+        return self.filename is not None and os.path.exists(self.filename)
 
     def __init__(self):
 
         self.filename = None
-        self.file_lines = None
 
 
 class CalculationInput:
