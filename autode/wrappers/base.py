@@ -106,22 +106,6 @@ class ElectronicStructureMethod(Method, ABC):
 
     @abstractmethod
     @requires_output
-    def get_energy(self, calc) -> float:
-        """
-        Return the potential energy in electronic Hartrees
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (float):
-
-        Raises:
-            (autode.exceptions.CouldNotGetProperty)
-        """
-
-    @abstractmethod
-    @requires_output
     def optimisation_converged(self, calc) -> bool:
         """
         Function implemented in individual child classes
@@ -174,6 +158,22 @@ class ElectronicStructureMethod(Method, ABC):
             (list(float)):
         """
         raise NotImplementedError
+
+    @abstractmethod
+    @requires_output
+    def get_energy(self, calc) -> float:
+        """
+        Return the potential energy in electronic Hartrees
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (float):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
+        """
 
     @abstractmethod
     @requires_output

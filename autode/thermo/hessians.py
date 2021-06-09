@@ -127,6 +127,11 @@ class Hessian(ValueArray):
         m_half = np.diag(np.sqrt(masses))
 
         for t_i in (t1, t2, t3, t4, t5, t6):
+
+            if np.isclose(np.linalg.norm(t_i), 0.0):
+                raise RuntimeError('Encountered linear linear dependency '
+                                   'between basis vectors')
+
             t_i[:] = np.dot(m_half, np.array(t_i).T)
             t_i /= np.linalg.norm(t_i)
 

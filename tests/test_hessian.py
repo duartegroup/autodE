@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from autode.constants import Constants
+import autode as ade
+from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.thermo.hessians import Hessian
@@ -128,3 +129,36 @@ def test_hessian_linear_freqs():
     # and two others that are larger
     assert sum(freq > Frequency(1000, units='cm-1')
                for freq in co2.hessian.frequencies_proj) == 2
+
+
+def test_gaussian_hessian_extract_h2():
+
+    h2 = ade.Molecule(atoms=[ade.Atom('H', x=0.3804),
+                             ade.Atom('H', x=-0.3804)])
+
+    calc = Calculation(name='tmp',
+                       molecule=h2,
+                       method=ade.methods.G09(),
+                       keywords=ade.HessianKeywords())
+
+    calc.output.filename = 'H2_hess_g09.log'
+    h2.hessian = calc.get_hessian()
+
+    # print(h2.hessian.frequencies_proj)
+
+    assert np.isclose(h2.hessian.frequencies[-1], Frequency(4383.9811),
+                      atol=1.0)
+
+
+def _test_gaussian_hessian_extract_co2():
+
+    co2 = Molecule('CO2_opt.xyz')
+
+    calc = Calculation(name='tmp',
+                       molecule=co2,
+                       method=ade.methods.G09(),
+                       keywords=ade.SinglePointKeywords([]))
+
+    calc.output.filename = 'CO2_opt_hess_g09.log'
+
+    hessian = calc.get_hessian()

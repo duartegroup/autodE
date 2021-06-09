@@ -406,7 +406,6 @@ class G09(ElectronicStructureMethod):
             logger.info('The 180° angle issue has been fixed')
             calc.output = fixed_calc.output
             calc.name = fixed_calc.name
-            calc.output.set_lines()
             return True
 
         return False
@@ -596,6 +595,68 @@ class G09(ElectronicStructureMethod):
                     logger.warning('Failed to set gradient line')
 
         return np.array(gradients)
+
+    def get_hessian(self, calc):
+        r"""
+        Extract the Hessian from a Gaussian09 calculation, which is printed as
+        just the lower triangular portion but is symmetric so the full 3Nx3N
+        matrix can be re-constructed. Read it from the final output block
+        sandwiched between 1\1\ ..... \\@
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (IndexError | ValueError):
+        """
+
+        hess_lines = []
+        append_line = False
+
+        for line in reversed(calc.output.file_lines):
+
+            if r'\\@' in line:
+                append_line = True
+
+            if append_line:
+                #                 Strip of new-lines and spaces
+                hess_lines.append(line.strip('\n').strip(' '))
+
+            if 'NImag' in line:
+                break
+
+        r"""
+        For a block with the format:
+        
+        ...[C*(O1C1O1)]\NImag=0\\H_x1x1, H_y1x1, ...\\
+        F_x1, F_y1, ...\\\@
+        
+        get the elements of the Hessian, noting that the lines have been
+        parsed backwards, hence the [::-1]
+        """
+
+        hess_str = "".join(hess_lines[::-1]).split(r'\\')[-3]
+        hess_values = [float(val) for val in hess_str.split(',')]
+
+        n = 3 * calc.molecule.n_atoms
+
+        if len(hess_values) != n*(n + 1)//2:
+            raise CouldNotGetProperty('Not enough elements of the Hessian '
+                                      'matrix found')
+
+        # Fill the lower triangular elements of a blank matrix
+        hess_arr = np.zeros(shape=(n, n), dtype='f8')
+        hess_arr[np.tril_indices(n=n, k=0)] = np.array(hess_values)
+
+        # Symmetrise by making the upper triangular elements to the lower
+        lower_idxs = np.tril_indices(n=n, k=-1)
+        hess_arr.T[lower_idxs] = hess_arr[lower_idxs]
+
+        # Gaussian Hessians are quoted in Ha a0^-2
+        return hess_arr / Constants.a0_to_ang**2
 
     def __init__(self, name='g09', path=None, keywords_set=None,
                  implicit_solvation_type=None):
