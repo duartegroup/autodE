@@ -214,6 +214,43 @@ class Atoms(list):
 
         return Coordinate(com / sum(atom.mass for atom in self))
 
+    def vector(self,
+               i: int,
+               j: int) -> np.ndarray:
+        """
+        Vector from atom i to atom j
+
+        Arguments:
+            i (int):
+            j (int):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (IndexError): If i or j are not present
+        """
+        return self[j].coord - self[i].coord
+
+    def nvector(self,
+               i: int,
+               j: int) -> np.ndarray:
+        """
+        Normalised vector from atom i to atom j
+
+        Arguments:
+            i (int):
+            j (int):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (IndexError): If i or j are not present
+        """
+        vec = self.vector(i, j)
+        return vec / np.linalg.norm(vec)
+
     def are_linear(self,
                    angle_tol: Angle = Angle(1, units='deg')) -> bool:
         """

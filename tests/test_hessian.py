@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from autode.constants import Constants
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.thermo.hessians import Hessian
@@ -65,7 +66,7 @@ def test_hessian_set():
     assert h2o.hessian is not None
 
 
-def yest_hessian_freqs():
+def test_hessian_freqs():
 
     h2o = Molecule(smiles='O')
     h2o.hessian = h2o_hessian_arr
@@ -111,12 +112,19 @@ def test_hessian_modes():
             assert np.isclose(vib_mode[i, 2], 0.0, atol=1E-4)
 
 
-def _test_hessian_linear_freqs():
+def test_hessian_linear_freqs():
 
     co2 = Molecule('CO2_opt.xyz')
     assert co2.is_linear()
 
-    co2.hessian = Hessian(co2_hessian_arr, units='Ha / a0^2')
+    co2.hessian = Hessian(co2_hessian_arr, units='Ha/a0^2')
 
-    print(co2.hessian.frequencies_proj)
+    assert sum(freq == 0.0 for freq in co2.hessian.frequencies_proj) == 5
 
+    # Should have a degenerate bending mode for CO2 with ν = 666 cm-1
+    assert sum(np.isclose(Frequency(666, units='cm-1'), freq, atol=1.0)
+               for freq in co2.hessian.frequencies_proj) == 2
+
+    # and two others that are larger
+    assert sum(freq > Frequency(1000, units='cm-1')
+               for freq in co2.hessian.frequencies_proj) == 2

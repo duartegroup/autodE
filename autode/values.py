@@ -428,9 +428,23 @@ class ValueArray(ABC, np.ndarray):
     def __new__(cls,
                 input_array: np.ndarray,
                 units: Union[Unit, str, None] = None):
+        """
+        Initialise a ValueArray from a numpy array, or another ValueArray
+
+        Arguments:
+            input_array (np.ndarray | autode.values.ValueArray):
+            units (autode.units.Unit | str):
+
+        Returns:
+            (autode.values.ValueArray):
+        """
 
         arr = np.asarray(input_array).view(cls)
-        arr.units = _units_init(cls, units)
+
+        if isinstance(input_array, ValueArray):
+            arr.units = input_array.units
+        else:
+            arr.units = _units_init(cls, units)
 
         return arr
 

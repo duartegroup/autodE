@@ -27,25 +27,35 @@ class Hessian(ValueArray):
         Hessian matrix
 
         Arguments:
-            input_array (np.ndarray):
-            units (autode.units.Unit):
+            input_array (np.ndarray | autode.values.ValueArray):
+            units (autode.units.Unit | str):
             atoms (list(autode.atoms.Atom) | None):
+
+        Returns:
+            (autode.thermo.hessians.Hessian):
 
         Raises:
             (ValueError):
         """
-
-        arr = np.asarray(input_array).view(cls)
-        arr.units = units
+        arr = super().__new__(cls, input_array, units=units)
 
         if atoms is not None and (3*len(atoms), 3*len(atoms)) != input_array.shape:
             raise ValueError(f'Shape mismatch. Expecting '
                              f'{input_array.shape[0]//3} atoms from the Hessian'
                              f' shape, but had {len(atoms)}')
-
         arr.atoms = atoms
 
         return arr
+
+    @cached_property
+    def n_tr(self) -> int:
+        """Number of translational and rotational normal modes"""
+        return 5 if self.atoms.are_linear() else 6
+
+    @cached_property
+    def n_v(self) -> int:
+        """Number of vibrational normal modes"""
+        return 3*len(self.atoms) - self.n_tr
 
     def _translation_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -75,9 +85,6 @@ class Hessian(ValueArray):
         e_x = np.array([1., 0., 0.])
         e_y = np.array([0., 1., 0.])
         e_z = np.array([0., 0., 1.])
-
-        if self.atoms.are_linear():
-            raise NotImplementedError
 
         com = self.atoms.com     # Centre of mass
         t4, t5, t6 = [], [], []
@@ -190,8 +197,8 @@ class Hessian(ValueArray):
         Returns:
             (list(autode.values.Coordinates)):
         """
-        n_tr = 6                     # Number of translational+rotational modes
-        n_v = 3*len(self.atoms) - n_tr           # and the number of vibrations
+        n_tr = self.n_tr             # Number of translational+rotational modes
+        n_v = self.n_v               # and the number of vibrations
 
         _, S_bar = np.linalg.eigh(self._proj_mass_weighted[n_tr:, n_tr:])
 
@@ -252,9 +259,11 @@ class Hessian(ValueArray):
         Returns:
             (list(autode.values.Frequency))
         """
-        lambdas = np.linalg.eigvalsh(self._proj_mass_weighted[6:, 6:])
 
-        trans_rot_freqs = [Frequency(0.0) for _ in range(6)]
+        n_tr = self.n_tr             # Number of translational+rotational modes
+        lambdas = np.linalg.eigvalsh(self._proj_mass_weighted[n_tr:, n_tr:])
+
+        trans_rot_freqs = [Frequency(0.0) for _ in range(n_tr)]
         vib_freqs = self._eigenvalues_to_freqs(lambdas)
 
         return trans_rot_freqs + vib_freqs
