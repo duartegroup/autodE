@@ -50,7 +50,7 @@ def test_calc_class():
     # With a filename that doesn't exist a NoOutput exception should be raised
     calc.output.filename = '/a/path/that/does/not/exist/tmp'
     with pytest.raises(ex.NoCalculationOutput):
-        calc.output.set_lines()
+        _ = calc.output.file_lines
 
     # With no output should not be able to get properties
     calc.output.filename = 'tmp'
@@ -77,8 +77,7 @@ def test_calc_class():
     new_calc = Calculation(name='tmp2',
                            molecule=test_mol,
                            method=xtb,
-                           keywords=xtb.keywords.sp,
-                           temp=5000)
+                           keywords=xtb.keywords.opt)
     assert str(new_calc) != new_calc_str
 
     mol_no_atoms = Molecule()

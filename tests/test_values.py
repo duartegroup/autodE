@@ -4,6 +4,9 @@ from autode.values import (ValueArray, Gradients, Coordinate)
 
 
 class TmpValues(ValueArray):
+
+    implemented_units = [ha]
+
     def __repr__(self):
         return ''
 

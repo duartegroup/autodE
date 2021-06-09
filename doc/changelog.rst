@@ -18,17 +18,19 @@ Usability improvements
 - :code:`Species.energies` is zeroed when the :code:`Species.atoms` are reset or change
 - :code:`Species.energy` is a property of the last computed energy on that species
 - :code:`Species.is_linear` now uses an angle tolerance to determine linearity, which is slightly tighter than the previous float-based tolerance
+- Removes :code:`CalculationOutput.set_lines` in favour of a cached file_lines property to avoid :code:`set_file_lines()`
 
 Functionality improvements
 **************************
 
 - Adds angle and dihedral angle properties to an :code:`AtomCollection`
 - Improves and adds more :code:`Unit` definitions
-= Adds :code:`Value` and :code:`ValueArray` base classes for energies, gradients etc. Allowing for implicit (1 Hartree == 617.509 kcal mol-1) comparisons and explicit conversion (1 Hartree).to('kcal')
+= Adds :code:`Value` and :code:`ValueArray` base classes for energies, gradients etc. These allow for implicit (1 Hartree == 617.509 kcal mol-1) comparisons and explicit conversion (1 Hartree).to('kcal')
 - Adds further conversion factors to :code:`Constants`
 - Adds :code:`Species.energies` as a container of all energies that have been calculated at a geometry
 - Adds :code:`Keywords.bstring` as a 'brief' summary of the keywords e.g. PBE0/def2-SVP and are associated with an :code:`Energy` (a type of :code:`Value`)
 - Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
+- Adds Hessian diagonalisation to obtain normal modes with and without translation and rotation projections for linear and non-linear molecules
 
 Bug Fixes
 *********

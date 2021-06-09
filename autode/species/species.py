@@ -123,18 +123,30 @@ class Species(AtomCollection):
         return self._hess
 
     @hessian.setter
-    def hessian(self, value):
+    def hessian(self,
+                value: Union[Hessian, np.ndarray, None]):
         """Set the Hessian matrix as a Hessian value"""
+
+        req_shape = (3*self.n_atoms, 3*self.n_atoms)
+        if hasattr(value, 'shape') and value.shape != req_shape:
+            raise ValueError('Could not set the gradient. Incorrect shape: '
+                             f'{value.shape} != {(self.n_atoms, 3)}')
 
         if value is None:
             self._hess = None
 
-        elif not isinstance(value, np.ndarray):
-            raise ValueError(f'Could not set Hessian with {value}, Must be '
-                             f'a numpy array.')
+        elif isinstance(value, Hessian):
+            self._hess = value
+            self._hess.atoms = self.atoms
+
+        elif isinstance(value, np.ndarray):
+            logger.warning('Setting the Hessian from a numpy array - assuming '
+                           'units of Ha Å^-2')
+            self._hess = Hessian(value, atoms=self.atoms, units='Ha/ang^2')
 
         else:
-            self._hess = Hessian(value, atoms=self.atoms)
+            raise ValueError(f'Could not set Hessian with {value}, Must be '
+                             f'a numpy array or a Hessian.')
 
     @property
     def gradient(self) -> Optional[Gradients]:
@@ -145,21 +157,28 @@ class Species(AtomCollection):
         return self._grad
 
     @gradient.setter
-    def gradient(self, value):
-        """Set the gradient matrix with Gradients"""
-        if value is None:
-            self._grad = None
+    def gradient(self,
+                 value: Union[Gradients, np.ndarray, None]):
+        """Set the gradient matrix"""
 
-        elif not hasattr(value, 'shape'):
-            raise ValueError(f'Could not set gradient with {value}, Must be '
-                             f'a numpy array')
-
-        elif value.shape != (self.n_atoms, 3):
+        if hasattr(value, 'shape') and value.shape != (self.n_atoms, 3):
             raise ValueError('Could not set the gradient. Incorrect shape: '
                              f'{value.shape} != {(self.n_atoms, 3)}')
 
+        if value is None:
+            self._grad = None
+
+        elif isinstance(value, Gradients):
+            self._grad = value
+
+        elif isinstance(value, np.ndarray):
+            logger.warning('Setting the gradients from a numpy array - '
+                           'assuming Ha / Å units')
+            self._grad = Gradients(value, units='Ha/ang')
+
         else:
-            self._grad = Gradients(value)
+            raise ValueError(f'Could not set the gradient with {value}, Must '
+                             f'be a numpy array or a Hessian.')
 
     @property
     def frequencies(self) -> Optional[List[Frequency]]:

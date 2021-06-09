@@ -268,11 +268,11 @@ class Keywords:
     def __getitem__(self, item):
         return self.keyword_list[item]
 
-    def __init__(self, keyword_list):
+    def __init__(self, keyword_list=None):
         """
         Read only list of keywords
 
-        Args:
+        Keyword Arguments:
             keyword_list (list(str)): List of keywords used in a QM calculation
         """
         self.keyword_list = keyword_list if keyword_list is not None else []

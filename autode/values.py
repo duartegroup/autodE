@@ -441,7 +441,7 @@ class ValueArray(ABC, np.ndarray):
 
         arr = np.asarray(input_array).view(cls)
 
-        if isinstance(input_array, ValueArray):
+        if isinstance(input_array, ValueArray) and units is None:
             arr.units = input_array.units
         else:
             arr.units = _units_init(cls, units)
@@ -491,7 +491,7 @@ class Coordinate(ValueArray):
 
         else:
             raise ValueError('Coordinate must be a 3 component vector, got '
-                             f'shape = {len(args)}')
+                             f'{len(args)} components')
 
     @property
     def x(self):
