@@ -288,3 +288,35 @@ def get_points_on_sphere(n_points, r=1):
             points.append(point)
 
     return points
+
+
+def symm_matrix_from_ltril(array):
+    """
+    Construct a symmetric matrix from the lower triangular elements e.g.::
+
+        array = [0, 1, 2] ->  array([[0, 1],
+                                     [1, 2]])
+
+    Arguments:
+        array (list(float) | np.array):
+
+    Returns:
+        (np.ndarray):
+    """
+    n = int((np.sqrt(8*len(array) + 1) - 1)/2)
+
+    matrix = np.zeros(shape=(n, n), dtype='f8')
+
+    try:
+        matrix[np.tril_indices(n=n, k=0)] = np.array(array)
+
+    except ValueError:
+        raise ValueError('Array was not the correct shape to be broadcast '
+                         'into the lower triangle. Need N(N+1)/2 elements'
+                         'for an NxN array')
+
+    # Symmetrise by making the upper triangular elements to the lower
+    lower_idxs = np.tril_indices(n=n, k=-1)
+    matrix.T[lower_idxs] = matrix[lower_idxs]
+
+    return matrix

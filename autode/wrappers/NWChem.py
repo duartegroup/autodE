@@ -3,6 +3,7 @@ import autode.wrappers.keywords as kws
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external_monitored
 from autode.atoms import Atom
+from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
 from autode.log import logger
@@ -428,6 +429,96 @@ class NWChem(ElectronicStructureMethod):
         # Convert from Ha a0^-1 to Ha A-1
         gradients = [grad / Constants.a0_to_ang for grad in gradients]
         return np.array(gradients)
+
+    @staticmethod
+    def _atom_masses_from_hessian(calc):
+        """
+        Grab the atomic masses from the 'atom information' section, which
+        should be present from a Hessian calculation. Block looks like::
+
+            ---------------------------- Atom information ----------------
+             atom    #      X           Y          Z            mass
+            --------------------------------------------------------------
+            O        1  0.0000D+00  0.000D+00  2.26367D-01  1.5994910D+01
+            H        2  1.4235D+00  0.000D+00 -9.05466D-01  1.0078250D+00
+            H        3 -1.4435D+00  0.000D+00 -9.05466D-01  1.0078250D+00
+
+        Returns:
+            (list(float)):
+        """
+        n_atoms, file_lines = calc.molecule.n_atoms, calc.output.file_lines
+        atom_lines = None
+
+        for i, line in enumerate(reversed(file_lines)):
+
+            if 'Atom information' not in line:
+                continue
+
+            atom_lines = file_lines[-i+2:-i+2+n_atoms]
+            break
+
+        if atom_lines is None:
+            raise CouldNotGetProperty('No masses found in output file')
+
+        # Replace double notation for standard 'E' and float all the final
+        # entries, which should be the masses in amu
+        return [float(line.split()[-1].replace('D', 'E')) for line in atom_lines]
+
+    def get_hessian(self, calc):
+        """
+        Get the un-mass weighted Hessian matrix from the calculation. Block
+        looks like::
+
+           ----------------------------------------------------
+          MASS-WEIGHTED NUCLEAR HESSIAN (Hartree/Bohr/Bohr/Kamu)
+          ----------------------------------------------------
+
+
+                       1            2           .....
+           ----- ----- ----- ----- -----
+            1    4.25381D+01
+            2   -8.96428D-10 -4.68356D-04
+            .        .             .           .
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (np.ndarray):
+        """
+        hess_lines = None
+
+        for i, line in enumerate(calc.output.file_lines):
+
+            if 'MASS-WEIGHTED NUCLEAR HESSIAN' not in line:
+                continue
+
+            start_line = i+6
+            n = 3*calc.molecule.n_atoms
+
+            hess_lines = calc.output.file_lines[start_line:start_line+n]
+            break
+
+        if hess_lines is None:
+            raise CouldNotGetProperty('Hessian not found in the output file')
+
+        atom_masses = self._atom_masses_from_hessian(calc)
+
+        # Construct a flat list of hessian elements from the lower triangular
+        # elements printed
+        hess_values = []
+        for line in hess_lines:
+            line = line.replace('D', 'E')
+            hess_values += [float(val) for val in line.split()[1:]]
+
+        hess = symm_matrix_from_ltril(array=hess_values)
+
+        # Un-mass weight from Kamu^-1 to 1
+        mass_arr = np.repeat(atom_masses,  repeats=3, axis=np.newaxis) * 1E-3
+        hess *= np.sqrt(np.outer(mass_arr, mass_arr))
+
+        # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
+        return hess / Constants.a0_to_ang**2
 
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,

@@ -2,15 +2,16 @@ import numpy as np
 from typing import List, Tuple
 from autode.utils import cached_property
 from autode.constants import Constants
-from autode.geom import proj
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.units import (wavenumber,
-                          ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq)
+                          ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
+                          J_per_ang_sq_kg)
 
 
 class Hessian(ValueArray):
 
-    implemented_units = [ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq]
+    implemented_units = [ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
+                         J_per_ang_sq_kg]
 
     def __repr__(self):
         return f'Hessian({np.ndarray.__str__(self)} {self.units.name})'
@@ -114,8 +115,6 @@ class Hessian(ValueArray):
             (np.ndarray): Transform matrix (D)
         """
 
-        # t1, t2, t3 = self._translation_vecs()
-        # t4, t5, t6 = self._rotation_vecs()
         t1, t2, t3, t4, t5, t6 = self._tr_vecs()
 
         # Construct M^1/2, which as it's diagonal, is just the roots of the
@@ -152,7 +151,8 @@ class Hessian(ValueArray):
                                repeats=3,
                                axis=np.newaxis)
 
-        return H / np.sqrt(np.outer(mass_array, mass_array))
+        return Hessian(H / np.sqrt(np.outer(mass_array, mass_array)),
+                       units='J m^-2 kg^-1')
 
     @cached_property
     def _proj_mass_weighted(self) -> np.ndarray:

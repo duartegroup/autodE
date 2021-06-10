@@ -179,7 +179,7 @@ class ElectronicStructureMethod(Method, ABC):
     @requires_output
     def get_gradients(self, calc) -> np.ndarray:
         """
-        Function implemented in individual child classes
+        Return the gradient matrix n_atomsx3 in Ha Å^-1
 
         Arguments:
             calc (autode.calculation.Calculation):
@@ -194,7 +194,7 @@ class ElectronicStructureMethod(Method, ABC):
     @requires_output
     def get_hessian(self, calc) -> np.ndarray:
         """
-        Function implemented in individual child classes
+        Return the Hessian matrix 3Nx3N in Ha Å^-2 for N atoms
 
         Arguments:
             calc (autode.calculation.Calculation):

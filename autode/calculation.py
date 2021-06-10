@@ -7,7 +7,7 @@ from typing import Union, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 from autode.utils import cached_property
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
@@ -306,12 +306,15 @@ class Calculation:
 
         return modes
 
-    def get_final_atoms(self) -> List[Atom]:
+    def get_final_atoms(self) -> Atoms:
         """
         Get the atoms from the final step of a geometry optimisation
 
         Returns:
-            (list(autode.atoms.Atom)):
+            (autode.atoms.Atoms):
+
+        Raises:
+            (autode.exceptions.AtomsNotFound):
         """
         logger.info(f'Getting final atoms from {self.output.filename}')
 
@@ -319,8 +322,7 @@ class Calculation:
             logger.error('No calculation output. Could not get atoms')
             raise ex.AtomsNotFound
 
-        # Extract the atoms from the output file, which is method dependent
-        atoms = self.method.get_final_atoms(self)
+        atoms = Atoms(self.method.get_final_atoms(self))
 
         if len(atoms) != self.molecule.n_atoms:
             logger.error(f'Failed to get atoms from {self.output.filename}')
@@ -387,7 +389,10 @@ class Calculation:
         logger.info(f'Getting Hessian from calculation')
 
         try:
-            hessian = Hessian(self.method.get_hessian(self))
+            hessian = Hessian(self.method.get_hessian(self),
+                              atoms=self.get_final_atoms(),
+                              units='Ha/ang^2')
+
             assert hessian.shape == (3*self.molecule.n_atoms,
                                      3*self.molecule.n_atoms)
 

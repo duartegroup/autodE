@@ -84,3 +84,20 @@ def test_calc_rmsd():
 
     # While the heavy atom RMSD should remain unchanged
     assert geom.calc_heavy_atom_rmsd(atoms, atoms_rot) < 1E-6
+
+
+def test_symm_matrix_from_ltril():
+
+    m = geom.symm_matrix_from_ltril(array=[0, 1, 2])
+
+    assert np.allclose(m,  np.array([[0, 1],
+                                     [1, 2]]))
+
+    m = geom.symm_matrix_from_ltril(array=[0, -1, 4, 9, 0, 2])
+
+    assert np.allclose(m,  np.array([[0, -1, 9],
+                                     [-1, 4, 0],
+                                     [9,  0, 2]]))
+
+    with pytest.raises(ValueError):
+        _ = geom.symm_matrix_from_ltril(array=[1, 1])

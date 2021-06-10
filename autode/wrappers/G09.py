@@ -5,6 +5,7 @@ from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
+from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
@@ -141,7 +142,7 @@ def print_point_charges(inp_file, calc_input):
     if calc_input.point_charges is None:
         return
 
-    print('', file=inp_file)
+    print('\n', end='', file=inp_file)
     for point_charge in calc_input.point_charges:
         x, y, z = point_charge.coord
         print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {point_charge.charge:^12.8f}',
@@ -522,7 +523,7 @@ class G09(ElectronicStructureMethod):
 
         for i, line in enumerate(calc.output.file_lines):
 
-            if 'Standard orientation' in line or 'Input orientation' in line:
+            if 'Input orientation' in line:
 
                 atoms = []
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
@@ -647,16 +648,8 @@ class G09(ElectronicStructureMethod):
             raise CouldNotGetProperty('Not enough elements of the Hessian '
                                       'matrix found')
 
-        # Fill the lower triangular elements of a blank matrix
-        hess_arr = np.zeros(shape=(n, n), dtype='f8')
-        hess_arr[np.tril_indices(n=n, k=0)] = np.array(hess_values)
-
-        # Symmetrise by making the upper triangular elements to the lower
-        lower_idxs = np.tril_indices(n=n, k=-1)
-        hess_arr.T[lower_idxs] = hess_arr[lower_idxs]
-
         # Gaussian Hessians are quoted in Ha a0^-2
-        return hess_arr / Constants.a0_to_ang**2
+        return symm_matrix_from_ltril(hess_values) / Constants.a0_to_ang**2
 
     def __init__(self, name='g09', path=None, keywords_set=None,
                  implicit_solvation_type=None):

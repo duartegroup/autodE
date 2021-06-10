@@ -137,7 +137,9 @@ class Species(AtomCollection):
 
         elif isinstance(value, Hessian):
             self._hess = value
-            self._hess.atoms = self.atoms
+
+            if self._hess.atoms is None:
+                self._hess.atoms = self.atoms
 
         elif isinstance(value, np.ndarray):
             logger.warning('Setting the Hessian from a numpy array - assuming '

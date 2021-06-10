@@ -168,7 +168,6 @@ def test_gaussian_hessian_extract_co2():
                        keywords=ade.SinglePointKeywords([]))
 
     calc.output.filename = 'CO2_opt_hess_g09.log'
-    co2.atoms = calc.get_final_atoms()
     co2.hessian = calc.get_hessian()
 
     assert all(np.isclose(freq, Frequency(0, units='cm-1'), atol=10) for freq
@@ -177,3 +176,27 @@ def test_gaussian_hessian_extract_co2():
     assert all(freq == 0.0 for freq in co2.hessian.frequencies_proj[:5])
 
     assert_correct_co2_frequencies(hessian=co2.hessian)
+
+
+def test_nwchem_hessian_extract_h2o():
+
+    calc = Calculation(name='tmp',
+                       molecule=ade.Molecule(smiles='O'),
+                       method=ade.methods.NWChem(),
+                       keywords=ade.HessianKeywords())
+
+    calc.output.filename = 'H2O_hess_nwchem.out'
+
+    hessian = calc.get_hessian()
+
+    for freqs in (hessian.frequencies, hessian.frequencies_proj):
+        assert sum(np.isclose(freq, 0.0, atol=15) for freq in freqs) == 6
+
+        assert sum(np.isclose(freq, Frequency(1642.78), atol=4)
+                   for freq in freqs) == 1
+
+        assert sum(np.isclose(freq, Frequency(3860.38), atol=4)
+                   for freq in freqs) == 1
+
+        assert sum(np.isclose(freq, Frequency(3959.20), atol=4)
+                   for freq in freqs) == 1

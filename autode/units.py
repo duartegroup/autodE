@@ -207,6 +207,10 @@ J_per_m_sq = CompositeUnit(J, per=[m, m],
                            name='J m^-2',
                            aliases=['J/m^2', 'J/m2', 'J m2'])
 
+J_per_ang_sq_kg = CompositeUnit(J, per=[ang, ang, kg],
+                                name='J m^-2 kg^-1')
+
+
 # ----------------------------------------------------------------------
 # --------------------------- Frequencies ------------------------------
 
