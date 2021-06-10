@@ -57,36 +57,28 @@ class Hessian(ValueArray):
         """Number of vibrational normal modes"""
         return 3*len(self.atoms) - self.n_tr
 
-    def _translation_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _tr_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray,
+                                np.ndarray, np.ndarray, np.ndarray]:
         """
-        Orthonormal translation vectors for Hessian projection
+        Orthonormal translation and rotation (tr) vectors for Hessian
+        projection.
 
         Returns:
             (tuple(np.ndarray)):
+
+        Raises:
+            (RecursionError): If an orthogonal set cannot be constructed
         """
         n_atoms = len(self.atoms)
 
-        t1 = np.tile(np.array([1., 0., 0.]), reps=n_atoms)
-        t2 = np.tile(np.array([0., 1., 0.]), reps=n_atoms)
-        t3 = np.tile(np.array([0., 0., 1.]), reps=n_atoms)
+        # Get a random orthonormal basis in 3D
+        (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
 
-        return t1, t2, t3
+        t1 = np.tile(e_x, reps=n_atoms)
+        t2 = np.tile(e_y, reps=n_atoms)
+        t3 = np.tile(e_z, reps=n_atoms)
 
-    def _rotation_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Rotation vectors for Hessian projection, if linear then choose a
-        set of orthogonal basis vectors that include the major rotation
-        axis
-
-        Returns:
-            (tuple(np.ndarray)):
-        """
-
-        e_x = np.array([1., 0., 0.])
-        e_y = np.array([0., 1., 0.])
-        e_z = np.array([0., 0., 1.])
-
-        com = self.atoms.com     # Centre of mass
+        com = self.atoms.com               # Centre of mass
         t4, t5, t6 = [], [], []
 
         for atom in self.atoms:
@@ -94,7 +86,12 @@ class Hessian(ValueArray):
             t5 += np.cross(e_y, atom.coord - com).tolist()
             t6 += np.cross(e_z, atom.coord - com).tolist()
 
-        return np.array(t4), np.array(t5), np.array(t6)
+        if any(np.isclose(np.linalg.norm(t_i), 0.0) for t_i in (t4, t5, t6)):
+            # Found linear dependency in rotation vectors, attempt to remove
+            # by initialising different random orthogonal vectors
+            return self._tr_vecs()
+
+        return t1, t2, t3, np.array(t4), np.array(t5), np.array(t6)
 
     @cached_property
     def _proj_matrix(self) -> np.ndarray:
@@ -117,8 +114,9 @@ class Hessian(ValueArray):
             (np.ndarray): Transform matrix (D)
         """
 
-        t1, t2, t3 = self._translation_vecs()
-        t4, t5, t6 = self._rotation_vecs()
+        # t1, t2, t3 = self._translation_vecs()
+        # t4, t5, t6 = self._rotation_vecs()
+        t1, t2, t3, t4, t5, t6 = self._tr_vecs()
 
         # Construct M^1/2, which as it's diagonal, is just the roots of the
         # diagonal elements
@@ -128,11 +126,7 @@ class Hessian(ValueArray):
 
         for t_i in (t1, t2, t3, t4, t5, t6):
 
-            if np.isclose(np.linalg.norm(t_i), 0.0):
-                raise RuntimeError('Encountered linear linear dependency '
-                                   'between basis vectors')
-
-            t_i[:] = np.dot(m_half, np.array(t_i).T)
+            t_i[:] = np.dot(m_half, np.array(t_i))
             t_i /= np.linalg.norm(t_i)
 
         # Generate a transform matrix D with the first columns as translation/
@@ -171,7 +165,6 @@ class Hessian(ValueArray):
         Returns:
             (np.ndarray):
         """
-
         H = np.linalg.multi_dot((self._proj_matrix.T,
                                  self._mass_weighted,
                                  self._proj_matrix))
@@ -202,6 +195,10 @@ class Hessian(ValueArray):
         Returns:
             (list(autode.values.Coordinates)):
         """
+        if self.atoms is None:
+            raise ValueError('Could not calculate projected normal modes, must'
+                             ' have atoms set')
+
         n_tr = self.n_tr             # Number of translational+rotational modes
         n_v = self.n_v               # and the number of vibrations
 
@@ -263,7 +260,13 @@ class Hessian(ValueArray):
 
         Returns:
             (list(autode.values.Frequency))
+
+        Raises:
+            (ValueError):
         """
+        if self.atoms is None:
+            raise ValueError('Could not calculate projected frequencies, must '
+                             'have atoms set')
 
         n_tr = self.n_tr             # Number of translational+rotational modes
         lambdas = np.linalg.eigvalsh(self._proj_mass_weighted[n_tr:, n_tr:])

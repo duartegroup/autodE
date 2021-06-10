@@ -7,6 +7,7 @@ from autode.values import Frequency
 from autode.thermo.hessians import Hessian
 from autode.units import wavenumber
 
+# Ha/Å-2
 h2o_hessian_arr = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
                            -1.16433138e+00, -7.61763557e-01, -1.09191486e-09,
                            -1.14970123e+00,  7.46143320e-01, -7.39260002e-09],
@@ -40,6 +41,7 @@ h2o_coords = np.array([[-0.0011, 0.3631, -0.0],
                        [0.8261, -0.1812, 0.0]])
 
 
+# Ha/a0^2
 co2_hessian_arr = np.array([[1.1314383525E+00, 4.2385767412E-04, 3.5051771425E-04, - 1.0501086627E+00, - 3.7813825173E-04,-3.4457384398E-04,  -8.1229733239E-02, -3.7456312285E-05, -6.5999542510E-05],
                             [4.2325160632E-04, 3.6570663096E-02, 1.2516781525E-07, - 3.8221942577E-04, - 7.3247574779E-02,-1.2460642412E-07,  -4.1000250417E-05,   3.6660190261E-02,  -2.4295086828E-08],
                             [3.4996749671E-04, 1.2517409883E-07, 3.6556726341E-02, - 2.8455375094E-04, - 9.9360220558E-08,-7.3235662640E-02,  -6.5386128105E-05,  -2.2911454518E-08,   3.6651071695E-02],
@@ -49,6 +51,20 @@ co2_hessian_arr = np.array([[1.1314383525E+00, 4.2385767412E-04, 3.5051771425E-0
                             [-8.1229732348E-02, -4.1002276652E-05, - 6.5388156506E-05, - 1.0501723903E+00, - 4.1114029467E-04,-3.3853608979E-04,   1.1315021908E+00,  4.6040543323E-04,   3.4390672878E-04],
                             [-3.7453739804E-05, 3.6660190178E-02, - 2.2915437653E-08, - 4.2226004550E-04, - 7.3240736078E-02,-1.3510830784E-07,   4.5974573122E-04,  3.6563884025E-02,   1.3393048024E-07],
                             [-6.5997594969E-05, -2.4306709511E-08, 3.6651071540E-02, - 2.7734157097E-04, - 1.0679186055E-07,-7.3228811671E-02,   3.4336655361E-04,   1.3393871147E-02,  3.6549939293E-02]])
+
+
+def assert_correct_co2_frequencies(hessian):
+    """Ensure the projected frequencies of CO2 are roughly right"""
+
+    assert sum(freq == 0.0 for freq in hessian.frequencies_proj) == 5
+
+    # Should have a degenerate bending mode for CO2 with ν = 666 cm-1
+    assert sum(np.isclose(Frequency(666, units='cm-1'), freq, atol=2.0)
+               for freq in hessian.frequencies_proj) == 2
+
+    # and two others that are larger
+    assert sum(freq > Frequency(1000, units='cm-1')
+               for freq in hessian.frequencies_proj) == 2
 
 
 def test_hessian_set():
@@ -119,16 +135,7 @@ def test_hessian_linear_freqs():
     assert co2.is_linear()
 
     co2.hessian = Hessian(co2_hessian_arr, units='Ha/a0^2')
-
-    assert sum(freq == 0.0 for freq in co2.hessian.frequencies_proj) == 5
-
-    # Should have a degenerate bending mode for CO2 with ν = 666 cm-1
-    assert sum(np.isclose(Frequency(666, units='cm-1'), freq, atol=1.0)
-               for freq in co2.hessian.frequencies_proj) == 2
-
-    # and two others that are larger
-    assert sum(freq > Frequency(1000, units='cm-1')
-               for freq in co2.hessian.frequencies_proj) == 2
+    assert_correct_co2_frequencies(hessian=co2.hessian)
 
 
 def test_gaussian_hessian_extract_h2():
@@ -144,13 +151,14 @@ def test_gaussian_hessian_extract_h2():
     calc.output.filename = 'H2_hess_g09.log'
     h2.hessian = calc.get_hessian()
 
-    # print(h2.hessian.frequencies_proj)
-
     assert np.isclose(h2.hessian.frequencies[-1], Frequency(4383.9811),
                       atol=1.0)
 
+    assert np.isclose(h2.hessian.frequencies_proj[-1], Frequency(4383.9811),
+                      atol=1.0)
 
-def _test_gaussian_hessian_extract_co2():
+
+def test_gaussian_hessian_extract_co2():
 
     co2 = Molecule('CO2_opt.xyz')
 
@@ -160,5 +168,12 @@ def _test_gaussian_hessian_extract_co2():
                        keywords=ade.SinglePointKeywords([]))
 
     calc.output.filename = 'CO2_opt_hess_g09.log'
+    co2.atoms = calc.get_final_atoms()
+    co2.hessian = calc.get_hessian()
 
-    hessian = calc.get_hessian()
+    assert all(np.isclose(freq, Frequency(0, units='cm-1'), atol=10) for freq
+               in co2.hessian.frequencies[:5])
+
+    assert all(freq == 0.0 for freq in co2.hessian.frequencies_proj[:5])
+
+    assert_correct_co2_frequencies(hessian=co2.hessian)

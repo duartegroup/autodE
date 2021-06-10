@@ -1,9 +1,9 @@
- Entering Gaussian System, Link 0=/usr/local/gaussian/g09/g09
+ Entering Gaussian System, Link 0=g09
  Input=H2_hess_g09.com
  Output=H2_hess_g09.log
  Initial command:
- /usr/local/gaussian/g09/l1.exe "/tmp/tmp0bgliwxf/Gau-225545.inp" -scrdir="/tmp/tmp0bgliwxf/"
- Entering Link 1 = /usr/local/gaussian/g09/l1.exe PID=    225546.
+ /usr/local/gaussian/g09/l1.exe "/home/aleph/fd/ball4935/tmp/autode/Gau-149520.inp" -scrdir="/home/aleph/fd/ball4935/tmp/autode/"
+ Entering Link 1 = /usr/local/gaussian/g09/l1.exe PID=    149522.
   
  Copyright (c) 1988,1990,1992,1993,1995,1998,2003,2009,2013,
             Gaussian, Inc.  All Rights Reserved.
@@ -76,7 +76,7 @@
  
  ******************************************
  Gaussian 09:  EM64L-G09RevD.01 24-Apr-2013
-                 9-Jun-2021 
+                10-Jun-2021 
  ******************************************
  %mem=32000MB
  %nprocshared=8
@@ -102,8 +102,8 @@
  -----------
  Symbolic Z-matrix:
  Charge =  0 Multiplicity = 1
- H                     0.        0.        0.3804 
- H                     0.        0.       -0.3804 
+ H                     0.3804    0.        0. 
+ H                    -0.3804    0.        0. 
  
 
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
@@ -118,8 +118,8 @@
  Center     Atomic      Atomic             Coordinates (Angstroms)
  Number     Number       Type             X           Y           Z
  ---------------------------------------------------------------------
-      1          1           0        0.000000    0.000000    0.380396
-      2          1           0        0.000000    0.000000   -0.380396
+      1          1           0        0.380396    0.000000    0.000000
+      2          1           0       -0.380396    0.000000    0.000000
  ---------------------------------------------------------------------
  Stoichiometry    H2
  Framework group  D*H[C*(H.H)]
@@ -214,7 +214,7 @@
  AX will form     6 AO Fock derivatives at one time.
       2 vectors produced by pass  1 Test12= 1.50D-16 1.67D-08 XBig12= 6.78D-02 2.56D-01.
       1 vectors produced by pass  2 Test12= 1.50D-16 1.67D-08 XBig12= 3.54D-06 1.87D-03.
- InvSVY:  IOpt=1 It=  1 EMax= 2.59D-17
+ InvSVY:  IOpt=1 It=  1 EMax= 2.22D-16
  Solved reduced A of dimension     9 with     6 vectors.
  Isotropic polarizability for W=    0.000000        2.93 Bohr**3.
  End of Minotr F.D. properties file   721 does not exist.
@@ -278,7 +278,7 @@
  Symmetry B2G  KE= 2.788040860709D-34
  Symmetry B3G  KE= 2.788040860709D-34
  Symmetry AU   KE= 0.000000000000D+00
- Symmetry B1U  KE= 2.378989366528D-32
+ Symmetry B1U  KE= 1.908914762518D-32
  Symmetry B2U  KE= 6.391068097572D-35
  Symmetry B3U  KE= 6.391068097572D-35
   Exact polarizability:   1.030   0.000   1.030   0.000   0.000   6.745
@@ -288,7 +288,7 @@
  LDataN:  DoStor=T MaxTD1= 4 Len=   56
  Calling FoFJK, ICntrl=    100127 FMM=F ISym2X=1 I1Cent= 0 IOpClX= 0 NMat=1 NMatS=1 NMatT=0.
  Full mass-weighted force constant matrix:
- Low frequencies ---    0.0000    0.0001    0.0001   11.8655   11.8655 4383.9811
+ Low frequencies ---    0.0000    0.0000    0.0001   11.8655   11.8655 4383.9811
  Diagonal vibrational polarizability:
         0.0000000       0.0000000       0.0000000
  Harmonic frequencies (cm**-1), IR intensities (KM/Mole), Raman scattering
@@ -356,8 +356,8 @@
  Center     Atomic                   Forces (Hartrees/Bohr)
  Number     Number              X              Y              Z
  -------------------------------------------------------------------
-      1        1           0.000000000    0.000000000   -0.000003803
-      2        1           0.000000000    0.000000000    0.000003803
+      1        1          -0.000003803    0.000000000    0.000000000
+      2        1           0.000003803    0.000000000    0.000000000
  -------------------------------------------------------------------
  Cartesian Forces:  Max     0.000003803 RMS     0.000002196
 
@@ -369,29 +369,29 @@
  Second derivative matrix not updated -- analytic derivatives used.
  The second derivative matrix:
                           X1        Y1        Z1        X2        Y2
-           X1           0.00000
+           X1           0.36651
            Y1           0.00000   0.00000
-           Z1           0.00000   0.00000   0.36651
-           X2           0.00000   0.00000   0.00000   0.00000
+           Z1           0.00000   0.00000   0.00000
+           X2          -0.36651   0.00000   0.00000   0.36651
            Y2           0.00000   0.00000   0.00000   0.00000   0.00000
-           Z2           0.00000   0.00000  -0.36651   0.00000   0.00000
+           Z2           0.00000   0.00000   0.00000   0.00000   0.00000
                           Z2
-           Z2           0.36651
+           Z2           0.00000
  ITU=  0
      Eigenvalues ---    0.73302
  Angle between quadratic step and forces=   0.00 degrees.
  ClnCor:  largest displacement from symmetrization is 3.18D-22 for atom     1.
  Linear search not attempted -- first point.
- ClnCor:  largest displacement from symmetrization is 0.00D+00 for atom     0.
+ ClnCor:  largest displacement from symmetrization is 1.23D-32 for atom     2.
  TrRot=  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000
  Variable       Old X    -DE/DX   Delta X   Delta X   Delta X     New X
                                  (Linear)    (Quad)   (Total)
-    X1        0.00000   0.00000   0.00000   0.00000   0.00000   0.00000
+    X1        0.71884   0.00000   0.00000  -0.00001  -0.00001   0.71884
     Y1        0.00000   0.00000   0.00000   0.00000   0.00000   0.00000
-    Z1        0.71884   0.00000   0.00000  -0.00001  -0.00001   0.71884
-    X2        0.00000   0.00000   0.00000   0.00000   0.00000   0.00000
+    Z1        0.00000   0.00000   0.00000   0.00000   0.00000   0.00000
+    X2       -0.71884   0.00000   0.00000   0.00001   0.00001  -0.71884
     Y2        0.00000   0.00000   0.00000   0.00000   0.00000   0.00000
-    Z2       -0.71884   0.00000   0.00000   0.00001   0.00001  -0.71884
+    Z2        0.00000   0.00000   0.00000   0.00000   0.00000   0.00000
          Item               Value     Threshold  Converged?
  Maximum Force            0.000004     0.000450     YES
  RMS     Force            0.000002     0.000300     YES
@@ -402,21 +402,20 @@
     -- Stationary point found.
  GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad
 
- 1\1\GINC-COMP0808\Freq\RPBE1PBE\def2SVP\H2\BALL4935\09-Jun-2021\0\\# P
- BE1PBE Def2SVP Freq EmpiricalDispersion=GD3BJ integral=ultrafinegrid T
- emperature=298.15\\H2_hess_g09\\0,1\H,0.,0.,0.380396\H,0.,0.,-0.380396
- \\Version=EM64L-G09RevD.01\State=1-SGG\HF=-1.1638278\RMSD=6.993e-09\RM
- SF=2.196e-06\ZeroPoint=0.0099874\Thermal=0.0123479\Dipole=0.,0.,0.\Dip
- oleDeriv=0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.\Polar=1
- .0296627,0.,1.0296627,0.,0.,6.7452912\PG=D*H [C*(H1.H1)]\NImag=0\\0.00
- 000268,0.,0.00000268,0.,0.,0.36650841,-0.00000268,0.,0.,0.00000268,0.,
- -0.00000268,0.,0.,0.00000268,0.,0.,-0.36650841,0.,0.,0.36650841\\0.,0.
- ,0.00000380,0.,0.,-0.00000380\\\@
+ 1\1\GINC-ALEPH\Freq\RPBE1PBE\def2SVP\H2\BALL4935\10-Jun-2021\0\\# PBE1
+ PBE Def2SVP Freq EmpiricalDispersion=GD3BJ integral=ultrafinegrid Temp
+ erature=298.15\\H2_hess_g09\\0,1\H,0.380396,0.,0.\H,-0.380396,0.,0.\\V
+ ersion=EM64L-G09RevD.01\State=1-SGG\HF=-1.1638278\RMSD=6.993e-09\RMSF=
+ 2.196e-06\ZeroPoint=0.0099874\Thermal=0.0123479\Dipole=0.,0.,0.\Dipole
+ Deriv=0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.\Polar=6.74
+ 52912,0.,1.0296627,0.,0.,1.0296627\PG=D*H [C*(H1.H1)]\NImag=0\\0.36650
+ 841,0.,0.00000268,0.,0.,0.00000268,-0.36650841,0.,0.,0.36650841,0.,-0.
+ 00000268,0.,0.,0.00000268,0.,0.,-0.00000268,0.,0.,0.00000268\\0.000003
+ 80,0.,0.,-0.00000380,0.,0.\\\@
 
 
- WHAT, THEN, IS TIME?  IF NO ONE ASKS ME, I KNOW WHAT IT IS.
- IF I WISH TO EXPLAIN WHAT IT IS TO HIM WHO ASKS ME, I DO NOT KNOW.
-                                   -- ST. AUGUSTINE (FIFTH CENTURY)
- Job cpu time:       0 days  0 hours  0 minutes 11.6 seconds.
+ CONFIDENCE: THAT QUIET ASSURED FEELING YOU HAVE
+ JUST BEFORE YOU FALL FLAT ON YOUR FACE.
+ Job cpu time:       0 days  0 hours  0 minutes 11.5 seconds.
  File lengths (MBytes):  RWF=      5 Int=      0 D2E=      0 Chk=      1 Scr=      1
- Normal termination of Gaussian 09 at Wed Jun  9 20:51:01 2021.
+ Normal termination of Gaussian 09 at Thu Jun 10 17:45:07 2021.
