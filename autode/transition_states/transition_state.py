@@ -1,5 +1,7 @@
 from copy import deepcopy
+from typing import Optional, List
 from multiprocessing import Pool
+from autode.values import Frequency
 from autode.transition_states.base import get_displaced_atoms_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
@@ -104,6 +106,17 @@ class TransitionState(TSbase):
 
         self._set_unique_conformers_rmsd(conformers)
         return None
+
+    @property
+    def vib_frequencies(self) -> Optional[List[Frequency]]:
+        """
+        Vibrational frequencies, which are all but the lowest 7 as the 6th
+        is the 'translational' mode over the TS
+
+        Returns:
+            (list(autode.value.Frequency) | None):
+        """
+        return self.frequencies[6:] if self.frequencies is not None else None
 
     @requires_atoms
     def print_imag_vector(self, mode_number=6, name=None):

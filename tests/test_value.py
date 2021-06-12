@@ -162,14 +162,7 @@ def test_energies():
 
     energies = Energies(Energy(1.0), FreeEnergy(0.1))
 
-    # Free energy contribution is not defined without both a potential and
-    # free energy
-    assert energies.g_cont is None
-
-    energies = Energies(PotentialEnergy(1.0), FreeEnergy(1.1))
-
-    assert isinstance(energies.g_cont, Energy)
-    assert energies.g_cont == 0.1
+    assert energies.last(FreeEnergy) == FreeEnergy(0.1)
 
 
 def test_freqs():
@@ -178,3 +171,6 @@ def test_freqs():
     # codes)
     assert Frequency(-1.0).is_imaginary
     assert not Frequency(1.0).is_imaginary
+
+    assert Frequency(-1.0) != Frequency(1.0)
+    assert Frequency(-1.0).real == Frequency(1.0)

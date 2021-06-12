@@ -55,10 +55,10 @@ def xyz_file_to_atoms(filename: str):
     return atoms
 
 
-def atoms_to_xyz_file(atoms: Collection[Atom],
-                      filename: str,
+def atoms_to_xyz_file(atoms:      Collection[Atom],
+                      filename:   str,
                       title_line: str = '',
-                      append: bool = False):
+                      append:     bool = False):
     """
     Print a standard .xyz file from a list of atoms
 

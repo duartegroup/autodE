@@ -3,7 +3,7 @@ import os
 import hashlib
 import base64
 import numpy as np
-from typing import Optional, Union, List
+from typing import Optional, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 from autode.utils import cached_property
@@ -188,7 +188,7 @@ class Calculation:
         methods.add(f'{string}.\n')
         return None
 
-    def get_energy(self) -> Union[PotentialEnergy, None]:
+    def get_energy(self) -> Optional[PotentialEnergy]:
         """
         Total electronic potential energy
 
@@ -211,11 +211,11 @@ class Calculation:
             logger.warning('Could not get energy. Energy = None')
             return None
 
-    def get_enthalpy(self):
+    def get_enthalpy(self) -> Optional[Enthalpy]:
         # TODO: Call molecule.enthalpy from the hessian
         raise NotImplementedError
 
-    def get_free_energy(self):
+    def get_free_energy(self) -> Optional[FreeEnergy]:
         # TODO: Call molecule.free_energy from the hessian
         raise NotImplementedError
 

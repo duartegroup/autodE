@@ -1,8 +1,9 @@
 import numpy as np
-from typing import Union, List
+from typing import Union, Optional, List
 from autode.log import logger
-from autode.values import Distance, Angle, Mass, Coordinate, Coordinates
 from autode.geom import get_rot_mat_euler
+from autode.values import (Distance, Angle, Mass, Coordinate,
+                           Coordinates, MomentOfInertia)
 
 
 class Atom:
@@ -36,8 +37,9 @@ class Atom:
     @coord.setter
     def coord(self, *args):
         """
+        Coordinate setter
 
-        Args:
+        Arguments:
             *args (float | list(float) | np.ndarray(float)):
 
         Raises:
@@ -103,10 +105,6 @@ class Atom:
                            f'Guessing at 70')
             return Mass(70)
 
-    @property
-    def mass(self) -> Mass:
-        return self.weight
-
     def translate(self, vec: np.ndarray) -> None:
         """
         Translate this atom by a vector
@@ -145,6 +143,10 @@ class Atom:
             self.translate(vec=origin)
 
         return None
+
+    # Method aliases
+    mass = weight
+    coordinate = coord
 
     def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
         """
@@ -213,6 +215,38 @@ class Atoms(list):
             com += atom.mass * atom.coord
 
         return Coordinate(com / sum(atom.mass for atom in self))
+
+    @property
+    def moi(self) -> MomentOfInertia:
+        """
+        Moment of inertia matrix (I):
+
+            (I_00   I_01   I_02)
+        I = (I_10   I_11   I_12)
+            (I_20   I_21   I_22)
+
+        Returns:
+            (autode.values.MomentOfInertia):
+        """
+        moi = MomentOfInertia(np.zeros(shape=(3, 3)), units='amu Å^2')
+
+        for atom in self:
+
+            mass, (x, y, z) = atom.mass, atom.coord
+
+            moi[0, 0] += mass * (y ** 2 + z ** 2)
+            moi[0, 1] -= mass * (x * y)
+            moi[0, 2] -= mass * (x * z)
+
+            moi[1, 0] -= mass * (y * x)
+            moi[1, 1] += mass * (x ** 2 + z ** 2)
+            moi[1, 2] -= mass * (y * z)
+
+            moi[2, 0] -= mass * (z * x)
+            moi[2, 1] -= mass * (z * y)
+            moi[2, 2] += mass * (x ** 2 + y ** 2)
+
+        return moi
 
     def vector(self,
                i: int,
@@ -294,7 +328,7 @@ class AtomCollection:
         return 0 if self.atoms is None else len(self.atoms)
 
     @property
-    def coordinates(self) -> Union[Coordinates, None]:
+    def coordinates(self) -> Optional[Coordinates]:
         """Numpy array of coordinates"""
         if self.atoms is None:
             return None
@@ -330,7 +364,7 @@ class AtomCollection:
             atom.coord = Coordinate(*value[i])
 
     @property
-    def atoms(self) -> Union[Atoms, None]:
+    def atoms(self) -> Optional[Atoms]:
         """Constituent atoms of this collection"""
         return self._atoms
 
@@ -341,7 +375,7 @@ class AtomCollection:
         self._atoms = Atoms(value) if value is not None else None
 
     @property
-    def com(self) -> Union[Coordinate, None]:
+    def com(self) -> Optional[Coordinate]:
         """Centre of mass of this atom collection
 
         Returns:
@@ -350,10 +384,17 @@ class AtomCollection:
         Raises:
             (ValueError): If there are no atoms
         """
-        if self.atoms is None:
-            return None
+        return None if self.atoms is None else self.atoms.com
 
-        return self.atoms.com
+    @property
+    def moi(self) -> Optional[MomentOfInertia]:
+        """
+        Moment of inertia matrix (I)
+
+        Returns:
+            (autode.values.MomentOfInertia):
+        """
+        return None if self.atoms is None else self.atoms.moi
 
     @property
     def weight(self) -> Mass:
@@ -364,16 +405,6 @@ class AtomCollection:
             (autode.values.Mass):
         """
         return sum(atom.mass for atom in self.atoms)
-
-    @property
-    def mass(self) -> Mass:
-        """
-        Molecular mass. Equivalent to the molecular weight
-
-        Returns:
-            (autode.values.Mass):
-        """
-        return self.weight
 
     def _idxs_are_present(self, *args):
         """Are a set of indexes present in the collection of atoms?
@@ -495,6 +526,11 @@ class AtomCollection:
                             np.dot(vec1, vec2))
 
         return Angle(value)
+
+    # Method aliases
+    centre_of_mass = com
+    moment_of_inertia = moi
+    mass = weight
 
     def __init__(self,
                  atoms: Union[List[Atom], Atoms, None] = None):

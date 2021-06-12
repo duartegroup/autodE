@@ -142,7 +142,7 @@ def print_point_charges(inp_file, calc_input):
     if calc_input.point_charges is None:
         return
 
-    print('\n', end='', file=inp_file)
+    print("\n", end="", file=inp_file)
     for point_charge in calc_input.point_charges:
         x, y, z = point_charge.coord
         print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {point_charge.charge:^12.8f}',

@@ -1,4 +1,4 @@
-from autode.wrappers.base import Method
+from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
 from autode.wrappers.MOPAC import MOPAC
@@ -19,11 +19,11 @@ high_level_method_names = ['orca', 'g09', 'g16', 'nwchem']
 low_level_method_names = ['xtb', 'mopac']
 
 
-def get_hmethod() -> Method:
+def get_hmethod() -> ElectronicStructureMethod:
     """Get the 'high-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.Method): Method
+        (autode.wrappers.base.ElectronicStructureMethod): Method
     """
     h_methods = [ORCA(), G09(), NWChem(), G16()]
 
@@ -34,11 +34,11 @@ def get_hmethod() -> Method:
         return get_first_available_method(h_methods)
 
 
-def get_lmethod() -> Method:
+def get_lmethod() -> ElectronicStructureMethod:
     """Get the 'low-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.Method):
+        (autode.wrappers.base.ElectronicStructureMethod):
     """
     all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem()]
 
@@ -49,7 +49,7 @@ def get_lmethod() -> Method:
         return get_first_available_method(all_methods)
 
 
-def get_first_available_method(possibilities) -> Method:
+def get_first_available_method(possibilities) -> ElectronicStructureMethod:
     """
     Get the first electronic structure method that is available in a list of
     possibilities
@@ -58,7 +58,10 @@ def get_first_available_method(possibilities) -> Method:
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.Method): Method
+        (autode.wrappers.base.ElectronicStructureMethod): Method
+
+    Raises:
+        (autode.exceptions.MethodUnavailable):
     """
     for method in possibilities:
 
@@ -68,7 +71,7 @@ def get_first_available_method(possibilities) -> Method:
     raise MethodUnavailable('No electronic structure methods available')
 
 
-def get_defined_method(name, possibilities) -> Method:
+def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
     """
     Get an electronic structure method defined by it's name
 
@@ -77,7 +80,7 @@ def get_defined_method(name, possibilities) -> Method:
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.Method): Method
+        (autode.wrappers.base.ElectronicStructureMethod): Method
 
     Raises:
         (autode.exceptions.MethodUnavailable):

@@ -26,3 +26,6 @@ class Constants:
 
     amu_to_kg = 1.66053906660E-27             # kg amu^-1
     amu_to_me = 1822.888486209                # m_e amu^-1
+
+    atm_to_pa = 101325                        # Pa atm^-1
+    dm_to_m = 0.1                             # m dm^-1

@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Type, Optional
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -10,6 +10,7 @@ from autode.units import (Unit,
                           rad, deg,
                           wavenumber, hz,
                           amu, kg, m_e,
+                          amu_ang_sq, kg_m_sq,
                           ha_per_ang, ha_per_a0, ev_per_ang)
 
 
@@ -253,10 +254,22 @@ class Enthalpy(Energy):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
+class EnthalpyCont(Energy):
+
+    def __repr__(self):
+        return f'G_cont({round(self, 5)} {self.units.name})'
+
+
+class FreeEnergyCont(Energy):
+
+    def __repr__(self):
+        return f'H_cont({round(self, 5)} {self.units.name})'
+
+
 class Energies(list):
     """List of energies on an identical geometry/structure"""
 
-    def append(self, other: Energy):
+    def append(self, other: Energy) -> None:
         """
         Add another energy to this list, if it does not already appear
 
@@ -272,53 +285,24 @@ class Energies(list):
 
         return super().append(other)
 
-    def _delta_to_electronic(self, energy_type):
+    def last(self, energy_type: Type[Energy]) -> Optional[Energy]:
         """
-        Calculate X - E_elec, where X is perhaps a free energy or enthalpy
+        Return the last instance of a particular energy type in these list
+        of energies
 
         Arguments:
-            energy_type (autode.energies.Energy):
+            energy_type (Energy):
 
         Returns:
-            (autode.energies.Energy | None):
+            (autode.values.Energy | None):
         """
+
         try:
-            # Select the final energy in this list with the correct type
-            energy_with_type = next(e for e in reversed(self)
-                                    if isinstance(e, energy_type))
-
-            # and the corresponding electronic energy, calculated at the
-            # same method, so the ∆ between is correct
-            elec_energy = next(e for e in reversed(self)
-                               if e.method_str == energy_with_type.method_str
-                               and isinstance(e, PotentialEnergy))
-
-            return Energy(energy_with_type - elec_energy)
+            return next(energy for energy in reversed(self)
+                        if isinstance(energy, energy_type))
 
         except StopIteration:
-            logger.warning(f'Failed to calculate {energy_type.__name__} '
-                           f'- {PotentialEnergy.__name__}')
             return None
-
-    @property
-    def h_cont(self) -> Union[Energy, None]:
-        """
-        Return the enthalpic contribution to the energy
-
-        Returns:
-             (autode.values.Energy | None): H_cont = H - E_elec
-        """
-        return self._delta_to_electronic(energy_type=Enthalpy)
-
-    @property
-    def g_cont(self) -> Union[Energy, None]:
-        """
-        Return the free energy contribution to the energy
-
-        Returns:
-             (autode.values.Energy | None): G_cont = G - E_elec
-        """
-        return self._delta_to_electronic(energy_type=FreeEnergy)
 
     def __init__(self, *args: Energy):
         """
@@ -380,9 +364,19 @@ class Frequency(Value):
     implemented_units = [wavenumber, hz]
 
     @property
-    def is_imaginary(self):
+    def is_imaginary(self) -> bool:
         """Imaginary frequencies are quoted as negative for simplicity"""
         return self < 0
+
+    @property
+    def real(self) -> 'Frequency':
+        """
+        A frequencies real (positive) value
+
+        Returns:
+            (autode.values.Frequency):
+        """
+        return self * -1 if self.is_imaginary else self
 
     def __repr__(self):
         return f'Frequency({round(self, 5)} {self.units.name})'
@@ -528,4 +522,15 @@ class Gradients(ValueArray):
         return f'Gradients({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls,  input_array, units=ha_per_ang):
+        return super().__new__(cls, input_array, units)
+
+
+class MomentOfInertia(ValueArray):
+
+    implemented_units = [amu_ang_sq, kg_m_sq]
+
+    def __repr__(self):
+        return f'I({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls,  input_array, units=amu_ang_sq):
         return super().__new__(cls, input_array, units)

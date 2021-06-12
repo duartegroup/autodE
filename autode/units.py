@@ -67,7 +67,7 @@ class CompositeUnit(Unit):
 
     def __init__(self,
                  *args:   Unit,
-                 per:     Collection[Unit],
+                 per:     Collection[Unit] = None,
                  name:    Union[str, None] = None,
                  aliases: Union[Collection, None] = None):
         """
@@ -76,8 +76,9 @@ class CompositeUnit(Unit):
         Arguments:
             args (autode.units.Unit): Units on the numerator
 
-            per (list(autode.units.Unit)): Units on the denominator
+            per (list(autode.units.Unit) | None): Units on the denominator
         """
+        per = [] if per is None else per
 
         if name is None:
             top_names = " ".join([u.name for u in args])
@@ -159,6 +160,7 @@ pm = Unit(name='pm',
 m = Unit(name='m',
          conversion=Constants.ang_to_m,
          aliases=['meter'])
+
 # ----------------------------------------------------------------------
 # ------------------------------ Masses --------------------------------
 
@@ -171,6 +173,15 @@ kg = Unit(name='kg',
 m_e = Unit(name='m_e',
            conversion=Constants.amu_to_me,
            aliases=['me'])
+
+# ----------------------------------------------------------------------
+# -------------------- Mass-weighted distance squared ------------------
+
+amu_ang_sq = CompositeUnit(amu, ang, ang,
+                           name='amu Å^2')
+
+kg_m_sq = CompositeUnit(kg, m, m,
+                        name='kg m^2')
 
 # ----------------------------------------------------------------------
 # ----------------------------- Gradients ------------------------------
