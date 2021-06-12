@@ -144,7 +144,7 @@ class Atom:
 
         return None
 
-    # Method aliases
+    # --- Method aliases ---
     mass = weight
     coordinate = coord
 
@@ -527,7 +527,7 @@ class AtomCollection:
 
         return Angle(value)
 
-    # Method aliases
+    # --- Method aliases ---
     centre_of_mass = com
     moment_of_inertia = moi
     mass = weight

@@ -207,7 +207,7 @@ def symmetry_number(species, max_n_fold_rot_searched=6,  dist_tol=0.25):
     Theor Chem Account (2007) 118:813–826
 
     Arguments:
-        species (autode.species.Species):
+        species (autode.atoms.Species):
 
     Keyword Arguments:
         max_n_fold_rot_searched (int):

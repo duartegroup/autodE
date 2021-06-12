@@ -1,4 +1,4 @@
-from autode.thermo.calculate import set_thermo_cont
+from autode.thermo.calculate import calculate_thermo_cont
 
-__all__ = ['set_thermo_cont']
+__all__ = ['calculate_thermo_cont']
 

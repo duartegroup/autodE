@@ -17,7 +17,8 @@ from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
 from autode.thermo.hessians import Hessian
-from autode.thermo.calculate import set_thermo_cont
+from autode.thermo.symmetry import symmetry_number
+from autode.thermo.calculate import calculate_thermo_cont
 from autode import values as val
 from autode.utils import (requires_atoms,
                           work_in,
@@ -239,20 +240,55 @@ class Species(AtomCollection):
         return val.Distance(np.max(distance_matrix(coords, coords)) / 2.0)
 
     @property
+    def sn(self) -> int:
+        """
+        Calculate the symmetry number (σ_R) of the atoms. Only implemented for
+        'small' molecules <50 atoms
+
+
+        References:
+        [1] Theor Chem Account (2007) 118:813
+        [2] . Phys. Chem. B (2010) 114:16304
+
+        Returns:
+            (int): σ_R
+        """
+        if self.n_atoms == 0:
+            return 1
+
+        if self.n_atoms > 50:
+            logger.warning('Symmetry number calculations are not implemented '
+                           'for large molecules. Assuming C1 -> σ_R=1')
+            return 1
+
+        return symmetry_number(self)
+
+    @property
     def is_explicitly_solvated(self) -> bool:
         return isinstance(self.solvent, ExplicitSolvent)
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
-        """Last computed potential energy"""
+        """
+        Last computed potential energy
+
+        Returns:
+            (autode.values.PotentialEnergy):
+        """
         return self.energies.last(val.PotentialEnergy)
 
     @energy.setter
     def energy(self, value: Optional[val.Energy]):
-        """Add an energy to the list"""
+        """
+        Add an energy to the list
+
+        Arguments:
+            value (float | autode.values.Energy):
+        """
 
         if value is not None:
-            self.energies.append(value)
+            energy = val.PotentialEnergy(value)
+            self.energies.append(energy)
 
     @property
     def h_cont(self) -> Optional[val.EnthalpyCont]:
@@ -265,7 +301,7 @@ class Species(AtomCollection):
         return self.energies.last(val.EnthalpyCont)
 
     @property
-    def g_cont(self) -> Optional[val.Energy]:
+    def g_cont(self) -> Optional[val.FreeEnergyCont]:
         """
         Return the Gibbs (free) contribution to the energy
 
@@ -503,7 +539,7 @@ class Species(AtomCollection):
             else:
                 self.hessian = calc.get_hessian()
 
-        set_thermo_cont(self, temp=temp)
+        calculate_thermo_cont(self, temp=temp)
         return None
 
     @requires_atoms
@@ -586,6 +622,9 @@ class Species(AtomCollection):
 
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
+
+    # --- Method aliases ---
+    symmetry_number = sn
 
     def __init__(self,
                  name:         str,

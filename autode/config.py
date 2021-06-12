@@ -129,6 +129,29 @@ class Config:
     #
     min_imag_freq = -40
     # -------------------------------------------------------------------------
+    # Configuration parameters for ideal gas free energy calculations. Can be
+    # configured to use different standard states, quasi-rigid rotor harmonic
+    # oscillator (qRRHO) or pure RRHO
+    #
+    #  One of: '1M', '1atm'
+    standard_state = '1M'
+    #
+    # Method to treat low frequency modes (LFMs). Either standard RRHO ('igm'),
+    # Truhlar's method where all frequencies below a threshold are scaled to
+    # a shifted value (see J. Phys. Chem. B, 2011, 115, 14556) or Grimme's
+    # method of interpolating between HO and RR (i.e. qRRHO, see
+    # Chem. Eur. J. 2012, 18, 9955)
+    #
+    # One of: 'igm', 'truhlar', 'grimme'
+    lfm_method = 'grimme'
+    #
+    # Parameters for Grimme's method (only used when lfm_method='grimme')
+    grimme_w0 = 100
+    grimme_alpha = 4
+    #
+    # Parameters for Truhlar's method (only used when lfm_method='truhlar')
+    vib_freq_shift = 100
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------
