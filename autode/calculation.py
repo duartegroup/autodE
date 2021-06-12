@@ -3,11 +3,11 @@ import os
 import hashlib
 import base64
 import numpy as np
-from typing import Union, List
+from typing import Optional, Union, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 from autode.utils import cached_property
-from autode.atoms import Atom, Atoms
+from autode.atoms import Atoms
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
@@ -85,41 +85,6 @@ class Calculation:
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             logger.error('Have no atoms. Can\'t form a calculation')
             raise ex.NoInputError
-
-    def _get_energy(self, e=False, h=False, g=False, force=False):
-        """
-        Get the energy from a completed calculation
-
-        Keyword Arguments:
-            e (bool): Return the potential energy (E)
-            h (bool): Return the enthalpy (H) at 298 K
-            g (bool): Return the Gibbs free energy (G) at 298 K
-            force (bool): Return the energy even if the calculation errored
-
-        Returns:
-            (autode.values.Energy | None):
-        """
-        logger.info(f'Getting energy from {self.output.filename}')
-        kwargs = {'method': self.method, 'keywords': self.input.keywords}
-
-        if not self.terminated_normally() and not force:
-            logger.error('Calculation did not terminate normally. '
-                         'Energy = None')
-            return None
-
-        try:
-            if h:
-                return Enthalpy(self.method.get_enthalpy(self), **kwargs)
-
-            if g:
-                return FreeEnergy(self.method.get_free_energy(self), **kwargs)
-
-            if e:
-                return PotentialEnergy(self.method.get_energy(self), **kwargs)
-
-        except ex.CouldNotGetProperty:
-            logger.warning('Could not get energy. Energy = None')
-            return None
 
     def _fix_unique(self, register_name='.autode_calculations'):
         """
@@ -230,25 +195,29 @@ class Calculation:
         Returns:
             (autode.values.PotentialEnergy | None):
         """
-        return self._get_energy(e=True)
+        logger.info(f'Getting energy from {self.output.filename}')
 
-    def get_enthalpy(self) -> Union[Enthalpy, None]:
-        """
-        Total enthalpy
+        if not self.terminated_normally():
+            logger.error('Calculation did not terminate normally. '
+                         'Energy = None')
+            return None
 
-        Returns:
-            (autode.values.Enthalpy | None):
-        """
-        return self._get_energy(h=True)
+        try:
+            return PotentialEnergy(self.method.get_energy(self),
+                                   method=self.method,
+                                   keywords=self.input.keywords)
 
-    def get_free_energy(self) -> Union[FreeEnergy, None]:
-        """
-        Total free energy (G)
+        except ex.CouldNotGetProperty:
+            logger.warning('Could not get energy. Energy = None')
+            return None
 
-        Returns:
-            (autode.values.FreeEnergy | None):
-        """
-        return self._get_energy(g=True)
+    def get_enthalpy(self):
+        # TODO: Call molecule.enthalpy from the hessian
+        raise NotImplementedError
+
+    def get_free_energy(self):
+        # TODO: Call molecule.free_energy from the hessian
+        raise NotImplementedError
 
     def optimisation_converged(self) -> bool:
         """Check whether a calculation has has converged to within the theshold
@@ -593,9 +562,9 @@ class CalculationOutput:
         """Does the calculation output exist?"""
         return self.filename is not None and os.path.exists(self.filename)
 
-    def __init__(self):
+    def __init__(self, filename: Optional[str] = None):
 
-        self.filename = None
+        self.filename = filename
 
 
 class CalculationInput:

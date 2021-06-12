@@ -21,7 +21,7 @@ methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def _test_mopac_opt_calculation():
+def test_mopac_opt_calculation():
 
     calc = Calculation(name='opt', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.opt)
@@ -54,7 +54,7 @@ def _test_mopac_opt_calculation():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def _test_mopac_with_pc():
+def test_mopac_with_pc():
 
     calc = Calculation(name='opt_pc', molecule=methylchloride,
                        method=method,
@@ -72,7 +72,7 @@ def _test_mopac_with_pc():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def _test_other_spin_states():
+def test_other_spin_states():
 
     o_singlet = Molecule(atoms=[Atom('O')], mult=1)
     o_singlet.name = 'molecule'
@@ -122,7 +122,7 @@ def _test_other_spin_states():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def _test_bad_geometry():
+def test_bad_geometry():
 
     # Calculation with the wrong spin state should fail
     calc = Calculation(name='h2_overlap_opt',
@@ -138,7 +138,7 @@ def _test_bad_geometry():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def _test_constrained_opt():
+def test_constrained_opt():
 
     methane = Molecule(name='methane', smiles='C')
 
@@ -197,7 +197,7 @@ def test_grad():
         _ = grad_calc_broken.get_gradients()
 
 
-def _test_termination_short():
+def test_termination_short():
 
     calc = Calculation(name='test', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.sp)
@@ -210,7 +210,7 @@ def _test_termination_short():
     os.remove(calc.output.filename)
 
 
-def _test_mopac_keywords():
+def test_mopac_keywords():
 
     calc_input = CalculationInput(keywords=Config.MOPAC.keywords.sp,
                                   solvent=None,
@@ -232,7 +232,7 @@ def _test_mopac_keywords():
     assert any('doublet' == kw.lower() for kw in keywords)
 
 
-def _test_get_version_no_output():
+def test_get_version_no_output():
 
     calc = Calculation(name='test',
                        molecule=methylchloride,

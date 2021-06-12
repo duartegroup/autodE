@@ -164,7 +164,6 @@ def test_xtb_6_3_2():
                        keywords=method.keywords.opt)
 
     calc.output.filename = 'xtb_6_3_2_opt.out'
-    calc.output.file_lines = open('xtb_6_3_2_opt.out', 'r').readlines()
 
     assert len(calc.get_final_atoms()) == 5
 

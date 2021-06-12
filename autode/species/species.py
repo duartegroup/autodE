@@ -454,7 +454,7 @@ class Species(AtomCollection):
         """Calculate the free energy contribution for a species"""
 
         if calc is None:
-            calc = self._run_hess_calculation(method=method)
+            self._run_hess_calculation(method=method)
 
         raise NotImplementedError
         self.energies.append(calc.get_energy())
@@ -467,7 +467,7 @@ class Species(AtomCollection):
         """Calculate the free energy contribution for a species"""
 
         if calc is None:
-            calc = self._run_hess_calculation(method=method)
+            self._run_hess_calculation(method=method)
 
         raise NotImplementedError
         self.energies.append(calc.get_energy())

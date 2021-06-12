@@ -1,18 +1,13 @@
+import autode.exceptions as ex
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.wrappers.ORCA import calc_atom_entropy
-from autode.calculation import Calculation
+from autode.calculation import Calculation, CalculationOutput
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
 from autode.species.molecule import SolvatedMolecule
 from autode.input_output import xyz_file_to_atoms
-from autode.exceptions import AtomsNotFound
-from autode.exceptions import NoNormalModesFound
-from autode.exceptions import NoInputError
-from autode.exceptions import SolventUnavailable
-from autode.exceptions import UnsuppportedCalculationInput
-from autode.exceptions import CouldNotGetProperty
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.solvent.solvents import Solvent
@@ -58,7 +53,7 @@ def test_orca_opt_calculation():
 
     assert calc.optimisation_nearly_converged() is False
 
-    with pytest.raises(NoNormalModesFound):
+    with pytest.raises(ex.NoNormalModesFound):
         calc.get_normal_mode_displacements(mode_number=0)
 
     # Should have a partial atomic charge for every atom
@@ -72,7 +67,7 @@ def test_orca_opt_calculation():
 
     # If the calculation is not run with calc.run() then there should be no
     # input and the calc should raise that there is no input
-    with pytest.raises(NoInputError):
+    with pytest.raises(ex.NoInputError):
         execute_calc(calc)
 
 
@@ -93,14 +88,14 @@ def test_calc_bad_mol():
     mol.charge = 0
     mol.solvent = None
 
-    with pytest.raises(NoInputError):
+    with pytest.raises(ex.NoInputError):
         Calculation(name='no_atoms_mol', molecule=mol, method=method,
                     keywords=opt_keywords)
 
     mol = Molecule(name='methane', smiles='C')
     mol.solvent = Solvent(name='xx', smiles='X', aliases=['X'])
 
-    with pytest.raises(SolventUnavailable):
+    with pytest.raises(ex.SolventUnavailable):
         Calculation(name='no_atoms_mol', molecule=mol, method=method,
                     keywords=opt_keywords)
 
@@ -143,14 +138,12 @@ def test_bad_orca_output():
 
     calc = Calculation(name='no_output', molecule=test_mol, method=method,
                        keywords=opt_keywords)
-    calc.output.file_lines = []
-    calc.output.rev_file_lines = []
 
     assert calc.get_energy() is None
-    with pytest.raises(AtomsNotFound):
+    with pytest.raises(ex.AtomsNotFound):
         calc.get_final_atoms()
 
-    with pytest.raises(NoInputError):
+    with pytest.raises(ex.NoInputError):
         calc.execute_calculation()
 
     calc.output_file_lines = None
@@ -162,7 +155,7 @@ def test_solvation():
     methane = Molecule(name='solvated_methane', smiles='C',
                        solvent_name='water')
 
-    with pytest.raises(UnsuppportedCalculationInput):
+    with pytest.raises(ex.UnsuppportedCalculationInput):
 
         # Should raise on unsupported calculation type
         method.implicit_solvation_type = 'xxx'
@@ -230,8 +223,7 @@ def test_mp2_numerical_gradients():
                        molecule=Molecule(atoms=xyz_file_to_atoms('tmp_orca.xyz')),
                        method=method,
                        keywords=method.keywords.grad)
-    calc.output.filename = 'tmp_orca.out'
-    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
+    calc.output = CalculationOutput(filename='tmp_orca.out')
 
     gradients = calc.get_gradients()
     assert len(gradients) == 6
@@ -239,8 +231,8 @@ def test_mp2_numerical_gradients():
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
     # Test for different printing with numerical..
-    calc.output.filename = 'numerical_orca.out'
-    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
+    calc.output = CalculationOutput(filename='numerical_orca.out')
+
     gradients = calc.get_gradients()
     assert len(gradients) == 6
     expected = np.array([0.012397372, 0.071726232, -0.070942743]) / Constants.a0_to_ang
@@ -277,7 +269,7 @@ def test_keyword_setting():
     assert any('B3LYP' in line for line in inp_lines)
 
     # With a keyword without ORCA defined then raise an exception
-    with pytest.raises(UnsuppportedCalculationInput):
+    with pytest.raises(ex.UnsuppportedCalculationInput):
         orca.keywords.sp.functional = Functional(name='B3LYP', g09='B3LYP')
         calc = Calculation(name='tmp',
                            molecule=test_mol.copy(),
@@ -321,12 +313,10 @@ def test_hessian_extraction():
     # should not have any very large values
     assert np.sum(np.abs(hessian)) < 100
 
-    print(hessian)
-
-    calc.output.filename = 'no_file.out'
-    with pytest.raises(CouldNotGetProperty):
+    calc.output = CalculationOutput(filename='no_file.out')
+    with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_hessian()
 
-    calc.output.filename = 'H2O_hess_broken.out'
-    with pytest.raises(CouldNotGetProperty):
+    calc.output = CalculationOutput(filename='H2O_hess_broken.out')
+    with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_hessian()

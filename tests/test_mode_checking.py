@@ -47,7 +47,6 @@ def test_graph_no_other_bonds():
                        keywords=orca.keywords.opt_ts,
                        n_cores=1)
     calc.output.filename = 'h_shift_correct_ts_mode.out'
-    calc.output.file_lines = open('h_shift_correct_ts_mode.out', 'r').readlines()
 
     f_ts = Species(name='f_displaced', charge=0, mult=1,
                    atoms=get_displaced_atoms_along_mode(calc,
@@ -76,7 +75,6 @@ def has_correct_mode(name, fbonds, bbonds):
                        n_cores=1)
 
     calc.output.filename = f'{name}.out'
-    calc.output.file_lines = open(f'{name}.out', 'r').readlines()
 
     bond_rearr = BondRearrangement(breaking_bonds=bbonds,
                                    forming_bonds=fbonds)

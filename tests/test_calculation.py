@@ -28,8 +28,6 @@ def test_calc_class():
     assert calc.method.name == 'xtb'
 
     assert calc.get_energy() is None
-    assert calc.get_enthalpy() is None
-    assert calc.get_free_energy() is None
 
     assert not calc.optimisation_converged()
     assert not calc.optimisation_nearly_converged()

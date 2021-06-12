@@ -265,7 +265,6 @@ def test_thermal_cont_without_hess_run():
 
     # Some blank output that exists
     calc.output.filename = 'test'
-    calc.output.file_lines = []
 
     # Calculating the free energy contribution without a correct Hessian
     # calculation should not raise an exception(?)
