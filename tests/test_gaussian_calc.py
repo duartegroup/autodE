@@ -20,7 +20,6 @@ from . import testutils
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = G09()
-Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Opt'])
 optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',

@@ -20,7 +20,6 @@ import shutil
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
-Config.keyword_prefixes = False
 
 h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 

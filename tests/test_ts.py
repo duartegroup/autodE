@@ -26,7 +26,6 @@ import shutil
 
 here = os.path.dirname(os.path.abspath(__file__))
 method = ORCA()
-Config.keyword_prefixes = False
 
 # Force ORCA to appear available
 Config.hcode = 'orca'

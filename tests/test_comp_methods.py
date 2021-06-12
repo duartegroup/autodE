@@ -5,7 +5,6 @@ from autode.config import Config
 from .testutils import work_in_zipped_dir
 import os
 
-Config.keyword_prefixes = False
 here = os.path.dirname(os.path.abspath(__file__))
 
 

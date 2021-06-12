@@ -13,7 +13,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_multistep_reaction():
 
     Config.num_conformers = 1
-    Config.keyword_prefixes = True
 
     # Spoof installs
     Config.lcode = 'xtb'
@@ -48,4 +47,3 @@ def test_multistep_reaction():
     assert reaction.reactions is not None
     assert len(reaction.reactions) == 2
     assert reaction.reactions[0].ts is not None
-    Config.keyword_prefixes = False

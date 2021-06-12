@@ -11,7 +11,6 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
-Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
                             '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',

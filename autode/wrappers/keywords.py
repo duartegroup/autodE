@@ -111,10 +111,7 @@ class Keywords:
         from autode.config import Config
         base_str = ' '.join([str(kw) for kw in self.keyword_list])
 
-        if Config.keyword_prefixes:
-            return f'{prefix}({base_str})'
-        else:
-            return base_str
+        return f'{prefix}({base_str})'
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""

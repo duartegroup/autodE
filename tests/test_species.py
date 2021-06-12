@@ -14,7 +14,6 @@ import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
-Config.keyword_prefixes = False
 
 h1 = Atom('H')
 h2 = Atom('H', z=1.0)

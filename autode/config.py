@@ -291,10 +291,3 @@ class Config:
         #
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
-
-    # -------------------------------------------------------------------------
-    # Use keyword naming prefixes. False to maintain backwards compatibility
-    #
-    keyword_prefixes = True
-    #
-    # -------------------------------------------------------------------------

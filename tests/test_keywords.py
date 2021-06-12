@@ -13,7 +13,6 @@ from copy import deepcopy
 
 def test_keywords():
 
-    Config.keyword_prefixes = True
     keywords = Keywords(keyword_list=None)
     assert keywords.keyword_list == []
 
@@ -34,7 +33,6 @@ def test_keywords():
     assert 'hess' in str(HessianKeywords(None)).lower()
     assert 'grad' in str(GradientKeywords(None)).lower()
     assert 'sp' in str(SinglePointKeywords(None)).lower()
-    Config.keyword_prefixes = False
 
     keywords = Keywords([pbe, def2tzvp, d3bj])
     assert keywords.bstring is not None

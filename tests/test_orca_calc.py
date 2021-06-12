@@ -21,7 +21,6 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = ORCA()
-Config.keyword_prefixes = False
 
 sp_keywords = SinglePointKeywords(['PBE', 'def2-SVP'])
 opt_keywords = OptKeywords(['Opt', 'PBE', 'def2-SVP'])
