@@ -31,6 +31,7 @@ Functionality improvements
 - Adds :code:`Keywords.bstring` as a 'brief' summary of the keywords e.g. PBE0/def2-SVP and are associated with an :code:`Energy` (a type of :code:`Value`)
 - Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
 - Adds Hessian diagonalisation to obtain normal modes with and without translation and rotation projections for linear and non-linear molecules
+- Adds :code:`Species.weight` and :code:`Species.mass` as equivalent properties for the molecular weight
 
 Bug Fixes
 *********

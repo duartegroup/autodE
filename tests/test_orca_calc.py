@@ -308,6 +308,14 @@ def test_hessian_extraction():
 
     calc.output.filename = 'H2O_hess_orca.out'
 
+    with open('H2O_hess_orca.xyz', 'w') as xyz_file:
+        print('3\n',
+              'O     -0.001100    0.363100   -0.000000',
+              'H     -0.825000   -0.181900   -0.000000',
+              'H      0.826100   -0.181200    0.000000',
+              sep='\n',
+              file=xyz_file)
+
     hessian = calc.get_hessian()
     assert hessian.shape == (9, 9)
     # should not have any very large values

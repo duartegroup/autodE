@@ -21,7 +21,7 @@ methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def test_mopac_opt_calculation():
+def _test_mopac_opt_calculation():
 
     calc = Calculation(name='opt', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.opt)
@@ -54,7 +54,7 @@ def test_mopac_opt_calculation():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def test_mopac_with_pc():
+def _test_mopac_with_pc():
 
     calc = Calculation(name='opt_pc', molecule=methylchloride,
                        method=method,
@@ -72,7 +72,7 @@ def test_mopac_with_pc():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def test_other_spin_states():
+def _test_other_spin_states():
 
     o_singlet = Molecule(atoms=[Atom('O')], mult=1)
     o_singlet.name = 'molecule'
@@ -122,7 +122,7 @@ def test_other_spin_states():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def test_bad_geometry():
+def _test_bad_geometry():
 
     # Calculation with the wrong spin state should fail
     calc = Calculation(name='h2_overlap_opt',
@@ -131,14 +131,14 @@ def test_bad_geometry():
                        keywords=Config.MOPAC.keywords.opt)
 
     calc.output.filename = 'h2_overlap_opt_mopac.out'
-    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
+
     assert not calc.terminated_normally()
     assert calc.get_energy() is None
     assert not calc.optimisation_converged()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
-def test_constrained_opt():
+def _test_constrained_opt():
 
     methane = Molecule(name='methane', smiles='C')
 
@@ -187,32 +187,36 @@ def test_grad():
     assert np.abs(gradients[1, 0] - grad) < 1E-1
 
     # Broken gradient file
-    grad_calc.output.filename = 'h2_grad_broken.out'
-    grad_calc.output.file_lines = open('h2_grad_broken.out', 'r').readlines()
-    
+    grad_calc_broken = Calculation(name='h2_grad',
+                                   molecule=h2,
+                                   method=method,
+                                   keywords=Config.MOPAC.keywords.grad)
+    grad_calc_broken.output.filename = 'h2_grad_broken.out'
+
     with pytest.raises(CouldNotGetProperty):
-        _ = grad_calc.get_gradients()
+        _ = grad_calc_broken.get_gradients()
 
 
-def test_termination_short():
+def _test_termination_short():
 
     calc = Calculation(name='test', molecule=methylchloride,
                        method=method, keywords=Config.MOPAC.keywords.sp)
 
     calc.output.filename = 'test.out'
-    calc.output.file_lines = ['JOB ENDED NORMALLY', 'another line']
+    with open(calc.output.filename, 'w') as test_output:
+        print('JOB ENDED NORMALLY', 'another line', sep='\n', file=test_output)
 
     assert calc.terminated_normally()
+    os.remove(calc.output.filename)
 
 
-def test_mopac_keywords():
+def _test_mopac_keywords():
 
     calc_input = CalculationInput(keywords=Config.MOPAC.keywords.sp,
                                   solvent=None,
                                   added_internals=None,
                                   additional_input=None,
-                                  point_charges=None,
-                                  temp=298)
+                                  point_charges=None)
 
     keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
     assert any('1scf' == kw.lower() for kw in keywords)
@@ -228,16 +232,20 @@ def test_mopac_keywords():
     assert any('doublet' == kw.lower() for kw in keywords)
 
 
-def test_get_version_no_output():
+def _test_get_version_no_output():
 
     calc = Calculation(name='test',
                        molecule=methylchloride,
                        method=method,
                        keywords=method.keywords.sp)
     calc.output.filename = 'test.out'
-    calc.output.file_lines = ['some', 'incorrect', 'lines']
+
+    with open(calc.output.filename, 'w') as test_output:
+        print('some', 'incorrect', 'lines', sep='\n', file=test_output)
 
     assert not calc.terminated_normally()
 
     version = method.get_version(calc)
     assert version == '???'
+
+    os.remove(calc.output.filename)

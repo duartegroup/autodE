@@ -118,8 +118,8 @@ class Atom:
         return None
 
     def rotate(self,
-               axis: np.ndarray,
-               theta: float,
+               axis:   np.ndarray,
+               theta:  float,
                origin: Union[np.ndarray, None] = None) -> None:
         """Rotate this atom theta radians around an axis given an origin
 
@@ -194,7 +194,7 @@ class Atoms(list):
     @property
     def com(self) -> Coordinate:
         """
-        Calculate the centre of mass of these coordinates
+        Centre of mass of these coordinates
 
         COM = 1/M Σ_i m_i X_i
 
@@ -354,6 +354,26 @@ class AtomCollection:
             return None
 
         return self.atoms.com
+
+    @property
+    def weight(self) -> Mass:
+        """
+        Molecular weight
+
+        Returns:
+            (autode.values.Mass):
+        """
+        return sum(atom.mass for atom in self.atoms)
+
+    @property
+    def mass(self) -> Mass:
+        """
+        Molecular mass. Equivalent to the molecular weight
+
+        Returns:
+            (autode.values.Mass):
+        """
+        return self.weight
 
     def _idxs_are_present(self, *args):
         """Are a set of indexes present in the collection of atoms?

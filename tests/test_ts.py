@@ -119,10 +119,15 @@ def test_correct_imag_mode():
 
     bond_rearr = BondRearrangement(breaking_bonds=[(4, 1), (4, 18)],
                                    forming_bonds=[(1, 18)])
-    g09 = G09()
 
-    calc = Calculation(name='tmp', molecule=ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1')),
-                       method=g09, keywords=Config.G09.keywords.opt_ts)
+    g09 = G09()
+    reac = ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1'))
+
+    calc = Calculation(name='tmp',
+                       molecule=reac,
+                       method=g09,
+                       keywords=Config.G09.keywords.opt_ts)
+
     calc.output.filename = 'correct_ts_mode_g09.log'
 
     f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
@@ -142,6 +147,10 @@ def test_correct_imag_mode():
                                                b_species=b_species,
                                                bond_rearrangement=bond_rearr)
 
+    calc = Calculation(name='tmp',
+                       molecule=reac,
+                       method=g09,
+                       keywords=Config.G09.keywords.opt_ts)
     calc.output.filename = 'incorrect_ts_mode_g09.log'
 
     assert not imag_mode_has_correct_displacement(calc, bond_rearr)

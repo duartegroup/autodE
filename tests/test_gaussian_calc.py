@@ -47,8 +47,7 @@ def test_printing_ecp():
                                   solvent=None,
                                   additional_input=None,
                                   added_internals=None,
-                                  point_charges=None,
-                                  temp=0)
+                                  point_charges=None)
 
     with pytest.raises(RuntimeError):
         print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)

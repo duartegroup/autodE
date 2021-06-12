@@ -456,6 +456,7 @@ class Species(AtomCollection):
         if calc is None:
             calc = self._run_hess_calculation(method=method)
 
+        raise NotImplementedError
         self.energies.append(calc.get_energy())
         self.energies.append(calc.get_free_energy())
 
@@ -468,6 +469,7 @@ class Species(AtomCollection):
         if calc is None:
             calc = self._run_hess_calculation(method=method)
 
+        raise NotImplementedError
         self.energies.append(calc.get_energy())
         self.energies.append(calc.get_enthalpy())
 

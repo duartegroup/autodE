@@ -53,6 +53,9 @@ def test_atom_collection_base():
     h2.atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H')]
     assert h2.n_atoms == 2
 
+    assert h2.weight.to('amu') == 2*atoms.atomic_weights['H']
+    assert h2.mass.to('amu') == 2*atoms.atomic_weights['H']
+
     # Should be able to set coordinate from a flat array (row major)
     h2.coordinates = np.zeros(shape=(6,))
     assert h2.coordinates[0] is not None
@@ -90,6 +93,8 @@ def test_atom_collection_angles():
     h2o.atoms = [Atom('H', x=-1.0),
                  Atom('O'),
                  Atom('H', x=1.0)]
+
+    assert np.isclose(h2o.mass.to('amu'), 18, atol=0.2)
 
     # Should default to more human readable degree units
     assert np.isclose(h2o.angle(0, 1, 2).to('deg'), 180)

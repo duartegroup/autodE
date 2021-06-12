@@ -54,7 +54,6 @@ def test_calc_class():
 
     # With no output should not be able to get properties
     calc.output.filename = 'tmp'
-    calc.output.file_lines = []
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
 

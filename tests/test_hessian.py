@@ -1,11 +1,15 @@
+import os
 import pytest
 import numpy as np
 import autode as ade
+from . import testutils
 from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.thermo.hessians import Hessian
 from autode.units import wavenumber
+here = os.path.dirname(os.path.abspath(__file__))
+
 
 # Ha/Å-2
 h2o_hessian_arr = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
@@ -53,18 +57,23 @@ co2_hessian_arr = np.array([[1.1314383525E+00, 4.2385767412E-04, 3.5051771425E-0
                             [-6.5997594969E-05, -2.4306709511E-08, 3.6651071540E-02, - 2.7734157097E-04, - 1.0679186055E-07,-7.3228811671E-02,   3.4336655361E-04,   1.3393871147E-02,  3.6549939293E-02]])
 
 
-def assert_correct_co2_frequencies(hessian):
+def assert_correct_co2_frequencies(hessian,
+                                   expected=(666, 1415, 2517)):
     """Ensure the projected frequencies of CO2 are roughly right"""
+    nu_1, nu_2, nu_3 = expected
 
     assert sum(freq == 0.0 for freq in hessian.frequencies_proj) == 5
 
     # Should have a degenerate bending mode for CO2 with ν = 666 cm-1
-    assert sum(np.isclose(Frequency(666, units='cm-1'), freq, atol=2.0)
+    assert sum(np.isclose(Frequency(nu_1, units='cm-1'), freq, atol=2.0)
                for freq in hessian.frequencies_proj) == 2
 
     # and two others that are larger
-    assert sum(freq > Frequency(1000, units='cm-1')
-               for freq in hessian.frequencies_proj) == 2
+    assert sum(np.isclose(Frequency(nu_2, units='cm-1'), freq, atol=2.0)
+               for freq in hessian.frequencies_proj) == 1
+
+    assert sum(np.isclose(Frequency(nu_3, units='cm-1'), freq, atol=2.0)
+               for freq in hessian.frequencies_proj) == 1
 
 
 def test_hessian_set():
@@ -129,6 +138,7 @@ def test_hessian_modes():
             assert np.isclose(vib_mode[i, 2], 0.0, atol=1E-4)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_hessian_linear_freqs():
 
     co2 = Molecule('CO2_opt.xyz')
@@ -138,6 +148,7 @@ def test_hessian_linear_freqs():
     assert_correct_co2_frequencies(hessian=co2.hessian)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_gaussian_hessian_extract_h2():
 
     h2 = ade.Molecule(atoms=[ade.Atom('H', x=0.3804),
@@ -158,6 +169,7 @@ def test_gaussian_hessian_extract_h2():
                       atol=1.0)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_gaussian_hessian_extract_co2():
 
     co2 = Molecule('CO2_opt.xyz')
@@ -178,6 +190,7 @@ def test_gaussian_hessian_extract_co2():
     assert_correct_co2_frequencies(hessian=co2.hessian)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_nwchem_hessian_extract_h2o():
 
     calc = Calculation(name='tmp',
@@ -200,3 +213,16 @@ def test_nwchem_hessian_extract_h2o():
 
         assert sum(np.isclose(freq, Frequency(3959.20), atol=4)
                    for freq in freqs) == 1
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
+def test_nechem_hessian_co2():
+
+    calc = Calculation(name='tmp',
+                       molecule=ade.Molecule(smiles='O=C=O'),
+                       method=ade.methods.NWChem(),
+                       keywords=ade.HessianKeywords())
+
+    calc.output.filename = 'CO2_hess_nwchem.out'
+    assert_correct_co2_frequencies(hessian=calc.get_hessian(),
+                                   expected=(659.76, 1406.83, 2495.73))
