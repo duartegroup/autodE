@@ -5,7 +5,7 @@ from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
 from autode.units import (Unit,
-                          ha, kjmol, kcalmol, ev,
+                          ha, kjmol, kcalmol, ev, J,
                           ang, a0, nm, pm, m,
                           rad, deg,
                           wavenumber, hz,
@@ -184,7 +184,7 @@ class Value(ABC, float):
             x (float | int):
 
         Keyword Arguments:
-            units (autode.units.Unit | None):
+            units (autode.units.Unit | str | None):
         """
 
         float.__init__(float(x))
@@ -195,7 +195,7 @@ class Energy(Value):
     """Type of energy in some units e.g. Potential, Free etc.
     defaults to Hartrees"""
 
-    implemented_units = [ha, kcalmol, kjmol, ev]
+    implemented_units = [ha, kcalmol, kjmol, ev, J]
 
     def __repr__(self):
         return f'Energy({round(self, 5)} {self.units.name})'
@@ -212,7 +212,7 @@ class Energy(Value):
 
     def __init__(self,
                  value,
-                 units: Unit = ha,
+                 units: Union[Unit, str] = ha,
                  method=None,
                  keywords=None):
         """
@@ -257,13 +257,13 @@ class Enthalpy(Energy):
 class EnthalpyCont(Energy):
 
     def __repr__(self):
-        return f'G_cont({round(self, 5)} {self.units.name})'
+        return f'H_cont({round(self, 5)} {self.units.name})'
 
 
 class FreeEnergyCont(Energy):
 
     def __repr__(self):
-        return f'H_cont({round(self, 5)} {self.units.name})'
+        return f'G_cont({round(self, 5)} {self.units.name})'
 
 
 class Energies(list):

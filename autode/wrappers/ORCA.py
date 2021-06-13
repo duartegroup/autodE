@@ -5,6 +5,7 @@ from autode.constants import Constants
 from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom, get_atomic_weight
+from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
 from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
 from autode.exceptions import NoCalculationOutput
@@ -431,20 +432,58 @@ class ORCA(ElectronicStructureMethod):
         return np.array(displacements_xyz)
 
     def get_final_atoms(self, calc):
+        """
+        Get the final set of atoms from an ORCA output file
 
-        atoms = []
+        Args:
+            calc:
+
+        Returns:
+
+        """
+
+        # First try the .xyz file generated
         xyz_file_name = calc.output.filename.replace('.out', '.xyz')
+        if os.path.exists(xyz_file_name):
+            return xyz_file_to_atoms(xyz_file_name)
 
-        if not os.path.exists(xyz_file_name):
-            raise NoCalculationOutput('ORCA generated .xyz file not found')
+        # Then the Hessian file
+        hess_file_name = calc.output.filename.replace('.out', '.hess')
+        if os.path.exists(hess_file_name):
+            hess_file_lines = open(hess_file_name, 'r').readlines()
 
-        with open(xyz_file_name, 'r') as xyz_file:
-            for line_no, line in enumerate(xyz_file):
-                if line_no > 1:
-                    atom_label, x, y, z = line.split()
-                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
+            atoms = []
+            for i, line in enumerate(hess_file_lines):
+                if '$atoms' not in line:
+                    continue
 
-        return atoms
+                for aline in hess_file_lines[i+2:i+2+calc.molecule.n_atoms]:
+                    label, _, x, y, z = aline.split()
+                    atom = Atom(label, x, y, z)
+                    # Coordinates in the Hessian file are all atomic units
+                    atom.coord *= Constants.a0_to_ang
+
+                    atoms.append(atom)
+
+                return atoms
+
+        # and finally the potentially long .out file
+        if os.path.exists(calc.output.filename):
+            atoms = []
+
+            # There could be many sets in the file, so take the last
+            for i, line in enumerate(calc.output.file_lines):
+                if 'CARTESIAN COORDINATES (ANGSTROEM)' not in line:
+                    continue
+
+                atoms, n_atoms = [], calc.molecule.n_atoms
+                for oline in calc.output.file_lines[i+2:i+2+n_atoms]:
+                    label, x, y, z = oline.split()
+                    atoms.append(Atom(label, x, y, z))
+
+            return atoms
+
+        raise NoCalculationOutput('Failed to find and ORCA output files')
 
     def get_atomic_charges(self, calc):
         """

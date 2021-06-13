@@ -18,7 +18,7 @@ from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
 from autode.thermo.hessians import Hessian
 from autode.thermo.symmetry import symmetry_number
-from autode.thermo.calculate import calculate_thermo_cont
+from autode.thermo.igm import calculate_thermo_cont
 from autode import values as val
 from autode.utils import (requires_atoms,
                           work_in,
@@ -206,7 +206,7 @@ class Species(AtomCollection):
         Returns:
             (list(autode.value.Frequency) | None):
         """
-        return self.frequencies[5:] if self.frequencies is not None else None
+        return self.frequencies[6:] if self.frequencies is not None else None
 
     @property
     @requires_atoms
@@ -537,6 +537,7 @@ class Species(AtomCollection):
             if calc is None:
                 self._run_hess_calculation(method=method)
             else:
+                self.atoms = calc.get_final_atoms()
                 self.hessian = calc.get_hessian()
 
         calculate_thermo_cont(self, temp=temp)
