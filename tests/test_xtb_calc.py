@@ -35,10 +35,6 @@ def test_xtb_calculation():
 
     with pytest.raises(NotImplementedError):
         calc.optimisation_nearly_converged()
-    with pytest.raises(NotImplementedError):
-        calc.get_imaginary_freqs()
-    with pytest.raises(NotImplementedError):
-        calc.get_normal_mode_displacements(4)
 
     charges = calc.get_atomic_charges()
     assert len(charges) == 22
@@ -77,7 +73,7 @@ def test_energy_extract_no_energy():
     # Output where the energy is not present
     calc.output.filename = 'h2_sp_xtb_no_energy.out'
 
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.get_energy() is None
 
 

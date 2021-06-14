@@ -309,7 +309,6 @@ class TransitionState(TSbase):
         self.conformers = None
 
         self.optts_calc = None
-        self.imaginary_frequencies = []
 
         self._update_graph()
 

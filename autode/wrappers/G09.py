@@ -283,7 +283,7 @@ def rerun_angle_failure(calc):
     cart_calc.output = CalculationOutput()
     cart_calc.run()
 
-    if not cart_calc.terminated_normally():
+    if not cart_calc.terminated_normally:
         logger.warning('Cartesian calculation did not converge')
         return None
 
@@ -403,7 +403,7 @@ class G09(ElectronicStructureMethod):
         except AtomsNotFound:
             return False
 
-        if fixed_calc is not None and fixed_calc.terminated_normally():
+        if fixed_calc is not None and fixed_calc.terminated_normally:
             logger.info('The 180° angle issue has been fixed')
             calc.output = fixed_calc.output
             calc.name = fixed_calc.name

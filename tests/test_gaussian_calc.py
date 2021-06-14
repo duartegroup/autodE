@@ -104,14 +104,11 @@ def test_gauss_opt_calc():
     assert calc.get_energy() == -499.729222331
     assert calc.output.exists
     assert calc.output.file_lines is not None
-    assert calc.get_imaginary_freqs() == []
-
-    with pytest.raises(NoNormalModesFound):
-        calc.get_normal_mode_displacements(mode_number=1)
+    assert methylchloride.imaginary_frequencies is None
 
     assert calc.input.filename == 'opt_g09.com'
     assert calc.output.filename == 'opt_g09.log'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
 
@@ -132,11 +129,13 @@ def test_gauss_opt_calc():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_optts_calc():
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol,
-                       method=method, keywords=optts_keywords,
+    calc = Calculation(name='test_ts_reopt_optts',
+                       molecule=test_mol,
+                       method=method,
+                       keywords=optts_keywords,
                        bond_ids_to_add=[(0, 1)])
     calc.run()
-    print(calc.input.added_internals)
+
     assert os.path.exists('test_ts_reopt_optts_g09.com')
 
     bond_added = False
@@ -149,14 +148,16 @@ def test_gauss_optts_calc():
 
     assert bond_added
 
-    assert calc.get_normal_mode_displacements(mode_number=6) is not None
-    assert calc.terminated_normally()
+    mol = Molecule(atoms=calc.get_final_atoms())
+    mol.calc_thermo(calc=calc, ss='1atm', lfm_method='igm')
+
+    assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
-    assert len(calc.get_imaginary_freqs()) == 1
+    assert len(mol.imaginary_frequencies) == 1
 
-    assert -40.324 < calc.get_free_energy() < -40.322
-    assert -40.301 < calc.get_enthalpy() < -40.299
+    assert -40.324 < mol.free_energy < -40.322
+    assert -40.301 < mol.enthalpy < -40.298
 
 
 def test_bad_gauss_output():
@@ -189,7 +190,7 @@ def test_fix_angle_error():
     assert os.path.exists('angle_fail_g09_cartesian.com') is True
     assert os.path.exists('angle_fail_g09_internal.com') is True
     assert calc.output.filename == 'angle_fail_g09_internal.log'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))

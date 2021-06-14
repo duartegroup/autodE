@@ -9,8 +9,8 @@ Changelog
 API improvements while broadly maintaining backwards compatibility.
 
 
-Usability improvements
-**********************
+Usability improvements/Changes
+******************************
 - Adds more argument and return types
 - Changes :code:`AtomCollection.atoms` to a property for more flexible sub-classing
 - Changes :code:`ElectronicStructureMethod.doi_str` and :code:`Keyword.doi_str` to properties
@@ -19,6 +19,8 @@ Usability improvements
 - :code:`Species.energy` is a property of the last computed energy on that species
 - :code:`Species.is_linear` now uses an angle tolerance to determine linearity, which is slightly tighter than the previous float-based tolerance
 - Removes :code:`CalculationOutput.set_lines` in favour of a cached file_lines property to avoid :code:`set_file_lines()`
+- Removes :code:`CalculationOutput.get_free_energy()` in favour of :code:`Species.free_energy` once a Hessian is set for a molecule and similarly with :code:`CalculationOutput.get_enthalpy()` and :code:`CalculationOutput.get_imaginary_freqs()` (now :code:`Species.imaginary_frequencies`)
+- Changes :code:`CalculationOutput.terminated_normally()` to a property
 
 Functionality improvements
 **************************

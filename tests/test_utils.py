@@ -88,7 +88,9 @@ def test_calc_output():
 
     # Calling the same function with some calculation output should not raise
     # a not calculation output error
-    calc.output.file_lines = ['some', 'example', 'output']
+    calc.output.filename = 'tmp.out'
+    with open(calc.output.filename, 'w') as out_file:
+        print('some', 'example', 'output', sep='\n', file=out_file)
     test(calc)
 
 

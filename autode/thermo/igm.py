@@ -33,8 +33,10 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
     Keyword Arguments:
         temp (float): Temperature in K. Default: 298.15 K
 
-        method (str): Method used to calculate the molecular entropy. One of:
-                      {'igm', 'truhlar', 'grimme'}. Default: Config.lfm_method
+        lfm_method (str): Method used to calculate the molecular entropy by
+                          treating the low frequency modes.
+                          One of: 'igm', 'truhlar', 'grimme'}.
+                          Default: Config.lfm_method
 
         ss (str): Standard state at which the molecular entropy is calculated.
                   Should be 1M for a solution phase molecule and 1 atm for
@@ -60,7 +62,7 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
         return
 
     S_cont = _entropy(species,
-                      method=kwargs.get('method', Config.lfm_method),
+                      method=kwargs.get('lfm_method', Config.lfm_method),
                       temp=temp,
                       ss=kwargs.get('ss', Config.standard_state),
                       shift=kwargs.get('freq_shift', Config.vib_freq_shift),

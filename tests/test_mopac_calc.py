@@ -38,7 +38,7 @@ def test_mopac_opt_calculation():
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_mopac.mop'
     assert calc.output.filename == 'opt_mopac.out'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.optimisation_converged() is True
 
     with pytest.raises(CouldNotGetProperty):
@@ -46,10 +46,6 @@ def test_mopac_opt_calculation():
 
     with pytest.raises(NotImplementedError):
         _ = calc.optimisation_nearly_converged()
-    with pytest.raises(NotImplementedError):
-        _ = calc.get_imaginary_freqs()
-    with pytest.raises(NotImplementedError):
-        _ = calc.get_normal_mode_displacements(4)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
@@ -131,7 +127,7 @@ def test_bad_geometry():
 
     calc.output.filename = 'h2_overlap_opt_mopac.out'
 
-    assert not calc.terminated_normally()
+    assert not calc.terminated_normally
     assert calc.get_energy() is None
     assert not calc.optimisation_converged()
 
@@ -205,7 +201,7 @@ def test_termination_short():
     with open(calc.output.filename, 'w') as test_output:
         print('JOB ENDED NORMALLY', 'another line', sep='\n', file=test_output)
 
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     os.remove(calc.output.filename)
 
 
@@ -242,7 +238,7 @@ def test_get_version_no_output():
     with open(calc.output.filename, 'w') as test_output:
         print('some', 'incorrect', 'lines', sep='\n', file=test_output)
 
-    assert not calc.terminated_normally()
+    assert not calc.terminated_normally
 
     version = method.get_version(calc)
     assert version == '???'

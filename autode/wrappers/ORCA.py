@@ -7,10 +7,13 @@ from autode.wrappers.base import ElectronicStructureMethod
 from autode.atoms import Atom, get_atomic_weight
 from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
-from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
-from autode.exceptions import NoCalculationOutput
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
+from autode.exceptions import (UnsuppportedCalculationInput,
+                               CouldNotGetProperty,
+                               NoCalculationOutput,
+                               XYZfileWrongFormat,
+                               AtomsNotFound)
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
                              'carbon tetrachloride': 'CCl4', 'dichloromethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',
@@ -435,17 +438,26 @@ class ORCA(ElectronicStructureMethod):
         """
         Get the final set of atoms from an ORCA output file
 
-        Args:
-            calc:
+        Arguments:
+            calc (autode.calculation.Calculation):
 
         Returns:
+            (list(autode.atoms.Atom)):
 
+        Raises:
+            (autode.exceptions.NoCalculationOutput
+            | autode.exceptions.AtomsNotFound)
         """
 
         # First try the .xyz file generated
         xyz_file_name = calc.output.filename.replace('.out', '.xyz')
         if os.path.exists(xyz_file_name):
-            return xyz_file_to_atoms(xyz_file_name)
+
+            try:
+                return xyz_file_to_atoms(xyz_file_name)
+
+            except XYZfileWrongFormat:
+                raise AtomsNotFound
 
         # Then the Hessian file
         hess_file_name = calc.output.filename.replace('.out', '.hess')

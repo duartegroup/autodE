@@ -15,7 +15,7 @@ from autode.solvent.solvents import Solvent
 from autode.log import logger
 from autode.thermo.hessians import Hessian
 from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
-                           Gradients)
+                           Gradients, Frequency, Coordinates)
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')
@@ -197,7 +197,7 @@ class Calculation:
         """
         logger.info(f'Getting energy from {self.output.filename}')
 
-        if not self.terminated_normally():
+        if not self.terminated_normally:
             logger.error('Calculation did not terminate normally. '
                          'Energy = None')
             return None
@@ -210,14 +210,6 @@ class Calculation:
         except ex.CouldNotGetProperty:
             logger.warning('Could not get energy. Energy = None')
             return None
-
-    def get_enthalpy(self) -> Optional[Enthalpy]:
-        # TODO: Call molecule.enthalpy from the hessian
-        raise NotImplementedError
-
-    def get_free_energy(self) -> Optional[FreeEnergy]:
-        # TODO: Call molecule.free_energy from the hessian
-        raise NotImplementedError
 
     def optimisation_converged(self) -> bool:
         """Check whether a calculation has has converged to within the theshold
@@ -244,36 +236,6 @@ class Calculation:
             return False
 
         return self.method.optimisation_nearly_converged(self)
-
-    def get_imaginary_freqs(self) -> List[float]:
-        """Get the imaginary frequencies from a calculation output note that
-        they are returned as negative to conform with standard QM codes
-
-        Returns:
-            (list(float)): List of negative frequencies in wavenumbers (cm-1)
-        """
-        logger.info(f'Getting imaginary frequencies from {self.name}')
-        return self.method.get_imaginary_freqs(self)
-
-    def get_normal_mode_displacements(self, mode_number) -> np.ndarray:
-        """Get the displacements along a mode for each of the n_atoms in the
-        structure will return a list of length n_atoms each with 3 components
-        (x, y, z)
-
-        Arguments:
-            mode_number (int): Normal mode number. 6 will be the first
-                               vibrational mode as 0->2 are translation and
-                               3->5 rotation
-        Returns:
-            (np.ndarray): Displacement vectors for each atom (Å)
-                          modes.shape = (n_atoms, 3)
-        """
-        modes = self.method.get_normal_mode_displacements(self, mode_number)
-
-        if len(modes) != self.molecule.n_atoms:
-            raise ex.NoNormalModesFound
-
-        return modes
 
     def get_final_atoms(self) -> Atoms:
         """
@@ -370,6 +332,7 @@ class Calculation:
 
         return hessian
 
+    @property
     def terminated_normally(self) -> bool:
         """Determine if the calculation terminated without error"""
         logger.info(f'Checking for {self.output.filename} normal termination')
@@ -444,7 +407,7 @@ class Calculation:
         if not self.input.exists:
             raise ex.NoInputError('Input did not exist')
 
-        if self.output.exists and self.terminated_normally():
+        if self.output.exists and self.terminated_normally:
             logger.info('Calculation already terminated normally. Skipping')
             return None
 

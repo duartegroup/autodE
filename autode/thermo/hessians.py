@@ -1,3 +1,7 @@
+"""
+Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
+for mathematical background
+"""
 import numpy as np
 from typing import List, Tuple
 from autode.utils import cached_property
@@ -210,7 +214,7 @@ class Hessian(ValueArray):
 
         # then apply the back-transformation
         modes = [Coordinates(np.dot(self._proj_matrix, S_prime[:, i]))
-                 for i in range(6 + n_v)]
+                 for i in range(n_tr + n_v)]
 
         return modes
 

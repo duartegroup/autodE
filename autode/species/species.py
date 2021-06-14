@@ -209,6 +209,38 @@ class Species(AtomCollection):
         return self.frequencies[6:] if self.frequencies is not None else None
 
     @property
+    def imaginary_frequencies(self) -> Optional[List[val.Frequency]]:
+        """
+        Imaginary frequencies of a molecule
+
+        Returns:
+            (list(autode.values.Frequency) | None):
+        """
+        if self.frequencies is None:
+            logger.warning('Had no frequencies - could not find any imaginary')
+            return None
+
+        return [freq for freq in self.frequencies if freq.is_imaginary]
+
+    def normal_mode(self, mode_number: int) -> Optional[val.Coordinates]:
+        """
+        Vibrational normal mode indexed from 0, the first 6 are translation
+        and rotation and have zero displacements. The first vibrational mode
+        has mode_number = 6.
+
+        Arguments:
+            mode_number (int):
+
+        Returns:
+            (autode.values.Coordinates):
+        """
+        if self.hessian is None:
+            logger.warning('Could not calculate a normal mode displacement')
+            return None
+
+        return self.hessian.normal_modes_proj[mode_number]
+
+    @property
     @requires_atoms
     def bond_matrix(self) -> np.ndarray:
         """Return a np.ndarray boolean array of the bonds
@@ -309,6 +341,38 @@ class Species(AtomCollection):
              (autode.values.Energy | None): G - E_elec
         """
         return self.energies.last(val.FreeEnergyCont)
+
+    @property
+    def free_energy(self) -> Optional[val.FreeEnergy]:
+        """
+        Free energy (G or A) of this species, calculated using the last energy
+        and free energy contribution
+
+        Returns:
+            (autode.values.FreeEnergy | None):
+        """
+        try:
+            return val.FreeEnergy(self.energy + self.g_cont)
+
+        except TypeError:
+            logger.warning('Could not calculate G - an energy was None')
+            return None
+
+    @property
+    def enthalpy(self) -> Optional[val.Enthalpy]:
+        """
+        Enthalpy (H) of this species, calculated using the last energy and
+        enthalpy contribution
+
+        Returns:
+            (autode.values.FreeEnergy | None):
+        """
+        try:
+            return val.Enthalpy(self.energy + self.h_cont)
+
+        except TypeError:
+            logger.warning('Could not calculate the H - an energy was None')
+            return None
 
     def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
         """
@@ -532,6 +596,9 @@ class Species(AtomCollection):
             calc (autode.calculation.Calculation):
 
             temp (float): Temperature in K
+
+        See Also:
+            (autode.thermo.igm.calculate_thermo_cont)
         """
 
         if self._hess is None:
@@ -539,6 +606,7 @@ class Species(AtomCollection):
                 self._run_hess_calculation(method=method)
             else:
                 self.atoms = calc.get_final_atoms()
+                self.energy = calc.get_energy()
                 self.hessian = calc.get_hessian()
 
         calculate_thermo_cont(self, temp=temp, **kwargs)

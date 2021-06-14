@@ -6,12 +6,12 @@ from autode.wrappers.ORCA import calc_atom_entropy
 from autode.calculation import Calculation, CalculationOutput
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
-from autode.species.molecule import SolvatedMolecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.solvent.solvents import Solvent
-from autode.config import Config
+from autode.transition_states.transition_state import TransitionState
+from autode.transition_states.ts_guess import TSguess
 from autode import utils
 from . import testutils
 import numpy as np
@@ -43,17 +43,13 @@ def test_orca_opt_calculation():
     assert -499.735 < calc.get_energy() < -499.730
     assert calc.output.exists
     assert calc.output.file_lines is not None
-    assert calc.get_imaginary_freqs() == []
     assert calc.input.filename == 'opt_orca.inp'
     assert calc.output.filename == 'opt_orca.out'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
 
     assert calc.optimisation_converged()
 
     assert calc.optimisation_nearly_converged() is False
-
-    with pytest.raises(ex.NoNormalModesFound):
-        calc.get_normal_mode_displacements(mode_number=0)
 
     # Should have a partial atomic charge for every atom
     charges = calc.get_atomic_charges()
@@ -102,10 +98,11 @@ def test_calc_bad_mol():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
 def test_orca_optts_calculation():
 
-    methane = SolvatedMolecule(name='methane', smiles='C')
-    methane.qm_solvent_atoms = []
+    ts_guess = TSguess(Molecule('test_ts_reopt_optts_orca.xyz', charge=-1).atoms)
+    ts = TransitionState(ts_guess)
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=methane,
+    calc = Calculation(name='test_ts_reopt_optts',
+                       molecule=ts,
                        method=method,
                        bond_ids_to_add=[(0, 1)],
                        keywords=opt_keywords,
@@ -116,21 +113,22 @@ def test_orca_optts_calculation():
                                          'MaxIter 100\nend')
     calc.run()
 
+    ts.calc_thermo(calc=calc, ss='1atm', sn=1)
+
     assert os.path.exists('test_ts_reopt_optts_orca.inp')
 
-    assert calc.get_normal_mode_displacements(mode_number=6) is not None
-    assert calc.terminated_normally()
+    assert ts.normal_mode(mode_number=6) is not None
+    assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
-    assert len(calc.get_imaginary_freqs()) == 1
+    assert len(ts.imaginary_frequencies) == 1
 
     # Gradients should be an n_atom x 3 array
     gradients = calc.get_gradients()
-    assert len(gradients) == 5
-    assert len(gradients[0]) == 3
+    assert gradients.shape == (ts.n_atoms, 3)
 
-    assert -599.437 < calc.get_enthalpy() < -599.436
-    assert -599.469 < calc.get_free_energy() < -599.468
+    assert -599.437 < ts.enthalpy < -599.436
+    assert -599.469 < ts.free_energy < -599.468
 
 
 def test_bad_orca_output():
@@ -146,7 +144,7 @@ def test_bad_orca_output():
         calc.execute_calculation()
 
     calc.output_file_lines = None
-    assert calc.terminated_normally() is False
+    assert calc.terminated_normally is False
 
 
 def test_solvation():
