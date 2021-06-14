@@ -1,5 +1,7 @@
 import os
+import numpy as np
 from autode import Molecule, Atom, Calculation
+from autode.values import Energy
 from autode.species import Species
 from autode.methods import ORCA
 from . import testutils
@@ -25,15 +27,25 @@ def test_symmetry_number():
     assert h_100.symmetry_number == 1
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
 def test_thermochemistry_h2o():
 
     h2o = Molecule(smiles='O')
+
     calc = Calculation(name='tmp',
                        molecule=h2o,
                        method=orca,
                        keywords=orca.keywords.hess)
     calc.output.filename = 'H2O_hess_orca.out'
 
-    h2o.calc_thermo(calc=calc)
+    # Calculate using the default method from ORCA
+    h2o.calc_thermo(calc=calc, ss='1atm', sn=1)
 
-    print(h2o.energies)
+    # Ensure the calculated free energy contribution is close to value obtained
+    # directly from ORCA
+    assert np.isclose(h2o.g_cont, Energy(0.00327564, units='ha'),
+                      atol=Energy(0.1, units='kcal mol-1').to('ha'))
+
+    # and likewise for the enthalpy
+    assert np.isclose(h2o.h_cont, Energy(0.02536189087, units='ha'),
+                      atol=Energy(0.1, units='kcal mol-1').to('ha'))

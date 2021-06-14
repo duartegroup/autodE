@@ -522,7 +522,8 @@ class Species(AtomCollection):
     def calc_thermo(self,
                     method: ElectronicStructureMethod = None,
                     calc:   Calculation = None,
-                    temp:   float = 298.15) -> None:
+                    temp:   float = 298.15,
+                    **kwargs) -> None:
         """Calculate the free energy contribution for a species
 
         Keyword Arguments:
@@ -540,7 +541,7 @@ class Species(AtomCollection):
                 self.atoms = calc.get_final_atoms()
                 self.hessian = calc.get_hessian()
 
-        calculate_thermo_cont(self, temp=temp)
+        calculate_thermo_cont(self, temp=temp, **kwargs)
         return None
 
     @requires_atoms

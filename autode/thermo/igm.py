@@ -17,32 +17,58 @@ class SIConstants:
     c = 299792458                       # m s-1
 
 
-def calculate_thermo_cont(species, temp=298.15):
+def calculate_thermo_cont(species, temp=298.15, **kwargs):
     """
     Calculate and set the thermochemical contributions (Enthalpic, Free Energy)
-    of a species using a variant of the ideal gas model (RRHO). Specific
-    methods are set in autode.config.Config
+    of a species using a variant of the ideal gas model (RRHO). Appends
+    energies to speices.energies. Default methods are set in
+    autode.config.Config. See references:
+
+    [1] Chem. Eur. J. 2012, 18, 9955
+    [2] J. Phys. Chem. B, 2011, 115, 14556
 
     Arguments:
         species (autode.species.Species):
 
     Keyword Arguments:
-        temp (float): Temperature in K
+        temp (float): Temperature in K. Default: 298.15 K
+
+        method (str): Method used to calculate the molecular entropy. One of:
+                      {'igm', 'truhlar', 'grimme'}. Default: Config.lfm_method
+
+        ss (str): Standard state at which the molecular entropy is calculated.
+                  Should be 1M for a solution phase molecule and 1 atm for
+                  a molecule in the gas phase. Default: Config.standard_state
+
+        shift (float | Frequency): Frequency parameters for Truhlar's method,
+                                   if float then assumed cm-1 units. Only used
+                                   if method='truhlar'.
+                                   Default: Config.vib_freq_shift
+
+        w0 (float | Frequency): ω0 parameter, if float then assumed cm-1 units
+                                Default: Config.grimme_w0
+
+        alpha (int | float): α parameter in Grimme's qRRHO method.
+                            Default: Config.grimme_w0
+
+        sn (int): The symmetry number, if not present then will default to
+                  species.sn
     """
     if species.atoms is None or species.frequencies is None:
         logger.warning('Species had no atoms, or frequencies. Cannot calculate'
                        ' thermochemical contributions (G_cont, H_cont)')
         return
 
-    S_cont = calc_entropy(species,
-                          method=Config.lfm_method,
-                          temp=temp,
-                          ss=Config.standard_state,
-                          shift=Config.vib_freq_shift,
-                          w0=Config.grimme_w0,
-                          alpha=Config.grimme_alpha)
+    S_cont = _entropy(species,
+                      method=kwargs.get('method', Config.lfm_method),
+                      temp=temp,
+                      ss=kwargs.get('ss', Config.standard_state),
+                      shift=kwargs.get('freq_shift', Config.vib_freq_shift),
+                      w0=kwargs.get('w0', Config.grimme_w0),
+                      alpha=kwargs.get('alpha', Config.grimme_alpha),
+                      sigma_r=kwargs.get('sn', species.sn))
 
-    U_cont = calc_internal_energy(species, temp=temp)
+    U_cont = _internal_energy(species, temp=temp)
 
     H_cont = EnthalpyCont(U_cont + SIConstants.k_b * temp, units='J').to('Ha')
     species.energies.append(H_cont)
@@ -53,7 +79,7 @@ def calculate_thermo_cont(species, temp=298.15):
     return None
 
 
-def calc_q_trans_igm(species, ss, temp):
+def _q_trans_igm(species, ss, temp):
     """
     Calculate the translational partition function using the PIB model,
     coupled with an effective volume
@@ -76,13 +102,13 @@ def calc_q_trans_igm(species, ss, temp):
     else:
         raise NotImplementedError
 
-    q_trans = ((2.0 * np.pi * species.weight * SIConstants.k_b * temp /
-                SIConstants.h**2)**1.5 * effective_volume)
+    q_trans = ((2.0 * np.pi * species.weight.to('kg') * SIConstants.k_b * temp
+                / SIConstants.h**2)**1.5 * effective_volume)
 
     return q_trans
 
 
-def calc_q_rot_igm(species, temp):
+def _q_rot_igm(species, temp, sigma_r):
     """
     Calculate the rotational partition function using the IGM method. Uses the
     rotational symmetry number, default = 1
@@ -90,24 +116,24 @@ def calc_q_rot_igm(species, temp):
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
+        sigma_r (int): Symmetry number e.g. 2 for water
 
     Returns:
         (float): Rotational partition function q_rot
     """
-
-    omega = (SIConstants.h**2
-             / (8.0 * np.pi**2 * SIConstants.k_b * species.moi.to('kg m^2')))
+    i_mat = species.moi.to('kg m^2')
+    omega_diag = (SIConstants.h**2
+                  / (8.0 * np.pi**2 * SIConstants.k_b * np.diagonal(i_mat)))
 
     if species.n_atoms == 1:
         return 1
 
     else:
-        # Product of the diagonal elements
-        omega_prod = omega[0, 0] * omega[1, 1] * omega[2, 2]
-        return temp**1.5/species.sn * np.sqrt(np.pi / omega_prod)
+        # omega_diag is the product of the diagonal elements
+        return temp**1.5/sigma_r * np.sqrt(np.pi / np.prod(omega_diag))
 
 
-def calc_q_vib_igm(species, temp):
+def _q_vib_igm(species, temp):
     """
     Calculate the vibrational partition function using the IGM method.
     Uses the rotational symmetry number, default = 1
@@ -131,7 +157,7 @@ def calc_q_vib_igm(species, temp):
     return q_vib
 
 
-def calc_s_trans_pib(species, ss, temp):
+def _s_trans_pib(species, ss, temp):
     """Calculate the translational entropy using a particle in a box model
 
     Arguments:
@@ -144,11 +170,11 @@ def calc_s_trans_pib(species, ss, temp):
         (float): S_trans
     """
 
-    q_trans = calc_q_trans_igm(species, ss=ss, temp=temp)
+    q_trans = _q_trans_igm(species, ss=ss, temp=temp)
     return SIConstants.k_b * (np.log(q_trans) + 1.0 + 1.5)
 
 
-def calc_s_rot_rr(species, temp):
+def _s_rot_rr(species, temp, sigma_r):
     """
     Calculate the rigid rotor (RR) entropy
 
@@ -163,7 +189,7 @@ def calc_s_rot_rr(species, temp):
     if species.n_atoms == 1:
         return 0
 
-    q_rot = calc_q_rot_igm(species, temp=temp)
+    q_rot = _q_rot_igm(species, temp=temp, sigma_r=sigma_r)
 
     if species.is_linear():
         return SIConstants.k_b * (np.log(q_rot) + 1.0)
@@ -172,7 +198,7 @@ def calc_s_rot_rr(species, temp):
         return SIConstants.k_b * (np.log(q_rot) + 1.5)
 
 
-def calc_igm_s_vib(species, temp):
+def _igm_s_vib(species, temp):
     """
     Calculate the entropy of a molecule according to the Ideal Gas Model (IGM)
     RRHO method
@@ -194,7 +220,7 @@ def calc_igm_s_vib(species, temp):
     return s
 
 
-def calc_truhlar_s_vib(species, temp, shift_freq):
+def _truhlar_s_vib(species, temp, shift_freq):
     """
     Calculate the entropy of a molecule according to the Truhlar's method of
     shifting low frequency modes
@@ -209,6 +235,9 @@ def calc_truhlar_s_vib(species, temp, shift_freq):
     """
     s = 0
 
+    if hasattr(shift_freq, 'to'):
+        shift_freq = float(shift_freq.to('cm-1'))
+
     for freq in species.vib_frequencies:
 
         # Threshold lower bound of the frequency
@@ -221,7 +250,7 @@ def calc_truhlar_s_vib(species, temp, shift_freq):
     return s
 
 
-def calc_grimme_s_vib(species, temp, omega_0, alpha):
+def _grimme_s_vib(species, temp, omega_0, alpha):
     """
     Calculate the entropy according to Grimme's qRRHO method of RR-HO
     interpolation in Chem. Eur. J. 2012, 18, 9955
@@ -229,13 +258,14 @@ def calc_grimme_s_vib(species, temp, omega_0, alpha):
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
-        omega_0 (float): ω0 parameter (cm-1)
+        omega_0 (float | Frequency): ω0 parameter (cm-1)
         alpha (float): α parameter
 
     Returns:
         (float): S_vib
     """
     s = 0.0
+    omega_0 = float(omega_0.to('cm-1')) if hasattr(omega_0, 'to') else omega_0
 
     # Average I = (I_xx + I_yy + I_zz) / 3.0
     b_avg = np.trace(species.moi.to('kg m^2')) / 3.0
@@ -260,23 +290,17 @@ def calc_grimme_s_vib(species, temp, omega_0, alpha):
     return s
 
 
-def calc_entropy(species, method, temp, ss, shift, w0, alpha):
+def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
     """
     Calculate the entropy
 
     Arguments:
         species (autode.species.Species):
-
         method (str):
-
         temp (float):
-
         ss (str):
-
         shift (float)
-
         w0 (float):
-
         alpha (float | int):
 
     Returns:
@@ -287,24 +311,24 @@ def calc_entropy(species, method, temp, ss, shift, w0, alpha):
     """
 
     # Translational entropy component
-    s_trans = calc_s_trans_pib(species, ss=ss, temp=temp)
+    s_trans = _s_trans_pib(species, ss=ss, temp=temp)
 
     if species.n_atoms == 1:
         # A molecule with only one atom has no rotational/vibrational DOF
         return s_trans
 
     # Rotational entropy component
-    s_rot = calc_s_rot_rr(species, temp=temp)
+    s_rot = _s_rot_rr(species, temp=temp, sigma_r=sigma_r)
 
     # Vibrational entropy component
     if method.lower() == 'igm':
-        s_vib = calc_igm_s_vib(species, temp)
+        s_vib = _igm_s_vib(species, temp)
 
     elif method.lower() == 'truhlar':
-        s_vib = calc_truhlar_s_vib(species, temp, shift_freq=shift)
+        s_vib = _truhlar_s_vib(species, temp, shift_freq=shift)
 
     elif method.lower() == 'grimme':
-        s_vib = calc_grimme_s_vib(species, temp, omega_0=w0, alpha=alpha)
+        s_vib = _grimme_s_vib(species, temp, omega_0=w0, alpha=alpha)
 
     else:
         raise NotImplementedError(f'Unrecognised method: {method}')
@@ -312,7 +336,7 @@ def calc_entropy(species, method, temp, ss, shift, w0, alpha):
     return s_trans + s_rot + s_vib
 
 
-def calc_zpe(species):
+def _zpe(species):
     """
     Calculate the zero point energy of a molecule, contributed to by the real
     (positive) frequencies
@@ -332,7 +356,7 @@ def calc_zpe(species):
     return zpe
 
 
-def calc_internal_vib_energy(species, temp):
+def _internal_vib_energy(species, temp):
     """
     Calculate the internal energy from vibrational motion within the IGM
 
@@ -353,7 +377,7 @@ def calc_internal_vib_energy(species, temp):
     return e_vib
 
 
-def calc_internal_energy(species, temp):
+def _internal_energy(species, temp):
     """
     Calculate the internal energy of a molecule
 
@@ -365,7 +389,7 @@ def calc_internal_energy(species, temp):
     Returns:
         (float): U_cont in SI units
     """
-    zpe = calc_zpe(species)
+    zpe = _zpe(species)
     e_trns = 1.5 * SIConstants.k_b * temp
 
     if species.is_linear():
@@ -376,6 +400,6 @@ def calc_internal_energy(species, temp):
         # From equipartition with 3 DOF -> 3/2 RT contribution to the energy
         e_rot = 1.5 * SIConstants.k_b * temp
 
-    e_vib = calc_internal_vib_energy(species, temp=temp)
+    e_vib = _internal_vib_energy(species, temp=temp)
 
     return zpe + e_trns + e_rot + e_vib
