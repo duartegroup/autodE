@@ -1,25 +1,26 @@
 import numpy as np
+import autode.values as val
 from copy import deepcopy
 from typing import Optional, Union, List
 from scipy.spatial import distance_matrix
+from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
 from autode.geom import calc_rmsd
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
+from autode.exceptions import CalculationException
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic
 from autode.conformers.conformers import conf_is_unique_rmsd
-from autode.log import logger
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
-from autode.thermo.hessians import Hessian
+from autode.hessians import Hessian
 from autode.thermo.symmetry import symmetry_number
 from autode.thermo.igm import calculate_thermo_cont
-from autode import values as val
 from autode.utils import (requires_atoms,
                           work_in,
                           requires_conformers)
@@ -130,8 +131,8 @@ class Species(AtomCollection):
 
         req_shape = (3*self.n_atoms, 3*self.n_atoms)
         if hasattr(value, 'shape') and value.shape != req_shape:
-            raise ValueError('Could not set the gradient. Incorrect shape: '
-                             f'{value.shape} != {(self.n_atoms, 3)}')
+            raise ValueError('Could not set the Hessian. Incorrect shape: '
+                             f'{value.shape} != {req_shape}')
 
         if value is None:
             self._hess = None
@@ -536,7 +537,7 @@ class Species(AtomCollection):
     @requires_atoms
     def optimise(self,
                  method:      Optional[ElectronicStructureMethod] = None,
-                 reset_graph: bool =False,
+                 reset_graph: bool = False,
                  calc:        Optional[Calculation] = None,
                  keywords:    Optional[Keywords] = None) -> None:
         """
@@ -558,17 +559,16 @@ class Species(AtomCollection):
         """
         logger.info(f'Running optimisation of {self.name}')
 
-        if calc is None:
-            assert method is not None
-            keywords = method.keywords.opt if keywords is None else keywords
+        if calc is None and method is None:
+            raise ValueError('Optimisation cannot be performed without '
+                             'a specified method or calculation.')
 
+        if calc is None:
             calc = Calculation(name=f'{self.name}_opt',
                                molecule=self,
                                method=method,
-                               keywords=keywords,
+                               keywords=method.keywords.opt if keywords is None else keywords,
                                n_cores=Config.n_cores)
-        else:
-            assert isinstance(calc, Calculation)
 
         calc.run()
         self.atoms = calc.get_final_atoms()
@@ -584,8 +584,8 @@ class Species(AtomCollection):
 
     @requires_atoms
     def calc_thermo(self,
-                    method: ElectronicStructureMethod = None,
-                    calc:   Calculation = None,
+                    method: Optional[ElectronicStructureMethod] = None,
+                    calc:   Optional[Calculation] = None,
                     temp:   float = 298.15,
                     **kwargs) -> None:
         """Calculate the free energy contribution for a species
@@ -600,32 +600,36 @@ class Species(AtomCollection):
         See Also:
             (autode.thermo.igm.calculate_thermo_cont)
         """
-
-        if self._hess is None:
-            if calc is None:
+        if (calc is not None and not calc.output.exists) or self._hess is None:
+            try:
                 self._run_hess_calculation(method=method)
-            else:
-                self.atoms = calc.get_final_atoms()
-                self.energy = calc.get_energy()
-                self.hessian = calc.get_hessian()
+
+            except CalculationException:
+                logger.warning('Could not calculate the thermochemical '
+                               'contribution Hessian calculation failed')
+
+        if calc is not None and calc.output.exists:
+            self.atoms = calc.get_final_atoms()
+            self.energy = calc.get_energy()
+            self.hessian = calc.get_hessian()
 
         calculate_thermo_cont(self, temp=temp, **kwargs)
         return None
 
     @requires_atoms
-    def calc_g_cont(self, *args, **kwargs):
+    def calc_g_cont(self, *args, **kwargs) -> None:
         """Calculate the Gibbs free (G) contribution for this species  using
         Species.calc_thermo()"""
         return self.calc_thermo(*args, **kwargs)
 
     @requires_atoms
-    def calc_h_cont(self, *args, **kwargs):
+    def calc_h_cont(self, *args, **kwargs) -> None:
         """Calculate the enthalpic (H) contribution for this species using
         Species.calc_thermo()"""
         return self.calc_thermo(*args, **kwargs)
 
     @requires_atoms
-    def single_point(self, method, keywords=None):
+    def single_point(self, method, keywords=None) -> None:
         """Calculate the single point energy of the species with a
         autode.wrappers.base.ElectronicStructureMethod"""
         logger.info(f'Running single point energy evaluation of {self.name}')
@@ -639,7 +643,7 @@ class Species(AtomCollection):
         return None
 
     @work_in('conformers')
-    def find_lowest_energy_conformer(self, lmethod=None, hmethod=None):
+    def find_lowest_energy_conformer(self, lmethod=None, hmethod=None) -> None:
         """
         For a molecule object find the lowest conformer in energy and set the
         molecule.atoms and molecule.energy

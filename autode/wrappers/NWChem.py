@@ -306,61 +306,6 @@ class NWChem(ElectronicStructureMethod):
 
         return False
 
-    def get_imaginary_freqs(self, calc):
-
-        imag_freqs = []
-        normal_mode_section = False
-
-        for line in calc.output.file_lines:
-            if 'Projected Frequencies' in line:
-                normal_mode_section = True
-                imag_freqs = []
-
-            if '------------------------------' in line:
-                normal_mode_section = False
-
-            if normal_mode_section and 'P.Frequency' in line:
-                freqs = [float(line.split()[i])
-                         for i in range(1, len(line.split()))]
-                for freq in freqs:
-                    if freq < 0:
-                        imag_freqs.append(freq)
-
-        logger.info(f'Found imaginary freqs {imag_freqs}')
-        return imag_freqs
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-
-        # mode numbers start at 1, not 6
-        mode_number -= 5
-        normal_mode_section, displacements = False, []
-
-        for j, line in enumerate(calc.output.file_lines):
-            if 'Projected Frequencies' in line:
-                normal_mode_section = True
-                displacements = []
-
-            if '------------------------------' in line:
-                normal_mode_section = False
-
-            if normal_mode_section:
-                if len(line.split()) == 6:
-                    mode_numbers = [int(val) for val in line.split()]
-                    if mode_number in mode_numbers:
-                        col = [i for i in range(
-                            len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
-                        displacements = [float(disp_line.split()[
-                            col]) for disp_line in calc.output.file_lines[j + 4:j + 3 * calc.molecule.n_atoms + 4]]
-
-        displacements_xyz = [displacements[i:i + 3]
-                             for i in range(0, len(displacements), 3)]
-        if len(displacements_xyz) != calc.molecule.n_atoms:
-            logger.error(
-                'Something went wrong getting the displacements n != n_atoms')
-            return None
-
-        return np.array(displacements_xyz)
-
     def get_final_atoms(self, calc):
 
         xyzs_section = False

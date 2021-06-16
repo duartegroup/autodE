@@ -114,6 +114,9 @@ def test_reaction_warnings():
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.98
+
+    raise NotImplementedError
+    # TODO: set a Hessian for this structure
     ts.imaginary_frequencies = [-100]
 
     reaction = Reaction(test_reac, test_prod)

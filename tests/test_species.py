@@ -61,6 +61,10 @@ def test_species_class():
     with pytest.raises(NotImplementedError):
         water.find_lowest_energy_conformer(lmethod=xtb)
 
+    # Cannot optimise a molecule without a method or a calculation
+    with pytest.raises(ValueError):
+        water.optimise()
+
 
 def test_species_energies_reset():
 
@@ -303,4 +307,4 @@ def test_is_linear():
     assert not close_lin_water.is_linear()
 
     acetylene = Molecule(smiles='C#C')
-    assert acetylene.is_linear()
+    assert acetylene.is_linear(tol=0.01)

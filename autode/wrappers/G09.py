@@ -467,56 +467,6 @@ class G09(ElectronicStructureMethod):
                     return True
         return False
 
-    def get_imaginary_freqs(self, calc):
-        imag_freqs = []
-        normal_mode_section = False
-
-        for line in calc.output.file_lines:
-            if 'normal coordinates' in line:
-                normal_mode_section = True
-                imag_freqs = []
-
-            if 'Thermochemistry' in line:
-                normal_mode_section = False
-
-            if normal_mode_section and 'Frequencies' in line:
-                freqs = [float(line.split()[i])
-                         for i in range(2, len(line.split()))]
-                for freq in freqs:
-                    if freq < 0:
-                        imag_freqs.append(freq)
-
-        logger.info(f'Found imaginary freqs {imag_freqs}')
-        return imag_freqs
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        # mode numbers start at 1, not 6
-        mode_number -= 5
-        start_col = 0
-        normal_mode_section, displacements = False, []
-        correct_mode_section = False
-
-        for j, line in enumerate(calc.output.file_lines):
-            if 'normal coordinates' in line:
-                normal_mode_section = True
-                displacements = []
-
-            if 'Thermochemistry' in line:
-                normal_mode_section = False
-
-            if correct_mode_section and len(line.split()) > 3 and line.split()[0].isdigit():
-                displacements.append([float(line.split()[k]) for k in range(start_col, start_col + 3)])
-
-            if normal_mode_section and len(line.split()) == 3 and line.split()[0].isdigit():
-                mode_numbers = [int(n) for n in line.split()]
-                if mode_number in mode_numbers:
-                    correct_mode_section = True
-                    start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
-                else:
-                    correct_mode_section = False
-
-        return np.array(displacements)
-
     def get_final_atoms(self, calc):
 
         atoms = None

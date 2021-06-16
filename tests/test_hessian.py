@@ -6,7 +6,7 @@ from . import testutils
 from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
-from autode.thermo.hessians import Hessian
+from autode.hessians import Hessian
 from autode.units import wavenumber
 here = os.path.dirname(os.path.abspath(__file__))
 

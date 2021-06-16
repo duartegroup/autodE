@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
 from autode.atoms import metals
-from autode.transition_states.transition_state import get_ts_object
+from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.truncation import get_truncated_complex
 from autode.transition_states.truncation import is_worth_truncating
 from autode.transition_states.ts_guess import get_template_ts_guess
@@ -81,18 +81,18 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
         (tuple(func, args)):
     """
     name = str(reaction)
-    scan_name = name
 
     r, p = reaction.reactant, reaction.product
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
-    # Bonds with initial and final distances
-    bbonds = [BreakingBond(pair, r, p) for pair in bond_rearr.bbonds]
-    scan_name += "_".join(str(bb) for bb in bbonds)
+    # TODO: make this less awful (consistent types)
+    for i, pair in enumerate(bond_rearr.bbonds):
+        bond_rearr.bbonds[i] = BreakingBond(pair, r, p)
 
-    fbonds = [FormingBond(pair, r, p) for pair in bond_rearr.fbonds]
-    scan_name += "_".join(str(fb) for fb in fbonds)
+    for i, pair in enumerate(bond_rearr.fbonds):
+        bond_rearr.fbonds[i] = FormingBond(pair, r, p)
+    # TODO: -------------------------------------------
 
     # Ideally use a transition state template, then only a single constrained
     # optimisation needs to be run
@@ -102,11 +102,11 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
     # otherwise try a nudged elastic band calculation, don't use the low level
     # method if there are any metals
     if not any(atom.label in metals for atom in r.atoms):
-        yield get_ts_adaptive_path, (r, p, lmethod, fbonds, bbonds,
+        yield get_ts_adaptive_path, (r, p, lmethod, bond_rearr,
                                      f'{name}_ll_ad_{bond_rearr}')
 
     # Always attempt a high-level NEB
-    yield get_ts_adaptive_path, (r, p, hmethod, fbonds, bbonds,
+    yield get_ts_adaptive_path, (r, p, hmethod, bond_rearr,
                                  f'{name}_hl_ad_{bond_rearr}')
 
     return None
@@ -300,13 +300,11 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
         if ts_guess is None:
             continue
 
-        ts_guess.bond_rearrangement = bond_rearr
-
         if not ts_guess.could_have_correct_imag_mode():
             continue
 
         # Form a transition state object and run an OptTS calculation
-        ts = get_ts_object(ts_guess)
+        ts = TransitionState(ts_guess, bond_rearr=bond_rearr)
         ts.optimise()
 
         if not ts.is_true_ts():

@@ -264,10 +264,12 @@ def get_reaction_profile_warnings(reactions):
 
         if reaction.ts is not None:
 
-            n_imag_freqs = len(reaction.ts.imaginary_frequencies)
-            if n_imag_freqs != 1:
-                warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
-                             f'imaginary frequencies. ')
+            if reaction.ts.has_imaginary_frequencies:
+                n_imag_freqs = len(reaction.ts.imaginary_frequencies)
+
+                if n_imag_freqs != 1:
+                    warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
+                                 f'imaginary frequencies. ')
 
             if (reaction.ts.optts_calc is not None
                     and not reaction.ts.optts_calc.optimisation_converged()):

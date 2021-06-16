@@ -12,11 +12,8 @@ from autode.config import Config
 from autode.calculation import Calculation
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.implicit_solvent_types import cpcm
-from autode.transition_states.base import imag_mode_links_reactant_products
-from autode.transition_states.base import imag_mode_has_correct_displacement
 from autode.transition_states.base import imag_mode_generates_other_bonds
-from autode.species.species import Species
-from autode.transition_states.base import get_displaced_atoms_along_mode
+from autode.transition_states.base import displaced_species_along_mode
 from autode.wrappers.G09 import G09
 from . import testutils
 import pytest
@@ -75,15 +72,14 @@ def test_ts_guess_class():
     # C -- Cl distance should be long
     assert tsguess.product.distance(0, 5) > 3.0
 
-    assert tsguess.calc is None
     assert hasattr(tsguess, 'bond_rearrangement')
     assert tsguess.bond_rearrangement is not None
 
     # TS guess should at least initially only have the bonds in the reactant
     assert tsguess.graph.number_of_edges() == 4
 
-    assert tsguess.could_have_correct_imag_mode(method=method)
-    assert tsguess.has_correct_imag_mode()
+    assert tsguess.could_have_correct_imag_mode
+    assert tsguess.has_correct_imag_mode
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
@@ -107,10 +103,11 @@ def test_links_reacs_prods():
     Config.num_complex_sphere_points = 4
     Config.num_complex_random_rotations = 1
 
-    assert imag_mode_links_reactant_products(calc=tsguess.calc,
-                                             reactant=reac_complex,
-                                             product=product_complex,
-                                             method=method)
+    raise NotImplementedError
+    # assert imag_mode_links_reactant_products(calc=tsguess.calc,
+    #                                          reactant=reac_complex,
+    #                                          product=product_complex,
+    #                                          method=method)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mode_checking.zip'))
@@ -129,30 +126,30 @@ def test_correct_imag_mode():
 
     calc.output.filename = 'correct_ts_mode_g09.log'
 
-    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_factor=1.0)
-    # Charge & mult are placeholders
-    f_species = Species(name='f_displaced', atoms=f_displaced_atoms,
-                        charge=0, mult=1)
+    ts_guess = TSguess(atoms=calc.get_final_atoms(), bond_rearr=bond_rearr)
+    ts_guess.hessian = calc.get_hessian()
 
-    b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_factor=-1.0)
-    b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
-                        charge=0, mult=1)
+    f_species = displaced_species_along_mode(ts_guess,
+                                             mode_number=6, disp_factor=1.0)
+
+    b_species = displaced_species_along_mode(ts_guess,
+                                             mode_number=6, disp_factor=-1.0)
 
     # With the correct mode no other bonds are made
-    assert not imag_mode_generates_other_bonds(ts=calc.molecule,
+    assert not imag_mode_generates_other_bonds(ts=ts_guess,
                                                f_species=f_species,
-                                               b_species=b_species,
-                                               bond_rearrangement=bond_rearr)
+                                               b_species=b_species)
 
     calc = Calculation(name='tmp',
                        molecule=reac,
                        method=g09,
                        keywords=Config.G09.keywords.opt_ts)
-    calc.output.filename = 'incorrect_ts_mode_g09.log'
 
-    assert not imag_mode_has_correct_displacement(calc, bond_rearr)
+    calc.output.filename = 'incorrect_ts_mode_g09.log'
+    ts_guess.atoms = calc.get_final_atoms()
+    ts_guess.hessian = calc.get_hessian()
+
+    assert not ts_guess.has_correct_imag_mode
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'locate_ts.zip'))
@@ -244,24 +241,10 @@ def test_optts_no_reactants_products():
     # Should raise exceptions for TSs not initialised with reactants and
     # products
     with pytest.raises(ValueError):
-        _ = da_ts.could_have_correct_imag_mode()
+        _ = da_ts.could_have_correct_imag_mode
 
     with pytest.raises(ValueError):
-        _ = da_ts.has_correct_imag_mode()
-
-
-def test_has_correct_mode_no_calc():
-
-    bond_rearr = BondRearrangement(breaking_bonds=[(2, 1)],
-                                   forming_bonds=[(0, 2)])
-    calc = Calculation(molecule=ts,
-                       method=method,
-                       keywords=method.keywords.opt_ts,
-                       name='tmp')
-
-    # Calculation has no output so should not have the correct mode
-    assert not imag_mode_has_correct_displacement(calc,
-                                                  bond_rearrangement=bond_rearr)
+        _ = da_ts.has_correct_imag_mode
 
 
 def test_no_graph():

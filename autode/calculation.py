@@ -2,7 +2,6 @@ from copy import deepcopy
 import os
 import hashlib
 import base64
-import numpy as np
 from typing import Optional, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
@@ -13,9 +12,8 @@ from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
 from autode.solvent.solvents import Solvent
 from autode.log import logger
-from autode.thermo.hessians import Hessian
-from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
-                           Gradients, Frequency, Coordinates)
+from autode.hessians import Hessian
+from autode.values import PotentialEnergy, Gradients
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')
@@ -327,8 +325,9 @@ class Calculation:
             assert hessian.shape == (3*self.molecule.n_atoms,
                                      3*self.molecule.n_atoms)
 
-        except (ValueError, IndexError, AssertionError):
-            raise ex.CouldNotGetProperty('Could not get the Hessian')
+        except (ValueError, IndexError, AssertionError) as err:
+            raise err
+            # raise ex.CouldNotGetProperty(f'Could not get the Hessian: {err}')
 
         return hessian
 

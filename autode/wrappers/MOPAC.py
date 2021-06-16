@@ -280,12 +280,6 @@ class MOPAC(ElectronicStructureMethod):
     def optimisation_nearly_converged(self, calc):
         raise NotImplementedError
 
-    def get_imaginary_freqs(self, calc):
-        raise NotImplementedError
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        raise NotImplementedError
-
     def get_final_atoms(self, calc):
 
         atoms = []

@@ -384,56 +384,6 @@ class ORCA(ElectronicStructureMethod):
 
         return False
 
-    def get_imaginary_freqs(self, calc):
-        imag_freqs = []
-
-        for i, line in enumerate(calc.output.file_lines):
-            if 'VIBRATIONAL FREQUENCIES' in line:
-                last_line = i + 3 * calc.molecule.n_atoms + 5
-
-                # Reset every time freqs are found, so the final is returned
-                freq_lines = calc.output.file_lines[i + 5:last_line]
-                freqs = [float(l.split()[1]) for l in freq_lines]
-                imag_freqs = [freq for freq in freqs if freq < 0]
-
-        logger.info(f'Found imaginary freqs {imag_freqs}')
-        return imag_freqs
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        normal_mode_section, values_sec, = False, False
-        displacements, col = [], None
-
-        for j, line in enumerate(calc.output.file_lines):
-            if 'NORMAL MODES' in line:
-                normal_mode_section, values_sec, = True, False
-                displacements, col = [], None
-
-            if 'IR SPECTRUM' in line:
-                normal_mode_section, values_sec = False, False
-
-            if normal_mode_section and len(line.split()) > 1:
-                if line.split()[0].startswith('0'):
-                    values_sec = True
-
-            if not values_sec:
-                continue
-
-            if '.' in line or len(line.split()) < 2:
-                continue
-
-            mode_numbers = [int(val) for val in line.split()]
-            if mode_number not in mode_numbers:
-                continue
-
-            col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
-
-            d_lines = calc.output.file_lines[j+1:j+3 * calc.molecule.n_atoms+1]
-            displacements = [float(d_line.split()[col]) for d_line in d_lines]
-
-        displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
-
-        return np.array(displacements_xyz)
-
     def get_final_atoms(self, calc):
         """
         Get the final set of atoms from an ORCA output file

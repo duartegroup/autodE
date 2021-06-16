@@ -51,7 +51,7 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
                                 Default: Config.grimme_w0
 
         alpha (int | float): α parameter in Grimme's qRRHO method.
-                            Default: Config.grimme_w0
+                             Default: Config.grimme_w0
 
         sn (int): The symmetry number, if not present then will default to
                   species.sn

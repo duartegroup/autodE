@@ -3,70 +3,16 @@ from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.calculation import Calculation
 from autode.config import Config
-from autode.exceptions import AtomsNotFound
+from autode.exceptions import CalculationException
 from autode.log import logger
-from autode.methods import get_lmethod
-from autode.mol_graphs import get_mapping_ts_template
-from autode.mol_graphs import get_truncated_active_mol_graph
+from autode.values import Distance
+from autode.methods import get_lmethod, get_hmethod
+from autode.mol_graphs import (get_mapping_ts_template,
+                               get_truncated_active_mol_graph)
 
 
-def get_ts_guess_constrained_opt(reactant, method, keywords, name,
-                                 distance_consts,
-                                 product):
-    """Get a TS guess from a constrained optimisation with the active atoms
-    fixed at values defined in distance_consts
-
-    Arguments:
-        reactant (autode.complex.ReactantComplex):
-        method (autode.wrappers.base.ElectronicStructureMethod):
-        keywords (autode.wrappers.keywords.Keywords):
-        name (str):
-        distance_consts (dict): Distance constraints keyed with a tuple of atom
-                                indexes and value of the distance
-        product (autode.complex.ProductComplex):
-
-    Returns:
-       (autode.ts_guess.TSguess):
-    """
-    logger.info('Getting TS guess from constrained optimisation')
-
-    mol_with_constraints = reactant.copy()
-
-    # Run a low level constrained optimisation first to prevent the DFT being
-    # problematic if there are >1 constraint
-    l_method = get_lmethod()
-    ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll',
-                               molecule=mol_with_constraints, method=l_method,
-                               keywords=l_method.keywords.low_opt,
-                               n_cores=Config.n_cores,
-                               distance_constraints=distance_consts)
-
-    # Try and set the atoms, but continue if they're not found as hopefully the
-    # other method will be fine(?)
-    try:
-        mol_with_constraints.optimise(method=l_method, calc=ll_const_opt)
-
-    except AtomsNotFound:
-        logger.error('Failed to optimise with the low level method')
-
-    hl_const_opt = Calculation(name=f'{name}_constrained_opt',
-                               molecule=mol_with_constraints, method=method,
-                               keywords=keywords, n_cores=Config.n_cores,
-                               distance_constraints=distance_consts)
-
-    # Form a transition state guess from the optimised atoms and set the
-    # corresponding energy
-    try:
-        mol_with_constraints.optimise(method=method, calc=hl_const_opt)
-
-    except AtomsNotFound:
-        logger.error('Failed to optimise with the high level method')
-
-    return get_ts_guess(species=mol_with_constraints, reactant=reactant,
-                        product=product, name=f'ts_guess_{name}')
-
-
-def has_matching_ts_templates(reactant, bond_rearr):
+def has_matching_ts_templates(reactant:   'autode.species.ReactantComplex',
+                              bond_rearr: 'autode.bond_rearrangement.BondRearrangement'):
     """
     See if there are any templates suitable to get a TS guess from a template
 
@@ -75,7 +21,7 @@ def has_matching_ts_templates(reactant, bond_rearr):
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Returns:
-        bool:
+        (bool):
     """
 
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph,
@@ -91,8 +37,12 @@ def has_matching_ts_templates(reactant, bond_rearr):
     return False
 
 
-def get_template_ts_guess(reactant, product, bond_rearr, name, method,
-                          dist_thresh=4.0):
+def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
+                          product:    'autode.species.ProductComplex',
+                          bond_rearr: 'autode.bond_rearrangement.BondRearrangement',
+                          name:       str,
+                          method:     'autode.wrappers.base.ElectronicStructureMethod',
+                          dist_thresh: Distance = Distance(4.0, units='Å')):
     """Get a transition state guess object by searching though the stored TS
     templates
 
@@ -107,10 +57,10 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
     Keyword Arguments:
         dist_thresh (float): distance above which a constrained optimisation
                              probably won't work due to the initial geometry
-                             being too far away from the ideal (default: {4.0})
+                             being too far away from the ideal
 
     Returns:
-        TSGuess object: ts guess object
+        (autode.transition_states.ts_guess.TSguess):
     """
     logger.info('Getting TS guess from stored TS template')
     active_bonds_and_dists_ts = {}
@@ -149,49 +99,76 @@ def get_template_ts_guess(reactant, product, bond_rearr, name, method,
         if any([reactant.distance(*bond) > dist_thresh for bond in bond_rearr.all]):
             logger.info(f'TS template has => 1 active bond distance larger '
                         f'than {dist_thresh}. Passing')
+            continue
 
-        else:
-            return get_ts_guess_constrained_opt(reactant, method=method,
-                                                keywords=method.keywords.opt,
-                                                name=name,
-                                                distance_consts=active_bonds_and_dists_ts,
-                                                product=product)
+        ts_guess = TSguess(atoms=reactant.atoms,
+                           reactant=reactant,
+                           product=product,
+                           bond_rearr=bond_rearr)
 
-    logger.info('Could not find a TS guess from a template')
+        try:
+            ts_guess.run_constrained_opt(name=name,
+                                         distance_consts=active_bonds_and_dists_ts,
+                                         keywords=method.keywords.opt)
+            return ts_guess
+
+        except CalculationException:
+            logger.warning('Failed top run constrained optimisation on the TS')
+            continue
+
     return None
 
 
 class TSguess(TSbase):
+    """Transition state guess"""
 
-    def __init__(self, atoms, reactant=None, product=None, name='ts_guess',
-                 charge=0, mult=1):
-        """
-        Transition state guess
+    def run_constrained_opt(self,
+                            name :           str,
+                            distance_consts: dict,
+                            keywords:        'autode.wrappers.keywords.Keywords'):
+        """Get a TS guess from a constrained optimisation with the active atoms
+        fixed at values defined in distance_consts
 
         Arguments:
-            atoms (list(autode.atoms.Atom)):
-            reactant (autode.complex.ReactantComplex):
-            product (autode.complex.ProductComplex):
-
-        Keyword Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
             name (str):
-            charge (int):
-            mult (int):
+            distance_consts (dict): Distance constraints keyed with a tuple of
+                                    atom indexes and value of the distance
+
+        Raises:
+            (autode.exceptions.CalculationException)
         """
-        super().__init__(name=name, atoms=atoms, reactant=reactant,
-                         product=product, charge=charge, mult=mult)
+        logger.info('Getting TS guess from constrained optimisation')
 
+        ts_guess_const = self.copy()
 
-def get_ts_guess(species, reactant, product, name):
-    """Creates TSguess. If it is a SolvatedReactantComplex, a SolvatedTSguess
-    is returned"""
-    if species is None:
-        logger.warning('Could not generate a TS guess from species=None, '
-                       'returning None')
-        return None
+        # Run a low level constrained optimisation first to prevent slow
+        # high-level optimisation for a TS that is far from the current
+        # geometry
+        l_method = get_lmethod()
+        ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll',
+                                   molecule=ts_guess_const,
+                                   method=l_method,
+                                   keywords=l_method.keywords.low_opt,
+                                   n_cores=Config.n_cores,
+                                   distance_constraints=distance_consts)
 
-    if species.is_explicitly_solvated:
-        raise NotImplementedError
+        # Try and set the atoms, but continue if they're not found as hopefully
+        # the high-level method will be fine(?)
+        try:
+            ts_guess_const.optimise(calc=ll_const_opt)
 
-    return TSguess(species.atoms, reactant=reactant, product=product,
-                   name=name)
+        except CalculationException:
+            logger.error('Failed to optimise with the low level method')
+
+        hl_const_opt = Calculation(name=f'{name}_constrained_opt',
+                                   molecule=ts_guess_const,
+                                   method=get_hmethod(),
+                                   keywords=keywords,
+                                   n_cores=Config.n_cores,
+                                   distance_constraints=distance_consts)
+
+        ts_guess_const.optimise(calc=hl_const_opt)
+
+        self.name = f'ts_guess_{name}'
+        return

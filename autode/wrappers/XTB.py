@@ -192,12 +192,6 @@ class XTB(ElectronicStructureMethod):
     def optimisation_nearly_converged(self, calc):
         raise NotImplementedError
 
-    def get_imaginary_freqs(self, calc):
-        raise NotImplementedError
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        raise NotImplementedError
-
     def _get_final_atoms_6_2_above(self, calc):
         """
         e.g.
