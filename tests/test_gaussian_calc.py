@@ -135,6 +135,7 @@ def test_gauss_optts_calc():
                        keywords=optts_keywords,
                        bond_ids_to_add=[(0, 1)])
     calc.run()
+    assert calc.output.exists
 
     assert os.path.exists('test_ts_reopt_optts_g09.com')
 

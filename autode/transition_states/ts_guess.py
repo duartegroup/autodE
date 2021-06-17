@@ -1,3 +1,4 @@
+from typing import Optional
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
@@ -52,7 +53,6 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
         product (autode.complex.ProductComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
         name (str):
-        keywords (list(str)): Keywords to use for the ElectronicStructureMethod
 
     Keyword Arguments:
         dist_thresh (float): distance above which a constrained optimisation
@@ -109,6 +109,7 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
         try:
             ts_guess.run_constrained_opt(name=name,
                                          distance_consts=active_bonds_and_dists_ts,
+                                         method=method,
                                          keywords=method.keywords.opt)
             return ts_guess
 
@@ -123,9 +124,10 @@ class TSguess(TSbase):
     """Transition state guess"""
 
     def run_constrained_opt(self,
-                            name :           str,
+                            name:            str,
                             distance_consts: dict,
-                            keywords:        'autode.wrappers.keywords.Keywords'):
+                            method:          Optional['autode.wrappers.base.ElectronicStructureMethod'] = None,
+                            keywords:        Optional['autode.wrappers.keywords.Keywords'] = None):
         """Get a TS guess from a constrained optimisation with the active atoms
         fixed at values defined in distance_consts
 
@@ -135,19 +137,25 @@ class TSguess(TSbase):
             distance_consts (dict): Distance constraints keyed with a tuple of
                                     atom indexes and value of the distance
 
+        Keyword Arguments:
+
+            method (autode.wrappers.base.ElectronicStructureMethod): if
+                   None then use the default method
+
+            keywords (autode.wrappers.keywords.Keywords): If None then use
+                     the default optimisation keywords
+
         Raises:
-            (autode.exceptions.CalculationException)
+            (autode.exceptions.CalculationException):
         """
         logger.info('Getting TS guess from constrained optimisation')
-
-        ts_guess_const = self.copy()
 
         # Run a low level constrained optimisation first to prevent slow
         # high-level optimisation for a TS that is far from the current
         # geometry
         l_method = get_lmethod()
         ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll',
-                                   molecule=ts_guess_const,
+                                   molecule=self,
                                    method=l_method,
                                    keywords=l_method.keywords.low_opt,
                                    n_cores=Config.n_cores,
@@ -156,19 +164,25 @@ class TSguess(TSbase):
         # Try and set the atoms, but continue if they're not found as hopefully
         # the high-level method will be fine(?)
         try:
-            ts_guess_const.optimise(calc=ll_const_opt)
+            self.optimise(calc=ll_const_opt)
 
         except CalculationException:
             logger.error('Failed to optimise with the low level method')
 
+        # Default to high-level optimisations
+        if method is None:
+            method = get_hmethod()
+        if keywords is None:
+            keywords = method.keywords.opt
+
         hl_const_opt = Calculation(name=f'{name}_constrained_opt',
-                                   molecule=ts_guess_const,
-                                   method=get_hmethod(),
+                                   molecule=self,
+                                   method=method,
                                    keywords=keywords,
                                    n_cores=Config.n_cores,
                                    distance_constraints=distance_consts)
 
-        ts_guess_const.optimise(calc=hl_const_opt)
+        self.optimise(calc=hl_const_opt)
 
         self.name = f'ts_guess_{name}'
         return

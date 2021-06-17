@@ -10,7 +10,6 @@ from autode.atoms import get_maximal_valance
 from autode.atoms import is_pi_atom
 from autode.bonds import get_avg_bond_length
 from autode.log import logger
-from autode.atoms import get_atomic_weight
 
 
 def make_graph(species,
@@ -115,11 +114,7 @@ def get_atom_ids_sorted_type(species):
     """
     atom_idxs = list(range(species.n_atoms))
 
-    def weight(idx):
-        """Given an atom index return the molecular weight in amu"""
-        return get_atomic_weight(atom_label=species.atoms[idx].label)
-
-    return sorted(atom_idxs, key=weight)
+    return sorted(atom_idxs, key=lambda idx: species.atoms[idx].weight)
 
 
 def remove_bonds_invalid_valancies(species):

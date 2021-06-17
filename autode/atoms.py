@@ -105,6 +105,11 @@ class Atom:
                            f'Guessing at 70')
             return Mass(70)
 
+    @property
+    def mass(self) -> Mass:
+        """Alias of weight"""
+        return self.weight
+
     def translate(self, vec: np.ndarray) -> None:
         """
         Translate this atom by a vector
@@ -145,7 +150,6 @@ class Atom:
         return None
 
     # --- Method aliases ---
-    mass = weight
     coordinate = coord
 
     def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
@@ -749,25 +753,6 @@ def get_maximal_valance(atom_label):
         logger.warning(f'Could not find a valid valance for {atom_label}. '
                        f'Guessing at 6')
         return 6
-
-
-# TODO ------ remove
-def get_atomic_weight(atom_label):
-    """Get the atomic weight of an atom
-
-    Arguments:
-        atom_label (str): atom label e.g. C or Pd
-
-    Returns:
-        (float): atomic weight of the atom
-    """
-
-    if atom_label in atomic_weights.keys():
-        return atomic_weights[atom_label]
-    else:
-        logger.warning(f'Could not find a valid weight for {atom_label}. '
-                       f'Guessing at 70')
-        return 70
 
 
 def get_vdw_radius(atom_label):

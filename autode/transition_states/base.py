@@ -364,22 +364,23 @@ def imag_mode_generates_other_bonds(ts:        TSbase,
         (bool):
     """
 
-    for species in (ts, f_species, b_species):
+    _ts = ts.copy()
+    for species in (_ts, f_species, b_species):
         make_graph(species, rel_tolerance=0.3)
 
     for product in (f_species, b_species):
 
         new_bonds_in_product = set([bond for bond in product.graph.edges
-                                    if bond not in ts.graph.edges])
+                                    if bond not in _ts.graph.edges])
 
         if allow_mx:
             new_bonds_in_product = set([(i, j) for i, j in new_bonds_in_product
-                                        if ts.atoms[i].label not in metals and
-                                        ts.atoms[j].label not in metals])
+                                        if _ts.atoms[i].label not in metals and
+                                        _ts.atoms[j].label not in metals])
 
         # If there are new bonds in the forward displaced species that are not
         # part of the bond rearrangement
-        br = ts.bond_rearrangement
+        br = _ts.bond_rearrangement
         if any(bond not in br.all for bond in new_bonds_in_product):
             logger.warning(f'New bonds in product: {new_bonds_in_product}')
             logger.warning(f'Bond rearrangement: {br.all}')

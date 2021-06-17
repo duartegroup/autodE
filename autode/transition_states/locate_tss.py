@@ -300,7 +300,7 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
         if ts_guess is None:
             continue
 
-        if not ts_guess.could_have_correct_imag_mode():
+        if not ts_guess.could_have_correct_imag_mode:
             continue
 
         # Form a transition state object and run an OptTS calculation

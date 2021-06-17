@@ -54,12 +54,36 @@ class Hessian(ValueArray):
 
     @cached_property
     def n_tr(self) -> int:
-        """Number of translational and rotational normal modes"""
+        """
+        5 for a linear molecule and 6 otherwise (3 rotation, 3 translation)
+
+        Returns:
+            (int): Number of translational and rotational normal modes
+
+        Raises:
+            (ValueError): Without atoms set
+        """
+        if self.atoms is None or not hasattr(self.atoms, 'are_linear'):
+            raise ValueError('Could not determine the number of translations'
+                             'and rotations. Atoms must be set')
+
         return 5 if self.atoms.are_linear() else 6
 
     @cached_property
     def n_v(self) -> int:
-        """Number of vibrational normal modes"""
+        """
+        3N-6 for a non-linear molecule with N atoms
+
+        Returns:
+            (int): Number of vibrational normal modes
+
+        Raises:
+            (ValueError): Without atoms set
+        """
+        if self.atoms is None:
+            raise ValueError('Could not determine the number of vibrations.'
+                             ' Atoms must be set')
+
         return 3*len(self.atoms) - self.n_tr
 
     def _tr_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray,
@@ -118,6 +142,8 @@ class Hessian(ValueArray):
         Returns:
             (np.ndarray): Transform matrix (D)
         """
+        if self.atoms is None:
+            raise ValueError('Could generate projected Hessian. Atoms not set')
 
         t1, t2, t3, t4, t5, t6 = self._tr_vecs()
 
@@ -189,7 +215,7 @@ class Hessian(ValueArray):
 
         # Convert the eigenvectors from the columns of the matrix into
         # individual displacements that can be added to a set of coordinates
-        return [Coordinates(mode) for mode in modes.T]
+        return [Coordinates(mode / np.linalg.norm(mode)) for mode in modes.T]
 
     @cached_property
     def normal_modes_proj(self) -> List[Coordinates]:
@@ -213,8 +239,15 @@ class Hessian(ValueArray):
                             [np.zeros((n_v, n_tr)),         S_bar        ]])
 
         # then apply the back-transformation
-        modes = [Coordinates(np.dot(self._proj_matrix, S_prime[:, i]))
-                 for i in range(n_tr + n_v)]
+        modes = []
+        for i in range(n_tr + n_v):
+            mode = np.dot(self._proj_matrix, S_prime[:, i])
+
+            # only normalise the vibrations as the rotations/translations are 0
+            if i >= n_tr:
+                mode /= np.linalg.norm(mode)
+
+            modes.append(Coordinates(mode))
 
         return modes
 
@@ -228,7 +261,7 @@ class Hessian(ValueArray):
             lambdas (np.ndarray):
 
         Returns:
-            (list(autode.values.Frequency))
+            (list(autode.values.Frequency)):
         """
 
         nus = (np.sqrt(np.complex_(lambdas))
@@ -250,7 +283,7 @@ class Hessian(ValueArray):
             (list(autode.values.Frequency)):
 
         Raises:
-            (ValueError): If atoms are not set
+            (ValueError): Without atoms set
         """
         lambdas = np.linalg.eigvalsh(self._mass_weighted)
         freqs = self._eigenvalues_to_freqs(lambdas)
@@ -263,10 +296,10 @@ class Hessian(ValueArray):
         Frequencies with rotation and translation projected out
 
         Returns:
-            (list(autode.values.Frequency))
+            (list(autode.values.Frequency)):
 
         Raises:
-            (ValueError):
+            (ValueError): Without atoms set
         """
         if self.atoms is None:
             raise ValueError('Could not calculate projected frequencies, must '

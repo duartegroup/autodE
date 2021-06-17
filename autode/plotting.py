@@ -271,9 +271,7 @@ def get_reaction_profile_warnings(reactions):
                     warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
                                  f'imaginary frequencies. ')
 
-            if (reaction.ts.optts_calc is not None
-                    and not reaction.ts.optts_calc.optimisation_converged()):
-                warnings += f'TS for {reaction.name} was not fully converged. '
+            warnings += reaction.ts.warnings
 
     # If no strings were added then there are no warnings
     if len(warnings) == 0:

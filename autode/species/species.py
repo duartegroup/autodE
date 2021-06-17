@@ -19,8 +19,8 @@ from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
 from autode.hessians import Hessian
-from autode.thermo.symmetry import symmetry_number
-from autode.thermo.igm import calculate_thermo_cont
+from autode.thermochemistry.symmetry import symmetry_number
+from autode.thermochemistry.igm import calculate_thermo_cont
 from autode.utils import (requires_atoms,
                           work_in,
                           requires_conformers)
@@ -421,6 +421,12 @@ class Species(AtomCollection):
 
     def _run_hess_calculation(self, method):
         """Run a Hessian calculation on this species"""
+
+        if self.n_atoms < 2:
+            logger.warning(f'Not running a Hessian calculation on only '
+                           f'{self.n_atoms} atoms. Cannot have frequencies')
+            return None
+
         method = method if method is not None else get_hmethod()
 
         calc = Calculation(name=f'{self.name}_hess',
@@ -430,7 +436,7 @@ class Species(AtomCollection):
                            n_cores=Config.n_cores)
         calc.run()
         self.energy = calc.get_energy()
-        self.hess = calc.get_hessian()
+        self.hessian = calc.get_hessian()
 
         return None
 

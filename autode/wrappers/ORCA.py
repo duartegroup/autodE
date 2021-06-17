@@ -4,7 +4,7 @@ import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.atoms import Atom, get_atomic_weight
+from autode.atoms import Atom
 from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
 from autode.utils import work_in_tmp_dir
@@ -206,34 +206,6 @@ def print_coordinates(inp_file, molecule):
     return
 
 
-def calc_atom_entropy(atom_label, temp):
-    """
-    Calculate the entropy of a single atom, not available in ORCA as only the
-    translational contribution: S_trans = R (ln(q_trans) + 5R/2)
-
-    Arguments:
-        atom_label (str):
-        temp (float): Temperature in K
-
-    Returns:
-        (float):
-    """
-
-    k_b = 1.38064852E-23          # J K-1
-    h = 6.62607004E-34            # J s
-    n_a = 6.022140857E23          # molecules mol-1
-    atm_to_pa = 101325            # Pa
-    amu_to_kg = 1.660539040E-27   # Kg
-
-    mass = amu_to_kg * get_atomic_weight(atom_label=atom_label)
-    v_eff = k_b * temp / atm_to_pa
-    q_trans = ((2.0 * np.pi * mass * k_b * temp / h**2)**1.5 * v_eff)
-
-    s = k_b * n_a * (np.log(q_trans) + 2.5)
-    # Convert from J K-1 mol-1 to K-1 Ha
-    return s / (Constants.ha_to_kJmol * 1000)
-
-
 class ORCA(ElectronicStructureMethod):
 
     def generate_input(self, calc, molecule):
@@ -317,49 +289,6 @@ class ORCA(ElectronicStructureMethod):
             if 'FINAL SINGLE POINT ENERGY' in line:
                 return float(line.split()[4])
 
-        raise CouldNotGetProperty(name='energy')
-
-    def get_enthalpy(self, calc):
-        """Get the enthalpy (H) from an ORCA calculation output"""
-
-        for line in reversed(calc.output.file_lines):
-            if 'Total Enthalpy' in line:
-
-                try:
-                    return float(line.split()[-2])
-
-                except ValueError:
-                    break
-
-        logger.error('Could not get the free energy from the calculation. '
-                     'Was a frequency requested?')
-        raise CouldNotGetProperty(name='energy')
-
-    def get_free_energy(self, calc):
-        """Get the Gibbs free energy (G) from an ORCA calculation output"""
-
-        if calc.molecule.n_atoms == 1:
-            logger.warning('ORCA fails to calculate the entropy for a single '
-                           'atom, returning the correct G in 1 atm')
-            h = self.get_enthalpy(calc)
-            s = calc_atom_entropy(atom_label=calc.molecule.atoms[0].label,
-                                  temp=calc.input.temp)  # J K-1 mol-1
-
-            # Calculate H - TS, the latter term from Jmol-1 -> Ha
-            return h - s * calc.input.temp
-
-        for line in reversed(calc.output.file_lines):
-            if ('Final Gibbs free energy' in line
-                    or 'Final Gibbs free enthalpy' in line):
-
-                try:
-                    return float(line.split()[-2])
-
-                except ValueError:
-                    break
-
-        logger.error('Could not get the free energy from the calculation. '
-                     'Was a frequency requested?')
         raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):

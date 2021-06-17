@@ -56,9 +56,14 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
         sn (int): The symmetry number, if not present then will default to
                   species.sn
     """
-    if species.atoms is None or species.frequencies is None:
-        logger.warning('Species had no atoms, or frequencies. Cannot calculate'
-                       ' thermochemical contributions (G_cont, H_cont)')
+    if species.atoms is None:
+        logger.warning('Species had no atoms. Cannot calculate thermochemical '
+                       'contributions (G_cont, H_cont)')
+        return
+
+    if species.frequencies is None and species.n_atoms > 1:
+        logger.warning('Cannot calculate vibrational entropy/internal energy '
+                       'no frequencies available.')
         return
 
     S_cont = _entropy(species,
@@ -315,8 +320,8 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
     # Translational entropy component
     s_trans = _s_trans_pib(species, ss=ss, temp=temp)
 
-    if species.n_atoms == 1:
-        # A molecule with only one atom has no rotational/vibrational DOF
+    if species.n_atoms < 2:
+        # A molecule one or no atoms has no rotational/vibrational DOF
         return s_trans
 
     # Rotational entropy component
@@ -350,8 +355,10 @@ def _zpe(species):
         (float): E_ZPE in SI units
     """
 
-    zpe = 0.0
+    if species.n_atoms < 2:
+        return 0.0
 
+    zpe = 0.0
     for freq in species.vib_frequencies:
         zpe += 0.5 * SIConstants.h * freq.real.to('hz')
 
@@ -391,8 +398,11 @@ def _internal_energy(species, temp):
     Returns:
         (float): U_cont in SI units
     """
-    zpe = _zpe(species)
     e_trns = 1.5 * SIConstants.k_b * temp
+
+    if species.n_atoms < 2:
+        # A molecule one or no atoms has no rotational/vibrational DOF
+        return e_trns
 
     if species.is_linear():
         # Linear molecules only have two rotational degrees of freedom -> RT
@@ -402,6 +412,7 @@ def _internal_energy(species, temp):
         # From equipartition with 3 DOF -> 3/2 RT contribution to the energy
         e_rot = 1.5 * SIConstants.k_b * temp
 
+    zpe = _zpe(species)
     e_vib = _internal_vib_energy(species, temp=temp)
 
     return zpe + e_trns + e_rot + e_vib

@@ -74,6 +74,7 @@ class TransitionState(TSbase):
                 else:
                     logger.info('Lost imaginary mode')
             else:
+                self.warnings += f'TS for {self.name} was not fully converged.'
                 logger.info('Optimisation did not converge')
 
         try:
@@ -298,3 +299,6 @@ class TransitionState(TSbase):
             self.bond_rearrangement = bond_rearr
 
         self._update_graph()
+
+        #: str for any warnings that may arise
+        self.warnings = ''

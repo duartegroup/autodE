@@ -49,3 +49,15 @@ def test_thermochemistry_h2o():
     # and likewise for the enthalpy
     assert np.isclose(h2o.h_cont, Energy(0.02536189087, units='ha'),
                       atol=Energy(0.1, units='kcal mol-1').to('ha'))
+
+
+def test_thermochem_single_atom():
+
+    f_entropy_g09 = Energy(0.011799 / 298.15, units='Ha')  # T S from g09
+
+    f_atom = Molecule(atoms=[Atom('F')])
+    f_atom.calc_thermo()
+    f_entropy = (f_atom.h_cont - f_atom.g_cont) / 298.15
+
+    # Ensure the calculated and 'actual' from Gaussian09 are close
+    assert np.isclose(f_entropy_g09, f_entropy, atol=2E-5)

@@ -3,11 +3,15 @@ import pytest
 import numpy as np
 import autode as ade
 from . import testutils
+from autode.atoms import Atom, Atoms
+from autode.methods import ORCA
 from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.hessians import Hessian
+from autode.geom import calc_rmsd
 from autode.units import wavenumber
+from autode.transition_states.base import displaced_species_along_mode
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -40,10 +44,6 @@ h2o_hessian_arr = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
                           6.62204039e-10, -1.02974704e-09, -3.07470051e-02,
                           6.85803822e-09, -5.09659842e-09, 4.49197416e-02]])
 
-h2o_coords = np.array([[-0.0011, 0.3631, -0.0],
-                       [-0.825, -0.1819, -0.0],
-                       [0.8261, -0.1812, 0.0]])
-
 # Ha/a0^2
 co2_hessian_arr = np.array([[1.1314383525E+00, 4.2385767412E-04, 3.5051771425E-04, - 1.0501086627E+00, - 3.7813825173E-04,-3.4457384398E-04,  -8.1229733239E-02, -3.7456312285E-05, -6.5999542510E-05],
                             [4.2325160632E-04, 3.6570663096E-02, 1.2516781525E-07, - 3.8221942577E-04, - 7.3247574779E-02,-1.2460642412E-07,  -4.1000250417E-05,   3.6660190261E-02,  -2.4295086828E-08],
@@ -73,6 +73,46 @@ def assert_correct_co2_frequencies(hessian,
 
     assert sum(np.isclose(Frequency(nu_3, units='cm-1'), freq, atol=2.0)
                for freq in hessian.frequencies_proj) == 1
+
+
+def test_hessian_class():
+
+    hessian = Hessian(h2o_hessian_arr, units='Ha Å^-2')
+    assert 'hessian' in repr(hessian).lower()
+    assert hash(hessian) is not None
+
+    # Cannot project without atoms
+    with pytest.raises(ValueError):
+        _ = hessian.frequencies_proj
+
+    with pytest.raises(ValueError):
+        _ = hessian.normal_modes_proj
+
+    with pytest.raises(ValueError):
+        _ = hessian._proj_matrix
+
+    with pytest.raises(ValueError):
+        _ = hessian._mass_weighted
+
+    # without atoms the number of translations/rotations/vibrations is unknown
+    with pytest.raises(ValueError):
+        assert hessian.n_tr == 6
+
+    with pytest.raises(ValueError):
+        assert hessian.n_v == 3
+
+    # Must have matching Hessian and atom dimensions i.e. 3Nx3N for N atoms
+    with pytest.raises(ValueError):
+        _ = Hessian(h2o_hessian_arr, atoms=[])
+
+    # Check the number of translations and rotations and the number of
+    # expected vibrations
+    hessian.atoms = Atoms([Atom('O', -0.0011,  0.3631, -0.0),
+                           Atom('H', -0.8250, -0.1819, -0.0),
+                           Atom('H',  0.8261, -0.1812,  0.0)])
+
+    assert hessian.n_tr == 6
+    assert hessian.n_v == 3
 
 
 def test_hessian_set():
@@ -116,12 +156,12 @@ def test_hessian_freqs():
     assert np.isclose(nu_3, 3651.462209, atol=1.0)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_hessian_modes():
     """Ensure the translational, rotational and vibrational modes are close
     to the expected values for a projected Hessian"""
 
-    h2o = Molecule(smiles='O')
-    h2o.coordinates = h2o_coords
+    h2o = Molecule('H2O_hess_orca.xyz')
     h2o.hessian = h2o_hessian_arr
 
     for trans_mode in h2o.hessian.normal_modes_proj[:3]:
@@ -130,11 +170,53 @@ def test_hessian_modes():
     for rot_mode in h2o.hessian.normal_modes_proj[3:6]:
         assert np.allclose(rot_mode, np.zeros(shape=(h2o.n_atoms, 3)))
 
-    for vib_mode in h2o.hessian.normal_modes_proj[6:]:
+    for i, vib_mode in enumerate(h2o.hessian.normal_modes_proj[6:]):
 
         # Vibrational modes should have no component in the z-axis
-        for i, _ in enumerate(h2o.atoms):
-            assert np.isclose(vib_mode[i, 2], 0.0, atol=1E-4)
+        for j, _ in enumerate(h2o.atoms):
+            assert np.isclose(vib_mode[j, 2], 0.0, atol=1E-4)
+
+        # and be close to their un-projected analogues for a minimum either
+        # forwards or backwards (projection doesn't conserve the direction)
+        assert (np.allclose(vib_mode, h2o.hessian.normal_modes[6+i], atol=0.1)
+                or np.allclose(vib_mode, -h2o.hessian.normal_modes[6+i], atol=0.1))
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
+def test_proj_modes():
+    """
+    Test the projected normal modes are close to those obtained from an
+    ORCA projection. Displaced geometries generated with Chemcraft using a
+    scale factor of 0.5
+    """
+    bend_orca = np.array([[-0.001006000, 0.326448000, 0.0],
+                           [-1.025049000, 0.108976000, 0.0],
+                           [ 1.024653500, 0.109669000, 0.0]])
+
+    symm_orca = np.array([[ 0.001894000,  0.340046000, 0.00],
+                            [-0.547993500, -0.014124500, 0.00],
+                            [ 0.501572000,  0.016941000, 0.00]])
+
+    asym_orca = np.array([[ 0.035851500,  0.365107500, 0.0],
+                          [-1.143189500, -0.391339500, 0.0],
+                          [ 0.557796500, -0.003620500, 0.0]])
+
+    h2o = Molecule('H2O_hess_orca.xyz')
+    h2o.hessian = h2o_hessian_arr
+
+    for mode_n, coords in zip((6, 7, 8), (bend_orca, symm_orca, asym_orca)):
+
+        bend_f = displaced_species_along_mode(h2o,
+                                              mode_number=mode_n,
+                                              disp_factor=0.5)
+
+        bend_b = displaced_species_along_mode(h2o,
+                                              mode_number=mode_n,
+                                              disp_factor=-0.5)
+
+        # Correct displacement could be either forwards or backwards
+        assert (calc_rmsd(coords, bend_f.coordinates) < 0.03
+                or calc_rmsd(coords, bend_b.coordinates) < 0.03)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
@@ -225,3 +307,48 @@ def test_nechem_hessian_co2():
     calc.output.filename = 'CO2_hess_nwchem.out'
     assert_correct_co2_frequencies(hessian=calc.get_hessian(),
                                    expected=(659.76, 1406.83, 2495.73))
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
+def test_imag_mode():
+    """
+    Ensure the imaginary mode for an SN2 reaction is close to that obtained
+    from ORCA by checking forwards (f) and backwards (b) displaced geometries
+    using a factor of 0.5
+    """
+
+    ts = Molecule('sn2_TS.xyz', charge=-1)
+
+    calc = Calculation(name='tmp',
+                       molecule=ts,
+                       method=ORCA(),
+                       keywords=ORCA().keywords.hess)
+
+    calc.output.filename = 'sn2_TS.out'
+    assert calc.output.exists
+
+    ts.hessian = calc.get_hessian()
+    assert np.isclose(ts.imaginary_frequencies[0],
+                      Frequency(-552.64, units='cm-1'), atol=1.0)
+
+    imag_f = displaced_species_along_mode(ts, mode_number=6, disp_factor=0.5)
+    imag_f_ade = imag_f.coordinates
+    imag_b = displaced_species_along_mode(ts, mode_number=6, disp_factor=-0.5)
+    imag_b_ade = imag_b.coordinates
+
+    imag_f_orca = np.array([[-5.081783000, 4.433438000,  0.062274000],
+                            [-0.900674000, 4.531897500, -0.036945500],
+                            [-3.619944500, 4.467834500,  0.028735000],
+                            [-3.159098000, 3.868992500, -0.899404000],
+                            [-3.116380000, 3.989669000,  1.004047500],
+                            [-3.177138500, 5.577882000, -0.051681500]])
+
+    imag_b_orca = np.array([[-5.348013000, 4.42739200,  0.06913800],
+                            [-1.035348000, 4.52875050, -0.03346050],
+                            [-2.747891500, 4.48803350,  0.00668900],
+                            [-3.369132000, 3.90162150, -0.83858800],
+                            [-3.330032000, 4.01514900,  0.94577250],
+                            [-3.390143500, 5.50372200, -0.04345650]])
+
+    assert ((calc_rmsd(imag_f_ade, imag_f_orca) < 0.05 and calc_rmsd(imag_b_ade, imag_b_orca) < 0.05)
+            or (calc_rmsd(imag_b_ade, imag_f_orca) < 0.05 and calc_rmsd(imag_f_ade, imag_b_orca) < 0.05))

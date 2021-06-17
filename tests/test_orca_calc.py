@@ -2,7 +2,6 @@ import autode.exceptions as ex
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
 from autode.constants import Constants
-from autode.wrappers.ORCA import calc_atom_entropy
 from autode.calculation import Calculation, CalculationOutput
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
@@ -234,15 +233,6 @@ def test_mp2_numerical_gradients():
     assert len(gradients) == 6
     expected = np.array([0.012397372, 0.071726232, -0.070942743]) / Constants.a0_to_ang
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
-
-
-def test_calc_entropy():
-
-    f_entropy_g09 = 0.011799 / 298.15   # TS from g09
-    f_entropy = calc_atom_entropy(atom_label='F', temp=298.15)
-
-    # Ensure the calculated and 'actual' from Gaussian09 are close
-    assert np.abs(f_entropy_g09 - f_entropy) < 2E-5
 
 
 @utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])

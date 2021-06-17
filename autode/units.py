@@ -202,7 +202,8 @@ ev_per_ang = CompositeUnit(ev, per=[ang],
 
 ha_per_ang_sq = CompositeUnit(ha, per=[ang, ang],
                               name='Ha Å^-2',
-                              aliases=['ha/ang^2', 'ha/ang2', 'ha ang^2'])
+                              aliases=['Ha / Å^2', 'ha/ang^2', 'ha/ang2',
+                                       'ha ang^2'])
 
 
 ha_per_a0_sq = CompositeUnit(ha, per=[a0, a0],
