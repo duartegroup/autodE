@@ -229,7 +229,7 @@ class TransitionState(TSbase):
         logger.info('Reverting to previously found TS')
         self.atoms = atoms
         self.energy = energy
-        self.hessian = hessian
+        self._hess = hessian
 
         return None
 

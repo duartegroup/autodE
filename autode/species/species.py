@@ -424,7 +424,7 @@ class Species(AtomCollection):
 
         if self.n_atoms < 2:
             logger.warning(f'Not running a Hessian calculation on only '
-                           f'{self.n_atoms} atoms. Cannot have frequencies')
+                           f'{self.n_atoms} atom(s). Cannot have frequencies')
             return None
 
         method = method if method is not None else get_hmethod()
