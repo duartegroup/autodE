@@ -5,8 +5,8 @@ from autode.wrappers.XTB import xtb
 from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
-from autode.exceptions import NoAtomsInMolecule
-from autode.config import Config
+from autode.exceptions import NoAtomsInMolecule, CalculationException
+from autode.utils import work_in_tmp_dir
 from copy import deepcopy
 from . import testutils
 import numpy as np
@@ -258,6 +258,7 @@ def test_set_lowest_energy_conformer():
     assert hydrogen.energy == -1
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_thermal_cont_without_hess_run():
 
     calc = Calculation(name='test',
@@ -267,16 +268,20 @@ def test_thermal_cont_without_hess_run():
     mol.energy = -1
 
     # Some blank output that exists
-    calc.output.filename = 'test'
+    calc.output.filename = 'test.out'
+    with open('test.out', 'w') as out:
+        print('test', file=out)
+
+    assert calc.output.exists
 
     # Calculating the free energy contribution without a correct Hessian
-    # calculation should not raise an exception(?)
-    mol.calc_g_cont(calc=calc)
-    assert mol.g_cont is None
+
+    with pytest.raises(CalculationException):
+        mol.calc_g_cont(calc=calc)
 
     # and similarly with the enthalpic contribution
-    mol.calc_h_cont(calc=calc)
-    assert mol.h_cont is None
+    with pytest.raises(CalculationException):
+        mol.calc_h_cont(calc=calc)
 
 
 def test_is_linear():

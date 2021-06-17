@@ -37,12 +37,14 @@ def test_thermochemistry_h2o():
                        method=orca,
                        keywords=orca.keywords.hess)
     calc.output.filename = 'H2O_hess_orca.out'
+    assert calc.output.exists
 
     # Calculate using the default method from ORCA
     h2o.calc_thermo(calc=calc, ss='1atm', sn=1)
 
     # Ensure the calculated free energy contribution is close to value obtained
     # directly from ORCA
+    assert h2o.g_cont is not None
     assert np.isclose(h2o.g_cont, Energy(0.00327564, units='ha'),
                       atol=Energy(0.1, units='kcal mol-1').to('ha'))
 

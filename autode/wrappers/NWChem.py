@@ -267,12 +267,6 @@ class NWChem(ElectronicStructureMethod):
 
         return False
 
-    def get_enthalpy(self, calc):
-        raise NotImplementedError
-
-    def get_free_energy(self, calc):
-        raise NotImplementedError
-
     def get_energy(self, calc):
 
         wf_strings = ['Total CCSD energy', 'Total CCSD(T) energy',

@@ -603,21 +603,20 @@ class Species(AtomCollection):
 
             temp (float): Temperature in K
 
+        Raises:
+            (autode.exceptions.CalculationException):
+
         See Also:
             (autode.thermo.igm.calculate_thermo_cont)
         """
-        if (calc is not None and not calc.output.exists) or self._hess is None:
-            try:
-                self._run_hess_calculation(method=method)
-
-            except CalculationException:
-                logger.warning('Could not calculate the thermochemical '
-                               'contribution Hessian calculation failed')
 
         if calc is not None and calc.output.exists:
             self.atoms = calc.get_final_atoms()
             self.energy = calc.get_energy()
             self.hessian = calc.get_hessian()
+
+        if (calc is not None and not calc.output.exists) or self.hessian is None:
+            self._run_hess_calculation(method=method)
 
         calculate_thermo_cont(self, temp=temp, **kwargs)
         return None

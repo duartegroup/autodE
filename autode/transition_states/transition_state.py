@@ -197,7 +197,7 @@ class TransitionState(TSbase):
         constrained optimisations"""
         logger.info('Finding lowest energy TS conformer')
 
-        atoms, energy, hessian = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.hessian)
+        atoms, energy, hessian = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self._hess)
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
         self.find_lowest_energy_conformer(hmethod=hmethod)
@@ -211,25 +211,30 @@ class TransitionState(TSbase):
         logger.info(f'Generated {len(self.conformers)} unique (RMSD > '
                     f'{thresh} Å) TS conformer(s)')
 
+        if len(self.conformers) == 0:
+            logger.info('Had no conformers - no need to re-optimise')
+            return
+
         # Optimise the lowest energy conformer to a transition state - will
         # .find_lowest_energy_conformer will have updated self.atoms etc.
-        if len(self.conformers) > 0:
-            self.optimise(name_ext='optts_conf')
+        self.optimise(name_ext='optts_conf')
 
-            if self.is_true_ts() and self.energy < energy:
-                logger.info('Conformer search successful')
-                return None
+        if self.is_true_ts() and self.energy < energy:
+            logger.info('Conformer search successful')
+            return None
 
-            # Ensure the energy has a numerical value, so a difference can be
-            # evaluated
-            self.energy = self.energy if self.energy is not None else 0
-            logger.warning(f'Transition state conformer search failed '
-                           f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
+        # Ensure the energy has a numerical value, so a difference can be
+        # evaluated
+        self.energy = self.energy if self.energy is not None else 0
+        logger.warning(f'Transition state conformer search failed '
+                       f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
 
         logger.info('Reverting to previously found TS')
         self.atoms = atoms
         self.energy = energy
-        self._hess = hessian
+
+        self._hess = hessian      # NOTE: deepcopy doesn't copy atoms
+        self._hess.atoms = atoms
 
         return None
 

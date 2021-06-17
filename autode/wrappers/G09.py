@@ -411,28 +411,6 @@ class G09(ElectronicStructureMethod):
 
         return False
 
-    def get_enthalpy(self, calc):
-        """Get the enthalpy (H) from an g09 calculation output"""
-
-        for line in reversed(calc.output.file_lines):
-            if 'Sum of electronic and thermal Enthalpies' in line:
-                return float(line.split()[-1])
-
-        logger.error('Could not get the enthalpy from the calculation. '
-                     'A frequency must be requested')
-        raise CouldNotGetProperty(name='energy')
-
-    def get_free_energy(self, calc):
-        """Get the Gibbs free energy (G) from an g09 calculation output"""
-
-        for line in reversed(calc.output.file_lines):
-            if 'Sum of electronic and thermal Free Energies' in line:
-                return float(line.split()[-1])
-
-        logger.error('Could not get the enthalpy from the calculation. '
-                     'A frequency must be requested')
-        raise CouldNotGetProperty(name='energy')
-
     def get_energy(self, calc):
 
         for line in reversed(calc.output.file_lines):

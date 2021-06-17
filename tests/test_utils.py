@@ -6,6 +6,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.keywords import Keywords
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
+from autode.utils import work_in_tmp_dir
 import time
 import pytest
 import os
@@ -71,6 +72,7 @@ def test_work_in_temp_dir():
     os.remove('test.txt')
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calc_output():
 
     calc = Calculation(name='test',

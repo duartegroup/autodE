@@ -231,6 +231,8 @@ def test_free_energy_profile():
 
     Config.ts_template_folder_path = os.getcwd()
     Config.hmethod_conformers = False
+    Config.standard_state = '1atm'
+    Config.lfm_method = 'igm'
 
     method = get_hmethod()
     assert method.name == 'g09'
@@ -247,19 +249,19 @@ def test_free_energy_profile():
 
     rxn.calculate_reaction_profile(free_energy=True)
 
-    # Allow ~0.5 kcal mol-1 either side of the true value
+    # Allow ~0.5 kcal mol-1 either side of the 'true' value
 
     dg_ts = rxn.calc_delta_g_ddagger()
-    assert 17 < dg_ts * Constants.ha_to_kcalmol < 18
+    assert 16 < dg_ts.to('kcal mol-1') < 17
 
     dg_r = rxn.calc_delta_g()
-    assert -13.2 < dg_r * Constants.ha_to_kcalmol < -12.3
+    assert -13.2 < dg_r.to('kcal mol-1') < -12.3
 
     dh_ts = rxn.calc_delta_h_ddagger()
-    assert 9.2 < dh_ts * Constants.ha_to_kcalmol < 10.3
+    assert 9.2 < dh_ts.to('kcal mol-1') < 10.3
 
     dh_r = rxn.calc_delta_h()
-    assert -13.6 < dh_r * Constants.ha_to_kcalmol < -12.6
+    assert -13.6 < dh_r.to('kcal mol-1') < -12.6
 
     # Should be able to plot an enthalpy profile
     plot_reaction_profile([rxn], units=KcalMol, name='enthalpy',

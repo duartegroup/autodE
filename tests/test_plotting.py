@@ -1,7 +1,10 @@
 from autode import plotting
 import matplotlib.pyplot as plt
+from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import CouldNotPlotSmoothProfile
 from autode.species.molecule import Reactant, Product
+from autode.calculation import Calculation
+from autode.methods import ORCA
 from autode.transition_states.transition_state import TransitionState
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.reactions.reaction import Reaction
@@ -12,10 +15,12 @@ from autode.config import Config
 from copy import deepcopy
 from scipy.optimize import minimize
 from scipy import interpolate
+from . import testutils
 import numpy as np
 import pytest
 import os
 
+here = os.path.dirname(os.path.abspath(__file__))
 Config.high_quality_plots = False
 
 
@@ -101,6 +106,7 @@ def test_calculate_reaction_profile_energies():
     assert -41 < energies[4] < -39
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'plotting.zip'))
 def test_reaction_warnings():
     test_reac = Reactant(name='test', smiles='C')
     test_reac.energy = -1
@@ -115,10 +121,6 @@ def test_reaction_warnings():
     ts = TransitionState(tsguess)
     ts.energy = -0.98
 
-    raise NotImplementedError
-    # TODO: set a Hessian for this structure
-    ts.imaginary_frequencies = [-100]
-
     reaction = Reaction(test_reac, test_prod)
     reaction.ts = None
 
@@ -127,6 +129,15 @@ def test_reaction_warnings():
 
     # Should be no warnings  with a TS that exists and has an energy and one
     # imaginary freq
+    ts.atoms = xyz_file_to_atoms('TS.xyz')
+    orca = ORCA()
+    ts_calc = Calculation(name='TS', molecule=ts, method=orca,
+                          keywords=orca.keywords.opt_ts)
+    ts_calc.output.filename = 'TS.out'
+    ts.atoms = ts_calc.get_final_atoms()
+    ts.hessian = ts_calc.get_hessian()
+    ts.energy = ts_calc.get_energy()
+
     reaction.ts = ts
     warnings = plotting.get_reaction_profile_warnings(reactions=[reaction])
     assert 'None' in warnings
