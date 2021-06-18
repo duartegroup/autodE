@@ -3,6 +3,7 @@ from autode.conformers.conformer import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
 from autode.input_output import atoms_to_xyz_file
+from autode.mol_graphs import make_graph
 from autode.smiles.smiles import calc_multiplicity, init_organic_smiles
 from autode.wrappers.ORCA import orca
 from autode.species.molecule import Reactant
@@ -195,3 +196,23 @@ def test_multi_ring_smiles_init():
                                  '=CC=CC%11=C%10C%12=[N+]5C=CC=C%12C=C%11')
 
     assert are_coords_reasonable(cr_complex.coordinates)
+
+
+def test_lowest_energy_conformer_set():
+
+    h2 = Molecule(smiles='[H][H]')
+    h2.energy = -1.0
+    assert h2.graph is not None
+
+    h2_not_bonded = Molecule(atoms=[Atom('H'), Atom('H', x=10)])
+    h2_not_bonded.energy = -1.1
+    # no bonds for a long H-bond
+    assert np.allclose(h2_not_bonded.bond_matrix, np.zeros(shape=(2, 2)))
+
+    h2.conformers = [h2_not_bonded]
+    h2._set_lowest_energy_conformer()
+
+    assert len(h2.conformers) == 1
+
+    # Don't set the lowest energy structure if the graph is not isomorphic
+    assert h2.energy == -1.0

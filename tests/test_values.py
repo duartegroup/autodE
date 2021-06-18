@@ -1,6 +1,6 @@
 import numpy as np
 from autode.units import ang, ha, ha_per_ang, ha_per_a0
-from autode.values import (ValueArray, Gradients, Coordinate)
+from autode.values import (ValueArray, Gradient, Coordinate)
 
 
 class TmpValues(ValueArray):
@@ -32,7 +32,7 @@ def test_coordinate():
 def test_gradients():
 
     # Default gradient units are Ha Å^-1
-    gradients = Gradients(np.arange(2, dtype='f8'))
+    gradients = Gradient(np.arange(2, dtype='f8'))
     assert gradients.units == ha_per_ang
     assert 'grad' in repr(gradients).lower()
 

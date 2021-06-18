@@ -126,6 +126,10 @@ def test_hessian_set():
     with pytest.raises(ValueError):
         h2o.hessian = np.arange(0, 3*h2o.n_atoms)
 
+    # Hessian must be an array..
+    with pytest.raises(ValueError):
+        h2o.hessian = 5
+
     assert h2o.hessian is None
     h2o.hessian = np.zeros(shape=(3*h2o.n_atoms, 3*h2o.n_atoms))
     assert h2o.hessian is not None

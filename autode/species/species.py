@@ -10,7 +10,6 @@ from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
-from autode.exceptions import CalculationException
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
@@ -388,28 +387,36 @@ class Species(AtomCollection):
                            must be from the average for it not to be added
         """
         energies = std_dev_e = avg_e = None
+        self.conformers = []
 
         # Populate an array of energies in any units to calculate std. dev. etc
         if all(conf.energy is not None for conf in conformers):
             energies = np.array([conf.energy for conf in conformers])
             std_dev_e, avg_e = np.std(energies), np.average(energies)
 
+            logger.warning(f'Have {len(energies)} energies with μ={avg_e}'
+                           f'σ={std_dev_e}')
+
         for i, conf in enumerate(conformers):
 
             if energies is not None:
 
-                if np.abs(conf.energy - avg_e) < 1E-8:
+                if np.abs(conf.energy - avg_e) < 1E-8 and len(self.conformers) > 0:
                     logger.warning(f'Conformer {i} had an identical energy'
                                    f' - not adding')
                     continue
 
-                if np.abs(conf.energy - avg_e)/std_dev_e > n_sigma:
+                if np.abs(conf.energy - avg_e)/max(std_dev_e, 1E-8) > n_sigma:
                     logger.warning(f'Conformer {i} had an energy >{n_sigma}σ '
                                    f'from the average - not adding')
                     continue
 
             if conf_is_unique_rmsd(conf, self.conformers):
-                conf.graph = deepcopy(self.graph.copy)
+                if self.graph is None:
+                    logger.warning('Setting a conformer without a graph')
+                else:
+                    conf.graph = self.graph.copy()
+
                 self.conformers.append(conf)
 
         logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
@@ -634,7 +641,9 @@ class Species(AtomCollection):
         return self.calc_thermo(*args, **kwargs)
 
     @requires_atoms
-    def single_point(self, method, keywords=None) -> None:
+    def single_point(self,
+                     method:   ElectronicStructureMethod,
+                     keywords: Optional[Keywords] = None) -> None:
         """Calculate the single point energy of the species with a
         autode.wrappers.base.ElectronicStructureMethod"""
         logger.info(f'Running single point energy evaluation of {self.name}')
@@ -648,7 +657,9 @@ class Species(AtomCollection):
         return None
 
     @work_in('conformers')
-    def find_lowest_energy_conformer(self, lmethod=None, hmethod=None) -> None:
+    def find_lowest_energy_conformer(self,
+                                     lmethod: Optional[ElectronicStructureMethod] = None,
+                                     hmethod: Optional[ElectronicStructureMethod] = None) -> None:
         """
         For a molecule object find the lowest conformer in energy and set the
         molecule.atoms and molecule.energy

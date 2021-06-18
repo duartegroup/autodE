@@ -227,6 +227,10 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
     coords1 = np.array([atom.coord for atom in atoms1 if atom.label != 'H'])
     coords2 = np.array([atom.coord for atom in atoms2 if atom.label != 'H'])
 
+    if len(coords1) == 0 or len(coords2) == 0:
+        logger.warning('No heavy atoms! assuming a zero RMSD')
+        return 0.0
+
     return calc_rmsd(coords1, coords2)
 
 

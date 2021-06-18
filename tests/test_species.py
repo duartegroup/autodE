@@ -5,6 +5,8 @@ from autode.wrappers.XTB import xtb
 from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
+from autode.values import Gradient
+from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
 from copy import deepcopy
@@ -35,10 +37,18 @@ def test_species_class():
     assert hasattr(mol, 'translate')
     assert hasattr(mol, 'rotate')
     assert hasattr(mol, 'coordinates')
+    assert str(mol) != ''
 
     assert mol.charge == 0
     assert mol.mult == 1
     assert mol.name == 'H2'
+
+    for attr in ('gradient', 'hessian', 'free_energy', 'enthalpy', 'g_cont',
+                 'h_cont', 'frequencies', 'vib_frequencies',
+                 'imaginary_frequencies'):
+        assert getattr(mol, attr) is None
+
+    assert mol.normal_mode(mode_number=1) is None
 
     assert not mol.is_explicitly_solvated
 
@@ -169,6 +179,27 @@ def test_set_coords():
     assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
 
 
+def test_set_gradients():
+
+    test_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+
+    # Gradient must be a Nx3 array for N atoms
+    with pytest.raises(ValueError):
+        test_mol.gradient = 5
+
+    with pytest.raises(ValueError):
+        test_mol.gradient = np.zeros(shape=(test_mol.n_atoms, 2))
+
+    # but can set them with a Gradients array
+    test_mol.gradient = Gradient(np.zeros(shape=(test_mol.n_atoms, 3)),
+                                 units='Ha Å^-1')
+    assert test_mol.gradient.units == ha_per_ang
+
+    # setting from a numpy array defaults to Ha/Å units
+    test_mol.gradient = np.zeros(shape=(2, 3))
+    assert test_mol.gradient.units == ha_per_ang
+
+
 def test_species_solvent():
 
     assert mol.solvent is None
@@ -185,9 +216,27 @@ def test_species_single_point():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
+def test_species_optimise():
+
+    orca.path = here
+    assert orca.available
+
+    dihydrogen = Species(name='H2', atoms=[Atom('H'), Atom('H', x=1)],
+                         charge=0, mult=1)
+
+    dihydrogen.optimise(method=orca)
+    assert dihydrogen.atoms is not None
+
+    # Resetting the graph after the optimisation should still have a single
+    # edge as the bond between H atoms
+    dihydrogen.optimise(method=orca, reset_graph=True)
+    assert len(dihydrogen.graph.edges) == 1
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_find_lowest_energy_conformer():
 
-     # Spoof XTB availability
+    # Spoof XTB availability
     xtb.path = here
 
     propane = Molecule(name='propane', smiles='CCC')
@@ -313,3 +362,46 @@ def test_is_linear():
 
     acetylene = Molecule(smiles='C#C')
     assert acetylene.is_linear(tol=0.01)
+
+
+def test_unique_conformer_set():
+
+    test_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+    test_mol.energy = -1.0
+
+    # With the same molecule the conformer list will be pruned to 1
+    conformers = [test_mol.copy(), test_mol.copy()]
+    test_mol._set_unique_conformers_rmsd(conformers)
+    assert len(test_mol.conformers) == 1
+
+
+def test_unique_conformer_set_energy():
+
+    # or where one conformer has a very different energy
+    test_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+    test_mol.energy = -1.0
+
+    test_mol_high_e = test_mol.copy()
+    test_mol_high_e.energy = 10.0
+    conformers = [test_mol_high_e, test_mol.copy(), test_mol.copy()]
+    test_mol._set_unique_conformers_rmsd(conformers, n_sigma=1)
+
+    assert len(test_mol.conformers) == 1
+    assert test_mol.conformers[0].energy == -1.0
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
+def test_hessian_calculation():
+
+    h2o = Species(name='H2O', charge=0, mult=1,
+                  atoms=[Atom('O', -0.0011,  0.3631, -0.0),
+                         Atom('H', -0.8250, -0.1819, -0.0),
+                         Atom('H',  0.8261, -0.1812,  0.0)])
+
+    # Spoof ORCA install
+    orca.path = here
+    assert orca.available
+
+    h2o._run_hess_calculation(method=orca)
+    assert h2o.hessian is not None
+    assert h2o.frequencies is not None
