@@ -233,27 +233,23 @@ def test_optts_no_reactants_products():
     da_ts = TransitionState(da_ts_guess)
     da_ts.optimise()
 
+    assert da_ts.has_imaginary_frequencies
     assert len(da_ts.imaginary_frequencies) == 1
     imag_freq = da_ts.imaginary_frequencies[0]
 
     assert -500 < imag_freq < -300      # cm-1
 
-    # Should raise exceptions for TSs not initialised with reactants and
-    # products
-    with pytest.raises(ValueError):
-        _ = da_ts.could_have_correct_imag_mode
-
-    with pytest.raises(ValueError):
-        _ = da_ts.has_correct_imag_mode
+    assert da_ts.could_have_correct_imag_mode
+    assert da_ts.has_correct_imag_mode
 
 
-def test_no_graph():
+def _test_no_graph():
 
     ts_no_graph = TSguess(atoms=None)
     assert ts_no_graph.graph is None
 
 
-def test_fb_rp_isomorphic():
+def _test_fb_rp_isomorphic():
 
     reac = ReactantComplex(f, ch3cl)
     prod = ProductComplex(ch3f, cl)

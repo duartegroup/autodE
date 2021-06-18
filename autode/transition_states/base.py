@@ -60,7 +60,7 @@ class TSbase(Species, ABC):
         if self.reactant is None or self.product is None:
             logger.warning('Could not check imaginary mode – reactants '
                            ' and/or products not set ')
-            return False
+            return True
 
         if self.hessian is None:
             logger.info('Calculating the hessian..')
@@ -92,7 +92,15 @@ class TSbase(Species, ABC):
     @property
     def has_correct_imag_mode(self) -> bool:
         """Check that the imaginary mode is 'correct' set the calculation
-        (hessian or optts)"""
+        (hessian or optts)
+
+        Returns:
+            (bool):
+
+        Raises:
+            (ValueError): If reactants and products aren't set, thus cannot
+                        run a quick reaction profile
+        """
 
         # Run a fast check on  whether it's likely the mode is correct
         if not self.could_have_correct_imag_mode:
@@ -209,6 +217,10 @@ class TSbase(Species, ABC):
         """
         logger.info('Displacing along imag modes to check that the TS links '
                     'reactants and products')
+        if self.reactant is None or self.product is None:
+            logger.warning('Could not check imaginary mode – reactants '
+                           ' and/or products not set ')
+            raise ValueError
 
         # Generate and optimise conformers with the low level of theory
         self.reactant.populate_conformers(n_confs=100)
