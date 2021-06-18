@@ -307,7 +307,7 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
         ts = TransitionState(ts_guess, bond_rearr=bond_rearr)
         ts.optimise()
 
-        if not ts.is_true_ts():
+        if not ts.is_true_ts:
             continue
 
         # Save a transition state template if specified in the config

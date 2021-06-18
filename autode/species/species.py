@@ -394,8 +394,8 @@ class Species(AtomCollection):
             energies = np.array([conf.energy for conf in conformers])
             std_dev_e, avg_e = np.std(energies), np.average(energies)
 
-            logger.warning(f'Have {len(energies)} energies with μ={avg_e}'
-                           f'σ={std_dev_e}')
+            logger.warning(f'Have {len(energies)} energies with μ={avg_e:.6f} '
+                           f'σ={std_dev_e:.6f}')
 
         for i, conf in enumerate(conformers):
 
@@ -622,7 +622,8 @@ class Species(AtomCollection):
             self.energy = calc.get_energy()
             self.hessian = calc.get_hessian()
 
-        if (calc is not None and not calc.output.exists) or self.hessian is None:
+        elif (calc is not None and not calc.output.exists
+              or self.hessian is None):
             self._run_hess_calculation(method=method)
 
         calculate_thermo_cont(self, temp=temp, **kwargs)

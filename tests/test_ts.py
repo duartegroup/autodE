@@ -81,17 +81,13 @@ def test_ts_guess_class():
     assert tsguess.could_have_correct_imag_mode
     assert tsguess.has_correct_imag_mode
 
+    # Cannot check the imaginary mode without a bond rearrangment
+    with pytest.raises(ValueError):
+        _ = TSguess(atoms=tsguess.atoms).could_have_correct_imag_mode
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
 def test_links_reacs_prods():
-
-    tsguess.calc = Calculation(name=tsguess.name + '_hess',
-                               molecule=tsguess,
-                               method=method,
-                               keywords=method.keywords.hess,
-                               n_cores=Config.n_cores)
-    # Should find the completed calculation output
-    tsguess.calc.run()
 
     # Spoof an xtb install as reactant/product complex optimisation
     Config.lcode = 'xtb'
@@ -103,11 +99,11 @@ def test_links_reacs_prods():
     Config.num_complex_sphere_points = 4
     Config.num_complex_random_rotations = 1
 
-    raise NotImplementedError
-    # assert imag_mode_links_reactant_products(calc=tsguess.calc,
-    #                                          reactant=reac_complex,
-    #                                          product=product_complex,
-    #                                          method=method)
+    method.path = here
+    assert method.available
+
+    tsguess._run_hess_calculation(method=method)
+    assert tsguess.imag_mode_links_reactant_products()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mode_checking.zip'))
@@ -128,6 +124,7 @@ def test_correct_imag_mode():
 
     ts_guess = TSguess(atoms=calc.get_final_atoms(), bond_rearr=bond_rearr)
     ts_guess.hessian = calc.get_hessian()
+    assert ts_guess.has_imaginary_frequencies
 
     f_species = displaced_species_along_mode(ts_guess,
                                              mode_number=6, disp_factor=1.0)
@@ -140,15 +137,33 @@ def test_correct_imag_mode():
                                                f_species=f_species,
                                                b_species=b_species)
 
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mode_checking.zip'))
+def test_incorrect_imag_mode():
+
+    g09 = G09()
+    reac = ReactantComplex(Reactant(smiles='CC(C)(C)C1C=CC=C1'))
+    prod = ProductComplex(Product(smiles='CC1C=CC=C1'),
+                          Product(smiles='C[C]C'))
+
     calc = Calculation(name='tmp',
-                       molecule=reac,
+                       molecule=reac,  # <- not really right
                        method=g09,
                        keywords=Config.G09.keywords.opt_ts)
 
     calc.output.filename = 'incorrect_ts_mode_g09.log'
-    ts_guess.atoms = calc.get_final_atoms()
+
+    bond_rearr = BondRearrangement(breaking_bonds=[(4, 1), (4, 18)],
+                                   forming_bonds=[(1, 18)])
+    ts_guess = TSguess(atoms=calc.get_final_atoms(),
+                       bond_rearr=bond_rearr,
+                       reactant=reac,
+                       product=prod)
+
     ts_guess.hessian = calc.get_hessian()
 
+    # Should not need to run a QRC, as the mode generates a bond that is not
+    # acitve
     assert not ts_guess.has_correct_imag_mode
 
 
@@ -205,7 +220,7 @@ def test_find_tss():
 
     assert reaction.ts is not None
     os.chdir('transition_states')
-    assert reaction.ts.is_true_ts()
+    assert reaction.ts.is_true_ts
     os.chdir('..')
 
     reaction.ts.save_ts_template(folder_path=os.getcwd())
@@ -229,7 +244,8 @@ def test_find_tss():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
 def test_optts_no_reactants_products():
 
-    da_ts_guess = TSguess(atoms=xyz_file_to_atoms('da_TS_guess.xyz'))
+    da_ts_guess = TSguess(atoms=xyz_file_to_atoms('da_TS_guess.xyz'),
+                          bond_rearr=BondRearrangement(forming_bonds=[(0, 5), (3, 4)]))
     da_ts = TransitionState(da_ts_guess)
     da_ts.optimise()
 
@@ -243,13 +259,13 @@ def test_optts_no_reactants_products():
     assert da_ts.has_correct_imag_mode
 
 
-def _test_no_graph():
+def test_no_graph():
 
     ts_no_graph = TSguess(atoms=None)
     assert ts_no_graph.graph is None
 
 
-def _test_fb_rp_isomorphic():
+def test_fb_rp_isomorphic():
 
     reac = ReactantComplex(f, ch3cl)
     prod = ProductComplex(ch3f, cl)

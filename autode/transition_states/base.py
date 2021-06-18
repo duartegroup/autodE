@@ -56,11 +56,14 @@ class TSbase(Species, ABC):
 
         Returns:
             (bool):
+
+        Raises:
+            (ValueError): If the bond-rearrangement is not set, so that there
+                          is no chance of determining the right mode
         """
-        if self.reactant is None or self.product is None:
-            logger.warning('Could not check imaginary mode – reactants '
-                           ' and/or products not set ')
-            return True
+        if self.bond_rearrangement is None:
+            raise ValueError('Do not have a bond rearrangment - cannot '
+                             'check the imaginary mode')
 
         if self.hessian is None:
             logger.info('Calculating the hessian..')
@@ -106,7 +109,7 @@ class TSbase(Species, ABC):
         if not self.could_have_correct_imag_mode:
             return False
 
-        if self.imag_mode_has_correct_displacement:
+        if self.imag_mode_has_correct_displacement(req_all=True):
             logger.info('Displacement of the active atoms in the imaginary '
                         'mode bond forms and breaks the correct bonds')
             return True
@@ -218,13 +221,12 @@ class TSbase(Species, ABC):
         logger.info('Displacing along imag modes to check that the TS links '
                     'reactants and products')
         if self.reactant is None or self.product is None:
-            logger.warning('Could not check imaginary mode – reactants '
-                           ' and/or products not set ')
-            raise ValueError
+            raise ValueError('Could not check imaginary mode – reactants '
+                             ' and/or products not set ')
 
         # Generate and optimise conformers with the low level of theory
-        self.reactant.populate_conformers(n_confs=100)
-        self.product.populate_conformers(n_confs=100)
+        self.reactant.populate_conformers()
+        self.product.populate_conformers()
 
         # Get the species by displacing forwards along the mode
         f_mol = displaced_species_along_mode(self,
@@ -390,12 +392,11 @@ def imag_mode_generates_other_bonds(ts:        TSbase,
                                         if _ts.atoms[i].label not in metals and
                                         _ts.atoms[j].label not in metals])
 
-        # If there are new bonds in the forward displaced species that are not
-        # part of the bond rearrangement
         br = _ts.bond_rearrangement
-        if any(bond not in br.all for bond in new_bonds_in_product):
+        if not set(a for b in new_bonds_in_product for a in b
+                   ).issubset(set(br.active_atoms)):
             logger.warning(f'New bonds in product: {new_bonds_in_product}')
-            logger.warning(f'Bond rearrangement: {br.all}')
+            logger.warning(f'Active bonds: {br.all}')
             return True
 
     logger.info('Imaginary mode does not generate any other unwanted bonds')

@@ -197,7 +197,8 @@ class TransitionState(TSbase):
         constrained optimisations"""
         logger.info('Finding lowest energy TS conformer')
 
-        atoms, energy, hessian = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self._hess)
+        curr_energy = self.energy
+        atoms, energies, hessian = deepcopy(self.atoms), deepcopy(self.energies), deepcopy(self._hess)
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
         self.find_lowest_energy_conformer(hmethod=hmethod)
@@ -219,7 +220,7 @@ class TransitionState(TSbase):
         # .find_lowest_energy_conformer will have updated self.atoms etc.
         self.optimise(name_ext='optts_conf')
 
-        if self.is_true_ts() and self.energy < energy:
+        if self.is_true_ts and self.energy < curr_energy:
             logger.info('Conformer search successful')
             return None
 
@@ -227,17 +228,18 @@ class TransitionState(TSbase):
         # evaluated
         self.energy = self.energy if self.energy is not None else 0
         logger.warning(f'Transition state conformer search failed '
-                       f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
+                       f'(∆E = {curr_energy - self.energy:.4f} Ha). Reverting')
 
         logger.info('Reverting to previously found TS')
         self.atoms = atoms
-        self.energy = energy
+        self.energy = energies
 
         self._hess = hessian      # NOTE: deepcopy doesn't copy atoms
         self._hess.atoms = atoms
 
         return None
 
+    @property
     def is_true_ts(self):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the
         hessian and is the correct mode"""
@@ -246,7 +248,7 @@ class TransitionState(TSbase):
             logger.warning('Cannot be true TS with no energy')
             return False
 
-        if len(self.imaginary_frequencies) > 0 and  self.has_correct_imag_mode:
+        if len(self.imaginary_frequencies) > 0 and self.has_correct_imag_mode:
             logger.info('Found a transition state with the correct '
                         'imaginary mode & links reactants and products')
             return True

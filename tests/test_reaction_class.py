@@ -14,7 +14,6 @@ from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
 from autode.methods import get_hmethod
 from autode.config import Config
-from autode.constants import Constants
 from .testutils import work_in_zipped_dir
 import shutil
 import pytest
@@ -236,6 +235,7 @@ def test_free_energy_profile():
 
     method = get_hmethod()
     assert method.name == 'g09'
+    assert method.available
 
     rxn = reaction.Reaction(Reactant(name='F-', smiles='[F-]'),
                             Reactant(name='CH3Cl', smiles='ClC'),
