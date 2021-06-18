@@ -1,7 +1,7 @@
 
 name: Test with pytest
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test:
