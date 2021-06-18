@@ -13,7 +13,7 @@ from autode.config import Config
 from autode.solvent.solvents import Solvent
 from autode.log import logger
 from autode.hessians import Hessian
-from autode.values import PotentialEnergy, Gradients
+from autode.values import PotentialEnergy, Gradient
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')
@@ -280,19 +280,19 @@ class Calculation:
 
         return charges
 
-    def get_gradients(self) -> Gradients:
+    def get_gradients(self) -> Gradient:
         """
         Get the gradient (dE/dr) with respect to atomic displacement from a
         calculation
 
         Returns:
-            (autode.values.Gradients): Gradient vectors. shape = (n_atoms, 3)
+            (autode.values.Gradient): Gradient vectors. shape = (n_atoms, 3)
 
         Raises:
             (autode.exceptions.CouldNotGetProperty)
         """
         logger.info(f'Getting gradients from {self.output.filename}')
-        gradients = Gradients(self.method.get_gradients(self))
+        gradients = Gradient(self.method.get_gradients(self))
 
         if len(gradients) != self.molecule.n_atoms:
             raise ex.CouldNotGetProperty(name='gradients')

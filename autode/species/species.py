@@ -153,7 +153,7 @@ class Species(AtomCollection):
                              f'a numpy array or a Hessian.')
 
     @property
-    def gradient(self) -> Optional[val.Gradients]:
+    def gradient(self) -> Optional[val.Gradient]:
         """
         Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
         shape = (n_atoms, 3)
@@ -162,7 +162,7 @@ class Species(AtomCollection):
 
     @gradient.setter
     def gradient(self,
-                 value: Union[val.Gradients, np.ndarray, None]):
+                 value: Union[val.Gradient, np.ndarray, None]):
         """Set the gradient matrix"""
 
         if hasattr(value, 'shape') and value.shape != (self.n_atoms, 3):
@@ -172,13 +172,13 @@ class Species(AtomCollection):
         if value is None:
             self._grad = None
 
-        elif isinstance(value, val.Gradients):
+        elif isinstance(value, val.Gradient):
             self._grad = value
 
         elif isinstance(value, np.ndarray):
             logger.warning('Setting the gradients from a numpy array - '
                            'assuming Ha / Å units')
-            self._grad = val.Gradients(value, units='Ha/ang')
+            self._grad = val.Gradient(value, units='Ha/ang')
 
         else:
             raise ValueError(f'Could not set the gradient with {value}, Must '

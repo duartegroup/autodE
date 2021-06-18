@@ -188,14 +188,14 @@ kg_m_sq = CompositeUnit(kg, m, m,
 
 
 ha_per_ang = CompositeUnit(ha, per=[ang],
-                           aliases=['ha/ang'])
+                           aliases=['ha Å^-1', 'ha/ang'])
 
 ha_per_a0 = CompositeUnit(ha, per=[a0],
-                          aliases=['ha/bohr'])
+                          aliases=['ha a0^-1', 'ha/bohr'])
 
 
 ev_per_ang = CompositeUnit(ev, per=[ang],
-                           aliases=['ev/ang'])
+                           aliases=['ev Å^-1', 'ev/ang'])
 
 # ----------------------------------------------------------------------
 # ------------------------- 2nd derivatives ----------------------------

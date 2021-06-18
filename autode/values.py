@@ -514,7 +514,7 @@ class Coordinates(ValueArray):
         return super().__new__(cls, input_array.reshape(-1, 3), units)
 
 
-class Gradients(ValueArray):
+class Gradient(ValueArray):
 
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
