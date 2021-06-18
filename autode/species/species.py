@@ -624,6 +624,8 @@ class Species(AtomCollection):
 
         elif (calc is not None and not calc.output.exists
               or self.hessian is None):
+            logger.info('Calculation did not exist or Hessian was None - '
+                        'calculating the Hessian')
             self._run_hess_calculation(method=method)
 
         calculate_thermo_cont(self, temp=temp, **kwargs)

@@ -252,16 +252,16 @@ def test_free_energy_profile():
     # Allow ~0.5 kcal mol-1 either side of the 'true' value
 
     dg_ts = rxn.calc_delta_g_ddagger()
-    assert 16 < dg_ts.to('kcal mol-1') < 17
+    assert 16 < dg_ts.to('kcal mol-1') < 18
 
     dg_r = rxn.calc_delta_g()
-    assert -13.2 < dg_r.to('kcal mol-1') < -12.3
+    assert -14 < dg_r.to('kcal mol-1') < -12
 
     dh_ts = rxn.calc_delta_h_ddagger()
-    assert 9.2 < dh_ts.to('kcal mol-1') < 10.3
+    assert 9 < dh_ts.to('kcal mol-1') < 11
 
     dh_r = rxn.calc_delta_h()
-    assert -13.6 < dh_r.to('kcal mol-1') < -12.6
+    assert -14 < dh_r.to('kcal mol-1') < -12
 
     # Should be able to plot an enthalpy profile
     plot_reaction_profile([rxn], units=KcalMol, name='enthalpy',

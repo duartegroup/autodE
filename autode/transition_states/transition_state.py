@@ -186,8 +186,9 @@ class TransitionState(TSbase):
                             'successful. Now have 1 imaginary mode')
 
                 # Set the new properties of this TS from a successful reopt
-                self.energy, self.atoms = disp_ts.energy, disp_ts.atoms
-                self.hessian = disp_ts.hessian
+                self.atoms = disp_ts.atoms
+                self.energy = disp_ts.energy
+                self._hess = disp_ts.hessian
                 break
 
         return None
@@ -197,46 +198,42 @@ class TransitionState(TSbase):
         constrained optimisations"""
         logger.info('Finding lowest energy TS conformer')
 
-        curr_energy = self.energy
-        atoms, energies, hessian = deepcopy(self.atoms), deepcopy(self.energies), deepcopy(self._hess)
+        # Generate a copy of this TS on which conformers are searched, for
+        # easy reversion
+        _ts = self.copy()
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
-        self.find_lowest_energy_conformer(hmethod=hmethod)
+        _ts.find_lowest_energy_conformer(hmethod=hmethod)
 
         # Remove similar TS conformer that are similar to this TS based on root
-        # mean squared differences in their structures
-        thresh = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
-        self.conformers = [conf for conf in self.conformers if
-                           calc_heavy_atom_rmsd(conf.atoms, atoms) > thresh]
+        # mean squared differences in their structures being above a threshold
+        t_h = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
+        _ts.conformers = [conf for conf in _ts.conformers if
+                          calc_heavy_atom_rmsd(conf.atoms, self.atoms) > t_h]
 
-        logger.info(f'Generated {len(self.conformers)} unique (RMSD > '
-                    f'{thresh} Å) TS conformer(s)')
+        logger.info(f'Generated {len(_ts.conformers)} unique (RMSD > '
+                    f'{t_h} Å) TS conformer(s)')
 
-        if len(self.conformers) == 0:
+        if len(_ts.conformers) == 0:
             logger.info('Had no conformers - no need to re-optimise')
             return
 
         # Optimise the lowest energy conformer to a transition state - will
         # .find_lowest_energy_conformer will have updated self.atoms etc.
-        self.optimise(name_ext='optts_conf')
+        _ts.optimise(name_ext='optts_conf')
 
-        if self.is_true_ts and self.energy < curr_energy:
-            logger.info('Conformer search successful')
+        if _ts.is_true_ts and _ts.energy < self.energy:
+            logger.info('Conformer search successful - setting new attributes')
+
+            self.atoms = _ts.atoms
+            self.energies = _ts.energies
+            self._hess = _ts.hessian
             return None
 
-        # Ensure the energy has a numerical value, so a difference can be
-        # evaluated
-        self.energy = self.energy if self.energy is not None else 0
+        # Ensure the energy has a numerical value
+        _ts.energy = _ts.energy if _ts.energy is not None else 0
         logger.warning(f'Transition state conformer search failed '
-                       f'(∆E = {curr_energy - self.energy:.4f} Ha). Reverting')
-
-        logger.info('Reverting to previously found TS')
-        self.atoms = atoms
-        self.energy = energies
-
-        self._hess = hessian      # NOTE: deepcopy doesn't copy atoms
-        self._hess.atoms = atoms
-
+                       f'(∆E = {_ts.energy - self.energy:.4f} Ha). Reverting')
         return None
 
     @property
