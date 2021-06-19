@@ -81,7 +81,8 @@ cdef calc_deriv(int n_atoms, array deriv, array coords, int[:, :] bond_matrix,
     return -np.array(deriv)
 
 
-def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent):
+def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent,
+         py_fixed_atoms):
 
     py_n_atoms = int(len(py_flat_coords) / 3)
     cdef int n_atoms = py_n_atoms
@@ -101,10 +102,15 @@ def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent):
         init_array[i] = 0.0
         coords[i] = py_flat_coords[i]
 
-    return calc_deriv(n_atoms, init_array, coords, bond_matrix, k, d0, c, exponent)
+    dvdr = calc_deriv(n_atoms, init_array, coords, bond_matrix, k, d0, c, exponent)
+
+    # Zero the gradients for all the fixed atoms
+    dvdr[py_fixed_atoms] = 0.0
+
+    return dvdr
 
 
-def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent):
+def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent, *args):
 
     py_n_atoms = int(len(py_flat_coords) / 3)
     cdef int n_atoms = py_n_atoms
