@@ -117,9 +117,6 @@ def get_keywords(calc_input, molecule):
             logger.warning('Cannot do an optimisation for a single atom')
             new_keywords.remove(keyword)
 
-    if calc_input.temp is not None:
-        new_keywords.append(f'Temperature={calc_input.temp:.2f}')
-
     # Further modification is required if there are surrounding point charges
     if calc_input.point_charges is not None:
         modify_keywords_for_point_charges(new_keywords)

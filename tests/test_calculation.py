@@ -26,6 +26,7 @@ def test_calc_class():
     assert not calc.name.startswith('-')
     assert calc.molecule is not None
     assert calc.method.name == 'xtb'
+    assert len(calc.input.filenames) == 0
 
     assert calc.get_energy() is None
 

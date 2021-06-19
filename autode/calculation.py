@@ -65,9 +65,6 @@ class Calculation:
                   f'{str(self.molecule)}{self.method.implicit_solvation_type}'
                   f'{str(self.molecule.constraints)}')
 
-        if self.input.temp is not None:
-            string += str(self.input.temp)
-
         hasher = hashlib.sha1(string.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()
 
@@ -326,8 +323,7 @@ class Calculation:
                                      3*self.molecule.n_atoms)
 
         except (ValueError, IndexError, AssertionError) as err:
-            raise err
-            # raise ex.CouldNotGetProperty(f'Could not get the Hessian: {err}')
+            raise ex.CouldNotGetProperty(f'Could not get the Hessian: {err}')
 
         return hessian
 
@@ -586,10 +582,6 @@ class CalculationInput:
         self.keywords = keywords
         self.solvent = solvent
         self.other_block = additional_input
-
-        # TODO REMOVE -----------------------------
-        self.temp = None
-        # TODO ------------------------------------
 
         self.added_internals = added_internals
         self.point_charges = point_charges

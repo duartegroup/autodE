@@ -231,9 +231,6 @@ class ORCA(ElectronicStructureMethod):
             if calc.n_cores > 1:
                 print(f'%pal nprocs {calc.n_cores}\nend', file=inp_file)
 
-            if calc.input.temp is not None:
-                print(f'%freq  Temp {calc.input.temp}\nend', file=inp_file)
-
             print_coordinates(inp_file, molecule)
 
         return None

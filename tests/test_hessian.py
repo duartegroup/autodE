@@ -11,6 +11,7 @@ from autode.values import Frequency
 from autode.hessians import Hessian
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
+from autode.exceptions import CalculationException
 from autode.transition_states.base import displaced_species_along_mode
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -356,3 +357,19 @@ def test_imag_mode():
 
     assert ((calc_rmsd(imag_f_ade, imag_f_orca) < 0.05 and calc_rmsd(imag_b_ade, imag_b_orca) < 0.05)
             or (calc_rmsd(imag_b_ade, imag_f_orca) < 0.05 and calc_rmsd(imag_f_ade, imag_b_orca) < 0.05))
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
+def test_extract_wrong_molecule_hessian():
+
+    calc = Calculation(name='tmp',
+                       molecule=ade.Molecule(smiles='[H]'),
+                       method=ade.methods.G09(),
+                       keywords=ade.SinglePointKeywords([]))
+
+    calc.output.filename = 'CO2_opt_hess_g09.log'
+
+    # Should raise an exception if the Hessian extracted is not 3Nx3N for
+    # N atoms (1 here)
+    with pytest.raises(CalculationException):
+        _ = calc.get_hessian()
