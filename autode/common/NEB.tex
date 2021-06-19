@@ -6,11 +6,11 @@
 
 \subsection{Original NEB}
 
-Nudged elastic band (NEB) approaches to locating transition states are efficient alternatives to evaluating the PES on a uniform grid over some coordinates of interest. The implementation in \emph{autodE} follows that in [Henkelman and H. Jónsson, J. Chem. Phys. 113, 9978 (2000)]
+Nudged elastic band (NEB) approaches to locating transition states are efficient alternatives to evaluating the PES on a uniform grid over some coordinates of interest. The implementation in \emph{autodE} follows that in [\emph{J. Chem. Phys.}, 2000, {\bfseries{113}}, 9978]
 \\\\
 For an image $i$ in the nudged elastic band
 \begin{equation}
-\boldsymbol{\tau}_i
+\boldsymbol{\tau}_i = 
 \begin{cases}
 \boldsymbol{\tau}_i^+ &\quad\text{if}\quad V_{i-1} < V_i < V_{i+1} \\
 \boldsymbol{\tau}_i^- &\quad\text{if}\quad V_{i+1} < V_i < V_{i-1} \\
@@ -28,8 +28,8 @@ where
 and
 \begin{equation}
 \begin{aligned}
-\Delta V_i^{max} &= \max(|V_{i+1} - V_i|, |V_{i-1} - V_i) \\
-\Delta V_i^{min} &= \min(|V_{i+1} - V_i|, |V_{i-1} - V_i)
+\Delta V_i^{max} &= \max(|V_{i+1} - V_i|, |V_{i-1} - V_i|) \\
+\Delta V_i^{min} &= \min(|V_{i+1} - V_i|, |V_{i-1} - V_i|)
 \end{aligned}
 \end{equation}
 and $\boldsymbol{x}_i$ are the coordinates of image $i$. The spring force is
@@ -48,7 +48,7 @@ and finally $\hat{\boldsymbol{\tau}} = \boldsymbol{\tau}_i/|\boldsymbol{\tau}_i|
 \\\\
 \subsection{CI-NEB}
 
-The climbing image (CI) NEB implementation follows that in [G. Henkelman, B. P. Uberuaga, and H. Joonsson. 113, 9901 (2000)] where after a few iterations the force on the maximum energy image ($m$) is given by
+The climbing image (CI) NEB implementation follows that in [\emph{J. Chem. Phys.}, 2000, {\bfseries{113}}, 9901] where after a few iterations the force on the maximum energy image ($m$) is given by
 
 \begin{equation}
 \boldsymbol{F}_{m} = -\nabla V(\boldsymbol{x}_m) + 2\nabla V(\boldsymbol{x}_m)\cdot \hat{\boldsymbol{\tau}}_i\hat{\boldsymbol{\tau}}_i
