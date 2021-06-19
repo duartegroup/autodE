@@ -23,7 +23,7 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
     """
     Calculate and set the thermochemical contributions (Enthalpic, Free Energy)
     of a species using a variant of the ideal gas model (RRHO). Appends
-    energies to speices.energies. Default methods are set in
+    energies to species.energies. Default methods are set in
     autode.config.Config. See references:
 
     [1] Chem. Eur. J. 2012, 18, 9955
@@ -58,15 +58,14 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
         sn (int): The symmetry number, if not present then will default to
                   species.sn
     """
-    if species.atoms is None:
+    if species.n_atoms == 0:
         logger.warning('Species had no atoms. Cannot calculate thermochemical '
                        'contributions (G_cont, H_cont)')
         return
 
     if species.frequencies is None and species.n_atoms > 1:
-        logger.warning('Cannot calculate vibrational entropy/internal energy '
-                       'no frequencies available.')
-        return
+        raise ValueError('Cannot calculate vibrational entropy/internal energy'
+                         f' no frequencies present for {species.name}.')
 
     S_cont = _entropy(species,
                       method=kwargs.get('lfm_method', Config.lfm_method),
@@ -109,7 +108,8 @@ def _q_trans_igm(species, ss, temp):
         effective_volume = 1.0 / (Constants.n_a * (1.0 / Constants.dm_to_m)**3)
 
     else:
-        raise NotImplementedError
+        raise ValueError(f'Cannot calculate PIB partition function using a'
+                         f' {ss} state. Only "1atm" and "1m" implemented')
 
     q_trans = ((2.0 * np.pi * species.weight.to('kg') * SIConstants.k_b * temp
                 / SIConstants.h**2)**1.5 * effective_volume)
@@ -130,40 +130,24 @@ def _q_rot_igm(species, temp, sigma_r):
     Returns:
         (float): Rotational partition function q_rot
     """
-    i_mat = species.moi.to('kg m^2')
-    omega_diag = (SIConstants.h**2
-                  / (8.0 * np.pi**2 * SIConstants.k_b * np.diagonal(i_mat)))
 
     if species.n_atoms == 1:
         return 1
 
-    else:
-        # omega_diag is the product of the diagonal elements
-        return temp**1.5/sigma_r * np.sqrt(np.pi / np.prod(omega_diag))
+    if species.is_linear():
+        com = species.com.to('m')
+        i_val = sum(atom.mass.to('kg') * np.linalg.norm(atom.coord.to('m') - com)**2
+                    for atom in species.atoms)
 
+        return (temp * 8 * np.pi**2 * SIConstants.k_b * i_val
+                / (sigma_r * SIConstants.h**2))
 
-def _q_vib_igm(species, temp):
-    """
-    Calculate the vibrational partition function using the IGM method.
-    Uses the rotational symmetry number, default = 1
+    # otherwise a polyatomic..
+    i_mat = species.moi.to('kg m^2')
+    omega_diag = (SIConstants.h**2
+                  / (8.0 * np.pi**2 * SIConstants.k_b * np.diagonal(i_mat)))
 
-    Arguments:
-        species (autode.species.Species):
-        temp (float): Temperature in K
-
-    Returns:
-        (float): Vibrational partition function q_rot
-    """
-    q_vib = 1.0
-
-    if species.n_atoms == 1:
-        return q_vib
-
-    for freq in species.vib_frequencies:
-        x = freq.real.to('hz') * SIConstants.h / SIConstants.k_b
-        q_vib *= np.exp(-x / (2.0 * temp)) / (1.0 - np.exp(-x / temp))
-
-    return q_vib
+    return temp**1.5/sigma_r * np.sqrt(np.pi / np.prod(omega_diag))
 
 
 def _s_trans_pib(species, ss, temp):

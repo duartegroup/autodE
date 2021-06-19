@@ -51,7 +51,7 @@ def proj(u, v):
     """
 
     u_hat = u / np.linalg.norm(u)
-    return np.dot(u, v) * u_hat
+    return np.dot(u_hat, v) * u_hat
 
 
 def get_atoms_linear_interp(atoms, bonds, final_distances):
