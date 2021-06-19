@@ -55,6 +55,7 @@ def test_atom_collection_base():
 
     h2 = atoms.AtomCollection()
     assert h2.n_atoms == 0
+    assert np.isclose(h2.weight, 0.0)    # 0 weight for 0 atoms
     assert h2.coordinates is None
     assert h2.moi is None and h2.com is None
 

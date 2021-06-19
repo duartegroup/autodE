@@ -1,6 +1,8 @@
 """
 Thermochemistry calculation from frequencies and coordinates. Copied from
-otherm (https://github.com/duartegroup/otherm) 16/05/2021
+otherm (https://github.com/duartegroup/otherm) 16/05/2021. See
+autode/common/thermochemistry.pdf for mathematical background
+
 
 All calculations performed in SI units, for simplicity
 """

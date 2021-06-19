@@ -408,6 +408,9 @@ class AtomCollection:
         Returns:
             (autode.values.Mass):
         """
+        if self.n_atoms == 0:
+            return Mass(0.0)
+
         return sum(atom.mass for atom in self.atoms)
 
     def _idxs_are_present(self, *args):
