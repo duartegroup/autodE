@@ -153,6 +153,9 @@ def test_constrained_opt():
 
     assert opt_energy < const.get_energy()
 
+    with pytest.raises(Exception):
+        _ = calc.get_hessian()
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_grad():

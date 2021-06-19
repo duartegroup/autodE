@@ -5,13 +5,14 @@ from autode import Molecule, Atom, Calculation
 from autode.thermochemistry import calculate_thermo_cont
 from autode.values import Energy
 from autode.species import Species
-from autode.methods import ORCA
+from autode.methods import ORCA, G09
 from . import testutils
 from autode.thermochemistry.igm import (_q_rot_igm, _s_rot_rr)
 
 here = os.path.dirname(os.path.abspath(__file__))
 
 orca = ORCA()
+g09 = G09()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'symm.zip'))
@@ -118,3 +119,27 @@ def test_linear_non_linear_rot():
 
     # Non linear molecules have slightly more entropy than linear ones
     assert _s_rot_rr(h2_tri, temp=298, sigma_r=1) > _s_rot_rr(h2_lin, temp=298, sigma_r=1)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
+def test_freq_shift():
+
+    # Needs to have lots of atoms so there are frequencies <100 cm-1
+    alkane = Molecule(smiles='CCCCCCC')
+    alkane_s = alkane.copy()
+
+    calc = Calculation(name='tmp',
+                       molecule=alkane,
+                       method=g09,
+                       keywords=g09.keywords.hess)
+    calc.output.filename = 'C7H16_hess_g09.log'
+    assert calc.output.exists
+
+    alkane.calc_thermo(calc=calc, ss='1atm', sn=1, lfm_method='igm')
+
+    alkane_s.calc_thermo(calc=calc, ss='1atm', sn=1, lfm_method='truhlar')
+
+    # Scaling the frequencies to a defined value using truhlar's method should
+    # make the entropic contribution less, thus the free energy should be
+    # larger (G = H - TS)
+    assert alkane.g_cont < alkane_s.g_cont
