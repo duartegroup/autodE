@@ -143,3 +143,34 @@ def test_freq_shift():
     # make the entropic contribution less, thus the free energy should be
     # larger (G = H - TS)
     assert alkane.g_cont < alkane_s.g_cont
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
+def test_acetylene():
+
+    mol = Molecule('C2H2.xyz')
+    assert np.isclose(mol.weight.to('amu'), 26.01565, atol=0.03)
+
+    calc = Calculation(name='tmp',
+                       molecule=mol,
+                       method=g09,
+                       keywords=g09.keywords.hess)
+    calc.output.filename = 'C2H2_hess_g09.log'
+
+    # Calculate the thermochemical contributions in the same way as G09
+    mol.calc_thermo(calc=calc,
+                    temp=298.150,
+                    ss='1atm',
+                    lfm_method='igm',
+                    sn=1)
+
+    # Check that the vibrational frequencies are similar
+    g09_vib_freqs = [694.3255, 694.3255, 780.9635, 780.9635,
+                     2085.2098, 3430.9110, 3534.0987]
+
+    for freq, g09_freq in zip(mol.vib_frequencies, g09_vib_freqs):
+        assert np.isclose(freq.to('cm-1'), g09_freq, atol=1.5)
+
+    # Ensure the calculated values are close to the Gaussian 09 values
+    assert np.isclose(mol.g_cont.to('Ha'), 0.007734, atol=1E-5)
+    assert np.isclose(mol.h_cont.to('Ha'), 0.031043, atol=1E-5)

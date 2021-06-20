@@ -114,7 +114,8 @@ class TransitionState(TSbase):
         Returns:
             (list(autode.value.Frequency) | None):
         """
-        return self.frequencies[7:] if self.frequencies is not None else None
+        n = 7 if not self.is_linear() else 6
+        return self.frequencies[n:] if self.frequencies is not None else None
 
     @requires_atoms
     def print_imag_vector(self, mode_number=6, name=None):

@@ -201,12 +201,15 @@ class Species(AtomCollection):
     @property
     def vib_frequencies(self) -> Optional[List[val.Frequency]]:
         """
-        Vibrational frequencies, which are all but the lowest 6
+        Vibrational frequencies, which are all but the lowest 6 for a
+        non-linear molecule and all but the lowest 5 for a linear one
 
         Returns:
             (list(autode.value.Frequency) | None):
         """
-        return self.frequencies[6:] if self.frequencies is not None else None
+        n = 6 if not self.is_linear() else 5
+
+        return self.frequencies[n:] if self.frequencies is not None else None
 
     @property
     def imaginary_frequencies(self) -> Optional[List[val.Frequency]]:
