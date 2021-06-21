@@ -2,7 +2,9 @@ import os
 import pytest
 import numpy as np
 from autode import Molecule, Atom, Calculation
+from autode.transition_states import TSguess, TransitionState
 from autode.thermochemistry import calculate_thermo_cont
+from autode.input_output import xyz_file_to_atoms
 from autode.values import Energy
 from autode.species import Species
 from autode.methods import ORCA, G09
@@ -174,3 +176,27 @@ def test_acetylene():
     # Ensure the calculated values are close to the Gaussian 09 values
     assert np.isclose(mol.g_cont.to('Ha'), 0.007734, atol=1E-5)
     assert np.isclose(mol.h_cont.to('Ha'), 0.031043, atol=1E-5)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
+def test_sn2_ts():
+
+    ts = TransitionState(TSguess(atoms=xyz_file_to_atoms('TS_sn2.xyz'),
+                                 charge=-1))
+
+    calc = Calculation(name='tmp',
+                       molecule=ts,
+                       method=g09,
+                       keywords=g09.keywords.hess)
+    calc.output.filename = 'TS_sn2.log'
+
+    ts.calc_thermo(calc=calc, temp=298.15, ss='1atm', sn=1, lfm_method='igm')
+
+    # One 'vibrational' mode is the imaginary frequency which is discarded
+    # when calculating thermochemistry
+    assert len(ts.vib_frequencies) == 3*ts.n_atoms - 6 - 1
+
+    # NOTE: Tolerance is 0.3 kcal mol-1 as, for some reason the Gaussian09
+    # rotational entropy is not exactly in agreement
+    assert np.isclose(ts.g_cont.to('Ha'), 0.010382, atol=5E-4)
+    assert np.isclose(ts.h_cont.to('Ha'), 0.042567, atol=5E-4)

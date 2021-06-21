@@ -302,6 +302,7 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
     Raises:
         (NotImplementedError):
     """
+    logger.info(f'Calculating molecular entropy. σ_R = {sigma_r}')
 
     # Translational entropy component
     s_trans = _s_trans_pib(species, ss=ss, temp=temp)
@@ -325,6 +326,11 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
 
     else:
         raise NotImplementedError(f'Unrecognised method: {method}')
+
+    logger.info(f'S_trans = {s_trans*Constants.n_a:.3f} J K-1 mol-1\n'
+                f'S_rot = {s_rot*Constants.n_a:.3f} J K-1 mol-1\n'
+                f'S_vib = {s_vib*Constants.n_a:.3f} J K-1 mol-1\n'
+                f'S_elec = 0.0')
 
     return s_trans + s_rot + s_vib
 
@@ -401,4 +407,8 @@ def _internal_energy(species, temp):
     zpe = _zpe(species)
     e_vib = _internal_vib_energy(species, temp=temp)
 
+    logger.info(f'ZPE = {zpe*Constants.n_a/1E3:.3f} kJ mol-1\n'
+                f'E_trans = {e_trns*Constants.n_a/1E3:.3f} kJ mol-1\n'
+                f'E_rot = {e_rot*Constants.n_a/1E3:.3f} kJ mol-1\n'
+                f'E_vib = {e_vib*Constants.n_a/1E3:.3f} kJ mol-1')
     return zpe + e_trns + e_rot + e_vib
