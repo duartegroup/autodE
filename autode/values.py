@@ -285,6 +285,16 @@ class Energies(list):
 
         return super().append(other)
 
+    @staticmethod
+    def _next(energies, energy_type):
+        """Next type of energy in a list of energies"""
+        try:
+            return next(energy for energy in energies
+                        if isinstance(energy, energy_type))
+
+        except StopIteration:
+            return None
+
     def last(self, energy_type: Type[Energy]) -> Optional[Energy]:
         """
         Return the last instance of a particular energy type in these list
@@ -294,15 +304,42 @@ class Energies(list):
             energy_type (Energy):
 
         Returns:
-            (autode.values.Energy | None):
+            (autode.values.Energy | None): Energy
         """
+        return self._next(reversed(self), energy_type=energy_type)
 
-        try:
-            return next(energy for energy in reversed(self)
-                        if isinstance(energy, energy_type))
+    def first(self, energy_type: Type[Energy]) -> Optional[Energy]:
+        """
+        Return the last instance of a particular energy type in these list
+        of energies
 
-        except StopIteration:
-            return None
+        Arguments:
+            energy_type (Energy):
+
+        Returns:
+            (autode.values.Energy | None): Energy
+        """
+        return self._next(self, energy_type=energy_type)
+
+    @property
+    def first_potential(self) -> Optional[PotentialEnergy]:
+        """
+        First potential energy in this list
+
+        Returns:
+            (autode.values.PotentialEnergy | None):
+        """
+        return self.first(energy_type=PotentialEnergy)
+
+    @property
+    def last_potential(self) -> Optional[PotentialEnergy]:
+        """
+        First potential energy in this list
+
+        Returns:
+            (autode.values.PotentialEnergy | None):
+        """
+        return self.last(energy_type=PotentialEnergy)
 
     def __init__(self, *args: Energy):
         """
