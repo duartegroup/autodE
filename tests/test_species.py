@@ -83,6 +83,10 @@ def test_species_energies_reset():
 
     assert len(tmp_species.energies) == 1
 
+    # At the same geometry other energies are retained, even if energy=None(?)
+    tmp_species.energy = None
+    assert len(tmp_species.energies) == 1
+
     # Translating the molecule should leave the energy unchanged
     tmp_species.atoms = [Atom('H', z=1.0), Atom('H', z=2.0)]
     assert tmp_species.energy == 1.0

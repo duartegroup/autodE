@@ -313,17 +313,24 @@ class Species(AtomCollection):
         return self.energies.last(val.PotentialEnergy)
 
     @energy.setter
-    def energy(self, value: Optional[val.Energy]):
+    def energy(self, value: Union[val.Energy, float, None]):
         """
-        Add an energy to the list
+        Add an energy to the list of energies at this geometry
 
         Arguments:
-            value (float | autode.values.Energy):
+            value (float | autode.values.Energy | None):
         """
 
-        if value is not None:
-            energy = val.PotentialEnergy(value)
-            self.energies.append(energy)
+        if value is None:
+            # No change required
+            pass
+
+        elif isinstance(value, val.PotentialEnergy):
+            self.energies.append(value)
+
+        else:
+            # Attempt to cast the value to Potential energy
+            self.energies.append(val.PotentialEnergy(value))
 
     @property
     def h_cont(self) -> Optional[val.EnthalpyCont]:

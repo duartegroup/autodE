@@ -79,12 +79,43 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
     U_cont = _internal_energy(species, temp=temp)
 
     H_cont = EnthalpyCont(U_cont + SIConstants.k_b * temp, units='J').to('Ha')
+
+    # Add a method string for how this enthalpic contribution was calculated
+    H_cont.method_str = _thermo_method_str(species, **kwargs)
     species.energies.append(H_cont)
 
     G_cont = FreeEnergyCont(H_cont.to('J') - temp * S_cont, units='J').to('Ha')
+
+    # Method used to calculate the free energy is the  same as the enthalpy..
+    G_cont.method_str = H_cont.method_str
     species.energies.append(G_cont)
 
     return None
+
+
+def _thermo_method_str(species, **kwargs):
+    """
+    Brief summary of the important methods used in evaluating the free energy
+    using entropy and enthalpy methods
+
+    Arguments:
+        species (autode.species.Species):
+
+        **kwargs:
+
+    Returns:
+        (str):
+    """
+    string = ''
+
+    if species.energy is not None:
+        string += f'{species.energy.method_str} '
+
+    string += (f'{kwargs.get("ss", Config.standard_state)} standard state, '
+               f'using a {kwargs.get("lfm_method", Config.lfm_method)} '
+               f'treatment of low-frequency modes to the entropy.')
+
+    return string
 
 
 def _q_trans_igm(species, ss, temp):
