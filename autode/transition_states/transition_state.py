@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Optional, List
 from multiprocessing import Pool
 from autode.values import Frequency

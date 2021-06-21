@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from autode import atoms
 from autode.atoms import Atom, Atoms
-from autode.values import Angle, Coordinate
+from autode.values import Angle, Coordinate, Mass
 
 
 def test_functions():
@@ -179,6 +179,9 @@ def test_atom():
     h.translate(vec=np.array([0.0, 0.0, 1.0]))
     assert np.linalg.norm(h.coord - np.array([0.0, 0.0, 1.0])) < 1E-6
 
+    with pytest.raises(ValueError):
+        h.translate(some_unkown_arg=5)
+
     # Rotate the atom 180° (pi radians) in the x axis
     h.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
     assert np.linalg.norm(h.coord - np.array([0.0, 0.0, -1.0])) < 1E-6
@@ -262,3 +265,51 @@ def test_periodic_table():
     assert 'Fe' in atoms.PeriodicTable.transition_metals(row=1)
 
     assert atoms.PeriodicTable.element(2, 13) == 'B'
+
+
+def test_doc_examples():
+
+    assert Atom('C').atomic_number == 6
+
+    assert Atom('Zn').atomic_symbol == 'Zn'
+
+    assert Atom('H').coord == Coordinate(0.0, 0.0, 0.0, units='Å')
+    assert np.isclose(Atom('H', x=1.0).coord.x, 1.0)
+    assert np.allclose(Atom('H', x=1.0).coord.to('a0'),
+                       Coordinate(1.889, 0.0, 0.0, units='bohr'),
+                       atol=1E-3)
+
+    assert not Atom('C').is_metal
+    assert Atom('Zn').is_metal
+
+    assert Atom('C').group == 14
+
+    assert Atom('C').period == 2
+
+    assert Atom('C').weight == Mass(12.0107, units='amu')
+    assert Atom('C').weight == Atom('C').mass
+
+    assert Atom('H').mass.to('me') == Mass(1837.36222, units='m_e')
+
+    atom = Atom('H')
+    atom.translate(1.0, 0.0, 0.0)
+    assert atom.coord == Coordinate(1.0, 0.0, 0.0, units='Å')
+
+    atom = Atom('H')
+    atom.translate(np.ones(3))
+    assert atom.coord == Coordinate(1.0, 1.0, 1.0, units='Å')
+    atom.translate(vec=-atom.coord)
+    assert atom.coord == Coordinate(0.0, 0.0, 0.0, units='Å')
+
+    atom = Atom('H', x=1.0)
+    atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14)
+    assert np.allclose(atom.coord,
+                       Coordinate(-1, 0., 0., units='Å'),
+                       atol=1E-2)
+
+    from autode.values import Angle
+    atom  = Atom('H', x=1.0)
+    atom.rotate(axis=[0.0, 0.0, 1.0], theta=Angle(180, units='deg'))
+    assert np.allclose(atom.coord,
+                       Coordinate(-1, 0., 0., units='Å'),
+                       atol=1E-5)

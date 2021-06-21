@@ -7,6 +7,7 @@ from autode.units import (ha, kjmol, kcalmol, ev,
 from autode.values import (Value, Distance, Angle,
                            Energy, PlottedEnergy, Energies,
                            PotentialEnergy, Enthalpy, FreeEnergy,
+                           FreeEnergyCont, EnthalpyCont,
                            Frequency)
 
 
@@ -35,6 +36,9 @@ def test_base_value():
 
 
 def test_energy():
+
+    with pytest.raises(ValueError):
+        Energy(0.0, units='not_an_energy_unit')
 
     e1 = Energy(0.0)
     assert 'energy' in repr(e1).lower()
@@ -163,6 +167,12 @@ def test_energies():
     energies = Energies(Energy(1.0), FreeEnergy(0.1))
 
     assert energies.last(FreeEnergy) == FreeEnergy(0.1)
+
+    assert 'free' in repr(FreeEnergy(0.0)).lower()
+    assert 'enthalpy' in repr(Enthalpy(0.0)).lower()
+
+    assert 'cont' in repr(FreeEnergyCont(0.0)).lower()
+    assert 'cont' in repr(EnthalpyCont(0.0)).lower()
 
 
 def test_freqs():

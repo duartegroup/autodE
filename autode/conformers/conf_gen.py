@@ -17,7 +17,7 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     """
     Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and
     fixed and 0 otherwise. Can support a partial structure with bonds to atoms
-     that don't (yet) exist
+    that don't (yet) exist.
 
     Arguments:
         n_atoms (int):

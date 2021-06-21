@@ -60,8 +60,8 @@ def _units_init(value,
 
     except StopIteration:
         raise ValueError(f'{units} is not a valid unit for '
-                         f'{repr(value)}. Only {value.implemented_units} '
-                         f'are implemented')
+                         f'{type(value).__name__}. Only '
+                         f'{value.implemented_units} are implemented')
 
 
 class Value(ABC, float):
@@ -485,7 +485,7 @@ class Coordinate(ValueArray):
 
         else:
             raise ValueError('Coordinate must be a 3 component vector, got '
-                             f'{len(args)} components')
+                             f'{len(args)} component(s)')
 
     @property
     def x(self):

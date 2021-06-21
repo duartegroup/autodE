@@ -1,7 +1,7 @@
 Quick Start
 ===========
 
-Python scripts for this and other examples can be found
+Python scripts for these and other examples can be found
 `here <https://github.com/duartegroup/autodE/tree/master/examples>`_.
 
 ------------
@@ -25,7 +25,7 @@ using 8 CPU cores in around 10 minutes or so using ORCA/XTB.
     >>> rxn.calculate_reaction_profile()
 
 A directory should be created where electronic structure calculations have
-been performed and an image of the reaction profile saved in the current working directory. See the below:
+been performed and an image of the reaction profile saved in the current working directory. See below:
 
 .. raw:: html
 
@@ -51,14 +51,9 @@ methyl chloride in water in more depth we have the smiles strings for the
 reactant and products generated from Chemdraw (by selecting a
 molecule → Edit → Copy As → SMILES):
 
+
 .. note::
-    Fluoride : [F-]
-
-    MeCl     : CCl
-
-    Chloride : [Cl-]
-
-    MeF      : CF
+    **Fluoride** : [F-];  **MeCl** : CCl;  **Chloride**: [Cl-];  **MeF**: CF
 
 Import the required objects and set the number of cores that are available for
 this calculation

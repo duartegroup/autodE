@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Sequence
 from autode.log import logger
 from autode.geom import get_rot_mat_euler
 from autode.values import (Distance, Angle, Mass, Coordinate,
@@ -9,6 +9,12 @@ from autode.values import (Distance, Angle, Mass, Coordinate,
 class Atom:
 
     def __repr__(self):
+        """
+        Representation of this atom
+
+        Returns:
+            (str): Representation
+        """
         x, y, z = self.coord
         return f'Atom({self.label}, {x:.4f}, {y:.4f}, {z:.4f})'
 
@@ -17,20 +23,63 @@ class Atom:
 
     @property
     def atomic_number(self) -> int:
-        """Atomic numbers are the position in the elements, plus one"""
+        """
+        Atomic numbers are the position in the elements (indexed from zero),
+        plus one. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('C')
+            >>> atom.atomic_number
+            6
+
+        Returns:
+            (int): Atomic number
+        """
         return elements.index(self.label) + 1
 
     @property
     def atomic_symbol(self) -> str:
-        """A more interpretable alias for label"""
+        """
+        A more interpretable alias for Atom.label. Should be present in the
+        elements. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('Zn')
+            >>> atom.atomic_symbol
+            'Zn'
+
+        Returns:
+            (str): Atomic symbol
+        """
         return self.label
 
     @property
     def coord(self) -> Coordinate:
-        """Position of this atom in space
+        """
+        Position of this atom in space. Coordinate has attributes x, y, z
+        for the Cartesian displacements. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H')
+            >>> atom.coord
+            Coordinate([0. 0. 0.] Å)
+            >>>
+            >>> ade.Atom('H', x=1.0).coord
+            Coordinate([1. 0. 0.] Å)
+            >>> ade.Atom('H', x=1.0).coord.x
+            1.0
+            >>>
+            >>> ade.Atom('H', x=1.0).coord.to('a0')
+            Coordinate([1.889  0.  0. ] bohr)
 
         Returns:
-            (autode.values.Coordinate):
+            (autode.values.Coordinate): Coordinate
         """
         return self._coord
 
@@ -43,18 +92,43 @@ class Atom:
             *args (float | list(float) | np.ndarray(float)):
 
         Raises:
-            (ValueError): If the arguments
+            (ValueError): If the arguments cannot be coerced into a (3,) shape
         """
         self._coord = Coordinate(*args)
 
     @property
     def is_metal(self) -> bool:
-        """Is this atom a metal?"""
+        """
+        Is this atom a metal? Defines metals to be up to and including:
+        Ga, Sn, Bi. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').is_metal
+            False
+            >>> ade.Atom('Zn').is_metal
+            True
+
+        Returns:
+            (bool):
+        """
         return self.label in metals
 
     @property
     def group(self) -> int:
-        """Group of the periodic table is this atom in. 0 if not found"""
+        """
+        Group of the periodic table is this atom in. 0 if not found. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').group
+            14
+
+        Returns:
+            (int): Group
+        """
 
         for group_idx in range(1, 18):
 
@@ -65,7 +139,18 @@ class Atom:
 
     @property
     def period(self) -> int:
-        """Group of the periodic table is this atom in. 0 if not found"""
+        """
+        Period of the periodic table is this atom in. 0 if not found. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').period
+            2
+
+        Returns:
+            (int): Period
+        """
 
         for period_idx in range(1, 7):
 
@@ -75,9 +160,16 @@ class Atom:
         return 0
 
     @property
-    def tm_row(self) -> Union[int, None]:
+    def tm_row(self) -> Optional[int]:
         """
-        Row of transition metals that this element is in
+        Row of transition metals that this element is in. Returns None if
+        this atom is not a metal. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('Zn').tm_row
+            1
 
         Returns:
             (int | None):
@@ -91,10 +183,19 @@ class Atom:
     @property
     def weight(self) -> Mass:
         """
-        Atomic weight
+        Atomic weight. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').weight
+            Mass(12.0107 amu)
+            >>>
+            >>> ade.Atom('C').weight == ade.Atom('C').mass
+            True
 
         Returns:
-            (autode.values.Mass):
+            (autode.values.Mass): Weight
         """
 
         try:
@@ -107,24 +208,106 @@ class Atom:
 
     @property
     def mass(self) -> Mass:
-        """Alias of weight"""
+        """Alias of weight. Returns Atom.weight an so can be converted
+        to different units. For example, to convert the mass to electron masses:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H').mass.to('me')
+            Mass(1837.36222 m_e)
+
+        Returns:
+            (autode.values.Mass): Mass
+        """
         return self.weight
 
-    def translate(self, vec: np.ndarray) -> None:
+    def translate(self, *args, **kwargs) -> None:
         """
-        Translate this atom by a vector
+        Translate this atom by a vector. Arguments should be coercible into
+        a coordinate (i.e. length 3). Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H')
+            >>> atom.translate(1.0, 0.0, 0.0)
+            >>> atom.coord
+            Coordinate([1. 0. 0.] Å)
+
+        Atoms can also be translated using numpy arrays:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> import numpy as np
+            >>>
+            >>> atom = ade.Atom('H')
+            >>> atom.translate(np.ones(3))
+            >>> atom.coord
+            Coordinate([1. 1. 1.] Å)
+            >>>
+            >>> atom.translate(vec=-atom.coord)
+            >>> atom.coord
+            Coordinate([0. 0. 0.] Å)
 
         Arguments:
-             vec (np.ndarray): Shape = (3,)
+             *args (float | np.ndarray | list(float)):
+
+        Keyword Arguments:
+            vec (np.ndarray): Shape = (3,)
         """
-        self.coord += vec
+        if 'vec' in kwargs:
+            # Assume the vec is cast-able to a numpy array which can be added
+            self.coord += np.asarray(kwargs['vec'])
+
+        elif len(kwargs) > 0:
+            raise ValueError(f'Expecting only a vec keyword argument. '
+                             f'Had {kwargs}')
+
+        else:
+            self.coord += Coordinate(*args)
+
         return None
 
     def rotate(self,
-               axis:   np.ndarray,
-               theta:  float,
-               origin: Union[np.ndarray, None] = None) -> None:
-        """Rotate this atom theta radians around an axis given an origin
+               axis:   Union[np.ndarray, Sequence],
+               theta:  Union[Angle, float],
+               origin: Union[np.ndarray, Sequence, None] = None) -> None:
+        """
+        Rotate this atom theta radians around an axis given an origin. By
+        default the rotation is applied around the origin. To rotate a H atom
+        around the z-axis:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H', x=1.0)
+            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14)
+            >>> atom.coord
+            Coordinate([-1.  0.  0.] Å)
+
+        With an origin:
+
+          .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H')
+            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14, origin=[1.0, 0.0, 0.0])
+            >>> atom.coord
+            Coordinate([2.  0.  0.] Å)
+
+        And with an angle not in radians:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> from autode.values import Angle
+            >>>
+            >>> atom = ade.Atom('H', x=1.0)
+            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=Angle(180, units='deg'))
+            >>> atom.coord
+            Coordinate([-1.  0.  0.] Å)
 
         Arguments:
             axis (np.ndarray): Axis to rotate in. shape = (3,)
@@ -137,7 +320,7 @@ class Atom:
         """
         # If specified shift so that the origin is at (0, 0, 0)
         if origin is not None:
-            self.translate(vec=-origin)
+            self.translate(vec=-np.asarray(origin))
 
         # apply the rotation
         rot_matrix = get_rot_mat_euler(axis=axis, theta=theta)
@@ -145,7 +328,7 @@ class Atom:
 
         # and shift back, if required
         if origin is not None:
-            self.translate(vec=origin)
+            self.translate(vec=np.asarray(origin))
 
         return None
 
@@ -191,6 +374,7 @@ class DummyAtom(Atom):
 class Atoms(list):
 
     def __repr__(self):
+        """Representation"""
         return f'Atoms({super().__repr__()})'
 
     @property
@@ -199,16 +383,17 @@ class Atoms(list):
 
     @property
     def com(self) -> Coordinate:
-        """
+        r"""
         Centre of mass of these coordinates
 
-        COM = 1/M Σ_i m_i X_i
+        .. math::
+            \text{COM} = \frac{1}{M} \sum_i m_i R_i
 
-        where M is the total mass, m_i the mass of atom i and X_i it's
+        where M is the total mass, m_i the mass of atom i and R_i it's
         coordinate
 
         Returns:
-            (autode.values.Coordinate):
+            (autode.values.Coordinate): COM
         """
         if len(self) == 0:
             raise ValueError('Undefined centre of mass with no atoms')
@@ -223,11 +408,11 @@ class Atoms(list):
     @property
     def moi(self) -> MomentOfInertia:
         """
-        Moment of inertia matrix (I):
+        Moment of inertia matrix (I)::
 
-            (I_00   I_01   I_02)
-        I = (I_10   I_11   I_12)
-            (I_20   I_21   I_22)
+                (I_00   I_01   I_02)
+            I = (I_10   I_11   I_12)
+                (I_20   I_21   I_22)
 
         Returns:
             (autode.values.MomentOfInertia):

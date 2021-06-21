@@ -9,7 +9,7 @@ from autode.values import Energy
 from autode.species import Species
 from autode.methods import ORCA, G09
 from . import testutils
-from autode.thermochemistry.igm import (_q_rot_igm, _s_rot_rr)
+from autode.thermochemistry.igm import (_q_rot_igm, _s_rot_rr, _entropy, _zpe)
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -90,6 +90,8 @@ def test_single_atom():
     # Ensure the rotational partition functions and entropy are 1 and 0
     assert np.isclose(_q_rot_igm(f_atom, temp=298, sigma_r=0), 1.0)
     assert np.isclose(_s_rot_rr(f_atom, temp=298, sigma_r=0), 0.0)
+
+    assert np.isclose(_zpe(f_atom), 0.0)
 
 
 def test_no_atoms():
@@ -200,3 +202,12 @@ def test_sn2_ts():
     # rotational entropy is not exactly in agreement
     assert np.isclose(ts.g_cont.to('Ha'), 0.010382, atol=5E-4)
     assert np.isclose(ts.h_cont.to('Ha'), 0.042567, atol=5E-4)
+
+
+def test_unknown_entropy_method():
+
+    h2 = Molecule(atoms=[Atom('H'), Atom('H', x=0.7)])
+
+    with pytest.raises(NotImplementedError):
+        _ = _entropy(species=h2, method='an_unkown_method',
+                     temp=298, ss='1M', shift=100, w0=100, alpha=4, sigma_r=1)

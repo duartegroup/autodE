@@ -20,7 +20,7 @@ Dependencies
   + `MOPAC <http://openmopac.net/>`_ v. 2016
 
 
-The Python dependencies are listed `here <https://github.com/duartegroup/autodE/blob/master/requirements.txt>`_ and are best satisfied using conda
+Python dependencies listed `here <https://github.com/duartegroup/autodE/blob/master/requirements.txt>`_ are best satisfied using conda
 (`anaconda <https://www.anaconda.com/distribution>`_ or `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_);
 the following guide assumes a conda install.
 

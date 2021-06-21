@@ -140,6 +140,9 @@ def get_rot_mat_euler(axis, theta):
     Returns:
         (np.ndarray): Rotation matrix. shape = (3, 3)
     """
+    if hasattr(theta, 'to'):
+        theta = theta.to('rad')
+
     axis = np.asarray(axis)
     axis = axis / np.linalg.norm(axis)   # Normalise
 

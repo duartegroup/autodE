@@ -30,6 +30,9 @@ def get_available_solvent_names(method):
 
 class Solvent:
 
+    def __repr__(self):
+        return f'Solvent({self.name})'
+
     def __str__(self):
         return self.name
 
