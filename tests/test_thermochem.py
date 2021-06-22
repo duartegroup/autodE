@@ -222,11 +222,11 @@ def test_long_alkane():
                     lfm_method='grimme',
                     sn=1)
 
-    # Should be very close to a previously computed value
-    assert np.isclose(mol.g_cont.to('Ha'), 0.2113890180337356, atol=1E-5)
+    # Should be close to a previously computed value
+    assert np.isclose(mol.g_cont.to('Ha'), 0.2113890180337356, atol=2E-4)
 
-    # Should be ~0.01 kcal mol-1 to the ORCA-calculated value
-    assert np.isclose(mol.g_cont.to('Ha'), 0.21141149, atol=5E-5)
+    # and <0.1 kcal mol-1 to the ORCA-calculated value
+    assert np.isclose(mol.g_cont.to('Ha'), 0.21141149, atol=2E-4)
 
 
 def test_unknown_entropy_method():

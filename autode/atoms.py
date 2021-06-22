@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from typing import Union, Optional, List, Sequence
 from autode.log import logger
 from autode.geom import get_rot_mat_euler
@@ -376,6 +377,15 @@ class Atoms(list):
     def __repr__(self):
         """Representation"""
         return f'Atoms({super().__repr__()})'
+
+    def copy(self) -> 'Atoms':
+        """
+        Copy these atoms, deeply
+
+        Returns:
+             (autode.atoms.Atoms):
+        """
+        return deepcopy(self)
 
     @property
     def coordinates(self) -> Coordinates:

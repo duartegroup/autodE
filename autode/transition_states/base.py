@@ -350,7 +350,7 @@ def displaced_species_along_mode(species:       Species,
 
     # Create a new species from the initial
     disp_species = Species(name=f'{species.name}_disp',
-                           atoms=species.atoms,
+                           atoms=species.atoms.copy(),
                            charge=species.charge,
                            mult=species.mult)
     disp_species.coordinates = disp_coords
