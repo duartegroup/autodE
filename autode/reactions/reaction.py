@@ -366,7 +366,7 @@ class Reaction:
               sep='\n',
               file=csv_file)
 
-        def print_to_csv(_mol):
+        def print_energies_to_csv(_mol):
             print(f'{_mol.name}',
                   f'{_mol.energies.first_potential}',
                   f'{_mol.g_cont}',
@@ -377,13 +377,13 @@ class Reaction:
         # Print xyz files of all the reactants and products
         for mol in self.reacs + self.prods:
             mol.print_xyz_file()
-            print_to_csv(mol)
+            print_energies_to_csv(mol)
 
         # and the reactant and product complexes if they're present
         for mol in [self.reactant, self.product]:
             if mol is not None and mol.energy is not None:
                 mol.print_xyz_file()
-                print_to_csv(mol)
+                print_energies_to_csv(mol)
 
         # If it exists print the xyz file of the transition state
         if self.ts is not None:
@@ -397,7 +397,7 @@ class Reaction:
                 title += (f'. Additional imaginary frequencies: {imags[1:]}'
                           f' cm-1')
 
-            print_to_csv(self.ts)
+            print_energies_to_csv(self.ts)
             self.ts.print_xyz_file(add_title_line=title)
             self.ts.print_imag_vector(name='TS_imag_mode')
 
