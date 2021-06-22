@@ -204,6 +204,31 @@ def test_sn2_ts():
     assert np.isclose(ts.h_cont.to('Ha'), 0.042567, atol=5E-4)
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
+def test_long_alkane():
+
+    mol = Molecule('alkane_hess_orca.xyz')
+    calc = Calculation(name='tmp',
+                       molecule=mol,
+                       method=orca,
+                       keywords=orca.keywords.hess)
+
+    # Should be able to extract from just a .hess file
+    calc.output.filename = 'alkane_hess_orca.hess'
+
+    mol.calc_thermo(calc=calc,
+                    temp=298.150,
+                    ss='1atm',
+                    lfm_method='grimme',
+                    sn=1)
+
+    # Should be very close to a previously computed value
+    assert np.isclose(mol.g_cont.to('Ha'), 0.2113890180337356, atol=1E-5)
+
+    # Should be ~0.01 kcal mol-1 to the ORCA-calculated value
+    assert np.isclose(mol.g_cont.to('Ha'), 0.21141149, atol=5E-5)
+
+
 def test_unknown_entropy_method():
 
     h2 = Molecule(atoms=[Atom('H'), Atom('H', x=0.7)])

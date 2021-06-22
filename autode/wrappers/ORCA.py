@@ -325,18 +325,20 @@ class ORCA(ElectronicStructureMethod):
             | autode.exceptions.AtomsNotFound)
         """
 
+        fn_ext = '.hess' if calc.output.filename.endswith('.hess') else '.out'
+
         # First try the .xyz file generated
-        xyz_file_name = calc.output.filename.replace('.out', '.xyz')
+        xyz_file_name = calc.output.filename.replace(fn_ext, '.xyz')
         if os.path.exists(xyz_file_name):
 
             try:
                 return xyz_file_to_atoms(xyz_file_name)
 
             except XYZfileWrongFormat:
-                raise AtomsNotFound
+                raise AtomsNotFound(f'Failed to parse {xyz_file_name}')
 
         # Then the Hessian file
-        hess_file_name = calc.output.filename.replace('.out', '.hess')
+        hess_file_name = calc.output.filename.replace(fn_ext, '.hess')
         if os.path.exists(hess_file_name):
             hess_file_lines = open(hess_file_name, 'r').readlines()
 
@@ -356,7 +358,7 @@ class ORCA(ElectronicStructureMethod):
                 return atoms
 
         # and finally the potentially long .out file
-        if os.path.exists(calc.output.filename):
+        if os.path.exists(calc.output.filename) and fn_ext == '.out':
             atoms = []
 
             # There could be many sets in the file, so take the last
@@ -371,7 +373,7 @@ class ORCA(ElectronicStructureMethod):
 
             return atoms
 
-        raise NoCalculationOutput('Failed to find and ORCA output files')
+        raise NoCalculationOutput('Failed to find any ORCA output files')
 
     def get_atomic_charges(self, calc):
         """
@@ -472,7 +474,11 @@ class ORCA(ElectronicStructureMethod):
             0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
             .         .          .           .           .           .
         """
-        hess_filename = calc.output.filename.replace('.out', '.hess')
+
+        hess_filename = calc.output.filename
+
+        if calc.output.filename.endswith('.out'):
+            hess_filename = calc.output.filename.replace('.out', '.hess')
 
         if not os.path.exists(hess_filename):
             raise CouldNotGetProperty('Could not find Hessian file')

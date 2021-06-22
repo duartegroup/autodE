@@ -20,4 +20,4 @@ surface (PES) scans and conformational searching.
    conformers
    rmsd
    tss
-
+   thermochem

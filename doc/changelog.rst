@@ -23,20 +23,20 @@ Usability improvements/Changes
 - Removes :code:`CalculationOutput.get_imaginary_freqs()` (now :code:`Species.imaginary_frequencies`) and :code:`CalculationOutput.get_normal_mode_displacements()` (now :code:`Species.normal_mode()`)
 - :code:`Species.imaginary_frequencies` now returns :code:`None` rather than an empty list for a species without any imaginary frequencies, to be consistent with other properties
 - Changes :code:`CalculationOutput.terminated_normally()` to a property (:code:`CalculationOutput.terminated_normally`)
--
 
 Functionality improvements
 **************************
 
 - Adds angle and dihedral angle properties to an :code:`AtomCollection`
 - Improves and adds more :code:`Unit` definitions
-= Adds :code:`Value` and :code:`ValueArray` base classes for energies, gradients etc. These allow for implicit (1 Hartree == 617.509 kcal mol-1) comparisons and explicit conversion (1 Hartree).to('kcal')
+- Adds :code:`Value` and :code:`ValueArray` base classes for energies, gradients etc. These allow for implicit (1 Hartree == 617.509 kcal mol-1) comparisons and explicit conversion (1 Hartree).to('kcal')
 - Adds further conversion factors to :code:`Constants`
 - Adds :code:`Species.energies` as a container of all energies that have been calculated at a geometry
 - Adds :code:`Keywords.bstring` as a 'brief' summary of the keywords e.g. PBE0/def2-SVP and are associated with an :code:`Energy` (a type of :code:`Value`)
 - Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
 - Adds Hessian diagonalisation to obtain normal modes with and without translation and rotation projections for linear and non-linear molecules
 - Adds :code:`Species.weight` and :code:`Species.mass` as equivalent properties for the molecular weight
+
 
 Bug Fixes
 *********
