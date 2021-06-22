@@ -146,7 +146,7 @@ class TransitionState(TSbase):
         return None
 
     @requires_atoms
-    def optimise(self, name_ext='optts'):
+    def optimise(self, name_ext='optts', *args, **kwargs):
         """Optimise this TS to a true TS """
         logger.info(f'Optimising {self.name} to a transition state')
 

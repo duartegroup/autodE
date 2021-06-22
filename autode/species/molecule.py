@@ -171,7 +171,7 @@ class Molecule(Species):
 class SolvatedMolecule(Molecule):
 
     @requires_atoms
-    def optimise(self, method):
+    def optimise(self, method, *args, **kwargs):
         raise NotImplementedError
 
     def __init__(self, name='solvated_molecule', smiles=None, atoms=None,

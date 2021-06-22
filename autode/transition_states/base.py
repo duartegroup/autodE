@@ -254,9 +254,8 @@ class TSbase(Species, ABC):
                                  reset_graph=True)
 
                 except ex.AtomsNotFound:
-                    logger.error(
-                        f'Failed to optimise {mol.name} with {method}. '
-                        f'Assuming no link')
+                    logger.error(f'Failed to optimise {mol.name} with '
+                                 f'{method}. Assuming no link')
                     return False
 
             if f_b_isomorphic_to_r_p(f_mol, b_mol, self.reactant, self.product):
@@ -350,7 +349,10 @@ def displaced_species_along_mode(species:       Species,
         disp_coords -= (disp_factor / 20) * mode_disp_coords
 
     # Create a new species from the initial
-    disp_species = species.copy()
+    disp_species = Species(name=f'{species.name}_disp',
+                           atoms=species.atoms,
+                           charge=species.charge,
+                           mult=species.mult)
     disp_species.coordinates = disp_coords
 
     return disp_species
