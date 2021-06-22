@@ -280,7 +280,8 @@ class Energies(list):
         for item in self:
             if other == item:
                 logger.warning(f'Not appending {other} to the energies - '
-                               f'already present')
+                               f'already present. Moving to the end')
+                self.append(self.pop(self.index(item)))
                 return
 
         return super().append(other)

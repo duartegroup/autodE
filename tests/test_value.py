@@ -174,6 +174,14 @@ def test_energies():
     assert 'cont' in repr(FreeEnergyCont(0.0)).lower()
     assert 'cont' in repr(EnthalpyCont(0.0)).lower()
 
+    # Check that adding an energy that is already present moves it to the end
+    energies = Energies()
+    energies.append(Energy(1.0))
+    energies.append(Energy(5.0))
+    energies.append(Energy(1.0))
+
+    assert energies.last(Energy) == 1.0
+
 
 def test_freqs():
 
