@@ -1,6 +1,17 @@
 Changelog
 =========
 
+1.0.5
+--------
+----------
+
+Bugfix release
+
+Bug Fixes
+*********
+- Saves transition state templates with correct atom labels
+
+
 1.0.4
 --------
 ----------

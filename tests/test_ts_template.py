@@ -11,8 +11,11 @@ from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import get_value_from_file
 from autode.transition_states.templates import get_values_dict_from_file
 from autode.transition_states.templates import TStemplate
+from autode.transition_states.transition_state import TransitionState
+from autode.transition_states.ts_guess import TSguess
 from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.transition_states.ts_guess import get_template_ts_guess
+from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.XTB import XTB
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,7 +27,6 @@ ch3cl = Reactant(charge=0, mult=1, atoms=[Atom('Cl', 1.63664, 0.02010, -0.05829)
                                           Atom('H', -0.51166, 1.03181, -0.00597)])
 f = Reactant(charge=-1, mult=1, atoms=[Atom('F', 4.0, 0.0, 0.0)])
 reac_complex = ReactantComplex(f, ch3cl)
-
 
 ch3f = Product(charge=0, mult=1, atoms=[Atom('C', -0.05250, 0.00047, -0.00636),
                                         Atom('F', 1.31229, -0.01702, 0.16350),
@@ -110,6 +112,32 @@ def test_ts_template():
     Config.ts_template_folder_path = None
 
     assert tsg_template is not None
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_template.zip'))
+def test_truncated_mol_graph_atom_types():
+
+    ir_ts = TransitionState(TSguess(atoms=xyz_file_to_atoms('vaskas_TS.xyz'),
+                                    charge=0, mult=1))
+
+    ir_ts.bond_rearrangement = BondRearrangement(forming_bonds=[(5, 1), (6, 1)],
+                                                 breaking_bonds=[(5, 6)])
+    if (5, 1) in ir_ts.graph.edges:
+        ir_ts.graph.remove_edge(5, 1)
+    ir_ts.graph.add_edge(5, 1, active=True)
+
+    if (6, 1) in ir_ts.graph.edges:
+        ir_ts.graph.remove_edge(6, 1)
+    ir_ts.graph.add_edge(6, 1, active=True)
+
+    if (5, 6) in ir_ts.graph.edges:
+        ir_ts.graph.remove_edge(5, 6)
+    ir_ts.graph.add_edge(5, 6, active=True)
+
+    graph = get_truncated_active_mol_graph(ir_ts.graph)
+    # Should only be a single Ir atom in the template
+    assert sum(node[1]['atom_label'] == 'Ir'
+               for node in graph.nodes(data=True)) == 1
 
 
 def test_ts_template_parse():
