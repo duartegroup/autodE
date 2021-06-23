@@ -674,7 +674,7 @@ def get_truncated_active_mol_graph(graph, active_bonds=None):
         # don't already exist in the graph
         for n_atom_index in neighbours:
             if n_atom_index not in t_graph.nodes:
-                label = graph.nodes[idx]['atom_label']
+                label = graph.nodes[n_atom_index]['atom_label']
                 t_graph.add_node(n_atom_index, atom_label=label)
 
             if (idx, n_atom_index) not in t_graph.edges:
