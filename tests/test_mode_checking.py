@@ -32,6 +32,10 @@ def test_imag_modes():
                             bbonds=[(1, 10)],
                             fbonds=[(5, 10)])
 
+    assert has_correct_mode('ene_hess',
+                            bbonds=[(0, 5), (2, 1)],
+                            fbonds=[(4, 5)])
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mode_checking.zip'))
 def test_graph_no_other_bonds():

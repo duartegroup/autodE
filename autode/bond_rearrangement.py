@@ -673,7 +673,7 @@ class BondRearrangement:
     @property
     def active_atoms(self):
         """Unique atom indexes in forming or breaking bonds"""
-        return list(sorted(set(self.fatoms + self.batoms)))
+        return list(sorted(set(a for b in self.all for a in b)))
 
     @property
     def n_fbonds(self):

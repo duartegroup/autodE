@@ -398,7 +398,7 @@ def imag_mode_generates_other_bonds(ts:        TSbase,
         if not set(a for b in new_bonds_in_product for a in b
                    ).issubset(set(br.active_atoms)):
             logger.warning(f'New bonds in product: {new_bonds_in_product}')
-            logger.warning(f'Active bonds: {br.all}')
+            logger.warning(f'Active bonds: {br.all}. Active atoms {br.active_atoms}')
             return True
 
     logger.info('Imaginary mode does not generate any other unwanted bonds')
