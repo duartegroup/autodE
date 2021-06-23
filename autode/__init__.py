@@ -17,7 +17,7 @@ from autode import utils
 from autode import neb
 from autode import mol_graphs
 
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 
 __all__ = [
