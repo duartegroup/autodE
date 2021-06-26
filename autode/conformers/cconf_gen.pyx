@@ -105,9 +105,10 @@ def dvdr(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent,
     dvdr = calc_deriv(n_atoms, init_array, coords, bond_matrix, k, d0, c, exponent)
 
     # Zero the gradients for all the fixed atoms
-    dvdr[py_fixed_atoms] = 0.0
+    dvdr = dvdr.reshape(-1, 3)
+    dvdr[py_fixed_atoms, :] = 0.0
 
-    return dvdr
+    return dvdr.flatten()
 
 
 def v(py_flat_coords, py_bond_matrix, py_k, py_d0, py_c, py_exponent, *args):
