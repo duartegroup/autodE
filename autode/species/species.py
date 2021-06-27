@@ -634,8 +634,8 @@ class Species(AtomCollection):
                     method:     Optional[ElectronicStructureMethod] = None,
                     calc:       Optional[Calculation] = None,
                     temp:       float = 298.15,
-                    lfm_method: Union[LFMethod, str] = LFMethod.grimme,
-                    ss:         str = '1m',
+                    lfm_method: Union[LFMethod, str, None] = None,
+                    ss:         Optional[str] = None,
                     **kwargs) -> None:
         """Calculate the free energy contribution for a species
 
@@ -647,7 +647,11 @@ class Species(AtomCollection):
             temp (float): Temperature in K
 
             lfm_method (LFMethod | str | None): Method to treat low freqency
-                       modes. {'igm', 'truhlar', 'grimme'}
+                                           modes. {'igm', 'truhlar', 'grimme'}.
+                                           Defaults to Config.lfm_method
+
+            ss (str | None): Standard state to use.
+                             Defaults to Config.standard_state
 
         Raises:
             (autode.exceptions.CalculationException | KeyError):
@@ -655,16 +659,21 @@ class Species(AtomCollection):
         See Also:
             (autode.thermochemistry.igm.calculate_thermo_cont)
         """
+        if lfm_method is not None:
+            kwargs['lfm_method'] = lfm_method
+
         if type(lfm_method) is str:
             try:
-                lfm_method = LFMethod[lfm_method.lower()]
+                kwargs['lfm_method'] = LFMethod[lfm_method.lower()]
             except KeyError:
                 raise ValueError(f'{lfm_method} is not valid. Must be on of '
                                  f'{[m for m in LFMethod]}')
 
-        if ss.lower() not in ('1m', '1atm'):
-            raise ValueError(f'{ss} is not a valid standard state. Must be '
-                             f'either "1m" or "1atm"')
+        if ss is not None:
+            if ss.lower() not in ('1m', '1atm'):
+                raise ValueError(f'{ss} is not a valid standard state. Must be'
+                                 ' either "1m" or "1atm"')
+            kwargs['ss'] = ss.lower()
 
         if calc is not None and calc.output.exists:
             self.atoms = calc.get_final_atoms()
@@ -677,8 +686,7 @@ class Species(AtomCollection):
                         'calculating the Hessian')
             self._run_hess_calculation(method=method)
 
-        calculate_thermo_cont(self, temp=temp, lfm_method=lfm_method, ss=ss,
-                              **kwargs)
+        calculate_thermo_cont(self, temp=temp, **kwargs)
         return None
 
     @requires_atoms
