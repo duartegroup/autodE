@@ -387,18 +387,18 @@ class Reaction:
 
         # If it exists print the xyz file of the transition state
         if self.ts is not None:
-            title = ''
+            ts_title_str = ''
             imags = self.ts.imaginary_frequencies
 
             if self.ts.has_imaginary_frequencies and len(imags) > 0:
-                title += f'. Imaginary frequency = {imags[0]:.1f} cm-1'
+                ts_title_str += f'. Imaginary frequency = {imags[0]:.1f} cm-1'
 
             if self.ts.has_imaginary_frequencies and len(imags) > 1:
-                title += (f'. Additional imaginary frequencies: {imags[1:]}'
+                ts_title_str += (f'. Additional imaginary frequencies: {imags[1:]}'
                           f' cm-1')
 
             print_energies_to_csv(self.ts)
-            self.ts.print_xyz_file(add_title_line=title)
+            self.ts.print_xyz_file(additional_title_line=ts_title_str)
             self.ts.print_imag_vector(name='TS_imag_mode')
 
         return None
