@@ -46,6 +46,14 @@ def test_h2o():
     calc.output.filename = 'H2O_hess_orca.out'
     assert calc.output.exists
 
+    # Check that we cannot calculate the thermochemistry with an undefined
+    # method/standard state
+    with pytest.raises(ValueError):
+        h2o.calc_thermo(calc=calc, lfm_method='an unknown method', sn=1)
+
+    with pytest.raises(ValueError):
+        h2o.calc_thermo(calc=calc, ss='1nm', sn=1)
+
     # Calculate using the default method from ORCA
     h2o.calc_thermo(calc=calc, ss='1atm', sn=1)
 

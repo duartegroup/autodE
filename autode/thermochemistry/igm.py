@@ -8,6 +8,7 @@ autode/common/thermochemistry.pdf for mathematical background
 All calculations performed in SI units, for simplicity
 """
 import numpy as np
+from enum import Enum
 from autode.log import logger
 from autode.config import Config
 from autode.constants import Constants
@@ -18,6 +19,13 @@ class SIConstants:
     k_b = 1.38064852E-23                # J K-1
     h = 6.62607004E-34                  # J s
     c = 299792458                       # m s-1
+
+
+class LFMethod(Enum):
+
+    igm = 0
+    truhlar = 1
+    grimme = 2
 
 
 def calculate_thermo_cont(species, temp=298.15, **kwargs):
@@ -36,10 +44,10 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
     Keyword Arguments:
         temp (float): Temperature in K. Default: 298.15 K
 
-        lfm_method (str): Method used to calculate the molecular entropy by
-                          treating the low frequency modes.
-                          One of: 'igm', 'truhlar', 'grimme'}.
-                          Default: Config.lfm_method
+        lfm_method (str | LFMethod): Method used to calculate the molecular
+                                    entropy by treating the low frequency modes.
+                                    One of: {'igm', 'truhlar', 'grimme'}.
+                                    Default: Config.lfm_method
 
         ss (str): Standard state at which the molecular entropy is calculated.
                   Should be 1M for a solution phase molecule and 1 atm for
@@ -58,6 +66,9 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
 
         sn (int): The symmetry number, if not present then will default to
                   species.sn
+
+    Raises:
+        (KeyError | ValueError):
     """
     if species.n_atoms == 0:
         logger.warning('Species had no atoms. Cannot calculate thermochemical '
@@ -68,8 +79,11 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
         raise ValueError('Cannot calculate vibrational entropy/internal energy'
                          f' no frequencies present for {species.name}.')
 
+    if 'lfm_method' in kwargs and type(kwargs['lfm_method']) is str:
+        kwargs['lfm_method'] = LFMethod[kwargs['lfm_method'].lower()]
+
     S_cont = _entropy(species,
-                      method=kwargs.get('lfm_method', Config.lfm_method),
+                      method=kwargs.get('lfm_method', LFMethod[Config.lfm_method]),
                       temp=temp,
                       ss=kwargs.get('ss', Config.standard_state),
                       shift=kwargs.get('freq_shift', Config.vib_freq_shift),
@@ -347,13 +361,13 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
     s_rot = _s_rot_rr(species, temp=temp, sigma_r=sigma_r)
 
     # Vibrational entropy component
-    if method.lower() == 'igm':
+    if method == LFMethod.igm:
         s_vib = _igm_s_vib(species, temp)
 
-    elif method.lower() == 'truhlar':
+    elif method == LFMethod.truhlar:
         s_vib = _truhlar_s_vib(species, temp, shift_freq=shift)
 
-    elif method.lower() == 'grimme':
+    elif method == LFMethod.grimme:
         s_vib = _grimme_s_vib(species, temp, omega_0=w0, alpha=alpha)
 
     else:

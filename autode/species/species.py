@@ -21,7 +21,7 @@ from autode.mol_graphs import make_graph
 from autode.hessians import Hessian
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
-from autode.thermochemistry.igm import calculate_thermo_cont
+from autode.thermochemistry.igm import calculate_thermo_cont, LFMethod
 from autode.utils import (requires_atoms,
                           work_in,
                           requires_conformers)
@@ -631,9 +631,11 @@ class Species(AtomCollection):
 
     @requires_atoms
     def calc_thermo(self,
-                    method: Optional[ElectronicStructureMethod] = None,
-                    calc:   Optional[Calculation] = None,
-                    temp:   float = 298.15,
+                    method:     Optional[ElectronicStructureMethod] = None,
+                    calc:       Optional[Calculation] = None,
+                    temp:       float = 298.15,
+                    lfm_method: Union[LFMethod, str] = LFMethod.grimme,
+                    ss:         str = '1m',
                     **kwargs) -> None:
         """Calculate the free energy contribution for a species
 
@@ -644,12 +646,25 @@ class Species(AtomCollection):
 
             temp (float): Temperature in K
 
+            lfm_method (LFMethod | str | None): Method to treat low freqency
+                       modes. {'igm', 'truhlar', 'grimme'}
+
         Raises:
-            (autode.exceptions.CalculationException):
+            (autode.exceptions.CalculationException | KeyError):
 
         See Also:
             (autode.thermochemistry.igm.calculate_thermo_cont)
         """
+        if type(lfm_method) is str:
+            try:
+                lfm_method = LFMethod[lfm_method.lower()]
+            except KeyError:
+                raise ValueError(f'{lfm_method} is not valid. Must be on of '
+                                 f'{[m for m in LFMethod]}')
+
+        if ss.lower() not in ('1m', '1atm'):
+            raise ValueError(f'{ss} is not a valid standard state. Must be '
+                             f'either "1m" or "1atm"')
 
         if calc is not None and calc.output.exists:
             self.atoms = calc.get_final_atoms()
@@ -662,7 +677,8 @@ class Species(AtomCollection):
                         'calculating the Hessian')
             self._run_hess_calculation(method=method)
 
-        calculate_thermo_cont(self, temp=temp, **kwargs)
+        calculate_thermo_cont(self, temp=temp, lfm_method=lfm_method, ss=ss,
+                              **kwargs)
         return None
 
     @requires_atoms
