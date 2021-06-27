@@ -26,7 +26,7 @@ calculations including those when calculating a profile with
 
 ORCA
 ----
-To extract thermochemical contributions from a completed ORCA Hessian file (*H2O_hess_orca.hess*):
+To calculate thermochemical contributions from a completed ORCA Hessian file (*H2O_hess_orca.hess*):
 
 .. code-block:: Python
 

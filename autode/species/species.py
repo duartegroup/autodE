@@ -19,6 +19,7 @@ from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
 from autode.hessians import Hessian
+from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
 from autode.thermochemistry.igm import calculate_thermo_cont
 from autode.utils import (requires_atoms,
@@ -146,7 +147,7 @@ class Species(AtomCollection):
         elif isinstance(value, np.ndarray):
             logger.warning('Setting the Hessian from a numpy array - assuming '
                            'units of Ha Å^-2')
-            self._hess = Hessian(value, atoms=self.atoms, units='Ha/ang^2')
+            self._hess = Hessian(value, atoms=self.atoms, units=ha_per_ang_sq)
 
         else:
             raise ValueError(f'Could not set Hessian with {value}, Must be '
@@ -178,7 +179,7 @@ class Species(AtomCollection):
         elif isinstance(value, np.ndarray):
             logger.warning('Setting the gradients from a numpy array - '
                            'assuming Ha / Å units')
-            self._grad = val.Gradient(value, units='Ha/ang')
+            self._grad = val.Gradient(value, units=ha_per_ang)
 
         else:
             raise ValueError(f'Could not set the gradient with {value}, Must '
@@ -551,7 +552,7 @@ class Species(AtomCollection):
     def print_xyz_file(self,
                        title_line:     Optional[str] = None,
                        filename:       Optional[str] = None,
-                       add_title_line: Optional[str] = None) -> None:
+                       additional_title_line: Optional[str] = None) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
 
@@ -562,8 +563,8 @@ class Species(AtomCollection):
             filename (str | None): Filename ending with .xyz. If None then will
                                    use the name of this molecule
 
-            add_title_line (str | None): Additional elements to add to the
-                                         title line
+            additional_title_line (str | None): Additional elements to add to
+                                                then title line
         """
 
         if filename is None:
@@ -575,8 +576,8 @@ class Species(AtomCollection):
             if self.energy is not None:
                 title_line += f'E = {self.energy:.6f} Ha'
 
-        if add_title_line is not None:
-            title_line += add_title_line
+        if additional_title_line is not None:
+            title_line += additional_title_line
 
         return atoms_to_xyz_file(self.atoms, filename, title_line=title_line)
 
@@ -647,7 +648,7 @@ class Species(AtomCollection):
             (autode.exceptions.CalculationException):
 
         See Also:
-            (autode.thermo.igm.calculate_thermo_cont)
+            (autode.thermochemistry.igm.calculate_thermo_cont)
         """
 
         if calc is not None and calc.output.exists:

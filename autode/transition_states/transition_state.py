@@ -146,7 +146,12 @@ class TransitionState(TSbase):
         return None
 
     @requires_atoms
-    def optimise(self, name_ext='optts', *args, **kwargs):
+    def optimise(self,
+                 name_ext='optts',
+                 method=None,
+                 reset_graph=False,
+                 calc=None,
+                 keywords=None):
         """Optimise this TS to a true TS """
         logger.info(f'Optimising {self.name} to a transition state')
 
@@ -174,9 +179,10 @@ class TransitionState(TSbase):
             logger.info('Displacing along second imaginary mode to try and '
                         'remove')
 
-            disp_ts = displaced_species_along_mode(self,
-                                                   mode_number=7,
-                                                   disp_factor=disp_magnitude)
+            disp_ts = self.copy()
+            disp_ts.atoms = displaced_species_along_mode(self,
+                                                         mode_number=7,
+                                                         disp_factor=disp_magnitude).atoms
 
             disp_ts._run_opt_ts_calc(method=get_hmethod(),
                                      name_ext=name_ext + ext)
