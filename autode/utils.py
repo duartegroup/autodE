@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from time import time
 from functools import wraps
@@ -15,12 +16,12 @@ from autode.exceptions import (NoAtomsInMolecule,
 # Needed for additional pickle-ability
 multiprocessing.set_start_method("fork")
 
-try:
+if sys.version_info.minor > 7:                                    # Python >3.7
     from functools import cached_property # lgtm[py/unused-import]
     # LGTM alert is suppressed as this is imported in Python >3.7, but not
     # under the CI (Python 3.7)
 
-except ImportError:
+if sys.version_info.minor <= 7:                                   # Python <3.7
     from functools import lru_cache
 
     # Define a cached_property equivalent decorator, from https://stackoverflow
