@@ -36,6 +36,10 @@ def test_imag_modes():
                             bbonds=[(0, 5), (2, 1)],
                             fbonds=[(4, 5)])
 
+    assert has_correct_mode('curtius',
+                            bbonds=[(0, 1), (2, 3)],
+                            fbonds=[(0, 2)])
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mode_checking.zip'))
 def test_graph_no_other_bonds():

@@ -144,9 +144,11 @@ class TSbase(Species, ABC):
                     ' bonds')
 
         f_species = displaced_species_along_mode(self, mode_number=6,
+                                                 max_atom_disp=0.5,
                                                  disp_factor=disp_mag)
 
         b_species = displaced_species_along_mode(self, mode_number=6,
+                                                 max_atom_disp=0.5,
                                                  disp_factor=-disp_mag)
 
         # Be conservative with metal complexes - what even is a bond..
