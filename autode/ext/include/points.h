@@ -15,9 +15,6 @@ namespace autode {
             void set_init_random_points();
             void shift_box_centre();
 
-            // Gradient functions
-            double norm_grad();
-
             // Distance functions
             void set_delta_point_pbc(int i, int j);
             double norm_squared_delta_point();
@@ -30,9 +27,13 @@ namespace autode {
             double max_val;
             double box_length;
             double half_box_length;
+         
+            // Gradient functions
+            double norm_grad();
 
             std::vector<std::vector<double>> points;
 
+            explicit CubePointGenerator();
             explicit CubePointGenerator(int n_points,
                                         int dimension,
                                         double min_val = -3.145,

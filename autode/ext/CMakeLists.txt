@@ -14,8 +14,8 @@ add_library(autode STATIC
             )
 
 find_package(Catch2 REQUIRED)
-add_executable(tests
+add_executable(test
                tests/test_main.cpp
                tests/test_point_gen.cpp)
-target_link_libraries(tests PRIVATE Catch2::Catch2)
-target_link_libraries(tests PUBLIC autode)
+target_link_libraries(test PRIVATE Catch2::Catch2)
+target_link_libraries(test PUBLIC autode)

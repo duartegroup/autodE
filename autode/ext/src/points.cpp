@@ -1,10 +1,13 @@
 #include <random>
+#include <iostream>
 #include <cmath>
 #include <stdexcept>
 #include "points.h"
 
 
 namespace autode {
+
+    CubePointGenerator::CubePointGenerator() = default;
 
     CubePointGenerator::CubePointGenerator(int n_points,
                                            int dimension,
@@ -42,6 +45,9 @@ namespace autode {
             throw std::runtime_error("Must have a positive side length. i.e. "
                                      "min_val < max_val");
         }
+
+	// Set the initial gradient with respect to point displacement
+	this->s_grad = std::vector<std::vector<double>>(n_points, std::vector<double>(dimension, 0.0)); 
 
         // ∆X_ij = {(x_i - x_j), (y_i - y_j), ...}
         this->delta_point = std::vector<double>(dimension, 0.0);
@@ -119,7 +125,6 @@ namespace autode {
            else if (delta_point[k] < -half_box_length){
                delta_point[k] += box_length;
            }
-
         } // k
     }
 
@@ -182,7 +187,7 @@ namespace autode {
     }
 
 
-    void CubePointGenerator::run(double grad_tol = 1E-4,
+    void CubePointGenerator::run(double grad_diff_tol = 1E-4,
                                  double step_size = 0.1,
                                  int max_iterations = 100) {
         /* Generate a set of n points evenly spaced in a dimension d. Sets
@@ -191,13 +196,23 @@ namespace autode {
          * point
          *
          *  Arguments:
-         *      grad_tol:
+         *      grad_diff_tol: Tolerance on the absolute difference between
+         *                     sequential gradient evaluations |∇V_i - ∇V_i+1|
          *
+         *      step size: Fixed step size to take in the steepest decent
+         *
+	 *      max_iterations:
          */
         set_grad();
         int iteration = 0;
+        
+        double _norm_grad = 0.0;
+        double _norm_grad_prev = 2*grad_diff_tol;
 
-        while (norm_grad() > grad_tol && iteration < max_iterations) {
+        while (fabs(_norm_grad - _norm_grad_prev) > grad_diff_tol && iteration < max_iterations) {
+            
+            _norm_grad_prev = _norm_grad;
+
             for (int point_idx = 0; point_idx < n; point_idx++) {
                 // Do a steepest decent step
 
@@ -213,9 +228,11 @@ namespace autode {
 
 
                 } // k
-            }
+            }// point_idx
 
             set_grad();
+            _norm_grad = norm_grad();
+            
             iteration++;
         }
 
