@@ -42,3 +42,5 @@ tests/data/__MACOSX/
 tests/data/conformers/.autode_calculations
 
 autode/ext/*.cpp
+
+autode/ext/cmake-build-debug/

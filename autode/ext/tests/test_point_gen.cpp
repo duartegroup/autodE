@@ -1,13 +1,14 @@
 #include "points.h"
 #include <iostream>
+#include <catch2/catch.hpp>
 
 using namespace std;
 using namespace autode;
 
-int main() {
 
-    CubePointGenerator pointGenerator(5,
-                                      3,
+TEST_CASE("Test periodic point generation in 1D"){
+    CubePointGenerator pointGenerator(2,
+                                      1,
                                       0.0,
                                       1.0);
 
@@ -21,6 +22,4 @@ int main() {
         }
         cout << endl;
     }
-
-    return 0;
 }

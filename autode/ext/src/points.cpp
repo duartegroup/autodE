@@ -1,5 +1,6 @@
 #include <random>
 #include <cmath>
+#include <stdexcept>
 #include "points.h"
 
 
