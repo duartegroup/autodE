@@ -1,0 +1,192 @@
+\documentclass[10pt]{article}
+\usepackage{bm}% bold math
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color}
+\DeclareMathOperator{\sgn}{sgn}
+\renewcommand{\thefootnote}{\alph{footnote}}
+
+\begin{document}
+
+\subsection{Hessian Diagonalization}
+
+Frequencies and normal modes are obtained from Hessian diagonalization, following the method from {\color{blue} https://tinyurl.com/4a75skfm}, which in turn uses (V. Barone, JCP, 2005, 122, 014108; V. Barone et al. IJQ. Chem., 2012, 112, 2185). Without projection frequencies and normal modes are just (transformed) eigenvalues and eigenvectors of the Hessian,
+
+\begin{equation}
+	\mathsf{H} = \begin{pmatrix}
+		\frac{\partial^2 E}{\partial x_1^2} & \frac{\partial^2 E}{\partial x_1y_1} & 
+		\frac{\partial^2 E}{\partial x_1z_1} & \cdots\\
+		\frac{\partial^2 E}{\partial y_1x_1} & \frac{\partial^2 E}{\partial y_1^2} & 
+		\frac{\partial^2 E}{\partial y_1z_1} & \cdots\\
+		\vdots & \vdots & \vdots & \ddots
+	\end{pmatrix}
+\end{equation}
+\\
+appropriately mass weighted,
+\begin{equation}
+	\mathsf{H}_\text{w} = \begin{pmatrix}
+		\frac{\mathsf{H}_{11}}{\sqrt{m_1 m_1}} & \cdots & \frac{\mathsf{H}_{1,3i}}{\sqrt{m_1 m_i}} & \cdots \\
+		\vdots & \vdots & \vdots & \ddots
+	\end{pmatrix}
+\end{equation}
+\\
+which is real symmetric so Hermitian ($\mathsf{H} \in \mathbb{R}^{3N\times3N}$ for a system of $N$ atoms). The frequencies are then square roots of the eigenvalues i.e. $\nu_i = \sqrt{\lambda_i}$\footnote{With an appropriate unit conversion.} and the normal modes $\boldsymbol{s}_i$ where,
+
+\begin{equation}
+	\mathsf{H}_\text{w} = \mathsf{S D S}^T \quad ; \quad \mathsf{D} = \begin{pmatrix}
+		\lambda_1 & 0  & \cdots \\
+		0 & \lambda_2 & \cdots \\
+		\vdots & \vdots & \ddots
+	\end{pmatrix}
+	%
+	\quad ; \quad
+	%
+	\mathsf{S} = \begin{pmatrix}
+		\uparrow & \uparrow &  \\
+		\boldsymbol{s}_1 & \boldsymbol{s}_2 & \cdots \\
+		\downarrow & \downarrow & 
+	\end{pmatrix}
+\end{equation}
+\\
+To project out translational and rotational motion for a non linear molecule requires a transformation of $\mathsf{H}_\text{w}$,
+
+\begin{equation}
+	\mathsf{H}_\text{w}' = \mathsf{T}^T \mathsf{H}_\text{w} \mathsf{T} \qquad ; \qquad \mathsf{H}_\text{w}' = \begin{pmatrix}
+		\boldsymbol{0} & \boldsymbol{0} \\
+		\boldsymbol{0} & \bar{\mathsf{H}}_\text{w}
+	\end{pmatrix}
+\end{equation}
+\\
+where 
+\begin{equation}
+	\mathsf{T} = \begin{pmatrix}
+		\uparrow & \uparrow  & \\
+		\hat{\boldsymbol{t}}_1 & \hat{\boldsymbol{t}}_2 & \cdots \\
+		\downarrow & \downarrow & 
+	\end{pmatrix}
+\end{equation}
+\\
+and the columns of $\mathsf{M}$ are,
+
+\begin{equation}
+	\boldsymbol{t}_1 = \begin{bmatrix}
+		(\hat{\boldsymbol{e}}_1)_1 \\
+		\vdots \\
+		(\hat{\boldsymbol{e}}_1)_N \\
+	\end{bmatrix}
+	%
+	\quad ; \quad 
+	%
+	\boldsymbol{t}_2 = \begin{bmatrix}
+		(\hat{\boldsymbol{e}}_2)_1 \\
+		\vdots \\
+		(\hat{\boldsymbol{e}}_2)_N \\
+	\end{bmatrix}
+	%
+	\quad ; \quad 
+	%
+	\boldsymbol{t}_3 = \begin{bmatrix}
+		(\hat{\boldsymbol{e}}_3)_1 \\
+		\vdots \\
+		(\hat{\boldsymbol{e}}_3)_N \\
+	\end{bmatrix}
+\end{equation}
+\\
+where $\hat{\boldsymbol{e}}_k$ is a unit vector in 3D (i.e. $\hat{\boldsymbol{e}}_1 = (1, 0, 0)^T$). The rotation vectors are
+
+\begin{equation}
+	\boldsymbol{t}_4 = \begin{bmatrix}
+		\boldsymbol{e}_1 \times \boldsymbol{r}_1 \\
+		\vdots \\
+		\boldsymbol{e}_1 \times \boldsymbol{r}_N \\
+	\end{bmatrix}
+	%
+	\quad ; \quad 
+	%
+	\boldsymbol{t}_5 = \begin{bmatrix}
+		\boldsymbol{e}_2 \times \boldsymbol{r}_1 \\
+		\vdots \\
+		\boldsymbol{e}_2 \times \boldsymbol{r}_N \\
+	\end{bmatrix}
+	%
+	\quad ; \quad 
+	%
+	\boldsymbol{t}_6 = \begin{bmatrix}
+		\boldsymbol{e}_3 \times \boldsymbol{r}_1 \\
+		\vdots \\
+		\boldsymbol{e}_3 \times \boldsymbol{r}_N \\
+	\end{bmatrix}
+\end{equation}
+\\
+where $\boldsymbol{r}_i$ is the vector from the centre of mass of the system to the atom $i$. The remaining $\boldsymbol{t}_n$ are filled with random vectors that are orthogonal to $\boldsymbol{t}_1\text{--}\boldsymbol{t}_6$, which can be achieved by QR factorisation once the remaining elements of $\mathsf{T}$ have been seeded with random numbers. Normalisation requires,
+
+\begin{equation}
+	\hat{\boldsymbol{t}}_i = \frac{\mathsf{M}^{1/2}\boldsymbol{t}_i}{|\mathsf{M}^{1/2}\boldsymbol{t}_i|}	
+	%
+	\qquad ; \qquad
+	%
+	\mathsf{M} = \begin{pmatrix}
+		m_1 & 0 & 0 & 0 &\cdots \\
+		0 & m_1 & 0 & 0& \cdots \\
+		0 & 0 & m_1 & 0& \cdots \\
+		0 & 0 & 0 & m_2 & \cdots \\
+		\vdots & \vdots & \vdots & \vdots & \ddots
+	\end{pmatrix}
+\end{equation}
+\\
+where $m_i$ is the mass of atom $i$.
+
+\vspace{0.4cm}
+
+Projected frequencies are then obtained from the submatrix of $\mathsf{H}_\text{w}'$,
+
+
+\begin{equation}
+	\bar{\mathsf{H}}_\text{w} = \mathsf{\bar{S} \bar{D}\bar{S}}^T 
+	%
+	\quad ; \quad
+	%
+	\bar{\mathsf{S}} = 
+	\begin{pmatrix}
+		\uparrow & \\
+		\bar{\boldsymbol{s}}_7 & \cdots \\
+		\downarrow &
+	\end{pmatrix}
+	%
+	\quad ; \quad
+	%
+	\bar{\mathsf{D}} = 
+	\begin{pmatrix}
+		\bar{\lambda}_7 &  0& \cdots \\
+		0 & \bar{\lambda}_8 & \cdots \\
+		\vdots & \vdots & \ddots
+	\end{pmatrix}
+\end{equation}
+with $\bar{\nu}_{0\text{--}6} = 0$ cm${}^{-1}$, while the eigenvectors are,
+
+\begin{equation}
+	\boldsymbol{s}_i = \mathsf{T}\boldsymbol{s}_i'
+	%
+	\quad ; \quad
+	%
+	\mathsf{S}' = \begin{pmatrix}
+		\uparrow & \\
+		\boldsymbol{s}_1' & \cdots\\
+		\downarrow &
+	\end{pmatrix}
+    = 
+	\begin{pmatrix}
+		\boldsymbol{0} & \boldsymbol{0} \\
+		\boldsymbol{0} & \bar{\mathsf{S}}
+	\end{pmatrix}
+\end{equation}
+\\
+which correspond to the normal modes in the original coordinates. For a linear molecule the vibrational frequencies are then the $3N-5$ modes, rather than $3N-6$, with $\mathsf{H}_w'$ contains a different number of non-zero entries.
+
+
+
+
+
+
+
+\end{document}

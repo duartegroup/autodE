@@ -2,7 +2,7 @@ from copy import deepcopy
 from numpy.polynomial import polynomial
 import numpy as np
 from autode.utils import NoDaemonPool
-from autode.transition_states.ts_guess import get_ts_guess
+from autode.transition_states.ts_guess import TSguess
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.exceptions import FitFailed
@@ -291,7 +291,10 @@ def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords,
                                            keywords=keywords)
 
     if species is not None:
-        return get_ts_guess(species, reactant, product, name=name)
+        return TSguess(atoms=species.atoms,
+                       reactant=reactant,
+                       product=product,
+                       name=name)
 
     logger.error('No possible TSs found on the 2D surface')
     return None

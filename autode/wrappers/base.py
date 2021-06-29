@@ -2,7 +2,7 @@ import os
 import numpy as np
 from abc import ABC
 from abc import abstractmethod
-from typing import Collection
+from typing import List
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
@@ -35,13 +35,14 @@ class ElectronicStructureMethod(Method, ABC):
         return " ".join(self.doi_list)
 
     @abstractmethod
-    def generate_input(self, calculation, molecule):
+    def generate_input(self, calc, molecule):
         """
         Generate any input files required
 
         Arguments:
-            calculation (autode.calculation.Calculation):
-            molecule (any):
+            calc (autode.calculation.Calculation):
+
+            molecule (autode.species.Species):
         """
 
     @abstractmethod
@@ -91,7 +92,7 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
     def calculation_terminated_normally(self, calc) -> bool:
         """
         Did the calculation terminate correctly?
@@ -104,7 +105,62 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
+    @requires_output
+    def optimisation_converged(self, calc) -> bool:
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (bool):
+        """
+
+    @abstractmethod
+    @requires_output
+    def optimisation_nearly_converged(self, calc) -> bool:
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (bool):
+        """
+
+    @abstractmethod
+    @requires_output
+    def get_final_atoms(self, calc) -> List:
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (list(autode.atoms.Atom)):
+
+        Raises:
+            (autode.exceptions.AtomsNotFound)
+        """
+
+    @requires_output
+    def get_atomic_charges(self, calc) -> List:
+        """
+        Function implemented in individual child classes
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (list(float)):
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    @requires_output
     def get_energy(self, calc) -> float:
         """
         Return the potential energy in electronic Hartrees
@@ -120,125 +176,10 @@ class ElectronicStructureMethod(Method, ABC):
         """
 
     @abstractmethod
-    @requires_output()
-    def get_free_energy(self, calc) -> float:
-        """
-        Return the free energy (G) in electronic Hartrees
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (float):
-
-        Raises:
-            (autode.exceptions.CouldNotGetProperty)
-        """
-
-    @abstractmethod
-    @requires_output()
-    def get_enthalpy(self, calc) -> float:
-        """
-        Return the free energy (enthalpy) in electronic Hartrees
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (float):
-
-        Raises:
-            (autode.exceptions.CouldNotGetProperty)
-        """
-
-    @abstractmethod
-    @requires_output()
-    def optimisation_converged(self, calc) -> bool:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (bool):
-        """
-
-    @abstractmethod
-    @requires_output()
-    def optimisation_nearly_converged(self, calc) -> bool:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (bool):
-        """
-
-    @abstractmethod
-    @requires_output()
-    def get_imaginary_freqs(self, calc) -> Collection[float]:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (list(float)):
-        """
-
-    @abstractmethod
-    @requires_output()
-    def get_normal_mode_displacements(self, calc, mode_number) -> np.ndarray:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-            mode_number (int): Number of the normal mode to get the
-            displacements along 6 == first imaginary mode
-
-        Returns:
-            (np.ndarray):
-        """
-
-    @abstractmethod
-    @requires_output()
-    def get_final_atoms(self, calc) -> Collection:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (list(autode.atoms.Atom)):
-
-        Raises:
-            (autode.exceptions.AtomsNotFound)
-        """
-
-    @abstractmethod
-    @requires_output()
-    def get_atomic_charges(self, calc) -> Collection:
-        """
-        Function implemented in individual child classes
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (list(float)):
-        """
-
-    @abstractmethod
-    @requires_output()
+    @requires_output
     def get_gradients(self, calc) -> np.ndarray:
         """
-        Function implemented in individual child classes
+        Return the gradient matrix n_atomsx3 in Ha Å^-1
 
         Arguments:
             calc (autode.calculation.Calculation):
@@ -249,6 +190,25 @@ class ElectronicStructureMethod(Method, ABC):
         Raises:
             (autode.exceptions.CouldNotGetProperty)
         """
+
+    @requires_output
+    def get_hessian(self, calc) -> np.ndarray:
+        """
+        Return the Hessian matrix 3Nx3N in Ha Å^-2 for N atoms
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty |
+            AssertionError |
+            ValueError |
+            IndexError)
+        """
+        raise NotImplementedError
 
     def __init__(self, name, path, keywords_set, implicit_solvation_type,
                  doi=None, doi_list=None):

@@ -2,17 +2,18 @@ from copy import deepcopy
 import os
 import hashlib
 import base64
-import numpy as np
-from typing import Union, Collection
+from typing import Optional, List
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
-from autode.values import PotentialEnergy, FreeEnergy, Enthalpy, Gradients
-from autode.atoms import Atom
+from autode.utils import cached_property
+from autode.atoms import Atoms
 from autode.point_charges import PointCharge
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
 from autode.solvent.solvents import Solvent
 from autode.log import logger
+from autode.hessians import Hessian
+from autode.values import PotentialEnergy, Gradient
 
 output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
                '.pc', '.grad')
@@ -64,9 +65,6 @@ class Calculation:
                   f'{str(self.molecule)}{self.method.implicit_solvation_type}'
                   f'{str(self.molecule.constraints)}')
 
-        if self.input.temp is not None:
-            string += str(self.input.temp)
-
         hasher = hashlib.sha1(string.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()
 
@@ -82,41 +80,6 @@ class Calculation:
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             logger.error('Have no atoms. Can\'t form a calculation')
             raise ex.NoInputError
-
-    def _get_energy(self, e=False, h=False, g=False, force=False):
-        """
-        Get the energy from a completed calculation
-
-        Keyword Arguments:
-            e (bool): Return the potential energy (E)
-            h (bool): Return the enthalpy (H) at 298 K
-            g (bool): Return the Gibbs free energy (G) at 298 K
-            force (bool): Return the energy even if the calculation errored
-
-        Returns:
-            (autode.values.Energy | None):
-        """
-        logger.info(f'Getting energy from {self.output.filename}')
-        kwargs = {'method': self.method, 'keywords': self.input.keywords}
-
-        if not self.terminated_normally() and not force:
-            logger.error('Calculation did not terminate normally. '
-                         'Energy = None')
-            return None
-
-        try:
-            if h:
-                return Enthalpy(self.method.get_enthalpy(self), **kwargs)
-
-            if g:
-                return FreeEnergy(self.method.get_free_energy(self), **kwargs)
-
-            if e:
-                return PotentialEnergy(self.method.get_energy(self), **kwargs)
-
-        except ex.CouldNotGetProperty:
-            logger.warning('Could not get energy. Energy = None')
-            return None
 
     def _fix_unique(self, register_name='.autode_calculations'):
         """
@@ -220,32 +183,28 @@ class Calculation:
         methods.add(f'{string}.\n')
         return None
 
-    def get_energy(self) -> Union[PotentialEnergy, None]:
+    def get_energy(self) -> Optional[PotentialEnergy]:
         """
         Total electronic potential energy
 
         Returns:
             (autode.values.PotentialEnergy | None):
         """
-        return self._get_energy(e=True)
+        logger.info(f'Getting energy from {self.output.filename}')
 
-    def get_enthalpy(self) -> Union[Enthalpy, None]:
-        """
-        Total enthalpy
+        if not self.terminated_normally:
+            logger.error('Calculation did not terminate normally. '
+                         'Energy = None')
+            return None
 
-        Returns:
-            (autode.values.Enthalpy | None):
-        """
-        return self._get_energy(h=True)
+        try:
+            return PotentialEnergy(self.method.get_energy(self),
+                                   method=self.method,
+                                   keywords=self.input.keywords)
 
-    def get_free_energy(self) -> Union[FreeEnergy, None]:
-        """
-        Total free energy (G)
-
-        Returns:
-            (autode.values.FreeEnergy | None):
-        """
-        return self._get_energy(g=True)
+        except ex.CouldNotGetProperty:
+            logger.warning('Could not get energy. Energy = None')
+            return None
 
     def optimisation_converged(self) -> bool:
         """Check whether a calculation has has converged to within the theshold
@@ -255,7 +214,7 @@ class Calculation:
             (bool)
         """
         logger.info('Checking to see if the geometry converged')
-        if not self.output.exists():
+        if not self.output.exists:
             return False
 
         return self.method.optimisation_converged(self)
@@ -268,56 +227,28 @@ class Calculation:
             (bool)
         """
         logger.info('Checking to see if the geometry nearly converged')
-        if not self.output.exists():
+        if not self.output.exists:
             return False
 
         return self.method.optimisation_nearly_converged(self)
 
-    def get_imaginary_freqs(self) -> Collection[float]:
-        """Get the imaginary frequencies from a calculation output note that
-        they are returned as negative to conform with standard QM codes
-
-        Returns:
-            (list(float)): List of negative frequencies in wavenumbers (cm-1)
-        """
-        logger.info(f'Getting imaginary frequencies from {self.name}')
-        return self.method.get_imaginary_freqs(self)
-
-    def get_normal_mode_displacements(self, mode_number) -> np.ndarray:
-        """Get the displacements along a mode for each of the n_atoms in the
-        structure will return a list of length n_atoms each with 3 components
-        (x, y, z)
-
-        Arguments:
-            mode_number (int): Normal mode number. 6 will be the first
-                               vibrational mode as 0->2 are translation and
-                               3->5 rotation
-        Returns:
-            (np.ndarray): Displacement vectors for each atom (Å)
-                          modes.shape = (n_atoms, 3)
-        """
-        modes = self.method.get_normal_mode_displacements(self, mode_number)
-
-        if len(modes) != self.molecule.n_atoms:
-            raise ex.NoNormalModesFound
-
-        return modes
-
-    def get_final_atoms(self) -> Collection[Atom]:
+    def get_final_atoms(self) -> Atoms:
         """
         Get the atoms from the final step of a geometry optimisation
 
         Returns:
-            (list(autode.atoms.Atom)):
+            (autode.atoms.Atoms):
+
+        Raises:
+            (autode.exceptions.AtomsNotFound):
         """
         logger.info(f'Getting final atoms from {self.output.filename}')
 
-        if not self.output.exists():
+        if not self.output.exists:
             logger.error('No calculation output. Could not get atoms')
             raise ex.AtomsNotFound
 
-        # Extract the atoms from the output file, which is method dependent
-        atoms = self.method.get_final_atoms(self)
+        atoms = Atoms(self.method.get_final_atoms(self))
 
         if len(atoms) != self.molecule.n_atoms:
             logger.error(f'Failed to get atoms from {self.output.filename}')
@@ -325,7 +256,7 @@ class Calculation:
 
         return atoms
 
-    def get_atomic_charges(self) -> Collection[float]:
+    def get_atomic_charges(self) -> List[float]:
         """
         Get the partial atomic charges from a calculation. The method used to
         calculate them depends on the QM method and are implemented in their
@@ -334,7 +265,7 @@ class Calculation:
         Returns:
             (list(float)): Atomic charges in units of e
         """
-        if not self.output.exists():
+        if not self.output.exists:
             logger.error('No calculation output. Could not get final charges')
             raise ex.CouldNotGetProperty(name='atomic charges')
 
@@ -346,28 +277,62 @@ class Calculation:
 
         return charges
 
-    def get_gradients(self) -> Gradients:
+    def get_gradients(self) -> Gradient:
         """
         Get the gradient (dE/dr) with respect to atomic displacement from a
         calculation
 
         Returns:
-            (autode.values.Gradients): Gradient vectors for each atom (Ha Å^-1)
-                                       gradients.shape = (n_atoms, 3)
+            (autode.values.Gradient): Gradient vectors. shape = (n_atoms, 3)
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
         """
         logger.info(f'Getting gradients from {self.output.filename}')
-        gradients = Gradients(self.method.get_gradients(self))
+        gradients = Gradient(self.method.get_gradients(self))
 
         if len(gradients) != self.molecule.n_atoms:
             raise ex.CouldNotGetProperty(name='gradients')
 
         return gradients
 
+    def get_hessian(self) -> Hessian:
+        """
+        Get the Hessian matrix (d^2E/dr^2) i.e. the matrix of second
+        derivatives of the energy with respect to cartesian displacements::
+
+            H =  (d^2E/dx_0^2, d^2E/dx_0dy_0, d^2E/dx_0dz_0, d^2E/dx_0dx_1 ...
+                  d^2E/dy_0dx_0      .               .              .
+                      .              .               .              . )
+
+        Returns:
+            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N) for N
+                                     atoms
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty)
+        """
+        logger.info(f'Getting Hessian from calculation')
+
+        try:
+            hessian = Hessian(self.method.get_hessian(self),
+                              atoms=self.get_final_atoms(),
+                              units='Ha/ang^2')
+
+            assert hessian.shape == (3*self.molecule.n_atoms,
+                                     3*self.molecule.n_atoms)
+
+        except (ValueError, IndexError, AssertionError) as err:
+            raise ex.CouldNotGetProperty(f'Could not get the Hessian: {err}')
+
+        return hessian
+
+    @property
     def terminated_normally(self) -> bool:
         """Determine if the calculation terminated without error"""
         logger.info(f'Checking for {self.output.filename} normal termination')
 
-        if not self.output.exists():
+        if not self.output.exists:
             logger.warning('Calculation did not generate any output')
             return False
 
@@ -380,7 +345,7 @@ class Calculation:
             logger.info('Keeping input files')
             return
 
-        filenames = self.input.get_input_filenames()
+        filenames = self.input.filenames
         if everything:
             filenames.append(self.output.filename)
 
@@ -434,14 +399,10 @@ class Calculation:
         """Execute a calculation if it has not been run or finish correctly"""
         logger.info(f'Running {self.input.filename} using {self.method.name}')
 
-        if not self.input.exists():
+        if not self.input.exists:
             raise ex.NoInputError('Input did not exist')
 
-        # If the output file already exists set the output lines
-        if self.output.filename is not None and os.path.exists(self.output.filename):
-            self.output.set_lines()
-
-        if self.output.exists() and self.terminated_normally():
+        if self.output.exists and self.terminated_normally:
             logger.info('Calculation already terminated normally. Skipping')
             return None
 
@@ -450,7 +411,6 @@ class Calculation:
             raise ex.MethodUnavailable
 
         self.method.execute(self)
-        self.output.set_lines()
 
         return None
 
@@ -466,18 +426,25 @@ class Calculation:
 
         return None
 
-    def __init__(self, name, molecule, method, keywords, n_cores=1,
+    def __init__(self,
+                 name,
+                 molecule,
+                 method,
+                 keywords,
+                 n_cores=1,
                  bond_ids_to_add=None,
                  other_input_block=None,
                  distance_constraints=None,
                  cartesian_constraints=None,
-                 point_charges=None,
-                 temp=None):
+                 point_charges=None):
         """
         Arguments:
             name (str):
+
             molecule (autode.species.Species): Molecule to be calculated
+
             method (autode.wrappers.base.ElectronicStructureMethod):
+
             keywords (autode.wrappers.keywords.Keywords):
 
         Keyword Arguments:
@@ -500,9 +467,6 @@ class Calculation:
             point_charges (list(autode.point_charges.PointCharge)): List of
                                              float of point charges, x, y, z
                                              coordinates for each point charge
-
-            temp (float): Temperature to perform the calculation at in K, or
-                          None
         """
         # Calculation names that start with "-" can break EST methods
         self.name = (f'{name}_{method.name}' if not name.startswith('-')
@@ -524,39 +488,41 @@ class Calculation:
                                       solvent=get_solvent_name(molecule, method),
                                       additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
-                                      point_charges=point_charges,
-                                      temp=temp)
+                                      point_charges=point_charges)
 
         self.output = CalculationOutput()
 
 
 class CalculationOutput:
 
-    def set_lines(self):
+    @cached_property
+    def file_lines(self):
         """
-        Set the output files lines. This may be slow for large files but should
-        not become a bottleneck when running standard DFT/WF calculations
+        Output files lines. This may be slow for large files but should
+        not become a bottleneck when running standard DFT/WF calculations,
+        are cached so only read once
 
         Returns:
-            (None)
+            (list(str)): Lines from the output file
+
+        Raises:
+            (autode.exceptions.NoCalculationOutput):
         """
         logger.info('Setting output file lines')
 
-        if not os.path.exists(self.filename):
+        if self.filename is None or not os.path.exists(self.filename):
             raise ex.NoCalculationOutput
 
-        self.file_lines = open(self.filename, 'r', encoding="utf-8").readlines()
+        return open(self.filename, 'r', encoding="utf-8").readlines()
 
-        return None
-
+    @property
     def exists(self):
         """Does the calculation output exist?"""
-        return self.filename is not None and self.file_lines is not None
+        return self.filename is not None and os.path.exists(self.filename)
 
-    def __init__(self):
+    def __init__(self, filename: Optional[str] = None):
 
-        self.filename = None
-        self.file_lines = None
+        self.filename = filename
 
 
 class CalculationInput:
@@ -578,21 +544,22 @@ class CalculationInput:
             assert type(self.added_internals) is list
             assert all(len(idxs) == 2 for idxs in self.added_internals)
 
+    @property
     def exists(self):
         """Does the input (files) exist?"""
+        return (self.filename is not None
+                and all(os.path.exists(fn) for fn in self.filenames))
 
-        if self.filename is None:
-            return False
-
-        return all(os.path.exists(fn) for fn in self.get_input_filenames())
-
-    def get_input_filenames(self):
+    @property
+    def filenames(self):
         """Return a list of all the input files"""
-        assert self.filename is not None
+        if self.filename is None:
+            return self.additional_filenames
+
         return [self.filename] + self.additional_filenames
 
     def __init__(self, keywords, solvent, additional_input,
-                 added_internals, point_charges, temp):
+                 added_internals, point_charges):
         """
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
@@ -614,7 +581,6 @@ class CalculationInput:
         """
         self.keywords = keywords
         self.solvent = solvent
-        self.temp = temp
         self.other_block = additional_input
 
         self.added_internals = added_internals

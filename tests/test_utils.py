@@ -6,6 +6,7 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.keywords import Keywords
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
+from autode.utils import work_in_tmp_dir
 import time
 import pytest
 import os
@@ -71,6 +72,7 @@ def test_work_in_temp_dir():
     os.remove('test.txt')
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calc_output():
 
     calc = Calculation(name='test',
@@ -79,7 +81,7 @@ def test_calc_output():
                        keywords=Keywords(['PM7']))
 
     # A function that ficticously requires output
-    @utils.requires_output()
+    @utils.requires_output
     def test(calculation):
         print(calculation.molecule.n_atoms)
 
@@ -88,7 +90,9 @@ def test_calc_output():
 
     # Calling the same function with some calculation output should not raise
     # a not calculation output error
-    calc.output.file_lines = ['some', 'example', 'output']
+    calc.output.filename = 'tmp.out'
+    with open(calc.output.filename, 'w') as out_file:
+        print('some', 'example', 'output', sep='\n', file=out_file)
     test(calc)
 
 
@@ -97,7 +101,7 @@ def test_conformers():
     methane = Molecule(name='methane', smiles='C')
 
     # Function requiring a molecule having a conformer attribute
-    @utils.requires_conformers()
+    @utils.requires_conformers
     def test(mol):
         print(mol.conformers[0].n_atoms)
 

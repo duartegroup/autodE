@@ -5,6 +5,7 @@ from autode.constants import Constants
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
+from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
@@ -116,9 +117,6 @@ def get_keywords(calc_input, molecule):
             logger.warning('Cannot do an optimisation for a single atom')
             new_keywords.remove(keyword)
 
-    if calc_input.temp is not None:
-        new_keywords.append(f'Temperature={calc_input.temp:.2f}')
-
     # Further modification is required if there are surrounding point charges
     if calc_input.point_charges is not None:
         modify_keywords_for_point_charges(new_keywords)
@@ -141,7 +139,7 @@ def print_point_charges(inp_file, calc_input):
     if calc_input.point_charges is None:
         return
 
-    print('', file=inp_file)
+    print("\n", end="", file=inp_file)
     for point_charge in calc_input.point_charges:
         x, y, z = point_charge.coord
         print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {point_charge.charge:^12.8f}',
@@ -282,7 +280,7 @@ def rerun_angle_failure(calc):
     cart_calc.output = CalculationOutput()
     cart_calc.run()
 
-    if not cart_calc.terminated_normally():
+    if not cart_calc.terminated_normally:
         logger.warning('Cartesian calculation did not converge')
         return None
 
@@ -362,7 +360,7 @@ class G09(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.log', '.com', '.gbs'))
         def execute_g09():
             run_external(params=[calc.method.path, calc.input.filename],
@@ -402,36 +400,13 @@ class G09(ElectronicStructureMethod):
         except AtomsNotFound:
             return False
 
-        if fixed_calc is not None and fixed_calc.terminated_normally():
+        if fixed_calc is not None and fixed_calc.terminated_normally:
             logger.info('The 180° angle issue has been fixed')
             calc.output = fixed_calc.output
             calc.name = fixed_calc.name
-            calc.output.set_lines()
             return True
 
         return False
-
-    def get_enthalpy(self, calc):
-        """Get the enthalpy (H) from an g09 calculation output"""
-
-        for line in reversed(calc.output.file_lines):
-            if 'Sum of electronic and thermal Enthalpies' in line:
-                return float(line.split()[-1])
-
-        logger.error('Could not get the enthalpy from the calculation. '
-                     'A frequency must be requested')
-        raise CouldNotGetProperty(name='energy')
-
-    def get_free_energy(self, calc):
-        """Get the Gibbs free energy (G) from an g09 calculation output"""
-
-        for line in reversed(calc.output.file_lines):
-            if 'Sum of electronic and thermal Free Energies' in line:
-                return float(line.split()[-1])
-
-        logger.error('Could not get the enthalpy from the calculation. '
-                     'A frequency must be requested')
-        raise CouldNotGetProperty(name='energy')
 
     def get_energy(self, calc):
 
@@ -467,63 +442,13 @@ class G09(ElectronicStructureMethod):
                     return True
         return False
 
-    def get_imaginary_freqs(self, calc):
-        imag_freqs = []
-        normal_mode_section = False
-
-        for line in calc.output.file_lines:
-            if 'normal coordinates' in line:
-                normal_mode_section = True
-                imag_freqs = []
-
-            if 'Thermochemistry' in line:
-                normal_mode_section = False
-
-            if normal_mode_section and 'Frequencies' in line:
-                freqs = [float(line.split()[i])
-                         for i in range(2, len(line.split()))]
-                for freq in freqs:
-                    if freq < 0:
-                        imag_freqs.append(freq)
-
-        logger.info(f'Found imaginary freqs {imag_freqs}')
-        return imag_freqs
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        # mode numbers start at 1, not 6
-        mode_number -= 5
-        start_col = 0
-        normal_mode_section, displacements = False, []
-        correct_mode_section = False
-
-        for j, line in enumerate(calc.output.file_lines):
-            if 'normal coordinates' in line:
-                normal_mode_section = True
-                displacements = []
-
-            if 'Thermochemistry' in line:
-                normal_mode_section = False
-
-            if correct_mode_section and len(line.split()) > 3 and line.split()[0].isdigit():
-                displacements.append([float(line.split()[k]) for k in range(start_col, start_col + 3)])
-
-            if normal_mode_section and len(line.split()) == 3 and line.split()[0].isdigit():
-                mode_numbers = [int(n) for n in line.split()]
-                if mode_number in mode_numbers:
-                    correct_mode_section = True
-                    start_col = 3 * [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 2
-                else:
-                    correct_mode_section = False
-
-        return np.array(displacements)
-
     def get_final_atoms(self, calc):
 
         atoms = None
 
         for i, line in enumerate(calc.output.file_lines):
 
-            if 'Standard orientation' in line or 'Input orientation' in line:
+            if 'Input orientation' in line:
 
                 atoms = []
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
@@ -596,6 +521,60 @@ class G09(ElectronicStructureMethod):
                     logger.warning('Failed to set gradient line')
 
         return np.array(gradients)
+
+    def get_hessian(self, calc):
+        r"""
+        Extract the Hessian from a Gaussian09 calculation, which is printed as
+        just the lower triangular portion but is symmetric so the full 3Nx3N
+        matrix can be re-constructed. Read it from the final output block
+        sandwiched between 1\1\ ..... \\@
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (IndexError | ValueError):
+        """
+
+        hess_lines = []
+        append_line = False
+
+        for line in reversed(calc.output.file_lines):
+
+            if r'\\@' in line:
+                append_line = True
+
+            if append_line:
+                #                 Strip of new-lines and spaces
+                hess_lines.append(line.strip('\n').strip(' '))
+
+            if 'NImag' in line:
+                break
+
+        r"""
+        For a block with the format:
+        
+        ...[C*(O1C1O1)]\NImag=0\\H_x1x1, H_y1x1, ...\\
+        F_x1, F_y1, ...\\\@
+        
+        get the elements of the Hessian, noting that the lines have been
+        parsed backwards, hence the [::-1]
+        """
+
+        hess_str = "".join(hess_lines[::-1]).split(r'\\')[-3]
+        hess_values = [float(val) for val in hess_str.split(',')]
+
+        n = 3 * calc.molecule.n_atoms
+
+        if len(hess_values) != n*(n + 1)//2:
+            raise CouldNotGetProperty('Not enough elements of the Hessian '
+                                      'matrix found')
+
+        # Gaussian Hessians are quoted in Ha a0^-2
+        return symm_matrix_from_ltril(hess_values) / Constants.a0_to_ang**2
 
     def __init__(self, name='g09', path=None, keywords_set=None,
                  implicit_solvation_type=None):

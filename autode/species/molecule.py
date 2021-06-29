@@ -69,7 +69,7 @@ class Molecule(Species):
         make_graph(self)
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def _generate_conformers(self, n_confs=None):
         """
         Use a simulated annealing approach to generate conformers for this
@@ -170,8 +170,8 @@ class Molecule(Species):
 
 class SolvatedMolecule(Molecule):
 
-    @requires_atoms()
-    def optimise(self, method):
+    @requires_atoms
+    def optimise(self, method, *args, **kwargs):
         raise NotImplementedError
 
     def __init__(self, name='solvated_molecule', smiles=None, atoms=None,

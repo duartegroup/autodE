@@ -1,4 +1,5 @@
 import autode.wrappers.implicit_solvent_types as solv
+from autode.values import Frequency
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
@@ -127,7 +128,33 @@ class Config:
     # to e.g. -10 cm-1. Although most TSs have |v_imag| > 100 cm-1 this
     # threshold is designed to be conservative
     #
-    min_imag_freq = -40
+    min_imag_freq = Frequency(-40, units='cm-1')
+    # -------------------------------------------------------------------------
+    # Configuration parameters for ideal gas free energy calculations. Can be
+    # configured to use different standard states, quasi-rigid rotor harmonic
+    # oscillator (qRRHO) or pure RRHO
+    #
+    #  One of: '1M', '1atm'
+    standard_state = '1M'
+    #
+    # Method to treat low frequency modes (LFMs). Either standard RRHO ('igm'),
+    # Truhlar's method where all frequencies below a threshold are scaled to
+    # a shifted value (see J. Phys. Chem. B, 2011, 115, 14556) or Grimme's
+    # method of interpolating between HO and RR (i.e. qRRHO, see
+    # Chem. Eur. J. 2012, 18, 9955)
+    #
+    # One of: 'igm', 'truhlar', 'grimme'
+    lfm_method = 'grimme'
+    #
+    # Parameters for Grimme's method (only used when lfm_method='grimme'),
+    # w0 is a frequency in cm-1
+    grimme_w0 = Frequency(100, units='cm-1')
+    grimme_alpha = 4
+    #
+    # Parameters for Truhlar's method (only used when lfm_method='truhlar')
+    # vibrational frequencies below this value (cm-1) will be shifted to this
+    # value before the entropy is calculated
+    vib_freq_shift = Frequency(100, units='cm-1')
     # -------------------------------------------------------------------------
 
     class ORCA:
@@ -291,10 +318,3 @@ class Config:
         #
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
-
-    # -------------------------------------------------------------------------
-    # Use keyword naming prefixes. False to maintain backwards compatibility
-    #
-    keyword_prefixes = True
-    #
-    # -------------------------------------------------------------------------

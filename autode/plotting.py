@@ -68,7 +68,7 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
 
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
     fig = plt.figure(figsize=(12, 4))
-    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+    ax1 = fig.add_subplot(1, 2, 1, projection=Axes3D.name)
     ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
 
     ax1.view_init(45)
@@ -264,14 +264,14 @@ def get_reaction_profile_warnings(reactions):
 
         if reaction.ts is not None:
 
-            n_imag_freqs = len(reaction.ts.imaginary_frequencies)
-            if n_imag_freqs != 1:
-                warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
-                             f'imaginary frequencies. ')
+            if reaction.ts.has_imaginary_frequencies:
+                n_imag_freqs = len(reaction.ts.imaginary_frequencies)
 
-            if (reaction.ts.optts_calc is not None
-                    and not reaction.ts.optts_calc.optimisation_converged()):
-                warnings += f'TS for {reaction.name} was not fully converged. '
+                if n_imag_freqs != 1:
+                    warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
+                                 f'imaginary frequencies. ')
+
+            warnings += reaction.ts.warnings
 
     # If no strings were added then there are no warnings
     if len(warnings) == 0:

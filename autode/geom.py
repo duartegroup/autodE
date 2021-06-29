@@ -36,6 +36,24 @@ def are_coords_reasonable(coords):
     return True
 
 
+def proj(u, v):
+    """
+    Calculate the projection of v onto the direction of u. Useful for
+    https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+
+    Arguments:
+        u (np.ndarray):
+
+        v (np.ndarray):
+
+    Returns:
+        (np.ndarray): proj_u(v)
+    """
+
+    u_hat = u / np.linalg.norm(u)
+    return np.dot(u_hat, v) * u_hat
+
+
 def get_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
@@ -122,6 +140,9 @@ def get_rot_mat_euler(axis, theta):
     Returns:
         (np.ndarray): Rotation matrix. shape = (3, 3)
     """
+    if hasattr(theta, 'to'):
+        theta = theta.to('rad')
+
     axis = np.asarray(axis)
     axis = axis / np.linalg.norm(axis)   # Normalise
 
@@ -209,6 +230,10 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
     coords1 = np.array([atom.coord for atom in atoms1 if atom.label != 'H'])
     coords2 = np.array([atom.coord for atom in atoms2 if atom.label != 'H'])
 
+    if len(coords1) == 0 or len(coords2) == 0:
+        logger.warning('No heavy atoms! assuming a zero RMSD')
+        return 0.0
+
     return calc_rmsd(coords1, coords2)
 
 
@@ -270,3 +295,35 @@ def get_points_on_sphere(n_points, r=1):
             points.append(point)
 
     return points
+
+
+def symm_matrix_from_ltril(array):
+    """
+    Construct a symmetric matrix from the lower triangular elements e.g.::
+
+        array = [0, 1, 2] ->  array([[0, 1],
+                                     [1, 2]])
+
+    Arguments:
+        array (list(float) | np.array):
+
+    Returns:
+        (np.ndarray):
+    """
+    n = int((np.sqrt(8*len(array) + 1) - 1)/2)
+
+    matrix = np.zeros(shape=(n, n), dtype='f8')
+
+    try:
+        matrix[np.tril_indices(n=n, k=0)] = np.array(array)
+
+    except ValueError:
+        raise ValueError('Array was not the correct shape to be broadcast '
+                         'into the lower triangle. Need N(N+1)/2 elements'
+                         'for an NxN array')
+
+    # Symmetrise by making the upper triangular elements to the lower
+    lower_idxs = np.tril_indices(n=n, k=-1)
+    matrix.T[lower_idxs] = matrix[lower_idxs]
+
+    return matrix

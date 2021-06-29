@@ -1,24 +1,23 @@
-from copy import deepcopy
+from typing import Optional, List
 from multiprocessing import Pool
-from autode.transition_states.base import get_displaced_atoms_along_mode
+from autode.values import Frequency
+from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
 from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
 from autode.config import Config
-from autode.exceptions import AtomsNotFound, NoNormalModesFound
-from autode.geom import get_distance_constraints
-from autode.geom import calc_heavy_atom_rmsd
+from autode.exceptions import CalculationException
+from autode.geom import get_distance_constraints, calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
-from autode.mol_graphs import set_active_mol_graph
-from autode.mol_graphs import get_truncated_active_mol_graph
+from autode.mol_graphs import set_active_mol_graph, get_truncated_active_mol_graph
 from autode.utils import requires_atoms, requires_graph
 
 
 class TransitionState(TSbase):
 
-    @requires_graph()
+    @requires_graph
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being
         made/broken"""
@@ -46,43 +45,43 @@ class TransitionState(TSbase):
         else:
             bond_ids = self.bond_rearrangement.all
 
-        self.optts_calc = Calculation(name=f'{self.name}_{name_ext}',
-                                      molecule=self,
-                                      method=method,
-                                      n_cores=Config.n_cores,
-                                      keywords=method.keywords.opt_ts,
-                                      bond_ids_to_add=bond_ids,
-                                      other_input_block=method.keywords.optts_block)
-        self.optts_calc.run()
+        optts_calc = Calculation(name=f'{self.name}_{name_ext}',
+                                 molecule=self,
+                                 method=method,
+                                 n_cores=Config.n_cores,
+                                 keywords=method.keywords.opt_ts,
+                                 bond_ids_to_add=bond_ids,
+                                 other_input_block=method.keywords.optts_block)
+        optts_calc.run()
 
-        if not self.optts_calc.optimisation_converged():
-            if self.optts_calc.optimisation_nearly_converged():
+        if not optts_calc.optimisation_converged():
+            if optts_calc.optimisation_nearly_converged():
                 logger.info('Optimisation nearly converged')
-                self.calc = self.optts_calc
-                if self.could_have_correct_imag_mode():
+                if self.could_have_correct_imag_mode:
                     logger.info('Still have correct imaginary mode, trying '
                                 'more  optimisation steps')
 
-                    self.atoms = self.optts_calc.get_final_atoms()
-                    self.optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt',
-                                                  molecule=self,
-                                                  method=method,
-                                                  n_cores=Config.n_cores,
-                                                  keywords=method.keywords.opt_ts,
-                                                  bond_ids_to_add=bond_ids,
-                                                  other_input_block=method.keywords.optts_block)
-                    self.optts_calc.run()
+                    self.atoms = optts_calc.get_final_atoms()
+                    optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt',
+                                             molecule=self,
+                                             method=method,
+                                             n_cores=Config.n_cores,
+                                             keywords=method.keywords.opt_ts,
+                                             bond_ids_to_add=bond_ids,
+                                             other_input_block=method.keywords.optts_block)
+                    optts_calc.run()
                 else:
                     logger.info('Lost imaginary mode')
             else:
+                self.warnings += f'TS for {self.name} was not fully converged.'
                 logger.info('Optimisation did not converge')
 
         try:
-            self.imaginary_frequencies = self.optts_calc.get_imaginary_freqs()
-            self.atoms = self.optts_calc.get_final_atoms()
-            self.energy = self.optts_calc.get_energy()
+            self.atoms = optts_calc.get_final_atoms()
+            self.energy = optts_calc.get_energy()
+            self.hessian = optts_calc.get_hessian()
 
-        except (AtomsNotFound, NoNormalModesFound):
+        except CalculationException:
             logger.error('Transition state optimisation calculation failed')
 
         return
@@ -105,7 +104,19 @@ class TransitionState(TSbase):
         self._set_unique_conformers_rmsd(conformers)
         return None
 
-    @requires_atoms()
+    @property
+    def vib_frequencies(self) -> Optional[List[Frequency]]:
+        """
+        Vibrational frequencies, which are all but the lowest 7 as the 6th
+        is the 'translational' mode over the TS
+
+        Returns:
+            (list(autode.value.Frequency) | None):
+        """
+        n = 7 if not self.is_linear() else 6
+        return self.frequencies[n:] if self.frequencies is not None else None
+
+    @requires_atoms
     def print_imag_vector(self, mode_number=6, name=None):
         """Print a .xyz file with multiple structures visualising the largest
         magnitude imaginary mode
@@ -116,16 +127,14 @@ class TransitionState(TSbase):
                                i.e. largest magnitude imaginary, if present
             name (str):
         """
-        assert self.optts_calc is not None
         name = self.name if name is None else name
 
         disp = -0.5
         for i in range(40):
-            atoms = get_displaced_atoms_along_mode(calc=self.optts_calc,
+            disp_ts = displaced_species_along_mode(self,
                                                    mode_number=int(mode_number),
-                                                   disp_factor=disp,
-                                                   atoms=self.atoms)
-            atoms_to_xyz_file(atoms=atoms,
+                                                   disp_factor=disp)
+            atoms_to_xyz_file(atoms=disp_ts.atoms,
                               filename=f'{name}.xyz',
                               append=True)
 
@@ -136,8 +145,13 @@ class TransitionState(TSbase):
 
         return None
 
-    @requires_atoms()
-    def optimise(self, name_ext='optts'):
+    @requires_atoms
+    def optimise(self,
+                 name_ext='optts',
+                 method=None,
+                 reset_graph=False,
+                 calc=None,
+                 keywords=None):
         """Optimise this TS to a true TS """
         logger.info(f'Optimising {self.name} to a transition state')
 
@@ -145,98 +159,90 @@ class TransitionState(TSbase):
 
         # A transition state is a first order saddle point i.e. has a single
         # imaginary frequency
-        if len(self.imaginary_frequencies) == 1:
-            logger.info('Found a TS with a single imaginary frequency')
-            return
-
-        if len(self.imaginary_frequencies) == 0:
+        if not self.has_imaginary_frequencies:
             logger.error('Transition state optimisation did not return any '
                          'imaginary frequencies')
             return
 
+        if len(self.imaginary_frequencies) == 1:
+            logger.info('Found a TS with a single imaginary frequency')
+            return
+
         if all([freq > -50 for freq in self.imaginary_frequencies[1:]]):
-            logger.warning('Had small imaginary modes - not displacing along')
+            logger.warning('Had small imaginary modes - not displacing along '
+                           'other modes')
             return
 
         # There is more than one imaginary frequency. Will assume that the most
         # negative is the correct mode..
-        for disp_magnitude in [1, -1]:
+        for disp_magnitude, ext in zip(([1, -1], ['_dis', '_dis2'])):
             logger.info('Displacing along second imaginary mode to try and '
                         'remove')
-            dis_name_ext = name_ext + '_dis' if disp_magnitude == 1 else name_ext + '_dis2'
-            atoms, energy, calc = deepcopy(self.atoms), deepcopy(self.energy), deepcopy(self.optts_calc)
 
-            self.atoms = get_displaced_atoms_along_mode(self.optts_calc,
-                                                        mode_number=7,
-                                                        disp_factor=disp_magnitude)
+            disp_ts = self.copy()
+            disp_ts.atoms = displaced_species_along_mode(self,
+                                                         mode_number=7,
+                                                         disp_factor=disp_magnitude).atoms
 
-            self._run_opt_ts_calc(method=get_hmethod(), name_ext=dis_name_ext)
+            disp_ts._run_opt_ts_calc(method=get_hmethod(),
+                                     name_ext=name_ext + ext)
 
             if len(self.imaginary_frequencies) == 1:
                 logger.info('Displacement along second imaginary mode '
                             'successful. Now have 1 imaginary mode')
+
+                # Set the new properties of this TS from a successful reopt
+                self.atoms = disp_ts.atoms
+                self.energy = disp_ts.energy
+                self._hess = disp_ts.hessian
                 break
 
-            self.optts_calc = calc
-            self.atoms = atoms
-            self.energy = energy
-            self.imaginary_frequencies = self.optts_calc.get_imaginary_freqs()
-
         return None
-
-    def calc_g_cont(self, method=None, calc=None, temp=None):
-        """Calculate the free energy (G) contribution"""
-        return super().calc_g_cont(method=method, calc=self.optts_calc,
-                                   temp=temp)
-
-    def calc_h_cont(self, method=None, calc=None, temp=None):
-        """Calculate the enthalpy (H) contribution"""
-        return super().calc_h_cont(method=method, calc=self.optts_calc,
-                                   temp=temp)
 
     def find_lowest_energy_ts_conformer(self, rmsd_threshold=None):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""
         logger.info('Finding lowest energy TS conformer')
 
-        atoms, energy = deepcopy(self.atoms), deepcopy(self.energy)
-        calc = deepcopy(self.optts_calc)
+        # Generate a copy of this TS on which conformers are searched, for
+        # easy reversion
+        _ts = self.copy()
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
-        self.find_lowest_energy_conformer(hmethod=hmethod)
+        _ts.find_lowest_energy_conformer(hmethod=hmethod)
 
         # Remove similar TS conformer that are similar to this TS based on root
-        # mean squared differences in their structures
-        thresh = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
-        self.conformers = [conf for conf in self.conformers if
-                           calc_heavy_atom_rmsd(conf.atoms, atoms) > thresh]
+        # mean squared differences in their structures being above a threshold
+        t_h = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
+        _ts.conformers = [conf for conf in _ts.conformers if
+                          calc_heavy_atom_rmsd(conf.atoms, self.atoms) > t_h]
 
-        logger.info(f'Generated {len(self.conformers)} unique (RMSD > '
-                    f'{thresh} Å) TS conformer(s)')
+        logger.info(f'Generated {len(_ts.conformers)} unique (RMSD > '
+                    f'{t_h} Å) TS conformer(s)')
+
+        if len(_ts.conformers) == 0:
+            logger.info('Had no conformers - no need to re-optimise')
+            return
 
         # Optimise the lowest energy conformer to a transition state - will
         # .find_lowest_energy_conformer will have updated self.atoms etc.
-        if len(self.conformers) > 0:
-            self.optimise(name_ext='optts_conf')
+        _ts.optimise(name_ext='optts_conf')
 
-            if self.is_true_ts() and self.energy < energy:
-                logger.info('Conformer search successful')
-                return None
+        if _ts.is_true_ts and _ts.energy < self.energy:
+            logger.info('Conformer search successful - setting new attributes')
 
-            # Ensure the energy has a numerical value, so a difference can be
-            # evaluated
-            self.energy = self.energy if self.energy is not None else 0
-            logger.warning(f'Transition state conformer search failed '
-                           f'(∆E = {energy - self.energy:.4f} Ha). Reverting')
+            self.atoms = _ts.atoms
+            self.energies = _ts.energies
+            self._hess = _ts.hessian
+            return None
 
-        logger.info('Reverting to previously found TS')
-        self.atoms = atoms
-        self.energy = energy
-        self.optts_calc = calc
-        self.imaginary_frequencies = calc.get_imaginary_freqs()
-
+        # Ensure the energy has a numerical value
+        _ts.energy = _ts.energy if _ts.energy is not None else 0
+        logger.warning(f'Transition state conformer search failed '
+                       f'(∆E = {_ts.energy - self.energy:.4f} Ha). Reverting')
         return None
 
+    @property
     def is_true_ts(self):
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the
         hessian and is the correct mode"""
@@ -245,11 +251,10 @@ class TransitionState(TSbase):
             logger.warning('Cannot be true TS with no energy')
             return False
 
-        if len(self.imaginary_frequencies) > 0:
-            if self.has_correct_imag_mode(calc=self.optts_calc):
-                logger.info('Found a transition state with the correct '
-                            'imaginary mode & links reactants and products')
-                return True
+        if len(self.imaginary_frequencies) > 0 and self.has_correct_imag_mode:
+            logger.info('Found a transition state with the correct '
+                        'imaginary mode & links reactants and products')
+            return True
 
         return False
 
@@ -278,33 +283,32 @@ class TransitionState(TSbase):
         logger.info('Saved TS template')
         return None
 
-    def __init__(self, ts_guess):
+    def __init__(self,
+                 ts_guess:   TSbase,
+                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
         """
         Transition State
 
         Arguments:
             ts_guess (autode.transition_states.ts_guess.TSguess):
+
+        Keyword Arguments:
+            bond_rearr (autode.bond_rearrangement.BondRearrangement):
         """
         super().__init__(atoms=ts_guess.atoms,
                          reactant=ts_guess.reactant,
                          product=ts_guess.product,
                          name=f'TS_{ts_guess.name}',
                          charge=ts_guess.charge,
+                         bond_rearr=ts_guess.bond_rearrangement,
                          mult=ts_guess.mult)
 
-        self.bond_rearrangement = ts_guess.bond_rearrangement
         self.conformers = None
 
-        self.optts_calc = None
-        self.imaginary_frequencies = []
+        if bond_rearr is not None:
+            self.bond_rearrangement = bond_rearr
 
         self._update_graph()
 
-
-def get_ts_object(ts_guess):
-    """Creates TransitionState for the TSguess. If it is a SolvatedTSguess,
-    a SolvatedTransitionState is returned"""
-    if ts_guess.is_explicitly_solvated:
-        raise NotImplementedError
-
-    return TransitionState(ts_guess=ts_guess)
+        #: str for any warnings that may arise
+        self.warnings = ''

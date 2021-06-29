@@ -13,7 +13,6 @@ from . import testutils
 here = os.path.dirname(os.path.abspath(__file__))
 
 method = XTB()
-Config.keyword_prefixes = False
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -29,17 +28,13 @@ def test_xtb_calculation():
     assert os.path.exists('opt_xtb.out') is True
     assert len(calc.get_final_atoms()) == 22
     assert calc.get_energy() == -36.990267613593
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_xtb.xyz'
     assert calc.output.filename == 'opt_xtb.out'
 
     with pytest.raises(NotImplementedError):
         calc.optimisation_nearly_converged()
-    with pytest.raises(NotImplementedError):
-        calc.get_imaginary_freqs()
-    with pytest.raises(NotImplementedError):
-        calc.get_normal_mode_displacements(4)
 
     charges = calc.get_atomic_charges()
     assert len(charges) == 22
@@ -61,7 +56,6 @@ def test_xtb_calculation():
     # Write an empty output file
     open('tmp.out', 'w').close()
     const_opt.output.filename = 'tmp.out'
-    const_opt.output.set_lines()
 
     # cannot get atoms from an empty file
     with pytest.raises(AtomsNotFound):
@@ -78,9 +72,8 @@ def test_energy_extract_no_energy():
 
     # Output where the energy is not present
     calc.output.filename = 'h2_sp_xtb_no_energy.out'
-    calc.output.set_lines()
 
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.get_energy() is None
 
 
@@ -166,7 +159,6 @@ def test_xtb_6_3_2():
                        keywords=method.keywords.opt)
 
     calc.output.filename = 'xtb_6_3_2_opt.out'
-    calc.output.file_lines = open('xtb_6_3_2_opt.out', 'r').readlines()
 
     assert len(calc.get_final_atoms()) == 5
 
@@ -183,12 +175,9 @@ def test_xtb_6_1_old():
     for filename in ('xtb_6_1_opt.out', 'xtb_no_version_opt.out'):
 
         calc.output.filename = filename
-        calc.output.set_lines()
 
         assert len(calc.get_final_atoms()) == 5
         mol.atoms = calc.get_final_atoms()
 
         assert set([atom.label for atom in mol.atoms]) == {'C', 'H'}
         assert 0.9 < mol.distance(0, 1) < 1.2
-
-        calc.output.set_lines()

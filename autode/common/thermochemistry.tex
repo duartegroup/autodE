@@ -1,0 +1,91 @@
+\documentclass[10pt]{article}
+\usepackage{bm}% bold math
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color}
+\DeclareMathOperator{\sgn}{sgn}
+\renewcommand{\thefootnote}{\alph{footnote}}
+
+\begin{document}
+
+\subsection{Ideal Gas Model}
+
+From (McQuarrie, Statistical mechanics, 2000) the ideal gas method (IGM) for calculating an absolute free energy is outlined below.
+\begin{equation}
+	G  = H - TS
+\end{equation}
+\begin{equation}
+	H = U + RT
+\end{equation}
+\begin{equation}
+	U = E_\text{pot} + E_\text{ZPE} + E_\text{trns} + E_\text{rot} + E_\text{vib} \end{equation}
+\begin{equation}
+	S = S_\text{trns} + S_\text{rot} + S_\text{vib} + S_\text{elec}
+\end{equation}
+
+where $T$ is temperature, $R$ the ideal gas constant and $S_\text{elec}$ is taken to be zero for all molecules. The internal energy components are then
+
+\begin{equation}
+	E_\text{ZPE} = \frac{N_a}{2}\sum_i h \nu_i 
+\end{equation}
+\begin{equation}
+	E_\text{trns} = \frac{3}{2}RT
+\end{equation}
+\begin{equation}
+	E_\text{rot} =
+	\begin{cases}
+		0 &\quad \text{if  } N = 1 \\
+		RT &\quad \text{if linear} \\
+		\frac{3}{2} RT &\quad \text{otherwise} 
+	\end{cases}
+\end{equation}
+\begin{equation}
+	E_\text{vib} = R \sum_i \frac{\theta_i}{e^{\theta_i / T} - 1} \quad ,\quad \theta_i = h\nu_i / k_B
+\end{equation}
+
+where $N_a$ is Avogadro's's constant, $N$ is the number of atoms in the molecule, $k_B$ Boltzmann's constant, $ \nu_i$ the $i$-th harmonic frequency and $h$ is Planks constant. The entropic components are 
+
+\begin{equation}
+	S_\text{trns} = R  \ln(q_\text{trns}) + \frac{5}{2}R
+\end{equation}
+\begin{equation}
+	S_\text{rot} = \begin{cases}
+		0 &\quad \text{if  } N = 1 \\
+		R  \ln(q_\text{rot}) + R &\quad \text{if linear} \\
+		R  \ln(q_\text{rot}) + \frac{3}{2}R &\quad \text{otherwise}
+	\end{cases}
+\end{equation}
+\begin{equation}
+	S_\text{vib}^\text{HO} = R \sum_i \frac{\theta_i}{T(e^{\theta_i / T} - 1)} - \ln(1 - e^{-\theta_i / T})
+\end{equation}
+\begin{equation}
+	q_\text{trans} = {\Big (} \frac{2\pi m k_B T}{h^2} {\Big )}^{3/2}  V_\text{eff} \quad , \quad V_\text{eff} =  \begin{cases}
+		k_B T / p^{\circ} \quad&\text{if 1 atm standard state} \\
+		c^\circ / N_a \quad&\text{if 1 M standard state} 
+	\end{cases}
+\end{equation}
+\begin{equation}
+	q_\text{rot} = \frac{T^{3/2}}{\sigma_r} \sqrt{\frac{\pi}{\omega_r}} \quad,\quad \omega_r = \prod_{k} \frac{h^2}{8 \pi^2 k_B I_k}
+\end{equation}
+
+where $q$ are molecular partition functions, $p^{\circ}$ is the standard pressure (1 atm) and $c^\circ$ the standard concentration (1 mol dm$^{-3}$), $\sigma_r$ is the rotational symmetry number for the molecule and $I_k$ a diagonal element of the moment of inertia matrix.
+\\\\
+Due to the vibrational entropy contribution being overestimated for low frequency modes Thrular proposed a correction, which instead of summing over frequencies in $S_\text{vib}^\text{HO}$ does so over $\max(\nu_\text{thresh},\; \nu_i)$ to shift all low frequencies to a threshold value (\emph{J. Phys. Chem. B} 2011, {\bfseries{115}}, 14556). An alternative method from Grimme (\emph{Chem. Eur. J.}, 2012, {\bfseries{18}}, 9955) uses an interpolation between a harmonic oscillator and rigid rotor to scale down the contribution from the low frequency modes as
+\begin{equation}
+	S_\text{vib}^\text{Grimme} = \sum_i w_i S_ \text{vib}^\text{HO}(i) + (1-w_i) {\Big (} R\ln {\Big (} \sqrt{\frac{8 \pi^3 \mu_i' k_B T}{h^2}} {\Big )} + \frac{R}{2} {\Big )}
+\end{equation}
+\begin{eqnarray}
+	\mu_i' = \frac{\mu_i \bar{B}}{\mu_i + \bar{B}} \quad,\quad \mu_i = \frac{h}{8\pi^2 \nu_i} \quad,\quad \bar{B} = \text{Tr}[I] / 3
+\end{eqnarray}
+\begin{equation}
+	w_i = \frac{1}{1 + (\omega_0/ \nu_i)^\alpha}
+\end{equation}
+where $\omega_0$ and $\alpha$ are adjustable parameters.
+
+
+
+
+
+
+
+\end{document}

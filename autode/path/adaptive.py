@@ -4,22 +4,21 @@ from copy import deepcopy
 from autode.log import logger
 from autode.mol_graphs import make_graph
 from autode.path.path import Path
-from autode.transition_states.ts_guess import get_ts_guess
+from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
 
 
-def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
+def get_ts_adaptive_path(reactant, product, method, bond_rearr,
                          name='adaptive'):
     """
     Generate a TS guess geometry based on an adaptive path along multiple
     breaking and/or forming bonds
 
     Arguments:
-        reactant (autode.species.Species):
-        product (autode.species.Species):
+        reactant (autode.species.ReactantComplex):
+        product (autode.species.ProductComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
-        fbonds (list(autode.pes.pes.FormingBond)):
-        bbonds (list(autode.pes.pes.BreakingBond)):
+        bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Keyword Arguments:
         name (str):
@@ -27,6 +26,7 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
     Returns:
         (autode.transition_states.ts_guess.TSguess | None):
     """
+    fbonds, bbonds = bond_rearr.fbonds, bond_rearr.bbonds
 
     ts_path = AdaptivePath(init_species=reactant,
                            bonds=pruned_active_bonds(reactant, fbonds, bbonds),
@@ -38,8 +38,12 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
         logger.warning('Adaptive path had no peak')
         return None
 
-    return get_ts_guess(ts_path[ts_path.peak_idx].species, reactant, product,
-                        name=name)
+    ts_guess = TSguess(atoms=ts_path[ts_path.peak_idx].species.atoms,
+                       reactant=reactant,
+                       product=product,
+                       bond_rearr=bond_rearr,
+                       name=name)
+    return ts_guess
 
 
 def pruned_active_bonds(reactant, fbonds, bbonds):

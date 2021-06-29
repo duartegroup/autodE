@@ -6,7 +6,9 @@ from autode.units import (ha, kjmol, kcalmol, ev,
                           rad, deg)
 from autode.values import (Value, Distance, Angle,
                            Energy, PlottedEnergy, Energies,
-                           PotentialEnergy, Enthalpy, FreeEnergy)
+                           PotentialEnergy, Enthalpy, FreeEnergy,
+                           FreeEnergyCont, EnthalpyCont,
+                           Frequency)
 
 
 class TmpValue(Value):
@@ -34,6 +36,9 @@ def test_base_value():
 
 
 def test_energy():
+
+    with pytest.raises(ValueError):
+        Energy(0.0, units='not_an_energy_unit')
 
     e1 = Energy(0.0)
     assert 'energy' in repr(e1).lower()
@@ -161,11 +166,29 @@ def test_energies():
 
     energies = Energies(Energy(1.0), FreeEnergy(0.1))
 
-    # Free energy contribution is not defined without both a potential and
-    # free energy
-    assert energies.g_cont is None
+    assert energies.last(FreeEnergy) == FreeEnergy(0.1)
 
-    energies = Energies(PotentialEnergy(1.0), FreeEnergy(1.1))
+    assert 'free' in repr(FreeEnergy(0.0)).lower()
+    assert 'enthalpy' in repr(Enthalpy(0.0)).lower()
 
-    assert isinstance(energies.g_cont, Energy)
-    assert energies.g_cont == 0.1
+    assert 'cont' in repr(FreeEnergyCont(0.0)).lower()
+    assert 'cont' in repr(EnthalpyCont(0.0)).lower()
+
+    # Check that adding an energy that is already present moves it to the end
+    energies = Energies()
+    energies.append(Energy(1.0))
+    energies.append(Energy(5.0))
+    energies.append(Energy(1.0))
+
+    assert energies.last(Energy) == 1.0
+
+
+def test_freqs():
+
+    # Negative frequencies are actually imaginary (accepted convention in QM
+    # codes)
+    assert Frequency(-1.0).is_imaginary
+    assert not Frequency(1.0).is_imaginary
+
+    assert Frequency(-1.0) != Frequency(1.0)
+    assert Frequency(-1.0).real == Frequency(1.0)

@@ -4,12 +4,16 @@ import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.atoms import Atom, get_atomic_weight
+from autode.atoms import Atom
+from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
-from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
-from autode.exceptions import NoCalculationOutput
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
+from autode.exceptions import (UnsuppportedCalculationInput,
+                               CouldNotGetProperty,
+                               NoCalculationOutput,
+                               XYZfileWrongFormat,
+                               AtomsNotFound)
 
 vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitrile': 'Acetonitrile', 'benzene': 'Benzene',
                              'carbon tetrachloride': 'CCl4', 'dichloromethane': 'CH2Cl2', 'chloroform': 'Chloroform', 'cyclohexane': 'Cyclohexane',
@@ -202,34 +206,6 @@ def print_coordinates(inp_file, molecule):
     return
 
 
-def calc_atom_entropy(atom_label, temp):
-    """
-    Calculate the entropy of a single atom, not available in ORCA as only the
-    translational contribution: S_trans = R (ln(q_trans) + 5R/2)
-
-    Arguments:
-        atom_label (str):
-        temp (float): Temperature in K
-
-    Returns:
-        (float):
-    """
-
-    k_b = 1.38064852E-23          # J K-1
-    h = 6.62607004E-34            # J s
-    n_a = 6.022140857E23          # molecules mol-1
-    atm_to_pa = 101325            # Pa
-    amu_to_kg = 1.660539040E-27   # Kg
-
-    mass = amu_to_kg * get_atomic_weight(atom_label=atom_label)
-    v_eff = k_b * temp / atm_to_pa
-    q_trans = ((2.0 * np.pi * mass * k_b * temp / h**2)**1.5 * v_eff)
-
-    s = k_b * n_a * (np.log(q_trans) + 2.5)
-    # Convert from J K-1 mol-1 to K-1 Ha
-    return s / (Constants.ha_to_kJmol * 1000)
-
-
 class ORCA(ElectronicStructureMethod):
 
     def generate_input(self, calc, molecule):
@@ -255,18 +231,15 @@ class ORCA(ElectronicStructureMethod):
             if calc.n_cores > 1:
                 print(f'%pal nprocs {calc.n_cores}\nend', file=inp_file)
 
-            if calc.input.temp is not None:
-                print(f'%freq  Temp {calc.input.temp}\nend', file=inp_file)
-
             print_coordinates(inp_file, molecule)
 
         return None
 
-    def get_input_filename(self, calculation):
-        return f'{calculation.name}.inp'
+    def get_input_filename(self, calc):
+        return f'{calc.name}.inp'
 
-    def get_output_filename(self, calculation):
-        return f'{calculation.name}.out'
+    def get_output_filename(self, calc):
+        return f'{calc.name}.out'
 
     def get_version(self, calc):
         """Get the version of ORCA used to execute this calculation"""
@@ -280,7 +253,7 @@ class ORCA(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.out', '.hess', '.xyz', '.inp', '.pc'))
         def execute_orca():
             run_external(params=[calc.method.path, calc.input.filename],
@@ -315,49 +288,6 @@ class ORCA(ElectronicStructureMethod):
 
         raise CouldNotGetProperty(name='energy')
 
-    def get_enthalpy(self, calc):
-        """Get the enthalpy (H) from an ORCA calculation output"""
-
-        for line in reversed(calc.output.file_lines):
-            if 'Total Enthalpy' in line:
-
-                try:
-                    return float(line.split()[-2])
-
-                except ValueError:
-                    break
-
-        logger.error('Could not get the free energy from the calculation. '
-                     'Was a frequency requested?')
-        raise CouldNotGetProperty(name='energy')
-
-    def get_free_energy(self, calc):
-        """Get the Gibbs free energy (G) from an ORCA calculation output"""
-
-        if calc.molecule.n_atoms == 1:
-            logger.warning('ORCA fails to calculate the entropy for a single '
-                           'atom, returning the correct G in 1 atm')
-            h = self.get_enthalpy(calc)
-            s = calc_atom_entropy(atom_label=calc.molecule.atoms[0].label,
-                                  temp=calc.input.temp)  # J K-1 mol-1
-
-            # Calculate H - TS, the latter term from Jmol-1 -> Ha
-            return h - s * calc.input.temp
-
-        for line in reversed(calc.output.file_lines):
-            if ('Final Gibbs free energy' in line
-                    or 'Final Gibbs free enthalpy' in line):
-
-                try:
-                    return float(line.split()[-2])
-
-                except ValueError:
-                    break
-
-        logger.error('Could not get the free energy from the calculation. '
-                     'Was a frequency requested?')
-        raise CouldNotGetProperty(name='energy')
-
     def optimisation_converged(self, calc):
 
         for line in reversed(calc.output.file_lines):
@@ -380,71 +310,70 @@ class ORCA(ElectronicStructureMethod):
 
         return False
 
-    def get_imaginary_freqs(self, calc):
-        imag_freqs = []
-
-        for i, line in enumerate(calc.output.file_lines):
-            if 'VIBRATIONAL FREQUENCIES' in line:
-                last_line = i + 3 * calc.molecule.n_atoms + 5
-
-                # Reset every time freqs are found, so the final is returned
-                freq_lines = calc.output.file_lines[i + 5:last_line]
-                freqs = [float(l.split()[1]) for l in freq_lines]
-                imag_freqs = [freq for freq in freqs if freq < 0]
-
-        logger.info(f'Found imaginary freqs {imag_freqs}')
-        return imag_freqs
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        normal_mode_section, values_sec, = False, False
-        displacements, col = [], None
-
-        for j, line in enumerate(calc.output.file_lines):
-            if 'NORMAL MODES' in line:
-                normal_mode_section, values_sec, = True, False
-                displacements, col = [], None
-
-            if 'IR SPECTRUM' in line:
-                normal_mode_section, values_sec = False, False
-
-            if normal_mode_section and len(line.split()) > 1:
-                if line.split()[0].startswith('0'):
-                    values_sec = True
-
-            if not values_sec:
-                continue
-
-            if '.' in line or len(line.split()) < 2:
-                continue
-
-            mode_numbers = [int(val) for val in line.split()]
-            if mode_number not in mode_numbers:
-                continue
-
-            col = [i for i in range(len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
-
-            d_lines = calc.output.file_lines[j+1:j+3 * calc.molecule.n_atoms+1]
-            displacements = [float(d_line.split()[col]) for d_line in d_lines]
-
-        displacements_xyz = [displacements[i:i + 3] for i in range(0, len(displacements), 3)]
-
-        return np.array(displacements_xyz)
-
     def get_final_atoms(self, calc):
+        """
+        Get the final set of atoms from an ORCA output file
 
-        atoms = []
-        xyz_file_name = calc.output.filename.replace('.out', '.xyz')
+        Arguments:
+            calc (autode.calculation.Calculation):
 
-        if not os.path.exists(xyz_file_name):
-            raise NoCalculationOutput('ORCA generated .xyz file not found')
+        Returns:
+            (list(autode.atoms.Atom)):
 
-        with open(xyz_file_name, 'r') as xyz_file:
-            for line_no, line in enumerate(xyz_file):
-                if line_no > 1:
-                    atom_label, x, y, z = line.split()
-                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
+        Raises:
+            (autode.exceptions.NoCalculationOutput
+            | autode.exceptions.AtomsNotFound)
+        """
 
-        return atoms
+        fn_ext = '.hess' if calc.output.filename.endswith('.hess') else '.out'
+
+        # First try the .xyz file generated
+        xyz_file_name = calc.output.filename.replace(fn_ext, '.xyz')
+        if os.path.exists(xyz_file_name):
+
+            try:
+                return xyz_file_to_atoms(xyz_file_name)
+
+            except XYZfileWrongFormat:
+                raise AtomsNotFound(f'Failed to parse {xyz_file_name}')
+
+        # Then the Hessian file
+        hess_file_name = calc.output.filename.replace(fn_ext, '.hess')
+        if os.path.exists(hess_file_name):
+            hess_file_lines = open(hess_file_name, 'r').readlines()
+
+            atoms = []
+            for i, line in enumerate(hess_file_lines):
+                if '$atoms' not in line:
+                    continue
+
+                for aline in hess_file_lines[i+2:i+2+calc.molecule.n_atoms]:
+                    label, _, x, y, z = aline.split()
+                    atom = Atom(label, x, y, z)
+                    # Coordinates in the Hessian file are all atomic units
+                    atom.coord *= Constants.a0_to_ang
+
+                    atoms.append(atom)
+
+                return atoms
+
+        # and finally the potentially long .out file
+        if os.path.exists(calc.output.filename) and fn_ext == '.out':
+            atoms = []
+
+            # There could be many sets in the file, so take the last
+            for i, line in enumerate(calc.output.file_lines):
+                if 'CARTESIAN COORDINATES (ANGSTROEM)' not in line:
+                    continue
+
+                atoms, n_atoms = [], calc.molecule.n_atoms
+                for oline in calc.output.file_lines[i+2:i+2+n_atoms]:
+                    label, x, y, z = oline.split()
+                    atoms.append(Atom(label, x, y, z))
+
+            return atoms
+
+        raise NoCalculationOutput('Failed to find any ORCA output files')
 
     def get_atomic_charges(self, calc):
         """
@@ -499,15 +428,92 @@ class ORCA(ElectronicStructureMethod):
                         continue
 
                     dadx, dady, dadz = grad_line.split()[-3:]
-                    vec = [float(dadx), float(dady), float(dadz)]
+                    gradients.append([float(dadx), float(dady), float(dadz)])
 
-                    # Convert from Ha a0^-1 to Ha A-1
-                    gradients.append(np.array(vec) / Constants.a0_to_ang)
+        # Convert from Ha a0^-1 to Ha A-1
+        return np.array(gradients) / Constants.a0_to_ang
 
-        return np.array(gradients)
+    @staticmethod
+    def _start_line_hessian(calc, file_lines):
+        """
+        Find the line where the Hessian starts in an ORCA Hessian file
+        e.g. H2O.hess
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+            file_lines (list(str)):
+
+        Returns:
+            (int):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty | AssertionError):
+        """
+
+        for i, line in enumerate(file_lines):
+
+            if '$hessian' not in line:
+                continue
+
+            # Ensure the number of atoms is present, and is the number expected
+            n_atoms = int(file_lines[i + 1].split()[0]) // 3
+            assert n_atoms == calc.molecule.n_atoms
+            return i + 3
+
+        raise CouldNotGetProperty(f'No Hessian found in the Hessian file')
+
+    def get_hessian(self, calc):
+        """Grab the Hessian from the output .hess file
+
+        e.g.::
+
+            $hessian
+            9
+                        0         1
+                               2          3            4
+            0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
+            .         .          .           .           .           .
+        """
+
+        hess_filename = calc.output.filename
+
+        if calc.output.filename.endswith('.out'):
+            hess_filename = calc.output.filename.replace('.out', '.hess')
+
+        if not os.path.exists(hess_filename):
+            raise CouldNotGetProperty('Could not find Hessian file')
+
+        file_lines = open(hess_filename, 'r', encoding="utf-8").readlines()
+
+        hessian_blocks = []
+        start_line = self._start_line_hessian(calc, file_lines)
+
+        for j, h_line in enumerate(file_lines[start_line:]):
+
+            if len(h_line.split()) == 0:
+                # Assume we're at the end of the Hessian
+                break
+
+            # Skip blank lines in the file, marked by one or more fewer items
+            # than the previous
+            if len(h_line.split()) < len(file_lines[start_line+j-1].split()):
+                continue
+
+            # First item is the coordinate number, thus append all others
+            hessian_blocks.append([float(v) for v in h_line.split()[1:]])
+
+        n_atoms = calc.molecule.n_atoms
+        hessian = [block for block in hessian_blocks[:3*n_atoms]]
+
+        for i, block in enumerate(hessian_blocks[3*n_atoms:]):
+            hessian[i % (3 * n_atoms)] += block
+
+        # Hessians printed in Ha/a0^2, so convert to base Ha/Å^2
+        return np.array(hessian, dtype='f8') / Constants.a0_to_ang**2
 
     def __init__(self):
-        super().__init__('orca', path=Config.ORCA.path,
+        super().__init__('orca',
+                         path=Config.ORCA.path,
                          keywords_set=Config.ORCA.keywords,
                          implicit_solvation_type=Config.ORCA.implicit_solvation_type,
                          doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])

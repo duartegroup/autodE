@@ -48,7 +48,7 @@ def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
 
 
 def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
-    """
+    r"""
     Add a capping atom. Example::
 
                   H

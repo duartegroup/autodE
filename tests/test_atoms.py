@@ -1,16 +1,15 @@
 import numpy as np
 import pytest
 from autode import atoms
-from autode.atoms import Atom
-from autode.values import Angle
+from autode.atoms import Atom, Atoms
+from autode.values import Angle, Coordinate, Mass
 
 
-def test_atoms():
+def test_functions():
 
     assert atoms.get_maximal_valance(atom_label='C') == 4
     assert atoms.get_maximal_valance(atom_label='Aa') == 6
-    assert atoms.get_atomic_weight(atom_label='C') == 12.01
-    assert atoms.get_atomic_weight(atom_label='Aa') == 70
+    assert 11.9 < Atom('C').weight.to('amu') < 12.1
     assert 0.9 < atoms.get_vdw_radius(atom_label='H') < 1.2
     assert 2 < atoms.get_vdw_radius(atom_label='Aa') < 3
 
@@ -19,11 +18,46 @@ def test_atoms():
     assert atoms.is_pi_atom(atom_label='Aa', valency=9) is False
 
 
+def test_atoms():
+
+    empty_atoms = Atoms()
+    assert 'atoms' in repr(empty_atoms).lower()
+    assert not empty_atoms.are_linear()
+
+    # Undefined COM with no atoms
+    with pytest.raises(ValueError):
+        _ = empty_atoms.com
+
+    h_atoms = Atoms([Atom('H'), Atom('H', x=1.0)])
+    assert isinstance(h_atoms.com, Coordinate)
+    assert np.allclose(h_atoms.com, np.array([0.5, 0.0, 0.0]))
+
+    assert h_atoms.vector(0, 1) == np.array([1.0, 0.0, 0.0])
+
+    # Moment of inertia
+    assert np.sum(np.diag(h_atoms.moi)) > 0.0
+    assert 1.9 < np.sum(np.diag(h_atoms.moi)) < 2.1
+
+    h_atoms_far = Atoms([Atom('H'), Atom('H', x=10.0)])
+    assert np.sum(h_atoms_far.moi) > np.sum(h_atoms.moi)
+
+    assert np.isclose(np.linalg.norm(h_atoms_far.nvector(0, 1)), 1.0)
+
+    # COM is weighted by mass, so the x-coordinate
+    ch_atoms = Atoms([Atom('H'), Atom('C', x=1.0)])
+
+    assert 0.5 < ch_atoms.com.x < 1.0
+    assert ch_atoms.com.y == 0.0
+    assert ch_atoms.com.z == 0.0
+
+
 def test_atom_collection_base():
 
     h2 = atoms.AtomCollection()
     assert h2.n_atoms == 0
+    assert np.isclose(h2.weight, 0.0)    # 0 weight for 0 atoms
     assert h2.coordinates is None
+    assert h2.moi is None and h2.com is None
 
     # Cannot set coordinates without atoms
     with pytest.raises(ValueError):
@@ -32,7 +66,8 @@ def test_atom_collection_base():
     h2.atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H')]
     assert h2.n_atoms == 2
 
-    assert type(h2.coordinates) == np.ndarray
+    assert h2.weight.to('amu') == 2*atoms.atomic_weights['H']
+    assert h2.mass.to('amu') == 2*atoms.atomic_weights['H']
 
     # Should be able to set coordinate from a flat array (row major)
     h2.coordinates = np.zeros(shape=(6,))
@@ -72,6 +107,8 @@ def test_atom_collection_angles():
                  Atom('O'),
                  Atom('H', x=1.0)]
 
+    assert np.isclose(h2o.mass.to('amu'), 18, atol=0.2)
+
     # Should default to more human readable degree units
     assert np.isclose(h2o.angle(0, 1, 2).to('deg'), 180)
     assert np.isclose(h2o.angle(0, 1, 2).to('degrees'), 180)
@@ -110,12 +147,16 @@ def test_atom_collection_dihedral():
                       100.8,
                       atol=1.0)
 
-    # Undefined dihedral with a zero vector between teo atoms
+    # Undefined dihedral with a zero vector between two atoms
     with pytest.raises(ValueError):
         h2o2.atoms[0].coord = np.zeros(3)
         h2o2.atoms[1].coord = np.zeros(3)
 
         _ = h2o2.dihedral(2, 0, 1, 3)
+
+    # and a dihedral with atoms not present in the molecule
+    with pytest.raises(ValueError):
+        _ = h2o2.dihedral(2, 0, 1, 10)
 
 
 def test_atom():
@@ -129,7 +170,6 @@ def test_atom():
     assert h.group == 1
     assert h.period == 1
 
-    assert type(h.coord) == np.ndarray
     assert len(h.coord) == 3
     assert h.coord[0] == 0
     assert h.coord[1] == 0
@@ -138,6 +178,9 @@ def test_atom():
     # Translate the H atom by 1 A in the z direction
     h.translate(vec=np.array([0.0, 0.0, 1.0]))
     assert np.linalg.norm(h.coord - np.array([0.0, 0.0, 1.0])) < 1E-6
+
+    with pytest.raises(ValueError):
+        h.translate(some_unkown_arg=5)
 
     # Rotate the atom 180° (pi radians) in the x axis
     h.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
@@ -160,9 +203,32 @@ def test_atom():
     assert dummy.atomic_number == 0
     assert dummy.period == 0
     assert dummy.group == 0
+    assert dummy.mass == 0.0
 
     fe = Atom(atomic_symbol='Fe')
     assert fe.tm_row == 1
+
+    # Should have a mass, even if it's estimated for all elements
+    for element in atoms.elements:
+        atom = Atom(element)
+        assert atom.weight is not None
+
+
+def test_atom_coord_setting():
+
+    atom = Atom('H', 0.0, 0.0, 0.0)
+
+    with pytest.raises(ValueError):
+        atom.coord = None
+
+    with pytest.raises(ValueError):
+        atom.coord = [1.0, 10]
+
+    with pytest.raises(ValueError):
+        atom.coord = 1.0, 1.0
+
+    atom.coord = np.array([1.0, 0.0, 0.0])
+    assert np.allclose(atom.coord.to('nm'), np.array([0.1, 0.0, 0.0]))
 
 
 def test_periodic_table():
@@ -199,3 +265,51 @@ def test_periodic_table():
     assert 'Fe' in atoms.PeriodicTable.transition_metals(row=1)
 
     assert atoms.PeriodicTable.element(2, 13) == 'B'
+
+
+def test_doc_examples():
+
+    assert Atom('C').atomic_number == 6
+
+    assert Atom('Zn').atomic_symbol == 'Zn'
+
+    assert Atom('H').coord == Coordinate(0.0, 0.0, 0.0, units='Å')
+    assert np.isclose(Atom('H', x=1.0).coord.x, 1.0)
+    assert np.allclose(Atom('H', x=1.0).coord.to('a0'),
+                       Coordinate(1.889, 0.0, 0.0, units='bohr'),
+                       atol=1E-3)
+
+    assert not Atom('C').is_metal
+    assert Atom('Zn').is_metal
+
+    assert Atom('C').group == 14
+
+    assert Atom('C').period == 2
+
+    assert Atom('C').weight == Mass(12.0107, units='amu')
+    assert Atom('C').weight == Atom('C').mass
+
+    assert Atom('H').mass.to('me') == Mass(1837.36222, units='m_e')
+
+    atom = Atom('H')
+    atom.translate(1.0, 0.0, 0.0)
+    assert atom.coord == Coordinate(1.0, 0.0, 0.0, units='Å')
+
+    atom = Atom('H')
+    atom.translate(np.ones(3))
+    assert atom.coord == Coordinate(1.0, 1.0, 1.0, units='Å')
+    atom.translate(vec=-atom.coord)
+    assert atom.coord == Coordinate(0.0, 0.0, 0.0, units='Å')
+
+    atom = Atom('H', x=1.0)
+    atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14)
+    assert np.allclose(atom.coord,
+                       Coordinate(-1, 0., 0., units='Å'),
+                       atol=1E-2)
+
+    from autode.values import Angle
+    atom  = Atom('H', x=1.0)
+    atom.rotate(axis=[0.0, 0.0, 1.0], theta=Angle(180, units='deg'))
+    assert np.allclose(atom.coord,
+                       Coordinate(-1, 0., 0., units='Å'),
+                       atol=1E-5)

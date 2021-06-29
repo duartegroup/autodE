@@ -1,12 +1,16 @@
 import numpy as np
-from autode.log import logger
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Type, Optional
 from copy import deepcopy
+from collections.abc import Iterable
+from autode.log import logger
 from autode.units import (Unit,
-                          ha, kjmol, kcalmol, ev,
+                          ha, kjmol, kcalmol, ev, J,
                           ang, a0, nm, pm, m,
                           rad, deg,
+                          wavenumber, hz,
+                          amu, kg, m_e,
+                          amu_ang_sq, kg_m_sq,
                           ha_per_ang, ha_per_a0, ev_per_ang)
 
 
@@ -15,6 +19,7 @@ def _to(value,
     """Convert a value or value array to a new unit and return a copy
 
     Arguments:
+        value (autode.values.Value | autode.values.ValueArray):
         units (autode.units.Unit | str):
 
     Returns:
@@ -34,6 +39,29 @@ def _to(value,
     #                      Convert to the base unit, then to the new units
     return value.__class__(value * units.conversion / value.units.conversion,
                            units=units)
+
+
+def _units_init(value,
+                units: Union[Unit, str, None]):
+    """Initialise the units of this value
+
+    Arguments:
+        units (Unit | str | None)
+
+    Raises:
+        (ValueError): If this is not a valid unit for this value
+    """
+    if units is None:
+        return None
+
+    try:
+        return next(unit for unit in value.implemented_units if
+                    units.lower() in unit.aliases)
+
+    except StopIteration:
+        raise ValueError(f'{units} is not a valid unit for '
+                         f'{type(value).__name__}. Only '
+                         f'{value.implemented_units} are implemented')
 
 
 class Value(ABC, float):
@@ -148,7 +176,7 @@ class Value(ABC, float):
         return _to(self, units)
 
     def __init__(self, x,
-                 units: Union[Unit, None] = None):
+                 units: Union[Unit, str, None] = None):
         """
         Value constructor
 
@@ -156,17 +184,18 @@ class Value(ABC, float):
             x (float | int):
 
         Keyword Arguments:
-            units (autode.units.Unit | None):
+            units (autode.units.Unit | str | None):
         """
+
         float.__init__(float(x))
-        self.units = units
+        self.units = _units_init(self, units)
 
 
 class Energy(Value):
     """Type of energy in some units e.g. Potential, Free etc.
     defaults to Hartrees"""
 
-    implemented_units = [ha, kcalmol, kjmol, ev]
+    implemented_units = [ha, kcalmol, kjmol, ev, J]
 
     def __repr__(self):
         return f'Energy({round(self, 5)} {self.units.name})'
@@ -183,7 +212,7 @@ class Energy(Value):
 
     def __init__(self,
                  value,
-                 units: Unit = ha,
+                 units: Union[Unit, str] = ha,
                  method=None,
                  keywords=None):
         """
@@ -225,10 +254,22 @@ class Enthalpy(Energy):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
+class EnthalpyCont(Energy):
+
+    def __repr__(self):
+        return f'H_cont({round(self, 5)} {self.units.name})'
+
+
+class FreeEnergyCont(Energy):
+
+    def __repr__(self):
+        return f'G_cont({round(self, 5)} {self.units.name})'
+
+
 class Energies(list):
     """List of energies on an identical geometry/structure"""
 
-    def append(self, other: Energy):
+    def append(self, other: Energy) -> None:
         """
         Add another energy to this list, if it does not already appear
 
@@ -239,58 +280,67 @@ class Energies(list):
         for item in self:
             if other == item:
                 logger.warning(f'Not appending {other} to the energies - '
-                               f'already present')
+                               f'already present. Moving to the end')
+                self.append(self.pop(self.index(item)))
                 return
 
         return super().append(other)
 
-    def _delta_to_electronic(self, energy_type):
-        """
-        Calculate X - E_elec, where X is perhaps a free energy or enthalpy
-
-        Arguments:
-            energy_type (autode.energies.Energy):
-
-        Returns:
-            (autode.energies.Energy | None):
-        """
+    @staticmethod
+    def _next(energies, energy_type):
+        """Next type of energy in a list of energies"""
         try:
-            # Select the final energy in this list with the correct type
-            energy_with_type = next(e for e in reversed(self)
-                                    if isinstance(e, energy_type))
-
-            # and the corresponding electronic energy, calculated at the
-            # same method, so the ∆ between is correct
-            elec_energy = next(e for e in reversed(self)
-                               if e.method_str == energy_with_type.method_str
-                               and isinstance(e, PotentialEnergy))
-
-            return Energy(energy_with_type - elec_energy)
+            return next(energy for energy in energies
+                        if isinstance(energy, energy_type))
 
         except StopIteration:
-            logger.warning(f'Failed to calculate {energy_type.__name__} '
-                           f'- {PotentialEnergy.__name__}')
             return None
 
-    @property
-    def h_cont(self) -> Union[Energy, None]:
+    def last(self, energy_type: Type[Energy]) -> Optional[Energy]:
         """
-        Return the enthalpic contribution to the energy
+        Return the last instance of a particular energy type in these list
+        of energies
+
+        Arguments:
+            energy_type (Energy):
 
         Returns:
-             (autode.values.Energy | None): H_cont = H - E_elec
+            (autode.values.Energy | None): Energy
         """
-        return self._delta_to_electronic(energy_type=Enthalpy)
+        return self._next(reversed(self), energy_type=energy_type)
 
-    @property
-    def g_cont(self) -> Union[Energy, None]:
+    def first(self, energy_type: Type[Energy]) -> Optional[Energy]:
         """
-        Return the free energy contribution to the energy
+        Return the last instance of a particular energy type in these list
+        of energies
+
+        Arguments:
+            energy_type (Energy):
 
         Returns:
-             (autode.values.Energy | None): G_cont = G - E_elec
+            (autode.values.Energy | None): Energy
         """
-        return self._delta_to_electronic(energy_type=FreeEnergy)
+        return self._next(self, energy_type=energy_type)
+
+    @property
+    def first_potential(self) -> Optional[PotentialEnergy]:
+        """
+        First potential energy in this list
+
+        Returns:
+            (autode.values.PotentialEnergy | None):
+        """
+        return self.first(energy_type=PotentialEnergy)
+
+    @property
+    def last_potential(self) -> Optional[PotentialEnergy]:
+        """
+        First potential energy in this list
+
+        Returns:
+            (autode.values.PotentialEnergy | None):
+        """
+        return self.last(energy_type=PotentialEnergy)
 
     def __init__(self, *args: Energy):
         """
@@ -347,6 +397,43 @@ class Angle(Value):
         super().__init__(value, units=units)
 
 
+class Frequency(Value):
+
+    implemented_units = [wavenumber, hz]
+
+    @property
+    def is_imaginary(self) -> bool:
+        """Imaginary frequencies are quoted as negative for simplicity"""
+        return self < 0
+
+    @property
+    def real(self) -> 'Frequency':
+        """
+        A frequencies real (positive) value
+
+        Returns:
+            (autode.values.Frequency):
+        """
+        return self * -1 if self.is_imaginary else self
+
+    def __repr__(self):
+        return f'Frequency({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=wavenumber):
+        super().__init__(value, units=units)
+
+
+class Mass(Value):
+
+    implemented_units = [amu, kg, m_e]
+
+    def __repr__(self):
+        return f'Mass({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=amu):
+        super().__init__(value, units=units)
+
+
 class ValueArray(ABC, np.ndarray):
     """
     Abstract base class for an array of values, e.g. gradients or a Hessian
@@ -357,12 +444,39 @@ class ValueArray(ABC, np.ndarray):
     def __repr__(self):
         """String representation of this value array"""
 
+    def __eq__(self, other):
+        """Define equality for a valuearray, with implicit type conversion"""
+
+        if (other is None
+                or not hasattr(other, 'shape')
+                or other.shape != self.shape):
+            return False
+
+        if isinstance(other, ValueArray):
+            other = other.to(self.units)
+
+        return np.allclose(self, other)
+
     def __new__(cls,
                 input_array: np.ndarray,
-                units: Union[Unit, None] = None):
+                units: Union[Unit, str, None] = None):
+        """
+        Initialise a ValueArray from a numpy array, or another ValueArray
+
+        Arguments:
+            input_array (np.ndarray | autode.values.ValueArray):
+            units (autode.units.Unit | str):
+
+        Returns:
+            (autode.values.ValueArray):
+        """
 
         arr = np.asarray(input_array).view(cls)
-        arr.units = units
+
+        if isinstance(input_array, ValueArray) and units is None:
+            arr.units = input_array.units
+        else:
+            arr.units = _units_init(cls, units)
 
         return arr
 
@@ -374,7 +488,7 @@ class ValueArray(ABC, np.ndarray):
             units (autode.units.Unit | str):
 
         Returns:
-            (autode.values.Value):
+            (autode.values.ValueArray):
 
         Raises:
             (TypeError):
@@ -389,7 +503,56 @@ class ValueArray(ABC, np.ndarray):
         self.units = getattr(obj, 'units', None)
 
 
-class Gradients(ValueArray):
+class Coordinate(ValueArray):
+
+    implemented_units = [ang, a0, nm, pm, m]
+
+    def __repr__(self):
+        return f'Coordinate({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls, *args, units=ang):
+
+        if len(args) == 3:
+            return super().__new__(cls, np.asarray(args), units)
+
+        elif (len(args) == 1
+              and isinstance(args[0], Iterable)
+              and len(args[0]) == 3):
+            # e.g. a numpy array or list of three elements
+            return super().__new__(cls, np.asarray(args[0]), units)
+
+        else:
+            raise ValueError('Coordinate must be a 3 component vector, got '
+                             f'{len(args)} component(s)')
+
+    @property
+    def x(self):
+        """x component in Cartesian space"""
+        return self[0]
+
+    @property
+    def y(self):
+        """y component in Cartesian space"""
+        return self[1]
+
+    @property
+    def z(self):
+        """z component in Cartesian space"""
+        return self[2]
+
+
+class Coordinates(ValueArray):
+
+    implemented_units = [ang, a0, nm, pm, m]
+
+    def __repr__(self):
+        return f'Coordinates({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls, input_array, units=ang):
+        return super().__new__(cls, input_array.reshape(-1, 3), units)
+
+
+class Gradient(ValueArray):
 
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
@@ -397,4 +560,15 @@ class Gradients(ValueArray):
         return f'Gradients({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls,  input_array, units=ha_per_ang):
+        return super().__new__(cls, input_array, units)
+
+
+class MomentOfInertia(ValueArray):
+
+    implemented_units = [amu_ang_sq, kg_m_sq]
+
+    def __repr__(self):
+        return f'I({np.ndarray.__str__(self)} {self.units.name})'
+
+    def __new__(cls,  input_array, units=amu_ang_sq):
         return super().__new__(cls, input_array, units)

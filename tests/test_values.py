@@ -1,10 +1,13 @@
 import numpy as np
-from autode.units import ha, ha_per_ang, ha_per_a0
-from autode.values import (ValueArray, Gradients)
+from autode.units import ang, ha, ha_per_ang, ha_per_a0
+from autode.values import (ValueArray, Gradient, Coordinate)
 
 
 class TmpValues(ValueArray):
-    def __str__(self):
+
+    implemented_units = [ha]
+
+    def __repr__(self):
         return ''
 
 
@@ -17,10 +20,19 @@ def test_base_arr():
     assert tmp_values.units == ha
 
 
+def test_coordinate():
+    coord = Coordinate(0.0, 0.0, 0.0)
+    assert coord.units == ang
+
+    assert coord is not None
+    # Equality defaults to np.allclose
+    assert coord == np.zeros(3)
+
+
 def test_gradients():
 
     # Default gradient units are Ha Å^-1
-    gradients = Gradients(np.arange(2, dtype='f8'))
+    gradients = Gradient(np.arange(2, dtype='f8'))
     assert gradients.units == ha_per_ang
     assert 'grad' in repr(gradients).lower()
 

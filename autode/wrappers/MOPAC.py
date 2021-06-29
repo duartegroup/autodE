@@ -219,7 +219,7 @@ class MOPAC(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.mop', '.out'),
                          use_ll_tmp=True)
         def execute_mopac():
@@ -255,12 +255,6 @@ class MOPAC(ElectronicStructureMethod):
 
         return False
 
-    def get_enthalpy(self, calc):
-        raise NotImplementedError
-
-    def get_free_energy(self, calc):
-        raise NotImplementedError
-
     def get_energy(self, calc):
         for line in calc.output.file_lines:
             if 'TOTAL ENERGY' in line:
@@ -278,12 +272,6 @@ class MOPAC(ElectronicStructureMethod):
         return False
 
     def optimisation_nearly_converged(self, calc):
-        raise NotImplementedError
-
-    def get_imaginary_freqs(self, calc):
-        raise NotImplementedError
-
-    def get_normal_mode_displacements(self, calc, mode_number):
         raise NotImplementedError
 
     def get_final_atoms(self, calc):

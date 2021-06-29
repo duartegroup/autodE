@@ -140,7 +140,7 @@ class XTB(ElectronicStructureMethod):
             # last file in the list
             flags += ['--input', calc.input.additional_filenames[-1]]
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.xyz', '.out', '.pc', '.grad', 'gradient'),
                          use_ll_tmp=True)
         def execute_xtb():
@@ -175,12 +175,6 @@ class XTB(ElectronicStructureMethod):
 
         raise CouldNotGetProperty(name='energy')
 
-    def get_enthalpy(self, calc):
-        raise NotImplementedError
-
-    def get_free_energy(self, calc):
-        raise NotImplementedError
-
     def optimisation_converged(self, calc):
 
         for line in reversed(calc.output.file_lines):
@@ -192,13 +186,8 @@ class XTB(ElectronicStructureMethod):
     def optimisation_nearly_converged(self, calc):
         raise NotImplementedError
 
-    def get_imaginary_freqs(self, calc):
-        raise NotImplementedError
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-        raise NotImplementedError
-
-    def _get_final_atoms_6_2_above(self, calc):
+    @staticmethod
+    def _get_final_atoms_6_2_above(calc):
         """
         e.g.
 
@@ -227,7 +216,8 @@ class XTB(ElectronicStructureMethod):
 
         return atoms
 
-    def _get_final_atoms_old(self, calc):
+    @staticmethod
+    def _get_final_atoms_old(calc):
         """
         e.g.
 

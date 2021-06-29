@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from time import time
 from functools import wraps
@@ -14,6 +15,25 @@ from autode.exceptions import (NoAtomsInMolecule,
 
 # Needed for additional pickle-ability
 multiprocessing.set_start_method("fork")
+
+if sys.version_info.minor > 7:                                    # Python >3.7
+    from functools import cached_property # lgtm[py/unused-import]
+    # LGTM alert is suppressed as this is imported in Python >3.7, but not
+    # under the CI (Python 3.7)
+
+if sys.version_info.minor <= 7:                                   # Python <3.7
+    from functools import lru_cache
+
+    # Define a cached_property equivalent decorator, from https://stackoverflow
+    # .com/questions/4037481/caching-class-attributes-in-python
+    def cached_property(func):
+        @property
+        @lru_cache()
+        @wraps(func)
+        def wrapped_function(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapped_function
 
 
 def run_external(params, output_filename):
@@ -190,80 +210,71 @@ def log_time(prefix='Executed in: ', units='ms'):
     return func_decorator
 
 
-def requires_atoms():
+def requires_atoms(func):
     """A function requiring a number of atoms to run"""
 
-    def func_decorator(func):
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
 
-            # Species must be the first argument
-            assert hasattr(args[0], 'n_atoms')
+        # Species must be the first argument
+        assert hasattr(args[0], 'n_atoms')
 
-            if args[0].n_atoms == 0:
-                raise NoAtomsInMolecule
+        if args[0].n_atoms == 0:
+            raise NoAtomsInMolecule
 
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
-        return wrapped_function
-    return func_decorator
+    return wrapped_function
 
 
-def requires_graph():
+def requires_graph(func):
     """A function requiring a number of atoms to run"""
 
-    def func_decorator(func):
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
 
-            # Species must be the first argument
-            assert hasattr(args[0], 'graph')
+        # Species must be the first argument
+        assert hasattr(args[0], 'graph')
 
-            if args[0].graph is None:
-                raise NoMolecularGraph
+        if args[0].graph is None:
+            raise NoMolecularGraph
 
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
-        return wrapped_function
-    return func_decorator
+    return wrapped_function
 
 
-def requires_conformers():
+def requires_conformers(func):
     """A function requiring the species to have a list of conformers"""
 
-    def func_decorator(func):
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
 
-            # Species must be the first argument
-            assert hasattr(args[0], 'conformers')
+        # Species must be the first argument
+        assert hasattr(args[0], 'conformers')
 
-            if args[0].conformers is None:
-                raise NoConformers
+        if args[0].conformers is None:
+            raise NoConformers
 
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
-        return wrapped_function
-    return func_decorator
+    return wrapped_function
 
 
-def requires_output():
+def requires_output(func):
     """A function requiring an output file and output file lines"""
 
-    def func_decorator(func):
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
-            # Calculation must be the first argument
-            assert hasattr(args[0], 'output')
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        # Calculation must be the first argument
+        assert hasattr(args[0], 'output')
 
-            if args[0].output.file_lines is None:
-                raise NoCalculationOutput
+        if args[0].output.file_lines is None:
+            raise NoCalculationOutput
 
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
-        return wrapped_function
-
-    return func_decorator
+    return wrapped_function
 
 
 def timeout(seconds, return_value=None):

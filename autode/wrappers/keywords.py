@@ -111,10 +111,7 @@ class Keywords:
         from autode.config import Config
         base_str = ' '.join([str(kw) for kw in self.keyword_list])
 
-        if Config.keyword_prefixes:
-            return f'{prefix}({base_str})'
-        else:
-            return base_str
+        return f'{prefix}({base_str})'
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""
@@ -268,11 +265,11 @@ class Keywords:
     def __getitem__(self, item):
         return self.keyword_list[item]
 
-    def __init__(self, keyword_list):
+    def __init__(self, keyword_list=None):
         """
         Read only list of keywords
 
-        Args:
+        Keyword Arguments:
             keyword_list (list(str)): List of keywords used in a QM calculation
         """
         self.keyword_list = keyword_list if keyword_list is not None else []

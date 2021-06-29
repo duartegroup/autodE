@@ -145,7 +145,7 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
                        f'({atom_i_label}-{atom_j_label}). Using the sum of '
                        f'their VdW radii minus 1.5 Å')
         try:
-            est = vdw_radii[atom_i_label] +  vdw_radii[atom_j_label] - 1.5
+            est = vdw_radii[atom_i_label] + vdw_radii[atom_j_label] - 1.5
             logger.info(f'Estimated the bond length as {est:.3f} Å')
             return est
 

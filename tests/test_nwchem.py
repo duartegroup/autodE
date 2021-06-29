@@ -11,7 +11,6 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
-Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
                             '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
@@ -34,12 +33,11 @@ def test_opt_calc():
     assert len(final_atoms) == 5
     assert type(final_atoms[0]) is Atom
     assert -40.4165 < calc.get_energy() < -40.4164
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
-    assert calc.get_imaginary_freqs() == []
     assert calc.input.filename == 'opt_nwchem.nw'
     assert calc.output.filename == 'opt_nwchem.out'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
 
