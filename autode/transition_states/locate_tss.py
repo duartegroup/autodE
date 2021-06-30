@@ -41,9 +41,8 @@ def find_tss(reaction):
                          ' reaction.product set as species')
 
     if species_are_isomorphic(reactant, product):
-        logger.error('Reactant and product complexes are isomorphic. Cannot'
-                     ' find a TS')
-        return None
+        raise ValueError('Reactant and product complexes are isomorphic. '
+                         'Cannot find a TS')
 
     bond_rearrs = get_bond_rearrangs(reactant, product, name=str(reaction))
 

@@ -10,7 +10,6 @@ from autode.bond_rearrangement import get_bond_rearrangs
 from autode.bond_rearrangement import BondRearrangement
 from autode.substitution import get_substitution_centres
 from autode.input_output import xyz_file_to_atoms
-from autode.species.complex import get_complexes
 from autode.transition_states.locate_tss import translate_rotate_reactant
 from . import testutils
 import os
@@ -28,7 +27,7 @@ def test_detection():
 
     assert reaction.type == Substitution
 
-    reactant, product = get_complexes(reaction)
+    reactant, product = reaction.reactant, reaction.product
 
     bond_rearrs = get_bond_rearrangs(reactant, product, name='SN2')
 
@@ -76,7 +75,6 @@ def test_translate_rotate():
 
     translate_rotate_reactant(reactant, bond_rearr, shift_factor=1.5)
     assert len(reactant.atoms) == 10
-    os.remove('complex.xyz')
 
     # The geometry should now be sensible
     for i in range(1, 10):

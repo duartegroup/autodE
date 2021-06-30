@@ -55,7 +55,7 @@ class Reaction:
         name = (f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
                 f'{"+".join([p.name for p in self.prods])}')
 
-        if self.solvent is not None:
+        if hasattr(self, 'solvent') and self.solvent is not None:
             name += f'_{self.solvent.name}'
 
         hasher = hashlib.sha1(name.encode()).digest()
@@ -121,7 +121,7 @@ class Reaction:
                     f'{self.solvent.name}')
         return None
 
-    def _reacs_prods_from_smiles(self, reaction_smiles):
+    def _init_from_smiles(self, reaction_smiles):
         """
         Initialise from a SMILES string of the whole reaction e.g.
 
@@ -150,7 +150,8 @@ class Reaction:
             prod.name = f'p{i}_{prod.formula}'
             prods.append(prod)
 
-        return reacs, prods
+        self.reacs, self.prods = reacs, prods
+        return None
 
     def _reasonable_components_with_energy(self):
         """Generator for components of a reaction that have sensible geometries
@@ -205,7 +206,8 @@ class Reaction:
             self.reactant = None
 
         else:
-            self.reactant = ReactantComplex(*reacs_, name=f'{self}_reactant')
+            self.reactant = ReactantComplex(*reacs_, name=f'{self}_reactant',
+                                            do_init_translation=True)
 
     @property
     def prods(self) -> List[Product]:
@@ -234,10 +236,11 @@ class Reaction:
             prods_ (list(autode.species.Product)): 
         """
         if len(prods_) == 0:
-            self.reactant = None
+            self.product = None
 
         else:
-            self.reactant = ProductComplex(*prods_, name=f'{self}_reactant')
+            self.product = ProductComplex(*prods_, name=f'{self}_reactant',
+                                          do_init_translation=True)
 
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
@@ -583,22 +586,19 @@ class Reaction:
         logger.info(f'Generating a Reaction object for {name}')
 
         self.name = name
+        self.reactant,  self.product = None, None
+        self.ts, self.tss = None, None
 
         # If there is only one string argument assume it's a SMILES
         if len(args) == 1 and type(args[0]) is str:
             smiles = args[0]
 
         if smiles is not None:
-            reacs, prods = self._reacs_prods_from_smiles(smiles)
+            self._init_from_smiles(smiles)
 
         else:
-            reacs = [mol for mol in args if isinstance(mol, Reactant)]
-            prods = [mol for mol in args if isinstance(mol, Product)]
-
-        self.reactant = ReactantComplex(*reacs)
-        self.product = ProductComplex(*prods)
-
-        self.ts, self.tss = None, None
+            self.reacs = [mol for mol in args if isinstance(mol, Reactant)]
+            self.prods = [mol for mol in args if isinstance(mol, Product)]
 
         self.type = reaction_types.classify(self.reacs, self.prods)
         self.solvent = get_solvent(solvent_name=solvent_name)

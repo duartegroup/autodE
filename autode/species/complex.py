@@ -243,7 +243,7 @@ class Complex(Species):
                                mol_index=i)
         return None
 
-    def __init__(self, *args, name='complex', do_init_translation=True):
+    def __init__(self, *args, name='complex', do_init_translation=False):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
 

@@ -5,7 +5,6 @@ from autode.atoms import Atom
 from autode import Reactant, Product, Reaction
 from autode.species.complex import Complex
 from autode.reactions.reaction_types import Dissociation
-from autode.species.complex import get_complexes
 from autode.bond_rearrangement import get_bond_rearrangs, BondRearrangement
 from autode.transition_states.locate_tss import (get_ts,
                                                  get_ts_guess_function_and_params,
@@ -24,8 +23,7 @@ def test_one_to_three_dissociation():
 
     # Generate reactants and product complexes then find the single possible
     # bond rearrangement
-    reactant, product = get_complexes(reaction)
-    reaction.reactant, reaction.product = reactant, product
+    reactant, product = reaction.reactant, reaction.product
     bond_rearrangs = get_bond_rearrangs(reactant, product, name=str(reaction))
     assert len(bond_rearrangs) == 1
     os.remove(f'{str(reaction)}_BRs.txt')
