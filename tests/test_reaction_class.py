@@ -98,7 +98,6 @@ def test_check_solvent():
 
 
 def test_reaction_identical_reac_prods():
-    os.chdir(os.path.join(here, 'data'))
 
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
                                                       Atom('H', x=1.0)])
@@ -107,10 +106,8 @@ def test_reaction_identical_reac_prods():
 
     h2_reaction = reaction.Reaction(hh_reactant, hh_product)
 
-    h2_reaction.locate_transition_state()
-    assert h2_reaction.ts is None
-
-    os.chdir(here)
+    with pytest.raises(ValueError):
+        h2_reaction.locate_transition_state()
 
 
 def test_swap_reacs_prods():
