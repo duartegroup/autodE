@@ -298,6 +298,8 @@ def test_truncated_ts():
 
     # Spoof ORCA install
     Config.ORCA.path = here
+    Config.make_ts_template = True
+    Config.ts_template_folder_path = os.getcwd()
 
     # Don't run the calculation without a working XTB install
     if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
