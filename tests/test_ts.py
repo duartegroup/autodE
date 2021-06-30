@@ -179,9 +179,9 @@ def test_isomorphic_reactant_product():
     # Reaction where the reactant and product complexes are isomorphic
     # should return no TS
     reaction = Reaction(r_water, r_methane, p_water, p_methane)
-    reaction.locate_transition_state()
 
-    assert reaction.ts is None
+    with pytest.raises(ValueError):
+        reaction.locate_transition_state()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'locate_ts.zip'))
