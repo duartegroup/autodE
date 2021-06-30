@@ -197,13 +197,13 @@ def get_truncated_ts(reaction, bond_rearr):
     f_product = reaction.product.copy()
 
     # Set the truncated reactant and product for this reaction
+    name = f'{reaction}_truncated'
     reaction.reactant = get_truncated_complex(f_reactant, bond_rearr)
     reaction.product = get_truncated_complex(f_product, bond_rearr)
 
     # Re-find the bond rearrangements, which should exist
-    reaction.name += '_truncated'
     bond_rearrangs = get_bond_rearrangs(reaction.reactant, reaction.product,
-                                        name=reaction.name)
+                                        name=name)
 
     if bond_rearrangs is None:
         logger.error('Truncation generated a complex with 0 rearrangements')
@@ -216,7 +216,6 @@ def get_truncated_ts(reaction, bond_rearr):
     # Reset the reactant, product and name of the full reaction
     reaction.reactant = f_reactant
     reaction.product = f_product
-    reaction.name = reaction.name.rstrip('_truncated')
 
     logger.info('Done with truncation')
     return None
@@ -237,16 +236,15 @@ def reorder_product(reactant, product, bond_rearr):
 
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
     """
-    reordered_product = product.copy()
 
-    mapping = get_mapping(graph1=reordered_product.graph,
+    mapping = get_mapping(graph1=product.graph,
                           graph2=reac_graph_to_prod_graph(reactant.graph, bond_rearr))
 
-    reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
+    product.atoms = [product.atoms[i] for i in sorted(mapping, key=mapping.get)]
 
-    reordered_product.graph = reorder_nodes(graph=reordered_product.graph,
-                                            mapping={u: v for v, u in mapping.items()})
-    return reordered_product
+    product.graph = reorder_nodes(graph=product.graph,
+                                  mapping={u: v for v, u in mapping.items()})
+    return None
 
 
 def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
@@ -263,9 +261,6 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
     Returns:
         (autode.transition_states.transition_state.TransitionState): TS
     """
-    if reaction.product is None or reaction.reactant is None:
-        logger.warning('Reaction had no complexes - generating')
-        reaction.find_complexes()
 
     if bond_rearr.n_fbonds > bond_rearr.n_bbonds:
         raise NotImplementedError('Cannot treat more forming than breaking '
@@ -274,9 +269,7 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
     # Reorder the atoms in the product complex so they are equivalent to the
     # reactant
     try:
-        reaction.product = reorder_product(reactant,
-                                           reaction.product,
-                                           bond_rearr)
+        reorder_product(reactant, reaction.product, bond_rearr)
     except NoMapping:
         logger.warning('Could not find the expected bijection R -> P')
         return None
@@ -288,7 +281,7 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
                                   shift_factor=1.5 if reactant.charge == 0 else 2.5)
 
     # If specified then strip non-core atoms from the structure
-    if is_worth_truncating(reactant, bond_rearr) and not is_truncated:
+    if not is_truncated and is_worth_truncating(reactant, bond_rearr):
         get_truncated_ts(reaction, bond_rearr)
 
     # There are multiple methods of finding a transition state. Iterate through

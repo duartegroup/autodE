@@ -39,7 +39,6 @@ def test_prune_small_rings3():
 
 def test_prune_small_rings2():
     reaction = ade.Reaction('CCCC=C>>C=C.C=CC')
-    reaction.find_complexes()
 
     ade.Config.skip_small_ring_tss = False
     bond_rearrs = br.get_bond_rearrangs(reactant=reaction.reactant,
@@ -135,7 +134,6 @@ def test_multiple_possibles2():
 
     # Attack on oxirane by AcO-
     reaction = ade.Reaction('[O-]C(C)=O.C1CO1>>[O-]CCOC(C)=O')
-    reaction.find_complexes()
 
     rearrs = br.get_bond_rearrangs(reaction.reactant,
                                    reaction.product,

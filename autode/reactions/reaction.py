@@ -1,5 +1,6 @@
 import base64
 import hashlib
+from typing import Collection, List
 from copy import deepcopy
 from datetime import date
 from autode.config import Config
@@ -8,9 +9,8 @@ from autode.transition_states.locate_tss import find_tss
 from autode.exceptions import UnbalancedReaction, SolventsDontMatch
 from autode.log import logger
 from autode.methods import get_hmethod
-from autode.species.complex import get_complexes
-from autode.species.molecule import Product
-from autode.species.molecule import Reactant
+from autode.species.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
@@ -115,15 +115,13 @@ class Reaction:
         if self.solvent is not None:
             logger.info(f'Setting solvent to {self.solvent.name} for all '
                         f'molecules in the reaction')
-
-            for mol in self.reacs + self.prods:
-                mol.solvent = self.solvent
+            self.reactant.solvent = self.product.solvent = self.solvent
 
         logger.info(f'Set the solvent of all species in the reaction to '
                     f'{self.solvent.name}')
         return None
 
-    def _init_from_smiles(self, reaction_smiles):
+    def _reacs_prods_from_smiles(self, reaction_smiles):
         """
         Initialise from a SMILES string of the whole reaction e.g.
 
@@ -140,17 +138,19 @@ class Reaction:
             raise UnbalancedReaction('Could not decompose to reacs & prods')
 
         # Add all the reactants and products with interpretable names
+        reacs, prods = [], []
+
         for i, reac_smiles in enumerate(reacs_smiles.split('.')):
             reac = Reactant(smiles=reac_smiles)
             reac.name = f'r{i}_{reac.formula}'
-            self.reacs.append(reac)
+            reacs.append(reac)
 
         for i, prod_smiles in enumerate(prods_smiles.split('.')):
             prod = Product(smiles=prod_smiles)
             prod.name = f'p{i}_{prod.formula}'
-            self.prods.append(prod)
+            prods.append(prod)
 
-        return None
+        return reacs, prods
 
     def _reasonable_components_with_energy(self):
         """Generator for components of a reaction that have sensible geometries
@@ -175,6 +175,70 @@ class Reaction:
 
         return None
 
+    @property
+    def reacs(self) -> List[Reactant]:
+        """
+        List of reactants which form the reactant complex of this reaction
+
+        Returns:
+            (list(autode.species.Reactant)): Reactants
+
+        Raises:
+            (ValueError): If no reactants are present
+        """
+        if self.reactant is None:
+            logger.warning('Reaction did not have a reactant complex, thus '
+                           'no comprising reactant molecules.')
+            return []
+
+        return [mol for mol in self.reactant.molecules]
+
+    @reacs.setter
+    def reacs(self, reacs_: Collection[Reactant]):
+        """
+        Set the reactants of this reaction by regenerating a reactant complex
+        
+        Arguments:
+            reacs_ (list(autode.species.Reactant)): 
+        """
+        if len(reacs_) == 0:
+            self.reactant = None
+
+        else:
+            self.reactant = ReactantComplex(*reacs_, name=f'{self}_reactant')
+
+    @property
+    def prods(self) -> List[Product]:
+        """
+        List of reactants which form the product complex of this reaction
+
+        Returns:
+            (list(autode.species.Product)): Products
+
+        Raises:
+            (ValueError): If no products are present
+        """
+        if self.product is None:
+            logger.warning('Reaction did not have a product complex, thus '
+                           'no comprising product molecules.')
+            return []
+
+        return [mol for mol in self.product.molecules]
+
+    @prods.setter
+    def prods(self, prods_: Collection[Product]):
+        """
+        Set the products of this reaction by regenerating a product complex
+
+        Arguments:
+            prods_ (list(autode.species.Product)): 
+        """
+        if len(prods_) == 0:
+            self.reactant = None
+
+        else:
+            self.reactant = ProductComplex(*prods_, name=f'{self}_reactant')
+
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
         and products and classify as dissociation. Likewise for reactions wher
@@ -182,7 +246,6 @@ class Reaction:
         """
         logger.info('Swapping reactants and products')
 
-        self.prods, self.reacs = self.reacs, self.prods
         self.product, self.reactant = self.reactant, self.product
         return None
 
@@ -282,21 +345,11 @@ class Reaction:
         return None
 
     @work_in('complexes')
-    def find_complexes(self):
-        self.reactant, self.product = get_complexes(reaction=self)
-        return None
-
-    @work_in('complexes')
     def calculate_complexes(self):
         """Find the lowest energy conformers of reactant and product complexes
         using optimisation and single points"""
         h_method = get_hmethod()
         conf_hmethod = h_method if Config.hmethod_conformers else None
-
-        # Set the 'complexes' comprised of all reactants and products if
-        # they are not currently set
-        if self.reactant is None or self.product is None:
-            self.find_complexes()
 
         for species in [self.reactant, self.product]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)
@@ -306,10 +359,6 @@ class Reaction:
 
     @work_in('transition_states')
     def locate_transition_state(self):
-
-        if self.reactant is None and self.product is None:
-            logger.warning('Reactant & product complexes are None- generating')
-            self.find_complexes()
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
@@ -489,7 +538,6 @@ class Reaction:
         def calculate(reaction):
             reaction.find_lowest_energy_conformers()
             reaction.optimise_reacs_prods()
-            reaction.find_complexes()
             reaction.locate_transition_state()
             reaction.find_lowest_energy_ts_conformer()
             if with_complexes:
@@ -521,7 +569,7 @@ class Reaction:
         reactant
 
         Arguments:
-             args (autode.species.Molecule) or (str): Reactant and Product
+             args (autode.species.Molecule | str): Reactant and Product
                   objects or a SMILES string of the whole reaction
 
             name (str):
@@ -535,17 +583,21 @@ class Reaction:
         logger.info(f'Generating a Reaction object for {name}')
 
         self.name = name
-        self.reacs = [mol for mol in args if isinstance(mol, Reactant)]
-        self.prods = [mol for mol in args if isinstance(mol, Product)]
 
         # If there is only one string argument assume it's a SMILES
         if len(args) == 1 and type(args[0]) is str:
             smiles = args[0]
 
         if smiles is not None:
-            self._init_from_smiles(smiles)
+            reacs, prods = self._reacs_prods_from_smiles(smiles)
 
-        self.reactant, self.product = None, None
+        else:
+            reacs = [mol for mol in args if isinstance(mol, Reactant)]
+            prods = [mol for mol in args if isinstance(mol, Product)]
+
+        self.reactant = ReactantComplex(*reacs)
+        self.product = ProductComplex(*prods)
+
         self.ts, self.tss = None, None
 
         self.type = reaction_types.classify(self.reacs, self.prods)

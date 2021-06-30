@@ -23,6 +23,8 @@ Usability improvements/Changes
 - Removes :code:`CalculationOutput.get_imaginary_freqs()` (now :code:`Species.imaginary_frequencies`) and :code:`CalculationOutput.get_normal_mode_displacements()` (now :code:`Species.normal_mode()`)
 - :code:`Species.imaginary_frequencies` now returns :code:`None` rather than an empty list for a species without any imaginary frequencies, to be consistent with other properties
 - Changes :code:`CalculationOutput.terminated_normally()` to a property (:code:`CalculationOutput.terminated_normally`)
+- Removes :code:`Reaction.find_complexes` in favour of setting the reactant and product complexes in construction
+- Tweaks the default relative tolerance on bonds to account for M-X agostic interactions lengthening bonds
 
 Functionality improvements
 **************************

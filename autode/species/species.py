@@ -47,6 +47,7 @@ class Species(AtomCollection):
         """Base representation of a Species/Molecule/Complex etc."""
 
         string = (f'{prefix}('
+                  f'{self.name}, '
                   f'n_atoms={self.n_atoms}, '
                   f'charge={self.charge}, '
                   f'mult={self.mult})')
