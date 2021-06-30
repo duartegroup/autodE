@@ -44,3 +44,5 @@ tests/data/conformers/.autode_calculations
 autode/ext/*.cpp
 
 autode/ext/cmake-build-debug/
+
+autode/ext/CMakeFiles/

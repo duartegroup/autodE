@@ -35,6 +35,18 @@ trig_h3 = reaction.Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.7908
 
 
 def test_reaction_class():
+
+    h3_reaction = reaction.Reaction(lin_h3, trig_h3)
+    assert h3_reaction.reactant is not None
+
+    # Setting an empty list of reactants should not set aa reactant
+    h3_reaction.reacs = []
+    assert h3_reaction.reactant is None
+
+    # and likewise with products
+    h3_reaction.prods = []
+    assert h3_reaction.product is None
+
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0),
                                                     Atom('H', 0.7, 0.0, 0.0)])

@@ -96,7 +96,8 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
             continue
 
         logger.info('Found a TS guess from a template')
-        if any([reactant.distance(*bond) > dist_thresh for bond in bond_rearr.all]):
+        if any([abs(reactant.distance(*bond) - active_bonds_and_dists_ts[bond])
+                > dist_thresh for bond in bond_rearr.all]):
             logger.info(f'TS template has => 1 active bond distance larger '
                         f'than {dist_thresh}. Passing')
             continue

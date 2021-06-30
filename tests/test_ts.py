@@ -291,3 +291,27 @@ def test_fb_rp_isomorphic():
                                      backwards=reac,
                                      reactant=reac,
                                      product=prod)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_truncation.zip'))
+def test_truncated_ts():
+
+    # Spoof ORCA install
+    Config.ORCA.path = here
+
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
+
+    if os.path.exists('/dev/shm'):
+        Config.ll_tmp_dir = '/dev/shm'
+
+    Config.XTB.path = shutil.which('xtb')
+
+    reaction = Reaction(smiles='CCCCCCF.[Cl-]>>CCCCCCCl.[F-]',
+                        solvent_name='water')
+    reaction.locate_transition_state()
+
+    # locate TS should assign a TS as linking reactants and products, so
+    # checking that the TS exists is sufficient
+    assert reaction.ts is not None
