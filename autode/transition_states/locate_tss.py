@@ -11,6 +11,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
+from autode.utils import work_in
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
 from autode.mol_graphs import reorder_nodes
@@ -187,6 +188,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
     return None
 
 
+@work_in('truncated')
 def get_truncated_ts(reaction, bond_rearr):
     """Get the TS of a truncated reactant and product complex"""
 
