@@ -183,9 +183,6 @@ class Reaction:
 
         Returns:
             (list(autode.species.Reactant)): Reactants
-
-        Raises:
-            (ValueError): If no reactants are present
         """
         if self.reactant is None:
             logger.warning('Reaction did not have a reactant complex, thus '
@@ -216,9 +213,6 @@ class Reaction:
 
         Returns:
             (list(autode.species.Product)): Products
-
-        Raises:
-            (ValueError): If no products are present
         """
         if self.product is None:
             logger.warning('Reaction did not have a product complex, thus '
