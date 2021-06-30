@@ -293,7 +293,8 @@ def test_fb_rp_isomorphic():
                                      product=prod)
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_truncation.zip'))
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_truncation.zip'),
+                              fix_unique=True)
 def test_truncated_ts():
 
     # Spoof ORCA install

@@ -8,7 +8,7 @@ def unzip_dir(zip_path):
     return work_in_zipped_dir(zip_path, chdir=False)
 
 
-def work_in_zipped_dir(zip_path, chdir=True):
+def work_in_zipped_dir(zip_path, chdir=True, fix_unique=False):
     """Extract some data from a compressed folder, change directories to it if
     required, run the function then, if required change directories back out
     and then delete the generated folder"""
@@ -31,6 +31,8 @@ def work_in_zipped_dir(zip_path, chdir=True):
 
             if chdir:
                 os.chdir(dir_path)
+            if fix_unique:
+                os.environ['AUTODE_FIXUNIQUE'] = 'True'
 
             try:
                 result = func(*args, **kwargs)
@@ -38,6 +40,8 @@ def work_in_zipped_dir(zip_path, chdir=True):
             finally:
                 if chdir:
                     os.chdir(here)
+                if fix_unique:
+                    os.environ['AUTODE_FIXUNIQUE'] = 'False'
 
                 shutil.rmtree(dir_path)
 
