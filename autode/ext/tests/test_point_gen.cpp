@@ -1,7 +1,6 @@
 #include "points.h"
 #include <cmath>
 #include <vector>
-#include <iostream>
 #include <catch2/catch.hpp>
 
 using namespace std;
@@ -63,7 +62,9 @@ TEST_CASE("Test periodic point generation in 1D"){
 
 
 double distance(vector<double> point1, vector<double> point2){
-    // Calculate the Euclidean distance
+    /* Calculate the Euclidean distance between two points
+     * NOTE: Does not consider periodic boundary conditions
+    */
 
     double dist_sq = 0.0;
     int dim = point1.size();
@@ -77,22 +78,38 @@ double distance(vector<double> point1, vector<double> point2){
 }
 
 
+TEST_CASE("Test periodic point generation in 2D square"){
+    CubePointGenerator pointGenerator(2,    // 2 points
+                                      2,   // 2D  (cube)
+                                      0.0,   // unit length
+                                      1.0);
+
+
+
+    pointGenerator.run(1E-4, 0.01, 100);
+    auto points = pointGenerator.points;
+
+    // Minimum ∆r between the two points should be 0.707
+    REQUIRE(distance(points[0], points[1]) > 0.6);
+}
+
+
 TEST_CASE("Test periodic point generation in 3D cube"){
-    CubePointGenerator pointGenerator(4,    // 4 points 
-                                      4,    // 3D  (cube)
-                                      0.0,  // unit length
+    CubePointGenerator pointGenerator(4,    // 4 points
+                                      3,   // 3D  (cube)
+                                      0.0,   // unit length
                                       1.0);
 
 
                                
-    pointGenerator.run(1E-3, 0.01, 100);
+    pointGenerator.run(1E-4, 0.01, 100);
     auto points = pointGenerator.points;
 
-    // ∆r between the two points should be 0.5 in a periodic 1D system with length of 1 
+    // Minimum ∆r between two points needs to be at least 0.4, ideally
+    // it would be ~0.7 (perhaps)
     for (int i=0; i < 4; i++){
         for (int j=0; j < i; j++){
-            REQUIRE(distance(points[i], points[j]) == Approx(1.0).epsilon(0.5));
+            REQUIRE(distance(points[i], points[j]) > 0.4);
         }// j
     }// i
 }
-

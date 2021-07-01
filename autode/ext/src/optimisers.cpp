@@ -1,6 +1,6 @@
 #include "optimisers.h"
 #include "utils.h"
-#include <random>
+#include "points.h"
 #include <stdexcept>
 #include <cmath>
 
@@ -295,17 +295,16 @@ namespace autode {
         std::vector<double> min_coords;
         double min_energy = 99999999.9;
 
-        std::random_device rand_device;
-
-        std::uniform_real_distribution<double> unif_distro(-2.5, 2.5);
-        std::default_random_engine rand_generator(rand_device());
-
+        // Generate a set of points in a n-dimensional space, where n is the
+        // number of dihedrals in the system
+        CubePointGenerator generator = CubePointGenerator(max_init_points, molecule._dihedrals.size());
+        generator.run(1E-4, 0.01, 200);
 
         for (int iteration=0; iteration < max_init_points; iteration++){
 
-            for (auto &dihedral : molecule._dihedrals){
-                dihedral.angle = unif_distro(rand_generator);
-                molecule.rotate(dihedral);
+            for (size_t i=0; i < molecule._dihedrals.size(); i++){
+                molecule._dihedrals[i].angle = generator.points[iteration][i];
+                molecule.rotate(molecule._dihedrals[i]);
             }
 
             // Apply a steepest decent minimisation for a few steps

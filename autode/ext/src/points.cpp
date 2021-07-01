@@ -1,5 +1,4 @@
 #include <random>
-#include <iostream>
 #include <cmath>
 #include <stdexcept>
 #include "points.h"
@@ -128,6 +127,7 @@ namespace autode {
         } // k
     }
 
+
     void CubePointGenerator::shift_box_centre(){
         /* Shift the box back such that the center is between min_val, max_val
          * in all dimensions
@@ -138,6 +138,7 @@ namespace autode {
             } // k
         }
     }
+
 
     double CubePointGenerator::norm_squared_delta_point(){
         /*
@@ -151,6 +152,7 @@ namespace autode {
 
         return norm_squared;
     }
+
 
     void CubePointGenerator::set_grad(){
         /* Calculate the gradient with respect to the points

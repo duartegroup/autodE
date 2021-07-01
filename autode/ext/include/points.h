@@ -23,10 +23,10 @@ namespace autode {
             int dim = 0;
             int n = 0;
 
-            double min_val;
-            double max_val;
-            double box_length;
-            double half_box_length;
+            double min_val = 0.0;
+            double max_val = 1.0;
+            double box_length = 1.0;
+            double half_box_length = 0.5;
          
             // Gradient functions
             double norm_grad();
