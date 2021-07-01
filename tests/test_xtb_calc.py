@@ -32,6 +32,7 @@ def test_xtb_calculation():
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_xtb.xyz'
     assert calc.output.filename == 'opt_xtb.out'
+    assert calc.optimisation_converged()
 
     with pytest.raises(NotImplementedError):
         calc.optimisation_nearly_converged()
