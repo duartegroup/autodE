@@ -43,7 +43,7 @@ Functionality improvements
 Bug Fixes
 *********
 
-- Some??
+- Skips conformers with no atoms in finding unique conformers
 
 1.0.5
 --------
