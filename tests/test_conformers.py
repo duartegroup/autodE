@@ -4,6 +4,7 @@ from autode.conformers.conformer import Conformer
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import XTB
 from autode.config import Config
+from autode.values import Energy
 from autode.wrappers.keywords import SinglePointKeywords
 from scipy.spatial import distance_matrix
 from rdkit import Chem
@@ -72,9 +73,9 @@ def test_rdkit_atoms():
 
 def test_unique_confs():
 
-    conf1 = Conformer()
-    conf2 = Conformer()
-    conf3 = Conformer()
+    conf1 = Conformer(atoms=[Atom('H')])
+    conf2 = Conformer(atoms=[Atom('H')])
+    conf3 = Conformer(atoms=[Atom('H')])
 
     # Set two energies the same and leave one as none..
     conf1.energy = 1
@@ -88,22 +89,22 @@ def test_unique_confs():
 
 def test_unique_confs_none():
 
-    conf1 = Conformer()
+    conf1 = Conformer(atoms=[Atom('H')])
     conf1.energy = 0.1
 
     # Conformer with energy just below the threshold
-    conf2 = Conformer()
-    conf2.energy = 0.1 + (0.9 / Constants.ha_to_kJmol)
+    conf2 = Conformer(atoms=[Atom('H')])
+    conf2.energy = 0.19
 
     unique_confs = get_unique_confs(conformers=[conf1, conf2],
-                                    energy_threshold_kj=1)
+                                    energy_threshold=Energy(0.1))
     assert len(unique_confs) == 1
 
     # If the energy is above the threshold there should be two unique
     # conformers
-    conf2.energy += 0.2 / Constants.ha_to_kJmol
+    conf2.energy += 0.2
     unique_confs = get_unique_confs(conformers=[conf1, conf2],
-                                    energy_threshold_kj=1)
+                                    energy_threshold=Energy(0.1))
     assert len(unique_confs) == 2
 
 
