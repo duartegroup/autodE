@@ -7,7 +7,7 @@ from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.geom import get_points_on_sphere
 from autode.solvent.solvents import get_solvent
-from autode.mol_graphs import union, reorder_nodes
+from autode.mol_graphs import union
 from autode.species.species import Species
 from autode.utils import requires_atoms, work_in
 from autode.config import Config

@@ -1,7 +1,6 @@
 from rdkit import Chem
 from autode.atoms import Atom
 from autode.config import Config
-from autode.constants import Constants
 from autode.geom import calc_heavy_atom_rmsd
 from autode.values import Energy
 from autode.log import logger

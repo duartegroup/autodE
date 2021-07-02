@@ -1,7 +1,5 @@
 import base64
 import hashlib
-from typing import Collection, List
-from copy import deepcopy
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
