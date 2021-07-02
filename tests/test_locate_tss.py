@@ -3,11 +3,11 @@ import pytest
 import autode.exceptions as ex
 from autode.atoms import Atom
 from autode import Reactant, Product, Reaction
-from autode.species.complex import Complex
+from autode.species.complex import ReactantComplex, ProductComplex
 from autode.reactions.reaction_types import Dissociation
 from autode.bond_rearrangement import get_bond_rearrangs, BondRearrangement
 from autode.transition_states.locate_tss import (get_ts,
-                                                 get_ts_guess_function_and_params,
+                                                 ts_guess_funcs_prms,
                                                  find_tss)
 
 
@@ -35,8 +35,8 @@ def test_one_to_three_dissociation():
 
     # Ensure there is at least one bond function that could give the TS
     try:
-        ts_funcs_params = get_ts_guess_function_and_params(reaction,
-                                                           bond_rearrangement)
+        ts_funcs_params = ts_guess_funcs_prms(str(reaction), reactant,
+                                              product, bond_rearrangement)
         assert len(list(ts_funcs_params)) > 0
 
     # Allow this function to be run with no avail EST methods
@@ -48,9 +48,9 @@ def test_more_forming_than_breaking():
 
     h_a = Reactant(atoms=[Atom('H')], name='h_a')
     h_b = Reactant(atoms=[Atom('H')], name='h_b')
-    h2_sep = Complex(h_a, h_b)
+    h2_sep = ReactantComplex(h_a, h_b)
 
-    h2 = Product(atoms=[Atom('H'), Atom('H', x=1)], name='h2')
+    h2 = ProductComplex(Product(atoms=[Atom('H'), Atom('H', x=1)], name='h2'))
 
     rxn = Reaction(h_a, h_b, h2)
     bond_rearr = BondRearrangement(forming_bonds=[(0, 1)],
@@ -61,7 +61,9 @@ def test_more_forming_than_breaking():
     # the reactant currently. Will need more get_ts_guess_function_and_params
     # if this is to be supproted
     with pytest.raises(NotImplementedError):
-        _ = get_ts(reaction=rxn, reactant=h2_sep, bond_rearr=bond_rearr)
+        # name, reactant, product
+        _ = get_ts(name=str(rxn), reactant=h2_sep, product=h2,
+                   bond_rearr=bond_rearr)
 
 
 def test_find_tss_no_products():

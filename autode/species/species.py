@@ -2,7 +2,7 @@ import numpy as np
 import autode.values as val
 from copy import deepcopy
 from datetime import date
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Collection
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
@@ -14,7 +14,7 @@ from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import is_isomorphic
+from autode.mol_graphs import is_isomorphic, reorder_nodes
 from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
@@ -61,6 +61,41 @@ class Species(AtomCollection):
     def copy(self) -> 'Species':
         """Copy this whole species"""
         return deepcopy(self)
+
+    def new(self, name='species') -> 'Species':
+        """
+        A new version of this species, identical properties without any
+        energies/gradients/hessian/conformers
+
+        Keyword Arguments:
+            name (str): Name of the new species
+
+        Returns:
+            (autode.species.Species):
+        """
+        species = Species(name, self.atoms.copy(), self.charge, self.mult)
+        species.graph = self.graph.copy()
+        species.solvent = None if self.solvent is None else self.solvent.copy()
+
+        return species
+
+    @property
+    def charge(self) -> int:
+        """Total charge on this species"""
+        return self._charge
+
+    @charge.setter
+    def charge(self, value) -> None:
+        self._charge = int(value)
+
+    @property
+    def mult(self) -> int:
+        """Total spin multipliity on this species (2S + 1)"""
+        return self._mult
+
+    @mult.setter
+    def mult(self, value) -> None:
+        self._mult = int(value)
 
     @AtomCollection.atoms.setter
     def atoms(self,
@@ -492,6 +527,42 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms
+    def reorder_atoms(self, mapping: dict) -> None:
+        """
+        Reorder the atoms in this species (in place) using a mapping. For
+        example, to reorder the atoms in a HF molecule:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> hf = ade.Species(name='HF', charge=0, mult=1,
+            ...                   atoms=[ade.Atom('H'), ade.Atom('F', x=1)])
+            >>> hf.atoms
+            Atoms([Atom(H, 0.0 0.0 0.0), Atom(F, 1.0, 0.0, 0.0)])
+            >>> hf.reorder_atoms(mapping={0: 1, 1: 0})
+
+
+        Arguments:
+            mapping (dict): Dictionary keyed with current atom indexes with
+                            the values as the required indexing
+
+        Raises:
+            (ValueError): If the mapping is invalid
+        """
+        if not (set(mapping.keys()) == set(mapping.values()) == set(list(range(self.n_atoms)))):
+            raise ValueError('Invalid mapping. Must be 1-1 for all atoms')
+
+        self._atoms = Atoms([self.atoms[i] for i in
+                             sorted(mapping, key=mapping.get)])
+
+        if self.graph is None:
+            return  # No need to re-order a graph that is not set
+
+        self.graph = reorder_nodes(graph=self.graph,
+                                   mapping={u: v for v, u in mapping.items()})
+        return
+
+    @requires_atoms
     def is_linear(self,
                   tol:       Optional[float] = None,
                   angle_tol: val.Angle = val.Angle(1.0, units='deg')) -> bool:
@@ -512,7 +583,7 @@ class Species(AtomCollection):
         return self.atoms.are_linear(angle_tol=angle_tol)
 
     @requires_atoms
-    def translate(self, vec: np.ndarray) -> None:
+    def translate(self, vec: Collection[float]) -> None:
         """Translate the molecule by vector
 
         Arguments:
@@ -551,8 +622,8 @@ class Species(AtomCollection):
 
     @requires_atoms
     def print_xyz_file(self,
-                       title_line:     Optional[str] = None,
-                       filename:       Optional[str] = None,
+                       title_line:            Optional[str] = None,
+                       filename:              Optional[str] = None,
                        additional_title_line: Optional[str] = None) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
@@ -808,8 +879,8 @@ class Species(AtomCollection):
 
         self.name = name
 
-        self.charge = int(charge)
-        self.mult = int(mult)
+        self._charge = int(charge)
+        self._mult = int(mult)
 
         self.solvent = get_solvent(solvent_name=solvent_name)
 

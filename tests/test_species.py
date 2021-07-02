@@ -212,6 +212,17 @@ def test_species_solvent():
     assert type(solvated_mol.solvent) == Solvent
 
 
+def test_reorder():
+    hf = Species(name='HF', charge=0, mult=1,
+                 atoms=[Atom('H'), Atom('F', x=1)])
+
+    assert hf.atoms[0].label == 'H' and hf.atoms[1].label == 'F'
+
+    # A simple reorder should swap the atoms
+    hf.reorder_atoms(mapping={0: 1, 1: 0})
+    assert hf.atoms[0].label == 'F' and hf.atoms[1].label == 'H'
+
+
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_species_single_point():
 

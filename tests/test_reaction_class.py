@@ -36,17 +36,6 @@ trig_h3 = reaction.Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.7908
 
 def test_reaction_class():
 
-    h3_reaction = reaction.Reaction(lin_h3, trig_h3)
-    assert h3_reaction.reactant is not None
-
-    # Setting an empty list of reactants should not set aa reactant
-    h3_reaction.reacs = []
-    assert h3_reaction.reactant is None
-
-    # and likewise with products
-    h3_reaction.prods = []
-    assert h3_reaction.product is None
-
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0),
                                                     Atom('H', 0.7, 0.0, 0.0)])
@@ -81,6 +70,24 @@ def test_reaction_class():
     assert h_sub.name == 'reaction'
     assert h_sub.solvent.name == 'water'
     assert h_sub.solvent.smiles == 'O'
+    for mol in h_sub.reacs + h_sub.prods:
+        assert mol.solvent.name == 'water'
+
+
+def test_invalid_with_complexes():
+
+    h3_reaction = reaction.Reaction(lin_h3, trig_h3)
+
+    # Currently free energies with association complexes is not supported
+    with pytest.raises(NotImplementedError):
+        h3_reaction.calculate_reaction_profile(with_complexes=True,
+                                               free_energy=True)
+
+    # Cannot plot a reaction profile with complexes without them existing
+    with pytest.raises(ValueError):
+        h3_reaction._plot_reaction_profile_with_complexes(units=KcalMol,
+                                                          free_energy=False,
+                                                          enthalpy=False)
 
 
 def test_check_rearrangement():

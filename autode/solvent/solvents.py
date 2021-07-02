@@ -1,3 +1,4 @@
+from copy import deepcopy
 from autode.exceptions import SolventNotFound
 
 
@@ -42,6 +43,10 @@ class Solvent:
             return False
 
         return self.name == other.name and self.smiles == other.smiles
+
+    def copy(self):
+        """Return a copy of this solvent"""
+        return deepcopy(self)
 
     def __init__(self, name, smiles, aliases, **kwargs):
         """
