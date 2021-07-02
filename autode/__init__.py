@@ -4,9 +4,7 @@ from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.atoms import Atom
-from autode.species.molecule import Reactant
-from autode.species.molecule import Product
-from autode.species.molecule import Molecule
+from autode.species.molecule import (Reactant,  Product, Molecule, Species)
 from autode.config import Config
 from autode.units import KcalMol
 from autode.units import KjMol
@@ -47,6 +45,7 @@ __all__ = [
     'Reaction',
     'MultiStepReaction',
     'Atom',
+    'Species',
     'Reactant',
     'Product',
     'Molecule',

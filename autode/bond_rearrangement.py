@@ -610,9 +610,9 @@ class BondRearrangement:
         def nl(idx):
 
             try:
-                mol_idxs = next(mol_complex.get_atom_indexes(i)
+                mol_idxs = next(mol_complex.atom_indexes(i)
                                 for i in range(mol_complex.n_molecules)
-                                if idx in mol_complex.get_atom_indexes(i))
+                                if idx in mol_complex.atom_indexes(i))
 
             except StopIteration:
                 raise RuntimeError('Active atom index not found in any '

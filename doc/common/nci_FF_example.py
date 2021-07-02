@@ -99,7 +99,7 @@ if __name__ == '__main__':
     water_dimer = ade.species.NCIComplex(h2o, h2o)
     water_dimer._generate_conformers()
 
-    shift_idxs = water_dimer.get_atom_indexes(mol_index=1)
+    shift_idxs = water_dimer.atom_indexes(mol_index=1)
     fixed_idxs = [i for i in range(water_dimer.n_atoms) if i not in shift_idxs]
 
     for conformer in water_dimer.conformers:

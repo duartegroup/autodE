@@ -90,8 +90,11 @@ class Complex(Species):
         return len(self.molecules)
 
     def get_atom_indexes(self, mol_index):
+    def atom_indexes(self, mol_index):
         """Get the first and last atom indexes of a molecule in a Complex"""
-        assert mol_index < len(self.molecules)
+        if mol_index not in set(range(self.n_molecules)):
+            raise AssertionError(f'Could not get idxs for molecule {mol_index}'
+                                 f'. Not present in this complex')
 
         first_index = sum([mol.n_atoms for mol in self.molecules[:mol_index]])
         last_index = sum([mol.n_atoms for mol in self.molecules[:mol_index + 1]])
@@ -216,7 +219,7 @@ class Complex(Species):
 
         coords = self.coordinates
 
-        mol_indexes = self.get_atom_indexes(mol_index)
+        mol_indexes = self.atom_indexes(mol_index)
         mol_coords = [coords[i] for i in mol_indexes]
         other_coords = [coords[i] for i in range(self.n_atoms)
                         if i not in mol_indexes]
