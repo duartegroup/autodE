@@ -26,6 +26,7 @@ def test_complex_class():
     blank_complex = Complex()
     assert blank_complex.n_molecules == 0
     assert blank_complex.solvent is None
+    assert blank_complex.atoms is None
 
     assert monomer.charge == 0
     assert monomer.mult == 1
@@ -46,6 +47,40 @@ def test_complex_class():
         h2_water = Molecule(name='H2', atoms=[h1, h2], charge=0, mult=1,
                             solvent_name='water')
         _ = Complex(hydrogen, h2_water)
+
+
+def test_complex_class_set():
+
+    h2_complex = Complex(hydrogen, hydrogen, copy=True)
+    assert h2_complex.charge == 0
+    assert h2_complex.mult == 1
+
+    # Where should the charge go?
+    with pytest.raises(Exception):
+        h2_complex.charge = 1
+
+    # same with the spin multiplicity
+    with pytest.raises(Exception):
+        h2_complex.mult = 3
+
+    # and with atoms
+    with pytest.raises(Exception):
+        h2_complex.atoms = None
+
+    # Cannot set the atoms of a (H2)2 complex with a single atom
+    with pytest.raises(Exception):
+        h2_complex.atoms = [Atom('H')]
+
+    with pytest.raises(Exception):
+        h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H')]
+
+    with pytest.raises(Exception):
+        h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H'), Atom('H')]
+
+    # but can with 4 atoms
+    h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H')]
+    assert h2_complex.n_atoms == 4
+    assert h2_complex.n_molecules == 2
 
 
 def test_translation():
@@ -98,7 +133,7 @@ def test_init_geometry():
     assert are_coords_reasonable(coords=Complex(water).coordinates)
 
     water_dimer = Complex(water, water, do_init_translation=True)
-    water_dimer.print_xyz_file(filename='tmp.xyz')
+    # water_dimer.print_xyz_file(filename='tmp.xyz')
     assert are_coords_reasonable(coords=water_dimer.coordinates)
 
 
@@ -133,3 +168,32 @@ def test_conformer_generation2():
 
     dimer._generate_conformers()
     assert len(dimer.conformers) == 6 * 2
+
+
+def test_complex_init():
+
+    h2o = Molecule(name='water',
+                   atoms=[Atom('O'), Atom('H', x=-1), Atom('H', x=1)])
+
+    h2o_dimer = Complex(h2o, h2o, do_init_translation=False, copy=False)
+    assert h2o_dimer.molecules[0] == h2o_dimer.molecules[1]
+
+    h2o.translate([1.0, 0.0, 0.0])
+
+    # Shifting one molecule without a copy should result in both molecules
+    # within the complex being translated, thus the O-O distance being 0
+    assert h2o_dimer.distance(0, 3) == 0.0
+
+    # (check the atoms have moved)
+    assert np.linalg.norm(h2o_dimer.atoms[0].coord) > 0.9
+
+    # but not if the molecules are copied
+    h2o = Molecule(name='water',
+                   atoms=[Atom('O'), Atom('H', x=-1), Atom('H', x=1)])
+    h2o_dimer = Complex(h2o, h2o, do_init_translation=False, copy=True)
+
+    h2o_dimer.translate_mol([1.0, 0.0, 0.0], mol_index=1)
+    assert h2o_dimer.distance(0, 3) > 0.9
+
+    # (original molecule should not have moved
+    assert -1E-4 < np.linalg.norm(h2o.atoms[0].coord) < 1E-4

@@ -1,10 +1,13 @@
 from copy import deepcopy
 import numpy as np
+from typing import Optional, Union, List
+from autode.atoms import Atom, Atoms
 from itertools import product as iterprod
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.geom import get_points_on_sphere
-from autode.mol_graphs import union
+from autode.solvent.solvents import get_solvent
+from autode.mol_graphs import union, reorder_nodes
 from autode.species.species import Species
 from autode.utils import requires_atoms, work_in
 from autode.config import Config
@@ -85,11 +88,112 @@ class Complex(Species):
         return self._repr(prefix='Complex')
 
     @property
-    def n_molecules(self):
+    def n_molecules(self) -> int:
         """Number of molecules in this molecular complex"""
         return len(self.molecules)
 
-    def get_atom_indexes(self, mol_index):
+    @property
+    def charge(self) -> int:
+        """
+        Total charge on the complex
+
+        Returns:
+            (int): units of e
+        """
+        return sum([mol.charge for mol in self.molecules])
+
+    @charge.setter
+    def charge(self, _):
+        raise ValueError('Cannot set the charge of a complex. Ambiguous on '
+                         'which molecule the charge should be. Consider:'
+                         'complex.to_species() then setting the charge')
+
+    @property
+    def mult(self) -> int:
+        """
+        Total spin multiplicity on the complex
+
+        Returns:
+            (int): 2S + 1, where S is the number of unpaired electrons
+        """
+        return sum([m.mult for m in self.molecules]) - (self.n_molecules - 1)
+
+    @mult.setter
+    def mult(self, _):
+        raise ValueError('Cannot set the spin multiplicity of a complex. '
+                         'Ambiguous on which molecule the unpaired electron(s)'
+                         ' are located. Consider: complex.to_species() then '
+                         'setting the mult')
+
+    @property
+    def solvent(self) -> 'autode.solvent.Solvent':
+
+        if not hasattr(self, 'molecules') or self.n_molecules == 0:
+            return None
+
+        return self.molecules[0].solvent
+
+    @solvent.setter
+    def solvent(self, value: Optional['autode.solvent.Solvent']):
+
+        if hasattr(self, 'molecules'):
+            for mol in self.molecules:
+                mol.solvent = value
+
+    @property
+    def atoms(self) -> Optional[Atoms]:
+        """
+        All atoms in this complex, and None if there are no molecules
+
+        Returns:
+            (autode.atoms.Atoms | None)
+        """
+        all_atoms = Atoms()
+
+        for mol in self.molecules:
+            if mol.atoms is not None:
+                all_atoms += mol.atoms
+
+        return all_atoms if len(all_atoms) > 0 else None
+
+    @atoms.setter
+    def atoms(self, value: Union[List[Atom], Atoms, None]):
+        """
+        Set the atoms of this complex
+
+        Arguments:
+            value (list(Atom) | Atoms | None):
+        """
+        if self.n_molecules != 0 and value is None:
+            raise ValueError(f'Could not set the Atoms of {self.n_molecules} '
+                             f'as None.')
+
+        if len(value) != self.n_atoms:
+            raise ValueError(f'Could not set the atoms. Needed '
+                             f'{self.n_atoms} but had {len(value)}')
+
+        for i, mol in enumerate(self.molecules):
+            mol.atoms = Atoms([value[idx] for idx in self.atom_indexes(i)])
+
+    def to_species(self) -> Species:
+        """
+        Convert this complex into a species, will loose the molecular
+        composition
+
+        Returns:
+            (autode.species.Species):
+        """
+        if self.n_molecules == 0 or self.atoms is None:
+            raise ValueError(f'Could not convert {self.name} into a species '
+                             f'had no atoms')
+
+        species = Species(name=self.name, atoms=self.atoms.copy(),
+                          charge=self.charge, mult=self.mult)
+        species.solvent = self.solvent
+        species.graph = self.graph
+
+        return species
+
     def atom_indexes(self, mol_index):
         """Get the first and last atom indexes of a molecule in a Complex"""
         if mol_index not in set(range(self.n_molecules)):
@@ -100,6 +204,15 @@ class Complex(Species):
         last_index = sum([mol.n_atoms for mol in self.molecules[:mol_index + 1]])
 
         return list(range(first_index, last_index))
+
+    def reorder_atoms(self, mapping: dict) -> None:
+        """
+        Reorder the atoms in this complex
+
+        Arguments:
+            mapping (dict):
+        """
+        raise NotImplementedError
 
     def _generate_conformers(self):
         """
@@ -168,13 +281,13 @@ class Complex(Species):
 
         return None
 
-    @requires_atoms
     def translate_mol(self, vec, mol_index):
         """
         Translate a molecule within a complex by a vector
 
         Arguments:
-            vec (np.ndarray): Length 3 vector
+            vec (np.ndarray | list): Length 3 vector
+
             mol_index (int): Index of the molecule to translate. e.g. 2 will
                              translate molecule 1 in the complex
                              they are indexed from 0
@@ -182,34 +295,37 @@ class Complex(Species):
         """
         logger.info(f'Translating molecule {mol_index} by {vec} in {self.name}')
 
-        for atom_index in self.get_atom_indexes(mol_index):
-            self.atoms[atom_index].translate(vec)
+        if mol_index not in set(range(self.n_molecules)):
+            raise AssertionError(f'Could not translate molecule {mol_index} '
+                                 f'not present in this complex')
 
+        self.molecules[mol_index].translate(vec)
         return None
 
-    @requires_atoms
     def rotate_mol(self, axis, theta, mol_index, origin=np.zeros(3)):
         """
         Rotate a molecule within a complex an angle theta about an axis given
         an origin
 
         Arguments:
-            axis (np.ndarray): Length 3 vector
-            theta (float): Length 3 vector
-            origin (np.ndarray): Length 3 vector
+            axis (np.ndarray | list): Length 3 vector
+
+            theta (float | autode.values.Angle):
+
+            origin (np.ndarray | list): Length 3 vector
+
             mol_index (int): Index of the molecule to translate. e.g. 2 will
                             translate molecule 1 in the complex
                              they are indexed from 0
-
         """
         logger.info(f'Rotating molecule {mol_index} by {theta:.4f} radians '
                     f'in {self.name}')
 
-        for atom_index in self.get_atom_indexes(mol_index):
-            self.atoms[atom_index].translate(vec=-origin)
-            self.atoms[atom_index].rotate(axis, theta)
-            self.atoms[atom_index].translate(vec=origin)
+        if mol_index not in set(range(self.n_molecules)):
+            raise AssertionError(f'Could not rotate molecule {mol_index} '
+                                 f'not present in this complex')
 
+        self.molecules[mol_index].rotate(axis, theta, origin)
         return None
 
     @requires_atoms
@@ -246,7 +362,27 @@ class Complex(Species):
                                mol_index=i)
         return None
 
-    def __init__(self, *args, name='complex', do_init_translation=False):
+    def _init_solvent(self, solvent_name):
+        """Initial solvent"""
+
+        if solvent_name is not None:
+            return get_solvent(solvent_name)
+
+        if self.n_molecules > 0:
+            if any(self.molecules[0].solvent != mol.solvent for mol in self.molecules):
+                raise AssertionError('Cannot form a complex with molecules in '
+                                     'different solvents')
+
+            return self.molecules[0].solvent
+
+        return None
+
+    def __init__(self,
+                 *args:                Species,
+                 name:                 str = 'complex',
+                 do_init_translation:  bool = False,
+                 copy:                 bool = True,
+                 solvent_name: Optional[str] = None):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
 
@@ -255,41 +391,36 @@ class Complex(Species):
 
         Keyword Arguments:
             name (str):
+
             do_init_translation (bool): Translate molecules initially such
-                                        that they do not overlap
+                                        that they donot overlap
+
+            copy (bool): Should the molecules be copied into this complex?
+
+            solvent_name (str | None): Name of the solvent, if None then select
+                                       the first solvent from the constituent
+                                       molecules
         """
-        self.molecules = args
-        self.molecule_atom_indexes = []
+        super().__init__(name=name, atoms=None, charge=0, mult=1)
 
-        # Calculate the overall charge and spin multiplicity on the system and
-        # initialise
-        complex_charge = sum([mol.charge for mol in self.molecules])
-        complex_mult = (sum([mol.mult for mol in self.molecules])
-                        - (self.n_molecules - 1))
-
-        complex_atoms = []
-        for mol in self.molecules:
-            if mol.atoms is not None:
-                complex_atoms += deepcopy(mol.atoms)
-
-        super().__init__(name=name,
-                         atoms=complex_atoms,
-                         charge=complex_charge,
-                         mult=complex_mult)
+        self.molecules = [mol.copy() if copy else mol for mol in args]
 
         if do_init_translation:
             self._init_translation()
 
-        solvent = self.molecules[0].solvent if self.n_molecules > 0 else None
-        if not all(mol.solvent == solvent for mol in self.molecules):
-            raise AssertionError('A molecular complex must contain molecules '
-                                 'in the same solvent')
-
-        self.solvent = solvent
+        self.solvent = self._init_solvent(solvent_name)
         self.graph = union(graphs=[mol.graph for mol in self.molecules])
 
 
 class ReactantComplex(Complex):
+
+    def to_product_complex(self):
+        """Return a product complex from this reactant complex"""
+
+        prod_complex = self.copy()
+        prod_complex.__class__ = ProductComplex
+
+        return prod_complex
 
     def __init__(self, *args, name='reac_complex', **kwargs):
         """
@@ -305,6 +436,14 @@ class ReactantComplex(Complex):
 
 
 class ProductComplex(Complex):
+
+    def to_reactant_complex(self):
+        """Return a reactant complex from this product complex"""
+
+        reac_complex = self.copy()
+        reac_complex.__class__ = ReactantComplex
+
+        return reac_complex
 
     def __init__(self, *args, name='prod_complex', **kwargs):
         """
