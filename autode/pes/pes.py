@@ -100,7 +100,7 @@ def get_point_species(point, species, distance_constraints, name, method,
 
     except AtomsNotFound:
         logger.error(f'Optimisation failed for {point}')
-        return species
+        return species.copy()
 
     # If the energy difference is > 1 Hartree then likely something has gone
     # wrong with the EST method we need to be not on the first point to compute

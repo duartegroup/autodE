@@ -20,16 +20,16 @@ import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+h1 = Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
-h2 = reaction.Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
-h2_product = reaction.Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
+h2 = Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
+h2_product = Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
 
-lin_h3 = reaction.Reactant(name='h3_linear', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
+lin_h3 = Reactant(name='h3_linear', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
                                                     Atom('H', -2.13052, 0.18085, 0.00494),
                                                     Atom('H', -1.39867, 1.39880, -0.00676)])
 
-trig_h3 = reaction.Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
+trig_h3 = Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
                                                       Atom('H', -1.65980, 1.15506, 0.61469),
                                                       Atom('H', -1.39867, 1.39880, -0.00676)])
 
@@ -72,6 +72,34 @@ def test_reaction_class():
     assert h_sub.solvent.smiles == 'O'
     for mol in h_sub.reacs + h_sub.prods:
         assert mol.solvent.name == 'water'
+
+
+def test_reactant_product_complexes():
+
+    h2_prod = Product(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
+
+    rxn = reaction.Reaction(h1, h2, h2_prod)
+    assert rxn.reactant.n_molecules == 2
+    assert rxn.reactant.distance(0, 1) > 1
+
+    assert rxn.product.n_molecules == 1
+
+    # If the reactant complex is set then the whole reactant should be that
+    rxn.reactant = ReactantComplex(h1, h1, copy=True, do_init_translation=False)
+    assert -1E-4 < rxn.reactant.distance(0, 1) < 1E-4
+
+    # but cannot be just a reactant
+    with pytest.raises(ValueError):
+        rxn.reactant = h1
+
+    # and similarly with the products
+    with pytest.raises(ValueError):
+        rxn.product = h2
+
+    # but can set the product complex
+    rxn.product = ProductComplex(Product(atoms=[Atom('H'), Atom('H', x=1.0)]),
+                                 name='tmp')
+    assert rxn.product.name == 'tmp'
 
 
 def test_invalid_with_complexes():

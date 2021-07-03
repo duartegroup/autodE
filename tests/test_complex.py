@@ -48,6 +48,11 @@ def test_complex_class():
                             solvent_name='water')
         _ = Complex(hydrogen, h2_water)
 
+    # Test solvent setting
+    dimer_solv = Complex(hydrogen, hydrogen, solvent_name='water')
+    assert dimer_solv.solvent is not None
+    assert dimer_solv.solvent.name == 'water'
+
 
 def test_complex_class_set():
 
@@ -69,6 +74,10 @@ def test_complex_class_set():
     h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H')]
     assert h2_complex.n_atoms == 4
     assert h2_complex.n_molecules == 2
+
+    # Setting no atoms should clear the complex
+    h2_complex.atoms = None
+    assert h2_complex.n_molecules == 0
 
 
 def test_translation():
@@ -95,6 +104,9 @@ def test_translation():
 def test_rotation():
 
     dimer_copy = deepcopy(dimer)
+    with pytest.raises(Exception):
+        dimer_copy.rotate_mol(mol_index=3, axis=[1.0, 1.0, 1.0], theta=0)
+
     dimer_copy.rotate_mol(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi,
                           origin=np.array([0.0, 0.0, 0.0]), mol_index=0)
 
@@ -189,6 +201,9 @@ def test_complex_atom_reorder():
 
     hf_dimer = Complex(Molecule(name='HF', atoms=[Atom('H'), Atom('F', x=1.0)]),
                        Molecule(name='HF', atoms=[Atom('H'), Atom('F', x=1.0)]))
+
+    with pytest.raises(Exception):
+        _ = hf_dimer.atom_indexes(2)  # molecules are indexed from 0
 
     assert [atom.label for atom in hf_dimer.atoms] == ['H', 'F', 'H', 'F']
 

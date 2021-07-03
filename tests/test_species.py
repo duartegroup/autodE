@@ -222,6 +222,10 @@ def test_reorder():
     hf.reorder_atoms(mapping={0: 1, 1: 0})
     assert hf.atoms[0].label == 'F' and hf.atoms[1].label == 'H'
 
+    # Cannot reorder if the atoms if the mapping isn't 1-1
+    with pytest.raises(ValueError):
+        hf.reorder_atoms(mapping={0: 1, 1: 1})
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_species_single_point():

@@ -137,19 +137,16 @@ class Reaction:
             raise UnbalancedReaction('Could not decompose to reacs & prods')
 
         # Add all the reactants and products with interpretable names
-        reacs, prods = [], []
-
         for i, reac_smiles in enumerate(reacs_smiles.split('.')):
             reac = Reactant(smiles=reac_smiles)
             reac.name = f'r{i}_{reac.formula}'
-            reacs.append(reac)
+            self.reacs.append(reac)
 
         for i, prod_smiles in enumerate(prods_smiles.split('.')):
             prod = Product(smiles=prod_smiles)
             prod.name = f'p{i}_{prod.formula}'
-            prods.append(prod)
+            self.prods.append(prod)
 
-        self.reacs, self.prods = reacs, prods
         return None
 
     def _init_from_molecules(self, molecules):
@@ -190,7 +187,7 @@ class Reaction:
     @property
     def reactant(self) -> ReactantComplex:
         """
-        Reactant complex comprising all the products in this reaction
+        Reactant complex comprising all the reactants in this reaction
 
         Returns:
             (autode.species.ReactantComplex): Reactant complex
@@ -201,6 +198,21 @@ class Reaction:
         return ReactantComplex(*self.reacs,
                                name=f'{self}_reactant',
                                do_init_translation=True)
+
+    @reactant.setter
+    def reactant(self, value: ReactantComplex):
+        """
+        Set the reactant of this reaction. If unset then will use a generated
+        complex of all reactants
+
+        Arguments:
+            value (autode.species.ReactantComplex):
+        """
+        if not isinstance(value, ReactantComplex):
+            raise ValueError(f'Could not set the reactant of {self.name} '
+                             f'using {type(value)}. Must be a ReactantComplex')
+
+        self._reactant_complex = value
 
     @property
     def product(self) -> ProductComplex:
@@ -216,6 +228,21 @@ class Reaction:
         return ProductComplex(*self.prods,
                               name=f'{self}_product',
                               do_init_translation=True)
+
+    @product.setter
+    def product(self, value: ProductComplex):
+        """
+        Set the product of this reaction. If unset then will use a generated
+        complex of all products
+
+        Arguments:
+            value (autode.species.ProductComplex):
+        """
+        if not isinstance(value, ProductComplex):
+            raise ValueError(f'Could not set the product of {self.name} '
+                             f'using {type(value)}. Must be a ProductComplex')
+
+        self._product_complex = value
 
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
@@ -572,7 +599,7 @@ class Reaction:
         logger.info(f'Generating a Reaction for {name}')
 
         self.name = name
-        self.reacs,  self.prods = None, None
+        self.reacs,  self.prods = [], []
         self._reactant_complex, self._product_complex = None, None
         self.ts, self.tss = None, None
 
