@@ -3,6 +3,7 @@ from autode.config import Config
 from autode.species.molecule import Molecule
 from autode.geom import are_coords_reasonable
 from autode.atoms import Atom
+from autode.values import Distance
 import numpy as np
 from copy import deepcopy
 import pytest
@@ -71,9 +72,10 @@ def test_complex_class_set():
         h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H'), Atom('H')]
 
     # but can with 4 atoms
-    h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H')]
+    h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H', x=10.0)]
     assert h2_complex.n_atoms == 4
     assert h2_complex.n_molecules == 2
+    assert h2_complex.distance(0, 3) == Distance(10.0, units='ang')
 
     # Setting no atoms should clear the complex
     h2_complex.atoms = None

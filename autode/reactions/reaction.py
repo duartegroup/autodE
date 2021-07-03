@@ -166,7 +166,7 @@ class Reaction:
 
         for mol in (self.reacs
                     + self.prods
-                    + [self.ts, self.reactant, self.product]):
+                    + [self.ts, self._reactant_complex, self._product_complex]):
 
             if mol is None:
                 logger.warning('mol=None')
@@ -368,7 +368,7 @@ class Reaction:
                                                name=f'{self}_product',
                                                do_init_translation=True)
 
-        for species in [self.reactant, self.product]:
+        for species in [self._reactant_complex, self._product_complex]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)
             species.optimise(method=h_method)
 
@@ -499,8 +499,7 @@ class Reaction:
         """Plot a reaction profile with the association complexes of R, P"""
         rxns = []
 
-        if any(mol.energy is None for mol in (self.reactant,
-                                              self.product)):
+        if any(mol.energy is None for mol in (self.reactant, self.product)):
             raise ValueError('Could not plot a reaction profile with '
                              'association complexes without energies for'
                              'reaction.reactant_complex or product_complex')

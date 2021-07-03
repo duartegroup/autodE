@@ -88,6 +88,7 @@ def get_point_species(point, species, distance_constraints, name, method,
     """
     logger.info(f'Calculating point {point} on PES surface')
 
+    original_species = species.copy()
     p_species = species.new_species(name=f'{name}_scan_{"-".join([str(p) for p in point])}')
 
     # Set up and run the calculation
@@ -100,7 +101,7 @@ def get_point_species(point, species, distance_constraints, name, method,
 
     except AtomsNotFound:
         logger.error(f'Optimisation failed for {point}')
-        return species.copy()
+        return original_species
 
     # If the energy difference is > 1 Hartree then likely something has gone
     # wrong with the EST method we need to be not on the first point to compute
@@ -109,7 +110,7 @@ def get_point_species(point, species, distance_constraints, name, method,
         if species.energy is None or np.abs(species.energy - p_species.energy) > energy_threshold:
             logger.error(f'PES point had a relative energy '
                          f'> {energy_threshold} Ha. Using the closest')
-            return species
+            return original_species
 
     return p_species
 
