@@ -102,7 +102,7 @@ class Complex(Species):
 
         logger.warning(f'Modifying the atoms of {self.name} - assuming the '
                        f'same molecular composition')
-        return Species.atoms.setter(value)
+        return super(Species, type(self)).atoms.fset(self, value)
 
     @property
     def n_molecules(self) -> int:
