@@ -226,7 +226,7 @@ def get_truncated_species(species, bond_rearrangement):
     """
 
     active_atoms = bond_rearrangement.active_atoms
-    t_species = species.copy()
+    t_species = species.new_species(name=f'{species.name}_truncated')
 
     logger.info(f'Truncating {species.name} with {species.n_atoms} atoms '
                 f'around core atoms: {active_atoms}')
@@ -268,8 +268,6 @@ def get_truncated_species(species, bond_rearrangement):
     t_species.graph = nx.relabel_nodes(t_species.graph, mapping=mapping)
 
     logger.info(f'Truncated to {t_species.n_atoms} atoms')
-    t_species.name += '_truncated'
-
     return t_species
 
 

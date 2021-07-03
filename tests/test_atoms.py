@@ -23,6 +23,7 @@ def test_atoms():
     empty_atoms = Atoms()
     assert 'atoms' in repr(empty_atoms).lower()
     assert not empty_atoms.are_linear()
+    assert len(empty_atoms + None) == 0
 
     # Undefined COM with no atoms
     with pytest.raises(ValueError):

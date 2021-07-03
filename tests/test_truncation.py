@@ -125,7 +125,7 @@ def test_reactant_complex_truncation():
     methane_dimer = ReactantComplex(methane, methane)
 
     # Should not truncate methane dimer at all
-    truncated = get_truncated_species(methane_dimer.to_species(), bond_rearr)
+    truncated = get_truncated_species(methane_dimer, bond_rearr)
     assert truncated.n_atoms == 10
 
 
@@ -137,7 +137,7 @@ def test_product_complex_truncation():
     methane_ethene = ReactantComplex(methane, ethene, name='product_complex')
 
     # Should retain all atoms
-    truncated = get_truncated_species(methane_ethene.to_species(), bond_rearr)
+    truncated = get_truncated_species(methane_ethene, bond_rearr)
     assert truncated.n_atoms == 11
 
 
@@ -148,7 +148,7 @@ def test_enone_truncation():
 
     bond_rearr = BondRearrangement(breaking_bonds=[(2, 11)],
                                    forming_bonds=[(11, 5)])
-    truncated = get_truncated_species(reactant.to_species(), bond_rearr)
+    truncated = get_truncated_species(reactant, bond_rearr)
     assert truncated.n_atoms == 10
     assert truncated.graph.number_of_edges() == 9
 
@@ -163,7 +163,7 @@ def test_large_truncation():
 
     assert mol.n_atoms == 50
 
-    truncated = get_truncated_species(species=mol.to_species(),
+    truncated = get_truncated_species(species=mol,
                                       bond_rearrangement=bond_rearr)
 
     assert truncated.n_atoms == 27
@@ -180,7 +180,7 @@ def test_two_component_truncation():
     bond_rearr = BondRearrangement(forming_bonds=[(0, 3)],
                                    breaking_bonds=[(3, 4)])
 
-    truncated = get_truncated_species(species=mol.to_species(),
+    truncated = get_truncated_species(species=mol,
                                       bond_rearrangement=bond_rearr)
 
     # Should truncate to ethylbromide + Cl-

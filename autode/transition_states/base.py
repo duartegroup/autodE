@@ -227,8 +227,12 @@ class TSbase(Species, ABC):
                              ' and/or products not set ')
 
         # Generate and optimise conformers with the low level of theory
-        self.reactant.populate_conformers()
-        self.product.populate_conformers()
+        try:
+            self.reactant.populate_conformers()
+            self.product.populate_conformers()
+        except NotImplementedError:
+            logger.error('Could not generate conformers of reactant/product(s)'
+                         ' QRC will run without conformers')
 
         # Get the species by displacing forwards along the mode
         f_mol = displaced_species_along_mode(self,

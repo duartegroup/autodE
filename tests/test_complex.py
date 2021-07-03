@@ -55,26 +55,14 @@ def test_complex_class_set():
     assert h2_complex.charge == 0
     assert h2_complex.mult == 1
 
-    # Where should the charge go?
-    with pytest.raises(Exception):
-        h2_complex.charge = 1
-
-    # same with the spin multiplicity
-    with pytest.raises(Exception):
-        h2_complex.mult = 3
-
-    # and with atoms
-    with pytest.raises(Exception):
-        h2_complex.atoms = None
-
     # Cannot set the atoms of a (H2)2 complex with a single atom
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         h2_complex.atoms = [Atom('H')]
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H')]
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         h2_complex.atoms = [Atom('H'), Atom('H'), Atom('H'), Atom('H'), Atom('H')]
 
     # but can with 4 atoms
@@ -100,7 +88,7 @@ def test_translation():
     assert np.linalg.norm(dimer_copy.atoms[1].coord - np.array([1.0, 0.0, 1.0])) < 1E-9
 
     # Cannot translate molecule index 2 in a complex with only 2 molecules
-    with pytest.raises(AssertionError):
+    with pytest.raises(Exception):
         dimer_copy.translate_mol(vec=np.array([1.0, 0.0, 0.0]), mol_index=2)
 
 
@@ -176,8 +164,6 @@ def test_complex_init():
                    atoms=[Atom('O'), Atom('H', x=-1), Atom('H', x=1)])
 
     h2o_dimer = Complex(h2o, h2o, do_init_translation=False, copy=False)
-    assert h2o_dimer.molecules[0] == h2o_dimer.molecules[1]
-
     h2o.translate([1.0, 0.0, 0.0])
 
     # Shifting one molecule without a copy should result in both molecules
@@ -197,3 +183,15 @@ def test_complex_init():
 
     # (original molecule should not have moved
     assert -1E-4 < np.linalg.norm(h2o.atoms[0].coord) < 1E-4
+
+
+def test_complex_atom_reorder():
+
+    hf_dimer = Complex(Molecule(name='HF', atoms=[Atom('H'), Atom('F', x=1.0)]),
+                       Molecule(name='HF', atoms=[Atom('H'), Atom('F', x=1.0)]))
+
+    assert [atom.label for atom in hf_dimer.atoms] == ['H', 'F', 'H', 'F']
+
+    hf_dimer.reorder_atoms(mapping={0: 1, 1: 0, 2: 2, 3: 3})
+    assert [atom.label for atom in hf_dimer.atoms] == ['F', 'H', 'H', 'F']
+    assert hf_dimer.n_molecules == 2

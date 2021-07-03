@@ -88,7 +88,7 @@ def get_point_species(point, species, distance_constraints, name, method,
     """
     logger.info(f'Calculating point {point} on PES surface')
 
-    p_species = species.new(name=f'{name}_scan_{"-".join([str(p) for p in point])}')
+    p_species = species.new_species(name=f'{name}_scan_{"-".join([str(p) for p in point])}')
 
     # Set up and run the calculation
     const_opt = Calculation(name=p_species.name, molecule=p_species, method=method,

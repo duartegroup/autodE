@@ -102,7 +102,7 @@ class PathPoint:
 
     def copy(self):
         """Return a copy of this point"""
-        return PathPoint(self.species.copy(), deepcopy(self.constraints))
+        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
 
     def __init__(self, species, constraints):
         """

@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
 from autode.atoms import metals
-from autode.species import ReactantComplex, ProductComplex
+from autode.species import Complex
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.truncation import get_truncated_species
 from autode.transition_states.truncation import is_worth_truncating
@@ -19,7 +19,7 @@ from autode.bonds import FormingBond, BreakingBond
 from autode.path.adaptive import get_ts_adaptive_path
 from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
-from autode.substitution import get_substitution_centres
+from autode.substitution import get_substc_and_add_dummy_atoms
 
 
 def find_tss(reaction):
@@ -119,7 +119,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
     place
 
     Arguments:
-        reactant (autode.complex.ReactantComplex):
+        reactant (autode.complex.Complex):
 
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
 
@@ -128,11 +128,12 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
         n_iters (int): Number of iterations of translation/rotation to perform
                        to (hopefully) find the global minima
     """
-    if not hasattr(reactant, 'molecules'):
+
+    if not isinstance(reactant, Complex):
         logger.warning('Cannot rotate/translate component, not a Complex')
         return
 
-    if len(reactant.molecules) < 2:
+    if reactant.n_molecules < 2:
         logger.info('Reactant molecule does not need to be translated or '
                     'rotated')
         return
@@ -141,9 +142,9 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
 
     # This function can add dummy atoms for e.g. SN2' reactions where there
     # is not a A -- C -- Xattern for the substitution centre
-    subst_centres = get_substitution_centres(reactant,
-                                             bond_rearrangement,
-                                             shift_factor=shift_factor)
+    subst_centres = get_substc_and_add_dummy_atoms(reactant,
+                                                    bond_rearrangement,
+                                                    shift_factor=shift_factor)
 
     if all(sc.a_atom in reactant.atom_indexes(mol_index=0)
            for sc in subst_centres):
@@ -178,11 +179,9 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
     reactant.rotate_mol(axis=opt_x[7:10], theta=opt_x[10], mol_index=attacking_mol)
 
     logger.info('                                                 ... done')
-    reactant.print_xyz_file()
 
-    # Remove any dummy atoms that may have been added
-    # in alt_substitution_centres
-    reactant.atoms = [atom for atom in reactant.atoms if atom.label != 'D']
+    reactant.atoms.remove_dummy()
+    reactant.print_xyz_file()
 
     return None
 
@@ -239,13 +238,6 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
     if not is_truncated:
         translate_rotate_reactant(reactant, bond_rearrangement=bond_rearr,
                                   shift_factor=1.5 if reactant.charge == 0 else 2.5)
-
-    # Convert to standard species, once rotated
-    if isinstance(reactant, ReactantComplex):
-        reactant = reactant.to_species()
-
-    if isinstance(product, ProductComplex):
-        product = product.to_species()
 
     # Reorder the atoms in the product complex so they are equivalent to the
     # reactant

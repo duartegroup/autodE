@@ -52,7 +52,7 @@ class SubstitutionCentre:
         self.r0_ac = None
 
 
-def get_substitution_centres(reactant, bond_rearrangement, shift_factor):
+def get_substc_and_add_dummy_atoms(reactant, bond_rearrangement, shift_factor):
     """Get all the substitution centers in a molecule. A substitution centre is
     defined as atom that upon reaction has a bond made and broken
     simultaneously
@@ -67,7 +67,8 @@ def get_substitution_centres(reactant, bond_rearrangement, shift_factor):
                               centre
 
     Returns:
-        (list(autode.substitution.SubstitutionCentre)):
+        (tuple(list(autode.substitution.SubstitutionCentre),
+               autode.complex.ReactantComplex)):
     """
     logger.info('Finding substitution centers in the reactant')
 
@@ -109,9 +110,9 @@ def get_substitution_centres(reactant, bond_rearrangement, shift_factor):
 
         # Once a dummy atom has been found then this function should find the
         # *single* substitution centre
-        return get_substitution_centres(reactant,
-                                        bond_rearrangement,
-                                        shift_factor)
+        return get_substc_and_add_dummy_atoms(reactant,
+                                              bond_rearrangement,
+                                              shift_factor)
 
     if any(atom.label == 'D' for atom in reactant.atoms):
         logger.info('Removing dummy X atom from bond rearrangement')

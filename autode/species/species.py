@@ -62,7 +62,7 @@ class Species(AtomCollection):
         """Copy this whole species"""
         return deepcopy(self)
 
-    def new(self, name='species') -> 'Species':
+    def new_species(self, name='species') -> 'Species':
         """
         A new version of this species, identical properties without any
         energies/gradients/hessian/conformers
@@ -73,8 +73,8 @@ class Species(AtomCollection):
         Returns:
             (autode.species.Species):
         """
-        species = Species(name, self.atoms.copy(), self.charge, self.mult)
-        species.graph = self.graph.copy()
+        species = Species(name, deepcopy(self.atoms), self.charge, self.mult)
+        species.graph = None if self.graph is None else self.graph.copy()
         species.solvent = None if self.solvent is None else self.solvent.copy()
 
         return species
