@@ -153,8 +153,11 @@ class TSguess(TSbase):
 
         # Run a low level constrained optimisation first to prevent slow
         # high-level optimisation for a TS that is far from the current
-        # geometry
+        # geometry. If XTB then use a small-ish force constant
         l_method = get_lmethod()
+        if l_method.name == 'xtb':
+            l_method.force_constant = 0.1
+
         ll_const_opt = Calculation(name=f'{name}_constrained_opt_ll',
                                    molecule=self,
                                    method=l_method,

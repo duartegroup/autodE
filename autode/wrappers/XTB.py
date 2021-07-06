@@ -11,95 +11,92 @@ from autode.utils import work_in_tmp_dir
 from autode.log import logger
 
 
-def print_distance_constraints(inp_file, molecule, force_constant=20):
-    """Add distance constraints to the input file"""
-
-    if molecule.constraints.distance is None:
-        return
-
-    for (i, j), dist in molecule.constraints.distance.items():
-        # XTB counts from 1 so increment atom ids by 1
-        print(f'$constrain\n'
-              f'force constant={force_constant}\n'
-              f'distance:{i+1}, {j+1}, {dist:.4f}\n$',
-              file=inp_file)
-    return
-
-
-def print_cartesian_constraints(inp_file, molecule, force_constant=20):
-    """Add cartesian constraints to an xtb input file"""
-
-    if molecule.constraints.cartesian is None:
-        return
-
-    constrained_atom_idxs = [i + 1 for i in molecule.constraints.cartesian]
-    list_of_ranges, used_atoms = [], []
-
-    for i in constrained_atom_idxs:
-        atom_range = []
-        if i not in used_atoms:
-            while i in constrained_atom_idxs:
-                used_atoms.append(i)
-                atom_range.append(i)
-                i += 1
-            if len(atom_range) in (1, 2):
-                list_of_ranges += str(atom_range)
-            else:
-                list_of_ranges.append(f'{atom_range[0]}-{atom_range[-1]}')
-
-    print(f'$constrain\n'
-          f'force constant={force_constant}\n'
-          f'atoms: {",".join(list_of_ranges)}\n'
-          f'$', file=inp_file)
-    return
-
-
-def print_point_charge_file(calc):
-    """Generate a point charge file"""
-
-    if calc.input.point_charges is None:
-        return
-
-    with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
-        print(len(calc.input.point_charges), file=pc_file)
-
-        for point_charge in calc.input.point_charges:
-            x, y, z = point_charge.coord
-            charge = point_charge.charge
-            print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
-
-    calc.input.additional_filenames.append(f'{calc.name}_xtb.pc')
-    return
-
-
-def print_xcontrol_file(calc, molecule):
-    """Print an XTB input file with constraints and point charges"""
-
-    xcontrol_filename = f'xcontrol_{calc.name}'
-    with open(xcontrol_filename, 'w') as xcontrol_file:
-
-        print_distance_constraints(xcontrol_file, molecule)
-        print_cartesian_constraints(xcontrol_file, molecule)
-
-        if calc.input.point_charges is not None:
-            print_point_charge_file(calc)
-            print(f'$embedding\n'
-                  f'input={calc.name}_xtb.pc\n'
-                  f'input=orca\n'
-                  f'$end', file=xcontrol_file)
-
-    calc.input.additional_filenames.append(xcontrol_filename)
-    return
-
-
 class XTB(ElectronicStructureMethod):
+
+    def print_distance_constraints(self, inp_file, molecule):
+        """Add distance constraints to the input file"""
+
+        if molecule.constraints.distance is None:
+            return
+
+        for (i, j), dist in molecule.constraints.distance.items():
+            # XTB counts from 1 so increment atom ids by 1
+            print(f'$constrain\n'
+                  f'force constant={self.force_constant}\n'
+                  f'distance:{i+1}, {j+1}, {dist:.4f}\n$',
+                  file=inp_file)
+        return
+
+    def print_cartesian_constraints(self, inp_file, molecule):
+        """Add cartesian constraints to an xtb input file"""
+
+        if molecule.constraints.cartesian is None:
+            return
+
+        constrained_atom_idxs = [i + 1 for i in molecule.constraints.cartesian]
+        list_of_ranges, used_atoms = [], []
+
+        for i in constrained_atom_idxs:
+            atom_range = []
+            if i not in used_atoms:
+                while i in constrained_atom_idxs:
+                    used_atoms.append(i)
+                    atom_range.append(i)
+                    i += 1
+                if len(atom_range) in (1, 2):
+                    list_of_ranges += str(atom_range)
+                else:
+                    list_of_ranges.append(f'{atom_range[0]}-{atom_range[-1]}')
+
+        print(f'$constrain\n'
+              f'force constant={self.force_constant}\n'
+              f'atoms: {",".join(list_of_ranges)}\n'
+              f'$', file=inp_file)
+        return
+
+    @staticmethod
+    def print_point_charge_file(calc):
+        """Generate a point charge file"""
+
+        if calc.input.point_charges is None:
+            return
+
+        with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
+            print(len(calc.input.point_charges), file=pc_file)
+
+            for point_charge in calc.input.point_charges:
+                x, y, z = point_charge.coord
+                charge = point_charge.charge
+                print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
+
+        calc.input.additional_filenames.append(f'{calc.name}_xtb.pc')
+        return
+
+    def print_xcontrol_file(self, calc, molecule):
+        """Print an XTB input file with constraints and point charges"""
+
+        xcontrol_filename = f'xcontrol_{calc.name}'
+        with open(xcontrol_filename, 'w') as xcontrol_file:
+
+            self.print_distance_constraints(xcontrol_file, molecule)
+            self.print_cartesian_constraints(xcontrol_file, molecule)
+
+            if calc.input.point_charges is not None:
+                self.print_point_charge_file(calc)
+                print(f'$embedding\n'
+                      f'input={calc.name}_xtb.pc\n'
+                      f'input=orca\n'
+                      f'$end', file=xcontrol_file)
+
+        calc.input.additional_filenames.append(xcontrol_filename)
+        return
 
     def generate_input(self, calc, molecule):
 
         calc.molecule.print_xyz_file(filename=calc.input.filename)
 
         if molecule.constraints.any() or calc.input.point_charges:
-            print_xcontrol_file(calc, molecule)
+            self.print_xcontrol_file(calc, molecule)
 
         return None
 
@@ -325,10 +322,13 @@ class XTB(ElectronicStructureMethod):
         return np.array(gradients)
 
     def __init__(self):
-        super().__init__(name='xtb', path=Config.XTB.path,
+        super().__init__(name='xtb',
+                         path=Config.XTB.path,
                          keywords_set=Config.XTB.keywords,
                          implicit_solvation_type=Config.XTB.implicit_solvation_type,
                          doi_list=['10.1002/wcms.1493'])
+
+        self.force_constant = Config.XTB.force_constant
 
 
 xtb = XTB()

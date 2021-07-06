@@ -302,6 +302,10 @@ class Config:
         #
         # Only GBSA implemented
         implicit_solvation_type = solv.gbsa
+        #
+        # Force constant used for harmonic restraints in constrained
+        # optimisations (Ha/a0)
+        force_constant = 2
 
     class MOPAC:
         # ---------------------------------------------------------------------
