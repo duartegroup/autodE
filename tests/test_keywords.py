@@ -35,6 +35,7 @@ def test_keywords():
     assert 'sp' in str(SinglePointKeywords(None)).lower()
 
     keywords = Keywords([pbe, def2tzvp, d3bj])
+    assert len(keywords) == 3
     assert keywords.bstring is not None
     assert 'pbe' in keywords.bstring.lower()
     assert 'def2' in keywords.bstring.lower()

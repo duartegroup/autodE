@@ -72,7 +72,6 @@ def reactions_in_args():
         return None
 
     reactions = []
-    args = get_args()
 
     if args.smallorganic or args.all:
         add_smiles_rxns_from_file(os.path.join(data_path, 'ADE_SO.txt'))
@@ -89,7 +88,9 @@ def reactions_in_args():
 
 if __name__ == '__main__':
 
-    out_file = open('autode_benchmark.txt', 'w')
+    args = get_args()
+    out_file = open(f'autode_benchmark_'
+                    f'{"so" if args.smallorganic else "sm"}.txt', 'w')
 
     print(f'Name      v_imag / cm-1    Time / min     Success', file=out_file)
     for reaction in reactions_in_args():

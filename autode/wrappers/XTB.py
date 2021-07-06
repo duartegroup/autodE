@@ -126,10 +126,13 @@ class XTB(ElectronicStructureMethod):
 
         flags = ['--chrg', str(calc.molecule.charge)]
 
-        if isinstance(calc.input.keywords, OptKeywords):
+        if len(calc.input.keywords) != 0:
+            flags += list(calc.input.keywords)
+
+        elif isinstance(calc.input.keywords, OptKeywords):
             flags.append('--opt')
 
-        if isinstance(calc.input.keywords, GradientKeywords):
+        elif isinstance(calc.input.keywords, GradientKeywords):
             flags.append('--grad')
 
         if calc.input.solvent is not None:

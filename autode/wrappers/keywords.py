@@ -265,6 +265,9 @@ class Keywords:
     def __getitem__(self, item):
         return self.keyword_list[item]
 
+    def __len__(self):
+        return len(self.keyword_list)
+
     def __init__(self, keyword_list=None):
         """
         Read only list of keywords
