@@ -1,5 +1,5 @@
 # distutils: language = c++
-# distutils: sources = [autode/ext/src/dihedrals.cpp, autode/ext/src/molecule.cpp, autode/ext/src/optimisers.cpp, autode/ext/src/potentials.cpp, autode/ext/src/utils.cpp]
+# distutils: sources = [autode/ext/src/dihedrals.cpp, autode/ext/src/molecule.cpp, autode/ext/src/optimisers.cpp, autode/ext/src/potentials.cpp, autode/ext/src/utils.cpp, autode/ext/src/points.cpp]
 import numpy as np
 from libcpp.vector cimport vector
 from libcpp cimport bool as bool_t
