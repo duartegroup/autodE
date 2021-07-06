@@ -116,8 +116,8 @@ def test_conf_gen_dist_const(tmpdir):
     # H2 at a bond length (r) of 0.7 Å has a bond
     assert len(hydrogen.graph.edges) == 1
 
-    # H2 at r = 1.5 Å is definitely not bonded
-    atoms = conf_gen.get_simanl_atoms(species=hydrogen, dist_consts={(0, 1): 1.5})
+    # H2 at r = 2 Å is definitely not bonded
+    atoms = conf_gen.get_simanl_atoms(species=hydrogen, dist_consts={(0, 1): 2})
 
     long_hydrogen = Molecule(name='H2', atoms=atoms, charge=0, mult=1)
     assert long_hydrogen.n_atoms == 2
