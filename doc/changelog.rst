@@ -38,7 +38,7 @@ Functionality improvements
 - Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
 - Adds Hessian diagonalisation to obtain normal modes with and without translation and rotation projections for linear and non-linear molecules
 - Adds :code:`Species.weight` and :code:`Species.mass` as equivalent properties for the molecular weight
-
+- Improves dihedral sampling in molecule generation
 
 Bug Fixes
 *********
