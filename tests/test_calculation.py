@@ -1,4 +1,4 @@
-from autode.calculation import Calculation, get_solvent_name
+from autode.calculation import Calculation, get_solvent_name, Constraints
 from autode.solvent.solvents import get_solvent
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
@@ -84,6 +84,16 @@ def test_calc_class():
                         molecule=mol_no_atoms,
                         method=xtb,
                         keywords=xtb.keywords.sp)
+
+
+def test_distance_const_check():
+
+    # Cannot have distance constraints between idential atoms
+    assert len(Constraints(distance={(0, 0): 0.0},
+                           cartesian=None).distance) == 0
+
+    assert len(Constraints(distance={(0, 0): 0.0, (1, 0): 1.0},
+                           cartesian=None).distance) == 1
 
 
 def test_calc_string():

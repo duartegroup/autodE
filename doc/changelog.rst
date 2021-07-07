@@ -57,6 +57,7 @@ Bug Fixes
 
 - Skips conformers with no atoms in finding unique conformers
 - Corrects benchmark TS location for the Grubbs metathesis example, where the reactant complex is bound
+- Fixes possible zero distance constraint for a single atom
 
 1.0.5
 --------
