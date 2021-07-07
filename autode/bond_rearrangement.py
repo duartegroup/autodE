@@ -513,8 +513,8 @@ def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
         # Compare bond_rearrang to all those already considered to be unique,
         for unique_br in unique_brs:
 
-            if (unique_br.get_active_atom_neighbour_lists(mol_complex=mol, depth=depth) ==
-                    br.get_active_atom_neighbour_lists(mol_complex=mol, depth=depth)):
+            if (unique_br.get_active_atom_neighbour_lists(species=mol, depth=depth) ==
+                    br.get_active_atom_neighbour_lists(species=mol, depth=depth)):
                 bond_rearrang_is_unique = False
 
         if bond_rearrang_is_unique:
@@ -594,13 +594,13 @@ class BondRearrangement:
     def __str__(self):
         return '_'.join(f'{bond[0]}-{bond[1]}' for bond in self.all)
 
-    def get_active_atom_neighbour_lists(self, mol_complex, depth):
+    def get_active_atom_neighbour_lists(self, species, depth):
         """
         Get neighbour lists of all the active atoms in the molecule
         (reactant complex)
 
         Arguments:
-            mol_complex (autode.species.Complex):
+            species (autode.species.Species | autode.species.Complex):
             depth (int): Depth of the neighbour list to consider
 
         Returns:
@@ -608,24 +608,22 @@ class BondRearrangement:
         """
 
         def nl(idx):
+            mol_idxs = None
 
             try:
-                mol_idxs = next(mol_complex.atom_indexes(i)
-                                for i in range(mol_complex.n_molecules)
-                                if idx in mol_complex.atom_indexes(i))
+                mol_idxs = next(species.atom_indexes(i)
+                                for i in range(species.n_molecules)
+                                if idx in species.atom_indexes(i))
 
-            except StopIteration:
-                raise RuntimeError('Active atom index not found in any '
-                                   'molecules')
+            except (StopIteration, AttributeError):
+                logger.warning('Active atom index not found in any molecules')
 
-            nl_labels = get_neighbour_list(mol_complex,
+            nl_labels = get_neighbour_list(species,
                                            atom_i=idx,
-                                           index_set=set(mol_idxs))
+                                           index_set=mol_idxs)
             return nl_labels[:depth]
 
-        self.active_atom_nl = [nl(idx) for idx in self.active_atoms]
-
-        return self.active_atom_nl
+        return [nl(idx) for idx in self.active_atoms]
 
     def n_membered_rings(self, mol):
         """
@@ -698,5 +696,4 @@ class BondRearrangement:
         self.fbonds = forming_bonds if forming_bonds is not None else []
         self.bbonds = breaking_bonds if breaking_bonds is not None else []
 
-        self.active_atom_nl = None
         self.all = self.fbonds + self.bbonds

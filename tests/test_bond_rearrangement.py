@@ -158,15 +158,18 @@ def test_bondrearr_class():
                                       Atom('H', 0.0, 0.0, -0.7),
                                       Atom('H', 0.0, 0.0, 0.7)])
     mol_c = ReactantComplex(mol)
-    rearrang.active_atom_nl = None
 
     assert set(rearrang.active_atoms) == {0, 1, 2}
     active_atom_nl = rearrang.get_active_atom_neighbour_lists(mol_c, depth=1)
     assert len(active_atom_nl) == 3
     assert active_atom_nl == [['H'], ['H'], ['H']]
 
+    #
+    assert (rearrang.get_active_atom_neighbour_lists(mol, depth=1)
+            == [['H'], ['H'], ['H']])
+
     # Cannot get neighbour list with atoms not in the complex
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         rearrang = br.BondRearrangement(forming_bonds=[(3, 4)])
         _ = rearrang.get_active_atom_neighbour_lists(mol_c, depth=1)
 

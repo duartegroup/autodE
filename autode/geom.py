@@ -165,6 +165,11 @@ def get_neighbour_list(species, atom_i, index_set):
     Returns:
         (list(int)): list of atom ids in ascending distance away from i
     """
+    if atom_i not in set(range(species.n_atoms)):
+        raise ValueError(f'Cannot get a neighbour list for atom {atom_i} '
+                         f'as it is not in {species.name}, containing '
+                         f'{species.n_atoms} atoms')
+
     coords = species.coordinates
     distance_vector = cdist(np.array([coords[atom_i]]), coords)[0]
 
