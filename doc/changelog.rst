@@ -31,7 +31,7 @@ Usability improvements/Changes
 - Changes :code:`Complex.molecules` to a private attribute as the atoms/energy/gradient is not propagated
 - Allows for :code:`Species.translate()` and :code:`Species.rotate()` to be called using vectors as lists or tuples rather than just numpy arrays
 - Modifies :code:`get_truncated_complex()` to :code:`get_truncated_species()` and changes the return type to a species to reflect a possibly different molecular composition of the complex
-
+- Improves peak checking in adaptive path TS guess generation
 
 Functionality improvements
 **************************

@@ -526,6 +526,10 @@ class Species(AtomCollection):
 
         return None
 
+    def populate_conformers(self, *args, **kwargs):
+        """Populate self.conformers"""
+        return self._generate_conformers(*args, **kwargs)
+
     @requires_atoms
     def reorder_atoms(self, mapping: dict) -> None:
         """

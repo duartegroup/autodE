@@ -185,7 +185,8 @@ class AdaptivePath(Path):
         if not self.contains_peak:
             return False
 
-        if self.products_made(product=self.final_species):
+        idx = self.product_idx(product=self.final_species)
+        if idx is not None and self[idx].energy < self[self.peak_idx].energy:
             logger.info('Products made and have a peak. Assuming suitable!')
             return True
 
