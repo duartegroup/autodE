@@ -96,9 +96,9 @@ class Complex(Species):
             self._molecules = []
 
         elif self.n_atoms != len(value):
-            raise ValueError(f'Cannot atoms in {self.name} with a different '
-                             'number of atoms. Molecular composition must have'
-                             'have changed.')
+            raise ValueError(f'Cannot set atoms in {self.name} with a '
+                             'different number of atoms. Molecular composition'
+                             ' must have changed.')
 
         logger.warning(f'Modifying the atoms of {self.name} - assuming the '
                        f'same molecular composition')
