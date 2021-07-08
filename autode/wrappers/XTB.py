@@ -121,7 +121,8 @@ class XTB(ElectronicStructureMethod):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
 
-        flags = ['--chrg', str(calc.molecule.charge)]
+        flags = ['--chrg', str(calc.molecule.charge),
+                 '--uhf', str(calc.molecule.mult - 1)]
 
         if len(calc.input.keywords) != 0:
             flags += list(calc.input.keywords)

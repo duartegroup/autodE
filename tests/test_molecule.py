@@ -216,3 +216,9 @@ def test_lowest_energy_conformer_set():
 
     # Don't set the lowest energy structure if the graph is not isomorphic
     assert h2.energy == -1.0
+
+
+def test_defined_metal_spin_state():
+
+    mol = Molecule(smiles='[Sc]C', mult=3)
+    assert mol.mult == 3
