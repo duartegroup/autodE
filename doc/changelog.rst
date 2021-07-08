@@ -23,6 +23,15 @@ Usability improvements/Changes
 - Removes :code:`CalculationOutput.get_imaginary_freqs()` (now :code:`Species.imaginary_frequencies`) and :code:`CalculationOutput.get_normal_mode_displacements()` (now :code:`Species.normal_mode()`)
 - :code:`Species.imaginary_frequencies` now returns :code:`None` rather than an empty list for a species without any imaginary frequencies, to be consistent with other properties
 - Changes :code:`CalculationOutput.terminated_normally()` to a property (:code:`CalculationOutput.terminated_normally`)
+- Removes :code:`Reaction.find_complexes` in favour of setting the reactant and product complexes dynamically, unless :code:`Reaction.calculate_complexes` is called to find association complexes
+- Tweaks the default relative tolerance on bonds to account for M-X agostic interactions lengthening bonds
+- Enables :code:`Species.atoms` to be added, even if they are none
+- Improved atom setting of :code:`Complex.atoms`
+- Changes :code:`Complex.get_atom_indexes()` to :code:`Complex.atom_indexes()`
+- Changes :code:`Complex.molecules` to a private attribute as the atoms/energy/gradient is not propagated
+- Allows for :code:`Species.translate()` and :code:`Species.rotate()` to be called using vectors as lists or tuples rather than just numpy arrays
+- Modifies :code:`get_truncated_complex()` to :code:`get_truncated_species()` and changes the return type to a species to reflect a possibly different molecular composition of the complex
+- Improves peak checking in adaptive path TS guess generation
 
 Functionality improvements
 **************************
@@ -36,12 +45,19 @@ Functionality improvements
 - Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
 - Adds Hessian diagonalisation to obtain normal modes with and without translation and rotation projections for linear and non-linear molecules
 - Adds :code:`Species.weight` and :code:`Species.mass` as equivalent properties for the molecular weight
+- Improves dihedral sampling in molecule generation
+- Adds :code:`atoms.remove_dummy()` to remove all dummy atoms from a set
+- Enables different force constants to be used in XTB constrained optimisations (:code:`Config.XTB.force_constant`, which sets :code:`wrappers.XTB.XTB.force_constant`)
+- Adds :code:`Solvent.copy()`
+- Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
 
 
 Bug Fixes
 *********
 
-- Some??
+- Skips conformers with no atoms in finding unique conformers
+- Corrects benchmark TS location for the Grubbs metathesis example, where the reactant complex is bound
+- Fixes possible zero distance constraint for a single atom
 
 1.0.5
 --------

@@ -298,3 +298,16 @@ def test_graph_without_active_edges():
     # Should now have no edges if the one bond was defined as active
     assert graph.number_of_edges() == 0
 
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'complex_geoms.zip'))
+def test_not_isomorphic_metal_complexes():
+
+    ene = Species(name='ene', charge=0, mult=1,
+                  atoms=xyz_file_to_atoms('co_ene.xyz'))
+    mol_graphs.make_graph(ene)
+
+    alkyl = Species(name='akyl', charge=0, mult=1,
+                    atoms=xyz_file_to_atoms('co_akyl.xyz'))
+    mol_graphs.make_graph(alkyl)
+
+    assert not mol_graphs.is_isomorphic(ene.graph, alkyl.graph)

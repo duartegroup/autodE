@@ -1,6 +1,5 @@
 import base64
 import hashlib
-from copy import deepcopy
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
@@ -8,9 +7,8 @@ from autode.transition_states.locate_tss import find_tss
 from autode.exceptions import UnbalancedReaction, SolventsDontMatch
 from autode.log import logger
 from autode.methods import get_hmethod
-from autode.species.complex import get_complexes
-from autode.species.molecule import Product
-from autode.species.molecule import Reactant
+from autode.species.complex import ReactantComplex, ProductComplex
+from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
@@ -55,7 +53,7 @@ class Reaction:
         name = (f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
                 f'{"+".join([p.name for p in self.prods])}')
 
-        if self.solvent is not None:
+        if hasattr(self, 'solvent') and self.solvent is not None:
             name += f'_{self.solvent.name}'
 
         hasher = hashlib.sha1(name.encode()).digest()
@@ -115,7 +113,6 @@ class Reaction:
         if self.solvent is not None:
             logger.info(f'Setting solvent to {self.solvent.name} for all '
                         f'molecules in the reaction')
-
             for mol in self.reacs + self.prods:
                 mol.solvent = self.solvent
 
@@ -152,19 +149,31 @@ class Reaction:
 
         return None
 
+    def _init_from_molecules(self, molecules):
+        """Set the reactants and products from a set of molecules"""
+
+        self.reacs = [mol for mol in molecules
+                      if isinstance(mol, Reactant) or isinstance(mol, ReactantComplex)]
+
+        self.prods = [mol for mol in molecules
+                      if isinstance(mol, Product) or isinstance(mol, ProductComplex)]
+
+        return None
+
     def _reasonable_components_with_energy(self):
         """Generator for components of a reaction that have sensible geometries
         and also energies"""
 
-        reacs_prods = self.reacs + self.prods
-        for mol in reacs_prods + [self.ts, self.reactant, self.product]:
+        for mol in (self.reacs
+                    + self.prods
+                    + [self.ts, self._reactant_complex, self._product_complex]):
 
             if mol is None:
                 logger.warning('mol=None')
                 continue
 
             if mol.energy is None:
-                logger.warning(f'{mol.name} current energy was None')
+                logger.warning(f'{mol.name} energy was None')
                 continue
 
             if not are_coords_reasonable(mol.coordinates):
@@ -175,6 +184,66 @@ class Reaction:
 
         return None
 
+    @property
+    def reactant(self) -> ReactantComplex:
+        """
+        Reactant complex comprising all the reactants in this reaction
+
+        Returns:
+            (autode.species.ReactantComplex): Reactant complex
+        """
+        if self._reactant_complex is not None:
+            return self._reactant_complex
+
+        return ReactantComplex(*self.reacs,
+                               name=f'{self}_reactant',
+                               do_init_translation=True)
+
+    @reactant.setter
+    def reactant(self, value: ReactantComplex):
+        """
+        Set the reactant of this reaction. If unset then will use a generated
+        complex of all reactants
+
+        Arguments:
+            value (autode.species.ReactantComplex):
+        """
+        if not isinstance(value, ReactantComplex):
+            raise ValueError(f'Could not set the reactant of {self.name} '
+                             f'using {type(value)}. Must be a ReactantComplex')
+
+        self._reactant_complex = value
+
+    @property
+    def product(self) -> ProductComplex:
+        """
+        Product complex comprising all the products in this reaction
+
+        Returns:
+            (autode.species.ProductComplex): Product complex
+        """
+        if self._product_complex is not None:
+            return self._product_complex
+
+        return ProductComplex(*self.prods,
+                              name=f'{self}_product',
+                              do_init_translation=True)
+
+    @product.setter
+    def product(self, value: ProductComplex):
+        """
+        Set the product of this reaction. If unset then will use a generated
+        complex of all products
+
+        Arguments:
+            value (autode.species.ProductComplex):
+        """
+        if not isinstance(value, ProductComplex):
+            raise ValueError(f'Could not set the product of {self.name} '
+                             f'using {type(value)}. Must be a ProductComplex')
+
+        self._product_complex = value
+
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
         and products and classify as dissociation. Likewise for reactions wher
@@ -183,7 +252,10 @@ class Reaction:
         logger.info('Swapping reactants and products')
 
         self.prods, self.reacs = self.reacs, self.prods
-        self.product, self.reactant = self.reactant, self.product
+
+        (self._product_complex,
+         self._reactant_complex) = (self._reactant_complex,
+                                    self._product_complex)
         return None
 
     def calc_delta_e(self):
@@ -282,23 +354,21 @@ class Reaction:
         return None
 
     @work_in('complexes')
-    def find_complexes(self):
-        self.reactant, self.product = get_complexes(reaction=self)
-        return None
-
-    @work_in('complexes')
     def calculate_complexes(self):
         """Find the lowest energy conformers of reactant and product complexes
         using optimisation and single points"""
         h_method = get_hmethod()
         conf_hmethod = h_method if Config.hmethod_conformers else None
 
-        # Set the 'complexes' comprised of all reactants and products if
-        # they are not currently set
-        if self.reactant is None or self.product is None:
-            self.find_complexes()
+        self._reactant_complex = ReactantComplex(*self.reacs,
+                                                 name=f'{self}_reactant',
+                                                 do_init_translation=True)
 
-        for species in [self.reactant, self.product]:
+        self._product_complex = ProductComplex(*self.prods,
+                                               name=f'{self}_product',
+                                               do_init_translation=True)
+
+        for species in [self._reactant_complex, self._product_complex]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)
             species.optimise(method=h_method)
 
@@ -306,10 +376,6 @@ class Reaction:
 
     @work_in('transition_states')
     def locate_transition_state(self):
-
-        if self.reactant is None and self.product is None:
-            logger.warning('Reactant & product complexes are None- generating')
-            self.find_complexes()
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
@@ -380,7 +446,7 @@ class Reaction:
             print_energies_to_csv(mol)
 
         # and the reactant and product complexes if they're present
-        for mol in [self.reactant, self.product]:
+        for mol in [self._reactant_complex, self._product_complex]:
             if mol is not None and mol.energy is not None:
                 mol.print_xyz_file()
                 print_energies_to_csv(mol)
@@ -431,41 +497,34 @@ class Reaction:
     def _plot_reaction_profile_with_complexes(self, units, free_energy,
                                               enthalpy):
         """Plot a reaction profile with the association complexes of R, P"""
-        reactions_wc = []
+        rxns = []
 
-        if free_energy or enthalpy:
-            raise NotImplementedError('Significant likelihood of very low'
-                                      ' frequency harmonic modes – G and H not'
-                                      'implemented')
+        if any(mol.energy is None for mol in (self.reactant, self.product)):
+            raise ValueError('Could not plot a reaction profile with '
+                             'association complexes without energies for'
+                             'reaction.reactant_complex or product_complex')
+
         # If the reactant complex contains more than one molecule then
         # make a reaction that is separated reactants -> reactant complex
         if len(self.reacs) > 1:
-            reactant_complex = deepcopy(self.reactant)
-            reactant_complex.__class__ = Product
-            reactions_wc.append(Reaction(*self.reacs, reactant_complex,
-                                         name='reactant_complex'))
+            rxns.append(Reaction(*self.reacs,
+                                 self.reactant.to_product_complex(),
+                                 name='reactant_complex'))
 
         # The elementary reaction is then
         # reactant complex -> product complex
-        reactant_complex = deepcopy(self.reactant)
-        reactant_complex.__class__ = Reactant
-        product_complex = deepcopy(self.product)
-        product_complex.__class__ = Product
-
-        reaction = Reaction(reactant_complex, product_complex)
+        reaction = Reaction(self.reactant, self.product)
         reaction.ts = self.ts
-
-        reactions_wc.append(reaction)
+        rxns.append(reaction)
 
         # As with the product complex add the dissociation of the product
         # complex into it's separated components
         if len(self.prods) > 1:
-            product_complex = deepcopy(self.product)
-            product_complex.__class__ = Reactant
-            reactions_wc.append(Reaction(*self.prods, product_complex,
-                                         name='product_complex'))
+            rxns.append(Reaction(*self.prods,
+                                 self.product.to_reactant_complex(),
+                                 name='product_complex'))
 
-        plot_reaction_profile(reactions=reactions_wc,
+        plot_reaction_profile(reactions=rxns,
                               units=units, name=self.name,
                               free_energy=free_energy,
                               enthalpy=enthalpy)
@@ -485,16 +544,19 @@ class Reaction:
         """
         logger.info('Calculating reaction profile')
 
+        if with_complexes and (free_energy or enthalpy):
+            raise NotImplementedError('Significant likelihood of very low'
+                                      ' frequency harmonic modes – G and H not'
+                                      'implemented')
+
         @work_in(self.name)
         def calculate(reaction):
             reaction.find_lowest_energy_conformers()
             reaction.optimise_reacs_prods()
-            reaction.find_complexes()
             reaction.locate_transition_state()
             reaction.find_lowest_energy_ts_conformer()
             if with_complexes:
                 reaction.calculate_complexes()
-            # Calculate both G and H if either are requested
             if free_energy or enthalpy:
                 reaction.calculate_thermochemical_cont()
             reaction.calculate_single_points()
@@ -521,8 +583,9 @@ class Reaction:
         reactant
 
         Arguments:
-             args (autode.species.Molecule) or (str): Reactant and Product
-                  objects or a SMILES string of the whole reaction
+             args (autode.species.Molecule | autode.species.Complex | str):
+                  Reactant and Product objects or a SMILES string of the whole
+                   reaction
 
             name (str):
 
@@ -532,11 +595,12 @@ class Reaction:
 
             temp (float): Temperature in Kelvin
         """
-        logger.info(f'Generating a Reaction object for {name}')
+        logger.info(f'Generating a Reaction for {name}')
 
         self.name = name
-        self.reacs = [mol for mol in args if isinstance(mol, Reactant)]
-        self.prods = [mol for mol in args if isinstance(mol, Product)]
+        self.reacs,  self.prods = [], []
+        self._reactant_complex, self._product_complex = None, None
+        self.ts, self.tss = None, None
 
         # If there is only one string argument assume it's a SMILES
         if len(args) == 1 and type(args[0]) is str:
@@ -544,9 +608,8 @@ class Reaction:
 
         if smiles is not None:
             self._init_from_smiles(smiles)
-
-        self.reactant, self.product = None, None
-        self.ts, self.tss = None, None
+        else:
+            self._init_from_molecules(molecules=args)
 
         self.type = reaction_types.classify(self.reacs, self.prods)
         self.solvent = get_solvent(solvent_name=solvent_name)

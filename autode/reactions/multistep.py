@@ -34,7 +34,6 @@ class MultiStepReaction:
                     mol.find_lowest_energy_conformer(hmethod=h_method if Config.hmethod_conformers else None)
 
             reaction.optimise_reacs_prods()
-            reaction.find_complexes()
             reaction.locate_transition_state()
             reaction.find_lowest_energy_ts_conformer()
             reaction.calculate_single_points()

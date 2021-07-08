@@ -175,7 +175,7 @@ class TransitionState(TSbase):
 
         # There is more than one imaginary frequency. Will assume that the most
         # negative is the correct mode..
-        for disp_magnitude, ext in zip(([1, -1], ['_dis', '_dis2'])):
+        for disp_magnitude, ext in zip([1, -1], ['_dis', '_dis2']):
             logger.info('Displacing along second imaginary mode to try and '
                         'remove')
 

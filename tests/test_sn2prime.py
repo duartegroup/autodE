@@ -8,9 +8,8 @@ from autode.reactions.reaction_types import Substitution
 from autode.species import Reactant, Product
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.bond_rearrangement import BondRearrangement
-from autode.substitution import get_substitution_centres
+from autode.substitution import get_substc_and_add_dummy_atoms
 from autode.input_output import xyz_file_to_atoms
-from autode.species.complex import get_complexes
 from autode.transition_states.locate_tss import translate_rotate_reactant
 from . import testutils
 import os
@@ -28,7 +27,7 @@ def test_detection():
 
     assert reaction.type == Substitution
 
-    reactant, product = get_complexes(reaction)
+    reactant, product = reaction.reactant, reaction.product
 
     bond_rearrs = get_bond_rearrangs(reactant, product, name='SN2')
 
@@ -47,8 +46,8 @@ def test_subst():
     bond_rearr = BondRearrangement(forming_bonds=[(0, 1)],
                                    breaking_bonds=[(3, 4)])
 
-    subst_centers = get_substitution_centres(reactant, bond_rearr,
-                                             shift_factor=1.0)
+    subst_centers = get_substc_and_add_dummy_atoms(reactant, bond_rearr,
+                                                   shift_factor=1.0)
 
     assert len(subst_centers) == 1
 
@@ -65,7 +64,7 @@ def test_translate_rotate():
                                Reactant(name='alkeneCl',
                                         atoms=xyz_file_to_atoms('alkene.xyz')))
 
-    assert len(reactant.molecules) == 2
+    assert reactant.n_molecules == 2
 
     # Initially the geometry is not sensible
     assert reactant.distance(0, 2) < 1.0
@@ -76,7 +75,6 @@ def test_translate_rotate():
 
     translate_rotate_reactant(reactant, bond_rearr, shift_factor=1.5)
     assert len(reactant.atoms) == 10
-    os.remove('complex.xyz')
 
     # The geometry should now be sensible
     for i in range(1, 10):

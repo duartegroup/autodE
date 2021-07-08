@@ -20,21 +20,22 @@ import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
+h1 = Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
-h2 = reaction.Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
-h2_product = reaction.Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
+h2 = Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
+h2_product = Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)])
 
-lin_h3 = reaction.Reactant(name='h3_linear', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
+lin_h3 = Reactant(name='h3_linear', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
                                                     Atom('H', -2.13052, 0.18085, 0.00494),
                                                     Atom('H', -1.39867, 1.39880, -0.00676)])
 
-trig_h3 = reaction.Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
+trig_h3 = Product(name='h3_trigonal', atoms=[Atom('H', -1.76172, 0.79084, -0.00832),
                                                       Atom('H', -1.65980, 1.15506, 0.61469),
                                                       Atom('H', -1.39867, 1.39880, -0.00676)])
 
 
 def test_reaction_class():
+
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
     hh_product = reaction.Product(name='hh', atoms=[Atom('H', 0.0, 0.0, 0.0),
                                                     Atom('H', 0.7, 0.0, 0.0)])
@@ -69,6 +70,52 @@ def test_reaction_class():
     assert h_sub.name == 'reaction'
     assert h_sub.solvent.name == 'water'
     assert h_sub.solvent.smiles == 'O'
+    for mol in h_sub.reacs + h_sub.prods:
+        assert mol.solvent.name == 'water'
+
+
+def test_reactant_product_complexes():
+
+    h2_prod = Product(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
+
+    rxn = reaction.Reaction(h1, h2, h2_prod)
+    assert rxn.reactant.n_molecules == 2
+    assert rxn.reactant.distance(0, 1) > 1
+
+    assert rxn.product.n_molecules == 1
+
+    # If the reactant complex is set then the whole reactant should be that
+    rxn.reactant = ReactantComplex(h1, h1, copy=True, do_init_translation=False)
+    assert -1E-4 < rxn.reactant.distance(0, 1) < 1E-4
+
+    # but cannot be just a reactant
+    with pytest.raises(ValueError):
+        rxn.reactant = h1
+
+    # and similarly with the products
+    with pytest.raises(ValueError):
+        rxn.product = h2
+
+    # but can set the product complex
+    rxn.product = ProductComplex(Product(atoms=[Atom('H'), Atom('H', x=1.0)]),
+                                 name='tmp')
+    assert rxn.product.name == 'tmp'
+
+
+def test_invalid_with_complexes():
+
+    h3_reaction = reaction.Reaction(lin_h3, trig_h3)
+
+    # Currently free energies with association complexes is not supported
+    with pytest.raises(NotImplementedError):
+        h3_reaction.calculate_reaction_profile(with_complexes=True,
+                                               free_energy=True)
+
+    # Cannot plot a reaction profile with complexes without them existing
+    with pytest.raises(ValueError):
+        h3_reaction._plot_reaction_profile_with_complexes(units=KcalMol,
+                                                          free_energy=False,
+                                                          enthalpy=False)
 
 
 def test_check_rearrangement():
@@ -98,7 +145,6 @@ def test_check_solvent():
 
 
 def test_reaction_identical_reac_prods():
-    os.chdir(os.path.join(here, 'data'))
 
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
                                                       Atom('H', x=1.0)])
@@ -107,10 +153,8 @@ def test_reaction_identical_reac_prods():
 
     h2_reaction = reaction.Reaction(hh_reactant, hh_product)
 
-    h2_reaction.locate_transition_state()
-    assert h2_reaction.ts is None
-
-    os.chdir(here)
+    with pytest.raises(ValueError):
+        h2_reaction.locate_transition_state()
 
 
 def test_swap_reacs_prods():

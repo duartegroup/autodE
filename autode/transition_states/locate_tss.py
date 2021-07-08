@@ -2,8 +2,9 @@ import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
 from autode.atoms import metals
+from autode.species import Complex
 from autode.transition_states.transition_state import TransitionState
-from autode.transition_states.truncation import get_truncated_complex
+from autode.transition_states.truncation import get_truncated_species
 from autode.transition_states.truncation import is_worth_truncating
 from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.bond_rearrangement import get_bond_rearrangs
@@ -11,14 +12,14 @@ from autode.config import Config
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
+from autode.utils import work_in
 from autode.mol_graphs import get_mapping
 from autode.mol_graphs import reac_graph_to_prod_graph
-from autode.mol_graphs import reorder_nodes
 from autode.bonds import FormingBond, BreakingBond
 from autode.path.adaptive import get_ts_adaptive_path
 from autode.mol_graphs import species_are_isomorphic
 from autode.substitution import get_cost_rotate_translate
-from autode.substitution import get_substitution_centres
+from autode.substitution import get_substc_and_add_dummy_atoms
 
 
 def find_tss(reaction):
@@ -36,14 +37,9 @@ def find_tss(reaction):
     logger.info('Finding possible transition states')
     reactant, product = reaction.reactant, reaction.product
 
-    if reactant is None or product is None:
-        raise ValueError('Reaction must have reaction.reactant and'
-                         ' reaction.product set as species')
-
     if species_are_isomorphic(reactant, product):
-        logger.error('Reactant and product complexes are isomorphic. Cannot'
-                     ' find a TS')
-        return None
+        raise ValueError('Reactant and product complexes are isomorphic. '
+                         'Cannot find a TS')
 
     bond_rearrs = get_bond_rearrangs(reactant, product, name=str(reaction))
 
@@ -56,7 +52,7 @@ def find_tss(reaction):
         logger.info(f'Locating transition state using active bonds '
                     f'{bond_rearrangement.all}')
 
-        ts = get_ts(reaction, reactant, bond_rearrangement)
+        ts = get_ts(str(reaction), reactant, product, bond_rearrangement)
 
         if ts is not None:
             tss.append(ts)
@@ -69,20 +65,22 @@ def find_tss(reaction):
     return tss
 
 
-def get_ts_guess_function_and_params(reaction, bond_rearr):
-    """Get the functions (1dscan or 2dscan) and parameters required for the
-    function for a TS scan
+def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
+    """Get the functions and parameters required for the function
 
     Arguments:
-        reaction (autode.reaction.Reaction):
+        name (str): Unique identifier for this reaction
+
+        reactant (autode.species.Species):
+
+        product (autode.species.Species):
+
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Yields:
         (tuple(func, args)):
     """
-    name = str(reaction)
-
-    r, p = reaction.reactant, reaction.product
+    r, p = reactant.copy(), product.copy()  # Reactants/products may be edited
 
     lmethod, hmethod = get_lmethod(), get_hmethod()
 
@@ -96,6 +94,7 @@ def get_ts_guess_function_and_params(reaction, bond_rearr):
 
     # Ideally use a transition state template, then only a single constrained
     # optimisation needs to be run
+
     yield get_template_ts_guess, (r, p, bond_rearr,
                                   f'{name}_template_{bond_rearr}', hmethod)
 
@@ -120,7 +119,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
     place
 
     Arguments:
-        reactant (autode.complex.ReactantComplex):
+        reactant (autode.complex.Complex):
 
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
 
@@ -129,11 +128,12 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
         n_iters (int): Number of iterations of translation/rotation to perform
                        to (hopefully) find the global minima
     """
-    if not hasattr(reactant, 'molecules'):
+
+    if not isinstance(reactant, Complex):
         logger.warning('Cannot rotate/translate component, not a Complex')
         return
 
-    if len(reactant.molecules) < 2:
+    if reactant.n_molecules < 2:
         logger.info('Reactant molecule does not need to be translated or '
                     'rotated')
         return
@@ -142,11 +142,11 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
 
     # This function can add dummy atoms for e.g. SN2' reactions where there
     # is not a A -- C -- Xattern for the substitution centre
-    subst_centres = get_substitution_centres(reactant,
-                                             bond_rearrangement,
-                                             shift_factor=shift_factor)
+    subst_centres = get_substc_and_add_dummy_atoms(reactant,
+                                                    bond_rearrangement,
+                                                    shift_factor=shift_factor)
 
-    if all(sc.a_atom in reactant.get_atom_indexes(mol_index=0)
+    if all(sc.a_atom in reactant.atom_indexes(mol_index=0)
            for sc in subst_centres):
         attacking_mol = 0
     else:
@@ -169,7 +169,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
             min_cost = res.fun
             opt_x = res.x
 
-    # Renable the logger
+    # Re-enable the logger
     logger.disabled = False
     logger.info(f'Minimum cost for translating/rotating is {min_cost:.3f}')
 
@@ -179,31 +179,23 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
     reactant.rotate_mol(axis=opt_x[7:10], theta=opt_x[10], mol_index=attacking_mol)
 
     logger.info('                                                 ... done')
-    reactant.print_xyz_file()
 
-    # Remove any dummy atoms that may have been added
-    # in alt_substitution_centres
-    reactant.atoms = [atom for atom in reactant.atoms if atom.label != 'D']
+    reactant.atoms.remove_dummy()
+    reactant.print_xyz_file()
 
     return None
 
 
-def get_truncated_ts(reaction, bond_rearr):
+@work_in('truncated')
+def get_truncated_ts(name, reactant, product, bond_rearr):
     """Get the TS of a truncated reactant and product complex"""
 
-    # Truncate the reactant and product complex to the core atoms so the full
-    # TS can be template-d
-    f_reactant = reaction.reactant.copy()
-    f_product = reaction.product.copy()
-
-    # Set the truncated reactant and product for this reaction
-    reaction.reactant = get_truncated_complex(f_reactant, bond_rearr)
-    reaction.product = get_truncated_complex(f_product, bond_rearr)
+    trnc_reactant = get_truncated_species(reactant, bond_rearr)
+    trnc_product = get_truncated_species(product, bond_rearr)
 
     # Re-find the bond rearrangements, which should exist
-    reaction.name += '_truncated'
-    bond_rearrangs = get_bond_rearrangs(reaction.reactant, reaction.product,
-                                        name=reaction.name)
+    bond_rearrangs = get_bond_rearrangs(trnc_reactant, trnc_product,
+                                        name=name)
 
     if bond_rearrangs is None:
         logger.error('Truncation generated a complex with 0 rearrangements')
@@ -211,75 +203,35 @@ def get_truncated_ts(reaction, bond_rearr):
 
     # Find all the possible TSs
     for bond_rearr in bond_rearrangs:
-        get_ts(reaction, reaction.reactant, bond_rearr,  is_truncated=True)
-
-    # Reset the reactant, product and name of the full reaction
-    reaction.reactant = f_reactant
-    reaction.product = f_product
-    reaction.name = reaction.name.rstrip('_truncated')
+        get_ts(name, trnc_reactant, trnc_product, bond_rearr,  is_truncated=True)
 
     logger.info('Done with truncation')
-    return None
+    return
 
 
-def reorder_product(reactant, product, bond_rearr):
-    """
-    Reorder the atoms in the product, and its molecular graph to reflect those
-    in the reactant.
-
-    NOTE: This will apply the first valid atom mapping which
-    is closest to the reactant, not necessarily the 'true' mapping
-
-    Arguments:
-        reactant (autode.complex.ReactantComplex):
-
-        product (autode.complex.ProductComplex):
-
-        bond_rearr (autode.bond_rearrangement.BondRearrangement):
-    """
-    reordered_product = product.copy()
-
-    mapping = get_mapping(graph1=reordered_product.graph,
-                          graph2=reac_graph_to_prod_graph(reactant.graph, bond_rearr))
-
-    reordered_product.atoms = [reordered_product.atoms[i] for i in sorted(mapping, key=mapping.get)]
-
-    reordered_product.graph = reorder_nodes(graph=reordered_product.graph,
-                                            mapping={u: v for v, u in mapping.items()})
-    return reordered_product
-
-
-def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
+def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
     """For a bond rearrangement run PES exploration and TS optimisation to
     find a TS
 
     Arguments:
-        reaction (autode.reaction.Reaction):
-        reactant (autode.complex.ReactantComplex):
+        name (str): Unique identifier for this reaction, used for filenames
+
+        reactant (autode.species.ReactantComplex):
+
+        product (autode.species.ProductComplex):
+
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
+
         is_truncated (bool, optional): If the reactant is already truncated
                                        then truncation shouldn't be attempted
                                        and there should be no need to shift
     Returns:
         (autode.transition_states.transition_state.TransitionState): TS
     """
-    if reaction.product is None or reaction.reactant is None:
-        logger.warning('Reaction had no complexes - generating')
-        reaction.find_complexes()
 
     if bond_rearr.n_fbonds > bond_rearr.n_bbonds:
         raise NotImplementedError('Cannot treat more forming than breaking '
                                   'bonds, reverse the reaction(?)')
-
-    # Reorder the atoms in the product complex so they are equivalent to the
-    # reactant
-    try:
-        reaction.product = reorder_product(reactant,
-                                           reaction.product,
-                                           bond_rearr)
-    except NoMapping:
-        logger.warning('Could not find the expected bijection R -> P')
-        return None
 
     # If the reaction is a substitution or elimination then the reactants must
     # be orientated correctly, no need to re-rotate/translate if truncated
@@ -287,13 +239,24 @@ def get_ts(reaction, reactant, bond_rearr, is_truncated=False):
         translate_rotate_reactant(reactant, bond_rearrangement=bond_rearr,
                                   shift_factor=1.5 if reactant.charge == 0 else 2.5)
 
+    # Reorder the atoms in the product complex so they are equivalent to the
+    # reactant
+    try:
+        mapping = get_mapping(graph1=product.graph,
+                              graph2=reac_graph_to_prod_graph(reactant.graph,
+                                                              bond_rearr))
+        product.reorder_atoms(mapping=mapping)
+    except NoMapping:
+        logger.warning('Could not find the expected bijection R -> P')
+        return None
+
     # If specified then strip non-core atoms from the structure
-    if is_worth_truncating(reactant, bond_rearr) and not is_truncated:
-        get_truncated_ts(reaction, bond_rearr)
+    if not is_truncated and is_worth_truncating(reactant, bond_rearr):
+        get_truncated_ts(name, reactant, product, bond_rearr)
 
     # There are multiple methods of finding a transition state. Iterate through
     # from the cheapest -> most expensive
-    for func, params in get_ts_guess_function_and_params(reaction, bond_rearr):
+    for func, params in ts_guess_funcs_prms(name, reactant, product, bond_rearr):
         logger.info(f'Trying to find a TS guess with {func.__name__}')
         ts_guess = func(*params)
 

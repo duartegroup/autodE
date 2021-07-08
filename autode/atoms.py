@@ -378,6 +378,17 @@ class Atoms(list):
         """Representation"""
         return f'Atoms({super().__repr__()})'
 
+    def __add__(self, other):
+        """Add another set of Atoms to this one. Can add None"""
+        if other is None:
+            return self
+
+        return super().__add__(other)
+
+    def __radd__(self, other):
+        """Add another set of Atoms to this one. Can add None"""
+        return self.__add__(other)
+
     def copy(self) -> 'Atoms':
         """
         Copy these atoms, deeply
@@ -386,6 +397,14 @@ class Atoms(list):
              (autode.atoms.Atoms):
         """
         return deepcopy(self)
+
+    def remove_dummy(self) -> None:
+        """Remove all the dummy atoms from this list of atoms"""
+
+        for i, atom in enumerate(self):
+            if isinstance(atom, DummyAtom):
+                del self[i]
+        return
 
     @property
     def coordinates(self) -> Coordinates:

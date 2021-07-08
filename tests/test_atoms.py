@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from autode import atoms
-from autode.atoms import Atom, Atoms
+from autode.atoms import Atom, DummyAtom, Atoms
 from autode.values import Angle, Coordinate, Mass
 
 
@@ -23,6 +23,7 @@ def test_atoms():
     empty_atoms = Atoms()
     assert 'atoms' in repr(empty_atoms).lower()
     assert not empty_atoms.are_linear()
+    assert len(empty_atoms + None) == 0
 
     # Undefined COM with no atoms
     with pytest.raises(ValueError):
@@ -49,6 +50,11 @@ def test_atoms():
     assert 0.5 < ch_atoms.com.x < 1.0
     assert ch_atoms.com.y == 0.0
     assert ch_atoms.com.z == 0.0
+
+    h_and_dummy_atoms = Atoms([Atom('H'), DummyAtom(0, 0, 0)])
+    assert len(h_and_dummy_atoms) == 2
+    h_and_dummy_atoms.remove_dummy()
+    assert len(h_and_dummy_atoms) == 1
 
 
 def test_atom_collection_base():

@@ -607,17 +607,22 @@ class Constraints:
 
         return f'Constraints({string})'
 
-    def _check(self):
-        """ Check the constraints have the expected format"""
-        if self.distance is not None:
-            assert type(self.distance) is dict
-            assert all(len(key) == 2 for key in self.distance.keys())
-            for key, val in self.distance.items():
-                self.distance[key] = float(val)
+    @staticmethod
+    def _init_distance(dist_constraints):
+        """Initialise the distance constraints"""
+        assert type(dist_constraints) is dict
+        distance = {}
 
-        if self.cartesian is not None:
-            assert type(self.cartesian) is list
-            assert all(type(item) is int for item in self.cartesian)
+        for key, val in dist_constraints.items():
+
+            if len(set(key)) != 2:
+                logger.warning('Can only set distance constraints between '
+                               f'two distinct atoms. Had {key} - skipping')
+                continue
+
+            distance[key] = float(val)
+
+        return distance
 
     def any(self):
         """Are there any constraints?"""
@@ -630,7 +635,13 @@ class Constraints:
                              values of the distance in Å or None
             cartesian (any): List of atom indexes or None
         """
-        self.distance = distance
-        self.cartesian = cartesian
 
-        self._check()
+        if distance is None:
+            self.distance = None
+        else:
+            self.distance = self._init_distance(distance)
+
+        if cartesian is None:
+            self.cartesian = None
+        else:
+            self.cartesian = [int(idx) for idx in cartesian]

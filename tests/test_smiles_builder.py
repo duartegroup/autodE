@@ -2,9 +2,9 @@ import pytest
 import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
+from autode.smiles.atom_types import TetrahedralAtom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds, RingBond, SMILESAtom
-from autode.smiles.base import SMILESStereoChem
 from autode.smiles.builder import Builder, Angle, Dihedral
 from autode.exceptions import SMILESBuildFailed
 from autode.mol_graphs import get_mapping
@@ -506,17 +506,6 @@ def test_dihedral_force():
         builder._force_double_bond_stereochem(dihedral=dihedral)
 
 
-def _test_tmp():
-
-    parser.parse(smiles='C1CCCC1')
-    builder.build(parser.atoms, parser.bonds)
-    mol = Molecule(atoms=builder.atoms)
-    mol.print_xyz_file(filename='tmp.xyz')
-    # print(mol.distance(9, 15))
-    #assert built_molecule_is_reasonable(smiles=r'O[C@@H]1[C@H](/C=C\CC/C=C'
-    #                                           r'\C(CC/C(C)=C/[C@H]1C)=O)OC')
-
-
 def test_close_flat_ring():
 
     unclosed_coords = np.array([[ 2.227521, -0.038228, -2.175656],
@@ -615,3 +604,29 @@ def test_ff_dist_matrix():
     # bond with no neighbours on oxygen
     dist_matrix = builder_._ff_distance_matrix()
     assert dist_matrix.shape == (builder_.n_atoms, builder_.n_atoms)
+
+
+def test_difficult_reset_onto():
+
+    points = np.array([[5.32654,   0.20363,  -1.54392],
+                       [6.25674,   0.01882,   0.69857],
+                       [7.37946,   1.18199,  -1.08374]])
+
+    coord = np.array([6.54572,   0.03685,  -0.65653])
+
+    atom = TetrahedralAtom()
+    atom.reset_onto(points=points, coord=coord)
+
+    mol = Molecule(atoms=[Atom('C'), Atom('O'), Atom('C'), Atom('H'), Atom('C')])
+    mol.coordinates = np.array(points.tolist()
+                               + [atom.empty_site() + coord]
+                               + [coord.tolist()])
+
+    assert mol.angle(1, 4, 3).to('deg') > 90
+
+
+def test_max_ring_size():
+
+    parser.parse(smiles='O=C1C2=C(O[Si](C)(C)C)C[C@H](CCCC3)C3=C4C2CC[C@@H]4O1')
+    builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
+    assert builder.max_ring_n == 7

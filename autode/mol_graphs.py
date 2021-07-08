@@ -13,7 +13,7 @@ from autode.log import logger
 
 
 def make_graph(species,
-               rel_tolerance=0.25,
+               rel_tolerance=0.3,
                bond_list=None,
                allow_invalid_valancies=False):
     """
@@ -88,7 +88,6 @@ def make_graph(species,
                 # 1.25x average length add a 'bond'
                 if (dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
                         and (i, j) not in graph.edges):
-
                     graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
@@ -103,8 +102,8 @@ def make_graph(species,
 def get_atom_ids_sorted_type(species):
     """
     Get a list of atom ids sorted by increasing atomic weight, useful for when
-     a molecular graph depends on the order
-    of atoms in what will be considered bonded
+    a molecular graph depends on the order of atoms in what will be considered
+    bonded
 
     Arguments:
         species (autode.species.Species):

@@ -1,4 +1,4 @@
-from autode.transition_states.truncation import get_truncated_complex
+from autode.transition_states.truncation import get_truncated_species
 from autode.bond_rearrangement import BondRearrangement
 from autode.input_output import xyz_file_to_atoms
 from autode.mol_graphs import is_isomorphic
@@ -82,37 +82,37 @@ methlyethylether = Reactant(name='ether', charge=0, mult=1,
 def test_core_strip():
     bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)])
 
-    stripped = get_truncated_complex(methane, bond_rearr)
+    stripped = get_truncated_species(methane, bond_rearr)
     # Should not strip any atoms if the carbon is designated as active
     assert stripped.n_atoms == 5
 
-    stripped = get_truncated_complex(ethene, bond_rearr)
+    stripped = get_truncated_species(ethene, bond_rearr)
     assert stripped.n_atoms == 6
 
     bond_rearr = BondRearrangement(breaking_bonds=[(1, 3)])
     # Propene should strip to ethene if the terminal C=C is the active atom
-    stripped = get_truncated_complex(propene, bond_rearr)
+    stripped = get_truncated_species(propene, bond_rearr)
     assert stripped.n_atoms == 6
     assert is_isomorphic(stripped.graph, ethene.graph)
 
     # But-1-ene should strip to ethene if the terminal C=C is the active atom
-    stripped = get_truncated_complex(but1ene, bond_rearr)
+    stripped = get_truncated_species(but1ene, bond_rearr)
     assert stripped.n_atoms == 6
     assert is_isomorphic(stripped.graph, ethene.graph)
 
     # Benzene shouldn't be truncated at all
-    stripped = get_truncated_complex(benzene, bond_rearr)
+    stripped = get_truncated_species(benzene, bond_rearr)
     assert stripped.n_atoms == 12
 
     bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)])
     # Ethanol with the terminal C as the active atom should not replace the OH
     # with a H
-    stripped = get_truncated_complex(ethanol, bond_rearr)
+    stripped = get_truncated_species(ethanol, bond_rearr)
     assert stripped.n_atoms == 9
 
     # Ether with the terminal C as the active atom should replace the OMe with
     # OH
-    stripped = get_truncated_complex(methlyethylether, bond_rearr)
+    stripped = get_truncated_species(methlyethylether, bond_rearr)
     assert stripped.n_atoms == 9
     assert is_isomorphic(stripped.graph, ethanol.graph)
 
@@ -125,7 +125,7 @@ def test_reactant_complex_truncation():
     methane_dimer = ReactantComplex(methane, methane)
 
     # Should not truncate methane dimer at all
-    truncated = get_truncated_complex(methane_dimer, bond_rearr)
+    truncated = get_truncated_species(methane_dimer, bond_rearr)
     assert truncated.n_atoms == 10
 
 
@@ -137,7 +137,7 @@ def test_product_complex_truncation():
     methane_ethene = ReactantComplex(methane, ethene, name='product_complex')
 
     # Should retain all atoms
-    truncated = get_truncated_complex(methane_ethene, bond_rearr)
+    truncated = get_truncated_species(methane_ethene, bond_rearr)
     assert truncated.n_atoms == 11
 
 
@@ -148,7 +148,7 @@ def test_enone_truncation():
 
     bond_rearr = BondRearrangement(breaking_bonds=[(2, 11)],
                                    forming_bonds=[(11, 5)])
-    truncated = get_truncated_complex(reactant, bond_rearr)
+    truncated = get_truncated_species(reactant, bond_rearr)
     assert truncated.n_atoms == 10
     assert truncated.graph.number_of_edges() == 9
 
@@ -163,7 +163,7 @@ def test_large_truncation():
 
     assert mol.n_atoms == 50
 
-    truncated = get_truncated_complex(r_complex=mol,
+    truncated = get_truncated_species(species=mol,
                                       bond_rearrangement=bond_rearr)
 
     assert truncated.n_atoms == 27
@@ -180,7 +180,7 @@ def test_two_component_truncation():
     bond_rearr = BondRearrangement(forming_bonds=[(0, 3)],
                                    breaking_bonds=[(3, 4)])
 
-    truncated = get_truncated_complex(r_complex=mol,
+    truncated = get_truncated_species(species=mol,
                                       bond_rearrangement=bond_rearr)
 
     # Should truncate to ethylbromide + Cl-

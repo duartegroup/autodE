@@ -1,8 +1,8 @@
 from rdkit import Chem
 from autode.atoms import Atom
 from autode.config import Config
-from autode.constants import Constants
 from autode.geom import calc_heavy_atom_rmsd
+from autode.values import Energy
 from autode.log import logger
 import numpy as np
 
@@ -34,33 +34,31 @@ def atoms_from_rdkit_mol(rdkit_mol_obj, conf_id):
     return mol_file_atoms
 
 
-def get_unique_confs(conformers, energy_threshold_kj=1):
+def get_unique_confs(conformers, energy_threshold=Energy(1, units='kJ mol-1')):
     """
     For a list of conformers return those that are unique based on an energy
     threshold in kJ mol^-1
 
     Arguments:
         conformers (list(autode.conformer.Conformer)):
-        energy_threshold_kj (float): Energy threshold in kJ mol-1
+
+        energy_threshold (autode.values.Energy): Energy threshold
 
     Returns:
         (list(autode.conformers.conformers.Conformer)): List of conformers
     """
-    logger.info(f'Stripping conformers with energy ∆E < {energy_threshold_kj} '
+    logger.info(f'Stripping conformers with energy ∆E < {energy_threshold} '
                 f'kJ mol-1 to others')
 
     n_conformers = len(conformers)
 
-    # Conformer.energy is in Hartrees
-    threshold = energy_threshold_kj / Constants.ha_to_kJmol
-
-    # The first conformer must be unique, if it has an energy
+    threshold = float(energy_threshold.to('Ha'))
     unique_conformers = []
 
     for conformer in conformers:
 
-        if conformer.energy is None:
-            logger.error('Conformer had no energy. Excluding')
+        if conformer.energy is None or conformer.atoms is None:
+            logger.error('Conformer had no energy or no atoms. Excluding')
             continue
 
         # Iterate through all the unique conformers already found and check

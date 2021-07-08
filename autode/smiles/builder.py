@@ -162,7 +162,7 @@ class Builder(AtomCollection):
         """
         logger.info(f'Setting {self.n_atoms} atom types')
 
-        self.rings_idxs = nx.cycle_basis(self.graph)
+        self.rings_idxs = nx.minimum_cycle_basis(self.graph)
         logger.info(f'Have {len(self.rings_idxs)} ring(s)')
 
         for i, atom in enumerate(self.atoms):

@@ -102,7 +102,7 @@ class PathPoint:
 
     def copy(self):
         """Return a copy of this point"""
-        return PathPoint(self.species.copy(), deepcopy(self.constraints))
+        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
 
     def __init__(self, species, constraints):
         """
@@ -185,7 +185,8 @@ class AdaptivePath(Path):
         if not self.contains_peak:
             return False
 
-        if self.products_made(product=self.final_species):
+        idx = self.product_idx(product=self.final_species)
+        if idx is not None and self[idx].energy < self[self.peak_idx].energy:
             logger.info('Products made and have a peak. Assuming suitable!')
             return True
 
