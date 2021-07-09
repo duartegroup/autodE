@@ -58,6 +58,9 @@ Bug Fixes
 - Skips conformers with no atoms in finding unique conformers
 - Corrects benchmark TS location for the Grubbs metathesis example, where the reactant complex is bound
 - Fixes possible zero distance constraint for a single atom
+- Fixes spin state definition for XTB calculations
+- Fixes possible override of a constructor-defined spin state by the SMILES parser
+
 
 1.0.5
 --------
