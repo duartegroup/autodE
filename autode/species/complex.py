@@ -342,6 +342,7 @@ class Complex(Species):
 
 
 class ReactantComplex(Complex):
+    # NOTE: Methods must be identical to ProductComplex
 
     def to_product_complex(self):
         """Return a product complex from this reactant complex"""
@@ -365,6 +366,7 @@ class ReactantComplex(Complex):
 
 
 class ProductComplex(Complex):
+    # NOTE: Methods must be identical to ReactantComplex
 
     def to_reactant_complex(self):
         """Return a reactant complex from this product complex"""
