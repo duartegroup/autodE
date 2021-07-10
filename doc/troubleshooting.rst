@@ -68,8 +68,7 @@ With a path peak
 *******************
 
 If there is a peak then either (1) the TS guess geometry is not close enough to the TS for successful
-optimisation. A somewhat pathological case is loss of CO\ :sub:`2`\ from a carboxyl radical, where a tiny
-step size is needed to traverse the very steep PES. To reduce the step size:
+optimisation. To reduce the step size:
 
 .. code-block:: python
 
@@ -77,5 +76,5 @@ step size is needed to traverse the very steep PES. To reduce the step size:
     >>> Config.min_step_size = 0.02
 
 
-
-
+If you've found an interesting case where a TS cannot be found please do get in touch, we're always on the lookout
+for examples to improve the method!
