@@ -95,6 +95,16 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
             logger.info(f'Excluding {bbonds[1]}')
             bbonds.pop(1)
 
+    if any(bond.dr < 0 for bond in bbonds):
+        logger.info('Found at least one breaking bond where the final distance'
+                    ' is shorter than the initial - removing')
+        """
+        Counterintuitively, this is possible e.g. metallocyclobutate formation
+        from a metalocyclopropane and a alkylidene (due to the way bonds are 
+        defined)
+        """
+        bbonds = [bond for bond in bbonds if bond.dr > 0]
+
     return fbonds + bbonds
 
 
