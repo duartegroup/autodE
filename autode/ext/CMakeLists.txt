@@ -13,11 +13,24 @@ add_library(autode STATIC
             include/utils.h src/utils.cpp
             )
 
-find_package(Catch2 REQUIRED)
-add_executable(test
+Include(FetchContent)
+
+FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG        v2.13.7
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+enable_testing()
+
+add_executable(unit_tests
                tests/test_main.cpp
                tests/test_point_gen.cpp
                tests/test_global_dihedral_min.cpp)
 
-target_link_libraries(test PRIVATE Catch2::Catch2)
-target_link_libraries(test PUBLIC autode)
+target_link_libraries(unit_tests PRIVATE Catch2::Catch2)
+target_link_libraries(unit_tests PUBLIC autode)
+
+add_test(test_all unit_tests)
