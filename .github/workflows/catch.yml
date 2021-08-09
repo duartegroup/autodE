@@ -23,7 +23,9 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: $GITHUB_WORKSPACE/autode/ext/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        # run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        run: echo "here"
+
 
       - name: Build
         working-directory: $GITHUB_WORKSPACE/autode/ext/build
