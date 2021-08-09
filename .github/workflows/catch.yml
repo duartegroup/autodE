@@ -20,7 +20,7 @@ jobs:
       - name: Create Build Environment
         working-directory: $GITHUB_WORKSPACE/autode/ext
         
-        run: cmake -E make_directory build
+        run: ls && mkdir build
 
       - name: Configure CMake
         shell: bash
