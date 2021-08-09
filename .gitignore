@@ -46,3 +46,5 @@ autode/ext/*.cpp
 autode/ext/cmake-build-debug/
 
 autode/ext/CMakeFiles/
+
+autode/ext/cmake-build-debug*/
