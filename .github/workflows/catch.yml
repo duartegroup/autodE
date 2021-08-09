@@ -18,10 +18,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create Build Environment
-        # working-directory: $GITHUB_WORKSPACE/autode/ext
-        
-        # run: ls $GITHUB_WORKSPACE/autode/ext && mkdir build
-        run: ls && ls $GITHUB_WORKSPACE && ls $GITHUB_WORKSPACE/autode && $GITHUB_WORKSPACE/autode/ext
+        run: mkdir $GITHUB_WORKSPACE/autode/ext/build
 
       - name: Configure CMake
         shell: bash
