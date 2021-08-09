@@ -22,17 +22,15 @@ jobs:
 
       - name: Configure CMake
         shell: bash
-        # working-directory: $GITHUB_WORKSPACE/autode/ext/build
-        # run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-        run: ls && cd $GITHUB_WORKSPACE/autode/ext/build && echo "here"
+        run: cd $GITHUB_WORKSPACE/autode/ext/build && cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
 
       - name: Build
         working-directory: $GITHUB_WORKSPACE/autode/ext/build
         shell: bash
-        run: cmake --build . --config $BUILD_TYPE
+        run: cd $GITHUB_WORKSPACE/autode/ext/build && cmake --build . --config $BUILD_TYPE
 
       - name: Test
         working-directory: $GITHUB_WORKSPACE/autode/ext/build
         shell: bash
-        run: ctest -C $BUILD_TYPE --extra-verbose
+        run: cd $GITHUB_WORKSPACE/autode/ext/build && ctest -C $BUILD_TYPE --extra-verbose
