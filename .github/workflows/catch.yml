@@ -11,7 +11,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, macOS-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -19,7 +20,7 @@ jobs:
       - name: Create Build Environment
         # working-directory: ${{runner.workspace}}/autode/ext/
         
-        run: echo $PWD && echo ${{runner.workspace}} && cmake -E make_directory build
+        run: echo $PWD && echo ${{runner.workspace}} && ls ${{runner.workspace}} && cmake -E make_directory build
 
       - name: Configure CMake
         shell: bash
