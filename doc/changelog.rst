@@ -25,7 +25,7 @@ Usability improvements/Changes
 - Changes :code:`CalculationOutput.terminated_normally()` to a property (:code:`CalculationOutput.terminated_normally`)
 - Removes :code:`Reaction.find_complexes` in favour of setting the reactant and product complexes dynamically, unless :code:`Reaction.calculate_complexes` is called to find association complexes
 - Tweaks the default relative tolerance on bonds to account for M-X agostic interactions lengthening bonds
-- Enables :code:`Species.atoms` to be added, even if they are none
+- Enables :code:`Species.atoms` to be added, even if they are `None`
 - Improved atom setting of :code:`Complex.atoms`
 - Changes :code:`Complex.get_atom_indexes()` to :code:`Complex.atom_indexes()`
 - Changes :code:`Complex.molecules` to a private attribute as the atoms/energy/gradient is not propagated
@@ -33,6 +33,7 @@ Usability improvements/Changes
 - Modifies :code:`get_truncated_complex()` to :code:`get_truncated_species()` and changes the return type to a species to reflect a possibly different molecular composition of the complex
 - Improves peak checking in adaptive path TS guess generation
 - Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
+- Raises an exception if a single point energy evaluation fails to execute successfully
 
 
 Functionality improvements

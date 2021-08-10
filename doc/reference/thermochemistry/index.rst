@@ -9,4 +9,3 @@ Thermochemistry
 
    igm
    symmetry
-   reaction_types
