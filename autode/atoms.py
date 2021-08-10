@@ -223,6 +223,82 @@ class Atom:
         """
         return self.weight
 
+    @property
+    def maximal_valance(self) -> int:
+        """
+        The maximum/maximal valance that this atom supports in any charge
+        state (most commonly). i.e. for H the maximal_valance=1. Useful for
+        generating molecular graphs
+
+        Returns:
+            (int): Maximal valance
+        """
+        max_valances = {'H': 1, 'B': 4, 'C': 4, 'N': 4, 'O': 3, 'F': 1,
+                        'Si': 4, 'P': 6, 'S': 6, 'Cl': 4, 'Br': 4, 'I': 6}
+
+        if self.label in max_valances:
+            return max_valances[self.label]
+
+        else:
+            logger.warning(f'Could not find a valid valance for {self}. '
+                           f'Guessing at 6')
+            return 6
+
+    @property
+    def vdw_radius(self) -> Distance:
+        """
+        Van der Waals radius for this atom. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H').vdw_radius
+            Distance(1.1 Å)
+
+        Returns:
+            (autode.values.Distance): Radius
+        """
+
+        if self.label in vdw_radii:
+            radius = vdw_radii[self.label]
+        else:
+            logger.error(f'Couldn\'t find the VdV radii for {self}. '
+                         f'Guessing at 2.3 Å')
+            radius = 2.3
+
+        return Distance(radius, units='ang')
+
+    def is_pi(self, valency: int) -> bool:
+        """
+        Determine if this atom is a 'π-atom' i.e. is unsaturated. Only
+        approximate! Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').is_pi(valency=3)
+            True
+            >>> ade.Atom('H').is_pi(valency=1)
+            False
+
+
+        Arguments:
+            valency (int):
+
+        Returns:
+            (bool):
+        """
+
+        if self.label not in pi_valencies:
+            logger.warning(f'{self} not found in π valency dictionary - '
+                           f'assuming not a π-atom')
+            return False
+
+        if valency in pi_valencies[self.label]:
+            return True
+
+        return False
+
     def translate(self, *args, **kwargs) -> None:
         """
         Translate this atom by a vector. Arguments should be coercible into
@@ -366,9 +442,24 @@ class DummyAtom(Atom):
         """Dummy atoms do not have any weight/mass"""
         return Mass(0.0)
 
+    @property
+    def mass(self) -> Mass:
+        """Dummy atoms do not have any weight/mass"""
+        return Mass(0.0)
+
     def __init__(self, x, y, z):
+        """
+        Dummy atom
+
+        Arguments:
+            x (float): x coordinate in 3D space (Å)
+            y (float): y
+            z (float): z
+        """
+        # Superclass constructor called with a valid element...
         super().__init__('H', x, y, z)
 
+        # then re-assigned
         self.label = 'D'
 
 
@@ -952,60 +1043,3 @@ metals = ['Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 
           'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm',
           'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl',
           'Mc', 'Lv']
-
-
-def get_maximal_valance(atom_label):
-    """Get the maximum valance of an atom
-
-    Arguments:
-        atom_label (str): atom label e.g. C or Pd
-
-    Returns:
-        (int): maximal valence of the atom
-    """
-
-    if atom_label in valid_valances.keys():
-        return valid_valances[atom_label][-1]
-    else:
-        logger.warning(f'Could not find a valid valance for {atom_label}. '
-                       f'Guessing at 6')
-        return 6
-
-
-def get_vdw_radius(atom_label):
-    """Get the van der waal's radius of an atom
-
-    Arguments:
-        atom_label (str): atom label e.g. C or Pd
-
-    Returns:
-        (float): van der waal's radius of the atom
-    """
-    if atom_label in vdw_radii.keys():
-        return vdw_radii[atom_label]
-    else:
-        logger.error(f'Couldn\'t find the VdV radii for {atom_label}. '
-                     f'Guessing at 2.3')
-        return 2.3
-
-
-def is_pi_atom(atom_label, valency):
-    """
-    Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or
-    second row element
-
-    Arguments:
-        atom_label (str):
-        valency (int):
-
-    Returns:
-        (bool)
-    """
-
-    if atom_label not in pi_valencies.keys():
-        return False
-
-    if valency in pi_valencies[atom_label]:
-        return True
-
-    return False

@@ -6,7 +6,7 @@ Changelog
 --------
 ----------
 
-API improvements while broadly maintaining backwards compatibility.
+API improvements that broadly maintain backwards compatibility.
 
 
 Usability improvements/Changes
@@ -32,6 +32,8 @@ Usability improvements/Changes
 - Allows for :code:`Species.translate()` and :code:`Species.rotate()` to be called using vectors as lists or tuples rather than just numpy arrays
 - Modifies :code:`get_truncated_complex()` to :code:`get_truncated_species()` and changes the return type to a species to reflect a possibly different molecular composition of the complex
 - Improves peak checking in adaptive path TS guess generation
+- Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
+
 
 Functionality improvements
 **************************
@@ -51,6 +53,7 @@ Functionality improvements
 - Adds :code:`Solvent.copy()`
 - Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
 - Adds :code:`Config.ORCA.other_input_block` to allow for a block of input to be printed in all ORCA input files
+
 
 Bug Fixes
 *********

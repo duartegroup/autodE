@@ -1,6 +1,5 @@
 import itertools
 import os
-from autode.atoms import get_maximal_valance
 from autode.geom import get_neighbour_list
 from autode.log import logger
 from autode.config import Config
@@ -213,11 +212,10 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     # Check that the bond rearrangement doesn't exceed standard atom valances
     bbond_atoms = [atom for bbond in bbonds for atom in bbond]
     for fbond in fbonds:
-        for atom in fbond:
-            atom_label = reactant.atoms[atom].label
+        for idx in fbond:
 
-            if (reactant.graph.degree(atom) == get_maximal_valance(atom_label)
-                    and atom not in bbond_atoms):
+            if (reactant.graph.degree(idx) == reactant.atoms[idx].maximal_valance
+                    and idx not in bbond_atoms):
                 # If we are here then there is at least one atom that will
                 # exceed it's maximal valance, therefore
                 # we don't need to run isomorphism

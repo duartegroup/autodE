@@ -5,17 +5,29 @@ from autode.atoms import Atom, DummyAtom, Atoms
 from autode.values import Angle, Coordinate, Mass
 
 
-def test_functions():
+def test_valency():
 
-    assert atoms.get_maximal_valance(atom_label='C') == 4
-    assert atoms.get_maximal_valance(atom_label='Aa') == 6
-    assert 11.9 < Atom('C').weight.to('amu') < 12.1
-    assert 0.9 < atoms.get_vdw_radius(atom_label='H') < 1.2
-    assert 2 < atoms.get_vdw_radius(atom_label='Aa') < 3
+    assert Atom('C').maximal_valance == 4
 
-    assert atoms.is_pi_atom(atom_label='C', valency=3) is True
-    assert atoms.is_pi_atom(atom_label='C', valency=4) is False
-    assert atoms.is_pi_atom(atom_label='Aa', valency=9) is False
+    # Default to 6 if the atom does not have a hard-coded maximum valency
+    assert Atom('Sc').maximal_valance == 6
+
+
+def test_vdw_radius():
+
+    assert 0.9 < Atom('H').vdw_radius < 1.2
+
+    # Defaults to ~2.5 Å if the van der Waals radius is unknown
+    assert 2 < Atom('Og').vdw_radius < 3
+
+
+def test_is_pi():
+
+    assert Atom('C').is_pi(valency=3)
+    assert not Atom('H').is_pi(valency=1)
+
+    assert not Atom('C').is_pi(valency=4)
+    assert not Atom('Sc').is_pi(valency=9)
 
 
 def test_atoms():
@@ -165,7 +177,7 @@ def test_atom_collection_dihedral():
         _ = h2o2.dihedral(2, 0, 1, 10)
 
 
-def test_atom():
+def test_atom_h():
 
     h = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.0)
     assert h.label == 'H'
@@ -201,9 +213,12 @@ def test_atom():
     # Ensure that the atoms has a string representation
     assert len(str(h)) > 0
 
+
+def test_atom_other():
     assert Atom('C').atomic_number == 6
     assert Atom('C').period == 2
     assert Atom('C').group == 14
+    assert 11.9 < Atom('C').weight.to('amu') < 12.1
 
     dummy = atoms.DummyAtom(0.0, 0.0, 0.0)
     assert dummy.atomic_number == 0

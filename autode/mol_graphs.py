@@ -6,8 +6,6 @@ import numpy as np
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
-from autode.atoms import get_maximal_valance
-from autode.atoms import is_pi_atom
 from autode.bonds import get_avg_bond_length
 from autode.log import logger
 
@@ -127,12 +125,11 @@ def remove_bonds_invalid_valancies(species):
 
     for i in species.graph.nodes:
 
-        max_valance = get_maximal_valance(atom_label=species.atoms[i].label)
+        max_valance = species.atoms[i].maximal_valance
         neighbours = list(species.graph.neighbors(i))
 
         if len(neighbours) <= max_valance:
-            # All is well
-            continue
+            continue  # All is well
 
         logger.warning(f'Atom {i} exceeds its maximal valence removing edges')
 
@@ -158,8 +155,7 @@ def set_graph_attributes(species):
     logger.info('Setting the π bonds in a species')
 
     def is_idx_pi_atom(idx):
-        return is_pi_atom(atom_label=species.atoms[idx].label,
-                          valency=species.graph.degree[idx])
+        return species.atoms[idx].is_pi(valency=species.graph.degree[idx])
 
     for bond in species.graph.edges:
         atom_i, atom_j = bond
