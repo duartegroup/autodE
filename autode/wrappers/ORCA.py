@@ -88,7 +88,9 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
     if calc_input.solvent is not None:
         add_solvent_keyword(calc_input, new_keywords, implicit_solv_type)
 
-    return new_keywords
+    # Sort the keywords with all the items with newlines at the end, so
+    # the first keyword line is a single contiguous line
+    return sorted(new_keywords, key=lambda kw: 1 if '\n' in kw else 0)
 
 
 def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):
@@ -221,7 +223,8 @@ class ORCA(ElectronicStructureMethod):
             print_added_internals(inp_file, calc.input)
             print_distance_constraints(inp_file, molecule)
             print_cartesian_constraints(inp_file, molecule)
-            print_increased_optimisation_steps(inp_file, molecule, calc.input)
+            if not any('maxiter' in kw.lower() for kw in keywords):
+                print_increased_optimisation_steps(inp_file, molecule, calc.input)
             print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
             if Config.ORCA.other_input_block is not None:

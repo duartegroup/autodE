@@ -166,7 +166,8 @@ class Config:
         path = None
 
         keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj,
-                                        def2svp, 'def2/J'],
+                                        def2svp, 'def2/J',
+                                        '\n%geom MaxIter 10 end'],
                                grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
                                      'def2/J'],
                                opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
@@ -209,7 +210,8 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose',
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp,
+                                        'Opt=(Loose, MaxCycles=10)',
                                         d3bj, grid],
                                grad=[pbe0, def2svp, 'Force(NoStep)',
                                      d3bj, grid],
@@ -263,7 +265,7 @@ class Config:
                            '  xmax 0.01\n'
                            '  xrms 0.007\n'
                            '  eprec 0.00003\n'
-                           '  maxiter 50\n'
+                           '  maxiter 10\n'
                            'end')
 
         opt_block = ('driver\n'

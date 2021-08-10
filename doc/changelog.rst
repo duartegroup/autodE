@@ -54,6 +54,12 @@ Functionality improvements
 - Adds :code:`Solvent.copy()`
 - Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
 - Adds :code:`Config.ORCA.other_input_block` to allow for a block of input to be printed in all ORCA input files
+- Changes the loose optimisations to only use a maximum of 10 iterations. This is based on an analysis of 3500 ORCA optimisations, which plateaus quickly:
+
+.. image:: common/opt_convergence_3500_ORCA.png
+   :width: 500
+
+suggesting a value of 10 is a appropriate. This will be system dependent and need increasing for large/flexible systems.
 
 
 Bug Fixes

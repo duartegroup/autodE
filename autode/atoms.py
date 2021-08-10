@@ -290,7 +290,7 @@ class Atom:
         """
 
         if self.label not in pi_valencies:
-            logger.warning(f'{self} not found in π valency dictionary - '
+            logger.warning(f'{self.label} not found in π valency dictionary - '
                            f'assuming not a π-atom')
             return False
 

@@ -18,8 +18,7 @@ multiprocessing.set_start_method("fork")
 
 if sys.version_info.minor > 7:                                    # Python >3.7
     from functools import cached_property # lgtm[py/unused-import]
-    # LGTM alert is suppressed as this is imported in Python >3.7, but not
-    # under the CI (Python 3.7)
+    # LGTM alert is suppressed as this is imported in Python >3.7
 
 if sys.version_info.minor <= 7:                                   # Python <3.7
     from functools import lru_cache
