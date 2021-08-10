@@ -14,6 +14,7 @@ from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
 from autode import utils
 from . import testutils
+from copy import deepcopy
 import numpy as np
 import pytest
 
@@ -313,6 +314,7 @@ def test_hessian_extraction():
 @utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_other_input_block():
 
+    curr_other_input_block = deepcopy(Config.ORCA.other_input_block)
     Config.ORCA.other_input_block = '%scf\n MaxIter 1500\n end'
     calc = Calculation(name='other_input_block',
                        molecule=test_mol,
@@ -329,3 +331,4 @@ def test_other_input_block():
             break
 
     assert scf_line_exists
+    Config.ORCA.other_input_block = curr_other_input_block
