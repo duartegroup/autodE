@@ -57,10 +57,10 @@ class SMILESAtom(Atom):
         return
 
     def __init__(self,
-                 label: str,
-                 stereochem: SMILESStereoChem = SMILESStereoChem.NONE,
+                 label:       str,
+                 stereochem:  SMILESStereoChem = SMILESStereoChem.NONE,
                  n_hydrogens: Union[None, int] = None,
-                 charge: int = 0):
+                 charge:      int = 0):
         """
         SMILES atom initialised at the origin
 
