@@ -185,6 +185,11 @@ class Config:
                                             'end'),
                                ecp=def2ecp)
 
+        # A separate input block to be printed in the ORCA input file
+        # for all calculations e.g.
+        # other_input_block = '%scf\n MaxIter 1500\n end'
+        other_input_block = None
+
         # Implicit solvent in ORCA is either treated with CPCM or SMD, the
         # former has support for a VdW surface construction which provides
         # better geometry convergence (https://doi.org/10.1002/jcc.26139) SMD

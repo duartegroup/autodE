@@ -50,7 +50,7 @@ Functionality improvements
 - Enables different force constants to be used in XTB constrained optimisations (:code:`Config.XTB.force_constant`, which sets :code:`wrappers.XTB.XTB.force_constant`)
 - Adds :code:`Solvent.copy()`
 - Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
-
+- Adds :code:`Config.ORCA.other_input_block` to allow for a block of input to be printed in all ORCA input files
 
 Bug Fixes
 *********

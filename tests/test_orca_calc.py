@@ -1,4 +1,5 @@
 import autode.exceptions as ex
+from autode.config import Config
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
 from autode.constants import Constants
@@ -307,3 +308,24 @@ def test_hessian_extraction():
     calc.output = CalculationOutput(filename='H2O_hess_broken.out')
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_hessian()
+
+
+@utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_other_input_block():
+
+    Config.ORCA.other_input_block = '%scf\n MaxIter 1500\n end'
+    calc = Calculation(name='other_input_block',
+                       molecule=test_mol,
+                       method=method,
+                       keywords=method.keywords.sp)
+    calc.generate_input()
+
+    assert os.path.exists('other_input_block_orca.inp')
+
+    scf_line_exists = False
+    for line in open('other_input_block_orca.inp', 'r'):
+        if 'MaxIter 1500' in line:
+            scf_line_exists = True
+            break
+
+    assert scf_line_exists
