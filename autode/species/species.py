@@ -261,7 +261,13 @@ class Species(AtomCollection):
             logger.warning('Had no frequencies - could not find any imaginary')
             return None
 
-        return [freq for freq in self.frequencies if freq.is_imaginary]
+        imag_freqs = [freq for freq in self.frequencies if freq.is_imaginary]
+
+        if len(imag_freqs) == 0:
+            logger.warning('No imaginary frequencies')
+            return None
+
+        return imag_freqs
 
     def normal_mode(self, mode_number: int) -> Optional[val.Coordinates]:
         """

@@ -169,6 +169,9 @@ def test_hessian_modes():
     h2o = Molecule('H2O_hess_orca.xyz')
     h2o.hessian = h2o_hessian_arr
 
+    # The structure is a minimum, thus there should be no imaginary frequencies
+    assert h2o.imaginary_frequencies is None
+
     for trans_mode in h2o.hessian.normal_modes_proj[:3]:
         assert np.allclose(trans_mode, np.zeros(shape=(h2o.n_atoms, 3)))
 
