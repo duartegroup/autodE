@@ -26,11 +26,10 @@ def test_conf_class():
                                Atom('H', 0.0, 0.0, 0.7)])
 
     assert hasattr(h2_conf, 'optimise')
-    assert hasattr(h2_conf, 'dist_consts')
 
     assert h2_conf.n_atoms == 2
     assert h2_conf.energy is None
-    assert h2_conf.dist_consts is None
+    assert not h2_conf.constraints.any
 
     h2_conf.optimise(method=orca)
     assert h2_conf.energy == -1.160780546661

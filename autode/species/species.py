@@ -8,6 +8,7 @@ from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException
 from autode.geom import calc_rmsd
+from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
@@ -827,7 +828,7 @@ class Species(AtomCollection):
         self.conformers.optimise(method=lmethod)
         self.conformers.prune(remove_no_energy=True)
 
-        if hmethod is not None and self.n_conformers > 1:
+        if hmethod is not None:
 
             if Config.hmethod_sp_conformers:
                 # Use only single point energies on lmethod geometries
@@ -891,3 +892,5 @@ class Species(AtomCollection):
         self.graph = None
 
         self._conformers = Conformers()
+
+        self.constraints = Constraints()

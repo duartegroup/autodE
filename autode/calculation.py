@@ -8,6 +8,7 @@ import autode.exceptions as ex
 from autode.utils import cached_property
 from autode.atoms import Atoms
 from autode.point_charges import PointCharge
+from autode.constraints import Constraints
 from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
 from autode.solvent.solvents import Solvent
@@ -475,8 +476,12 @@ class Calculation:
         # ------------------- System specific parameters ----------------------
         self.molecule = deepcopy(molecule)
 
-        self.molecule.constraints = Constraints(distance=distance_constraints,
-                                                cartesian=cartesian_constraints)
+        if hasattr(self.molecule, 'constraints'):
+            self.molecule.constraints.update(distance=distance_constraints,
+                                             cartesian=cartesian_constraints)
+        else:
+            self.molecule.constraints = Constraints(distance=distance_constraints,
+                                                    cartesian=cartesian_constraints)
         self._check_molecule()
 
         # --------------------- Calculation parameters ------------------------
@@ -590,58 +595,3 @@ class CalculationInput:
         self.additional_filenames = []
 
         self._check()
-
-
-class Constraints:
-
-    def __str__(self):
-        """String of constraints"""
-        string = ''
-
-        if self.cartesian is not None:
-            string += str(self.cartesian)
-
-        if self.distance is not None:
-            string += str({key: round(val, 3)
-                           for key, val in self.distance.items()})
-
-        return f'Constraints({string})'
-
-    @staticmethod
-    def _init_distance(dist_constraints):
-        """Initialise the distance constraints"""
-        assert type(dist_constraints) is dict
-        distance = {}
-
-        for key, val in dist_constraints.items():
-
-            if len(set(key)) != 2:
-                logger.warning('Can only set distance constraints between '
-                               f'two distinct atoms. Had {key} - skipping')
-                continue
-
-            distance[key] = float(val)
-
-        return distance
-
-    def any(self):
-        """Are there any constraints?"""
-        return self.distance is not None or self.cartesian is not None
-
-    def __init__(self, distance, cartesian):
-        """
-        Arguments:
-            distance (any): Keys of: tuple(int) for two atom indexes and
-                             values of the distance in Å or None
-            cartesian (any): List of atom indexes or None
-        """
-
-        if distance is None:
-            self.distance = None
-        else:
-            self.distance = self._init_distance(distance)
-
-        if cartesian is None:
-            self.cartesian = None
-        else:
-            self.cartesian = [int(idx) for idx in cartesian]

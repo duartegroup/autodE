@@ -444,8 +444,8 @@ def get_simanl_conformer(species, dist_consts=None, conf_n=0, save_xyz=True):
         (autode.conformers.Conformer): Conformer
     """
     # Generate a conformer from a species - same charge/mult/solvent etc.
-    conformer = get_conformer(species, name=f'{species.name}_conf{conf_n}')
-    conformer.dist_consts = dist_consts
+    conformer = get_conformer(species, name=f'{species.name}_conf{conf_n}',
+                              dist_consts=dist_consts)
 
     atoms, energy = get_simanl_atoms(species,
                                      dist_consts=dist_consts,

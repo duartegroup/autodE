@@ -98,7 +98,7 @@ def get_keywords(calc_input, molecule):
 
     # Mod redundant keywords is required if there are any constraints or
     # modified internal coordinates
-    if molecule.constraints.any():
+    if molecule.constraints.any:
         new_keywords.append('Geom=ModRedun')
 
     if calc_input.added_internals is not None:
@@ -332,7 +332,7 @@ class G09(ElectronicStructureMethod):
             print_added_internals(inp_file, calc.input)
             print_constraints(inp_file, molecule)
 
-            if molecule.constraints.any() or calc.input.added_internals:
+            if molecule.constraints.any or calc.input.added_internals:
                 print('', file=inp_file)   # needs an extra blank line
             print_custom_basis(inp_file, calc.input, molecule)
 

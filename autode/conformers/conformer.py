@@ -3,7 +3,7 @@ from autode.log import logger
 from autode.species.species import Species
 
 
-def get_conformer(species, name):
+def get_conformer(species, name, dist_consts=None):
     """
     Generate a conformer of a species given a new name but with the same
     atoms
@@ -12,11 +12,15 @@ def get_conformer(species, name):
         species (autode.species.Species):
         name (str):
 
+    Keywords Arguments:
+        dist_consts (dict | None):
+
     Returns:
         (autode.conformers.Conformer): Conformer
     """
     conformer = Conformer(name=name, atoms=species.atoms,
-                          charge=species.charge, mult=species.mult)
+                          charge=species.charge, mult=species.mult,
+                          dist_consts=dist_consts)
 
     # Conformer should be in the same solvent
     conformer.solvent = species.solvent
@@ -75,4 +79,4 @@ class Conformer(Species):
                  charge=0, mult=1, dist_consts=None):
         super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
 
-        self.dist_consts = dist_consts
+        self.constraints.update(distance=dist_consts)
