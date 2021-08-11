@@ -116,9 +116,10 @@ class Molecule(Species):
                            for i in range(n_confs)]
                 self.conformers = [res.get(timeout=None) for res in results]
 
+            self.conformers.prune_on_energy(e_tol=1E-10)
             methods.add('RR algorithm (???) implemented in autodE')
 
-        self.conformers.remove_similar_rmsd()
+        self.conformers.prune_on_rmsd()
         return None
 
     def populate_conformers(self, n_confs):

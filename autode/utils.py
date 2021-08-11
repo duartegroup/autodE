@@ -250,9 +250,9 @@ def requires_conformers(func):
     def wrapped_function(*args, **kwargs):
 
         # Species must be the first argument
-        assert hasattr(args[0], 'conformers')
+        assert hasattr(args[0], 'n_conformers')
 
-        if args[0].conformers is None:
+        if args[0].n_conformers == 0:
             raise NoConformers
 
         return func(*args, **kwargs)

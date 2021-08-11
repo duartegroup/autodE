@@ -576,8 +576,8 @@ class Atoms(list):
         return self[j].coord - self[i].coord
 
     def nvector(self,
-               i: int,
-               j: int) -> np.ndarray:
+                i: int,
+                j: int) -> np.ndarray:
         """
         Normalised vector from atom i to atom j
 

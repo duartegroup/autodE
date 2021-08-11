@@ -96,7 +96,8 @@ class TransitionState(TSbase):
         distance_consts = get_distance_constraints(self)
 
         with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(get_simanl_conformer, (self, distance_consts, i))
+            results = [pool.apply_async(get_simanl_conformer,
+                                        args=(self, distance_consts, i))
                        for i in range(n_confs)]
 
             self.conformers = [res.get(timeout=None) for res in results]

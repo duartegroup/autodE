@@ -71,6 +71,14 @@ def test_rdkit_atoms():
 def test_confs_energy_pruning1():
 
     conf1 = Conformer(atoms=[Atom('H')])
+    confs = Conformers([conf1])
+
+    # Shouldn't prune a single conformer
+    confs.prune_on_rmsd()
+    assert len(confs) == 1
+    confs.prune_on_energy()
+    assert len(confs) == 1
+
     conf2 = Conformer(atoms=[Atom('H')])
 
     # with no energies no conformers should be pruned on energy
@@ -135,50 +143,61 @@ def test_confs_energy_pruning3():
     assert len(confs) == 100
 
 
+def test_confs_no_energy_pruning():
+    # Check that if energies are unassigned then conformers are removed
 
-"""
-def test_unique_confs_none():
+    confs = Conformers([Conformer(atoms=[Atom('H')])])
+    confs.prune(remove_no_energy=True)
 
-    conf1 = Conformer(atoms=[Atom('H')])
-    conf1.energy = 0.1
-
-    # Conformer with energy just below the threshold
-    conf2 = Conformer(atoms=[Atom('H')])
-    conf2.energy = 0.19
-
-    unique_confs = get_unique_confs(conformers=[conf1, conf2],
-                                    energy_threshold=Energy(0.1))
-    assert len(unique_confs) == 1
-
-    # If the energy is above the threshold there should be two unique
-    # conformers
-    conf2.energy += 0.2
-    unique_confs = get_unique_confs(conformers=[conf1, conf2],
-                                    energy_threshold=Energy(0.1))
-    assert len(unique_confs) == 2
+    assert len(confs) == 0
 
 
-def test_rmsd_confs():
+def test_confs_rmsd_pruning1():
 
-    methane1 = Conformer(name='methane1', charge=0, mult=1,
-                         atoms=[Atom('C', -1.38718,  0.38899,  0.00000),
-                                Atom('H', -0.27778,  0.38899, -0.00000),
-                                Atom('H', -1.75698,  1.06232,  0.80041),
-                                Atom('H', -1.75698, -0.64084,  0.18291),
-                                Atom('H', -1.75698,  0.74551, -0.98332)])
+    confs = Conformers([Conformer(atoms=[Atom('H')]),
+                        Conformer(atoms=[Atom('H')])])
 
-    methane2 = Conformer(name='methane2', charge=0, mult=1,
-                         atoms=[Atom('C', -1.38718,  0.38899,  0.00000),
-                                Atom('H', -0.43400,  0.50158, -0.55637),
-                                Atom('H', -2.23299,  0.69379, -0.64998),
-                                Atom('H', -1.36561,  1.03128,  0.90431),
-                                Atom('H', -1.51612, -0.67068,  0.30205)])
+    # Same two structures -> one when pruned
+    confs.prune_on_rmsd()
+    assert len(confs) == 1
 
-    # Methane but rotated should have an RMSD ~ 0 Angstroms
-    assert not conf_is_unique_rmsd(conf=methane2, conf_list=[methane1],
-                                   rmsd_tol=0.1)
 
-"""
+def test_confs_rmsd_pruning2():
+
+    confs = Conformers([Conformer(atoms=[Atom('H', x=-1.0),
+                                         Atom('O'),
+                                         Atom('H', x=1.0)]),
+                        Conformer(atoms=[Atom('H', x=-1.0),
+                                         Atom('O'),
+                                         Atom('H', x=10.0)])])
+
+    # Should check only on heavy atoms, thus these two 'water' molecules
+    # have a 0 RMSD
+    confs.prune_on_rmsd()
+    assert len(confs) == 1
+
+
+def test_confs_rmsd_puning3():
+
+    # Butane molecules, without hydrogen atoms
+    trans_butane = Conformer(atoms=[Atom('C', -0.86310, -0.72859, 0.62457),
+                                    Atom('C', 0.10928, -0.05429, 1.42368),
+                                    Atom('C', 1.17035, -0.79134, 2.03167),
+                                    Atom('C', 2.14109, -0.11396, 2.83018)])
+
+    cis_butane = Conformer(atoms=[Atom('C', -0.07267, 1.32686, 1.73687),
+                                  Atom('C', 0.10928, -0.05429, 1.42368),
+                                  Atom('C', 1.17035, -0.79134, 2.03167),
+                                  Atom('C', 2.14109, -0.11396, 2.83018)])
+
+    confs = Conformers([trans_butane, cis_butane])
+
+    confs.prune_on_rmsd(rmsd_tol=0.1)
+    assert len(confs) == 2
+
+    confs.prune_on_rmsd(rmsd_tol=0.5)
+    assert len(confs) == 1
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
 def _test_sp_hmethod_ranking():

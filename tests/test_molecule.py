@@ -36,7 +36,7 @@ def test_basic_attributes():
     assert methane.n_atoms == 5
     assert methane.graph.number_of_edges() == 4
     assert methane.graph.number_of_nodes() == methane.n_atoms
-    assert methane.conformers is None
+    assert methane.n_conformers == 0
     assert methane.charge == 0
     assert methane.mult == 1
     assert isinstance(methane.rdkit_mol_obj, Mol)
@@ -87,7 +87,6 @@ def test_gen_conformers():
     ethane._generate_conformers(n_confs=2)
 
     assert ethane.rdkit_conf_gen_is_fine
-    assert type(ethane.conformers) == list
 
     # Even though two conformers have been requested they are pruned on RMSD
     assert len(ethane.conformers) >= 1

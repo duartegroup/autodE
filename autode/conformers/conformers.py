@@ -1,19 +1,29 @@
-from typing import Optional
-from autode.values import Distance, Energy
+import numpy as np
+from typing import Optional, Union
+from multiprocessing import Pool
 from rdkit import Chem
+from autode.values import Distance, Energy
 from autode.atoms import Atom
 from autode.config import Config
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
-import numpy as np
+
+
+def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
+    """Top-level hashable function to call in parallel"""
+    getattr(conformer, calc_type)(method=method,
+                                  keywords=keywords,
+                                  n_cores=n_cores)
+    return conformer
 
 
 class Conformers(list):
 
     def prune(self,
-              e_tol:    Energy = Energy(1, units='kJ mol-1'),
-              rmsd_tol: Optional[Distance] = None,
-              n_sigma:  float = 5) -> None:
+              e_tol:            Union[Energy, float] = Energy(1, units='kJ mol-1'),
+              rmsd_tol:         Union[Distance, float, None] = None,
+              n_sigma:          float = 5,
+              remove_no_energy: bool = False) -> None:
         """
         Prune conformers based on both energy and root mean squared deviation
         (RMSD) values. Will discard any conformers that are within e_tol in
@@ -26,13 +36,22 @@ class Conformers(list):
 
             n_sigma (float | int):
         """
+
+        print(self)
+        print(self[0].energy)
+
+        if remove_no_energy:
+            for idx in reversed(range(len(self))):  # Enumerate backwards
+                if self[idx].energy is None:
+                    del self[idx]
+
         self.prune_on_energy(e_tol=e_tol, n_sigma=n_sigma)
         self.prune_on_rmsd(rmsd_tol=rmsd_tol)
 
         return None
 
     def prune_on_energy(self,
-                        e_tol:   Energy = Energy(1, units='kJ mol-1'),
+                        e_tol:   Union[Energy, float] = Energy(1, units='kJ mol-1'),
                         n_sigma: float = 5) -> None:
         """
         Prune the conformers based on an energy threshold, discarding those
@@ -52,7 +71,7 @@ class Conformers(list):
         n_prev_confs = len(self)
 
         if len(confs_with_energy) < 2:
-            logger.info(f'Only had {len(self)} conformers with an energy. No '
+            logger.info(f'Only have {len(self)} conformers with an energy. No '
                         f'need to prune')
             return None
 
@@ -92,19 +111,25 @@ class Conformers(list):
         return None
 
     def prune_on_rmsd(self,
-                      rmsd_tol: Optional[Distance] = None) -> None:
+                      rmsd_tol: Union[Distance, float, None] = None) -> None:
         """
         Given a list of conformers add those that are unique based on an RMSD
         tolerance. If rmsd=None then use autode.Config.rmsd_threshold
 
         Arguments:
-            rmsd_tol (autode.values.Distance | None):
+            rmsd_tol (autode.values.Distance | float | None):
         """
         if len(self) < 2:
-            logger.info(f'Only had {len(self)}. No need to prune on RMSD')
+            logger.info(f'Only have {len(self)} conformers. No need to prune '
+                        f'on RMSD')
             return
 
         rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
+
+        if isinstance(rmsd_tol, float):
+            logger.warning('Assuming RMSD tolerance has units of Å')
+            rmsd_tol = Distance(rmsd_tol, units='ang')
+
         logger.info(f'Removing conformers with RMSD < {rmsd_tol.to("ang")} Å '
                     f'to any other (heavy atoms only, with no symmetry)')
 
@@ -125,13 +150,67 @@ class Conformers(list):
         logger.info(f'Pruned to {len(self)} unique conformer(s) on RMSD')
         return None
 
+    def _parallel_calc(self, calc_type, method, keywords):
+        """
+        Run a set of calculations (single point energy evaluations or geometry
+        optimisations) in parallel over every conformer in this set. Will
+        attempt to use all autode.Config.n_cores as fully as possible
+
+        Arguments:
+            calc_type (str):
+
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+            keywords (autode.wrappers.keywords.Keywords):
+        """
+        # TODO: Test efficiency + improve with dynamic load balancing
+
+        min_n_cores = min(2, Config.n_cores)
+
+        with Pool(processes=Config.n_cores // min_n_cores) as pool:
+            results = [pool.apply_async(_calc_conformer,
+                                        args=(conf, calc_type, method, keywords),
+                                        kwds={'n_cores': min_n_cores})
+                       for conf in self]
+
+            for idx, res in enumerate(results):
+                self[idx] = res.get(timeout=None)
+
+        return None
+
+    def optimise(self,
+                 method:  'autode.wrappers.base.ElectronicStructureMethod',
+                 keywords: Optional['autode.wrappers.Keywords'] = None):
+        """
+        Optimise a set of conformers in parallel
+
+        Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
+        """
+        return self._parallel_calc('optimise', method, keywords)
+
+    def single_point(self,
+                     method:  'autode.wrappers.base.ElectronicStructureMethod',
+                     keywords: Optional['autode.wrappers.Keywords'] = None):
+        """
+        Evaluate single point energies for a set of conformers in parallel
+
+        Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
+        """
+        return self._parallel_calc('single_point', method, keywords)
 
 
-
-
-
-def atoms_from_rdkit_mol(rdkit_mol_obj, conf_id):
-    """Generate atoms for conformers in rdkit_mol_obj
+def atoms_from_rdkit_mol(rdkit_mol_obj: Chem.Mol,
+                         conf_id:       int = 0):
+    """
+    Generate atoms for a conformer contained within an RDKit molecule object
 
     Arguments:
         rdkit_mol_obj (rdkit.Chem.Mol): RDKit molecule
@@ -150,8 +229,7 @@ def atoms_from_rdkit_mol(rdkit_mol_obj, conf_id):
         split_line = line.split()
 
         if len(split_line) == 16:
-            atom_label = split_line[3]
-            x, y, z = split_line[0], split_line[1], split_line[2]
+            x, y, z, atom_label = split_line[:4]
             mol_file_atoms.append(Atom(atom_label, x=x, y=y, z=z))
 
     return mol_file_atoms

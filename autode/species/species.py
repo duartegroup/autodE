@@ -451,15 +451,11 @@ class Species(AtomCollection):
         Arguments:
             value (list(autode.conformers.Conformer) | None):
         """
-        self._conformers.clear()
-
         if value is None:
+            self._conformers.clear()
             return
 
-        for conformer in value:
-            self._conformers.append(conformer)
-
-        return
+        self._conformers = Conformers([conf for conf in value])
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '
@@ -653,7 +649,8 @@ class Species(AtomCollection):
                  method:      Optional[ElectronicStructureMethod] = None,
                  reset_graph: bool = False,
                  calc:        Optional[Calculation] = None,
-                 keywords:    Optional[Keywords] = None) -> None:
+                 keywords:    Optional[Keywords] = None,
+                 n_cores:     Optional[int] = None) -> None:
         """
         Optimise the geometry using a method
 
@@ -668,6 +665,9 @@ class Species(AtomCollection):
 
             keywords (autode.wrappers.keywords.Keywords):
 
+            n_cores (int | None): Number of cores to use for the calculation,
+                                  if None then will default to
+                                  autode.Config.n_cores
         Raises:
             (autode.exceptions.CalculationException):
         """
@@ -682,11 +682,13 @@ class Species(AtomCollection):
                                molecule=self,
                                method=method,
                                keywords=method.keywords.opt if keywords is None else keywords,
-                               n_cores=Config.n_cores)
+                               n_cores=Config.n_cores if n_cores is None else n_cores)
 
         calc.run()
         self.atoms = calc.get_final_atoms()
         self.energy = calc.get_energy()
+
+        print(self.name, 'E = ', self.energy)
 
         method_name = '' if method is None else method.name
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
@@ -771,17 +773,17 @@ class Species(AtomCollection):
     @requires_atoms
     def single_point(self,
                      method:   ElectronicStructureMethod,
-                     keywords: Optional[Keywords] = None) -> None:
+                     keywords: Optional[Keywords] = None,
+                     n_cores:  Optional[int] = None) -> None:
         """Calculate the single point energy of the species with a
         autode.wrappers.base.ElectronicStructureMethod"""
         logger.info(f'Running single point energy evaluation of {self.name}')
-        keywords = method.keywords.sp if keywords is None else keywords
 
         sp = Calculation(name=f'{self.name}_sp',
                          molecule=self,
                          method=method,
-                         keywords=keywords,
-                         n_cores=Config.n_cores)
+                         keywords=method.keywords.sp if keywords is None else keywords,
+                         n_cores=Config.n_cores if n_cores is None else n_cores)
         sp.run()
         energy = sp.get_energy()
 
@@ -824,25 +826,19 @@ class Species(AtomCollection):
             method_string += f' then with {hmethod.name}'
         methods.add(f'{method_string}.')
 
-        for conformer in self.conformers:
-            conformer.optimise(lmethod)
+        self.conformers.optimise(method=lmethod)
+        self.conformers.prune(remove_no_energy=True)
 
-        # Strip conformers that are similar based on an energy criteria or
-        # don't have an energy
-        self.conformers = get_unique_confs(conformers=self.conformers)
+        if hmethod is not None and self.n_conformers > 1:
 
-        if hmethod is not None:
-            # Re-evaluate the energy of all the conformers with the higher
-            # level of theory
-            for conformer in self.conformers:
-
-                if Config.hmethod_sp_conformers:
-                    assert hmethod.keywords.low_sp is not None
-                    conformer.single_point(hmethod)
-
-                else:
-                    # Otherwise run a full optimisation
-                    conformer.optimise(hmethod)
+            if Config.hmethod_sp_conformers:
+                # Use only single point energies on lmethod geometries
+                assert hmethod.keywords.low_sp is not None
+                self.conformers.single_point(method=hmethod,
+                                             keywords=hmethod.keywords.low_sp)
+            else:
+                # Otherwise run a full optimisation
+                self.conformers.optimise(hmethod)
 
         self._set_lowest_energy_conformer()
 

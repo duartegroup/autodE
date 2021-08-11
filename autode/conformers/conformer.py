@@ -1,5 +1,3 @@
-from autode.calculation import Calculation
-from autode.config import Config
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
 from autode.species.species import Species
@@ -28,7 +26,10 @@ def get_conformer(species, name):
 
 class Conformer(Species):
 
-    def single_point(self, method, keywords=None):
+    def __repr__(self):
+        return self._repr(prefix='Conformer')
+
+    def single_point(self, method, keywords=None, n_cores=None):
         """
         Calculate a single point and default to a low level single point method
 
@@ -37,11 +38,14 @@ class Conformer(Species):
 
         Keyword Arguments:
             keywords (autode.wrappers.keywords.Keywords):
+
+            n_cores (int | None):
         """
         keywords = method.keywords.low_sp if keywords is None else keywords
-        return super().single_point(method, keywords)
+        return super().single_point(method, keywords, n_cores=n_cores)
 
-    def optimise(self, method=None, reset_graph=False, calc=None, keywords=None):
+    def optimise(self, method=None, reset_graph=False, calc=None, keywords=None,
+                 n_cores=None):
         """
         Optimise the geometry of this conformer
 
@@ -52,21 +56,14 @@ class Conformer(Species):
             reset_graph (bool):
             calc (autode.calculation.Calculation):
             keywords (autode.wrappers.keywords.Keywords):
+            n_cores (int | None):
         """
-        logger.info(f'Running optimisation of {self.name}')
-
-        if calc is not None or reset_graph:
-            raise NotImplementedError
-
-        opt = Calculation(name=f'{self.name}_opt', molecule=self, method=method,
-                          keywords=method.keywords.low_opt,
-                          n_cores=Config.n_cores,
-                          distance_constraints=self.dist_consts)
-        opt.run()
-
         try:
-            self.atoms = opt.get_final_atoms()
-            self.energy = opt.get_energy()
+            if keywords is None and method is not None:
+                keywords = method.keywords.low_opt
+
+            super().optimise(method,
+                             keywords=keywords, calc=calc, n_cores=n_cores)
 
         except AtomsNotFound:
             logger.error(f'Atoms not found for {self.name} but not critical')
@@ -76,7 +73,6 @@ class Conformer(Species):
 
     def __init__(self, name='conf', atoms=None, solvent_name=None,
                  charge=0, mult=1, dist_consts=None):
-        super(Conformer, self).__init__(name, atoms, charge, mult,
-                                        solvent_name=solvent_name)
+        super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
 
         self.dist_consts = dist_consts

@@ -1,5 +1,5 @@
 import autode.wrappers.implicit_solvent_types as solv
-from autode.values import Frequency
+from autode.values import Frequency, Distance
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
@@ -60,7 +60,7 @@ class Config:
     # more conformers that need to be calculated but also reduces the chance
     # that the lowest energy conformer is found
     #
-    rmsd_threshold = 0.3
+    rmsd_threshold = Distance(0.3, units='Å')
     # -------------------------------------------------------------------------
     # Total number of conformers generated in find_lowest_energy_conformer()
     # for single molecules/TSs

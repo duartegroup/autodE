@@ -218,7 +218,7 @@ def species_are_isomorphic(species1, species2):
     if is_isomorphic(species1.graph, species2.graph):
         return True
 
-    if species1.conformers is None and species2.conformers is None:
+    if species1.n_conformers == species2.n_conformers == 0:
         logger.warning('Cannot check for isomorphic species conformers')
         return False
 
@@ -226,7 +226,7 @@ def species_are_isomorphic(species1, species2):
     logger.disabled = True
 
     for species in (species1, species2):
-        if species.conformers is None:
+        if species.n_conformers == 0:
             continue
 
         for conformer in species.conformers:
@@ -239,7 +239,7 @@ def species_are_isomorphic(species1, species2):
     def conformers_or_self(species):
         """If there are no conformers for this species return itself otherwise
         the list of conformers"""
-        if species.conformers is None:
+        if species.n_conformers == 0:
             return [species]
 
         return species.conformers
