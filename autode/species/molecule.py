@@ -81,7 +81,7 @@ class Molecule(Species):
         """
 
         n_confs = n_confs if n_confs is not None else Config.num_conformers
-        self.conformers = []
+        self.conformers.clear()
 
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
             logger.info(f'Using RDKit to gen conformers. {n_confs} requested')
@@ -101,11 +101,10 @@ class Molecule(Species):
                                                        params=method))
             logger.info('                                          ... done')
 
-            conformers = []
             for conf_id in conf_ids:
                 conf = get_conformer(self, name=f'{self.name}_conf{conf_id}')
                 conf.atoms = atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
-                conformers.append(conf)
+                self.conformers.append(conf)
 
             methods.add(f'{m_string} algorithm (10.1021/acs.jcim.5b00654) '
                         f'implemented in RDKit v. {rdkit.__version__}')
@@ -115,11 +114,11 @@ class Molecule(Species):
             with Pool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(get_simanl_conformer, (self, None, i))
                            for i in range(n_confs)]
-                conformers = [res.get(timeout=None) for res in results]
+                self.conformers = [res.get(timeout=None) for res in results]
 
             methods.add('RR algorithm (???) implemented in autodE')
 
-        self._set_unique_conformers_rmsd(conformers)
+        self.conformers.remove_similar_rmsd()
         return None
 
     def populate_conformers(self, n_confs):

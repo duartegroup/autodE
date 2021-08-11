@@ -1,6 +1,6 @@
 from typing import Optional, List
 from multiprocessing import Pool
-from autode.values import Frequency
+from autode.values import Frequency, Energy
 from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
@@ -99,9 +99,9 @@ class TransitionState(TSbase):
             results = [pool.apply_async(get_simanl_conformer, (self, distance_consts, i))
                        for i in range(n_confs)]
 
-            conformers = [res.get(timeout=None) for res in results]
+            self.conformers = [res.get(timeout=None) for res in results]
 
-        self._set_unique_conformers_rmsd(conformers)
+        self.conformers.prune(e_tol=1E-6)
         return None
 
     @property

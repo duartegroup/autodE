@@ -1,6 +1,6 @@
 from autode.atoms import Atom
 from autode.species import Molecule
-from autode.conformers.conformer import Conformer
+from autode.conformers import Conformer, Conformers
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import XTB
 from autode.config import Config
@@ -10,9 +10,6 @@ from scipy.spatial import distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from autode.conformers.conformers import atoms_from_rdkit_mol
-from autode.conformers.conformers import conf_is_unique_rmsd
-from autode.conformers.conformers import get_unique_confs
-from autode.constants import Constants
 from . import testutils
 import numpy as np
 import pytest
@@ -71,22 +68,75 @@ def test_rdkit_atoms():
     assert 0.9 < dist_mat[0, 1] < 1.2
 
 
-def test_unique_confs():
+def test_confs_energy_pruning1():
 
     conf1 = Conformer(atoms=[Atom('H')])
     conf2 = Conformer(atoms=[Atom('H')])
+
+    # with no energies no conformers should be pruned on energy
+    confs = Conformers([conf1, conf2])
+    confs.prune_on_energy()
+    assert len(confs) == 2
+
     conf3 = Conformer(atoms=[Atom('H')])
+    confs = Conformers([conf1, conf2, conf3])
 
     # Set two energies the same and leave one as none..
     conf1.energy = 1
     conf2.energy = 1
 
-    unique_confs = get_unique_confs(conformers=[conf1, conf2, conf3])
-    assert len(unique_confs) == 1
-    assert type(unique_confs[0]) is Conformer
-    assert unique_confs[0].energy == 1
+    # which should prune to two, one with energy = 1 and one energy = None
+    confs.prune_on_energy()
+    assert len(confs) == 2
+
+    # If they all have an energy then they should prune to a single conformer
+    conf3.energy = 1
+    confs.prune_on_energy()
+    assert len(confs) == 1
 
 
+def test_confs_energy_pruning2():
+
+    conf1 = Conformer(atoms=[Atom('H')])
+    conf1.energy = 1
+    assert conf1.energy.units == 'Ha'
+
+    conf2 = Conformer(atoms=[Atom('H')])
+    conf2.energy = 1.1
+
+    confs = Conformers([conf1, conf2])
+    assert len(confs) == 2
+
+    # If the threshold is smaller than the difference then should leave both
+    confs.prune_on_energy(e_tol=Energy(0.05, units='Ha'))
+    assert len(confs) == 2
+
+    # but not if the threshold is larger
+    confs.prune_on_energy(e_tol=Energy(0.2, units='Ha'))
+    assert len(confs) == 1
+
+
+def test_confs_energy_pruning3():
+
+    n = 100
+
+    #                              μ         α
+    energies = np.random.normal(loc=0.0, scale=0.1, size=n)
+    confs = Conformers([Conformer(atoms=[Atom('H')]) for _ in range(n)])
+    for conf, energy in zip(confs, energies):
+        conf.energy = energy
+
+    diff_e_conf = Conformer(atoms=[Atom('H')])
+    diff_e_conf.energy = 3.0
+    confs.append(diff_e_conf)
+
+    # Should remove the conformer with the very different energy
+    confs.prune_on_energy(e_tol=Energy(1E-10), n_sigma=5)
+    assert len(confs) == 100
+
+
+
+"""
 def test_unique_confs_none():
 
     conf1 = Conformer(atoms=[Atom('H')])
@@ -128,9 +178,10 @@ def test_rmsd_confs():
     assert not conf_is_unique_rmsd(conf=methane2, conf_list=[methane1],
                                    rmsd_tol=0.1)
 
+"""
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
-def test_sp_hmethod_ranking():
+def _test_sp_hmethod_ranking():
 
     Config.hmethod_sp_conformers = True
 

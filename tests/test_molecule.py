@@ -1,5 +1,5 @@
 from autode.species.molecule import Molecule
-from autode.conformers.conformer import Conformer
+from autode.conformers import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
 from autode.input_output import atoms_to_xyz_file

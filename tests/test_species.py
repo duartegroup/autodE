@@ -3,6 +3,7 @@ from autode.species.molecule import Molecule
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import xtb
 from autode.calculation import Calculation
+from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.values import Gradient
@@ -28,6 +29,7 @@ def test_species_class():
     blank_mol = Species(name='tmp', atoms=None, charge=0, mult=1)
 
     assert blank_mol.n_atoms == 0
+    assert blank_mol.n_conformers == 0
     assert blank_mol.radius == 0
 
     assert str(blank_mol) != ''   # Should have some string representations
@@ -395,9 +397,13 @@ def test_unique_conformer_set():
     test_mol.energy = -1.0
 
     # With the same molecule the conformer list will be pruned to 1
-    conformers = [test_mol.copy(), test_mol.copy()]
-    test_mol._set_unique_conformers_rmsd(conformers)
+    test_mol.conformers = [test_mol.copy(), test_mol.copy()]
+    test_mol.conformers.prune_on_energy()
     assert len(test_mol.conformers) == 1
+
+    test_mol.conformers = None
+    assert type(test_mol.conformers) is Conformers
+    assert test_mol.n_conformers == 0
 
 
 def test_unique_conformer_set_energy():
@@ -408,8 +414,8 @@ def test_unique_conformer_set_energy():
 
     test_mol_high_e = test_mol.copy()
     test_mol_high_e.energy = 10.0
-    conformers = [test_mol_high_e, test_mol.copy(), test_mol.copy()]
-    test_mol._set_unique_conformers_rmsd(conformers, n_sigma=1)
+    test_mol.conformers = [test_mol_high_e, test_mol.copy(), test_mol.copy()]
+    test_mol.conformers.prune_on_energy(n_sigma=1)
 
     assert len(test_mol.conformers) == 1
     assert test_mol.conformers[0].energy == -1.0

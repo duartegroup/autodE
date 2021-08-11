@@ -9,14 +9,13 @@ from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException
 from autode.geom import calc_rmsd
 from autode.log.methods import methods
-from autode.conformers.conformers import get_unique_confs
+from autode.conformers.conformers import Conformers
 from autode.solvent.solvents import ExplicitSolvent, get_solvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import is_isomorphic, reorder_nodes
-from autode.conformers.conformers import conf_is_unique_rmsd
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.mol_graphs import make_graph
 from autode.hessians import Hessian
@@ -426,56 +425,41 @@ class Species(AtomCollection):
             return val.Enthalpy(self.energy + self.h_cont)
 
         except TypeError:
-            logger.warning('Could not calculate the H - an energy was None')
+            logger.warning('Could not calculate H - an energy was None')
             return None
 
-    def _set_unique_conformers_rmsd(self, conformers, n_sigma=5):
+    @property
+    def n_conformers(self) -> int:
         """
-        Given a list of conformers add those that are unique based on an RMSD
-        tolerance. In addition, discard any very high or very low energy
-        conformers more than n_sigma σ (std. devs) away from the average
+        Number of conformers of this species
 
-        Args:
-            conformers (Iterable(autode.conformers.Conformer):
-
-            n_sigma (int): Number of standard deviations a conformer energy
-                           must be from the average for it not to be added
+        Returns:
+            (int):
         """
-        energies = std_dev_e = avg_e = None
-        self.conformers = []
+        return 0 if self.conformers is None else len(self.conformers)
 
-        # Populate an array of energies in any units to calculate std. dev. etc
-        if all(conf.energy is not None for conf in conformers):
-            energies = np.array([conf.energy for conf in conformers])
-            std_dev_e, avg_e = np.std(energies), np.average(energies)
+    @property
+    def conformers(self) -> Conformers:
+        return self._conformers
 
-            logger.warning(f'Have {len(energies)} energies with μ={avg_e:.6f} '
-                           f'σ={std_dev_e:.6f}')
+    @conformers.setter
+    def conformers(self,
+                   value: Optional[List['autode.conformers.Conformer']]) -> None:
+        """
+        Set conformers of this species
 
-        for i, conf in enumerate(conformers):
+        Arguments:
+            value (list(autode.conformers.Conformer) | None):
+        """
+        self._conformers.clear()
 
-            if energies is not None:
+        if value is None:
+            return
 
-                if np.abs(conf.energy - avg_e) < 1E-8 and len(self.conformers) > 0:
-                    logger.warning(f'Conformer {i} had an identical energy'
-                                   f' - not adding')
-                    continue
+        for conformer in value:
+            self._conformers.append(conformer)
 
-                if np.abs(conf.energy - avg_e)/max(std_dev_e, 1E-8) > n_sigma:
-                    logger.warning(f'Conformer {i} had an energy >{n_sigma}σ '
-                                   f'from the average - not adding')
-                    continue
-
-            if conf_is_unique_rmsd(conf, self.conformers):
-                if self.graph is None:
-                    logger.warning('Setting a conformer without a graph')
-                else:
-                    conf.graph = self.graph.copy()
-
-                self.conformers.append(conf)
-
-        logger.info(f'Generated {len(self.conformers)} unique conformer(s)')
-        return None
+        return
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError('Could not generate conformers. '
@@ -905,11 +889,11 @@ class Species(AtomCollection):
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
+
         self._grad = None
         self._hess = None
 
         #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
         self.graph = None
 
-        # Conformers pf this species (list(autode.conformers.Conformer) | None)
-        self.conformers = None
+        self._conformers = Conformers()
