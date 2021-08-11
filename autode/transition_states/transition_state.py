@@ -252,7 +252,7 @@ class TransitionState(TSbase):
             logger.warning('Cannot be true TS with no energy')
             return False
 
-        if len(self.imaginary_frequencies) > 0 and self.has_correct_imag_mode:
+        if self.has_imaginary_frequencies and self.has_correct_imag_mode:
             logger.info('Found a transition state with the correct '
                         'imaginary mode & links reactants and products')
             return True
