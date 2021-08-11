@@ -224,7 +224,7 @@ def test_atom_other():
     assert dummy.atomic_number == 0
     assert dummy.period == 0
     assert dummy.group == 0
-    assert dummy.mass == 0.0
+    assert dummy.mass == dummy.weight == 0.0
 
     fe = Atom(atomic_symbol='Fe')
     assert fe.tm_row == 1
