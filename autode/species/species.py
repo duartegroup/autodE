@@ -688,8 +688,6 @@ class Species(AtomCollection):
         self.atoms = calc.get_final_atoms()
         self.energy = calc.get_energy()
 
-        print(self.name, 'E = ', self.energy)
-
         method_name = '' if method is None else method.name
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
 

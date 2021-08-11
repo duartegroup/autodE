@@ -37,9 +37,6 @@ class Conformers(list):
             n_sigma (float | int):
         """
 
-        print(self)
-        print(self[0].energy)
-
         if remove_no_energy:
             for idx in reversed(range(len(self))):  # Enumerate backwards
                 if self[idx].energy is None:
@@ -66,27 +63,29 @@ class Conformers(list):
             n_sigma (int): Number of standard deviations a conformer energy
                    must be from the average for it not to be added
         """
-        confs_with_energy = {idx: conf for idx, conf in enumerate(self)
-                             if conf.energy is not None}
+        idxs_with_energy = [idx for idx, conf in enumerate(self)
+                            if conf.energy is not None]
         n_prev_confs = len(self)
 
-        if len(confs_with_energy) < 2:
+        if len(idxs_with_energy) < 2:
             logger.info(f'Only have {len(self)} conformers with an energy. No '
                         f'need to prune')
             return None
 
-        energies = [conf.energy for conf in confs_with_energy.values()]
+        energies = [self[idx].energy for idx in idxs_with_energy]
         std_dev_e, avg_e = float(np.std(energies)), np.average(energies)
 
-        logger.warning(f'Have {len(energies)} energies with μ={avg_e:.6f} Ha '
-                       f'σ={std_dev_e:.6f} Ha')
+        logger.info(f'Have {len(energies)} energies with μ={avg_e:.6f} Ha '
+                    f'σ={std_dev_e:.6f} Ha')
 
         if isinstance(e_tol, float):
             logger.warning('Assuming energy tolerance has units of Ha')
             e_tol = Energy(e_tol, units='Ha')
 
         # Delete from the end of the list to preserve the order when deleting
-        for i, (idx, conf) in enumerate(reversed(confs_with_energy.items())):
+        for i, idx in enumerate(reversed(idxs_with_energy)):
+            conf = self[idx]
+            idxs_with_energy = [i for i in idxs_with_energy if i < len(self)]
 
             if (np.abs(conf.energy - avg_e)
                  / max(std_dev_e, 1E-8)) > n_sigma:
@@ -94,13 +93,14 @@ class Conformers(list):
                 logger.warning(f'Conformer {idx} had an energy >{n_sigma}σ '
                                f'from the average - removing')
                 del self[idx]
+                continue
 
             if i == 0:
                 # The first (last) conformer must be unique
                 continue
 
-            if any(np.abs(conf.energy - other.energy) < e_tol.to('Ha')
-                   for j, other in confs_with_energy.items() if j != idx):
+            if any(np.abs(conf.energy - self[o_idx].energy) < e_tol.to('Ha')
+                   for o_idx in idxs_with_energy if o_idx != idx):
 
                 logger.info(f'Conformer {idx} had a non unique energy')
                 del self[idx]
@@ -165,12 +165,13 @@ class Conformers(list):
         """
         # TODO: Test efficiency + improve with dynamic load balancing
 
-        min_n_cores = min(2, Config.n_cores)
+        n_cores = max(len(self) // Config.n_cores,
+                      min(2, Config.n_cores))
 
-        with Pool(processes=Config.n_cores // min_n_cores) as pool:
+        with Pool(processes=Config.n_cores // n_cores) as pool:
             results = [pool.apply_async(_calc_conformer,
                                         args=(conf, calc_type, method, keywords),
-                                        kwds={'n_cores': min_n_cores})
+                                        kwds={'n_cores': n_cores})
                        for conf in self]
 
             for idx, res in enumerate(results):
