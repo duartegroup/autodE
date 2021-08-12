@@ -231,7 +231,7 @@ def test_long_alkane():
                     sn=1)
 
     # Should be close to a previously computed value
-    assert np.isclose(mol.g_cont.to('Ha'), 0.2113890180337356, atol=5E-4)
+    assert np.isclose(mol.g_cont.to('Ha'), 0.2113890180337356, atol=5.2E-4)
 
     # and <0.5 kcal mol-1 to the ORCA-calculated value
     assert np.isclose(mol.g_cont.to('Ha'), 0.21141149, atol=5E-4)
