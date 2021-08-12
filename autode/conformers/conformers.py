@@ -165,13 +165,12 @@ class Conformers(list):
         """
         # TODO: Test efficiency + improve with dynamic load balancing
 
-        n_cores = max(len(self) // Config.n_cores,
-                      min(2, Config.n_cores))
+        n_cores_pp = max(Config.n_cores // len(self), 1)
 
-        with Pool(processes=Config.n_cores // n_cores) as pool:
+        with Pool(processes=Config.n_cores // n_cores_pp) as pool:
             results = [pool.apply_async(_calc_conformer,
                                         args=(conf, calc_type, method, keywords),
-                                        kwds={'n_cores': n_cores})
+                                        kwds={'n_cores': n_cores_pp})
                        for conf in self]
 
             for idx, res in enumerate(results):

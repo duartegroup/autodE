@@ -1,7 +1,7 @@
 from autode.atoms import Atom
 from autode.species import Molecule
 from autode.conformers import Conformer, Conformers
-from autode.wrappers.ORCA import orca
+from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 from autode.config import Config
 from autode.values import Energy
@@ -16,6 +16,7 @@ import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+orca = ORCA()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'conformers.zip'))
@@ -25,6 +26,7 @@ def test_conf_class():
                         atoms=[Atom('H', 0.0, 0.0, 0.0),
                                Atom('H', 0.0, 0.0, 0.7)])
 
+    assert 'conformer' in repr(h2_conf).lower()
     assert hasattr(h2_conf, 'optimise')
 
     assert h2_conf.n_atoms == 2
@@ -45,6 +47,27 @@ def test_conf_class():
 
     assert h2_conf_broken.atoms is None
     assert h2_conf_broken.n_atoms == 0
+
+
+def test_conf_from_species():
+
+    h2o = Molecule(smiles='O')
+    conformer = Conformer(species=h2o)
+    assert conformer.n_atoms == 3
+    assert conformer.mult == 1
+    assert conformer.charge == 0
+    assert conformer.solvent is None
+
+    h2o_cation = Molecule(smiles='[O+H2]', charge=1, solvent_name='water')
+    assert h2o_cation.charge == 1
+
+    conformer = Conformer(species=h2o_cation)
+    assert conformer.n_atoms == 3
+    assert conformer.mult == 2
+    assert conformer.charge == 1
+
+    assert conformer.solvent is not None
+    assert conformer.solvent.name == 'water'
 
 
 def test_rdkit_atoms():
@@ -199,20 +222,36 @@ def test_confs_rmsd_puning3():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
-def _test_sp_hmethod_ranking():
+def test_sp_hmethod():
 
     Config.hmethod_sp_conformers = True
+    orca.keywords.low_sp = SinglePointKeywords(['PBE', 'D3BJ', 'def2-SVP'])
+
+    conf = Conformer(name='C4H10_conf0',
+                     species=Molecule(smiles='CCCC'))
+
+    conf.single_point(method=orca)
+    assert conf.energy is not None
+
+    Config.hmethod_sp_conformers = False
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
+def test_sp_hmethod_ranking():
+
+    Config.hmethod_sp_conformers = True
+    orca.keywords.low_sp = None
 
     butane = Molecule(smiles='CCCC')
     xtb = XTB()
     cwd = os.getcwd()
 
-    # Need to set hmethod.low_sp
+    # Need to set hmethod.low_sp for hmethod_sp_conformers
     with pytest.raises(AssertionError):
         butane.find_lowest_energy_conformer(lmethod=xtb,
                                             hmethod=orca)
 
-    # work_in function will change directories and not change back when an
+    # work_in function will change directories and may not change back when an
     # exception is raised, so ensure we're working in the same dir as before
     os.chdir(cwd)
 

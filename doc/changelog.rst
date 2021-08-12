@@ -34,6 +34,7 @@ Usability improvements/Changes
 - Improves peak checking in adaptive path TS guess generation
 - Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
 - Raises an exception if a single point energy evaluation fails to execute successfully
+- Removes :code:`autode.conformers.conformer.get_conformer()` in favour of a more flexible :code:`autode.conformer.Conformer` constructor
 
 
 Functionality improvements
