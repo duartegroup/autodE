@@ -17,6 +17,9 @@ class Constraints:
 
         return f'Constraints({string})'
 
+    def __repr__(self):
+        return self.__str__()
+
     @staticmethod
     def _init_distance(dist_constraints: Dict):
         """Initialise the distance constraints"""
@@ -30,7 +33,11 @@ class Constraints:
                                f'two distinct atoms. Had {key} - skipping')
                 continue
 
-            distance[key] = float(val)
+            if float(val) < 0:
+                raise ValueError('Negative distances are not valid'
+                                 ' constraints!')
+
+            distance[tuple(sorted(key))] = float(val)
 
         return distance
 

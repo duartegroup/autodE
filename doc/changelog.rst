@@ -35,6 +35,7 @@ Usability improvements/Changes
 - Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
 - Raises an exception if a single point energy evaluation fails to execute successfully
 - Removes :code:`autode.conformers.conformer.get_conformer()` in favour of a more flexible :code:`autode.conformer.Conformer` constructor
+- Adds :code:`Species.constraints` that are used in optimisations (still available in :code:`Calculation` initialisation)
 
 
 Functionality improvements
