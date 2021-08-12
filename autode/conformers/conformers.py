@@ -32,7 +32,7 @@ class Conformers(list):
         Keyword Arguments:
             e_tol (Energy): Energy tolerance
 
-            rmsd_tol  (Distance | None): RMSD tolerane
+            rmsd_tol  (Distance | None): RMSD tolerance
 
             n_sigma (float | int):
         """
@@ -79,7 +79,8 @@ class Conformers(list):
                     f'σ={std_dev_e:.6f} Ha')
 
         if isinstance(e_tol, float):
-            logger.warning('Assuming energy tolerance has units of Ha')
+            logger.warning(f'Assuming energy tolerance {e_tol:.6f} has units '
+                           f'of Ha')
             e_tol = Energy(e_tol, units='Ha')
 
         # Delete from the end of the list to preserve the order when deleting
@@ -127,7 +128,8 @@ class Conformers(list):
         rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
 
         if isinstance(rmsd_tol, float):
-            logger.warning('Assuming RMSD tolerance has units of Å')
+            logger.warning(f'Assuming RMSD tolerance {rmsd_tol:.2f} has units'
+                           f' of Å')
             rmsd_tol = Distance(rmsd_tol, units='ang')
 
         logger.info(f'Removing conformers with RMSD < {rmsd_tol.to("ang")} Å '

@@ -1,6 +1,6 @@
 from typing import Optional, List
 from multiprocessing import Pool
-from autode.values import Frequency, Energy
+from autode.values import Frequency
 from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
