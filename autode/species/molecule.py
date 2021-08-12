@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
-from autode.conformers.conformer import get_conformer
+from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer
 from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.atoms import metals
@@ -102,7 +102,7 @@ class Molecule(Species):
             logger.info('                                          ... done')
 
             for conf_id in conf_ids:
-                conf = get_conformer(self, name=f'{self.name}_conf{conf_id}')
+                conf = Conformer(species=self, name=f'{self.name}_conf{conf_id}')
                 conf.atoms = atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
                 self.conformers.append(conf)
 

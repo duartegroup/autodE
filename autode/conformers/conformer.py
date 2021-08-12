@@ -1,31 +1,7 @@
+from typing import Optional
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
 from autode.species.species import Species
-
-
-def get_conformer(species, name, dist_consts=None):
-    """
-    Generate a conformer of a species given a new name but with the same
-    atoms
-
-    Arguments:
-        species (autode.species.Species):
-        name (str):
-
-    Keywords Arguments:
-        dist_consts (dict | None):
-
-    Returns:
-        (autode.conformers.Conformer): Conformer
-    """
-    conformer = Conformer(name=name, atoms=species.atoms,
-                          charge=species.charge, mult=species.mult,
-                          dist_consts=dist_consts)
-
-    # Conformer should be in the same solvent
-    conformer.solvent = species.solvent
-
-    return conformer
 
 
 class Conformer(Species):
@@ -33,7 +9,10 @@ class Conformer(Species):
     def __repr__(self):
         return self._repr(prefix='Conformer')
 
-    def single_point(self, method, keywords=None, n_cores=None):
+    def single_point(self,
+                     method:  'autode.wrappers.base.ElectronicStructureMethod',
+                     keywords: Optional['autode.wrappers.keywords.Keywords'] = None,
+                     n_cores:  Optional[int] = None):
         """
         Calculate a single point and default to a low level single point method
 
@@ -43,24 +22,32 @@ class Conformer(Species):
         Keyword Arguments:
             keywords (autode.wrappers.keywords.Keywords):
 
-            n_cores (int | None):
+            n_cores (int | None): If None then defaults to Config.n_cores
         """
         keywords = method.keywords.low_sp if keywords is None else keywords
+
         return super().single_point(method, keywords, n_cores=n_cores)
 
-    def optimise(self, method=None, reset_graph=False, calc=None, keywords=None,
-                 n_cores=None):
+    def optimise(self,
+                 method:      Optional['autode.wrappers.base.ElectronicStructureMethod'] = None,
+                 reset_graph: bool = False,
+                 calc:        Optional['autode.calculation.Calculation'] = None,
+                 keywords:    Optional['autode.wrappers.keywords.Keywords'] = None,
+                 n_cores:     Optional[int] = None):
         """
-        Optimise the geometry of this conformer
-
-        Arguments:
-            method (autode.wrappers.base.ElectronicStructureMethod):
+        Optimise the geometry of this conformer using a method. Will use
+        low_opt keywords if no keywords are given.
 
         Keyword Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
             reset_graph (bool):
+
             calc (autode.calculation.Calculation):
+
             keywords (autode.wrappers.keywords.Keywords):
-            n_cores (int | None):
+
+            n_cores (int | None): If None then defaults to Config.n_cores
         """
         try:
             if keywords is None and method is not None:
@@ -75,8 +62,30 @@ class Conformer(Species):
 
         return None
 
-    def __init__(self, name='conf', atoms=None, solvent_name=None,
-                 charge=0, mult=1, dist_consts=None):
+    def __init__(self,
+                 name:         str = 'conf',
+                 atoms:        Optional['autode.atoms.Atoms'] = None,
+                 solvent_name: Optional[str] = None,
+                 charge:       int = 0,
+                 mult:         int = 1,
+                 dist_consts:  Optional[dict] = None,
+                 species:      Optional[Species] = None):
+        """
+        Construct a conformer either using the standard species constructor,
+        or from a species directly.
+
+        See Also:
+            (autode.species.Species)
+        """
+
         super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
+
+        if species is not None:
+            self.charge = species.charge  # Require identical charge/mult/solv
+            self.mult = species.mult
+            self.solvent = species.solvent
+
+            if atoms is None:
+                self.atoms = species.atoms.copy()
 
         self.constraints.update(distance=dist_consts)
