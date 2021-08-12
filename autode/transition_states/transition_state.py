@@ -188,7 +188,8 @@ class TransitionState(TSbase):
             disp_ts._run_opt_ts_calc(method=get_hmethod(),
                                      name_ext=name_ext + ext)
 
-            if len(self.imaginary_frequencies) == 1:
+            if (self.has_imaginary_frequencies
+                    and len(self.imaginary_frequencies) == 1):
                 logger.info('Displacement along second imaginary mode '
                             'successful. Now have 1 imaginary mode')
 
