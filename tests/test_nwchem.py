@@ -139,3 +139,23 @@ def test_get_keywords_max_opt_cyles():
     modified_opt_block2 = get_keywords(calc_input, molecule=test_mol)[0].split('\n')
 
     assert sum('maxiter 10' in line for line in modified_opt_block2) == 1
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_hessian_extract():
+
+    atoms = [Atom('F',   0.00000, 0.00000,  2.50357),
+             Atom('Cl', -0.00000, 0.00000, -1.62454),
+             Atom('C',   0.00000, 0.00000,  0.50698),
+             Atom('H',   1.05017, 0.24818,  0.60979),
+             Atom('H', -0.74001,  0.78538,  0.60979),
+             Atom('H', -0.31016, -1.03356,  0.60979)]
+
+    calc = Calculation(name='sn2_hess',
+                       molecule=Molecule(name='ts', atoms=atoms),
+                       keywords=method.keywords.hess,
+                       method=method)
+    calc.output.filename = 'sn2_hess_nwchem.out'
+
+    hess = calc.get_hessian()
+    assert hess.shape == (3*len(atoms), 3*len(atoms))
