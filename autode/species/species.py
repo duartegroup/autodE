@@ -490,7 +490,7 @@ class Species(AtomCollection):
         lowest_energy = None
 
         for conformer in self.conformers:
-            if conformer.energy is None:
+            if conformer.energy is None or conformer.atoms is None:
                 continue
 
             # Conformers don't have a molecular graph, so make it
@@ -511,6 +511,10 @@ class Species(AtomCollection):
                 self.atoms = conformer.atoms
                 self.energy = conformer.energy
                 lowest_energy = conformer.energy
+
+        if lowest_energy is None:
+            raise RuntimeError("Failed to set the lowest energy conformer as "
+                               "no suitable conformers were present")
 
         return None
 

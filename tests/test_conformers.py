@@ -221,6 +221,16 @@ def test_confs_rmsd_puning3():
     assert len(confs) == 1
 
 
+def test_species_set_lowest_e_conformer():
+
+    mol = Molecule(atoms=[Atom('H')])
+    mol.conformers.append(Conformer(atoms=['H']))
+
+    # Cannot set the lowest energy conformer where the conformer has no energy
+    with pytest.raises(RuntimeError):
+        mol._set_lowest_energy_conformer()
+
+
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
 def test_sp_hmethod():
 
