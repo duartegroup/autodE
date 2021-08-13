@@ -315,6 +315,11 @@ def symm_matrix_from_ltril(array):
     Returns:
         (np.ndarray):
     """
+
+    if len(array) > 0 and type(array[0]) in (list, np.ndarray):
+        # Flatten the array of arrays
+        array = [item for sublist in array for item in sublist]
+
     n = int((np.sqrt(8*len(array) + 1) - 1)/2)
 
     matrix = np.zeros(shape=(n, n), dtype='f8')

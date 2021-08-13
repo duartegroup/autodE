@@ -447,30 +447,35 @@ class NWChem(ElectronicStructureMethod):
         Returns:
             (np.ndarray):
         """
-        hess_lines = None
 
-        for i, line in enumerate(calc.output.file_lines):
-
-            if 'MASS-WEIGHTED NUCLEAR HESSIAN' not in line:
-                continue
-
-            start_line = i+6
-            n = 3*calc.molecule.n_atoms
-
-            hess_lines = calc.output.file_lines[start_line:start_line+n]
-            break
-
-        if hess_lines is None:
+        try:
+            line_idx = next(i for i, line in enumerate(calc.output.file_lines)
+                            if 'MASS-WEIGHTED NUCLEAR HESSIAN' in line)
+        except StopIteration:
             raise CouldNotGetProperty('Hessian not found in the output file')
+
+        hess_lines = []
+
+        for hess_line in calc.output.file_lines[line_idx+6:]:
+
+            if 'NORMAL MODE EIGENVECTORS' in hess_line:
+                break  # Finished the Hessian block
+
+            if 'D' in hess_line:
+                # e.g.     1    4.50945D-01
+                values = [float(x) for x in hess_line.replace('D', 'E').split()[1:]]
+                hess_lines.append(values)
 
         atom_masses = self._atom_masses_from_hessian(calc)
 
         # Construct a flat list of hessian elements from the lower triangular
         # elements printed
-        hess_values = []
-        for line in hess_lines:
-            line = line.replace('D', 'E')
-            hess_values += [float(val) for val in line.split()[1:]]
+        three_n = calc.molecule.n_atoms*3
+        hess_values = hess_lines[:three_n]
+
+        if len(hess_lines) > three_n:
+            for i, line in enumerate(hess_lines[three_n:]):
+                hess_values[10 + i % 10] += line
 
         hess = symm_matrix_from_ltril(array=hess_values)
 
