@@ -1,6 +1,6 @@
 import autode.wrappers.implicit_solvent_types as solv
 from autode.values import Frequency, Distance
-from autode.wrappers.keywords import KeywordsSet
+from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
 from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
@@ -166,18 +166,12 @@ class Config:
         path = None
 
         keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj,
-                                        def2svp, 'def2/J',
-                                        '\n%geom MaxIter 10 end'],
-                               grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp,
-                                     'def2/J'],
-                               opt=['Opt', pbe0, rijcosx, d3bj, def2svp,
-                                    'def2/J'],
-                               opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj,
-                                       def2svp, 'def2/J'],
-                               hess=['Freq', pbe0, rijcosx, d3bj, def2svp,
-                                     'def2/J'],
-                               sp=['SP', pbe0, rijcosx, d3bj, def2tzvp,
-                                   'def2/J'],
+                                        def2svp, 'def2/J', MaxOptCycles(10)],
+                               grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+                               opt=['Opt', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+                               opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+                               hess=['Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+                               sp=['SP', pbe0, rijcosx, d3bj, def2tzvp, 'def2/J'],
                                optts_block=('%geom\n'
                                             'Calc_Hess true\n' 
                                             'Recalc_Hess 30\n'
@@ -210,15 +204,10 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=[pbe0, def2svp,
-                                        'Opt=(Loose, MaxCycles=10)',
-                                        d3bj, grid],
-                               grad=[pbe0, def2svp, 'Force(NoStep)',
-                                     d3bj, grid],
-                               opt=[pbe0, def2svp, 'Opt',
-                                    d3bj, grid],
-                               opt_ts=[pbe0, def2svp, 'Freq',
-                                       d3bj, grid, ts_str],
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', MaxOptCycles(10), d3bj, grid],
+                               grad=[pbe0, def2svp, 'Force(NoStep)', d3bj, grid],
+                               opt=[pbe0, def2svp, 'Opt', d3bj, grid],
+                               opt_ts=[pbe0, def2svp, 'Freq', d3bj, grid, ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj, grid],
                                sp=[pbe0, def2tzvp, d3bj, grid],
                                ecp=def2tzecp)
@@ -237,11 +226,10 @@ class Config:
         ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
                   'NoTrustUpdate, RecalcFC=30)')
 
-        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', d3bj],
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', d3bj, MaxOptCycles(10)],
                                grad=[pbe0, def2svp, 'Force(NoStep)', d3bj],
                                opt=[pbe0, def2svp, 'Opt', d3bj],
-                               opt_ts=[pbe0, def2svp, 'Freq', d3bj,
-                                       ts_str],
+                               opt_ts=[pbe0, def2svp, 'Freq', d3bj, ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj],
                                sp=[pbe0, def2tzvp, d3bj],
                                ecp=def2tzecp)
@@ -265,7 +253,6 @@ class Config:
                            '  xmax 0.01\n'
                            '  xrms 0.007\n'
                            '  eprec 0.00003\n'
-                           '  maxiter 10\n'
                            'end')
 
         opt_block = ('driver\n'
@@ -274,14 +261,13 @@ class Config:
                      '  xmax 0.004\n'
                      '  xrms 0.002\n'
                      '  eprec 0.000005\n'
-                     '  maxiter 100\n'
                      'end')
 
-        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe0,
+        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe0, MaxOptCycles(10),
                                         'task dft optimize'],
                                grad=[def2svp, pbe0,
                                      'task dft gradient'],
-                               opt=[opt_block, def2svp, pbe0,
+                               opt=[opt_block, def2svp, pbe0, MaxOptCycles(100),
                                     'task dft optimize',
                                     'task dft property'],
                                opt_ts=[opt_block, def2svp, pbe0,

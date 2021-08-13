@@ -79,6 +79,9 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
             # Use the default specification for applying ECPs
             continue
 
+        if isinstance(keyword, kws.MaxOptCycles):
+            continue  # Set in print_num_optimisation_steps
+
         if isinstance(keyword, kws.Keyword):
             new_keywords.append(keyword.orca)
 
@@ -152,11 +155,19 @@ def print_cartesian_constraints(inp_file, molecule):
     return
 
 
-def print_increased_optimisation_steps(inp_file, molecule, calc_input):
+def print_num_optimisation_steps(inp_file, molecule, calc_input):
     """If there are relatively few atoms increase the number of opt steps"""
 
-    if molecule.n_atoms > 33:
+    if not isinstance(calc_input.keywords, kws.OptKeywords):
+        return   # Not an optimisation so no need to increase steps
+
+    if calc_input.keywords.max_opt_cycles is not None:
+        print(f'%geom MaxIter {int(calc_input.keywords.max_opt_cycles)} end',
+              file=inp_file)
         return
+
+    if molecule.n_atoms > 33:
+        return  # Use default behaviour
 
     block = calc_input.other_block
     if block is None or 'maxit' not in block.lower():
@@ -223,8 +234,7 @@ class ORCA(ElectronicStructureMethod):
             print_added_internals(inp_file, calc.input)
             print_distance_constraints(inp_file, molecule)
             print_cartesian_constraints(inp_file, molecule)
-            if not any('maxiter' in kw.lower() for kw in keywords):
-                print_increased_optimisation_steps(inp_file, molecule, calc.input)
+            print_num_optimisation_steps(inp_file, molecule, calc.input)
             print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
             if Config.ORCA.other_input_block is not None:

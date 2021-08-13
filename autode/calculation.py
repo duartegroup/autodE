@@ -563,8 +563,12 @@ class CalculationInput:
 
         return [self.filename] + self.additional_filenames
 
-    def __init__(self, keywords, solvent, additional_input,
-                 added_internals, point_charges):
+    def __init__(self,
+                 keywords:        'autode.wrappers.keywords.Keywords',
+                 solvent:          Optional[str] = None,
+                 additional_input: Optional[str] = None,
+                 added_internals:  Optional[list] = None,
+                 point_charges:    Optional[List[PointCharge]] = None):
         """
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
@@ -580,9 +584,6 @@ class CalculationInput:
             point_charges (list(autode.point_charges.PointCharge) or None):
                           list of float of point charges, x, y, z coordinates
                           for each point charge
-
-            temp (float): Temperature to perform the calculation at in K, or
-                  None
         """
         self.keywords = keywords
         self.solvent = solvent

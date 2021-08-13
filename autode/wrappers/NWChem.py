@@ -61,6 +61,9 @@ def get_keywords(calc_input, molecule):
             # ECPs are added to the basis block
             continue
 
+        elif isinstance(keyword, kws.MaxOptCycles):
+            continue  # Maximum number of optimisation cycles in driver block
+
         elif isinstance(keyword, kws.Keyword):
             keyword = keyword.nwchem
 
@@ -103,6 +106,25 @@ def get_keywords(calc_input, molecule):
 
             new_keywords.append(f'scf\n  nopen {molecule.mult - 1}\nend')
             new_keywords.append(keyword)
+
+        elif 'driver' in keyword.lower() and isinstance(calc_input.keywords, kws.OptKeywords):
+            max_opt_cycles = calc_input.keywords.max_opt_cycles
+
+            if max_opt_cycles is None:
+                new_keywords.append(keyword)  # No edits needed
+                continue
+
+            if 'maxiter' in keyword.lower():
+                logger.info('Found maximum iterations already defined, '
+                            f'overriding with {max_opt_cycles}')
+                kw_lines = [l if 'maxiter' not in l.lower() else f'  maxiter {int(max_opt_cycles)}'
+                            for l in keyword.split('\n')]
+            else:
+                kw_lines = keyword.split('\n')
+                kw_lines.insert(-1, f'  maxiter {int(max_opt_cycles)}')
+
+            new_keywords.append('\n'.join(kw_lines))
+
         else:
             new_keywords.append(keyword)
 
@@ -174,7 +196,6 @@ def print_constraints(inp_file, molecule, force_constant=20):
 class NWChem(ElectronicStructureMethod):
 
     def generate_input(self, calc, molecule):
-        # TODO impliment partial hessian
         keywords = get_keywords(calc.input, molecule)
 
         with open(calc.input.filename, 'w') as inp_file:

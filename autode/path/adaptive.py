@@ -155,10 +155,13 @@ class AdaptivePath(Path):
         super().append(point)
 
         idx = len(self) - 1
+        keywords = self.method.keywords.low_opt.copy()
+        keywords.max_opt_cycles = 50
+
         calc = ade.Calculation(name=f'path_opt{idx}',
                                molecule=self[idx].species,
                                method=self.method,
-                               keywords=self.method.keywords.low_opt,
+                               keywords=keywords,
                                n_cores=ade.Config.n_cores,
                                distance_constraints=self[idx].constraints)
         calc.run()

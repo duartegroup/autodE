@@ -1,7 +1,8 @@
 import pytest
 import os
 import numpy as np
-from autode.wrappers.G09 import G09, print_custom_basis, get_keywords, n_ecp_elements
+from autode.wrappers.G09 import (G09, print_custom_basis, get_keywords,
+                                 n_ecp_elements, add_opt_option)
 from autode.wrappers.G16 import G16
 from autode.calculation import Calculation, CalculationInput, Constraints
 from autode.species.molecule import Molecule
@@ -11,9 +12,7 @@ from autode.wrappers.functionals import pbe0
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
-from autode.exceptions import NoNormalModesFound
 from autode.point_charges import PointCharge
-from autode.config import Config
 from autode.atoms import Atom
 from . import testutils
 
@@ -62,6 +61,13 @@ def test_printing_ecp():
     # definitions
     g09_kwds = get_keywords(calc_input, molecule=tmp_mol)
     assert not any(kwd.lower() == 'def2tzvp' for kwd in g09_kwds)
+
+
+def test_add_opt_option():
+
+    kwds = ['Opt=Loose']
+    add_opt_option(kwds, 'MaxCycles=10')
+    assert kwds[0].lower() == 'opt=(loose, maxcycles=10)'
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))

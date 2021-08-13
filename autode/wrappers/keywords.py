@@ -1,3 +1,4 @@
+from typing import Union
 from copy import deepcopy
 from autode.log import logger
 
@@ -248,7 +249,7 @@ class Keywords:
         return string
 
     def copy(self):
-        return deepcopy(self.keyword_list)
+        return deepcopy(self)
 
     def append(self, item):
         assert type(item) is str or isinstance(item, Keyword)
@@ -268,6 +269,9 @@ class Keywords:
     def __len__(self):
         return len(self.keyword_list)
 
+    def __iter__(self):
+        return iter(self.keyword_list)
+
     def __init__(self, keyword_list=None):
         """
         Read only list of keywords
@@ -279,6 +283,28 @@ class Keywords:
 
 
 class OptKeywords(Keywords):
+
+    @property
+    def max_opt_cycles(self):
+        """
+        Maximum number of optimisation cycles
+
+        Returns:
+            (autode.wrappers.keywords.MaxOptCycles):
+        """
+        return self._get_keyword(MaxOptCycles)
+
+    @max_opt_cycles.setter
+    def max_opt_cycles(self, value: Union[int, 'MaxOptCycles', None]):
+        """Set the maximum number of optimisation cycles"""
+        if value is None:
+            self._set_keyword(None, MaxOptCycles)
+            return
+
+        if int(value) <= 0:
+            raise ValueError('Must have a positive number of opt cycles')
+
+        self._set_keyword(MaxOptCycles(int(value)), MaxOptCycles)
 
     def __str__(self):
         return self._string(prefix='OptKeywords')
@@ -426,3 +452,14 @@ class ECP(Keyword):
         super().__init__(name, doi, doi_list, **kwargs)
 
         self.min_atomic_number = min_atomic_number
+
+
+class MaxOptCycles(Keyword):
+    """Maximum number of optimisation cycles"""
+
+    def __int__(self):
+        return int(self.name)
+
+    def __init__(self,
+                 number: int):
+        super().__init__(name=str(int(number)))
