@@ -155,9 +155,6 @@ def set_graph_attributes(species):
     logger.info('Setting the π bonds in a species')
 
     def is_idx_pi_atom(idx):
-        if type(species.atoms[idx].is_pi) is bool:
-            return species.atoms[idx].is_pi
-
         return species.atoms[idx].is_pi(valency=species.graph.degree[idx])
 
     for bond in species.graph.edges:
