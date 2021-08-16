@@ -6,7 +6,7 @@ Changelog
 --------
 ----------
 
-API improvements while broadly maintaining backwards compatibility.
+API improvements that broadly maintain backwards compatibility.
 
 
 Usability improvements/Changes
@@ -25,13 +25,16 @@ Usability improvements/Changes
 - Changes :code:`CalculationOutput.terminated_normally()` to a property (:code:`CalculationOutput.terminated_normally`)
 - Removes :code:`Reaction.find_complexes` in favour of setting the reactant and product complexes dynamically, unless :code:`Reaction.calculate_complexes` is called to find association complexes
 - Tweaks the default relative tolerance on bonds to account for M-X agostic interactions lengthening bonds
-- Enables :code:`Species.atoms` to be added, even if they are none
+- Enables :code:`Species.atoms` to be added, even if they are `None`
 - Improved atom setting of :code:`Complex.atoms`
 - Changes :code:`Complex.get_atom_indexes()` to :code:`Complex.atom_indexes()`
 - Changes :code:`Complex.molecules` to a private attribute as the atoms/energy/gradient is not propagated
 - Allows for :code:`Species.translate()` and :code:`Species.rotate()` to be called using vectors as lists or tuples rather than just numpy arrays
 - Modifies :code:`get_truncated_complex()` to :code:`get_truncated_species()` and changes the return type to a species to reflect a possibly different molecular composition of the complex
 - Improves peak checking in adaptive path TS guess generation
+- Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
+- Raises an exception if a single point energy evaluation fails to execute successfully
+
 
 Functionality improvements
 **************************
@@ -50,6 +53,7 @@ Functionality improvements
 - Enables different force constants to be used in XTB constrained optimisations (:code:`Config.XTB.force_constant`, which sets :code:`wrappers.XTB.XTB.force_constant`)
 - Adds :code:`Solvent.copy()`
 - Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
+- Adds :code:`Config.ORCA.other_input_block` to allow for a block of input to be printed in all ORCA input files
 
 
 Bug Fixes

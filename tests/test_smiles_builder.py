@@ -19,7 +19,7 @@ def built_molecule_is_reasonable(smiles):
     parser.parse(smiles)
     builder.build(parser.atoms, parser.bonds)
     mol = Molecule(atoms=builder.atoms)
-    mol.print_xyz_file(filename='tmp.xyz')
+    # mol.print_xyz_file(filename='tmp.xyz')
 
     return are_coords_reasonable(mol.coordinates)
 
@@ -630,3 +630,32 @@ def test_max_ring_size():
     parser.parse(smiles='O=C1C2=C(O[Si](C)(C)C)C[C@H](CCCC3)C3=C4C2CC[C@@H]4O1')
     builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
     assert builder.max_ring_n == 7
+
+
+def test_cis_dihedral_force():
+    """Test the forcing of a cis-dihedral from a trans geometry"""
+
+    parser.parse(smiles='CC=CC')
+    builder.build(parser.atoms, parser.bonds)
+    # pre-generated trans geometry
+    coords = [[-0.86310, -0.72859,  0.62457],
+              [0.10928, -0.05429,  1.42368],
+              [1.17035, -0.79134,  2.03167],
+              [2.14109, -0.11396,  2.83018],
+              [-0.46878, -1.52095,  0.23716],
+              [-1.16448, -0.14182, -0.08133],
+              [-1.61598, -0.98052,  1.17515],
+              [0.04809,  0.90129,  1.55228],
+              [1.23123, -1.74691,  1.90286],
+              [2.16958, -0.51498,  3.70870],
+              [3.00946, -0.19036,  2.41364],
+              [1.90166,  0.81880,  2.90791]]
+
+    for atom, new_coord in zip(builder.atoms, coords):
+        atom.coord = new_coord
+
+    builder._force_double_bond_stereochem(dihedral=Dihedral([0, 1, 2, 3],
+                                                            phi0=0.0))
+
+    # Distance between the end carbons needs to be smaller than the trans
+    assert 2.0 < builder.distance(0, 3) < 3.1

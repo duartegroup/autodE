@@ -233,6 +233,12 @@ def test_species_single_point():
     mol.single_point(method=orca)
     assert mol.energy == -1.138965730007
 
+    failed_sp_mol = Species(name='H2_failed',
+                            atoms=[h1, h2], charge=0, mult=1)
+
+    with pytest.raises(CalculationException):
+        failed_sp_mol.single_point(method=orca)
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
 def test_species_optimise():

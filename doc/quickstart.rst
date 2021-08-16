@@ -24,7 +24,7 @@ using 8 CPU cores in around 10 minutes or so using ORCA/XTB.
     >>> rxn = ade.Reaction('C=CC=C.C=C>>C1=CCCCC1', name='DA')
     >>> rxn.calculate_reaction_profile()
 
-A directory should be created where electronic structure calculations have
+A directory (*DA/*) will be created where electronic structure calculations have
 been performed and an image of the reaction profile saved in the current working directory. See below:
 
 .. raw:: html

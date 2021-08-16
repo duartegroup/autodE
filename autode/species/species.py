@@ -6,6 +6,7 @@ from typing import Optional, Union, List, Collection
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
+from autode.exceptions import CalculationException
 from autode.geom import calc_rmsd
 from autode.log.methods import methods
 from autode.conformers.conformers import get_unique_confs
@@ -261,7 +262,13 @@ class Species(AtomCollection):
             logger.warning('Had no frequencies - could not find any imaginary')
             return None
 
-        return [freq for freq in self.frequencies if freq.is_imaginary]
+        imag_freqs = [freq for freq in self.frequencies if freq.is_imaginary]
+
+        if len(imag_freqs) == 0:
+            logger.warning('No imaginary frequencies')
+            return None
+
+        return imag_freqs
 
     def normal_mode(self, mode_number: int) -> Optional[val.Coordinates]:
         """
@@ -786,10 +793,18 @@ class Species(AtomCollection):
         logger.info(f'Running single point energy evaluation of {self.name}')
         keywords = method.keywords.sp if keywords is None else keywords
 
-        sp = Calculation(name=f'{self.name}_sp', molecule=self, method=method,
-                         keywords=keywords, n_cores=Config.n_cores)
+        sp = Calculation(name=f'{self.name}_sp',
+                         molecule=self,
+                         method=method,
+                         keywords=keywords,
+                         n_cores=Config.n_cores)
         sp.run()
-        self.energy = sp.get_energy()
+        energy = sp.get_energy()
+
+        if energy is None:
+            raise CalculationException("Failed to calculate a single point "
+                                       f"energy for {self}")
+        self.energy = energy
 
         return None
 

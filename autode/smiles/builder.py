@@ -329,7 +329,7 @@ class Builder(AtomCollection):
 
             # If both atoms either side of this one are 'pi' atoms e.g. in a
             # benzene ring, then the ideal angle must be 0 to close the ring
-            if all(self.atoms[idx].is_pi for idx in dihedral.mid_idxs):
+            if all(self.atoms[idx].is_pi() for idx in dihedral.mid_idxs):
                 dihedral.phi_ideal = 0.0
 
             # Only yield single bonds, that can be rotated freely
