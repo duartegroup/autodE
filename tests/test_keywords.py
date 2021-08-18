@@ -25,6 +25,7 @@ def test_keywords():
     assert isinstance(SinglePointKeywords(None), Keywords)
 
     keywords = Keywords(keyword_list=['test'])
+    assert 'test' in str(keywords)
 
     # Should not add a keyword that's already there
     keywords.append('test')
@@ -38,6 +39,8 @@ def test_keywords():
     assert 'grad' in str(GradientKeywords(None)).lower()
     assert 'sp' in str(SinglePointKeywords(None)).lower()
 
+    assert 'pbe' in repr(pbe).lower()
+
     keywords = Keywords([pbe, def2tzvp, d3bj])
     assert len(keywords) == 3
     assert keywords.bstring is not None
@@ -45,7 +48,15 @@ def test_keywords():
     assert 'def2' in keywords.bstring.lower()
     assert 'd3bj' in keywords.bstring.lower()
 
+    # Keywords have a defined order
+    assert 'pbe' in keywords[0].name.lower()
+
     assert 'hf' in Keywords([hf, def2tzvp]).bstring.lower()
+
+
+def test_wf_keywords_string():
+
+    assert 'hf' in Keywords([hf]).method_string.lower()
 
 
 def test_set_keywordsset():
