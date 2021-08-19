@@ -65,9 +65,21 @@ def test_printing_ecp():
 
 def test_add_opt_option():
 
-    kwds = ['Opt=Loose']
-    add_opt_option(kwds, 'MaxCycles=10')
-    assert kwds[0].lower() == 'opt=(loose, maxcycles=10)'
+    keywds = ['Opt=Loose']
+    add_opt_option(keywds, 'MaxCycles=10')
+    assert keywds[0].lower() == 'opt=(loose, maxcycles=10)'
+
+
+def test_input_print_max_opt():
+
+    keywds = opt_keywords.copy()
+    keywds.max_opt_cycles = 10
+
+    str_keywords = get_keywords(CalculationInput(keywds),
+                                molecule=test_mol)
+
+    # Should be only a single instance of the maxcycles declaration
+    assert sum('maxcycles=10' in kw.lower() for kw in str_keywords) == 1
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
