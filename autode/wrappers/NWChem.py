@@ -121,6 +121,7 @@ def get_keywords(calc_input, molecule):
                             for l in keyword.split('\n')]
             else:
                 kw_lines = keyword.split('\n')
+                # Add the maximum iteration line before the 'end' final line
                 kw_lines.insert(-1, f'  maxiter {int(max_opt_cycles)}')
 
             new_keywords.append('\n'.join(kw_lines))
