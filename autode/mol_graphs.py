@@ -157,8 +157,6 @@ def set_graph_attributes(species):
     def is_idx_pi_atom(idx):
         return species.atoms[idx].is_pi(valency=species.graph.degree[idx])
 
-        return species.atoms[idx].is_pi(valency=species.graph.degree[idx])
-
     for bond in species.graph.edges:
         atom_i, atom_j = bond
 
