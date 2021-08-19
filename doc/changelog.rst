@@ -36,6 +36,8 @@ Usability improvements/Changes
 - Raises an exception if a single point energy evaluation fails to execute successfully
 - Removes :code:`autode.conformers.conformer.get_conformer()` in favour of a more flexible :code:`autode.conformer.Conformer` constructor
 - Adds :code:`Species.constraints` that are used in optimisations (still available in :code:`Calculation` initialisation)
+- Adds :code:`Conformers` to enable parallel electronic structure calculations across a set of conformers
+- Improves readability of pruning of conformers based on RMSD and energy thresholds
 
 
 Functionality improvements
