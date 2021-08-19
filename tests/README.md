@@ -12,9 +12,9 @@ then run the tests
 py.test 
 ```
 
-
+***
 ### Benchmark
-In addition to the tests there is a benchmark of calculations (benchmark.py) to
+In addition to the tests there is a benchmark of calculations (*benchmark.py*) to
 run for every minor release. This benchmark **must** be run and the results 
 posted below to ensure consistent functionality - it should take a few hours 
 on 8 cores. 
@@ -23,29 +23,29 @@ on 8 cores.
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-SN2            -497.0         1.3            ✓
-cope           -557.4         4.8            ✓
-DA             -484.7         18.1           ✓
-Hshift         -1898.7        2.7            ✓
-C2N2O          -493.7         1.8            ✓
-cycbut         -741.3         14.2           ✓
-DAcpd          -470.6         6.9            ✓
-ethCF2         -378.3         17.0           ✓
-ene            -966.7         25.0           ✓
-HFloss         -1801.7        11.3           ✓
-oxir           -567.1         7.7            ✓
-Ocope          -525.3         3.0            ✓
-SO2loss        -324.1         47.1           ✓
-aldol          -259.4         19.7           ✓
-dipolar        -442.3         8.8            ✓
+SN2            -496.8         1.3            ✓
+cope           -557.3         4.7            ✓
+DA             -484.4         17.6           ✓
+Hshift         -1898.8        2.6            ✓
+C2N2O          -493.6         1.7            ✓
+cycbut         -741.1         14.3           ✓
+DAcpd          -470.4         6.7            ✓
+ethCF2         -377.4         15.4           ✓
+ene            -966.7         17.0           ✓
+HFloss         -1801.7        7.4            ✓
+oxir           -569.5         11.0           ✓
+Ocope          -525.4         2.9            ✓
+SO2loss        -324.1         26.4           ✓
+aldol          -260.3         19.3           ✓
+dipolar        -442.7         8.4            ✓
 ```
 
 #### SM (small metal)
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-hydroform1     -433.8         31.7           ✓
-MnInsert       -296.0         76.0           ✓
-grubbs         -121.8         59.3           ✓
-vaskas         -94.3          44.3           ✓
+hydroform1     -434.1         38.0           ✓
+MnInsert       -295.7         58.1           ✓
+grubbs         -121.1         63.8           ✓
+vaskas         -94.6          39.8           ✓
 ```
