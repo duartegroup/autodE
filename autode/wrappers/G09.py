@@ -33,7 +33,6 @@ def add_opt_option(keywords, new_option):
             opt_options.append(new_option)
 
         new_keyword = f'Opt=({", ".join(opt_options)})'
-        print(new_keyword)
         keywords.remove(keyword)
         keywords.append(new_keyword)
 
