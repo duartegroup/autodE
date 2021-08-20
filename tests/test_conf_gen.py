@@ -49,17 +49,16 @@ def test_bcp_confs(tmpdir):
 
     assert all(conf.energy is not None for conf in mol.conformers)
     energies = np.array([conf.energy for conf in mol.conformers])
-    avg, std = np.average(energies), np.std(energies)
 
-    if np.isclose(std, 0, atol=1E-5):
-        return  # Should be random, but might not be
+    # Hard coded standard deviation as, once the pruning has happened then
+    # the standard deviation is different
+    avg, std = np.average(energies), 0.005
 
     # This fused ring system has a reasonable probability of generating a
     # high energy conformer with RR, with a minimum that is very congested
     # it should be removed when the conformers are set
     assert all(np.abs(conf.energy - avg)/std < 5 for conf in mol.conformers)
-
-    assert len(mol.conformers) > 0
+    assert mol.n_conformers > 0
 
     os.chdir(here)
 

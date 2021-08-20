@@ -18,27 +18,6 @@ TEST_CASE("Test point generation with only a single point"){
 }
 
 
-TEST_CASE("Test the gradient used to minimise the points"){
-   
-    CubePointGenerator generator(2,  // 2 points in a 1D box with
-                                 1,  // a length of unity
-                                 0.0,
-                                 1.0);
-
-    REQUIRE(generator.half_box_length == Approx(0.5)); 
-
-    generator.n = 1;                 // Override the number of points..
-    vector<double> point(1, 0.5);
-    generator.points = {point};
-
-    // Check that for a single point the gradient is zero
-    generator.set_grad();
-    REQUIRE(generator.norm_grad() == Approx(0.0).epsilon(1E-4));
-
-}
-
-
-
 TEST_CASE("Test periodic point generation in 1D"){
     CubePointGenerator pointGenerator(2,    // 2 points
                                       1,    // 1D
@@ -90,7 +69,7 @@ TEST_CASE("Test periodic point generation in 2D square"){
     auto points = pointGenerator.points;
 
     // Minimum ∆r between the two points should be 0.707
-    REQUIRE(distance(points[0], points[1]) > 0.6);
+    REQUIRE(distance(points[0], points[1]) > 0.5);
 }
 
 
