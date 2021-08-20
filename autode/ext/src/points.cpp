@@ -172,10 +172,7 @@ namespace autode {
             // Should loop for all i, j and j, i but not i = j
             for (int j = 0; j < n; j++) {
 
-                // Only loop over non identical pairs
-                if (i == j) {
-                    continue;
-                }
+                if (i == j) continue;
 
                 set_delta_point_pbc(i, j);
                 auto rep_ftr = -1.0 / norm_squared_delta_point();
@@ -203,7 +200,7 @@ namespace autode {
          *
          *      step size: Fixed step size to take in the steepest decent
          *
-	 *      max_iterations:
+	     *      max_iterations:
          */
         set_grad();
         int iteration = 0;
@@ -220,7 +217,11 @@ namespace autode {
 
                 for (int k = 0; k < dim; k++) {
 
-                    points[point_idx][k] -= step_size * s_grad[point_idx][k];
+                    // Ensure the translation is not more than the whole
+                    // box length
+                    points[point_idx][k] -= fmin(fmax(step_size * s_grad[point_idx][k],
+                                                 -box_length),
+                                                 box_length);
 
                     if (points[point_idx][k] > half_box_length) {
                         points[point_idx][k] -= box_length;
