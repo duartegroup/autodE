@@ -73,23 +73,26 @@ class Conformers(list):
             return None
 
         energies = [self[idx].energy for idx in idxs_with_energy]
-        std_dev_e, avg_e = float(np.std(energies)), np.average(energies)
+
+        # Use a lower-bounded σ to prevent division by zero
+        std_dev_e = max(float(np.std(energies)), 1E-8)
+        avg_e = np.average(energies)
 
         logger.info(f'Have {len(energies)} energies with μ={avg_e:.6f} Ha '
                     f'σ={std_dev_e:.6f} Ha')
 
-        if isinstance(e_tol, float):
+        if isinstance(e_tol, Energy):
+            e_tol = float(e_tol.to('Ha'))
+        else:
             logger.warning(f'Assuming energy tolerance {e_tol:.6f} has units '
                            f'of Ha')
-            e_tol = Energy(e_tol, units='Ha')
 
         # Delete from the end of the list to preserve the order when deleting
         for i, idx in enumerate(reversed(idxs_with_energy)):
             conf = self[idx]
-            idxs_with_energy = [i for i in idxs_with_energy if i < len(self)]
+            idxs_with_energy = [j for j in idxs_with_energy if j < len(self)]
 
-            if (np.abs(conf.energy - avg_e)
-                 / max(std_dev_e, 1E-8)) > n_sigma:
+            if np.abs(conf.energy - avg_e) / std_dev_e > n_sigma:
 
                 logger.warning(f'Conformer {idx} had an energy >{n_sigma}σ '
                                f'from the average - removing')
@@ -100,7 +103,7 @@ class Conformers(list):
                 # The first (last) conformer must be unique
                 continue
 
-            if any(np.abs(conf.energy - self[o_idx].energy) < e_tol.to('Ha')
+            if any(np.abs(conf.energy - self[o_idx].energy) < e_tol
                    for o_idx in idxs_with_energy if o_idx != idx):
 
                 logger.info(f'Conformer {idx} had a non unique energy')
