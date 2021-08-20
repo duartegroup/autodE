@@ -88,8 +88,7 @@ def get_keywords(calc_input, molecule):
 
         elif keyword.lower().startswith('scf'):
             if calc_input.solvent:
-                logger.critical('nwchem only supports solvent for DFT calcs')
-                raise UnsuppportedCalculationInput
+                raise UnsuppportedCalculationInput('nwchem only supports solvent for DFT calcs')
 
             scf_block = True
             lines = keyword.split('\n')
@@ -101,8 +100,7 @@ def get_keywords(calc_input, molecule):
               and not scf_block):
 
             if calc_input.solvent.keyword is not None:
-                logger.critical('nwchem only supports solvent for DFT calcs')
-                raise UnsuppportedCalculationInput
+                raise UnsuppportedCalculationInput('nwchem only supports solvent for DFT calcs')
 
             new_keywords.append(f'scf\n  nopen {molecule.mult - 1}\nend')
             new_keywords.append(keyword)
@@ -227,11 +225,11 @@ class NWChem(ElectronicStructureMethod):
             print_constraints(inp_file, molecule)
 
             if calc.input.point_charges is not None:
-                print('bq')
-                for charge, x, y, z in calc.point_charges:
+                print('bq', file=inp_file)
+                for charge, x, y, z in calc.input.point_charges:
                     print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}',
                           file=inp_file)
-                print('end')
+                print('end', file=inp_file)
 
             print(f'memory {Config.max_core} mb', file=inp_file)
 
@@ -368,7 +366,6 @@ class NWChem(ElectronicStructureMethod):
             if charges_section and '------------' in line:
                 charges_section = False
 
-        print(charges)
         return charges
 
     def get_gradients(self, calc):
@@ -454,7 +451,7 @@ class NWChem(ElectronicStructureMethod):
         except StopIteration:
             raise CouldNotGetProperty('Hessian not found in the output file')
 
-        hess_lines = []
+        hess_lines = [[] for _ in range(calc.molecule.n_atoms*3)]
 
         for hess_line in calc.output.file_lines[line_idx+6:]:
 
@@ -462,22 +459,19 @@ class NWChem(ElectronicStructureMethod):
                 break  # Finished the Hessian block
 
             if 'D' in hess_line:
-                # e.g.     1    4.50945D-01
+                # e.g.     1    4.50945D-01  ...
+                idx = hess_line.split()[0]
+                try:
+                    _ = hess_lines[int(idx) - 1]
+                except (ValueError, IndexError):
+                    raise CouldNotGetProperty("Unexpected hessian formating: "
+                                              f"{hess_line}")
+
                 values = [float(x) for x in hess_line.replace('D', 'E').split()[1:]]
-                hess_lines.append(values)
+                hess_lines[int(idx)-1] += values
 
         atom_masses = self._atom_masses_from_hessian(calc)
-
-        # Construct a flat list of hessian elements from the lower triangular
-        # elements printed
-        three_n = calc.molecule.n_atoms*3
-        hess_values = hess_lines[:three_n]
-
-        if len(hess_lines) > three_n:
-            for i, line in enumerate(hess_lines[three_n:]):
-                hess_values[10 + i % 10] += line
-
-        hess = symm_matrix_from_ltril(array=hess_values)
+        hess = symm_matrix_from_ltril(array=hess_lines)
 
         # Un-mass weight from Kamu^-1 to 1
         mass_arr = np.repeat(atom_masses,  repeats=3, axis=np.newaxis) * 1E-3
