@@ -144,7 +144,7 @@ class Conformers(list):
 
             conf = self[idx]
 
-            if all(calc_heavy_atom_rmsd(conf.atoms, other.atoms) < rmsd_tol
+            if any(calc_heavy_atom_rmsd(conf.atoms, other.atoms) < rmsd_tol
                    for o_idx, other in enumerate(self) if o_idx != idx):
 
                 logger.info(f'Conformer {idx} was close in geometry to at'
