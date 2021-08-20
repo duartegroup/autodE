@@ -45,13 +45,14 @@ namespace autode {
                                      "min_val < max_val");
         }
 
-	// Set the initial gradient with respect to point displacement
-	this->s_grad = std::vector<std::vector<double>>(n_points, std::vector<double>(dimension, 0.0)); 
+	// Gradient with respect to point displacement
+	this->s_grad = std::vector<std::vector<double>>(n_points,
+	                                             std::vector<double>(dimension, 0.0));
 
-        // ∆X_ij = {(x_i - x_j), (y_i - y_j), ...}
-        this->delta_point = std::vector<double>(dimension, 0.0);
+    // ∆X_ij = {(x_i - x_j), (y_i - y_j), ...}
+    this->delta_point = std::vector<double>(dimension, 0.0);
 
-        set_init_random_points();
+    set_init_random_points();
     }
 
 
@@ -60,6 +61,8 @@ namespace autode {
          * box, centred at the origin (for more simple periodic
          * boundary conditions)
          */
+        points.clear();
+        s_grad.clear();
 
         std::random_device rand_device;
 
@@ -81,6 +84,12 @@ namespace autode {
 
             // Initialise a zero gradient initially
             s_grad.emplace_back(point.size(), 0.0);
+        }
+        set_grad();
+
+        // Prevent very close initial geometries -> large gradients
+        if (norm_grad() > 100){
+            set_init_random_points();
         }
     }
 
@@ -219,9 +228,7 @@ namespace autode {
 
                     // Ensure the translation is not more than the whole
                     // box length
-                    points[point_idx][k] -= fmin(fmax(step_size * s_grad[point_idx][k],
-                                                 -box_length),
-                                                 box_length);
+                    points[point_idx][k] -= step_size * s_grad[point_idx][k];
 
                     if (points[point_idx][k] > half_box_length) {
                         points[point_idx][k] -= box_length;
