@@ -1,14 +1,18 @@
-from autode.wrappers.keywords import Keywords, KeywordsSet, ECP
-from autode.wrappers.keywords import GradientKeywords
-from autode.wrappers.keywords import OptKeywords
-from autode.wrappers.keywords import HessianKeywords
-from autode.wrappers.keywords import SinglePointKeywords
+import pytest
 from autode.wrappers.functionals import pbe
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.wf import hf
 from autode.wrappers.basis_sets import def2tzvp, def2ecp
 from autode.config import Config
 from copy import deepcopy
+from autode.wrappers.keywords import (Keywords,
+                                      KeywordsSet,
+                                      ECP,
+                                      MaxOptCycles,
+                                      GradientKeywords,
+                                      OptKeywords,
+                                      HessianKeywords,
+                                      SinglePointKeywords)
 
 
 def test_keywords():
@@ -21,6 +25,7 @@ def test_keywords():
     assert isinstance(SinglePointKeywords(None), Keywords)
 
     keywords = Keywords(keyword_list=['test'])
+    assert 'test' in str(keywords)
 
     # Should not add a keyword that's already there
     keywords.append('test')
@@ -34,6 +39,8 @@ def test_keywords():
     assert 'grad' in str(GradientKeywords(None)).lower()
     assert 'sp' in str(SinglePointKeywords(None)).lower()
 
+    assert 'pbe' in repr(pbe).lower()
+
     keywords = Keywords([pbe, def2tzvp, d3bj])
     assert len(keywords) == 3
     assert keywords.bstring is not None
@@ -41,7 +48,15 @@ def test_keywords():
     assert 'def2' in keywords.bstring.lower()
     assert 'd3bj' in keywords.bstring.lower()
 
+    # Keywords have a defined order
+    assert 'pbe' in keywords[0].name.lower()
+
     assert 'hf' in Keywords([hf, def2tzvp]).bstring.lower()
+
+
+def test_wf_keywords_string():
+
+    assert 'hf' in Keywords([hf]).method_string.lower()
 
 
 def test_set_keywordsset():
@@ -94,3 +109,27 @@ def test_ecp():
     kwds_set.set_ecp(None)
     for kwds in kwds_set:
         assert kwds.ecp is None
+
+
+def test_max_opt_cycles():
+
+    with pytest.raises(ValueError):
+        _ = MaxOptCycles('a')
+
+    kwds = OptKeywords()
+    assert kwds.max_opt_cycles is None
+
+    kwds.append(MaxOptCycles(10))
+    assert kwds.max_opt_cycles == MaxOptCycles(10)
+
+    kwds.max_opt_cycles = 20
+    assert kwds.max_opt_cycles == MaxOptCycles(20)
+
+    kwds.max_opt_cycles = MaxOptCycles(30)
+    assert kwds.max_opt_cycles == MaxOptCycles(30)
+
+    kwds.max_opt_cycles = None
+    assert kwds.max_opt_cycles is None
+
+    with pytest.raises(ValueError):
+        kwds.max_opt_cycles = -1

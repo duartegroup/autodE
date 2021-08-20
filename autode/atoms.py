@@ -290,7 +290,7 @@ class Atom:
         """
 
         if self.label not in pi_valencies:
-            logger.warning(f'{self} not found in π valency dictionary - '
+            logger.warning(f'{self.label} not found in π valency dictionary - '
                            f'assuming not a π-atom')
             return False
 
@@ -576,8 +576,8 @@ class Atoms(list):
         return self[j].coord - self[i].coord
 
     def nvector(self,
-               i: int,
-               j: int) -> np.ndarray:
+                i: int,
+                j: int) -> np.ndarray:
         """
         Normalised vector from atom i to atom j
 

@@ -34,6 +34,10 @@ Usability improvements/Changes
 - Improves peak checking in adaptive path TS guess generation
 - Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
 - Raises an exception if a single point energy evaluation fails to execute successfully
+- Removes :code:`autode.conformers.conformer.get_conformer()` in favour of a more flexible :code:`autode.conformer.Conformer` constructor
+- Adds :code:`Species.constraints` that are used in optimisations (still available in :code:`Calculation` initialisation)
+- Adds :code:`Conformers` to enable parallel electronic structure calculations across a set of conformers
+- Improves readability of pruning of conformers based on RMSD and energy thresholds
 
 
 Functionality improvements
@@ -54,6 +58,14 @@ Functionality improvements
 - Adds :code:`Solvent.copy()`
 - Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
 - Adds :code:`Config.ORCA.other_input_block` to allow for a block of input to be printed in all ORCA input files
+- Changes the loose optimisations to only use a maximum of 10 iterations. This is based on an analysis of 3500 ORCA
+optimisations, which plateaus quickly:
+
+.. image:: common/opt_convergence_3500_ORCA.png
+   :width: 500
+
+suggesting a value of 10 is a appropriate. This will be system dependent and need increasing for
+large/flexible systems. For path optimisations loose optimisations use a maximum of 50 cycles.
 
 
 Bug Fixes

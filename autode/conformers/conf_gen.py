@@ -4,7 +4,7 @@ import autode as ade
 from copy import deepcopy
 from itertools import combinations
 from scipy.optimize import minimize
-from autode.conformers.conformer import get_conformer
+from autode.conformers import Conformer
 import autode.exceptions as ex
 from autode.utils import log_time
 from autode.bonds import get_ideal_bond_length_matrix
@@ -444,8 +444,9 @@ def get_simanl_conformer(species, dist_consts=None, conf_n=0, save_xyz=True):
         (autode.conformers.Conformer): Conformer
     """
     # Generate a conformer from a species - same charge/mult/solvent etc.
-    conformer = get_conformer(species, name=f'{species.name}_conf{conf_n}')
-    conformer.dist_consts = dist_consts
+    conformer = Conformer(species=species,
+                          name=f'{species.name}_conf{conf_n}',
+                          dist_consts=dist_consts)
 
     atoms, energy = get_simanl_atoms(species,
                                      dist_consts=dist_consts,

@@ -12,7 +12,7 @@ from autode.species.species import Species
 from autode.utils import requires_atoms, work_in
 from autode.config import Config
 from autode.methods import get_lmethod
-from autode.conformers.conformer import get_conformer
+from autode.conformers import Conformer
 from autode.exceptions import MethodUnavailable
 
 
@@ -145,7 +145,7 @@ class Complex(Species):
         if n < 2:
             # Single (or zero) molecule complex only has a single *rigid body*
             # conformer
-            self.conformers = [get_conformer(name=self.name, species=self)]
+            self.conformers = [Conformer(name=self.name, species=self)]
             return None
 
         self.conformers = []
@@ -159,11 +159,11 @@ class Complex(Species):
 
             for points in iterprod(points_on_sphere, repeat=n-1):
 
-                conformer = get_conformer(species=self, name=f'{self.name}_conf{n}')
-                atoms = get_complex_conformer_atoms(self._molecules, rotations, points)
-                conformer.atoms = atoms
-
-                self.conformers.append(conformer)
+                conf = Conformer(species=self, name=f'{self.name}_conf{n}')
+                conf.atoms = get_complex_conformer_atoms(self._molecules,
+                                                         rotations,
+                                                         points)
+                self.conformers.append(conf)
                 m += 1
 
                 if m == Config.max_num_complex_conformers:

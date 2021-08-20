@@ -96,12 +96,13 @@ class TransitionState(TSbase):
         distance_consts = get_distance_constraints(self)
 
         with Pool(processes=Config.n_cores) as pool:
-            results = [pool.apply_async(get_simanl_conformer, (self, distance_consts, i))
+            results = [pool.apply_async(get_simanl_conformer,
+                                        args=(self, distance_consts, i))
                        for i in range(n_confs)]
 
-            conformers = [res.get(timeout=None) for res in results]
+            self.conformers = [res.get(timeout=None) for res in results]
 
-        self._set_unique_conformers_rmsd(conformers)
+        self.conformers.prune(e_tol=1E-6)
         return None
 
     @property
@@ -187,7 +188,8 @@ class TransitionState(TSbase):
             disp_ts._run_opt_ts_calc(method=get_hmethod(),
                                      name_ext=name_ext + ext)
 
-            if len(self.imaginary_frequencies) == 1:
+            if (self.has_imaginary_frequencies
+                    and len(self.imaginary_frequencies) == 1):
                 logger.info('Displacement along second imaginary mode '
                             'successful. Now have 1 imaginary mode')
 
@@ -251,7 +253,7 @@ class TransitionState(TSbase):
             logger.warning('Cannot be true TS with no energy')
             return False
 
-        if len(self.imaginary_frequencies) > 0 and self.has_correct_imag_mode:
+        if self.has_imaginary_frequencies and self.has_correct_imag_mode:
             logger.info('Found a transition state with the correct '
                         'imaginary mode & links reactants and products')
             return True

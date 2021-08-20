@@ -18,8 +18,7 @@ multiprocessing.set_start_method("fork")
 
 if sys.version_info.minor > 7:                                    # Python >3.7
     from functools import cached_property # lgtm[py/unused-import]
-    # LGTM alert is suppressed as this is imported in Python >3.7, but not
-    # under the CI (Python 3.7)
+    # LGTM alert is suppressed as this is imported in Python >3.7
 
 if sys.version_info.minor <= 7:                                   # Python <3.7
     from functools import lru_cache
@@ -251,9 +250,9 @@ def requires_conformers(func):
     def wrapped_function(*args, **kwargs):
 
         # Species must be the first argument
-        assert hasattr(args[0], 'conformers')
+        assert hasattr(args[0], 'n_conformers')
 
-        if args[0].conformers is None:
+        if args[0].n_conformers == 0:
             raise NoConformers
 
         return func(*args, **kwargs)

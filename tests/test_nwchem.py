@@ -1,9 +1,10 @@
-from autode.wrappers.NWChem import NWChem, ecp_block
-from autode.calculation import Calculation
+from autode.wrappers.NWChem import NWChem, ecp_block, get_keywords
+from autode.calculation import Calculation, CalculationInput
 from autode.species.molecule import Molecule
-from autode.wrappers.keywords import OptKeywords
+from autode.wrappers.keywords import OptKeywords, MaxOptCycles
+from autode.wrappers.basis_sets import def2svp
+from autode.wrappers.functionals import pbe0
 from autode.atoms import Atom
-from autode.config import Config
 from . import testutils
 import numpy as np
 import os
@@ -104,3 +105,37 @@ def test_opt_hf_constraints():
     calc.run()
     h2o.atoms = calc.get_final_atoms()
     assert 0.94 < h2o.distance(0, 1) < 0.96
+
+
+def test_get_keywords_max_opt_cyles():
+
+    opt_block = ('driver\n'
+                 '  gmax 0.0003\n'
+                 '  maxiter 100\n'
+                 'end')
+
+    # Defining the maximum number of optimisation cycles should override the
+    # value set in the driver
+    kwds = OptKeywords([opt_block, def2svp, pbe0, MaxOptCycles(10),
+                        'task dft optimize',
+                        'task dft property'])
+
+    calc_input = CalculationInput(keywords=kwds)
+
+    # Should only have a single instance of the maxiter declaration
+    str_keywords = get_keywords(calc_input, molecule=test_mol)
+    modified_opt_block = str_keywords[0].split('\n')
+
+    assert sum('maxiter' in line for line in modified_opt_block) == 1
+
+    # and should be 10 not 100
+    assert sum('maxiter 100' in line for line in modified_opt_block) == 0
+    assert sum('maxiter 10' in line for line in modified_opt_block) == 1
+
+    # Also if the maxiter is not defined already
+
+    kwds = OptKeywords([('driver\n  gmax 0.0003\nend'), def2svp, pbe0, MaxOptCycles(10)])
+    calc_input = CalculationInput(keywords=kwds)
+    modified_opt_block2 = get_keywords(calc_input, molecule=test_mol)[0].split('\n')
+
+    assert sum('maxiter 10' in line for line in modified_opt_block2) == 1

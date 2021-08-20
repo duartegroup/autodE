@@ -45,13 +45,14 @@ namespace autode {
                                      "min_val < max_val");
         }
 
-	// Set the initial gradient with respect to point displacement
-	this->s_grad = std::vector<std::vector<double>>(n_points, std::vector<double>(dimension, 0.0)); 
+	// Gradient with respect to point displacement
+	this->s_grad = std::vector<std::vector<double>>(n_points,
+	                                             std::vector<double>(dimension, 0.0));
 
-        // ∆X_ij = {(x_i - x_j), (y_i - y_j), ...}
-        this->delta_point = std::vector<double>(dimension, 0.0);
+    // ∆X_ij = {(x_i - x_j), (y_i - y_j), ...}
+    this->delta_point = std::vector<double>(dimension, 0.0);
 
-        set_init_random_points();
+    set_init_random_points();
     }
 
 
@@ -60,6 +61,8 @@ namespace autode {
          * box, centred at the origin (for more simple periodic
          * boundary conditions)
          */
+        points.clear();
+        s_grad.clear();
 
         std::random_device rand_device;
 
@@ -81,6 +84,12 @@ namespace autode {
 
             // Initialise a zero gradient initially
             s_grad.emplace_back(point.size(), 0.0);
+        }
+        set_grad();
+
+        // Prevent very close initial geometries -> large gradients
+        if (norm_grad() > 100){
+            set_init_random_points();
         }
     }
 
@@ -172,10 +181,7 @@ namespace autode {
             // Should loop for all i, j and j, i but not i = j
             for (int j = 0; j < n; j++) {
 
-                // Only loop over non identical pairs
-                if (i == j) {
-                    continue;
-                }
+                if (i == j) continue;
 
                 set_delta_point_pbc(i, j);
                 auto rep_ftr = -1.0 / norm_squared_delta_point();
@@ -203,7 +209,7 @@ namespace autode {
          *
          *      step size: Fixed step size to take in the steepest decent
          *
-	 *      max_iterations:
+	     *      max_iterations:
          */
         set_grad();
         int iteration = 0;
@@ -220,6 +226,8 @@ namespace autode {
 
                 for (int k = 0; k < dim; k++) {
 
+                    // Ensure the translation is not more than the whole
+                    // box length
                     points[point_idx][k] -= step_size * s_grad[point_idx][k];
 
                     if (points[point_idx][k] > half_box_length) {

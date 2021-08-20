@@ -1,7 +1,7 @@
 from autode.atoms import Atom
 from autode.species import Molecule
-from autode.conformers.conformer import Conformer
-from autode.wrappers.ORCA import orca
+from autode.conformers import Conformer, Conformers
+from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 from autode.config import Config
 from autode.values import Energy
@@ -10,15 +10,13 @@ from scipy.spatial import distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from autode.conformers.conformers import atoms_from_rdkit_mol
-from autode.conformers.conformers import conf_is_unique_rmsd
-from autode.conformers.conformers import get_unique_confs
-from autode.constants import Constants
 from . import testutils
 import numpy as np
 import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+orca = ORCA()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'conformers.zip'))
@@ -28,12 +26,12 @@ def test_conf_class():
                         atoms=[Atom('H', 0.0, 0.0, 0.0),
                                Atom('H', 0.0, 0.0, 0.7)])
 
+    assert 'conformer' in repr(h2_conf).lower()
     assert hasattr(h2_conf, 'optimise')
-    assert hasattr(h2_conf, 'dist_consts')
 
     assert h2_conf.n_atoms == 2
     assert h2_conf.energy is None
-    assert h2_conf.dist_consts is None
+    assert not h2_conf.constraints.any
 
     h2_conf.optimise(method=orca)
     assert h2_conf.energy == -1.160780546661
@@ -49,6 +47,27 @@ def test_conf_class():
 
     assert h2_conf_broken.atoms is None
     assert h2_conf_broken.n_atoms == 0
+
+
+def test_conf_from_species():
+
+    h2o = Molecule(smiles='O')
+    conformer = Conformer(species=h2o)
+    assert conformer.n_atoms == 3
+    assert conformer.mult == 1
+    assert conformer.charge == 0
+    assert conformer.solvent is None
+
+    h2o_cation = Molecule(smiles='[O+H2]', charge=1, solvent_name='water')
+    assert h2o_cation.charge == 1
+
+    conformer = Conformer(species=h2o_cation)
+    assert conformer.n_atoms == 3
+    assert conformer.mult == 2
+    assert conformer.charge == 1
+
+    assert conformer.solvent is not None
+    assert conformer.solvent.name == 'water'
 
 
 def test_rdkit_atoms():
@@ -71,79 +90,168 @@ def test_rdkit_atoms():
     assert 0.9 < dist_mat[0, 1] < 1.2
 
 
-def test_unique_confs():
+def test_confs_energy_pruning1():
 
     conf1 = Conformer(atoms=[Atom('H')])
+    confs = Conformers([conf1])
+
+    # Shouldn't prune a single conformer
+    confs.prune_on_rmsd()
+    assert len(confs) == 1
+    confs.prune_on_energy()
+    assert len(confs) == 1
+
     conf2 = Conformer(atoms=[Atom('H')])
+
+    # with no energies no conformers should be pruned on energy
+    confs = Conformers([conf1, conf2])
+    confs.prune_on_energy()
+    assert len(confs) == 2
+
     conf3 = Conformer(atoms=[Atom('H')])
+    confs = Conformers([conf1, conf2, conf3])
 
     # Set two energies the same and leave one as none..
     conf1.energy = 1
     conf2.energy = 1
 
-    unique_confs = get_unique_confs(conformers=[conf1, conf2, conf3])
-    assert len(unique_confs) == 1
-    assert type(unique_confs[0]) is Conformer
-    assert unique_confs[0].energy == 1
+    # which should prune to two, one with energy = 1 and one energy = None
+    confs.prune_on_energy()
+    assert len(confs) == 2
+
+    # If they all have an energy then they should prune to a single conformer
+    conf3.energy = 1
+    confs.prune_on_energy()
+    assert len(confs) == 1
 
 
-def test_unique_confs_none():
+def test_confs_energy_pruning2():
 
     conf1 = Conformer(atoms=[Atom('H')])
-    conf1.energy = 0.1
+    conf1.energy = 1
+    assert conf1.energy.units == 'Ha'
 
-    # Conformer with energy just below the threshold
     conf2 = Conformer(atoms=[Atom('H')])
-    conf2.energy = 0.19
+    conf2.energy = 1.1
 
-    unique_confs = get_unique_confs(conformers=[conf1, conf2],
-                                    energy_threshold=Energy(0.1))
-    assert len(unique_confs) == 1
+    confs = Conformers([conf1, conf2])
+    assert len(confs) == 2
 
-    # If the energy is above the threshold there should be two unique
-    # conformers
-    conf2.energy += 0.2
-    unique_confs = get_unique_confs(conformers=[conf1, conf2],
-                                    energy_threshold=Energy(0.1))
-    assert len(unique_confs) == 2
+    # If the threshold is smaller than the difference then should leave both
+    confs.prune_on_energy(e_tol=Energy(0.05, units='Ha'))
+    assert len(confs) == 2
+
+    # but not if the threshold is larger
+    confs.prune_on_energy(e_tol=Energy(0.2, units='Ha'))
+    assert len(confs) == 1
 
 
-def test_rmsd_confs():
+def test_confs_energy_pruning3():
 
-    methane1 = Conformer(name='methane1', charge=0, mult=1,
-                         atoms=[Atom('C', -1.38718,  0.38899,  0.00000),
-                                Atom('H', -0.27778,  0.38899, -0.00000),
-                                Atom('H', -1.75698,  1.06232,  0.80041),
-                                Atom('H', -1.75698, -0.64084,  0.18291),
-                                Atom('H', -1.75698,  0.74551, -0.98332)])
+    n = 100
 
-    methane2 = Conformer(name='methane2', charge=0, mult=1,
-                         atoms=[Atom('C', -1.38718,  0.38899,  0.00000),
-                                Atom('H', -0.43400,  0.50158, -0.55637),
-                                Atom('H', -2.23299,  0.69379, -0.64998),
-                                Atom('H', -1.36561,  1.03128,  0.90431),
-                                Atom('H', -1.51612, -0.67068,  0.30205)])
+    #                              μ         α
+    energies = np.random.normal(loc=0.0, scale=0.1, size=n)
+    confs = Conformers([Conformer(atoms=[Atom('H')]) for _ in range(n)])
+    for conf, energy in zip(confs, energies):
+        conf.energy = energy
 
-    # Methane but rotated should have an RMSD ~ 0 Angstroms
-    assert not conf_is_unique_rmsd(conf=methane2, conf_list=[methane1],
-                                   rmsd_tol=0.1)
+    diff_e_conf = Conformer(atoms=[Atom('H')])
+    diff_e_conf.energy = 3.0
+    confs.append(diff_e_conf)
+
+    # Should remove the conformer with the very different energy
+    confs.prune_on_energy(e_tol=Energy(1E-10), n_sigma=5)
+    assert len(confs) == 100
+
+
+def test_confs_no_energy_pruning():
+    # Check that if energies are unassigned then conformers are removed
+
+    confs = Conformers([Conformer(atoms=[Atom('H')])])
+    confs.prune(remove_no_energy=True)
+
+    assert len(confs) == 0
+
+
+def test_confs_rmsd_pruning1():
+
+    confs = Conformers([Conformer(atoms=[Atom('H')]),
+                        Conformer(atoms=[Atom('H')])])
+
+    # Same two structures -> one when pruned
+    confs.prune_on_rmsd()
+    assert len(confs) == 1
+
+
+def test_confs_rmsd_pruning2():
+
+    confs = Conformers([Conformer(atoms=[Atom('H', x=-1.0),
+                                         Atom('O'),
+                                         Atom('H', x=1.0)]),
+                        Conformer(atoms=[Atom('H', x=-1.0),
+                                         Atom('O'),
+                                         Atom('H', x=10.0)])])
+
+    # Should check only on heavy atoms, thus these two 'water' molecules
+    # have a 0 RMSD
+    confs.prune_on_rmsd()
+    assert len(confs) == 1
+
+
+def test_confs_rmsd_puning3():
+
+    # Butane molecules, without hydrogen atoms
+    trans_butane = Conformer(atoms=[Atom('C', -0.86310, -0.72859, 0.62457),
+                                    Atom('C', 0.10928, -0.05429, 1.42368),
+                                    Atom('C', 1.17035, -0.79134, 2.03167),
+                                    Atom('C', 2.14109, -0.11396, 2.83018)])
+
+    cis_butane = Conformer(atoms=[Atom('C', -0.07267, 1.32686, 1.73687),
+                                  Atom('C', 0.10928, -0.05429, 1.42368),
+                                  Atom('C', 1.17035, -0.79134, 2.03167),
+                                  Atom('C', 2.14109, -0.11396, 2.83018)])
+
+    confs = Conformers([trans_butane, cis_butane])
+
+    confs.prune_on_rmsd(rmsd_tol=0.1)
+    assert len(confs) == 2
+
+    confs.prune_on_rmsd(rmsd_tol=0.5)
+    assert len(confs) == 1
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
+def test_sp_hmethod():
+
+    Config.hmethod_sp_conformers = True
+    orca.keywords.low_sp = SinglePointKeywords(['PBE', 'D3BJ', 'def2-SVP'])
+
+    conf = Conformer(name='C4H10_conf0',
+                     species=Molecule(smiles='CCCC'))
+
+    conf.single_point(method=orca)
+    assert conf.energy is not None
+
+    Config.hmethod_sp_conformers = False
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'sp_conformers.zip'))
 def test_sp_hmethod_ranking():
 
     Config.hmethod_sp_conformers = True
+    orca.keywords.low_sp = None
 
     butane = Molecule(smiles='CCCC')
     xtb = XTB()
     cwd = os.getcwd()
 
-    # Need to set hmethod.low_sp
+    # Need to set hmethod.low_sp for hmethod_sp_conformers
     with pytest.raises(AssertionError):
         butane.find_lowest_energy_conformer(lmethod=xtb,
                                             hmethod=orca)
 
-    # work_in function will change directories and not change back when an
+    # work_in function will change directories and may not change back when an
     # exception is raised, so ensure we're working in the same dir as before
     os.chdir(cwd)
 

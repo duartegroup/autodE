@@ -14,12 +14,7 @@ from autode.calculation import Constraints
 from autode.utils import work_in_tmp_dir
 
 
-def modify_keywords_for_point_charges(keywords):
-    """For a list of Gaussian keywords modify to include z-matrix if not
-    already included. Required if point charges are included in the calc"""
-    logger.warning('Modifying keywords as point charges are present')
-
-    keywords.append('Charge')
+def add_opt_option(keywords, new_option):
 
     for keyword in keywords:
         if 'opt' not in keyword.lower():
@@ -34,12 +29,23 @@ def modify_keywords_for_point_charges(keywords):
         elif '=' in keyword:
             opt_options = [keyword[4:]]
 
-        if not any(option.lower() == 'z-matrix' for option in opt_options):
-            opt_options.append('Z-Matrix')
+        if not any(op.lower() == new_option.lower() for op in opt_options):
+            opt_options.append(new_option)
 
         new_keyword = f'Opt=({", ".join(opt_options)})'
         keywords.remove(keyword)
         keywords.append(new_keyword)
+
+    return None
+
+
+def modify_keywords_for_point_charges(keywords):
+    """For a list of Gaussian keywords modify to include z-matrix if not
+    already included. Required if point charges are included in the calc"""
+    logger.warning('Modifying keywords as point charges are present')
+
+    keywords.append('Charge')
+    add_opt_option(keywords, new_option='Z-Matrix')
 
     return None
 
@@ -81,6 +87,9 @@ def get_keywords(calc_input, molecule):
             # ECPs are dealt with in a custom file
             continue
 
+        if isinstance(keyword, kws.MaxOptCycles):
+            continue  # Handled after the full set of keywords is set
+
         elif isinstance(keyword, kws.Keyword):
             kwd_str = keyword.g09 if hasattr(keyword, 'g09') else keyword.g16
 
@@ -98,7 +107,7 @@ def get_keywords(calc_input, molecule):
 
     # Mod redundant keywords is required if there are any constraints or
     # modified internal coordinates
-    if molecule.constraints.any():
+    if molecule.constraints.any:
         new_keywords.append('Geom=ModRedun')
 
     if calc_input.added_internals is not None:
@@ -121,11 +130,17 @@ def get_keywords(calc_input, molecule):
     if calc_input.point_charges is not None:
         modify_keywords_for_point_charges(new_keywords)
 
+    if isinstance(calc_input.keywords, kws.OptKeywords):
+        max_cycles = calc_input.keywords.max_opt_cycles
+
+        if max_cycles is not None:
+            add_opt_option(new_keywords, f'MaxCycles={int(max_cycles)}')
+
     # By default perform all optimisations without symmetry
     if opt and not any(kw.lower() == 'nosymm' for kw in new_keywords):
         if hasattr(molecule, 'is_linear') and molecule.is_linear():
             # Allow symmetry for linear molecules so the free energy
-            # calculation
+            # calculation doesn't fail
             pass
         else:
             new_keywords.append('NoSymm')
@@ -332,7 +347,7 @@ class G09(ElectronicStructureMethod):
             print_added_internals(inp_file, calc.input)
             print_constraints(inp_file, molecule)
 
-            if molecule.constraints.any() or calc.input.added_internals:
+            if molecule.constraints.any or calc.input.added_internals:
                 print('', file=inp_file)   # needs an extra blank line
             print_custom_basis(inp_file, calc.input, molecule)
 

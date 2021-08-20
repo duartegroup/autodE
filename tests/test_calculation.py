@@ -88,9 +88,9 @@ def test_calc_class():
 
 def test_distance_const_check():
 
-    # Cannot have distance constraints between idential atoms
-    assert len(Constraints(distance={(0, 0): 0.0},
-                           cartesian=None).distance) == 0
+    # Cannot have distance constraints between identical atoms
+    assert Constraints(distance={(0, 0): 0.0},
+                       cartesian=None).distance is None
 
     assert len(Constraints(distance={(0, 0): 0.0, (1, 0): 1.0},
                            cartesian=None).distance) == 1

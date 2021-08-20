@@ -95,7 +95,7 @@ class XTB(ElectronicStructureMethod):
 
         calc.molecule.print_xyz_file(filename=calc.input.filename)
 
-        if molecule.constraints.any() or calc.input.point_charges:
+        if molecule.constraints.any or calc.input.point_charges:
             self.print_xcontrol_file(calc, molecule)
 
         return None
@@ -123,6 +123,11 @@ class XTB(ElectronicStructureMethod):
 
         flags = ['--chrg', str(calc.molecule.charge),
                  '--uhf', str(calc.molecule.mult - 1)]
+
+        if isinstance(calc.input.keywords, OptKeywords):
+            if calc.input.keywords.max_opt_cycles is not None:
+                logger.warning('Switching off optimisation cycle limit')
+                calc.input.keywords.max_opt_cycles = None
 
         if len(calc.input.keywords) != 0:
             flags += list(calc.input.keywords)
