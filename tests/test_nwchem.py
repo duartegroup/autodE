@@ -206,6 +206,14 @@ def test_hessian_extract_butane():
                       atol=3.0)
 
 
+    calc = Calculation(name='butane',
+                       molecule=Molecule('butane.xyz'),
+                       keywords=method.keywords.hess,
+                       method=method)
+    calc.output.filename = 'broken_hessian.out'
+
+    with pytest.raises(CalculationException):
+        _ = calc.get_hessian()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
