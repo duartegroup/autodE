@@ -46,7 +46,6 @@ def get_keywords(calc_input, molecule):
     """Generate a keywords list and adding solvent"""
 
     new_keywords = []
-    scf_block = False
 
     for keyword in calc_input.keywords:
 
@@ -91,13 +90,11 @@ def get_keywords(calc_input, molecule):
             new_keywords.append(new_keyword)
 
         elif keyword.lower().startswith('scf'):
-
-            scf_block = True
-            if not any('nopen' not in kw for kw in new_keywords):
+        
+            if not any('nopen' in kw for kw in new_keywords):
                 lines = keyword.split('\n')
                 lines.insert(1, f'  nopen {molecule.mult - 1}')
-                new_keyword = '\n'.join(lines)
-                new_keywords.append(new_keyword)
+                new_keywords.append('\n'.join(lines))
 
         elif 'driver' in keyword.lower() and isinstance(calc_input.keywords, kws.OptKeywords):
             max_opt_cycles = calc_input.keywords.max_opt_cycles
@@ -227,8 +224,9 @@ class NWChem(ElectronicStructureMethod):
 
             if calc.input.point_charges is not None:
                 print('bq', file=inp_file)
-                for charge, x, y, z in calc.input.point_charges:
-                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}',
+                for pc in calc.input.point_charges:
+                    x, y, z = pc.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {pc.charge:^12.8f}',
                           file=inp_file)
                 print('end', file=inp_file)
 

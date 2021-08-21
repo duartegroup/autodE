@@ -1,4 +1,5 @@
 from autode.wrappers.NWChem import NWChem, ecp_block, get_keywords
+from autode.point_charges import PointCharge
 from autode.calculation import Calculation, CalculationInput
 from autode.exceptions import CouldNotGetProperty, CalculationException
 from autode.species.molecule import Molecule
@@ -231,5 +232,30 @@ def test_hf_calculation():
     h = Molecule(smiles='[H]', name='H')
     h.single_point(method=method, keywords=hf_kwds)
 
-    assert np.isclose(h.energy, -0.5, atol=0.01)
+    assert np.isclose(h.energy, -0.5, atol=0.001)
+
+    # Should also support other arguments in the SCF block
+    hf_kwds = SinglePointKeywords([def2svp, 'scf\n    maxiter 100\nend', 'task scf'])
+    h.single_point(method=method, keywords=hf_kwds)
+
+    assert h.energy is not None
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_point_charge_calculation():
+
+    h = Molecule(smiles='[H]')
+
+    calc = Calculation(name='h', 
+                       molecule=h,
+                       method=method, 
+                       keywords=SinglePointKeywords([def2svp, 'task scf']),
+                       point_charges=[PointCharge(1.0, 0.0, 0.0, 1.0)])
+    calc.run()  
+
+    assert calc.get_energy() is not None
+    
+    # H atom energy with a point charge should be different from the 
+    # isolated atoms HF energy
+    assert not np.isclose(calc.get_energy(), -0.5, atol=0.001)
 
