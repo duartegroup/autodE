@@ -203,3 +203,33 @@ def test_hessian_extract_butane():
     assert np.isclose(hess.frequencies[-1].to('cm-1'),
                       3500.27,
                       atol=3.0)
+
+
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_hf_calculation():
+
+
+    h2o = Molecule(smiles='O', name='H2O')
+    hf_kwds = SinglePointKeywords([def2svp, 'task scf'])
+
+    h2o.single_point(method=method,
+                     keywords=hf_kwds)
+
+    assert h2o.energy is not None
+
+    # Solvation is unavalible with HF in v <7.0.2
+    h2o_in_water = Molecule(smiles='O', name='H2O_solv', solvent_name='water')
+   
+    with pytest.raises(CalculationException): 
+        h2o_in_water.single_point(method=method,
+                                  keywords=hf_kwds)
+
+    # Open-shell calculations should be okay
+    
+    h = Molecule(smiles='[H]', name='H')
+    h.single_point(method=method, keywords=hf_kwds)
+
+    assert np.isclose(h.energy, -0.5, atol=0.01)
+

@@ -50,6 +50,10 @@ def get_keywords(calc_input, molecule):
 
     for keyword in calc_input.keywords:
 
+        if 'scf' in keyword.lower(): 
+            if calc_input.solvent:
+                raise UnsuppportedCalculationInput('NWChem only supports solvent for DFT calcs')
+
         if isinstance(keyword, kws.Functional):
             keyword = f'dft\n  maxiter 100\n  xc {keyword.nwchem}\nend'
 
@@ -87,23 +91,13 @@ def get_keywords(calc_input, molecule):
             new_keywords.append(new_keyword)
 
         elif keyword.lower().startswith('scf'):
-            if calc_input.solvent:
-                raise UnsuppportedCalculationInput('nwchem only supports solvent for DFT calcs')
 
             scf_block = True
-            lines = keyword.split('\n')
-            lines.insert(1, f'  nopen {molecule.mult - 1}')
-            new_keyword = '\n'.join(lines)
-            new_keywords.append(new_keyword)
-
-        elif (any(st in keyword.lower() for st in ['ccsd', 'mp2'])
-              and not scf_block):
-
-            if calc_input.solvent.keyword is not None:
-                raise UnsuppportedCalculationInput('nwchem only supports solvent for DFT calcs')
-
-            new_keywords.append(f'scf\n  nopen {molecule.mult - 1}\nend')
-            new_keywords.append(keyword)
+            if not any('nopen' not in kw for kw in new_keywords):
+                lines = keyword.split('\n')
+                lines.insert(1, f'  nopen {molecule.mult - 1}')
+                new_keyword = '\n'.join(lines)
+                new_keywords.append(new_keyword)
 
         elif 'driver' in keyword.lower() and isinstance(calc_input.keywords, kws.OptKeywords):
             max_opt_cycles = calc_input.keywords.max_opt_cycles
@@ -126,6 +120,13 @@ def get_keywords(calc_input, molecule):
 
         else:
             new_keywords.append(keyword)
+
+
+    if (any('task scf' in kw.lower() for kw in new_keywords) 
+        and not any('nopen' in kw.lower() for kw in new_keywords)):
+        # Need to set the spin state
+        new_keywords.insert(1, f'scf\n    nopen {molecule.mult - 1}\nend') 
+
 
     return new_keywords
 
@@ -199,7 +200,7 @@ class NWChem(ElectronicStructureMethod):
 
         with open(calc.input.filename, 'w') as inp_file:
 
-            print(f'start {calc.name}_nwchem\necho', file=inp_file)
+            print(f'start {calc.name}\necho', file=inp_file)
 
             if calc.input.solvent is not None:
                 print(f'cosmo\n '
