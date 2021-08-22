@@ -205,7 +205,6 @@ def test_hessian_extract_butane():
                       3500.27,
                       atol=3.0)
 
-
     calc = Calculation(name='butane',
                        molecule=Molecule('butane.xyz'),
                        keywords=method.keywords.hess,
