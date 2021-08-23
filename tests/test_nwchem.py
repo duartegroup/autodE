@@ -1,12 +1,16 @@
 from autode.wrappers.NWChem import NWChem, ecp_block, get_keywords
+from autode.point_charges import PointCharge
 from autode.calculation import Calculation, CalculationInput
+from autode.exceptions import CouldNotGetProperty, CalculationException
 from autode.species.molecule import Molecule
-from autode.wrappers.keywords import OptKeywords, MaxOptCycles
+from autode.wrappers.keywords import OptKeywords, MaxOptCycles, SinglePointKeywords
 from autode.wrappers.basis_sets import def2svp
+from autode.wrappers.wf import hf
 from autode.wrappers.functionals import pbe0
 from autode.atoms import Atom
 from . import testutils
 import numpy as np
+import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +46,10 @@ def test_opt_calc():
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
 
+    # No Hessian is computed for an optimisation calculation
+    with pytest.raises(CouldNotGetProperty):
+        _ = calc.get_hessian()
+
     charges = calc.get_atomic_charges()
     assert len(charges) == 5
     assert all(-1.0 < c < 1.0 for c in charges)
@@ -65,6 +73,21 @@ def test_opt_single_atom():
     assert 'opt' not in [keyword.lower() for keyword in input_lines[0].split()]
 
     os.remove('opt_h_nwchem.nw')
+
+
+def test_exception_wf_solvent_calculation():
+
+    solvated_mol = Molecule(name='methane', smiles='C',
+                            solvent_name='water')
+
+    calc = Calculation(name='opt',
+                       molecule=solvated_mol,
+                       method=method,
+                       keywords=SinglePointKeywords([hf, def2svp]))
+
+    # Cannot have solvent with a non-DFT calculation(?)
+    with pytest.raises(CalculationException):
+        calc.generate_input()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
@@ -139,3 +162,107 @@ def test_get_keywords_max_opt_cyles():
     modified_opt_block2 = get_keywords(calc_input, molecule=test_mol)[0].split('\n')
 
     assert sum('maxiter 10' in line for line in modified_opt_block2) == 1
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_hessian_extract_ts():
+
+    atoms = [Atom('F',   0.00000, 0.00000,  2.50357),
+             Atom('Cl', -0.00000, 0.00000, -1.62454),
+             Atom('C',   0.00000, 0.00000,  0.50698),
+             Atom('H',   1.05017, 0.24818,  0.60979),
+             Atom('H', -0.74001,  0.78538,  0.60979),
+             Atom('H', -0.31016, -1.03356,  0.60979)]
+
+    calc = Calculation(name='sn2_hess',
+                       molecule=Molecule(name='ts', atoms=atoms),
+                       keywords=method.keywords.hess,
+                       method=method)
+    calc.output.filename = 'sn2_hess_nwchem.out'
+
+    hess = calc.get_hessian()
+    assert hess.shape == (3*len(atoms), 3*len(atoms))
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_hessian_extract_butane():
+
+    calc = Calculation(name='butane',
+                       molecule=Molecule('butane.xyz'),
+                       keywords=method.keywords.hess,
+                       method=method)
+    calc.output.filename = 'butane_hess_nwchem.out'
+
+    hess = calc.get_hessian()
+
+    # bottom right corner element should be positive
+    assert hess[-1, -1] > 0
+    assert np.isclose(hess.frequencies[0].to('cm-1'),
+                      -2385.13,
+                      atol=3.0)
+
+    assert np.isclose(hess.frequencies[-1].to('cm-1'),
+                      3500.27,
+                      atol=3.0)
+
+    calc = Calculation(name='butane',
+                       molecule=Molecule('butane.xyz'),
+                       keywords=method.keywords.hess,
+                       method=method)
+    calc.output.filename = 'broken_hessian.out'
+
+    with pytest.raises(CalculationException):
+        _ = calc.get_hessian()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_hf_calculation():
+
+
+    h2o = Molecule(smiles='O', name='H2O')
+    hf_kwds = SinglePointKeywords([def2svp, 'task scf'])
+
+    h2o.single_point(method=method,
+                     keywords=hf_kwds)
+
+    assert h2o.energy is not None
+
+    # Solvation is unavalible with HF in v <7.0.2
+    h2o_in_water = Molecule(smiles='O', name='H2O_solv', solvent_name='water')
+   
+    with pytest.raises(CalculationException): 
+        h2o_in_water.single_point(method=method,
+                                  keywords=hf_kwds)
+
+    # Open-shell calculations should be okay
+    
+    h = Molecule(smiles='[H]', name='H')
+    h.single_point(method=method, keywords=hf_kwds)
+
+    assert np.isclose(h.energy, -0.5, atol=0.001)
+
+    # Should also support other arguments in the SCF block
+    hf_kwds = SinglePointKeywords([def2svp, 'scf\n    maxiter 100\nend', 'task scf'])
+    h.single_point(method=method, keywords=hf_kwds)
+
+    assert h.energy is not None
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_point_charge_calculation():
+
+    h = Molecule(smiles='[H]')
+
+    calc = Calculation(name='h', 
+                       molecule=h,
+                       method=method, 
+                       keywords=SinglePointKeywords([def2svp, 'task scf']),
+                       point_charges=[PointCharge(1.0, 0.0, 0.0, 1.0)])
+    calc.run()  
+
+    assert calc.get_energy() is not None
+    
+    # H atom energy with a point charge should be different from the 
+    # isolated atoms HF energy
+    assert not np.isclose(calc.get_energy(), -0.5, atol=0.001)
+

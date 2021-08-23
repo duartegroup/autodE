@@ -46,9 +46,12 @@ def get_keywords(calc_input, molecule):
     """Generate a keywords list and adding solvent"""
 
     new_keywords = []
-    scf_block = False
 
     for keyword in calc_input.keywords:
+
+        if 'scf' in keyword.lower(): 
+            if calc_input.solvent:
+                raise UnsuppportedCalculationInput('NWChem only supports solvent for DFT calcs')
 
         if isinstance(keyword, kws.Functional):
             keyword = f'dft\n  maxiter 100\n  xc {keyword.nwchem}\nend'
@@ -87,25 +90,11 @@ def get_keywords(calc_input, molecule):
             new_keywords.append(new_keyword)
 
         elif keyword.lower().startswith('scf'):
-            if calc_input.solvent:
-                logger.critical('nwchem only supports solvent for DFT calcs')
-                raise UnsuppportedCalculationInput
-
-            scf_block = True
-            lines = keyword.split('\n')
-            lines.insert(1, f'  nopen {molecule.mult - 1}')
-            new_keyword = '\n'.join(lines)
-            new_keywords.append(new_keyword)
-
-        elif (any(st in keyword.lower() for st in ['ccsd', 'mp2'])
-              and not scf_block):
-
-            if calc_input.solvent.keyword is not None:
-                logger.critical('nwchem only supports solvent for DFT calcs')
-                raise UnsuppportedCalculationInput
-
-            new_keywords.append(f'scf\n  nopen {molecule.mult - 1}\nend')
-            new_keywords.append(keyword)
+        
+            if not any('nopen' in kw for kw in new_keywords):
+                lines = keyword.split('\n')
+                lines.insert(1, f'  nopen {molecule.mult - 1}')
+                new_keywords.append('\n'.join(lines))
 
         elif 'driver' in keyword.lower() and isinstance(calc_input.keywords, kws.OptKeywords):
             max_opt_cycles = calc_input.keywords.max_opt_cycles
@@ -128,6 +117,13 @@ def get_keywords(calc_input, molecule):
 
         else:
             new_keywords.append(keyword)
+
+
+    if (any('task scf' in kw.lower() for kw in new_keywords) 
+        and not any('nopen' in kw.lower() for kw in new_keywords)):
+        # Need to set the spin state
+        new_keywords.insert(1, f'scf\n    nopen {molecule.mult - 1}\nend') 
+
 
     return new_keywords
 
@@ -201,7 +197,7 @@ class NWChem(ElectronicStructureMethod):
 
         with open(calc.input.filename, 'w') as inp_file:
 
-            print(f'start {calc.name}_nwchem\necho', file=inp_file)
+            print(f'start {calc.name}\necho', file=inp_file)
 
             if calc.input.solvent is not None:
                 print(f'cosmo\n '
@@ -227,11 +223,12 @@ class NWChem(ElectronicStructureMethod):
             print_constraints(inp_file, molecule)
 
             if calc.input.point_charges is not None:
-                print('bq')
-                for charge, x, y, z in calc.point_charges:
-                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}',
+                print('bq', file=inp_file)
+                for pc in calc.input.point_charges:
+                    x, y, z = pc.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {pc.charge:^12.8f}',
                           file=inp_file)
-                print('end')
+                print('end', file=inp_file)
 
             print(f'memory {Config.max_core} mb', file=inp_file)
 
@@ -368,7 +365,6 @@ class NWChem(ElectronicStructureMethod):
             if charges_section and '------------' in line:
                 charges_section = False
 
-        print(charges)
         return charges
 
     def get_gradients(self, calc):
@@ -447,32 +443,34 @@ class NWChem(ElectronicStructureMethod):
         Returns:
             (np.ndarray):
         """
-        hess_lines = None
 
-        for i, line in enumerate(calc.output.file_lines):
-
-            if 'MASS-WEIGHTED NUCLEAR HESSIAN' not in line:
-                continue
-
-            start_line = i+6
-            n = 3*calc.molecule.n_atoms
-
-            hess_lines = calc.output.file_lines[start_line:start_line+n]
-            break
-
-        if hess_lines is None:
+        try:
+            line_idx = next(i for i, line in enumerate(calc.output.file_lines)
+                            if 'MASS-WEIGHTED NUCLEAR HESSIAN' in line)
+        except StopIteration:
             raise CouldNotGetProperty('Hessian not found in the output file')
 
+        hess_lines = [[] for _ in range(calc.molecule.n_atoms*3)]
+
+        for hess_line in calc.output.file_lines[line_idx+6:]:
+
+            if 'NORMAL MODE EIGENVECTORS' in hess_line:
+                break  # Finished the Hessian block
+
+            if 'D' in hess_line:
+                # e.g.     1    4.50945D-01  ...
+                idx = hess_line.split()[0]
+                try:
+                    _ = hess_lines[int(idx) - 1]
+                except (ValueError, IndexError):
+                    raise CouldNotGetProperty("Unexpected hessian formating: "
+                                              f"{hess_line}")
+
+                values = [float(x) for x in hess_line.replace('D', 'E').split()[1:]]
+                hess_lines[int(idx)-1] += values
+
         atom_masses = self._atom_masses_from_hessian(calc)
-
-        # Construct a flat list of hessian elements from the lower triangular
-        # elements printed
-        hess_values = []
-        for line in hess_lines:
-            line = line.replace('D', 'E')
-            hess_values += [float(val) for val in line.split()[1:]]
-
-        hess = symm_matrix_from_ltril(array=hess_values)
+        hess = symm_matrix_from_ltril(array=hess_lines)
 
         # Un-mass weight from Kamu^-1 to 1
         mass_arr = np.repeat(atom_masses,  repeats=3, axis=np.newaxis) * 1E-3

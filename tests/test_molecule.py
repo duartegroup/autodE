@@ -209,12 +209,10 @@ def test_lowest_energy_conformer_set():
     assert np.allclose(h2_not_bonded.bond_matrix, np.zeros(shape=(2, 2)))
 
     h2.conformers = [h2_not_bonded]
-    h2._set_lowest_energy_conformer()
 
-    assert len(h2.conformers) == 1
-
-    # Don't set the lowest energy structure if the graph is not isomorphic
-    assert h2.energy == -1.0
+    # Throw an exception if no conformers are found
+    with pytest.raises(RuntimeError):
+        h2._set_lowest_energy_conformer()
 
 
 def test_defined_metal_spin_state():
