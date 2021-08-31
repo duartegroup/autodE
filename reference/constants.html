@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Constants &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Exceptions" href="exceptions.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/constants.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,103 +199,183 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.constants">
+  <div class="section" id="module-autode.constants">
 <span id="constants"></span><h1>Constants<a class="headerlink" href="#module-autode.constants" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.constants.Constants">
-<em class="property">class </em><code class="sig-prename descclassname">autode.constants.</code><code class="sig-name descname">Constants</code><a class="headerlink" href="#autode.constants.Constants" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.constants.Constants.a02ang">
-<code class="sig-name descname">a02ang</code><em class="property"> = 0.529177</em><a class="headerlink" href="#autode.constants.Constants.a02ang" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.constants.Constants">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.constants.</span></span><span class="sig-name descname"><span class="pre">Constants</span></span><a class="headerlink" href="#autode.constants.Constants" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.J_to_ha">
+<span class="sig-name descname"><span class="pre">J_to_ha</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2.29371200038088e+17</span></em><a class="headerlink" href="#autode.constants.Constants.J_to_ha" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.a0_to_ang">
-<code class="sig-name descname">a0_to_ang</code><em class="property"> = 0.529177</em><a class="headerlink" href="#autode.constants.Constants.a0_to_ang" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.a02ang">
+<span class="sig-name descname"><span class="pre">a02ang</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.529177</span></em><a class="headerlink" href="#autode.constants.Constants.a02ang" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.ang2a0">
-<code class="sig-name descname">ang2a0</code><em class="property"> = 1.8897268777743552</em><a class="headerlink" href="#autode.constants.Constants.ang2a0" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.a0_to_ang">
+<span class="sig-name descname"><span class="pre">a0_to_ang</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.529177</span></em><a class="headerlink" href="#autode.constants.Constants.a0_to_ang" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.ang_to_a0">
-<code class="sig-name descname">ang_to_a0</code><em class="property"> = 1.8897268777743552</em><a class="headerlink" href="#autode.constants.Constants.ang_to_a0" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.a0_to_m">
+<span class="sig-name descname"><span class="pre">a0_to_m</span></span><em class="property"> <span class="pre">=</span> <span class="pre">5.29177e-11</span></em><a class="headerlink" href="#autode.constants.Constants.a0_to_m" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.eV2ha">
-<code class="sig-name descname">eV2ha</code><em class="property"> = 0.0367493</em><a class="headerlink" href="#autode.constants.Constants.eV2ha" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.amu_to_kg">
+<span class="sig-name descname"><span class="pre">amu_to_kg</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1.6605390666e-27</span></em><a class="headerlink" href="#autode.constants.Constants.amu_to_kg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.eV_to_ha">
-<code class="sig-name descname">eV_to_ha</code><em class="property"> = 0.0367493</em><a class="headerlink" href="#autode.constants.Constants.eV_to_ha" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.amu_to_me">
+<span class="sig-name descname"><span class="pre">amu_to_me</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1822.888486209</span></em><a class="headerlink" href="#autode.constants.Constants.amu_to_me" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.ha2kJmol">
-<code class="sig-name descname">ha2kJmol</code><em class="property"> = 2625.5</em><a class="headerlink" href="#autode.constants.Constants.ha2kJmol" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ang2a0">
+<span class="sig-name descname"><span class="pre">ang2a0</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1.8897268777743552</span></em><a class="headerlink" href="#autode.constants.Constants.ang2a0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.ha2kcalmol">
-<code class="sig-name descname">ha2kcalmol</code><em class="property"> = 627.509</em><a class="headerlink" href="#autode.constants.Constants.ha2kcalmol" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ang_to_a0">
+<span class="sig-name descname"><span class="pre">ang_to_a0</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1.8897268777743552</span></em><a class="headerlink" href="#autode.constants.Constants.ang_to_a0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.ha_to_kJmol">
-<code class="sig-name descname">ha_to_kJmol</code><em class="property"> = 2625.5</em><a class="headerlink" href="#autode.constants.Constants.ha_to_kJmol" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ang_to_m">
+<span class="sig-name descname"><span class="pre">ang_to_m</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1e-10</span></em><a class="headerlink" href="#autode.constants.Constants.ang_to_m" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.ha_to_kcalmol">
-<code class="sig-name descname">ha_to_kcalmol</code><em class="property"> = 627.509</em><a class="headerlink" href="#autode.constants.Constants.ha_to_kcalmol" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ang_to_nm">
+<span class="sig-name descname"><span class="pre">ang_to_nm</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.1</span></em><a class="headerlink" href="#autode.constants.Constants.ang_to_nm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.kcal2kJ">
-<code class="sig-name descname">kcal2kJ</code><em class="property"> = 4.184</em><a class="headerlink" href="#autode.constants.Constants.kcal2kJ" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ang_to_pm">
+<span class="sig-name descname"><span class="pre">ang_to_pm</span></span><em class="property"> <span class="pre">=</span> <span class="pre">100</span></em><a class="headerlink" href="#autode.constants.Constants.ang_to_pm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.constants.Constants.kcal_to_kJ">
-<code class="sig-name descname">kcal_to_kJ</code><em class="property"> = 4.184</em><a class="headerlink" href="#autode.constants.Constants.kcal_to_kJ" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.atm_to_pa">
+<span class="sig-name descname"><span class="pre">atm_to_pa</span></span><em class="property"> <span class="pre">=</span> <span class="pre">101325</span></em><a class="headerlink" href="#autode.constants.Constants.atm_to_pa" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.c_in_cm">
+<span class="sig-name descname"><span class="pre">c_in_cm</span></span><em class="property"> <span class="pre">=</span> <span class="pre">29979245800</span></em><a class="headerlink" href="#autode.constants.Constants.c_in_cm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.dm_to_m">
+<span class="sig-name descname"><span class="pre">dm_to_m</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.1</span></em><a class="headerlink" href="#autode.constants.Constants.dm_to_m" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.eV2ha">
+<span class="sig-name descname"><span class="pre">eV2ha</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.0367493</span></em><a class="headerlink" href="#autode.constants.Constants.eV2ha" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.eV_to_ha">
+<span class="sig-name descname"><span class="pre">eV_to_ha</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.0367493</span></em><a class="headerlink" href="#autode.constants.Constants.eV_to_ha" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha2eV">
+<span class="sig-name descname"><span class="pre">ha2eV</span></span><em class="property"> <span class="pre">=</span> <span class="pre">27.211402666173235</span></em><a class="headerlink" href="#autode.constants.Constants.ha2eV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha2kJmol">
+<span class="sig-name descname"><span class="pre">ha2kJmol</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2625.5</span></em><a class="headerlink" href="#autode.constants.Constants.ha2kJmol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha2kcalmol">
+<span class="sig-name descname"><span class="pre">ha2kcalmol</span></span><em class="property"> <span class="pre">=</span> <span class="pre">627.509</span></em><a class="headerlink" href="#autode.constants.Constants.ha2kcalmol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha_to_J">
+<span class="sig-name descname"><span class="pre">ha_to_J</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4.3597452506415194e-18</span></em><a class="headerlink" href="#autode.constants.Constants.ha_to_J" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha_to_eV">
+<span class="sig-name descname"><span class="pre">ha_to_eV</span></span><em class="property"> <span class="pre">=</span> <span class="pre">27.211402666173235</span></em><a class="headerlink" href="#autode.constants.Constants.ha_to_eV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha_to_kJmol">
+<span class="sig-name descname"><span class="pre">ha_to_kJmol</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2625.5</span></em><a class="headerlink" href="#autode.constants.Constants.ha_to_kJmol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.ha_to_kcalmol">
+<span class="sig-name descname"><span class="pre">ha_to_kcalmol</span></span><em class="property"> <span class="pre">=</span> <span class="pre">627.509</span></em><a class="headerlink" href="#autode.constants.Constants.ha_to_kcalmol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.kcal2kJ">
+<span class="sig-name descname"><span class="pre">kcal2kJ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4.184</span></em><a class="headerlink" href="#autode.constants.Constants.kcal2kJ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.kcal_to_kJ">
+<span class="sig-name descname"><span class="pre">kcal_to_kJ</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4.184</span></em><a class="headerlink" href="#autode.constants.Constants.kcal_to_kJ" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.n_a">
+<span class="sig-name descname"><span class="pre">n_a</span></span><em class="property"> <span class="pre">=</span> <span class="pre">6.022140857e+23</span></em><a class="headerlink" href="#autode.constants.Constants.n_a" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.per_cm_to_hz">
+<span class="sig-name descname"><span class="pre">per_cm_to_hz</span></span><em class="property"> <span class="pre">=</span> <span class="pre">29979245800</span></em><a class="headerlink" href="#autode.constants.Constants.per_cm_to_hz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.constants.Constants.rad_to_deg">
+<span class="sig-name descname"><span class="pre">rad_to_deg</span></span><em class="property"> <span class="pre">=</span> <span class="pre">57.2958</span></em><a class="headerlink" href="#autode.constants.Constants.rad_to_deg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="exceptions.html" class="btn btn-neutral float-right" title="Exceptions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="config.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="exceptions.html" class="btn btn-neutral float-right" title="Exceptions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="config.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -291,7 +383,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

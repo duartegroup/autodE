@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Base &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Gaussian09" href="g09.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Wrappers</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="g09.html">Gaussian09</a></li>
@@ -124,6 +131,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -135,6 +144,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -169,11 +179,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -184,7 +196,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/wrappers/base.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -198,14 +210,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.wrappers.base">
+  <div class="section" id="module-autode.wrappers.base">
 <span id="base"></span><h1>Base<a class="headerlink" href="#module-autode.wrappers.base" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.wrappers.base.ElectronicStructureMethod">
-<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.base.</code><code class="sig-name descname">ElectronicStructureMethod</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">path</em>, <em class="sig-param">keywords_set</em>, <em class="sig-param">implicit_solvation_type</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">path</em>, <em class="sig-param">keywords_set</em>, <em class="sig-param">implicit_solvation_type</em>, <em class="sig-param">doi=None</em>, <em class="sig-param">doi_list=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.wrappers.base.</span></span><span class="sig-name descname"><span class="pre">ElectronicStructureMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implicit_solvation_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implicit_solvation_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -218,15 +230,15 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.available">
-<em class="property">property </em><code class="sig-name descname">available</code><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.available" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.available">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">available</span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.available" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this method available?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.calculation_terminated_normally">
-<em class="property">abstract </em><code class="sig-name descname">calculation_terminated_normally</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.calculation_terminated_normally">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">calculation_terminated_normally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
 <dd><p>Did the calculation terminate correctly?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -241,14 +253,14 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.doi_str">
-<code class="sig-name descname">doi_str</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.doi_str" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.doi_str">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">doi_str</span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.doi_str" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.execute">
-<em class="property">abstract </em><code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.execute" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.execute">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the calculation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -257,23 +269,23 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.generate_input">
-<em class="property">abstract </em><code class="sig-name descname">generate_input</code><span class="sig-paren">(</span><em class="sig-param">calculation</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.generate_input" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.generate_input">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.generate_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate any input files required</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculation</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>molecule</strong> (<em>any</em>) – </p></li>
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>molecule</strong> (<em>autode.species.Species</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_atomic_charges">
-<em class="property">abstract </em><code class="sig-name descname">get_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_atomic_charges">
+<span class="sig-name descname"><span class="pre">get_atomic_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -288,10 +300,10 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_energy">
-<em class="property">abstract </em><code class="sig-name descname">get_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the potential energy</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_energy">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the potential energy in electronic Hartrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -300,31 +312,17 @@
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_enthalpy">
-<em class="property">abstract </em><code class="sig-name descname">get_enthalpy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_enthalpy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the free energy (enthalpy)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_final_atoms">
-<em class="property">abstract </em><code class="sig-name descname">get_final_atoms</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_final_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_final_atoms">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_final_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_final_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -342,27 +340,10 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_free_energy">
-<em class="property">abstract </em><code class="sig-name descname">get_free_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_free_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the free energy (G)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_gradients">
-<em class="property">abstract </em><code class="sig-name descname">get_gradients</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_gradients">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_gradients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the gradient matrix n_atomsx3 in Ha Å^-1</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -373,17 +354,16 @@
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>(np.ndarray)</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>Raisese:</dt><dd><p>(autode.exceptions.CouldNotGetProperty)</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_imaginary_freqs">
-<em class="property">abstract </em><code class="sig-name descname">get_imaginary_freqs</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_imaginary_freqs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_hessian">
+<span class="sig-name descname"><span class="pre">get_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Hessian matrix 3Nx3N in Ha Å^-2 for N atoms</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -392,69 +372,74 @@
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(float))</p>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong> |</strong> – </p></li>
+<li><p><strong>AssertionError</strong><strong> |</strong> – </p></li>
+<li><p><strong>ValueError</strong><strong> |</strong> – </p></li>
+<li><p><strong>IndexError</strong><strong>)</strong> – </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_input_filename">
-<em class="property">abstract </em><code class="sig-name descname">get_input_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_input_filename" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_input_filename">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_input_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_input_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_normal_mode_displacements">
-<em class="property">abstract </em><code class="sig-name descname">get_normal_mode_displacements</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_normal_mode_displacements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>mode_number</strong> (<em>int</em>) – Number of the normal mode to get the</p></li>
-<li><p><strong>along 6 == first imaginary mode</strong> (<em>displacements</em>) – </p></li>
-</ul>
-</dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>Name of the input file</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.ndarray)</p>
+<dd class="field-odd"><p>(str)</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_output_filename">
-<em class="property">abstract </em><code class="sig-name descname">get_output_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_output_filename" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_output_filename">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_output_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_output_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the output filename from the calculation name e.g. filename.out</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Name of the output file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.get_version">
-<em class="property">abstract </em><code class="sig-name descname">get_version</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_version" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.get_version">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.get_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the version of the method e.g. ORCA v. 4.2.1. Function implemented
 in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Version of the electronic structure method</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.optimisation_converged">
-<em class="property">abstract </em><code class="sig-name descname">optimisation_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.optimisation_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.optimisation_converged">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">optimisation_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.optimisation_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -469,9 +454,9 @@ in individual child classes</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.base.ElectronicStructureMethod.optimisation_nearly_converged">
-<em class="property">abstract </em><code class="sig-name descname">optimisation_nearly_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.base.ElectronicStructureMethod.optimisation_nearly_converged">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">optimisation_nearly_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.wrappers.base.ElectronicStructureMethod.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -488,36 +473,47 @@ in individual child classes</p>
 
 </dd></dl>
 
-</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.wrappers.base.Method">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.wrappers.base.</span></span><span class="sig-name descname"><span class="pre">Method</span></span><a class="headerlink" href="#autode.wrappers.base.Method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all EST and other energy/force/hessian methods</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.wrappers.base.Method.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'unknown'</span></em><a class="headerlink" href="#autode.wrappers.base.Method.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="g09.html" class="btn btn-neutral float-right" title="Gaussian09" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Wrappers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="g09.html" class="btn btn-neutral float-right" title="Gaussian09" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Wrappers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -525,7 +521,6 @@ in individual child classes</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

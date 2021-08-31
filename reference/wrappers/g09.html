@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Gaussian09 &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Keywords" href="keywords.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Wrappers</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Gaussian09</a></li>
@@ -124,6 +131,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -135,6 +144,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -169,11 +179,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -184,7 +196,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/wrappers/g09.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -198,20 +210,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.wrappers.G09">
+  <div class="section" id="module-autode.wrappers.G09">
 <span id="gaussian09"></span><h1>Gaussian09<a class="headerlink" href="#module-autode.wrappers.G09" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.wrappers.G09.G09">
-<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">G09</code><span class="sig-paren">(</span><em class="sig-param">name='g09'</em>, <em class="sig-param">path=None</em>, <em class="sig-param">keywords_set=None</em>, <em class="sig-param">implicit_solvation_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.wrappers.G09.G09.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name='g09'</em>, <em class="sig-param">path=None</em>, <em class="sig-param">keywords_set=None</em>, <em class="sig-param">implicit_solvation_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">G09</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'g09'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implicit_solvation_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'g09'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implicit_solvation_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gaussian 09</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.calculation_terminated_normally">
-<code class="sig-name descname">calculation_terminated_normally</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">rerun_if_failed=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.calculation_terminated_normally">
+<span class="sig-name descname"><span class="pre">calculation_terminated_normally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun_if_failed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
 <dd><p>Did the calculation terminate correctly?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -226,9 +238,9 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.execute">
-<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.execute" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the calculation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -237,15 +249,15 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.generate_input">
-<code class="sig-name descname">generate_input</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.generate_input" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.generate_input">
+<span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.generate_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a Gaussian input file</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_atomic_charges">
-<code class="sig-name descname">get_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_atomic_charges">
+<span class="sig-name descname"><span class="pre">get_atomic_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -260,10 +272,10 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_energy">
-<code class="sig-name descname">get_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the potential energy</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_energy">
+<span class="sig-name descname"><span class="pre">get_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the potential energy in electronic Hartrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -272,20 +284,17 @@
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_enthalpy">
-<code class="sig-name descname">get_enthalpy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_enthalpy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the enthalpy (H) from an g09 calculation output</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_final_atoms">
-<code class="sig-name descname">get_final_atoms</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_final_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_final_atoms">
+<span class="sig-name descname"><span class="pre">get_final_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_final_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -303,15 +312,9 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_free_energy">
-<code class="sig-name descname">get_free_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_free_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the Gibbs free energy (G) from an g09 calculation output</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_gradients">
-<code class="sig-name descname">get_gradients</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_gradients" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_gradients">
+<span class="sig-name descname"><span class="pre">get_gradients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get gradients from a Gaussian output file in the format</p>
 <blockquote>
 <div><p>Center     Atomic                   Forces (Hartrees/Bohr)
@@ -324,45 +327,16 @@ Number     Number              X              Y              Z
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_imaginary_freqs">
-<code class="sig-name descname">get_imaginary_freqs</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_imaginary_freqs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_hessian">
+<span class="sig-name descname"><span class="pre">get_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the Hessian from a Gaussian09 calculation, which is printed as
+just the lower triangular portion but is symmetric so the full 3Nx3N
+matrix can be re-constructed. Read it from the final output block
+sandwiched between 11….. \&#64;</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(float))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_input_filename">
-<code class="sig-name descname">get_input_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_input_filename" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_normal_mode_displacements">
-<code class="sig-name descname">get_normal_mode_displacements</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_normal_mode_displacements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>mode_number</strong> (<em>int</em>) – Number of the normal mode to get the</p></li>
-<li><p><strong>along 6 == first imaginary mode</strong> (<em>displacements</em>) – </p></li>
-</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p></p>
@@ -370,29 +344,55 @@ Number     Number              X              Y              Z
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>(np.ndarray)</p>
 </dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>IndexError</strong><strong> | </strong><strong>ValueError</strong><strong>)</strong> – </p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_output_filename">
-<code class="sig-name descname">get_output_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_output_filename" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_input_filename">
+<span class="sig-name descname"><span class="pre">get_input_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_input_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Name of the input file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_output_filename">
+<span class="sig-name descname"><span class="pre">get_output_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_output_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the output filename from the calculation name e.g. filename.out</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Name of the output file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.get_version">
-<code class="sig-name descname">get_version</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_version" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.get_version">
+<span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.get_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the version of Gaussian used in this calculation</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.optimisation_converged">
-<code class="sig-name descname">optimisation_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.optimisation_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.optimisation_converged">
+<span class="sig-name descname"><span class="pre">optimisation_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.optimisation_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -407,9 +407,9 @@ Number     Number              X              Y              Z
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.G09.G09.optimisation_nearly_converged">
-<code class="sig-name descname">optimisation_nearly_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.G09.G09.optimisation_nearly_converged">
+<span class="sig-name descname"><span class="pre">optimisation_nearly_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.G09.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -426,52 +426,57 @@ Number     Number              X              Y              Z
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.get_keywords">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">calc_input</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.get_keywords" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.add_opt_option">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">add_opt_option</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_option</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.add_opt_option" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.get_keywords">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">get_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.get_keywords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Modify the input keywords to try and fix some Gaussian’s quirks</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.modify_keywords_for_point_charges">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">modify_keywords_for_point_charges</code><span class="sig-paren">(</span><em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.modify_keywords_for_point_charges" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.modify_keywords_for_point_charges">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">modify_keywords_for_point_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.modify_keywords_for_point_charges" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a list of Gaussian keywords modify to include z-matrix if not
 already included. Required if point charges are included in the calc</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.n_ecp_elements">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">n_ecp_elements</code><span class="sig-paren">(</span><em class="sig-param">keywords</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.n_ecp_elements" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.n_ecp_elements">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">n_ecp_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.n_ecp_elements" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of elements that require an ECP</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.print_added_internals">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">print_added_internals</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">calc_input</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_added_internals" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.print_added_internals">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">print_added_internals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_added_internals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add any internal coordinates to the input file</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.print_constraints">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">print_constraints</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_constraints" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.print_constraints">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">print_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_constraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add any distance or cartesian constraints to the input file</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.print_custom_basis">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">print_custom_basis</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">calc_input</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_custom_basis" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.print_custom_basis">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">print_custom_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_custom_basis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the definition of the custom basis set file</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.print_point_charges">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">print_point_charges</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">calc_input</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_point_charges" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.print_point_charges">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">print_point_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.print_point_charges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add point charges to the input file</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.G09.rerun_angle_failure">
-<code class="sig-prename descclassname">autode.wrappers.G09.</code><code class="sig-name descname">rerun_angle_failure</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.rerun_angle_failure" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.G09.rerun_angle_failure">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.G09.</span></span><span class="sig-name descname"><span class="pre">rerun_angle_failure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.G09.rerun_angle_failure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gaussian will sometimes encounter a 180 degree angle and crash. This
 function performs a few geometry optimisation cycles in cartesian
 coordinates then switches back to internals</p>
@@ -488,36 +493,36 @@ coordinates then switches back to internals</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="keywords.html" class="btn btn-neutral float-right" title="Keywords" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="base.html" class="btn btn-neutral float-left" title="Base" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="keywords.html" class="btn btn-neutral float-right" title="Keywords" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="base.html" class="btn btn-neutral float-left" title="Base" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -525,7 +530,6 @@ coordinates then switches back to internals</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

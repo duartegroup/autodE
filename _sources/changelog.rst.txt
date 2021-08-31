@@ -1,6 +1,94 @@
 Changelog
 =========
 
+
+1.1.0
+--------
+----------
+
+API improvements that broadly maintain backwards compatibility.
+
+
+Usability improvements/Changes
+******************************
+- Adds more argument and return types
+- Changes :code:`AtomCollection.atoms` to a property for more flexible sub-classing
+- Changes :code:`ElectronicStructureMethod.doi_str` and :code:`Keyword.doi_str` to properties
+- Adds interpretable :code:`repr(Species)`
+- :code:`Species.energies` is zeroed when the :code:`Species.atoms` are reset or change
+- :code:`Species.energy` is a property of the last computed energy on that species
+- :code:`Species.is_linear` now uses an angle tolerance to determine linearity, which is slightly tighter than the previous float-based tolerance
+- Removes :code:`CalculationOutput.set_lines` in favour of a cached file_lines property to avoid :code:`set_file_lines()`
+- Removes :code:`CalculationOutput.get_free_energy()` in favour of :code:`Species.free_energy` once a Hessian is set for a molecule and similarly with :code:`CalculationOutput.get_enthalpy()`
+- Removes :code:`CalculationOutput.get_imaginary_freqs()` (now :code:`Species.imaginary_frequencies`) and :code:`CalculationOutput.get_normal_mode_displacements()` (now :code:`Species.normal_mode()`)
+- :code:`Species.imaginary_frequencies` now returns :code:`None` rather than an empty list for a species without any imaginary frequencies, to be consistent with other properties
+- Changes :code:`CalculationOutput.terminated_normally()` to a property (:code:`CalculationOutput.terminated_normally`)
+- Removes :code:`Reaction.find_complexes` in favour of setting the reactant and product complexes dynamically, unless :code:`Reaction.calculate_complexes` is called to find association complexes
+- Tweaks the default relative tolerance on bonds to account for M-X agostic interactions lengthening bonds
+- Enables :code:`Species.atoms` to be added, even if they are `None`
+- Improved atom setting of :code:`Complex.atoms`
+- Changes :code:`Complex.get_atom_indexes()` to :code:`Complex.atom_indexes()`
+- Changes :code:`Complex.molecules` to a private attribute as the atoms/energy/gradient is not propagated
+- Allows for :code:`Species.translate()` and :code:`Species.rotate()` to be called using vectors as lists or tuples rather than just numpy arrays
+- Modifies :code:`get_truncated_complex()` to :code:`get_truncated_species()` and changes the return type to a species to reflect a possibly different molecular composition of the complex
+- Improves peak checking in adaptive path TS guess generation
+- Removes :code:`autode.atoms.get_thing()` functions, in favour of :code:`Atom.thing`
+- Raises an exception if a single point energy evaluation fails to execute successfully
+- Removes :code:`autode.conformers.conformer.get_conformer()` in favour of a more flexible :code:`autode.conformer.Conformer` constructor
+- Adds :code:`Species.constraints` that are used in optimisations (still available in :code:`Calculation` initialisation)
+- Adds :code:`Conformers` to enable parallel electronic structure calculations across a set of conformers
+- Improves readability of pruning of conformers based on RMSD and energy thresholds
+
+
+Functionality improvements
+**************************
+
+- Adds angle and dihedral angle properties to an :code:`AtomCollection`
+- Improves and adds more :code:`Unit` definitions
+- Adds :code:`Value` and :code:`ValueArray` base classes for energies, gradients etc. These allow for implicit (1 Hartree == 617.509 kcal mol-1) comparisons and explicit conversion (1 Hartree).to('kcal')
+- Adds further conversion factors to :code:`Constants`
+- Adds :code:`Species.energies` as a container of all energies that have been calculated at a geometry
+- Adds :code:`Keywords.bstring` as a 'brief' summary of the keywords e.g. PBE0/def2-SVP and are associated with an :code:`Energy` (a type of :code:`Value`)
+- Improves quick reaction coordinate characterisation of TSs by providing a maximum atomic displacement for improved initial structures
+- Adds Hessian diagonalisation to obtain normal modes with and without translation and rotation projections for linear and non-linear molecules
+- Adds :code:`Species.weight` and :code:`Species.mass` as equivalent properties for the molecular weight
+- Improves dihedral sampling in molecule generation
+- Adds :code:`atoms.remove_dummy()` to remove all dummy atoms from a set
+- Enables different force constants to be used in XTB constrained optimisations (:code:`Config.XTB.force_constant`, which sets :code:`wrappers.XTB.XTB.force_constant`)
+- Adds :code:`Solvent.copy()`
+- Adds :code:`Species.reorder_atoms()` to reorder the atoms in a species using a mapping
+- Adds :code:`Config.ORCA.other_input_block` to allow for a block of input to be printed in all ORCA input files
+- Changes the loose optimisations to only use a maximum of 10 iterations. This is based on an analysis of 3500 ORCA
+optimisations, which plateaus quickly:
+
+.. image:: common/opt_convergence_3500_ORCA.png
+   :width: 500
+
+suggesting a value of 10 is a appropriate. This will be system dependent and need increasing for
+large/flexible systems. For path optimisations loose optimisations use a maximum of 50 cycles.
+
+
+Bug Fixes
+*********
+
+- Skips conformers with no atoms in finding unique conformers
+- Corrects benchmark TS location for the Grubbs metathesis example, where the reactant complex is bound
+- Fixes possible zero distance constraint for a single atom
+- Fixes spin state definition for XTB calculations
+- Fixes possible override of a constructor-defined spin state by the SMILES parser
+
+
+1.0.5
+--------
+----------
+
+Bugfix release
+
+Bug Fixes
+*********
+- Saves transition state templates with correct atom labels
+
+
 1.0.4
 --------
 ----------
@@ -12,7 +100,7 @@ Usability improvements
 **********************
 
 - Improves doc strings
-- Throws interpertable error when calling :code:`find_tss`  without :code:`reaction.reactant` set
+- Throws interpretable error when calling :code:`find_tss`  without :code:`reaction.reactant` set
 
 Functionality improvements
 **************************

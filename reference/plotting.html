@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Plotting &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Point Charges" href="point_charges.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/plotting.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,27 +199,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.plotting">
+  <div class="section" id="module-autode.plotting">
 <span id="plotting"></span><h1>Plotting<a class="headerlink" href="#module-autode.plotting" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.plotting.Energy">
-<em class="property">class </em><code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">Energy</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">estimated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.Energy" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.plotting.Energy.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">value</em>, <em class="sig-param">estimated=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.Energy.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.plotting.Energy.item">
-<code class="sig-name descname">item</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.Energy.item" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.plotting.calculate_reaction_profile_energies">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">calculate_reaction_profile_energies</code><span class="sig-paren">(</span><em class="sig-param">reactions</em>, <em class="sig-param">units</em>, <em class="sig-param">free_energy=False</em>, <em class="sig-param">enthalpy=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.calculate_reaction_profile_energies" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.calculate_reaction_profile_energies">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">calculate_reaction_profile_energies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enthalpy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.calculate_reaction_profile_energies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate a list of energies comprising the reaction profile</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -228,14 +224,14 @@
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.error_on_stationary_points">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">error_on_stationary_points</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">energies</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.error_on_stationary_points" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.error_on_stationary_points">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">error_on_stationary_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.error_on_stationary_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the difference between the stationary points of an interpolated
 function and those observed (given in the energies array). Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">|</span>     <span class="o">.</span>
-<span class="n">E</span> <span class="o">|.</span>   <span class="o">/</span> \        <span class="n">The</span> <span class="n">points</span> <span class="n">indicate</span> <span class="n">the</span> <span class="n">true</span> <span class="n">stationary</span> <span class="n">points</span>
-  <span class="o">|</span> \<span class="n">_</span><span class="o">/</span>   \<span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">|</span>      <span class="o">.</span>
+<span class="n">E</span> <span class="o">|.</span>   <span class="o">/</span> <span class="o">|</span>        <span class="n">The</span> <span class="n">points</span> <span class="n">indicate</span> <span class="n">the</span> <span class="n">true</span> <span class="n">stationary</span> <span class="n">points</span>
+  <span class="o">|</span> <span class="o">|</span><span class="n">_</span><span class="o">/</span>  <span class="o">|.</span>
   <span class="o">|</span><span class="n">_____________</span>
         <span class="n">zi</span>
 </pre></div>
@@ -257,9 +253,9 @@ points that ≈ energies</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.get_reaction_profile_warnings">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">get_reaction_profile_warnings</code><span class="sig-paren">(</span><em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.get_reaction_profile_warnings" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.get_reaction_profile_warnings">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">get_reaction_profile_warnings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.get_reaction_profile_warnings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a string of warnings for a reaction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -274,9 +270,9 @@ points that ≈ energies</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.get_stationary_points">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">get_stationary_points</code><span class="sig-paren">(</span><em class="sig-param">xs</em>, <em class="sig-param">dydx</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.get_stationary_points" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.get_stationary_points">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">get_stationary_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dydx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.get_stationary_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the productive of the derivative at points x(i-1) and x(i) which
 is negative if there is a point x(k)
 between x(i-1) and x(i) that has dy/dx|x(k) = 0</p>
@@ -290,14 +286,14 @@ between x(i-1) and x(i) that has dy/dx|x(k) = 0</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.plot_1dpes">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_1dpes</code><span class="sig-paren">(</span><em class="sig-param">rs</em>, <em class="sig-param">rel_energies</em>, <em class="sig-param">method_name</em>, <em class="sig-param">name='1d_scan'</em>, <em class="sig-param">xlabel='$r$ / Å'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_1dpes" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.plot_1dpes">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_1dpes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1d_scan'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'$r$</span> <span class="pre">/</span> <span class="pre">Å'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_1dpes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.plot_2dpes">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_2dpes</code><span class="sig-paren">(</span><em class="sig-param">r1</em>, <em class="sig-param">r2</em>, <em class="sig-param">coeff_mat</em>, <em class="sig-param">mep=None</em>, <em class="sig-param">name='2d_scan'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_2dpes" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.plot_2dpes">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_2dpes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'2d_scan'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_2dpes" title="Permalink to this definition">¶</a></dt>
 <dd><p>For flat lists of r1, r2 and relative energies plot the PES by
 interpolating on a 50x50 grid after fitting with
 a 2d polynomial function</p>
@@ -313,31 +309,31 @@ surface</p></li>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>mep</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of coordinates on the grid for the min energy</p></li>
-<li><p><strong>across the surface</strong><strong> (</strong><strong>default</strong> (<em>pathway</em>) – {None})</p></li>
+<li><p><strong>(</strong><strong>default</strong> (<em>pathway across the surface</em>) – {None})</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – name of the plot (default: {‘2d_scan’})</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.plot_points">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_points</code><span class="sig-paren">(</span><em class="sig-param">zi_s</em>, <em class="sig-param">energies</em>, <em class="sig-param">ax</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_points" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.plot_points">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zi_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot a reaction profile just adding the points to the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>zi_s</strong> (<em>np.ndarray</em>) – Estimate of reaction coordinate points</p></li>
-<li><p><strong>energies</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.plotting.Energy" title="autode.plotting.Energy"><em>autode.plotting.Energy</em></a><em>)</em>) – len(energies) = len(zi_s)</p></li>
+<li><p><strong>energies</strong> (<em>list</em><em>(</em><em>autode.plotting.Energy</em><em>)</em>) – len(energies) = len(zi_s)</p></li>
 <li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.plot_reaction_profile">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_reaction_profile</code><span class="sig-paren">(</span><em class="sig-param">reactions</em>, <em class="sig-param">units</em>, <em class="sig-param">name</em>, <em class="sig-param">free_energy=False</em>, <em class="sig-param">enthalpy=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_reaction_profile" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.plot_reaction_profile">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_reaction_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enthalpy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_reaction_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a set of reactions plot the reaction profile using matplotlib</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -356,9 +352,9 @@ surface</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.plot_smooth_profile">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">plot_smooth_profile</code><span class="sig-paren">(</span><em class="sig-param">zi_s</em>, <em class="sig-param">energies</em>, <em class="sig-param">ax</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_smooth_profile" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.plot_smooth_profile">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_smooth_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zi_s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.plot_smooth_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot a smooth reaction profile by spline interpolation and finding the
 stationary points. This will not afford the correct number of stationary
 points for some energy arrays, so raise an exception if it fails</p>
@@ -366,49 +362,49 @@ points for some energy arrays, so raise an exception if it fails</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>zi_s</strong> (<em>np.ndarray</em>) – Estimate of reaction coordinate points</p></li>
-<li><p><strong>energies</strong> (<em>list</em><em>(</em><a class="reference internal" href="#autode.plotting.Energy" title="autode.plotting.Energy"><em>autode.plotting.Energy</em></a><em>)</em>) – len(energies) = len(zi_s)</p></li>
+<li><p><strong>energies</strong> (<em>list</em><em>(</em><em>autode.plotting.Energy</em><em>)</em>) – len(energies) = len(zi_s)</p></li>
 <li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.plotting.save_plot">
-<code class="sig-prename descclassname">autode.plotting.</code><code class="sig-name descname">save_plot</code><span class="sig-paren">(</span><em class="sig-param">plot</em>, <em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.save_plot" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.plotting.save_plot">
+<span class="sig-prename descclassname"><span class="pre">autode.plotting.</span></span><span class="sig-name descname"><span class="pre">save_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.plotting.save_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a plot</p>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="point_charges.html" class="btn btn-neutral float-right" title="Point Charges" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="mol_graphs.html" class="btn btn-neutral float-left" title="Molecular Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="point_charges.html" class="btn btn-neutral float-right" title="Point Charges" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mol_graphs.html" class="btn btn-neutral float-left" title="Molecular Graphs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -416,7 +412,6 @@ points for some energy arrays, so raise an exception if it fails</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

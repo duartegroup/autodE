@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Molecules &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Non-covalent Interaction Complexes" href="nci.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -106,6 +112,7 @@
 <li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochem.html">Thermochemistry</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -115,6 +122,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -149,11 +157,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
@@ -162,7 +172,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/examples/molecules.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -176,7 +186,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="molecules">
+  <div class="section" id="molecules">
 <h1>Molecules<a class="headerlink" href="#molecules" title="Permalink to this headline">¶</a></h1>
 <p>Reactants and Products are <a class="reference internal" href="../reference/species/molecule.html#molecules"><span class="std std-ref">Molecules</span></a> and are initialised
 much like their <a class="reference internal" href="../reference/species/species.html#species"><span class="std std-ref">Species</span></a> parent, but have charge and
@@ -192,13 +202,13 @@ strings</p>
 </pre></div>
 </div>
 <p>or from 3D structures given as xyz files directly</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ch4</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;methane.xyz&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ch4</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;methane.xyz&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ch4</span><span class="o">.</span><span class="n">name</span>
 <span class="go">&#39;methane&#39;</span>
 </pre></div>
 </div>
 <hr class="docutils" />
-<section id="simple-example">
+<div class="section" id="simple-example">
 <h2>Simple Example<a class="headerlink" href="#simple-example" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/water.png" src="../_images/water.png" />
 <p>To generate a water Molecule from its SMILES string (‘O’), where hydrogen atoms
@@ -225,9 +235,9 @@ can be generated as a .xyz file for viewing in molecular visualisation software
 </pre></div>
 </div>
 <p>where ‘h2o.xyz’ is generated in the current working directory.</p>
-</section>
+</div>
 <hr class="docutils" />
-<section id="geometry-manipulation">
+<div class="section" id="geometry-manipulation">
 <h2>Geometry Manipulation<a class="headerlink" href="#geometry-manipulation" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/water_shift.png" src="../_images/water_shift.png" />
 <p>Whole molecules can be translated and rotated. For example, to translate the
@@ -253,14 +263,19 @@ water molecule so the oxygen atom is centred at the origin</p>
 <span class="go">       [ 0.8261, 0.1812,  0.    ]])</span>
 </pre></div>
 </div>
-<p>Pairwise distances between atoms in a molecule can be calculated</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="go">0.8448</span>
+<p>Angles between atoms in a molecule can be also calculated</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">Angle(1.9752 rad)</span>
 </pre></div>
 </div>
-<p>where atoms are indexed from 0, so that r<sub>01</sub> is r(O-H) in Å.</p>
-</section>
-<section id="calculations">
+<p>where atoms are indexed from 0, so the angle is θ(H-O-H). As with distances,
+explicit unit conversion is supported</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+<span class="go">Angle(113.17085 °)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="calculations">
 <h2>Calculations<a class="headerlink" href="#calculations" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/water_opt_energy.png" src="../_images/water_opt_energy.png" />
 <p><strong>autodE</strong> provides wrappers around common electronic structure theory packages
@@ -272,14 +287,30 @@ single point energy evaluation with ORCA</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">XTB</span><span class="p">,</span> <span class="n">ORCA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">XTB</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">energy</span>
-<span class="go">-5.07054</span>
+<span class="go">Energy(-5.07054 Ha)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">single_point</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ORCA</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">energy</span>
-<span class="go">-76.377649534992</span>
+<span class="go">Energy(-76.37766 Ha)</span>
 </pre></div>
 </div>
-<p>where the default single point method in ORCA is PBE0-D3BJ/def2-TZVP. Modifying
-the method is possible by setting the keywords</p>
+<p>where the default single point method in ORCA is PBE0-D3BJ/def2-TZVP. Like with
+other values (distances, angles, dihedrals) converting to different units is as
+simple as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kcal&#39;</span><span class="p">)</span>
+<span class="go">Energy(-47927.6682 kcal mol-1)</span>
+</pre></div>
+</div>
+<p>The <code class="code docutils literal notranslate"><span class="pre">water.energy</span></code> returns the most recently evaluated energy at this geometry,
+but the XTB energy is still saved as code:<cite>water.energies</cite>. Printing the energies
+along with their associated methods</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">energy</span> <span class="ow">in</span> <span class="n">water</span><span class="o">.</span><span class="n">energies</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">energy</span><span class="o">.</span><span class="n">method_str</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">Energy(-5.07054 Ha) xtb</span>
+<span class="go">Energy(-76.37766 Ha) orca PBE0-D3BJ/def2-TZVP</span>
+</pre></div>
+</div>
+<p>Modifying the method is possible by setting the keywords</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">SinglePointKeywords</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">orca</span> <span class="o">=</span> <span class="n">ORCA</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">orca</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;PBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;D3BJ&#39;</span><span class="p">,</span> <span class="s1">&#39;ma-def2-TZVP&#39;</span><span class="p">])</span>
@@ -293,37 +324,37 @@ the method is possible by setting the keywords</p>
 <p>Structure optimisation resets the positions of the atoms to their optimised
 value.</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="nci.html" class="btn btn-neutral float-right" title="Non-covalent Interaction Complexes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="species.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="nci.html" class="btn btn-neutral float-right" title="Non-covalent Interaction Complexes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="species.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -331,7 +362,6 @@ value.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Symmetry &mdash; autodE  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Wrappers" href="../wrappers/index.html" />
+    <link rel="prev" title="Ideal gas model" href="igm.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Thermochemistry</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="igm.html">Ideal gas model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Symmetry</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Thermochemistry</a> &raquo;</li>
+        
+      <li>Symmetry</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/reference/thermochemistry/symmetry.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autode.thermochemistry.symmetry">
+<span id="symmetry"></span><h1>Symmetry<a class="headerlink" href="#module-autode.thermochemistry.symmetry" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.symmetry.cn_and_axes">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">cn_and_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pcoords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_tol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.cn_and_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the highest symmetry rotation axis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>max_n</strong> (<em>int</em>) – </p></li>
+<li><p><strong>dist_tol</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>np.ndarray)):</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(dict(int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.symmetry.create_pcoords">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">create_pcoords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.create_pcoords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a tensor where the first dimension is the size of the number of
+unique atom types in a molecule, the second, the atoms of that type
+and the third the number of dimensions in the coordinate space (3)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>(np.ndarray) shape (n, m, 3)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.symmetry.get_possible_axes">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">get_possible_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_triple_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_axis_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.get_possible_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Possible rotation axes in a molecule. Currently limited to average vectors
+and cross products i.e.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Y</span>          <span class="n">Y</span> <span class="o">---&gt;</span>
+ <span class="o">/</span> \        <span class="o">/</span> \
+<span class="n">X</span>   <span class="n">Y</span>      <span class="n">X</span>   <span class="n">Z</span>
+
+  <span class="o">|</span>
+  <span class="o">|</span>
+  <span class="p">,</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coords</strong> (<em>np.ndarray</em>) – </p></li>
+<li><p><strong>max_triple_dist</strong> (<em>float</em>) – </p></li>
+<li><p><strong>sim_axis_tol</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(np.ndarray))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.symmetry.is_same_under_n_fold">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">is_same_under_n_fold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pcoords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_pcoords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.is_same_under_n_fold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does applying an n-fold rotation about an axis generate the same structure
+back again?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcoords</strong> (<em>np.ndarray</em>) – shape = (n_unique_atom_types, n_atoms, 3)</p></li>
+<li><p><strong>axis</strong> (<em>np.ndarray</em>) – shape = (3,)</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – n-fold of this rotation</p></li>
+<li><p><strong>m</strong> (<em>int</em>) – Apply this n-fold rotation m times</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – </p></li>
+<li><p><strong>excluded_pcoords</strong> (<em>list</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.symmetry.strip_identical_and_inv_axes">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">strip_identical_and_inv_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_axis_tol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.strip_identical_and_inv_axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>For a list of axes remove those which are similar to within some distance
+tolerance, or are inverses to within that tolerance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axes</strong> – list of axes</p></li>
+<li><p><strong>sim_axis_tol</strong> – distance tolerance in Å</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.symmetry.symmetry_number">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">symmetry_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_fold_rot_searched</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.symmetry_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the symmetry number of a molecule. See:
+Theor Chem Account (2007) 118:813–826</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.atoms.Species</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>max_n_fold_rot_searched</strong> (<em>int</em>) – </p></li>
+<li><p><strong>dist_tol</strong> (<em>float</em>) – Distance tolerance (Å)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../wrappers/index.html" class="btn btn-neutral float-right" title="Wrappers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="igm.html" class="btn btn-neutral float-left" title="Ideal gas model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

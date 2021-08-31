@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Complex &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Molecule" href="molecule.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -102,6 +108,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -120,6 +127,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -131,6 +140,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -165,11 +175,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -180,7 +192,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/species/complex.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -194,14 +206,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.species.complex">
+  <div class="section" id="module-autode.species.complex">
 <span id="complex"></span><h1>Complex<a class="headerlink" href="#module-autode.species.complex" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.species.complex.Complex">
-<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">Complex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.species.complex.Complex.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.species.complex.Complex">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">Complex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'complex'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_init_translation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'complex'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_init_translation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Molecular complex e.g. VdW complex of one or more Molecules</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -211,34 +223,44 @@
 <dd class="field-even"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – </p></li>
 <li><p><strong>do_init_translation</strong> (<em>bool</em>) – Translate molecules initially such
-that they do not overlap</p></li>
+that they donot overlap</p></li>
+<li><p><strong>copy</strong> (<em>bool</em>) – Should the molecules be copied into this complex?</p></li>
+<li><p><strong>solvent_name</strong> (<em>str</em><em> | </em><em>None</em>) – Name of the solvent, if None then select
+the first solvent from the constituent
+molecules</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.species.complex.Complex.calc_repulsion">
-<code class="sig-name descname">calc_repulsion</code><span class="sig-paren">(</span><em class="sig-param">mol_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.calc_repulsion" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.atom_indexes">
+<span class="sig-name descname"><span class="pre">atom_indexes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.atom_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the first and last atom indexes of a molecule in a Complex</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.atoms">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">atoms</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional[autode.atoms.Atoms]</span></em><a class="headerlink" href="#autode.species.complex.Complex.atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constituent atoms of this collection</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.calc_repulsion">
+<span class="sig-name descname"><span class="pre">calc_repulsion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.calc_repulsion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the repulsion between a molecule and the rest of the
 complex</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.species.complex.Complex.get_atom_indexes">
-<code class="sig-name descname">get_atom_indexes</code><span class="sig-paren">(</span><em class="sig-param">mol_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.get_atom_indexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the first and last atom indexes of a molecule in a Complex</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.species.complex.Complex.n_molecules">
-<em class="property">property </em><code class="sig-name descname">n_molecules</code><a class="headerlink" href="#autode.species.complex.Complex.n_molecules" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.n_molecules">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_molecules</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#autode.species.complex.Complex.n_molecules" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of molecules in this molecular complex</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.species.complex.Complex.populate_conformers">
-<code class="sig-name descname">populate_conformers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.populate_conformers" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.populate_conformers">
+<span class="sig-name descname"><span class="pre">populate_conformers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.populate_conformers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate and optimise with a low level method a set of conformers, the
 number of which is
 Config.num_complex_sphere_points ×  Config.num_complex_random_rotations</p>
@@ -247,17 +269,29 @@ Config.num_complex_sphere_points ×  Config.num_complex_random_rotations</p>
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.species.complex.Complex.rotate_mol">
-<code class="sig-name descname">rotate_mol</code><span class="sig-paren">(</span><em class="sig-param">axis</em>, <em class="sig-param">theta</em>, <em class="sig-param">mol_index</em>, <em class="sig-param">origin=array([0.</em>, <em class="sig-param">0.</em>, <em class="sig-param">0.])</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.rotate_mol" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.reorder_atoms">
+<span class="sig-name descname"><span class="pre">reorder_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.species.complex.Complex.reorder_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reorder the atoms in this complex using a dictionary keyed with current
+atom indexes and values as their new positions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mapping</strong> (<em>dict</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.rotate_mol">
+<span class="sig-name descname"><span class="pre">rotate_mol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">array([0.,</span> <span class="pre">0.,</span> <span class="pre">0.])</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.rotate_mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotate a molecule within a complex an angle theta about an axis given
 an origin</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>axis</strong> (<em>np.ndarray</em>) – Length 3 vector</p></li>
-<li><p><strong>theta</strong> (<em>float</em>) – Length 3 vector</p></li>
-<li><p><strong>origin</strong> (<em>np.ndarray</em>) – Length 3 vector</p></li>
+<li><p><strong>axis</strong> (<em>np.ndarray</em><em> | </em><em>list</em>) – Length 3 vector</p></li>
+<li><p><strong>theta</strong> (<em>float</em><em> | </em><a class="reference internal" href="../values.html#autode.values.Angle" title="autode.values.Angle"><em>autode.values.Angle</em></a>) – </p></li>
+<li><p><strong>origin</strong> (<em>np.ndarray</em><em> | </em><em>list</em>) – Length 3 vector</p></li>
 <li><p><strong>mol_index</strong> (<em>int</em>) – <p>Index of the molecule to translate. e.g. 2 will
 translate molecule 1 in the complex</p>
 <blockquote>
@@ -269,14 +303,14 @@ translate molecule 1 in the complex</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.species.complex.Complex.translate_mol">
-<code class="sig-name descname">translate_mol</code><span class="sig-paren">(</span><em class="sig-param">vec</em>, <em class="sig-param">mol_index</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.translate_mol" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.Complex.translate_mol">
+<span class="sig-name descname"><span class="pre">translate_mol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.Complex.translate_mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Translate a molecule within a complex by a vector</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vec</strong> (<em>np.ndarray</em>) – Length 3 vector</p></li>
+<li><p><strong>vec</strong> (<em>np.ndarray</em><em> | </em><em>list</em>) – Length 3 vector</p></li>
 <li><p><strong>mol_index</strong> (<em>int</em>) – Index of the molecule to translate. e.g. 2 will
 translate molecule 1 in the complex
 they are indexed from 0</p></li>
@@ -287,27 +321,67 @@ they are indexed from 0</p></li>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.species.complex.NCIComplex">
-<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">NCIComplex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.NCIComplex" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.species.complex.NCIComplex">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">NCIComplex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'complex'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_init_translation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.NCIComplex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="class">
-<dt id="autode.species.complex.ProductComplex">
-<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">ProductComplex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ProductComplex" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.species.complex.ProductComplex">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">ProductComplex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prod_complex'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ProductComplex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.ProductComplex.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prod_complex'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ProductComplex.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product complex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*args</strong> (<em>autode.species.Product</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>name</strong> (<em>str</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
 
-<dl class="class">
-<dt id="autode.species.complex.ReactantComplex">
-<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">ReactantComplex</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em>, <em class="sig-param">do_init_translation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ReactantComplex" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.ProductComplex.to_reactant_complex">
+<span class="sig-name descname"><span class="pre">to_reactant_complex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ProductComplex.to_reactant_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a reactant complex from this product complex</p>
+</dd></dl>
 
-<dl class="class">
-<dt id="autode.species.complex.SolvatedReactantComplex">
-<em class="property">class </em><code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">SolvatedReactantComplex</code><span class="sig-paren">(</span><em class="sig-param">solvent_mol</em>, <em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.species.complex.SolvatedReactantComplex.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">solvent_mol</em>, <em class="sig-param">*args</em>, <em class="sig-param">name='complex'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex.__init__" title="Permalink to this definition">¶</a></dt>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.species.complex.ReactantComplex">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">ReactantComplex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reac_complex'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ReactantComplex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.ReactantComplex.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reac_complex'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ReactantComplex.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reactant complex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>*args</strong> (<em>autode.species.Reactant</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>name</strong> (<em>str</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.ReactantComplex.to_product_complex">
+<span class="sig-name descname"><span class="pre">to_product_complex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.ReactantComplex.to_product_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a product complex from this reactant complex</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.species.complex.SolvatedReactantComplex">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">SolvatedReactantComplex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solvent_mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.SolvatedReactantComplex.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solvent_mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Molecular complex e.g. VdW complex of one or more Molecules</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -317,23 +391,27 @@ they are indexed from 0</p></li>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – </p></li>
 <li><p><strong>do_init_translation</strong> (<em>bool</em>) – Translate molecules initially such
-that they do not overlap</p></li>
+that they donot overlap</p></li>
+<li><p><strong>copy</strong> (<em>bool</em>) – Should the molecules be copied into this complex?</p></li>
+<li><p><strong>solvent_name</strong> (<em>str</em><em> | </em><em>None</em>) – Name of the solvent, if None then select
+the first solvent from the constituent
+molecules</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.species.complex.SolvatedReactantComplex.run_const_opt">
-<code class="sig-name descname">run_const_opt</code><span class="sig-paren">(</span><em class="sig-param">const_opt</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex.run_const_opt" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.complex.SolvatedReactantComplex.run_const_opt">
+<span class="sig-name descname"><span class="pre">run_const_opt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">const_opt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.SolvatedReactantComplex.run_const_opt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a constrained optimisation of the ReactantComplex</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.species.complex.get_complex_conformer_atoms">
-<code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">get_complex_conformer_atoms</code><span class="sig-paren">(</span><em class="sig-param">molecules</em>, <em class="sig-param">rotations</em>, <em class="sig-param">points</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.get_complex_conformer_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.species.complex.get_complex_conformer_atoms">
+<span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">get_complex_conformer_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecules</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.get_complex_conformer_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a conformer of a complex given a set of molecules, rotations for
 each and points on which to shift</p>
 <dl class="field-list simple">
@@ -347,7 +425,7 @@ each and points on which to shift</p>
 </div></blockquote>
 </p></li>
 <li><p><strong>points</strong> – (list(np.ndarray)): List of length 3 np arrays containing the</p></li>
-<li><p><strong>to add the molecule with index i</strong> (<em>point</em>) – </p></li>
+<li><p><strong>i</strong> (<em>point to add the molecule with index</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -356,47 +434,41 @@ each and points on which to shift</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.species.complex.get_complexes">
-<code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">get_complexes</code><span class="sig-paren">(</span><em class="sig-param">reaction</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.get_complexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates Reactant and Product complexes for the reaction</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.species.complex.is_solvated_reactant_complex">
-<code class="sig-prename descclassname">autode.species.complex.</code><code class="sig-name descname">is_solvated_reactant_complex</code><span class="sig-paren">(</span><em class="sig-param">molecule_complex</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.is_solvated_reactant_complex" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.species.complex.is_solvated_reactant_complex">
+<span class="sig-prename descclassname"><span class="pre">autode.species.complex.</span></span><span class="sig-name descname"><span class="pre">is_solvated_reactant_complex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule_complex</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.complex.is_solvated_reactant_complex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="molecule.html" class="btn btn-neutral float-right" title="Molecule" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="molecule.html" class="btn btn-neutral float-right" title="Molecule" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -404,7 +476,6 @@ each and points on which to shift</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

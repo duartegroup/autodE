@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>1D PES Generation &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="2D PES Generation" href="pes2d.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochem.html">Thermochemistry</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -114,6 +121,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -148,11 +156,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
@@ -161,7 +171,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/examples/pes1d.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -175,12 +185,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="d-pes-generation">
+  <div class="section" id="d-pes-generation">
 <h1>1D PES Generation<a class="headerlink" href="#d-pes-generation" title="Permalink to this headline">¶</a></h1>
 <p><strong>autodE</strong> allows for both potential energy surface (PES) to be constructed
 where other degrees of freedom are frozen (unrelaxed) or allowed to
 optimise (relaxed).</p>
-<section id="unrelaxed">
+<div class="section" id="unrelaxed">
 <h2>Unrelaxed<a class="headerlink" href="#unrelaxed" title="Permalink to this headline">¶</a></h2>
 <p>For the O-H dissociation curve in H<sub>2</sub>O at the XTB level</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span>
@@ -290,8 +300,8 @@ optimise (relaxed).</p>
 </div>
 <p>Out (OH_PES_unrelaxed2.png):</p>
 <img alt="../_images/OH_PES_unrelaxed2.png" src="../_images/OH_PES_unrelaxed2.png" />
-</section>
-<section id="relaxed">
+</div>
+<div class="section" id="relaxed">
 <h2>Relaxed<a class="headerlink" href="#relaxed" title="Permalink to this headline">¶</a></h2>
 <p><strong>autodE</strong> provides two ways of generating relaxed PESs the first in a similar
 vain to the above is performing optimisations with distance constraints</p>
@@ -408,37 +418,37 @@ vain to the above is performing optimisations with distance constraints</p>
 <span class="mf">2.000</span> <span class="o">-</span><span class="mf">4.9060</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="pes2d.html" class="btn btn-neutral float-right" title="2D PES Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="manipulation.html" class="btn btn-neutral float-left" title="Molecular Manipulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="pes2d.html" class="btn btn-neutral float-right" title="2D PES Generation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="manipulation.html" class="btn btn-neutral float-left" title="Molecular Manipulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -446,7 +456,6 @@ vain to the above is performing optimisations with distance constraints</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

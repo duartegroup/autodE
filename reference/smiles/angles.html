@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>SMILES Angles &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="SMILES Base" href="base.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -123,6 +130,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -134,6 +143,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -168,11 +178,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -183,7 +195,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/smiles/angles.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -197,20 +209,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.smiles.angles">
+  <div class="section" id="module-autode.smiles.angles">
 <span id="smiles-angles"></span><h1>SMILES Angles<a class="headerlink" href="#module-autode.smiles.angles" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.smiles.angles.Angle">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.angles.</code><code class="sig-name descname">Angle</code><span class="sig-paren">(</span><em class="sig-param">idxs</em>, <em class="sig-param">rot_idxs=None</em>, <em class="sig-param">phi0=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.angles.Angle.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">idxs</em>, <em class="sig-param">rot_idxs=None</em>, <em class="sig-param">phi0=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angle">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.angles.</span></span><span class="sig-name descname"><span class="pre">Angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Angle between a set of atoms. In order</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angle.find_rot_idxs">
-<code class="sig-name descname">find_rot_idxs</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.find_rot_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angle.find_rot_idxs">
+<span class="sig-name descname"><span class="pre">find_rot_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.find_rot_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the atom indexes to rotate by splitting rhe graph across
 the edge that appears first in the angle, e.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>       <span class="n">Z</span>
@@ -222,9 +234,9 @@ the edge that appears first in the angle, e.g.:</p>
 <p>split across this bond</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angle.inverse_rot_idxs">
-<code class="sig-name descname">inverse_rot_idxs</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.inverse_rot_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angle.inverse_rot_idxs">
+<span class="sig-name descname"><span class="pre">inverse_rot_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.inverse_rot_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the inverse of a set of rotation indexes for e.g. rotating
 the atoms on the other side of the angle. Skip any atoms that
 have not been moved</p>
@@ -238,15 +250,15 @@ have not been moved</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angle.phi0">
-<em class="property">property </em><code class="sig-name descname">phi0</code><a class="headerlink" href="#autode.smiles.angles.Angle.phi0" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angle.phi0">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">phi0</span></span><a class="headerlink" href="#autode.smiles.angles.Angle.phi0" title="Permalink to this definition">¶</a></dt>
 <dd><p>A non-None ideal angle, default to 100 degrees</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angle.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angle.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angle.value" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p>
@@ -262,56 +274,56 @@ have not been moved</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.angles.Angles">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.angles.</code><code class="sig-name descname">Angles</code><a class="headerlink" href="#autode.smiles.angles.Angles" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.angles.Angles.axes">
-<em class="property">property </em><code class="sig-name descname">axes</code><a class="headerlink" href="#autode.smiles.angles.Angles.axes" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.angles.</span></span><span class="sig-name descname"><span class="pre">Angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angles" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles.axes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">axes</span></span><a class="headerlink" href="#autode.smiles.angles.Angles.axes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angles.dvalues">
-<code class="sig-name descname">dvalues</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angles.dvalues" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles.dvalues">
+<span class="sig-name descname"><span class="pre">dvalues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angles.dvalues" title="Permalink to this definition">¶</a></dt>
 <dd><p>Difference between the current and ideal angles</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angles.ideal_angles">
-<em class="property">property </em><code class="sig-name descname">ideal_angles</code><a class="headerlink" href="#autode.smiles.angles.Angles.ideal_angles" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles.ideal_angles">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ideal_angles</span></span><a class="headerlink" href="#autode.smiles.angles.Angles.ideal_angles" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ideal angle vector (float | None)</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angles.origins">
-<em class="property">property </em><code class="sig-name descname">origins</code><a class="headerlink" href="#autode.smiles.angles.Angles.origins" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles.origins">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">origins</span></span><a class="headerlink" href="#autode.smiles.angles.Angles.origins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Origins for the rotation, as the central atom of the trio</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angles.rot_idxs">
-<em class="property">property </em><code class="sig-name descname">rot_idxs</code><a class="headerlink" href="#autode.smiles.angles.Angles.rot_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles.rot_idxs">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">rot_idxs</span></span><a class="headerlink" href="#autode.smiles.angles.Angles.rot_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Matrix of atom indexes to rotate</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Angles.values">
-<code class="sig-name descname">values</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angles.values" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Angles.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Angles.values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Current angle vector in radians</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.angles.Dihedral">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.angles.</code><code class="sig-name descname">Dihedral</code><span class="sig-paren">(</span><em class="sig-param">idxs</em>, <em class="sig-param">rot_idxs=None</em>, <em class="sig-param">phi0=None</em>, <em class="sig-param">mid_dist=2.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.angles.</span></span><span class="sig-name descname"><span class="pre">Dihedral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dihedral defined by 4 atom indexes e.g.:</p>
 <p>X       W
 |      /
 Y—- Z</p>
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">idxs</em>, <em class="sig-param">rot_idxs=None</em>, <em class="sig-param">phi0=None</em>, <em class="sig-param">mid_dist=2.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dihedral constructed from atom indexes and possibly indexes that
 should be rotated, if this dihedral is altered:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">W</span>
@@ -326,30 +338,30 @@ should be rotated, if this dihedral is altered:</p>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>rot_idxs</strong> (<em>list</em><em>(</em><em>int</em><em>) </em><em>| None</em>) – Indexes to rotate, 1 if the atoms
+<li><p><strong>rot_idxs</strong> (<em>list</em><em>(</em><em>int</em><em>) </em><em>| </em><em>None</em>) – Indexes to rotate, 1 if the atoms
 should be rotated else 0</p></li>
-<li><p><strong>phi0</strong> (<em>float | None</em>) – Ideal angle for this dihedral (radians)</p></li>
+<li><p><strong>phi0</strong> (<em>float</em><em> | </em><em>None</em>) – Ideal angle for this dihedral (radians)</p></li>
 <li><p><strong>mid_dist</strong> (<em>float</em>) – Optimum distance between X-Y</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.dphi">
-<code class="sig-name descname">dphi</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.dphi" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.dphi">
+<span class="sig-name descname"><span class="pre">dphi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.dphi" title="Permalink to this definition">¶</a></dt>
 <dd><p>∆φ = φ_curr - φ_ideal</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.end_idxs">
-<em class="property">property </em><code class="sig-name descname">end_idxs</code><a class="headerlink" href="#autode.smiles.angles.Dihedral.end_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.end_idxs">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">end_idxs</span></span><a class="headerlink" href="#autode.smiles.angles.Dihedral.end_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Atoms defining the end of the dihedral</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.find_rot_idxs">
-<code class="sig-name descname">find_rot_idxs</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.find_rot_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.find_rot_idxs">
+<span class="sig-name descname"><span class="pre">find_rot_idxs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.find_rot_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the atom indexes that should be rotated for this dihedral</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -361,22 +373,22 @@ should be rotated else 0</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.needs_forcing">
-<code class="sig-name descname">needs_forcing</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.needs_forcing" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.needs_forcing">
+<span class="sig-name descname"><span class="pre">needs_forcing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.needs_forcing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does this dihedral angle need to be forced? i.e. has defined
 stereochemistry that is not respected</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.phi0">
-<em class="property">property </em><code class="sig-name descname">phi0</code><a class="headerlink" href="#autode.smiles.angles.Dihedral.phi0" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.phi0">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">phi0</span></span><a class="headerlink" href="#autode.smiles.angles.Dihedral.phi0" title="Permalink to this definition">¶</a></dt>
 <dd><p>A non-None ideal angle for this dihedral</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedral.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedral.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedral.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the value of a dihedral defined by some atoms with non-zero
 positions</p>
 <dl class="field-list simple">
@@ -397,52 +409,52 @@ positions</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.angles.Dihedrals">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.angles.</code><code class="sig-name descname">Dihedrals</code><a class="headerlink" href="#autode.smiles.angles.Dihedrals" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.angles.Dihedrals.axes">
-<em class="property">property </em><code class="sig-name descname">axes</code><a class="headerlink" href="#autode.smiles.angles.Dihedrals.axes" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedrals">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.angles.</span></span><span class="sig-name descname"><span class="pre">Dihedrals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.angles.Dihedrals" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedrals.axes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">axes</span></span><a class="headerlink" href="#autode.smiles.angles.Dihedrals.axes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.angles.Dihedrals.origins">
-<em class="property">property </em><code class="sig-name descname">origins</code><a class="headerlink" href="#autode.smiles.angles.Dihedrals.origins" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.angles.Dihedrals.origins">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">origins</span></span><a class="headerlink" href="#autode.smiles.angles.Dihedrals.origins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Origins for the rotation, as the central atom of the trio</p>
 </dd></dl>
 
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="base.html" class="btn btn-neutral float-right" title="SMILES Base" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="atom_types.html" class="btn btn-neutral float-left" title="SMILES Atom Types" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="base.html" class="btn btn-neutral float-right" title="SMILES Base" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="atom_types.html" class="btn btn-neutral float-left" title="SMILES Atom Types" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -450,7 +462,6 @@ positions</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

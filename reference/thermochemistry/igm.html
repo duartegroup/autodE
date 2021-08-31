@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Ideal gas model &mdash; autodE  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Symmetry" href="symmetry.html" />
+    <link rel="prev" title="Thermochemistry" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Thermochemistry</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Ideal gas model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="symmetry.html">Symmetry</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Reference</a> &raquo;</li>
+        
+          <li><a href="index.html">Thermochemistry</a> &raquo;</li>
+        
+      <li>Ideal gas model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/reference/thermochemistry/igm.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autode.thermochemistry.igm">
+<span id="ideal-gas-model"></span><h1>Ideal gas model<a class="headerlink" href="#module-autode.thermochemistry.igm" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.LFMethod">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.igm.</span></span><span class="sig-name descname"><span class="pre">LFMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.igm.LFMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.LFMethod.grimme">
+<span class="sig-name descname"><span class="pre">grimme</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autode.thermochemistry.igm.LFMethod.grimme" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.LFMethod.igm">
+<span class="sig-name descname"><span class="pre">igm</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autode.thermochemistry.igm.LFMethod.igm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.LFMethod.truhlar">
+<span class="sig-name descname"><span class="pre">truhlar</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autode.thermochemistry.igm.LFMethod.truhlar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.SIConstants">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.igm.</span></span><span class="sig-name descname"><span class="pre">SIConstants</span></span><a class="headerlink" href="#autode.thermochemistry.igm.SIConstants" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.SIConstants.c">
+<span class="sig-name descname"><span class="pre">c</span></span><em class="property"> <span class="pre">=</span> <span class="pre">299792458</span></em><a class="headerlink" href="#autode.thermochemistry.igm.SIConstants.c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.SIConstants.h">
+<span class="sig-name descname"><span class="pre">h</span></span><em class="property"> <span class="pre">=</span> <span class="pre">6.62607004e-34</span></em><a class="headerlink" href="#autode.thermochemistry.igm.SIConstants.h" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.SIConstants.k_b">
+<span class="sig-name descname"><span class="pre">k_b</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1.38064852e-23</span></em><a class="headerlink" href="#autode.thermochemistry.igm.SIConstants.k_b" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.thermochemistry.igm.calculate_thermo_cont">
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.igm.</span></span><span class="sig-name descname"><span class="pre">calculate_thermo_cont</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">298.15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.igm.calculate_thermo_cont" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate and set the thermochemical contributions (Enthalpic, Free Energy)
+of a species using a variant of the ideal gas model (RRHO). Appends
+energies to species.energies. Default methods are set in
+autode.config.Config. See references:</p>
+<p>[1] Chem. Eur. J. 2012, 18, 9955
+[2] J. Phys. Chem. B, 2011, 115, 14556</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>temp</strong> (<em>float</em>) – Temperature in K. Default: 298.15 K</p></li>
+<li><p><strong>lfm_method</strong> (<em>str</em><em> | </em><a class="reference internal" href="#autode.thermochemistry.igm.LFMethod" title="autode.thermochemistry.igm.LFMethod"><em>LFMethod</em></a>) – Method used to calculate the molecular
+entropy by treating the low frequency modes.
+One of: {‘igm’, ‘truhlar’, ‘grimme’}.
+Default: Config.lfm_method</p></li>
+<li><p><strong>ss</strong> (<em>str</em>) – Standard state at which the molecular entropy is calculated.
+Should be 1M for a solution phase molecule and 1 atm for
+a molecule in the gas phase. Default: Config.standard_state</p></li>
+<li><p><strong>shift</strong> (<em>float</em><em> | </em><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><em>Frequency</em></a>) – Frequency parameters for Truhlar’s method,
+if float then assumed cm-1 units. Only used
+if method=’truhlar’.
+Default: Config.vib_freq_shift</p></li>
+<li><p><strong>w0</strong> (<em>float</em><em> | </em><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><em>Frequency</em></a>) – ω0 parameter, if float then assumed cm-1 units
+Default: Config.grimme_w0</p></li>
+<li><p><strong>alpha</strong> (<em>int</em><em> | </em><em>float</em>) – α parameter in Grimme’s qRRHO method.
+Default: Config.grimme_w0</p></li>
+<li><p><strong>sn</strong> (<em>int</em>) – The symmetry number, if not present then will default to
+species.sn</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>KeyError</strong><strong> | </strong><strong>ValueError</strong><strong>)</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="symmetry.html" class="btn btn-neutral float-right" title="Symmetry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Thermochemistry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

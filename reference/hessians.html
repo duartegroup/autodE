@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Hessians &mdash; autodE  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Troubleshooting" href="../troubleshooting.html" />
+    <link rel="prev" title="Values" href="values.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conformers/index.html">Conformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes/index.html">PES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reactions/index.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smiles/index.html">SMILES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="calculation.html">Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Hessians</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Reference</a> &raquo;</li>
+        
+      <li>Hessians</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/reference/hessians.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-autode.hessians">
+<span id="hessians"></span><h1>Hessians<a class="headerlink" href="#module-autode.hessians" title="Permalink to this headline">¶</a></h1>
+<p>Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
+for mathematical background</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.hessians.Hessian">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.hessians.</span></span><span class="sig-name descname"><span class="pre">Hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">input_array</span></em>, <em class="sig-param"><span class="pre">units=Unit(Ha</span> <span class="pre">Å^-2)</span></em>, <em class="sig-param"><span class="pre">atoms=None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.hessians.Hessian" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.frequencies">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">frequencies</span></span><a class="headerlink" href="#autode.hessians.Hessian.frequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the normal mode frequencies from the eigenvalues of the
+Hessian matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="values.html#autode.values.Frequency" title="autode.values.Frequency">autode.values.Frequency</a>))</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – Without atoms set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.frequencies_proj">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">frequencies_proj</span></span><a class="headerlink" href="#autode.hessians.Hessian.frequencies_proj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequencies with rotation and translation projected out</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="values.html#autode.values.Frequency" title="autode.values.Frequency">autode.values.Frequency</a>))</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – Without atoms set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.implemented_units">
+<span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"> <span class="pre">=</span> <span class="pre">[Unit(Ha</span> <span class="pre">Å^-2),</span> <span class="pre">Unit(Ha</span> <span class="pre">a0^-2),</span> <span class="pre">Unit(J</span> <span class="pre">m^-2),</span> <span class="pre">Unit(J</span> <span class="pre">ang^-2),</span> <span class="pre">Unit(J</span> <span class="pre">m^-2</span> <span class="pre">kg^-1)]</span></em><a class="headerlink" href="#autode.hessians.Hessian.implemented_units" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.n_tr">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_tr</span></span><a class="headerlink" href="#autode.hessians.Hessian.n_tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>5 for a linear molecule and 6 otherwise (3 rotation, 3 translation)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of translational and rotational normal modes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – Without atoms set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.n_v">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_v</span></span><a class="headerlink" href="#autode.hessians.Hessian.n_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>3N-6 for a non-linear molecule with N atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of vibrational normal modes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – Without atoms set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.normal_modes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">normal_modes</span></span><a class="headerlink" href="#autode.hessians.Hessian.normal_modes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the normal modes as the eigenvectors of the Hessian matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="values.html#autode.values.Coordinates" title="autode.values.Coordinates">autode.values.Coordinates</a>))</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If atoms are not set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.hessians.Hessian.normal_modes_proj">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">normal_modes_proj</span></span><a class="headerlink" href="#autode.hessians.Hessian.normal_modes_proj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normal modes from the projected Hessian without rotation or translation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(<a class="reference internal" href="values.html#autode.values.Coordinates" title="autode.values.Coordinates">autode.values.Coordinates</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="values.html" class="btn btn-neutral float-left" title="Values" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

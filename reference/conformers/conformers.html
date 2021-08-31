@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Conformers &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="PES" href="../pes/index.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -102,6 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -120,6 +127,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -131,6 +140,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -165,11 +175,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -180,7 +192,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/conformers/conformers.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -194,12 +206,93 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.conformers.conformers">
+  <div class="section" id="module-autode.conformers.conformers">
 <span id="conformers"></span><h1>Conformers<a class="headerlink" href="#module-autode.conformers.conformers" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="autode.conformers.conformers.atoms_from_rdkit_mol">
-<code class="sig-prename descclassname">autode.conformers.conformers.</code><code class="sig-name descname">atoms_from_rdkit_mol</code><span class="sig-paren">(</span><em class="sig-param">rdkit_mol_obj</em>, <em class="sig-param">conf_id</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.atoms_from_rdkit_mol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate atoms for conformers in rdkit_mol_obj</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.conformers.conformers.Conformers">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.conformers.conformers.</span></span><span class="sig-name descname"><span class="pre">Conformers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.Conformers" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.conformers.conformers.Conformers.optimise">
+<span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.wrappers.Keywords</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.Conformers.optimise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimise a set of conformers in parallel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>keywords</strong> (<a class="reference internal" href="../wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.conformers.conformers.Conformers.prune">
+<span class="sig-name descname"><span class="pre">prune</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">e_tol:</span> <span class="pre">Union[autode.values.Energy</span></em>, <em class="sig-param"><span class="pre">float]</span> <span class="pre">=</span> <span class="pre">Energy(1.0</span> <span class="pre">kJ</span> <span class="pre">mol-1)</span></em>, <em class="sig-param"><span class="pre">rmsd_tol:</span> <span class="pre">Optional[Union[autode.values.Distance</span></em>, <em class="sig-param"><span class="pre">float]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">n_sigma:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">5</span></em>, <em class="sig-param"><span class="pre">remove_no_energy:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.conformers.conformers.Conformers.prune" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prune conformers based on both energy and root mean squared deviation
+(RMSD) values. Will discard any conformers that are within e_tol in
+energy (Ha) and rmsd in RMSD (Å) to any other</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e_tol</strong> (<a class="reference internal" href="../values.html#autode.values.Energy" title="autode.values.Energy"><em>Energy</em></a>) – Energy tolerance</p></li>
+<li><p><strong>rmsd_tol</strong> (<a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><em>Distance</em></a><em> | </em><em>None</em>) – RMSD tolerance</p></li>
+<li><p><strong>n_sigma</strong> (<em>float</em><em> | </em><em>int</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.conformers.conformers.Conformers.prune_on_energy">
+<span class="sig-name descname"><span class="pre">prune_on_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">e_tol:</span> <span class="pre">Union[autode.values.Energy</span></em>, <em class="sig-param"><span class="pre">float]</span> <span class="pre">=</span> <span class="pre">Energy(1.0</span> <span class="pre">kJ</span> <span class="pre">mol-1)</span></em>, <em class="sig-param"><span class="pre">n_sigma:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">5</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.conformers.conformers.Conformers.prune_on_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prune the conformers based on an energy threshold, discarding those
+that have energies that are similar to within e_tol. Also discards
+conformers with very high energies (indicating a problem
+with the calculation) if the are more than n_sigma standard deviations
+away from the mean</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e_tol</strong> (<a class="reference internal" href="../values.html#autode.values.Energy" title="autode.values.Energy"><em>autode.values.Energy</em></a><em> | </em><em>float</em><em> | </em><em>None</em>) – </p></li>
+<li><p><strong>n_sigma</strong> (<em>int</em>) – Number of standard deviations a conformer energy
+must be from the average for it not to be added</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.conformers.conformers.Conformers.prune_on_rmsd">
+<span class="sig-name descname"><span class="pre">prune_on_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rmsd_tol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">autode.values.Distance</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.conformers.conformers.Conformers.prune_on_rmsd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of conformers add those that are unique based on an RMSD
+tolerance. If rmsd=None then use autode.Config.rmsd_threshold</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rmsd_tol</strong> (<a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><em>autode.values.Distance</em></a><em> | </em><em>float</em><em> | </em><em>None</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.conformers.conformers.Conformers.single_point">
+<span class="sig-name descname"><span class="pre">single_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.wrappers.Keywords</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.Conformers.single_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate single point energies for a set of conformers in parallel</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>keywords</strong> (<a class="reference internal" href="../wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conformers.atoms_from_rdkit_mol">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conformers.</span></span><span class="sig-name descname"><span class="pre">atoms_from_rdkit_mol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rdkit_mol_obj</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">rdkit.Chem.rdchem.Mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.atoms_from_rdkit_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate atoms for a conformer contained within an RDKit molecule object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -216,83 +309,36 @@
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conformers.conf_is_unique_rmsd">
-<code class="sig-prename descclassname">autode.conformers.conformers.</code><code class="sig-name descname">conf_is_unique_rmsd</code><span class="sig-paren">(</span><em class="sig-param">conf</em>, <em class="sig-param">conf_list</em>, <em class="sig-param">rmsd_tol=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.conf_is_unique_rmsd" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine if a conformer is unique based on an root mean squared
-displacement RMSD threshold based on heavy atoms</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>conf</strong> (<em>autode.conformer.Conformer</em>) – </p></li>
-<li><p><strong>conf_list</strong> (<em>list</em><em>(</em><em>(</em><em>list</em><em>(</em><em>autode.conformer.Conformer</em><em>)</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>rmsd_tol</strong> (<em>float</em>) – Tolerance for an equivalent structure based on the
-rmsd in Å. If None then use the default value for
-autode.Config.rmsd_threshold</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(bool)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.conformers.conformers.get_unique_confs">
-<code class="sig-prename descclassname">autode.conformers.conformers.</code><code class="sig-name descname">get_unique_confs</code><span class="sig-paren">(</span><em class="sig-param">conformers</em>, <em class="sig-param">energy_threshold_kj=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conformers.get_unique_confs" title="Permalink to this definition">¶</a></dt>
-<dd><p>For a list of conformers return those that are unique based on an energy
-threshold in kJ mol^-1</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>conformers</strong> (<em>list</em><em>(</em><em>autode.conformer.Conformer</em><em>)</em>) – </p></li>
-<li><p><strong>energy_threshold_kj</strong> (<em>float</em>) – Energy threshold in kJ mol-1</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of conformers</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(autode.conformers.conformers.Conformer))</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../pes/index.html" class="btn btn-neutral float-right" title="PES" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="conformer.html" class="btn btn-neutral float-left" title="Conformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="../pes/index.html" class="btn btn-neutral float-right" title="PES" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="conformer.html" class="btn btn-neutral float-left" title="Conformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -300,7 +346,6 @@ threshold in kJ mol^-1</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

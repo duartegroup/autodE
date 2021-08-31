@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Exceptions &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Geometry" href="geom.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/exceptions.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,201 +199,199 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.exceptions">
+  <div class="section" id="module-autode.exceptions">
 <span id="exceptions"></span><h1>Exceptions<a class="headerlink" href="#module-autode.exceptions" title="Permalink to this headline">¶</a></h1>
-<dl class="exception">
-<dt id="autode.exceptions.AtomsNotFound">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">AtomsNotFound</code><a class="headerlink" href="#autode.exceptions.AtomsNotFound" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.AtomsNotFound">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">AtomsNotFound</span></span><a class="headerlink" href="#autode.exceptions.AtomsNotFound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="exception">
-<dt id="autode.exceptions.BondsInSMILESAndGraphDontMatch">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">BondsInSMILESAndGraphDontMatch</code><a class="headerlink" href="#autode.exceptions.BondsInSMILESAndGraphDontMatch" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.BondsInSMILESAndGraphDontMatch">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">BondsInSMILESAndGraphDontMatch</span></span><a class="headerlink" href="#autode.exceptions.BondsInSMILESAndGraphDontMatch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="exception">
-<dt id="autode.exceptions.CalculationException">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CalculationException</code><a class="headerlink" href="#autode.exceptions.CalculationException" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.CalculationException">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">CalculationException</span></span><a class="headerlink" href="#autode.exceptions.CalculationException" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="exception">
-<dt id="autode.exceptions.CannotSplitAcrossBond">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CannotSplitAcrossBond</code><a class="headerlink" href="#autode.exceptions.CannotSplitAcrossBond" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.CannotSplitAcrossBond">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">CannotSplitAcrossBond</span></span><a class="headerlink" href="#autode.exceptions.CannotSplitAcrossBond" title="Permalink to this definition">¶</a></dt>
 <dd><p>A molecule cannot be partitioned by deleting one bond</p>
 </dd></dl>
 
-<dl class="exception">
-<dt id="autode.exceptions.CouldNotGetProperty">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CouldNotGetProperty</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.CouldNotGetProperty" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.exceptions.CouldNotGetProperty.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.CouldNotGetProperty.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.CouldNotPlotSmoothProfile">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">CouldNotPlotSmoothProfile</code><a class="headerlink" href="#autode.exceptions.CouldNotPlotSmoothProfile" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.CouldNotGetProperty">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">CouldNotGetProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.CouldNotGetProperty" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.exceptions.CouldNotGetProperty.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.CouldNotGetProperty.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.FailedToAdjustAngles">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">FailedToAdjustAngles</code><a class="headerlink" href="#autode.exceptions.FailedToAdjustAngles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.FailedToSetRotationIdxs">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">FailedToSetRotationIdxs</code><a class="headerlink" href="#autode.exceptions.FailedToSetRotationIdxs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.FitFailed">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">FitFailed</code><a class="headerlink" href="#autode.exceptions.FitFailed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.InvalidSmilesString">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">InvalidSmilesString</code><a class="headerlink" href="#autode.exceptions.InvalidSmilesString" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.MethodUnavailable">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">MethodUnavailable</code><a class="headerlink" href="#autode.exceptions.MethodUnavailable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoAtomsInMolecule">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoAtomsInMolecule</code><a class="headerlink" href="#autode.exceptions.NoAtomsInMolecule" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoCalculationOutput">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoCalculationOutput</code><a class="headerlink" href="#autode.exceptions.NoCalculationOutput" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoClosestSpecies">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoClosestSpecies</code><a class="headerlink" href="#autode.exceptions.NoClosestSpecies" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoConformers">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoConformers</code><a class="headerlink" href="#autode.exceptions.NoConformers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoInputError">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoInputError</code><a class="headerlink" href="#autode.exceptions.NoInputError" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoMapping">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoMapping</code><a class="headerlink" href="#autode.exceptions.NoMapping" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoMolecularGraph">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoMolecularGraph</code><a class="headerlink" href="#autode.exceptions.NoMolecularGraph" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.NoNormalModesFound">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">NoNormalModesFound</code><a class="headerlink" href="#autode.exceptions.NoNormalModesFound" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.RDKitFailed">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">RDKitFailed</code><a class="headerlink" href="#autode.exceptions.RDKitFailed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.ReactionFormationFalied">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">ReactionFormationFalied</code><a class="headerlink" href="#autode.exceptions.ReactionFormationFalied" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.SMILESBuildFailed">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SMILESBuildFailed</code><a class="headerlink" href="#autode.exceptions.SMILESBuildFailed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.SolventNotFound">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SolventNotFound</code><a class="headerlink" href="#autode.exceptions.SolventNotFound" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.SolventUnavailable">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SolventUnavailable</code><a class="headerlink" href="#autode.exceptions.SolventUnavailable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.SolventsDontMatch">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">SolventsDontMatch</code><a class="headerlink" href="#autode.exceptions.SolventsDontMatch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.TemplateLoadingFailed">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">TemplateLoadingFailed</code><a class="headerlink" href="#autode.exceptions.TemplateLoadingFailed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.UnbalancedReaction">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">UnbalancedReaction</code><a class="headerlink" href="#autode.exceptions.UnbalancedReaction" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="exception">
-<dt id="autode.exceptions.UnsuppportedCalculationInput">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">UnsuppportedCalculationInput</code><span class="sig-paren">(</span><em class="sig-param">message='Parameters not supported'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.UnsuppportedCalculationInput" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.exceptions.UnsuppportedCalculationInput.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">message='Parameters not supported'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.UnsuppportedCalculationInput.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
 
 </dd></dl>
 
-<dl class="exception">
-<dt id="autode.exceptions.XYZfileDidNotExist">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">XYZfileDidNotExist</code><a class="headerlink" href="#autode.exceptions.XYZfileDidNotExist" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.CouldNotPlotSmoothProfile">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">CouldNotPlotSmoothProfile</span></span><a class="headerlink" href="#autode.exceptions.CouldNotPlotSmoothProfile" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="exception">
-<dt id="autode.exceptions.XYZfileWrongFormat">
-<em class="property">exception </em><code class="sig-prename descclassname">autode.exceptions.</code><code class="sig-name descname">XYZfileWrongFormat</code><a class="headerlink" href="#autode.exceptions.XYZfileWrongFormat" title="Permalink to this definition">¶</a></dt>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.FailedToAdjustAngles">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">FailedToAdjustAngles</span></span><a class="headerlink" href="#autode.exceptions.FailedToAdjustAngles" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</section>
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.FailedToSetRotationIdxs">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">FailedToSetRotationIdxs</span></span><a class="headerlink" href="#autode.exceptions.FailedToSetRotationIdxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.FitFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">FitFailed</span></span><a class="headerlink" href="#autode.exceptions.FitFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.InvalidSmilesString">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">InvalidSmilesString</span></span><a class="headerlink" href="#autode.exceptions.InvalidSmilesString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.MethodUnavailable">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">MethodUnavailable</span></span><a class="headerlink" href="#autode.exceptions.MethodUnavailable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoAtomsInMolecule">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoAtomsInMolecule</span></span><a class="headerlink" href="#autode.exceptions.NoAtomsInMolecule" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoCalculationOutput">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoCalculationOutput</span></span><a class="headerlink" href="#autode.exceptions.NoCalculationOutput" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoClosestSpecies">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoClosestSpecies</span></span><a class="headerlink" href="#autode.exceptions.NoClosestSpecies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoConformers">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoConformers</span></span><a class="headerlink" href="#autode.exceptions.NoConformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoInputError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoInputError</span></span><a class="headerlink" href="#autode.exceptions.NoInputError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoMapping">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoMapping</span></span><a class="headerlink" href="#autode.exceptions.NoMapping" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoMolecularGraph">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoMolecularGraph</span></span><a class="headerlink" href="#autode.exceptions.NoMolecularGraph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.NoNormalModesFound">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoNormalModesFound</span></span><a class="headerlink" href="#autode.exceptions.NoNormalModesFound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.RDKitFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">RDKitFailed</span></span><a class="headerlink" href="#autode.exceptions.RDKitFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.ReactionFormationFalied">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">ReactionFormationFalied</span></span><a class="headerlink" href="#autode.exceptions.ReactionFormationFalied" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.SMILESBuildFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">SMILESBuildFailed</span></span><a class="headerlink" href="#autode.exceptions.SMILESBuildFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.SolventNotFound">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">SolventNotFound</span></span><a class="headerlink" href="#autode.exceptions.SolventNotFound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.SolventUnavailable">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">SolventUnavailable</span></span><a class="headerlink" href="#autode.exceptions.SolventUnavailable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.SolventsDontMatch">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">SolventsDontMatch</span></span><a class="headerlink" href="#autode.exceptions.SolventsDontMatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.TemplateLoadingFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">TemplateLoadingFailed</span></span><a class="headerlink" href="#autode.exceptions.TemplateLoadingFailed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.UnbalancedReaction">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">UnbalancedReaction</span></span><a class="headerlink" href="#autode.exceptions.UnbalancedReaction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.UnsuppportedCalculationInput">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">UnsuppportedCalculationInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Parameters</span> <span class="pre">not</span> <span class="pre">supported'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.UnsuppportedCalculationInput" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.exceptions.UnsuppportedCalculationInput.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Parameters</span> <span class="pre">not</span> <span class="pre">supported'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.exceptions.UnsuppportedCalculationInput.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.XYZfileDidNotExist">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">XYZfileDidNotExist</span></span><a class="headerlink" href="#autode.exceptions.XYZfileDidNotExist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="autode.exceptions.XYZfileWrongFormat">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">autode.exceptions.</span></span><span class="sig-name descname"><span class="pre">XYZfileWrongFormat</span></span><a class="headerlink" href="#autode.exceptions.XYZfileWrongFormat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="geom.html" class="btn btn-neutral float-right" title="Geometry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="constants.html" class="btn btn-neutral float-left" title="Constants" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="geom.html" class="btn btn-neutral float-right" title="Geometry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="constants.html" class="btn btn-neutral float-left" title="Constants" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -389,7 +399,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

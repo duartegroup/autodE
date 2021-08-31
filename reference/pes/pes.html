@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>PES &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="PES 1D" href="pes_1d.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -104,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -122,6 +129,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -133,6 +142,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -167,11 +177,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -182,7 +194,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/pes/pes.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -196,49 +208,49 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.pes.pes">
+  <div class="section" id="module-autode.pes.pes">
 <span id="pes"></span><h1>PES<a class="headerlink" href="#module-autode.pes.pes" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.pes.pes.PES">
-<em class="property">class </em><code class="sig-prename descclassname">autode.pes.pes.</code><code class="sig-name descname">PES</code><a class="headerlink" href="#autode.pes.pes.PES" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.pes.pes.PES.calculate">
-<em class="property">abstract </em><code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.calculate" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.pes.pes.PES">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.pes.pes.</span></span><span class="sig-name descname"><span class="pre">PES</span></span><a class="headerlink" href="#autode.pes.pes.PES" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes.PES.calculate">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate all energies and optimised geometries on the surface</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.pes.pes.PES.get_species_saddle_point">
-<em class="property">abstract </em><code class="sig-name descname">get_species_saddle_point</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes.PES.get_species_saddle_point">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">get_species_saddle_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the autode.species.Species at the saddle point</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.pes.pes.PES.products_made">
-<em class="property">abstract </em><code class="sig-name descname">products_made</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.products_made" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes.PES.products_made">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">products_made</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.products_made" title="Permalink to this definition">¶</a></dt>
 <dd><p>Have the products been made somewhere on the surface?</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="autode.pes.pes.PES.rs">
-<code class="sig-name descname">rs</code><em class="property"> = None</em><a class="headerlink" href="#autode.pes.pes.PES.rs" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.pes.pes.PES.rs">
+<span class="sig-name descname"><span class="pre">rs</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.pes.pes.PES.rs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.pes.pes.PES.rs_idxs">
-<code class="sig-name descname">rs_idxs</code><em class="property"> = None</em><a class="headerlink" href="#autode.pes.pes.PES.rs_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.pes.pes.PES.rs_idxs">
+<span class="sig-name descname"><span class="pre">rs_idxs</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.pes.pes.PES.rs_idxs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.pes.pes.PES.species">
-<code class="sig-name descname">species</code><em class="property"> = None</em><a class="headerlink" href="#autode.pes.pes.PES.species" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.pes.pes.PES.species">
+<span class="sig-name descname"><span class="pre">species</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.pes.pes.PES.species" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.pes.pes.get_closest_species">
-<code class="sig-prename descclassname">autode.pes.pes.</code><code class="sig-name descname">get_closest_species</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">pes</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.get_closest_species" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.pes.pes.get_closest_species">
+<span class="sig-prename descclassname"><span class="pre">autode.pes.pes.</span></span><span class="sig-name descname"><span class="pre">get_closest_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.get_closest_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a point on an n-dimensional potential energy surface defined by
 indices where the length is the dimension of the surface</p>
 <dl class="field-list simple">
@@ -257,10 +269,10 @@ indices where the length is the dimension of the surface</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.pes.pes.get_point_species">
-<code class="sig-prename descclassname">autode.pes.pes.</code><code class="sig-name descname">get_point_species</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">species</em>, <em class="sig-param">distance_constraints</em>, <em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em>, <em class="sig-param">n_cores</em>, <em class="sig-param">energy_threshold=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.get_point_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>On a 2d PES calculate the energy and the structure using a constrained
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.pes.pes.get_point_species">
+<span class="sig-prename descclassname"><span class="pre">autode.pes.pes.</span></span><span class="sig-name descname"><span class="pre">get_point_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.get_point_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>On a PES calculate the energy and the structure using a constrained
 optimisation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -289,36 +301,36 @@ will be disregarded</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="pes_1d.html" class="btn btn-neutral float-right" title="PES 1D" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="min_energy_pathway.html" class="btn btn-neutral float-left" title="Min Energy Pathway" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="pes_1d.html" class="btn btn-neutral float-right" title="PES 1D" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="min_energy_pathway.html" class="btn btn-neutral float-left" title="Min Energy Pathway" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -326,7 +338,6 @@ will be disregarded</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

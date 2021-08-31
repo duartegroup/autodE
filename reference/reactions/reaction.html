@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Reaction &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Reaction Types" href="reaction_types.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -102,6 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -120,6 +127,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -131,6 +140,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -165,11 +175,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -180,7 +192,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/reactions/reaction.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -194,28 +206,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.reactions.reaction">
+  <div class="section" id="module-autode.reactions.reaction">
 <span id="reaction"></span><h1>Reaction<a class="headerlink" href="#module-autode.reactions.reaction" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.reactions.reaction.Reaction">
-<em class="property">class </em><code class="sig-prename descclassname">autode.reactions.reaction.</code><code class="sig-name descname">Reaction</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='reaction'</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">temp=298.15</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.reactions.reaction.Reaction.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">name='reaction'</em>, <em class="sig-param">solvent_name=None</em>, <em class="sig-param">smiles=None</em>, <em class="sig-param">temp=298.15</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.reactions.reaction.</span></span><span class="sig-name descname"><span class="pre">Reaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reaction'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">298.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reaction'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">298.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reaction containing reactants and products. reaction.reactant is the
 reactant complex which is the same as reacs[0] if there is only
 reactant</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>args</strong> – Reactant and Product
-objects or a SMILES string of the whole reaction</p>
+<dd class="field-odd"><p><strong>args</strong> – <dl class="simple">
+<dt>Reactant and Product objects or a SMILES string of the whole</dt><dd><p>reaction</p>
+</dd>
+</dl>
+</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calc_delta_e">
-<code class="sig-name descname">calc_delta_e</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_e" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calc_delta_e">
+<span class="sig-name descname"><span class="pre">calc_delta_e</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_e" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the ∆Er of a reaction defined as
 ∆E = E(products) - E(reactants)</p>
 <dl class="field-list simple">
@@ -228,9 +243,9 @@ objects or a SMILES string of the whole reaction</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calc_delta_e_ddagger">
-<code class="sig-name descname">calc_delta_e_ddagger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_e_ddagger" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calc_delta_e_ddagger">
+<span class="sig-name descname"><span class="pre">calc_delta_e_ddagger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_e_ddagger" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Calculate the ∆E‡ of a reaction defined as</dt><dd><p>∆E = E(ts) - E(reactants)</p>
 </dd>
@@ -245,9 +260,9 @@ objects or a SMILES string of the whole reaction</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calc_delta_g">
-<code class="sig-name descname">calc_delta_g</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_g" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calc_delta_g">
+<span class="sig-name descname"><span class="pre">calc_delta_g</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_g" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate ∆G_r = G(products) - G(reactants)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -259,15 +274,15 @@ objects or a SMILES string of the whole reaction</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calc_delta_g_ddagger">
-<code class="sig-name descname">calc_delta_g_ddagger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_g_ddagger" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calc_delta_g_ddagger">
+<span class="sig-name descname"><span class="pre">calc_delta_g_ddagger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_g_ddagger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate ∆G‡ in Hartrees</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calc_delta_h">
-<code class="sig-name descname">calc_delta_h</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_h" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calc_delta_h">
+<span class="sig-name descname"><span class="pre">calc_delta_h</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate ∆H_r = H(products) - H(reactants)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -279,22 +294,22 @@ objects or a SMILES string of the whole reaction</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calc_delta_h_ddagger">
-<code class="sig-name descname">calc_delta_h_ddagger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_h_ddagger" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calc_delta_h_ddagger">
+<span class="sig-name descname"><span class="pre">calc_delta_h_ddagger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calc_delta_h_ddagger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate ∆H‡ in Hartrees</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calculate_complexes">
-<code class="sig-name descname">calculate_complexes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_complexes" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calculate_complexes">
+<span class="sig-name descname"><span class="pre">calculate_complexes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_complexes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the lowest energy conformers of reactant and product complexes
 using optimisation and single points</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calculate_reaction_profile">
-<code class="sig-name descname">calculate_reaction_profile</code><span class="sig-paren">(</span><em class="sig-param">units=&lt;class 'autode.units.KcalMol'&gt;</em>, <em class="sig-param">with_complexes=False</em>, <em class="sig-param">free_energy=False</em>, <em class="sig-param">enthalpy=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_reaction_profile" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calculate_reaction_profile">
+<span class="sig-name descname"><span class="pre">calculate_reaction_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">units=Unit(kcal</span> <span class="pre">mol-1)</span></em>, <em class="sig-param"><span class="pre">with_complexes=False</span></em>, <em class="sig-param"><span class="pre">free_energy=False</span></em>, <em class="sig-param"><span class="pre">enthalpy=False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_reaction_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate and plot a reaction profile for this reaction in some units</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
@@ -309,16 +324,16 @@ of the reactant and product complexes</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calculate_single_points">
-<code class="sig-name descname">calculate_single_points</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_single_points" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calculate_single_points">
+<span class="sig-name descname"><span class="pre">calculate_single_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_single_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a single point energy evaluations on all the reactants and
 products using the hmethod</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.calculate_thermochemical_cont">
-<code class="sig-name descname">calculate_thermochemical_cont</code><span class="sig-paren">(</span><em class="sig-param">free_energy=True</em>, <em class="sig-param">enthalpy=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_thermochemical_cont" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.calculate_thermochemical_cont">
+<span class="sig-name descname"><span class="pre">calculate_thermochemical_cont</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">free_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enthalpy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.calculate_thermochemical_cont" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate thermochemical contributions to the energies</p>
 <dl class="simple">
 <dt>Keyword Arguments</dt><dd><p>free_energy (bool):
@@ -327,55 +342,78 @@ enthalpy (bool):</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.find_complexes">
-<code class="sig-name descname">find_complexes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_complexes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.find_lowest_energy_conformers">
-<code class="sig-name descname">find_lowest_energy_conformers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_lowest_energy_conformers" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.find_lowest_energy_conformers">
+<span class="sig-name descname"><span class="pre">find_lowest_energy_conformers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_lowest_energy_conformers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Try and locate the lowest energy conformation using simulated
 annealing, then optimise them with xtb, then optimise the unique
 (defined by an energy cut-off) conformers with an electronic structure
 method</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.find_lowest_energy_ts">
-<code class="sig-name descname">find_lowest_energy_ts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_lowest_energy_ts" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.find_lowest_energy_ts">
+<span class="sig-name descname"><span class="pre">find_lowest_energy_ts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_lowest_energy_ts" title="Permalink to this definition">¶</a></dt>
 <dd><p>From all the transition state objects in Reaction.pes1d choose the
 lowest energy if there is more than one otherwise return the single
 transtion state or None if there no TS objects.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.find_lowest_energy_ts_conformer">
-<code class="sig-name descname">find_lowest_energy_ts_conformer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_lowest_energy_ts_conformer" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.find_lowest_energy_ts_conformer">
+<span class="sig-name descname"><span class="pre">find_lowest_energy_ts_conformer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.find_lowest_energy_ts_conformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the lowest energy conformer of the transition state</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.locate_transition_state">
-<code class="sig-name descname">locate_transition_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.locate_transition_state" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.locate_transition_state">
+<span class="sig-name descname"><span class="pre">locate_transition_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.locate_transition_state" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.optimise_reacs_prods">
-<code class="sig-name descname">optimise_reacs_prods</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.optimise_reacs_prods" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.optimise_reacs_prods">
+<span class="sig-name descname"><span class="pre">optimise_reacs_prods</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.optimise_reacs_prods" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a geometry optimisation on all the reactants and products
 using the method</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.print_output">
-<code class="sig-name descname">print_output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.print_output" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.print_output">
+<span class="sig-name descname"><span class="pre">print_output</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.print_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print the final optimised structures along with the methods used</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.reactions.reaction.Reaction.switch_reactants_products">
-<code class="sig-name descname">switch_reactants_products</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.switch_reactants_products" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.product">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">product</span></span><em class="property"><span class="pre">:</span> <span class="pre">autode.species.complex.ProductComplex</span></em><a class="headerlink" href="#autode.reactions.reaction.Reaction.product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product complex comprising all the products in this reaction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Product complex</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(autode.species.ProductComplex)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.reactant">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">reactant</span></span><em class="property"><span class="pre">:</span> <span class="pre">autode.species.complex.ReactantComplex</span></em><a class="headerlink" href="#autode.reactions.reaction.Reaction.reactant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reactant complex comprising all the reactants in this reaction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Reactant complex</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(autode.species.ReactantComplex)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.reactions.reaction.Reaction.switch_reactants_products">
+<span class="sig-name descname"><span class="pre">switch_reactants_products</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.Reaction.switch_reactants_products" title="Permalink to this definition">¶</a></dt>
 <dd><p>Addition reactions are hard to find the TSs for, so swap reactants
 and products and classify as dissociation. Likewise for reactions wher
 the change in the number of bonds is negative</p>
@@ -383,48 +421,48 @@ the change in the number of bonds is negative</p>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.reactions.reaction.calc_delta">
-<code class="sig-prename descclassname">autode.reactions.reaction.</code><code class="sig-name descname">calc_delta</code><span class="sig-paren">(</span><em class="sig-param">attr</em>, <em class="sig-param">left</em>, <em class="sig-param">right</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.calc_delta" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.reactions.reaction.calc_delta">
+<span class="sig-prename descclassname"><span class="pre">autode.reactions.reaction.</span></span><span class="sig-name descname"><span class="pre">calc_delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.calc_delta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the difference (∆) for a molecular attribute for some L → R</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.reactions.reaction.calc_delta_with_cont">
-<code class="sig-prename descclassname">autode.reactions.reaction.</code><code class="sig-name descname">calc_delta_with_cont</code><span class="sig-paren">(</span><em class="sig-param">left</em>, <em class="sig-param">right</em>, <em class="sig-param">cont</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.calc_delta_with_cont" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.reactions.reaction.calc_delta_with_cont">
+<span class="sig-prename descclassname"><span class="pre">autode.reactions.reaction.</span></span><span class="sig-name descname"><span class="pre">calc_delta_with_cont</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cont</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.reactions.reaction.calc_delta_with_cont" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate a ∆H or ∆G by adding a contribution to ∆E</p>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reaction_types.html" class="btn btn-neutral float-right" title="Reaction Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="multistep.html" class="btn btn-neutral float-left" title="Multistep Reaction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="reaction_types.html" class="btn btn-neutral float-right" title="Reaction Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="multistep.html" class="btn btn-neutral float-left" title="Multistep Reaction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -432,7 +470,6 @@ the change in the number of bonds is negative</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

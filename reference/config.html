@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Configuration &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Constants" href="constants.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/config.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,303 +199,333 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.config">
+  <div class="section" id="module-autode.config">
 <span id="configuration"></span><h1>Configuration<a class="headerlink" href="#module-autode.config" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.config.Config">
-<em class="property">class </em><code class="sig-prename descclassname">autode.config.</code><code class="sig-name descname">Config</code><a class="headerlink" href="#autode.config.Config" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="class">
-<dt id="autode.config.Config.G09">
-<em class="property">class </em><code class="sig-name descname">G09</code><a class="headerlink" href="#autode.config.Config.G09" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.config.Config.G09.grid">
-<code class="sig-name descname">grid</code><em class="property"> = 'integral=ultrafinegrid'</em><a class="headerlink" href="#autode.config.Config.G09.grid" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><a class="headerlink" href="#autode.config.Config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config.G09">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">G09</span></span><a class="headerlink" href="#autode.config.Config.G09" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G09.grid">
+<span class="sig-name descname"><span class="pre">grid</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'integral=ultrafinegrid'</span></em><a class="headerlink" href="#autode.config.Config.G09.grid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.G09.implicit_solvation_type">
-<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = smd</em><a class="headerlink" href="#autode.config.Config.G09.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G09.implicit_solvation_type">
+<span class="sig-name descname"><span class="pre">implicit_solvation_type</span></span><em class="property"> <span class="pre">=</span> <span class="pre">smd</span></em><a class="headerlink" href="#autode.config.Config.G09.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.G09.keywords">
-<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.G09.keywords" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G09.keywords">
+<span class="sig-name descname"><span class="pre">keywords</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;autode.wrappers.keywords.KeywordsSet</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#autode.config.Config.G09.keywords" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.G09.path">
-<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.G09.path" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G09.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.G09.path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.G09.ts_str">
-<code class="sig-name descname">ts_str</code><em class="property"> = 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)'</em><a class="headerlink" href="#autode.config.Config.G09.ts_str" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="autode.config.Config.G16">
-<em class="property">class </em><code class="sig-name descname">G16</code><a class="headerlink" href="#autode.config.Config.G16" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.config.Config.G16.implicit_solvation_type">
-<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = smd</em><a class="headerlink" href="#autode.config.Config.G16.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.G16.keywords">
-<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.G16.keywords" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.G16.path">
-<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.G16.path" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.G16.ts_str">
-<code class="sig-name descname">ts_str</code><em class="property"> = 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, RecalcFC=30)'</em><a class="headerlink" href="#autode.config.Config.G16.ts_str" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G09.ts_str">
+<span class="sig-name descname"><span class="pre">ts_str</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'Opt=(TS,</span> <span class="pre">CalcFC,</span> <span class="pre">NoEigenTest,</span> <span class="pre">MaxCycles=100,</span> <span class="pre">MaxStep=10,</span> <span class="pre">NoTrustUpdate)'</span></em><a class="headerlink" href="#autode.config.Config.G09.ts_str" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.config.Config.MOPAC">
-<em class="property">class </em><code class="sig-name descname">MOPAC</code><a class="headerlink" href="#autode.config.Config.MOPAC" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.config.Config.MOPAC.implicit_solvation_type">
-<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = cosmo</em><a class="headerlink" href="#autode.config.Config.MOPAC.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config.G16">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">G16</span></span><a class="headerlink" href="#autode.config.Config.G16" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G16.implicit_solvation_type">
+<span class="sig-name descname"><span class="pre">implicit_solvation_type</span></span><em class="property"> <span class="pre">=</span> <span class="pre">smd</span></em><a class="headerlink" href="#autode.config.Config.G16.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.MOPAC.keywords">
-<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.MOPAC.keywords" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G16.keywords">
+<span class="sig-name descname"><span class="pre">keywords</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;autode.wrappers.keywords.KeywordsSet</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#autode.config.Config.G16.keywords" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.MOPAC.path">
-<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.MOPAC.path" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G16.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.G16.path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="autode.config.Config.NWChem">
-<em class="property">class </em><code class="sig-name descname">NWChem</code><a class="headerlink" href="#autode.config.Config.NWChem" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.config.Config.NWChem.implicit_solvation_type">
-<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = smd</em><a class="headerlink" href="#autode.config.Config.NWChem.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.NWChem.keywords">
-<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.NWChem.keywords" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.NWChem.loose_opt_block">
-<code class="sig-name descname">loose_opt_block</code><em class="property"> = 'driver\n  gmax 0.002\n  grms 0.0005\n  xmax 0.01\n  xrms 0.007\n  eprec 0.00003\n  maxiter 50\nend'</em><a class="headerlink" href="#autode.config.Config.NWChem.loose_opt_block" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.NWChem.opt_block">
-<code class="sig-name descname">opt_block</code><em class="property"> = 'driver\n  gmax 0.0003\n  grms 0.0001\n  xmax 0.004\n  xrms 0.002\n  eprec 0.000005\n  maxiter 100\nend'</em><a class="headerlink" href="#autode.config.Config.NWChem.opt_block" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.NWChem.path">
-<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.NWChem.path" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.G16.ts_str">
+<span class="sig-name descname"><span class="pre">ts_str</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'Opt=(TS,</span> <span class="pre">CalcFC,</span> <span class="pre">NoEigenTest,</span> <span class="pre">MaxCycles=100,</span> <span class="pre">MaxStep=10,</span> <span class="pre">NoTrustUpdate,</span> <span class="pre">RecalcFC=30)'</span></em><a class="headerlink" href="#autode.config.Config.G16.ts_str" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.config.Config.ORCA">
-<em class="property">class </em><code class="sig-name descname">ORCA</code><a class="headerlink" href="#autode.config.Config.ORCA" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.config.Config.ORCA.implicit_solvation_type">
-<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = cpcm</em><a class="headerlink" href="#autode.config.Config.ORCA.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config.MOPAC">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">MOPAC</span></span><a class="headerlink" href="#autode.config.Config.MOPAC" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.MOPAC.implicit_solvation_type">
+<span class="sig-name descname"><span class="pre">implicit_solvation_type</span></span><em class="property"> <span class="pre">=</span> <span class="pre">cosmo</span></em><a class="headerlink" href="#autode.config.Config.MOPAC.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.ORCA.keywords">
-<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.ORCA.keywords" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.MOPAC.keywords">
+<span class="sig-name descname"><span class="pre">keywords</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;autode.wrappers.keywords.KeywordsSet</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#autode.config.Config.MOPAC.keywords" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.ORCA.path">
-<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.ORCA.path" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="autode.config.Config.XTB">
-<em class="property">class </em><code class="sig-name descname">XTB</code><a class="headerlink" href="#autode.config.Config.XTB" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.config.Config.XTB.implicit_solvation_type">
-<code class="sig-name descname">implicit_solvation_type</code><em class="property"> = gbsa</em><a class="headerlink" href="#autode.config.Config.XTB.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.XTB.keywords">
-<code class="sig-name descname">keywords</code><em class="property"> = &lt;autode.wrappers.keywords.KeywordsSet object&gt;</em><a class="headerlink" href="#autode.config.Config.XTB.keywords" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.XTB.path">
-<code class="sig-name descname">path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.XTB.path" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.MOPAC.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.MOPAC.path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.adaptive_neb_k">
-<code class="sig-name descname">adaptive_neb_k</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.adaptive_neb_k" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config.NWChem">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">NWChem</span></span><a class="headerlink" href="#autode.config.Config.NWChem" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.NWChem.implicit_solvation_type">
+<span class="sig-name descname"><span class="pre">implicit_solvation_type</span></span><em class="property"> <span class="pre">=</span> <span class="pre">smd</span></em><a class="headerlink" href="#autode.config.Config.NWChem.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.hcode">
-<code class="sig-name descname">hcode</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.hcode" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.NWChem.keywords">
+<span class="sig-name descname"><span class="pre">keywords</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;autode.wrappers.keywords.KeywordsSet</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#autode.config.Config.NWChem.keywords" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.high_quality_plots">
-<code class="sig-name descname">high_quality_plots</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.high_quality_plots" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.NWChem.loose_opt_block">
+<span class="sig-name descname"><span class="pre">loose_opt_block</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'driver\n</span>&#160; <span class="pre">gmax</span> <span class="pre">0.002\n</span>&#160; <span class="pre">grms</span> <span class="pre">0.0005\n</span>&#160; <span class="pre">xmax</span> <span class="pre">0.01\n</span>&#160; <span class="pre">xrms</span> <span class="pre">0.007\n</span>&#160; <span class="pre">eprec</span> <span class="pre">0.00003\nend'</span></em><a class="headerlink" href="#autode.config.Config.NWChem.loose_opt_block" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.hmethod_conformers">
-<code class="sig-name descname">hmethod_conformers</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.hmethod_conformers" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.NWChem.opt_block">
+<span class="sig-name descname"><span class="pre">opt_block</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'driver\n</span>&#160; <span class="pre">gmax</span> <span class="pre">0.0003\n</span>&#160; <span class="pre">grms</span> <span class="pre">0.0001\n</span>&#160; <span class="pre">xmax</span> <span class="pre">0.004\n</span>&#160; <span class="pre">xrms</span> <span class="pre">0.002\n</span>&#160; <span class="pre">eprec</span> <span class="pre">0.000005\nend'</span></em><a class="headerlink" href="#autode.config.Config.NWChem.opt_block" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.config.Config.hmethod_sp_conformers">
-<code class="sig-name descname">hmethod_sp_conformers</code><em class="property"> = False</em><a class="headerlink" href="#autode.config.Config.hmethod_sp_conformers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.keep_input_files">
-<code class="sig-name descname">keep_input_files</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.keep_input_files" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.keyword_prefixes">
-<code class="sig-name descname">keyword_prefixes</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.keyword_prefixes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.lcode">
-<code class="sig-name descname">lcode</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.lcode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.ll_tmp_dir">
-<code class="sig-name descname">ll_tmp_dir</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.ll_tmp_dir" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.make_ts_template">
-<code class="sig-name descname">make_ts_template</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.make_ts_template" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.max_atom_displacement">
-<code class="sig-name descname">max_atom_displacement</code><em class="property"> = 4.0</em><a class="headerlink" href="#autode.config.Config.max_atom_displacement" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.max_core">
-<code class="sig-name descname">max_core</code><em class="property"> = 4000</em><a class="headerlink" href="#autode.config.Config.max_core" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.max_num_complex_conformers">
-<code class="sig-name descname">max_num_complex_conformers</code><em class="property"> = 300</em><a class="headerlink" href="#autode.config.Config.max_num_complex_conformers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.max_step_size">
-<code class="sig-name descname">max_step_size</code><em class="property"> = 0.3</em><a class="headerlink" href="#autode.config.Config.max_step_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.min_imag_freq">
-<code class="sig-name descname">min_imag_freq</code><em class="property"> = -40</em><a class="headerlink" href="#autode.config.Config.min_imag_freq" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.min_step_size">
-<code class="sig-name descname">min_step_size</code><em class="property"> = 0.05</em><a class="headerlink" href="#autode.config.Config.min_step_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.n_cores">
-<code class="sig-name descname">n_cores</code><em class="property"> = 4</em><a class="headerlink" href="#autode.config.Config.n_cores" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.num_complex_random_rotations">
-<code class="sig-name descname">num_complex_random_rotations</code><em class="property"> = 10</em><a class="headerlink" href="#autode.config.Config.num_complex_random_rotations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.num_complex_sphere_points">
-<code class="sig-name descname">num_complex_sphere_points</code><em class="property"> = 10</em><a class="headerlink" href="#autode.config.Config.num_complex_sphere_points" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.num_conformers">
-<code class="sig-name descname">num_conformers</code><em class="property"> = 300</em><a class="headerlink" href="#autode.config.Config.num_conformers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.rmsd_threshold">
-<code class="sig-name descname">rmsd_threshold</code><em class="property"> = 0.3</em><a class="headerlink" href="#autode.config.Config.rmsd_threshold" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.skip_small_ring_tss">
-<code class="sig-name descname">skip_small_ring_tss</code><em class="property"> = True</em><a class="headerlink" href="#autode.config.Config.skip_small_ring_tss" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="autode.config.Config.ts_template_folder_path">
-<code class="sig-name descname">ts_template_folder_path</code><em class="property"> = None</em><a class="headerlink" href="#autode.config.Config.ts_template_folder_path" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.NWChem.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.NWChem.path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config.ORCA">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">ORCA</span></span><a class="headerlink" href="#autode.config.Config.ORCA" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.ORCA.implicit_solvation_type">
+<span class="sig-name descname"><span class="pre">implicit_solvation_type</span></span><em class="property"> <span class="pre">=</span> <span class="pre">cpcm</span></em><a class="headerlink" href="#autode.config.Config.ORCA.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.ORCA.keywords">
+<span class="sig-name descname"><span class="pre">keywords</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;autode.wrappers.keywords.KeywordsSet</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#autode.config.Config.ORCA.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.ORCA.other_input_block">
+<span class="sig-name descname"><span class="pre">other_input_block</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.ORCA.other_input_block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.ORCA.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.ORCA.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.config.Config.XTB">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">XTB</span></span><a class="headerlink" href="#autode.config.Config.XTB" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.XTB.force_constant">
+<span class="sig-name descname"><span class="pre">force_constant</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autode.config.Config.XTB.force_constant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.XTB.implicit_solvation_type">
+<span class="sig-name descname"><span class="pre">implicit_solvation_type</span></span><em class="property"> <span class="pre">=</span> <span class="pre">gbsa</span></em><a class="headerlink" href="#autode.config.Config.XTB.implicit_solvation_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.XTB.keywords">
+<span class="sig-name descname"><span class="pre">keywords</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;autode.wrappers.keywords.KeywordsSet</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#autode.config.Config.XTB.keywords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.XTB.path">
+<span class="sig-name descname"><span class="pre">path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.XTB.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.adaptive_neb_k">
+<span class="sig-name descname"><span class="pre">adaptive_neb_k</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#autode.config.Config.adaptive_neb_k" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.grimme_alpha">
+<span class="sig-name descname"><span class="pre">grimme_alpha</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#autode.config.Config.grimme_alpha" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.grimme_w0">
+<span class="sig-name descname"><span class="pre">grimme_w0</span></span><em class="property"> <span class="pre">=</span> <span class="pre">Frequency(100.0</span> <span class="pre">cm^-1)</span></em><a class="headerlink" href="#autode.config.Config.grimme_w0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.hcode">
+<span class="sig-name descname"><span class="pre">hcode</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.hcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.high_quality_plots">
+<span class="sig-name descname"><span class="pre">high_quality_plots</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#autode.config.Config.high_quality_plots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.hmethod_conformers">
+<span class="sig-name descname"><span class="pre">hmethod_conformers</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#autode.config.Config.hmethod_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.hmethod_sp_conformers">
+<span class="sig-name descname"><span class="pre">hmethod_sp_conformers</span></span><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#autode.config.Config.hmethod_sp_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.keep_input_files">
+<span class="sig-name descname"><span class="pre">keep_input_files</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#autode.config.Config.keep_input_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.lcode">
+<span class="sig-name descname"><span class="pre">lcode</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.lcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.lfm_method">
+<span class="sig-name descname"><span class="pre">lfm_method</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'grimme'</span></em><a class="headerlink" href="#autode.config.Config.lfm_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.ll_tmp_dir">
+<span class="sig-name descname"><span class="pre">ll_tmp_dir</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.ll_tmp_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.make_ts_template">
+<span class="sig-name descname"><span class="pre">make_ts_template</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#autode.config.Config.make_ts_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.max_atom_displacement">
+<span class="sig-name descname"><span class="pre">max_atom_displacement</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4.0</span></em><a class="headerlink" href="#autode.config.Config.max_atom_displacement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.max_core">
+<span class="sig-name descname"><span class="pre">max_core</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4000</span></em><a class="headerlink" href="#autode.config.Config.max_core" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.max_num_complex_conformers">
+<span class="sig-name descname"><span class="pre">max_num_complex_conformers</span></span><em class="property"> <span class="pre">=</span> <span class="pre">300</span></em><a class="headerlink" href="#autode.config.Config.max_num_complex_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.max_step_size">
+<span class="sig-name descname"><span class="pre">max_step_size</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.3</span></em><a class="headerlink" href="#autode.config.Config.max_step_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.min_imag_freq">
+<span class="sig-name descname"><span class="pre">min_imag_freq</span></span><em class="property"> <span class="pre">=</span> <span class="pre">Frequency(-40.0</span> <span class="pre">cm^-1)</span></em><a class="headerlink" href="#autode.config.Config.min_imag_freq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.min_step_size">
+<span class="sig-name descname"><span class="pre">min_step_size</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0.05</span></em><a class="headerlink" href="#autode.config.Config.min_step_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.n_cores">
+<span class="sig-name descname"><span class="pre">n_cores</span></span><em class="property"> <span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#autode.config.Config.n_cores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.num_complex_random_rotations">
+<span class="sig-name descname"><span class="pre">num_complex_random_rotations</span></span><em class="property"> <span class="pre">=</span> <span class="pre">10</span></em><a class="headerlink" href="#autode.config.Config.num_complex_random_rotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.num_complex_sphere_points">
+<span class="sig-name descname"><span class="pre">num_complex_sphere_points</span></span><em class="property"> <span class="pre">=</span> <span class="pre">10</span></em><a class="headerlink" href="#autode.config.Config.num_complex_sphere_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.num_conformers">
+<span class="sig-name descname"><span class="pre">num_conformers</span></span><em class="property"> <span class="pre">=</span> <span class="pre">300</span></em><a class="headerlink" href="#autode.config.Config.num_conformers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.rmsd_threshold">
+<span class="sig-name descname"><span class="pre">rmsd_threshold</span></span><em class="property"> <span class="pre">=</span> <span class="pre">Distance(0.3</span> <span class="pre">Å)</span></em><a class="headerlink" href="#autode.config.Config.rmsd_threshold" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.skip_small_ring_tss">
+<span class="sig-name descname"><span class="pre">skip_small_ring_tss</span></span><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#autode.config.Config.skip_small_ring_tss" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.standard_state">
+<span class="sig-name descname"><span class="pre">standard_state</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'1M'</span></em><a class="headerlink" href="#autode.config.Config.standard_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.ts_template_folder_path">
+<span class="sig-name descname"><span class="pre">ts_template_folder_path</span></span><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#autode.config.Config.ts_template_folder_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.config.Config.vib_freq_shift">
+<span class="sig-name descname"><span class="pre">vib_freq_shift</span></span><em class="property"> <span class="pre">=</span> <span class="pre">Frequency(100.0</span> <span class="pre">cm^-1)</span></em><a class="headerlink" href="#autode.config.Config.vib_freq_shift" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="constants.html" class="btn btn-neutral float-right" title="Constants" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="calculation.html" class="btn btn-neutral float-left" title="Calculation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="constants.html" class="btn btn-neutral float-right" title="Constants" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="calculation.html" class="btn btn-neutral float-left" title="Calculation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -491,7 +533,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

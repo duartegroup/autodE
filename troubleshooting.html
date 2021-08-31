@@ -1,43 +1,48 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Troubleshooting &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Examples" href="examples/index.html" />
-    <link rel="prev" title="Utilities" href="reference/utils.html" /> 
+    <link rel="prev" title="Hessians" href="reference/hessians.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -93,6 +99,11 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Troubleshooting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#conda-solve-fails">Conda Solve Fails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#methodunavailable">MethodUnavailable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-transition-state-cannot-be-located">A Transition State Cannot be Located</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#without-a-path-peak">Without a path peak</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#with-a-path-peak">With a path peak</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
@@ -103,6 +114,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -137,18 +149,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Troubleshooting</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/troubleshooting.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -162,10 +176,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="troubleshooting">
+  <div class="section" id="troubleshooting">
 <h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
 <hr class="docutils" />
-<section id="conda-solve-fails">
+<div class="section" id="conda-solve-fails">
 <h2>Conda Solve Fails<a class="headerlink" href="#conda-solve-fails" title="Permalink to this headline">¶</a></h2>
 <p>If conda cannot solve the environment after attempting to install the dependencies create a new
 <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/environments.html">virtual environment</a> with:</p>
@@ -173,11 +187,11 @@
 $ conda activate autode_env
 </pre></div>
 </div>
-<p>then install. The autodE environment will need to be activated each time a new shell is opened, with:
+<p>then install. The <strong>autodE</strong> environment will need to be activated each time a new shell is opened, with:
 <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">autode_env</span></code>.</p>
-</section>
+</div>
 <hr class="docutils" />
-<section id="methodunavailable">
+<div class="section" id="methodunavailable">
 <h2>MethodUnavailable<a class="headerlink" href="#methodunavailable" title="Permalink to this headline">¶</a></h2>
 <p>If high and/or low level electronic structure methods cannot be found in $PATH it is possible to set the paths manually
 in Config for e.g. XTB:</p>
@@ -194,37 +208,68 @@ in Config for e.g. XTB:</p>
 </pre></div>
 </div>
 <p>to set this permanently, add the above line to ~/.bash_profile on MacOS or ~/.bashrc on Linux.</p>
-</section>
-</section>
+</div>
+<hr class="docutils" />
+<div class="section" id="a-transition-state-cannot-be-located">
+<h2>A Transition State Cannot be Located<a class="headerlink" href="#a-transition-state-cannot-be-located" title="Permalink to this headline">¶</a></h2>
+<p>Automatically finding transition states (TS) with <strong>autodE</strong> can sometimes fail due to either
+a misidentification of the TS as incorrect or an insufficiently good TS guess geometry being found.
+If a TS hasn’t been found first check the <em>reaction_name_path.png</em> visualisation of the initial path
+and proceed depending on whether a peak is or is not present.</p>
+<div class="section" id="without-a-path-peak">
+<h3>Without a path peak<a class="headerlink" href="#without-a-path-peak" title="Permalink to this headline">¶</a></h3>
+<p>Oh no! without an initial peak a TS won’t be able to be found. Perhaps the reaction is electronically
+barrierless at this level of theory. If there are anions consider adding diffuse functions, if they are not
+already present e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">set_opt_basis_set</span><span class="p">(</span><span class="s1">&#39;ma-def2-SVP&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="with-a-path-peak">
+<h3>With a path peak<a class="headerlink" href="#with-a-path-peak" title="Permalink to this headline">¶</a></h3>
+<p>If there is a peak then either (1) the TS guess geometry is not close enough to the TS for successful
+optimisation. To reduce the step size:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">min_step_size</span> <span class="o">=</span> <span class="mf">0.02</span>
+</pre></div>
+</div>
+<p>Otherwise (2), it may be that the TS optimiser cannot locate the saddle point because of Hessian drift. Consider
+reducing the number of intermediate steps between Hessian updates (i.e. <cite>Config.ORCA.keywords.opt_ts</cite> for ORCA).</p>
+<p>If you’ve found an interesting case where a TS cannot be found please do get in touch, we’re always on the lookout
+for examples to improve the method!</p>
+</div>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="reference/utils.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="reference/hessians.html" class="btn btn-neutral float-left" title="Hessians" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -232,7 +277,6 @@ in Config for e.g. XTB:</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

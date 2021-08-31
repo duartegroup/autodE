@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Base &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Locate TSs" href="locate_tss.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +111,7 @@
 <li class="toctree-l3"><a class="reference internal" href="ts_guess.html">TS Guess</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -123,6 +130,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -134,6 +143,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -168,11 +178,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -183,7 +195,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/transition_states/base.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -197,14 +209,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.transition_states.base">
+  <div class="section" id="module-autode.transition_states.base">
 <span id="base"></span><h1>Base<a class="headerlink" href="#module-autode.transition_states.base" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.transition_states.base.TSbase">
-<em class="property">class </em><code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">TSbase</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">reactant=None</em>, <em class="sig-param">product=None</em>, <em class="sig-param">name='ts_guess'</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.transition_states.base.TSbase.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">reactant=None</em>, <em class="sig-param">product=None</em>, <em class="sig-param">name='ts_guess'</em>, <em class="sig-param">charge=0</em>, <em class="sig-param">mult=1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.transition_states.base.</span></span><span class="sig-name descname"><span class="pre">TSbase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">autode.atoms.Atoms</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reactant</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.species.ReactantComplex</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.species.ProductComplex</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ts_guess'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond_rearr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><span class="pre">autode.bond_rearrangement.BondRearrangement</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base transition state class. e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>         <span class="n">H</span>   <span class="n">H</span>
+         \ <span class="o">/</span>
+<span class="n">F</span> <span class="o">-------</span> <span class="n">C</span> <span class="o">--------</span><span class="n">Cl</span>
+   <span class="n">r1</span>    <span class="o">|</span>   <span class="n">r2</span>              <span class="n">r1</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="n">Å</span>
+         <span class="n">H</span>                   <span class="n">r2</span> <span class="o">=</span> <span class="mf">2.2</span> <span class="n">Å</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">autode.atoms.Atoms</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reactant</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.species.ReactantComplex</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.species.ProductComplex</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ts_guess'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond_rearr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><span class="pre">autode.bond_rearrangement.BondRearrangement</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parent transition state class</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -224,22 +244,18 @@ not be available</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.transition_states.base.TSbase.could_have_correct_imag_mode">
-<code class="sig-name descname">could_have_correct_imag_mode</code><span class="sig-paren">(</span><em class="sig-param">method=None</em>, <em class="sig-param">threshold=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.could_have_correct_imag_mode" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase.could_have_correct_imag_mode">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">could_have_correct_imag_mode</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#autode.transition_states.base.TSbase.could_have_correct_imag_mode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine if a point on the PES could have the correct imaginary mode.
 This must have</p>
 <ol class="arabic simple" start="0">
 <li><p>An imaginary frequency      (quoted as negative in most EST codes)</p></li>
-<li><p>The most negative(/imaginary) is more negative that a threshold</p></li>
+<li><p>The most negative(/imaginary) is more negative that a threshold,
+which is defined as autode.config.Config.min_imag_freq</p></li>
 </ol>
-<dl>
-<dt>Keywords Arguments:</dt><dd><p>method (autode.wrappers.base.ElectronicStructureMethod):</p>
 <dl class="simple">
-<dt>threshold (float | None): Negative float (rather than imaginary</dt><dd><p>complex number) if None then the default
-Config.min_imag_freq is used</p>
-</dd>
-</dl>
+<dt>Keywords Arguments:</dt><dd><p>method (autode.wrappers.base.ElectronicStructureMethod):</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -249,136 +265,73 @@ Config.min_imag_freq is used</p>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>(bool)</p>
 </dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If the bond-rearrangement is not set, so that there
+    is no chance of determining the right mode</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.transition_states.base.TSbase.has_correct_imag_mode">
-<code class="sig-name descname">has_correct_imag_mode</code><span class="sig-paren">(</span><em class="sig-param">calc=None</em>, <em class="sig-param">method=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.TSbase.has_correct_imag_mode" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase.has_correct_imag_mode">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">has_correct_imag_mode</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#autode.transition_states.base.TSbase.has_correct_imag_mode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check that the imaginary mode is ‘correct’ set the calculation
 (hessian or optts)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.transition_states.base.f_b_isomorphic_to_r_p">
-<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">f_b_isomorphic_to_r_p</code><span class="sig-paren">(</span><em class="sig-param">forwards</em>, <em class="sig-param">backwards</em>, <em class="sig-param">reactant</em>, <em class="sig-param">product</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.f_b_isomorphic_to_r_p" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the forward/backward displacement to reactants/products?</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.transition_states.base.get_displaced_atoms_along_mode">
-<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">get_displaced_atoms_along_mode</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em>, <em class="sig-param">disp_magnitude=1.0</em>, <em class="sig-param">atoms=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.get_displaced_atoms_along_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Displace the geometry along the imaginary mode with mode number
-iterating from 0, where 0-2 are translational normal modes, 3-5 are
-rotational modes and 6 is the largest imaginary mode. To displace along
-the second imaginary mode we have mode_number=7</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>mode_number</strong> (<em>int</em>) – Mode number to displace along</p></li>
-</ul>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>disp_magnitude</strong> (<em>float</em>) – Distance to displace (default: {1.0})</p></li>
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – Atoms to displace, if None then the
-final set of atoms from the calc are used</p></li>
-</ul>
-</dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p></p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If reactants and products aren’t set, thus cannot
+    run a quick reaction profile</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.transition_states.base.get_optimised_species">
-<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">get_optimised_species</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">method</em>, <em class="sig-param">direction</em>, <em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.get_optimised_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the species that is optimised from an initial set of atoms in a
-particular direction (i.e. forwards or backwards along a normal mode)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
-<li><p><strong>direction</strong> (<em>str</em>) – </p></li>
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p></li>
-</ul>
-</dd>
-</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase.has_imaginary_frequencies">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">has_imaginary_frequencies</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#autode.transition_states.base.TSbase.has_imaginary_frequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this possible transition state have any imaginary modes?</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.transition_states.base.imag_mode_generates_other_bonds">
-<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">imag_mode_generates_other_bonds</code><span class="sig-paren">(</span><em class="sig-param">ts</em>, <em class="sig-param">f_species</em>, <em class="sig-param">b_species</em>, <em class="sig-param">bond_rearrangement</em>, <em class="sig-param">allow_mx=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.imag_mode_generates_other_bonds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine if the forward or backwards displaced molecule break or make
-bonds that aren’t in all the active bonds bond_rearrangement.all. Will be
-fairly conservative here</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase.imag_mode_has_correct_displacement">
+<span class="sig-name descname"><span class="pre">imag_mode_has_correct_displacement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">disp_mag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_threshold</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">req_all</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.transition_states.base.TSbase.imag_mode_has_correct_displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether the imaginary mode in a calculation with a hessian forms
+and breaks the correct bonds</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ts</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>f_species</strong> (<em>autode.species.Species</em>) – Forward displaced species</p></li>
-<li><p><strong>b_species</strong> (<em>autode.species.Species</em>) – Backward displaced species</p></li>
-<li><p><strong>bond_rearrangement</strong> (<a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – </p></li>
-<li><p><strong>allow_mx</strong> (<em>bool</em>) – Allow any metal-X bonds where X is another element</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.transition_states.base.imag_mode_has_correct_displacement">
-<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">imag_mode_has_correct_displacement</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">bond_rearrangement</em>, <em class="sig-param">disp_mag=1.0</em>, <em class="sig-param">delta_threshold=0.3</em>, <em class="sig-param">req_all=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.imag_mode_has_correct_displacement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check whether the imaginary mode in a calculation with a hessian forms and
-breaks the correct bonds</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>bond_rearrangement</strong> (<a class="reference internal" href="../bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><em>autode.bond_rearrangement.BondRearrangement</em></a>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
 <li><p><strong>disp_mag</strong> (<em>float</em>) – </p></li>
 <li><p><strong>delta_threshold</strong> (<em>float</em>) – Required ∆r on a bond for the bond to be
 considered as forming</p></li>
 <li><p><strong>req_all</strong> (<em>bool</em>) – Require all the bonds to have the correct displacements</p></li>
 </ul>
 </dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(bool)</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.transition_states.base.imag_mode_links_reactant_products">
-<code class="sig-prename descclassname">autode.transition_states.base.</code><code class="sig-name descname">imag_mode_links_reactant_products</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">method</em>, <em class="sig-param">disp_mag=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.transition_states.base.imag_mode_links_reactant_products" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.transition_states.base.TSbase.imag_mode_links_reactant_products">
+<span class="sig-name descname"><span class="pre">imag_mode_links_reactant_products</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">disp_mag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.transition_states.base.TSbase.imag_mode_links_reactant_products" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displaces atoms along the imaginary mode forwards (f) and backwards (b)
 to see if products and reactants are made</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>reactant</strong> (<em>autode.complex.ReactantComplex</em>) – </p></li>
-<li><p><strong>product</strong> (<em>autode.complex.ProductComplex</em>) – </p></li>
-<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
-</ul>
+<dd class="field-odd"><p><strong>ts</strong> (<a class="reference internal" href="#autode.transition_states.base.TSbase" title="autode.transition_states.base.TSbase"><em>autode.transition_states.base.TSbase</em></a>) – </p>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>disp_mag</strong> (<em>int</em>) – Distance to be displaced along the imag mode
-(default: )</p>
+<dd class="field-even"><p><strong>disp_mag</strong> (<em>float</em>) – Distance to be displaced along the imag mode
+(default: 1.0 Å)</p>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>if the imag mode is correct or not</p>
@@ -389,36 +342,119 @@ to see if products and reactants are made</p>
 </dl>
 </dd></dl>
 
-</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.transition_states.base.displaced_species_along_mode">
+<span class="sig-prename descclassname"><span class="pre">autode.transition_states.base.</span></span><span class="sig-name descname"><span class="pre">displaced_species_along_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode_number</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disp_factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_atom_disp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">99.9</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.transition_states.base.displaced_species_along_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displace the geometry along a normal mode with mode number indexed from 0,
+where 0-2 are translational normal modes, 3-5 are rotational modes and 6
+is the largest magnitude imaginary mode (if present). To displace along
+the second imaginary mode we have mode_number=7</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>mode_number</strong> (<em>int</em>) – Mode number to displace along</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>disp_factor</strong> (<em>float</em>) – Distance to displace (default: {1.0})</p></li>
+<li><p><strong>max_atom_disp</strong> (<em>float</em>) – Maximum displacement of any atom (Å)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(autode.species.Species)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.transition_states.base.f_b_isomorphic_to_r_p">
+<span class="sig-prename descclassname"><span class="pre">autode.transition_states.base.</span></span><span class="sig-name descname"><span class="pre">f_b_isomorphic_to_r_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forwards</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">backwards</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reactant</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">autode.species.ReactantComplex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">autode.species.ProductComplex</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.transition_states.base.f_b_isomorphic_to_r_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Are the forward/backward displaced species isomorphic to
+reactants/products?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forwards</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>backwards</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>reactant</strong> (<em>autode.species.ReactantComplex</em>) – </p></li>
+<li><p><strong>product</strong> (<em>autode.species.ProductComplex</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.transition_states.base.imag_mode_generates_other_bonds">
+<span class="sig-prename descclassname"><span class="pre">autode.transition_states.base.</span></span><span class="sig-name descname"><span class="pre">imag_mode_generates_other_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ts</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#autode.transition_states.base.TSbase" title="autode.transition_states.base.TSbase"><span class="pre">autode.transition_states.base.TSbase</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_species</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_species</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_mx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.transition_states.base.imag_mode_generates_other_bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the forward or backwards displaced molecule break or make
+bonds that aren’t in all the active bonds bond_rearrangement.all. Will be
+fairly conservative here</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts</strong> (<a class="reference internal" href="#autode.transition_states.base.TSbase" title="autode.transition_states.base.TSbase"><em>autode.transition_states.base.TSbase</em></a>) – </p></li>
+<li><p><strong>f_species</strong> (<em>autode.species.Species</em>) – Forward displaced species</p></li>
+<li><p><strong>b_species</strong> (<em>autode.species.Species</em>) – Backward displaced species</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>allow_mx</strong> (<em>bool</em>) – Allow any metal-X bonds where X is another element</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="locate_tss.html" class="btn btn-neutral float-right" title="Locate TSs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Transition States" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="locate_tss.html" class="btn btn-neutral float-right" title="Locate TSs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Transition States" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -426,7 +462,6 @@ to see if products and reactants are made</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

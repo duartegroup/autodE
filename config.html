@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Configuration &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Reference" href="reference/index.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -109,6 +115,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -143,18 +150,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Configuration</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/config.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -168,16 +177,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="configuration">
+  <div class="section" id="configuration">
 <h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
 <p>Configuration is handled with <code class="code docutils literal notranslate"><span class="pre">ade.Config</span></code> and can be modified for full
 customization of the calculations. By default optimisations are performed at
 PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in ORCA if it is
 available.</p>
 <hr class="docutils" />
-<section id="calculations">
+<div class="section" id="calculations">
 <h2>Calculations<a class="headerlink" href="#calculations" title="Permalink to this headline">¶</a></h2>
-<section id="general">
+<div class="section" id="general">
 <h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
 <p>For example, to use Gaussian09 as the high level electronic structure method</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
@@ -190,9 +199,9 @@ of 32 GB for the whole calculation</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">max_core</span> <span class="o">=</span> <span class="mi">4000</span>
 </pre></div>
 </div>
-</section>
+</div>
 <hr class="docutils" />
-<section id="keywords">
+<div class="section" id="keywords">
 <h3>Keywords<a class="headerlink" href="#keywords" title="Permalink to this headline">¶</a></h3>
 <p>Calculation parameters (keywords) also can be changed, e.g to use
 B3LYP/def2-TZVP single point energies in ORCA</p>
@@ -200,8 +209,8 @@ B3LYP/def2-TZVP single point energies in ORCA</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="n">SinglePointKeywords</span><span class="p">([</span><span class="s1">&#39;SP&#39;</span><span class="p">,</span> <span class="s1">&#39;B3LYP&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-TZVP&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>a cleaner solution uses</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">&#39;B3LYP&#39;</span>
+<p>Alternatively, to just change the functional</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">&#39;B3LYP&#39;</span>
 </pre></div>
 </div>
 <p>To add diffuse functions with the ma scheme to the def2-SVP default optimisation
@@ -214,9 +223,9 @@ basis set for optimisations</p>
 <p><cite>set_opt_basis_set</cite> sets the basis set in keywords.grad, keywords.opt_ts
 keywords.opt, keywords.low_opt and keywords.hess.</p>
 </div>
-</section>
+</div>
 <hr class="docutils" />
-<section id="xtb-as-a-hmethod">
+<div class="section" id="xtb-as-a-hmethod">
 <h3>XTB as a hmethod<a class="headerlink" href="#xtb-as-a-hmethod" title="Permalink to this headline">¶</a></h3>
 <p>To use XTB as the <em>hmethod</em> for minima and TS optimisations with the <a class="reference external" href="https://github.com/aspuru-guzik-group/xtb-gaussian">xtb-gaussian</a> wrapper
 and some default options</p>
@@ -228,9 +237,9 @@ and some default options</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">GradientKeywords</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;external=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;Force(NoStep)&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
-</section>
+</div>
 <hr class="docutils" />
-<section id="other">
+<div class="section" id="other">
 <h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
 <p>See the <a class="reference external" href="https://github.com/duartegroup/autodE/blob/master/autode/config.py">config file</a>
 to see all the options.</p>
@@ -239,51 +248,55 @@ to see all the options.</p>
 <p>NWChem currently only supports solvents for DFT, other methods must not have
 a solvent.</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 <hr class="docutils" />
-<section id="logging">
+<div class="section" id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
 <p>To set the logging level to one of {INFO, WARNING, ERROR} set the AUTODE_LOG_LEVEL
 environment variable, in bash:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export AUTODE_LOG_LEVEL=INFO
 </pre></div>
 </div>
-<p>to output the log to a file set e.g. <em>autode.log</em>:</p>
+<p>To output the log to a file set e.g. <em>autode.log</em>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export AUTODE_LOG_FILE=autode.log
 </pre></div>
 </div>
-</section>
-</section>
+<p>To log with timestamps and colours:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda install coloredlogs
+</pre></div>
+</div>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="reference/index.html" class="btn btn-neutral float-right" title="Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="reference/index.html" class="btn btn-neutral float-right" title="Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -291,7 +304,6 @@ environment variable, in bash:</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

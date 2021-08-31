@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Thermochemistry &mdash; autodE  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changelog" href="../changelog.html" />
+    <link rel="prev" title="Transition States" href="tss.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> autodE
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Thermochemistry</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#orca">ORCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gaussian">Gaussian</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">autodE</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Thermochemistry</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/examples/thermochem.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="thermochemistry">
+<h1>Thermochemistry<a class="headerlink" href="#thermochemistry" title="Permalink to this headline">¶</a></h1>
+<p>Thermochemical contributions are calculated in <strong>autodE</strong> using the ideal gas
+model and variants thereof. The molar enthalpy is,</p>
+<div class="math notranslate nohighlight">
+\[H = E_\text{elec} + E_\text{internal} + E_\text{ZPE} + RT\]</div>
+<p>and Gibbs free energy,</p>
+<div class="math notranslate nohighlight">
+\[G = H - TS\]</div>
+<p>where <span class="math notranslate nohighlight">\(T\)</span> is the temperature and <span class="math notranslate nohighlight">\(R\)</span> the gas constant. See
+<a class="reference external" href="https://github.com/duartegroup/autodE/tree/master/autode/common/thermochemistry.pdf">here</a>
+for a more in-depth mathematical background. With a completed electronic
+structure calculation free energies can be obtained using either RRHO,
+shifted-RRHO (from Truhlar[1]) and qRRHO (from Grimme[2]). Global parameters
+can also be set in <code class="code docutils literal notranslate"><span class="pre">autode.Config</span></code>, which apply to all thermochemical
+calculations including those when calculating a profile with
+<code class="code docutils literal notranslate"><span class="pre">rxn.calculate_reaction_profile(free_energy=True)</span></code></p>
+<hr class="docutils" />
+<div class="section" id="orca">
+<h2>ORCA<a class="headerlink" href="#orca" title="Permalink to this headline">¶</a></h2>
+<p>To calculate thermochemical contributions from a completed ORCA Hessian file (<em>H2O_hess_orca.hess</em>):</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+
+<span class="n">mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;H2O_hess_orca.xyz&#39;</span><span class="p">)</span>
+<span class="n">orca</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">ORCA</span><span class="p">()</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span>
+                       <span class="n">molecule</span><span class="o">=</span><span class="n">mol</span><span class="p">,</span>
+                       <span class="n">method</span><span class="o">=</span><span class="n">orca</span><span class="p">,</span>
+                       <span class="n">keywords</span><span class="o">=</span><span class="n">orca</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">hess</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;H2O_hess_orca.hess&#39;</span>
+
+<span class="n">mol</span><span class="o">.</span><span class="n">calc_thermo</span><span class="p">(</span><span class="n">calc</span><span class="o">=</span><span class="n">calc</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">ss</span><span class="o">=</span><span class="s1">&#39;1atm&#39;</span><span class="p">,</span> <span class="n">sn</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">g_cont</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Out</strong>: <code class="code docutils literal notranslate"><span class="pre">0.00145779587867773</span></code></p>
+<p>which differs from the ORCA-calculated value (0.00145673 Ha) by &lt;0.001 kcal mol<sup>-1</sup>. To
+calculate a total free energy including <span class="math notranslate nohighlight">\(E_\text{elec}\)</span> both a .out and .hess file need to be present with the
+same basename. For example:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+
+<span class="n">mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;H2O_hess_orca.xyz&#39;</span><span class="p">)</span>
+<span class="n">orca</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">ORCA</span><span class="p">()</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span>
+                       <span class="n">molecule</span><span class="o">=</span><span class="n">mol</span><span class="p">,</span>
+                       <span class="n">method</span><span class="o">=</span><span class="n">orca</span><span class="p">,</span>
+                       <span class="n">keywords</span><span class="o">=</span><span class="n">orca</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">hess</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;H2O_hess_orca.out&#39;</span>
+
+<span class="n">mol</span><span class="o">.</span><span class="n">calc_thermo</span><span class="p">(</span><span class="n">calc</span><span class="o">=</span><span class="n">calc</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;H = </span><span class="si">{</span><span class="n">mol</span><span class="o">.</span><span class="n">enthalpy</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> Ha</span><span class="se">\n</span><span class="s1">&#39;</span>
+      <span class="sa">f</span><span class="s1">&#39;G = </span><span class="si">{</span><span class="n">mol</span><span class="o">.</span><span class="n">free_energy</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1"> Ha&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Out</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span> <span class="o">-</span><span class="mf">76.249086</span> <span class="n">Ha</span>
+<span class="n">G</span> <span class="o">=</span> <span class="o">-</span><span class="mf">76.267526</span> <span class="n">Ha</span>
+</pre></div>
+</div>
+<p>where, without any arguments to <code class="code docutils literal notranslate"><span class="pre">calc_thermo</span></code>, the default method uses room temperature (298.15 K),
+a one molar (1 M) standard state (appropriate for molecules in solution), Grimme’s qRRHO treatment of
+low frequency vibrational modes and a calculated symmetry number, which in this case is two (C<sub>2v</sub> symmetry).</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="gaussian">
+<h2>Gaussian<a class="headerlink" href="#gaussian" title="Permalink to this headline">¶</a></h2>
+<p>Likewise from a Gaussian output file of butane (<em>butane_hess_g09.log</em>):</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+
+<span class="n">mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;butane.xyz&#39;</span><span class="p">)</span>
+<span class="n">g09</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">G09</span><span class="p">()</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Calculation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;butane&#39;</span><span class="p">,</span>
+                       <span class="n">molecule</span><span class="o">=</span><span class="n">mol</span><span class="p">,</span>
+                       <span class="n">method</span><span class="o">=</span><span class="n">g09</span><span class="p">,</span>
+                       <span class="n">keywords</span><span class="o">=</span><span class="n">g09</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">hess</span><span class="p">)</span>
+<span class="n">calc</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;butane_hess_g09.log&#39;</span>
+
+<span class="n">mol</span><span class="o">.</span><span class="n">calc_thermo</span><span class="p">(</span><span class="n">calc</span><span class="o">=</span><span class="n">calc</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">ss</span><span class="o">=</span><span class="s1">&#39;1atm&#39;</span><span class="p">,</span> <span class="n">sn</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lfm_method</span><span class="o">=</span><span class="s1">&#39;igm&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">g_cont</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Out</strong>: <code class="code docutils literal notranslate"><span class="pre">0.10419152589407932</span></code></p>
+<p>which differs from the Gaussian-calculated value (0.104216 Ha) by ~0.01 kcal mol<sup>-1</sup>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Gaussian 09 has very tight tolerances on symmetry and uses a pure
+harmonic oscillator treatment of low frequency modes.</p>
+</div>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>[1] R. F. Ribeiro, A. V. Marenich, C. J. Cramer and D. G. Truhlar, <em>Phys. Chem. B</em> 2011, <strong>115</strong>, 14556.</p>
+<p>[2] S. Grimme, <em>Chem. Eur. J.</em> 2012, <strong>18</strong>, 9955.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tss.html" class="btn btn-neutral float-left" title="Transition States" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

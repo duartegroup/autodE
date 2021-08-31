@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Calculation &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Configuration" href="config.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/calculation.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,14 +199,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.calculation">
+  <div class="section" id="module-autode.calculation">
 <span id="calculation"></span><h1>Calculation<a class="headerlink" href="#module-autode.calculation" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.calculation.Calculation">
-<em class="property">class </em><code class="sig-prename descclassname">autode.calculation.</code><code class="sig-name descname">Calculation</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">molecule</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em>, <em class="sig-param">n_cores=1</em>, <em class="sig-param">bond_ids_to_add=None</em>, <em class="sig-param">other_input_block=None</em>, <em class="sig-param">distance_constraints=None</em>, <em class="sig-param">cartesian_constraints=None</em>, <em class="sig-param">point_charges=None</em>, <em class="sig-param">temp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.calculation.Calculation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">molecule</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em>, <em class="sig-param">n_cores=1</em>, <em class="sig-param">bond_ids_to_add=None</em>, <em class="sig-param">other_input_block=None</em>, <em class="sig-param">distance_constraints=None</em>, <em class="sig-param">cartesian_constraints=None</em>, <em class="sig-param">point_charges=None</em>, <em class="sig-param">temp=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.calculation.Calculation">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.calculation.</span></span><span class="sig-name descname"><span class="pre">Calculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond_ids_to_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_block</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cartesian_constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_charges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond_ids_to_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_block</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cartesian_constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_charges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -219,34 +231,32 @@ cartesian coordinates
 <li><p><strong>point_charges</strong> (<em>list</em><em>(</em><a class="reference internal" href="point_charges.html#autode.point_charges.PointCharge" title="autode.point_charges.PointCharge"><em>autode.point_charges.PointCharge</em></a><em>)</em>) – List of
 float of point charges, x, y, z
 coordinates for each point charge</p></li>
-<li><p><strong>temp</strong> (<em>float</em>) – Temperature to perform the calculation at in K, or
-None</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.clean_up">
-<code class="sig-name descname">clean_up</code><span class="sig-paren">(</span><em class="sig-param">force=False</em>, <em class="sig-param">everything=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.clean_up" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.clean_up">
+<span class="sig-name descname"><span class="pre">clean_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">everything</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.calculation.Calculation.clean_up" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clean up input files, if Config.keep_input_files is False</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.execute_calculation">
-<code class="sig-name descname">execute_calculation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.execute_calculation" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.execute_calculation">
+<span class="sig-name descname"><span class="pre">execute_calculation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.calculation.Calculation.execute_calculation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a calculation if it has not been run or finish correctly</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.generate_input">
-<code class="sig-name descname">generate_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.generate_input" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.generate_input">
+<span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.calculation.Calculation.generate_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the required input</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_atomic_charges">
-<code class="sig-name descname">get_atomic_charges</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.get_atomic_charges">
+<span class="sig-name descname"><span class="pre">get_atomic_charges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.calculation.Calculation.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the partial atomic charges from a calculation. The method used to
 calculate them depends on the QM method and are implemented in their
 respective wrappers</p>
@@ -260,97 +270,85 @@ respective wrappers</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_energy">
-<code class="sig-name descname">get_energy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_energy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.get_energy">
+<span class="sig-name descname"><span class="pre">get_energy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.calculation.Calculation.get_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total electronic potential energy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(<a class="reference internal" href="values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy">autode.values.PotentialEnergy</a> | None)</p>
+</dd>
+</dl>
+</dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_enthalpy">
-<code class="sig-name descname">get_enthalpy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_enthalpy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_final_atoms">
-<code class="sig-name descname">get_final_atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_final_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.get_final_atoms">
+<span class="sig-name descname"><span class="pre">get_final_atoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">autode.atoms.Atoms</span></a></span></span><a class="headerlink" href="#autode.calculation.Calculation.get_final_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the atoms from the final step of a geometry optimisation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p></p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(list(<a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+<dd class="field-even"><p>(<a class="reference internal" href="atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms">autode.atoms.Atoms</a>)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="exceptions.html#autode.exceptions.AtomsNotFound" title="autode.exceptions.AtomsNotFound"><strong>autode.exceptions.AtomsNotFound</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_free_energy">
-<code class="sig-name descname">get_free_energy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_free_energy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_gradients">
-<code class="sig-name descname">get_gradients</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_gradients" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.get_gradients">
+<span class="sig-name descname"><span class="pre">get_gradients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">autode.values.Gradient</span></a></span></span><a class="headerlink" href="#autode.calculation.Calculation.get_gradients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the gradient (dE/dr) with respect to atomic displacement from a
 calculation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>Gradient vectors for each atom (Ha Å^-1)</dt><dd><p>gradients.shape = (n_atoms, 3)</p>
-</dd>
-</dl>
-</p>
+<dd class="field-odd"><p>Gradient vectors. shape = (n_atoms, 3)</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(np.ndarray)</p>
+<dd class="field-even"><p>(<a class="reference internal" href="values.html#autode.values.Gradient" title="autode.values.Gradient">autode.values.Gradient</a>)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_imaginary_freqs">
-<code class="sig-name descname">get_imaginary_freqs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_imaginary_freqs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the imaginary frequencies from a calculation output note that
-they are returned as negative to conform with standard QM codes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.get_hessian">
+<span class="sig-name descname"><span class="pre">get_hessian</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="hessians.html#autode.hessians.Hessian" title="autode.hessians.Hessian"><span class="pre">autode.hessians.Hessian</span></a></span></span><a class="headerlink" href="#autode.calculation.Calculation.get_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Hessian matrix (d^2E/dr^2) i.e. the matrix of second
+derivatives of the energy with respect to cartesian displacements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">H</span> <span class="o">=</span>  <span class="p">(</span><span class="n">d</span><span class="o">^</span><span class="mi">2</span><span class="n">E</span><span class="o">/</span><span class="n">dx_0</span><span class="o">^</span><span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="o">^</span><span class="mi">2</span><span class="n">E</span><span class="o">/</span><span class="n">dx_0dy_0</span><span class="p">,</span> <span class="n">d</span><span class="o">^</span><span class="mi">2</span><span class="n">E</span><span class="o">/</span><span class="n">dx_0dz_0</span><span class="p">,</span> <span class="n">d</span><span class="o">^</span><span class="mi">2</span><span class="n">E</span><span class="o">/</span><span class="n">dx_0dx_1</span> <span class="o">...</span>
+      <span class="n">d</span><span class="o">^</span><span class="mi">2</span><span class="n">E</span><span class="o">/</span><span class="n">dy_0dx_0</span>      <span class="o">.</span>               <span class="o">.</span>              <span class="o">.</span>
+          <span class="o">.</span>              <span class="o">.</span>               <span class="o">.</span>              <span class="o">.</span> <span class="p">)</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>List of negative frequencies in wavenumbers (cm-1)</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(list(float))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.calculation.Calculation.get_normal_mode_displacements">
-<code class="sig-name descname">get_normal_mode_displacements</code><span class="sig-paren">(</span><em class="sig-param">mode_number</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.get_normal_mode_displacements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the displacements along a mode for each of the n_atoms in the
-structure will return a list of length n_atoms each with 3 components
-(x, y, z)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mode_number</strong> (<em>int</em>) – Normal mode number. 6 will be the first
-vibrational mode as 0-&gt;2 are translation and
-3-&gt;5 rotation</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Displacement vectors for each atom (Å)</dt><dd><p>modes.shape = (n_atoms, 3)</p>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Hessian matrix. shape = (3N, 3N) for N</dt><dd><p>atoms</p>
 </dd>
 </dl>
 </p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.ndarray)</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(autode.values.Hessian)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.optimisation_converged">
-<code class="sig-name descname">optimisation_converged</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.optimisation_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.optimisation_converged">
+<span class="sig-name descname"><span class="pre">optimisation_converged</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.calculation.Calculation.optimisation_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether a calculation has has converged to within the theshold
 on energies and graidents specified in the input</p>
 <dl class="field-list simple">
@@ -360,9 +358,9 @@ on energies and graidents specified in the input</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.optimisation_nearly_converged">
-<code class="sig-name descname">optimisation_nearly_converged</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.optimisation_nearly_converged">
+<span class="sig-name descname"><span class="pre">optimisation_nearly_converged</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.calculation.Calculation.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether a calculation has nearly converged and may just need
 more geometry optimisation steps to complete successfully</p>
 <dl class="field-list simple">
@@ -372,26 +370,26 @@ more geometry optimisation steps to complete successfully</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.run" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.calculation.Calculation.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the calculation using the EST method</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.Calculation.terminated_normally">
-<code class="sig-name descname">terminated_normally</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Calculation.terminated_normally" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.calculation.Calculation.terminated_normally">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">terminated_normally</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#autode.calculation.Calculation.terminated_normally" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine if the calculation terminated without error</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.calculation.CalculationInput">
-<em class="property">class </em><code class="sig-prename descclassname">autode.calculation.</code><code class="sig-name descname">CalculationInput</code><span class="sig-paren">(</span><em class="sig-param">keywords</em>, <em class="sig-param">solvent</em>, <em class="sig-param">additional_input</em>, <em class="sig-param">added_internals</em>, <em class="sig-param">point_charges</em>, <em class="sig-param">temp</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationInput" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.calculation.CalculationInput.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">keywords</em>, <em class="sig-param">solvent</em>, <em class="sig-param">additional_input</em>, <em class="sig-param">added_internals</em>, <em class="sig-param">point_charges</em>, <em class="sig-param">temp</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationInput.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.calculation.CalculationInput">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.calculation.</span></span><span class="sig-name descname"><span class="pre">CalculationInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><span class="pre">autode.wrappers.keywords.Keywords</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added_internals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_charges</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="point_charges.html#autode.point_charges.PointCharge" title="autode.point_charges.PointCharge"><span class="pre">autode.point_charges.PointCharge</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationInput" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.CalculationInput.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><span class="pre">autode.wrappers.keywords.Keywords</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_input</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">added_internals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_charges</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="point_charges.html#autode.point_charges.PointCharge" title="autode.point_charges.PointCharge"><span class="pre">autode.point_charges.PointCharge</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationInput.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -403,90 +401,69 @@ to the input file, or None</p></li>
 the internal coordinates</p></li>
 <li><p><strong>point_charges</strong> (<em>list</em><em>(</em><a class="reference internal" href="point_charges.html#autode.point_charges.PointCharge" title="autode.point_charges.PointCharge"><em>autode.point_charges.PointCharge</em></a><em>) or </em><em>None</em>) – list of float of point charges, x, y, z coordinates
 for each point charge</p></li>
-<li><p><strong>temp</strong> (<em>float</em>) – Temperature to perform the calculation at in K, or
-None</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.CalculationInput.exists">
-<code class="sig-name descname">exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationInput.exists" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.calculation.CalculationInput.exists">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">exists</span></span><a class="headerlink" href="#autode.calculation.CalculationInput.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does the input (files) exist?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.CalculationInput.get_input_filenames">
-<code class="sig-name descname">get_input_filenames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationInput.get_input_filenames" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.calculation.CalculationInput.filenames">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">filenames</span></span><a class="headerlink" href="#autode.calculation.CalculationInput.filenames" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of all the input files</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.calculation.CalculationOutput">
-<em class="property">class </em><code class="sig-prename descclassname">autode.calculation.</code><code class="sig-name descname">CalculationOutput</code><a class="headerlink" href="#autode.calculation.CalculationOutput" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.calculation.CalculationOutput.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationOutput.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.calculation.CalculationOutput">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.calculation.</span></span><span class="sig-name descname"><span class="pre">CalculationOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationOutput" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.calculation.CalculationOutput.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationOutput.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.CalculationOutput.exists">
-<code class="sig-name descname">exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationOutput.exists" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.calculation.CalculationOutput.exists">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">exists</span></span><a class="headerlink" href="#autode.calculation.CalculationOutput.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does the calculation output exist?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.calculation.CalculationOutput.set_lines">
-<code class="sig-name descname">set_lines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.CalculationOutput.set_lines" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the output files lines. This may be slow for large files but should
-not become a bottleneck when running standard DFT/WF calculations</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.calculation.CalculationOutput.file_lines">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">file_lines</span></span><a class="headerlink" href="#autode.calculation.CalculationOutput.file_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output files lines. This may be slow for large files but should
+not become a bottleneck when running standard DFT/WF calculations,
+are cached so only read once</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>(None)</p>
+<dd class="field-odd"><p>Lines from the output file</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(list(str))</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="exceptions.html#autode.exceptions.NoCalculationOutput" title="autode.exceptions.NoCalculationOutput"><strong>autode.exceptions.NoCalculationOutput</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.calculation.Constraints">
-<em class="property">class </em><code class="sig-prename descclassname">autode.calculation.</code><code class="sig-name descname">Constraints</code><span class="sig-paren">(</span><em class="sig-param">distance</em>, <em class="sig-param">cartesian</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Constraints" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.calculation.Constraints.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">distance</em>, <em class="sig-param">cartesian</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Constraints.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>distance</strong> (<em>any</em>) – Keys of: tuple(int) for two atom indexes and
-values of the distance in Å or None</p></li>
-<li><p><strong>cartesian</strong> (<em>any</em>) – List of atom indexes or None</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.calculation.Constraints.any">
-<code class="sig-name descname">any</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.Constraints.any" title="Permalink to this definition">¶</a></dt>
-<dd><p>Are there any constraints?</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="autode.calculation.execute_calc">
-<code class="sig-prename descclassname">autode.calculation.</code><code class="sig-name descname">execute_calc</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.execute_calc" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.calculation.execute_calc">
+<span class="sig-prename descclassname"><span class="pre">autode.calculation.</span></span><span class="sig-name descname"><span class="pre">execute_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.execute_calc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Top level function that can be hashed</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.calculation.get_solvent_name">
-<code class="sig-prename descclassname">autode.calculation.</code><code class="sig-name descname">get_solvent_name</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">method</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.get_solvent_name" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.calculation.get_solvent_name">
+<span class="sig-prename descclassname"><span class="pre">autode.calculation.</span></span><span class="sig-name descname"><span class="pre">get_solvent_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.calculation.get_solvent_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the solvent keyword to use in the calculation given an QM method</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -498,36 +475,36 @@ values of the distance in Å or None</p></li>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="config.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="bond_rearrangement.html" class="btn btn-neutral float-left" title="Bond Rearrangement" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="config.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="bond_rearrangement.html" class="btn btn-neutral float-left" title="Bond Rearrangement" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -535,7 +512,6 @@ values of the distance in Å or None</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

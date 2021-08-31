@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Conf Gen &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Conformer" href="conformer.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -102,6 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -120,6 +127,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -131,6 +140,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -165,11 +175,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -180,7 +192,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/conformers/conf_gen.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -194,11 +206,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.conformers.conf_gen">
+  <div class="section" id="module-autode.conformers.conf_gen">
 <span id="conf-gen"></span><h1>Conf Gen<a class="headerlink" href="#module-autode.conformers.conf_gen" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="autode.conformers.conf_gen.add_dist_consts_for_stereocentres">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">add_dist_consts_for_stereocentres</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">dist_consts</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.add_dist_consts_for_stereocentres" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.add_dist_consts_for_stereocentres">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">add_dist_consts_for_stereocentres</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.add_dist_consts_for_stereocentres" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add distances constraints across two bonded stereocentres, for example
 for a Z alkene, (hopefully) ensuring that in the conformer generation the
 stereochemistry is retained. Will also add distance constraints from
@@ -221,9 +233,9 @@ the distance (Å), or None</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_atoms_from_generated_file">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_atoms_from_generated_file</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">xyz_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_atoms_from_generated_file" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_atoms_from_generated_file">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_atoms_from_generated_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_atoms_from_generated_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get atoms from a previously generated  .xyz file, if the atoms match</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -236,14 +248,14 @@ the distance (Å), or None</p></li>
 <dd class="field-even"><p>Atoms from file</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(autode.atoms.Atoms)) or None</p>
+<dd class="field-odd"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms">autode.atoms.Atoms</a>)) or None</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_atoms_rotated_stereocentres">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_atoms_rotated_stereocentres</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">atoms</em>, <em class="sig-param">rand</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_atoms_rotated_stereocentres" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_atoms_rotated_stereocentres">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_atoms_rotated_stereocentres</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rand</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_atoms_rotated_stereocentres" title="Permalink to this definition">¶</a></dt>
 <dd><p>If two stereocentres are bonded, rotate them randomly with respect
 to each other</p>
 <dl class="field-list simple">
@@ -263,14 +275,12 @@ to each other</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_bond_matrix">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_bond_matrix</code><span class="sig-paren">(</span><em class="sig-param">n_atoms</em>, <em class="sig-param">bonds</em>, <em class="sig-param">fixed_bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_bond_matrix" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_bond_matrix">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_bond_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_bond_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and
-fixed and 0 otherwise. Can support a partial structure with bonds to atoms</p>
-<blockquote>
-<div><p>that don’t (yet) exist</p>
-</div></blockquote>
+fixed and 0 otherwise. Can support a partial structure with bonds to atoms
+that don’t (yet) exist.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -288,9 +298,9 @@ fixed and 0 otherwise. Can support a partial structure with bonds to atoms</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_coords_energy">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_coords_energy</code><span class="sig-paren">(</span><em class="sig-param">coords</em>, <em class="sig-param">bonds</em>, <em class="sig-param">k</em>, <em class="sig-param">c</em>, <em class="sig-param">d0</em>, <em class="sig-param">tol</em>, <em class="sig-param">fixed_bonds</em>, <em class="sig-param">exponent=8</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_coords_energy" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_coords_energy">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_coords_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_coords_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the coordinates that minimise a FF with a bonds + repulsion FF
 where the repulsion is c/r^exponent</p>
 <dl class="field-list simple">
@@ -316,9 +326,9 @@ as the harmonic force constant</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_coords_no_init_structure">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_coords_no_init_structure</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">species</em>, <em class="sig-param">d0</em>, <em class="sig-param">constrained_bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_coords_no_init_structure" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_coords_no_init_structure">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_coords_no_init_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constrained_bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_coords_no_init_structure" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Generate coordinates where no initial structure is present - this fixes(?)</dt><dd><p>a problem for large molecule where if all the atoms are initially bonded
 and minimised then high energy minima are often found</p>
@@ -342,9 +352,9 @@ and minimised then high energy minima are often found</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_non_random_atoms">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_non_random_atoms</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_non_random_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_non_random_atoms">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_non_random_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_non_random_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the atoms that won’t be randomised in the conformer generation.
 Stereocentres and nearest neighbours</p>
 <dl class="field-list simple">
@@ -360,9 +370,9 @@ Stereocentres and nearest neighbours</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_simanl_atoms">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_simanl_atoms</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">dist_consts=None</em>, <em class="sig-param">conf_n=0</em>, <em class="sig-param">save_xyz=True</em>, <em class="sig-param">also_return_energy=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_simanl_atoms">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_simanl_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">also_return_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use a bonded + repulsive force field to generate 3D structure for a
 species. If the initial coordinates are reasonable e.g. from a previously
 generated 3D structure then add random displacement vectors and minimise
@@ -392,9 +402,9 @@ for fast reloading</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_simanl_conformer">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_simanl_conformer</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">dist_consts=None</em>, <em class="sig-param">conf_n=0</em>, <em class="sig-param">save_xyz=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_conformer" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_simanl_conformer">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_simanl_conformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_conformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a conformer of a species using randomise+relax with a simple FF
 (see get_simanl_atoms)</p>
 <dl class="field-list simple">
@@ -417,9 +427,9 @@ for fast reloading</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.conformers.conf_gen.get_v">
-<code class="sig-prename descclassname">autode.conformers.conf_gen.</code><code class="sig-name descname">get_v</code><span class="sig-paren">(</span><em class="sig-param">coords</em>, <em class="sig-param">bonds</em>, <em class="sig-param">k</em>, <em class="sig-param">c</em>, <em class="sig-param">d0</em>, <em class="sig-param">fixed_bonds</em>, <em class="sig-param">exponent=8</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_v" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_v">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_v</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the energy using a bond + repulsion FF where</p>
 <p>V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^exponent</p>
 <dl class="field-list simple">
@@ -443,36 +453,36 @@ as the harmonic force constant</p></li>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="conformer.html" class="btn btn-neutral float-right" title="Conformer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Conformers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="conformer.html" class="btn btn-neutral float-right" title="Conformer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Conformers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -480,7 +490,6 @@ as the harmonic force constant</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

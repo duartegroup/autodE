@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>SMILES Atom Types &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="SMILES Angles" href="angles.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -123,6 +130,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -134,6 +143,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -168,11 +178,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -183,7 +195,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/smiles/atom_types.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -197,14 +209,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.smiles.atom_types">
+  <div class="section" id="module-autode.smiles.atom_types">
 <span id="smiles-atom-types"></span><h1>SMILES Atom Types<a class="headerlink" href="#module-autode.smiles.atom_types" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.smiles.atom_types.AtomType">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">AtomType</code><span class="sig-paren">(</span><em class="sig-param">site_coords</em>, <em class="sig-param">is_chiral=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">site_coords</em>, <em class="sig-param">is_chiral=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">AtomType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">site_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_chiral</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">site_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_chiral</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base atom type class</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -219,15 +231,15 @@ with four different substituents</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.empty_site">
-<code class="sig-name descname">empty_site</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.empty_site" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.empty_site">
+<span class="sig-name descname"><span class="pre">empty_site</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.empty_site" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterator for the coordinate of the next free site</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.empty_site_mr">
-<code class="sig-name descname">empty_site_mr</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">other_coords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.empty_site_mr" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.empty_site_mr">
+<span class="sig-name descname"><span class="pre">empty_site_mr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_coords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.empty_site_mr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the site on this atom that is furthest from all other
 coordinates using a simple 1/r potential where r is the distance from
 the site to the other coordinates</p>
@@ -247,15 +259,15 @@ the site to the other coordinates</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.n_empty_sites">
-<em class="property">property </em><code class="sig-name descname">n_empty_sites</code><a class="headerlink" href="#autode.smiles.atom_types.AtomType.n_empty_sites" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.n_empty_sites">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_empty_sites</span></span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.n_empty_sites" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of empty sites on this template</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.reset_onto">
-<code class="sig-name descname">reset_onto</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">coord</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.reset_onto" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.reset_onto">
+<span class="sig-name descname"><span class="pre">reset_onto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.reset_onto" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset the site coordinates given a set of points. Ignore any points
 located exactly at the origin and, once fitted, remove the sites
 that are coincident with the points</p>
@@ -270,17 +282,17 @@ that the sites need to be reset onto</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.rotate_empty_onto">
-<code class="sig-name descname">rotate_empty_onto</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">coord</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.rotate_empty_onto" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.rotate_empty_onto">
+<span class="sig-name descname"><span class="pre">rotate_empty_onto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.rotate_empty_onto" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotate the site coordinates such that an empty site is coincident
 with the vector from a coordinate to a point, and remove the site
 from the list of available sites</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.rotate_onto">
-<code class="sig-name descname">rotate_onto</code><span class="sig-paren">(</span><em class="sig-param">point</em>, <em class="sig-param">coord</em>, <em class="sig-param">site</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.rotate_onto" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.rotate_onto">
+<span class="sig-name descname"><span class="pre">rotate_onto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.rotate_onto" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotate this atom type so a site is coincident with a point if this
 atom is at a coord i.e.</p>
 <blockquote>
@@ -302,20 +314,20 @@ atom is at a coord i.e.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.AtomType.rotate_randomly">
-<code class="sig-name descname">rotate_randomly</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.rotate_randomly" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.AtomType.rotate_randomly">
+<span class="sig-name descname"><span class="pre">rotate_randomly</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.AtomType.rotate_randomly" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rotate the sites randomly to prevent zero cross products</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.BentAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">BentAtom</code><a class="headerlink" href="#autode.smiles.atom_types.BentAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.BentAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.BentAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.BentAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">BentAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.BentAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.BentAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.BentAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bent atom with sites generated by optimisation of H2O:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Atom</span>
 <span class="o">/</span>
@@ -325,12 +337,12 @@ atom is at a coord i.e.</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.LinearAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">LinearAtom</code><a class="headerlink" href="#autode.smiles.atom_types.LinearAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.LinearAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.LinearAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.LinearAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">LinearAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.LinearAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.LinearAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.LinearAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Linear atom with sites pointing along the x-axis:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;---</span><span class="n">Atom</span><span class="o">---&gt;</span>
 </pre></div>
@@ -344,12 +356,12 @@ Site coordinates are therefore not precisely linear</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.OctahedralAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">OctahedralAtom</code><a class="headerlink" href="#autode.smiles.atom_types.OctahedralAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.OctahedralAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.OctahedralAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.OctahedralAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">OctahedralAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.OctahedralAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.OctahedralAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.OctahedralAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Octahedral atom with sites generated by optimisation of [Co(Cl)6]3-:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>      <span class="o">|</span>
       <span class="o">|</span> <span class="o">/</span>
@@ -362,34 +374,34 @@ Site coordinates are therefore not precisely linear</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.PentagonalBipyramidalAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">PentagonalBipyramidalAtom</code><a class="headerlink" href="#autode.smiles.atom_types.PentagonalBipyramidalAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.PentagonalBipyramidalAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.PentagonalBipyramidalAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.PentagonalBipyramidalAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">PentagonalBipyramidalAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.PentagonalBipyramidalAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.PentagonalBipyramidalAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.PentagonalBipyramidalAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Approximate trigonal pentagonal geometry by optimisation of IF7</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.SquareAntiprismAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">SquareAntiprismAtom</code><a class="headerlink" href="#autode.smiles.atom_types.SquareAntiprismAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.SquareAntiprismAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.SquareAntiprismAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.SquareAntiprismAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">SquareAntiprismAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.SquareAntiprismAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.SquareAntiprismAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.SquareAntiprismAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Approximate square antiprism geometry by optimisation of [XeF8]2-</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.SquarePlanarAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">SquarePlanarAtom</code><a class="headerlink" href="#autode.smiles.atom_types.SquarePlanarAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.SquarePlanarAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.SquarePlanarAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.SquarePlanarAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">SquarePlanarAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.SquarePlanarAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.SquarePlanarAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.SquarePlanarAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Square planar atom with sites generated by optimisation of XeF4:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span>
 <span class="o">--</span> <span class="n">Atom</span> <span class="o">--</span>
@@ -400,12 +412,12 @@ Site coordinates are therefore not precisely linear</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TerminalAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TerminalAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TerminalAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.TerminalAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TerminalAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TerminalAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TerminalAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TerminalAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TerminalAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TerminalAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminal atom with a site pointing along the x-axis:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Atom</span><span class="o">---&gt;</span>
 </pre></div>
@@ -414,12 +426,12 @@ Site coordinates are therefore not precisely linear</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TetrahedralAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TetrahedralAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.TetrahedralAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TetrahedralAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tetrahedral atom with sites generated by optimisation of methane
 (then normalising CH distances to 1 Å):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span>  <span class="o">/</span>
@@ -431,13 +443,13 @@ Site coordinates are therefore not precisely linear</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TetrahedralIAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TetrahedralIAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralIAtom" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralIAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TetrahedralIAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralIAtom" title="Permalink to this definition">¶</a></dt>
 <dd><p>An ‘inverted’ order chiral tetrahedral atom</p>
-<dl class="method">
-<dt id="autode.smiles.atom_types.TetrahedralIAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralIAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralIAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralIAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tetrahedral atom with sites generated by optimisation of methane
 (then normalising CH distances to 1 Å):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span>  <span class="o">/</span>
@@ -447,22 +459,22 @@ Site coordinates are therefore not precisely linear</p>
 </div>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.atom_types.TetrahedralIAtom.empty_site">
-<code class="sig-name descname">empty_site</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralIAtom.empty_site" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralIAtom.empty_site">
+<span class="sig-name descname"><span class="pre">empty_site</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralIAtom.empty_site" title="Permalink to this definition">¶</a></dt>
 <dd><p>Swap the first two yielded site coordinates, effectively swapping
 the chirality this atom’s neighbours are added</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TetrahedralNAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TetrahedralNAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralNAtom" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralNAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TetrahedralNAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralNAtom" title="Permalink to this definition">¶</a></dt>
 <dd><p>A ‘normal’ order chiral tetrahedral atom</p>
-<dl class="method">
-<dt id="autode.smiles.atom_types.TetrahedralNAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralNAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TetrahedralNAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TetrahedralNAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tetrahedral atom with sites generated by optimisation of methane
 (then normalising CH distances to 1 Å):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="o">|</span>  <span class="o">/</span>
@@ -474,12 +486,12 @@ the chirality this atom’s neighbours are added</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TrigonalAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TrigonalAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TrigonalAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.TrigonalAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TrigonalAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TrigonalAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TrigonalAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trigonal atom e.g. [CR3]+ , obtained from optimisation of BH3
 (then normalising  NH distances to 1 Å):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>        <span class="o">/</span>
@@ -490,12 +502,12 @@ the chirality this atom’s neighbours are added</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TrigonalBipyramidalAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TrigonalBipyramidalAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TrigonalBipyramidalAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.TrigonalBipyramidalAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalBipyramidalAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TrigonalBipyramidalAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TrigonalBipyramidalAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalBipyramidalAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TrigonalBipyramidalAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalBipyramidalAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trigonal bipyramidal atom with sites generated by optimisation of
 [Cn(Cl)5]-:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>      <span class="o">|</span>
@@ -509,12 +521,12 @@ the chirality this atom’s neighbours are added</p>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.atom_types.TrigonalPyramidalAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.atom_types.</code><code class="sig-name descname">TrigonalPyramidalAtom</code><a class="headerlink" href="#autode.smiles.atom_types.TrigonalPyramidalAtom" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.atom_types.TrigonalPyramidalAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalPyramidalAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TrigonalPyramidalAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.atom_types.</span></span><span class="sig-name descname"><span class="pre">TrigonalPyramidalAtom</span></span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalPyramidalAtom" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.atom_types.TrigonalPyramidalAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.atom_types.TrigonalPyramidalAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trigonal pyramidal atom e.g. P in PH3, obtained from optimisation of
 ammonia (then normalising  NH distances to 1 Å):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Atom</span>
@@ -525,36 +537,36 @@ ammonia (then normalising  NH distances to 1 Å):</p>
 
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="angles.html" class="btn btn-neutral float-right" title="SMILES Angles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="builder.html" class="btn btn-neutral float-left" title="3D Geometry Builder" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="angles.html" class="btn btn-neutral float-right" title="SMILES Angles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="builder.html" class="btn btn-neutral float-left" title="3D Geometry Builder" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -562,7 +574,6 @@ ammonia (then normalising  NH distances to 1 Å):</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

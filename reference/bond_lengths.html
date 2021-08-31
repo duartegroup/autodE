@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Bonds &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Bond Rearrangement" href="bond_rearrangement.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/bond_lengths.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,21 +199,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.bonds">
+  <div class="section" id="module-autode.bonds">
 <span id="bonds"></span><h1>Bonds<a class="headerlink" href="#module-autode.bonds" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.bonds.BreakingBond">
-<em class="property">class </em><code class="sig-prename descclassname">autode.bonds.</code><code class="sig-name descname">BreakingBond</code><span class="sig-paren">(</span><em class="sig-param">atom_indexes</em>, <em class="sig-param">species</em>, <em class="sig-param">final_species=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.BreakingBond" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.bonds.BreakingBond.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atom_indexes</em>, <em class="sig-param">species</em>, <em class="sig-param">final_species=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.BreakingBond.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.bonds.BreakingBond">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">BreakingBond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indexes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.BreakingBond" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.bonds.BreakingBond.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indexes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.BreakingBond.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Form a breaking bond with current and final distances</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>atom_indexes</strong> (<em>tuple</em><em>(</em><em>int</em><em>)</em>) – </p></li>
 <li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>final_species</strong> (<em>autode.species.Species | None</em>) – </p></li>
+<li><p><strong>final_species</strong> (<em>autode.species.Species</em><em> | </em><em>None</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -209,12 +221,12 @@
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.bonds.FormingBond">
-<em class="property">class </em><code class="sig-prename descclassname">autode.bonds.</code><code class="sig-name descname">FormingBond</code><span class="sig-paren">(</span><em class="sig-param">atom_indexes</em>, <em class="sig-param">species</em>, <em class="sig-param">final_species=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.FormingBond" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.bonds.FormingBond.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atom_indexes</em>, <em class="sig-param">species</em>, <em class="sig-param">final_species=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.FormingBond.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.bonds.FormingBond">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">FormingBond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indexes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.FormingBond" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.bonds.FormingBond.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indexes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.FormingBond.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Forming bond with current and final distances</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -228,12 +240,12 @@
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.bonds.ScannedBond">
-<em class="property">class </em><code class="sig-prename descclassname">autode.bonds.</code><code class="sig-name descname">ScannedBond</code><span class="sig-paren">(</span><em class="sig-param">atom_indexes</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.ScannedBond" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.bonds.ScannedBond.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">atom_indexes</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.ScannedBond.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.bonds.ScannedBond">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">ScannedBond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indexes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.ScannedBond" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.bonds.ScannedBond.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_indexes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.ScannedBond.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bond with a current and final distance which will be scanned over</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -245,17 +257,17 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bonds.ScannedBond.dr">
-<em class="property">property </em><code class="sig-name descname">dr</code><a class="headerlink" href="#autode.bonds.ScannedBond.dr" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.bonds.ScannedBond.dr">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">dr</span></span><a class="headerlink" href="#autode.bonds.ScannedBond.dr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Change in distance for this bond (∆r / Å)</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bonds.get_avg_bond_length">
-<code class="sig-prename descclassname">autode.bonds.</code><code class="sig-name descname">get_avg_bond_length</code><span class="sig-paren">(</span><em class="sig-param">atom_i_label</em>, <em class="sig-param">atom_j_label</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.get_avg_bond_length" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bonds.get_avg_bond_length">
+<span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">get_avg_bond_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_i_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_j_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.get_avg_bond_length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the average bond length between two atoms with their labels (atomic
 symbols) e.g.</p>
 <p>(atom_i_label=’C’, atom_j_label =’H’) -&gt; 1.1 Å
@@ -277,9 +289,9 @@ symbols) e.g.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bonds.get_ideal_bond_length_matrix">
-<code class="sig-prename descclassname">autode.bonds.</code><code class="sig-name descname">get_ideal_bond_length_matrix</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.get_ideal_bond_length_matrix" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bonds.get_ideal_bond_length_matrix">
+<span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">get_ideal_bond_length_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.get_ideal_bond_length_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populate a n_atoms x n_atoms matrix of ideal bond lengths. All
 non-bonded atoms will have zero ideal bond lengths</p>
 <dl class="field-list simple">
@@ -302,36 +314,36 @@ non-bonded atoms will have zero ideal bond lengths</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="bond_rearrangement.html" class="btn btn-neutral float-right" title="Bond Rearrangement" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="atoms.html" class="btn btn-neutral float-left" title="Atoms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="bond_rearrangement.html" class="btn btn-neutral float-right" title="Bond Rearrangement" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="atoms.html" class="btn btn-neutral float-left" title="Atoms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -339,7 +351,6 @@ non-bonded atoms will have zero ideal bond lengths</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

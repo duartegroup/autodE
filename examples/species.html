@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Species &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Molecules" href="molecules.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -94,6 +100,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Species</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#rotation-and-translation">Rotation and Translation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#distances">Distances</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#solvents">Solvents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#species-from-files">Species from Files</a></li>
 </ul>
@@ -106,6 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochem.html">Thermochemistry</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
@@ -115,6 +123,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -149,11 +158,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
@@ -162,7 +173,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/examples/species.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -176,7 +187,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="species">
+  <div class="section" id="species">
 <h1>Species<a class="headerlink" href="#species" title="Permalink to this headline">¶</a></h1>
 <p><strong>autodE</strong> provides Molecule classes built from a base
 <a class="reference internal" href="../reference/species/species.html#species"><span class="std std-ref">Species</span></a> class. A Species needs to be initialised from
@@ -197,17 +208,23 @@ a species i.e.</p>
 </pre></div>
 </div>
 <p>Atoms contain a coordinate as a numpy array (shape = (3,), initialised at the
-origin) and a label</p>
+origin) and an a few properties</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="p">,</span> <span class="n">atom2</span> <span class="o">=</span> <span class="n">h2</span><span class="o">.</span><span class="n">atoms</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span>
 <span class="go">[H, 0.0000, 0.0000, 0.0000]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">coord</span>
 <span class="go">array([0., 0., 0.])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">label</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">atomic_number</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">atomic_symbol</span>
 <span class="go">&#39;H&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">group</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atom1</span><span class="o">.</span><span class="n">period</span>
+<span class="go">1</span>
 </pre></div>
 </div>
-<section id="rotation-and-translation">
+<div class="section" id="rotation-and-translation">
 <h2>Rotation and Translation<a class="headerlink" href="#rotation-and-translation" title="Permalink to this headline">¶</a></h2>
 <p>Atoms can be translated and rotated e.g. to shift the first hydrogen atom
 from the origin along 1 Å in the x axis then rotate in the z-axis</p>
@@ -234,8 +251,26 @@ from the origin along 1 Å in the x axis then rotate in the z-axis</p>
 <span class="go">[[H, -1.0000, 0.0000, 0.0000], [H, 0.0000, 0.0000, 0.0000]]</span>
 </pre></div>
 </div>
-</section>
-<section id="solvents">
+</div>
+<div class="section" id="distances">
+<h2>Distances<a class="headerlink" href="#distances" title="Permalink to this headline">¶</a></h2>
+<p>Distances between atom pairs can be calculated, where atoms are indexed from 0. To
+calculate the bond length for this species</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">Distance(1.0 Å)</span>
+</pre></div>
+</div>
+<p>Distances support conversion into other units (bohr, nano/pico-meters), as well as
+all standard mathematical operations</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h2</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;a0&#39;</span><span class="p">)</span>
+<span class="go">Distance(1.88973 bohr)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span> <span class="o">*</span> <span class="n">h2</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">Distance(2.0 Å)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="solvents">
 <h2>Solvents<a class="headerlink" href="#solvents" title="Permalink to this headline">¶</a></h2>
 <p>Species also support an solvent which need not be specified for a species in
 the gas phase</p>
@@ -252,14 +287,14 @@ the gas phase</p>
 <p>Given a solvent name string a <a class="reference internal" href="../reference/solvent/solvents.html#solvents"><span class="std std-ref">Solvent</span></a> is added as an attribute
 to the species. A Solvent contains a set of aliases and names of the implicit
 solvent in different electronic structure theory packages e.g.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">solvent</span><span class="o">.</span><span class="n">g09</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">solvent</span><span class="o">.</span><span class="n">g09</span>
 <span class="go">&#39;Dichloromethane&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">solvent</span><span class="o">.</span><span class="n">xtb</span>
 <span class="go">&#39;CH2Cl2&#39;</span>
 </pre></div>
 </div>
-</section>
-<section id="species-from-files">
+</div>
+<div class="section" id="species-from-files">
 <h2>Species from Files<a class="headerlink" href="#species-from-files" title="Permalink to this headline">¶</a></h2>
 <p>Species may be initialised from <a class="reference external" href="https://en.wikipedia.org/wiki/XYZ_file_format/">xyz files</a>
 using the io module</p>
@@ -273,39 +308,39 @@ using the io module</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Only .xyz files are supported currently. Other molecular file formats can
-be converted to .xyz with <a class="reference external" href="https://anaconda.org/openbabel/openbabel/">openbabel</a></p>
+be converted to .xyz with <a class="reference external" href="https://anaconda.org/openbabel/openbabel/">openbabel</a>.</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="molecules.html" class="btn btn-neutral float-right" title="Molecules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="molecules.html" class="btn btn-neutral float-right" title="Molecules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -313,7 +348,6 @@ be converted to .xyz with <a class="reference external" href="https://anaconda.o
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

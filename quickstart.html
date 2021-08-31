@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Quick Start &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configuration" href="config.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -103,6 +109,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -137,18 +144,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Quick Start</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -162,12 +171,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="quick-start">
+  <div class="section" id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
-<p>Python scripts for this and other examples can be found
+<p>Python scripts for these and other examples can be found
 <a class="reference external" href="https://github.com/duartegroup/autodE/tree/master/examples">here</a>.</p>
 <hr class="docutils" />
-<section id="diels-alder">
+<div class="section" id="diels-alder">
 <h2>Diels Alder<a class="headerlink" href="#diels-alder" title="Permalink to this headline">¶</a></h2>
 <img alt="_images/diels_alder.png" src="_images/diels_alder.png" />
 <p>For the simple [4+2] Diels-Alder reaction between ethene and butadiene the
@@ -181,24 +190,25 @@ using 8 CPU cores in around 10 minutes or so using ORCA/XTB.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rxn</span><span class="o">.</span><span class="n">calculate_reaction_profile</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>A <em>DA/</em> directory should be created where electronic structure calculations have
-been performed and an image of the reaction profile saved in the current working directory.</p>
-<img alt="_images/diels_alder_quickstart.png" src="_images/diels_alder_quickstart.png" />
-</section>
+<p>A directory (<em>DA/</em>) will be created where electronic structure calculations have
+been performed and an image of the reaction profile saved in the current working directory. See below:</p>
+<iframe width="700" height="394"
+ src="https://www.youtube.com/embed/jWKbtR51zzc"
+ title="YouTube video player" frameborder="0"
+ allow="accelerometer; autoplay; clipboard-write; encrypted-media;
+        gyroscope; picture-in-picture"
+ allowfullscreen></iframe></div>
 <hr class="docutils" />
-<section id="sn2">
+<div class="section" id="sn2">
 <h2>S<sub>N</sub>2<a class="headerlink" href="#sn2" title="Permalink to this headline">¶</a></h2>
-<img alt="_images/sn2_image.png" src="_images/sn2_image.png" />
+<a class="reference internal image-reference" href="_images/sn2_image.png"><img alt="_images/sn2_image.png" class="align-center" src="_images/sn2_image.png" style="width: 550px;" /></a>
 <p>Considering a reaction profile for the S<sub>N</sub>2 reaction between F- and
 methyl chloride in water in more depth we have the smiles strings for the
 reactant and products generated from Chemdraw (by selecting a
 molecule → Edit → Copy As → SMILES):</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Fluoride : [F-]</p>
-<p>MeCl     : CCl</p>
-<p>Chloride : [Cl-]</p>
-<p>MeF      : CF</p>
+<p><strong>Fluoride</strong> : [F-];  <strong>MeCl</strong> : CCl;  <strong>Chloride</strong>: [Cl-];  <strong>MeF</strong>: CF</p>
 </div>
 <p>Import the required objects and set the number of cores that are available for
 this calculation</p>
@@ -233,37 +243,37 @@ PBE0-D3BJ/def2-SVP and single points calculations performed at
 PBE0-D3BJ/def2-TZVP. To use other methods see the
 <a class="reference internal" href="config.html"><span class="doc">config page</span></a>.</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="config.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="install.html" class="btn btn-neutral float-left" title="Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="config.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="install.html" class="btn btn-neutral float-left" title="Install" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -271,7 +281,6 @@ PBE0-D3BJ/def2-TZVP. To use other methods see the
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

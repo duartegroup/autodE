@@ -1,42 +1,47 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Utilities &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Troubleshooting" href="../troubleshooting.html" />
+    <link rel="next" title="Values" href="values.html" />
     <link rel="prev" title="Units" href="units.html" /> 
 </head>
 
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/utils.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,75 +199,74 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.utils">
+  <div class="section" id="module-autode.utils">
 <span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-autode.utils" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.utils.NoDaemonContext">
-<em class="property">class </em><code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">NoDaemonContext</code><a class="headerlink" href="#autode.utils.NoDaemonContext" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="autode.utils.NoDaemonContext.Process">
-<code class="sig-name descname">Process</code><a class="headerlink" href="#autode.utils.NoDaemonContext.Process" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="#autode.utils.NoDaemonProcess" title="autode.utils.NoDaemonProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">NoDaemonProcess</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.utils.NoDaemonContext">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">NoDaemonContext</span></span><a class="headerlink" href="#autode.utils.NoDaemonContext" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="autode.utils.NoDaemonContext.Process">
+<span class="sig-name descname"><span class="pre">Process</span></span><a class="headerlink" href="#autode.utils.NoDaemonContext.Process" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#autode.utils.NoDaemonProcess" title="autode.utils.NoDaemonProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">autode.utils.NoDaemonProcess</span></code></a></p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.utils.NoDaemonPool">
-<em class="property">class </em><code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">NoDaemonPool</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.utils.NoDaemonPool">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">NoDaemonPool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subclass of Pool to allow child multiprocessing</p>
-<dl class="method">
-<dt id="autode.utils.NoDaemonPool.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.utils.NoDaemonPool.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.utils.NoDaemonProcess">
-<em class="property">class </em><code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">NoDaemonProcess</code><span class="sig-paren">(</span><em class="sig-param">group=None</em>, <em class="sig-param">target=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">args=()</em>, <em class="sig-param">kwargs={}</em>, <em class="sig-param">*</em>, <em class="sig-param">daemon=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonProcess" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.utils.NoDaemonProcess.daemon">
-<em class="property">property </em><code class="sig-name descname">daemon</code><a class="headerlink" href="#autode.utils.NoDaemonProcess.daemon" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.utils.NoDaemonProcess">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">NoDaemonProcess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daemon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonProcess" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="autode.utils.NoDaemonProcess.daemon">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">daemon</span></span><a class="headerlink" href="#autode.utils.NoDaemonProcess.daemon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether process is a daemon</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.log_time">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">log_time</code><span class="sig-paren">(</span><em class="sig-param">prefix='Executed in: '</em>, <em class="sig-param">units='ms'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.log_time" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.log_time">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">log_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Executed</span> <span class="pre">in:</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ms'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.log_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function requiring a number of atoms to run</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.requires_atoms">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.requires_atoms">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">requires_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function requiring a number of atoms to run</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.requires_conformers">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_conformers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_conformers" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.requires_conformers">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">requires_conformers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_conformers" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function requiring the species to have a list of conformers</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.requires_graph">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_graph" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.requires_graph">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">requires_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function requiring a number of atoms to run</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.requires_output">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">requires_output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_output" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.requires_output">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">requires_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.requires_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function requiring an output file and output file lines</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.run_external">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">run_external</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">output_filename</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.run_external" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.run_external">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">run_external</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.run_external" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standard method to run a EST calculation with subprocess writing the
 output to the calculation output filename</p>
 <dl class="field-list simple">
@@ -268,9 +279,9 @@ output to the calculation output filename</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.run_external_monitored">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">run_external_monitored</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">output_filename</em>, <em class="sig-param">break_word='MPI_ABORT'</em>, <em class="sig-param">break_words=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.run_external_monitored" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.run_external_monitored">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">run_external_monitored</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">break_word</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MPI_ABORT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">break_words</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.run_external_monitored" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run an external process monitoring the standard output and error for a
 word that will terminate the process</p>
 <dl class="field-list simple">
@@ -283,15 +294,15 @@ word that will terminate the process</p>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>break_word</strong> (<em>str</em>) – String that if found will terminate the process</p></li>
-<li><p><strong>break_words</strong> (<em>list</em><em>(</em><em>str</em><em>) </em><em>| None</em>) – List of break_word-s</p></li>
+<li><p><strong>break_words</strong> (<em>list</em><em>(</em><em>str</em><em>) </em><em>| </em><em>None</em>) – List of break_word-s</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.timeout">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">timeout</code><span class="sig-paren">(</span><em class="sig-param">seconds</em>, <em class="sig-param">return_value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.timeout" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.timeout">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">timeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.timeout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function dectorator that times-out after a number of seconds</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -309,15 +320,15 @@ word that will terminate the process</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.work_in">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">work_in</code><span class="sig-paren">(</span><em class="sig-param">dir_ext</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.work_in" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.work_in">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">work_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dir_ext</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.work_in" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a function in a different directory</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.utils.work_in_tmp_dir">
-<code class="sig-prename descclassname">autode.utils.</code><code class="sig-name descname">work_in_tmp_dir</code><span class="sig-paren">(</span><em class="sig-param">filenames_to_copy</em>, <em class="sig-param">kept_file_exts</em>, <em class="sig-param">use_ll_tmp=False</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.work_in_tmp_dir" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.work_in_tmp_dir">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">work_in_tmp_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenames_to_copy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kept_file_exts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_ll_tmp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.work_in_tmp_dir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a function in a temporary directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -330,36 +341,36 @@ the temp dir</p></li>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="units.html" class="btn btn-neutral float-left" title="Units" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="values.html" class="btn btn-neutral float-right" title="Values" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="units.html" class="btn btn-neutral float-left" title="Units" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -367,7 +378,6 @@ the temp dir</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

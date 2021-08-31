@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>SMILES Base &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Solvent" href="../solvent/index.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -123,6 +130,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -134,6 +143,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -168,11 +178,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -183,7 +195,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/smiles/base.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -197,15 +209,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.smiles.base">
+  <div class="section" id="module-autode.smiles.base">
 <span id="smiles-base"></span><h1>SMILES Base<a class="headerlink" href="#module-autode.smiles.base" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.smiles.base.RingBond">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.base.</code><code class="sig-name descname">RingBond</code><span class="sig-paren">(</span><em class="sig-param">idx_i</em>, <em class="sig-param">symbol</em>, <em class="sig-param">bond_idx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.base.RingBond">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.base.</span></span><span class="sig-name descname"><span class="pre">RingBond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dangling bond created when a ring is found</p>
-<dl class="method">
-<dt id="autode.smiles.base.RingBond.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">idx_i</em>, <em class="sig-param">symbol</em>, <em class="sig-param">bond_idx=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.RingBond.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialise the bond with a non-existent large index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -215,20 +227,20 @@
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>bond_idx</strong> (<em>None | int</em>) – Index for this bond in the bond list</p>
+<dd class="field-even"><p><strong>bond_idx</strong> (<em>None</em><em> | </em><em>int</em>) – Index for this bond in the bond list</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.RingBond.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><em class="sig-param">idx</em>, <em class="sig-param">symbol</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond.close" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.RingBond.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond.close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Close this bond using an atom index</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.RingBond.in_ring">
-<code class="sig-name descname">in_ring</code><span class="sig-paren">(</span><em class="sig-param">rings_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond.in_ring" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.RingBond.in_ring">
+<span class="sig-name descname"><span class="pre">in_ring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rings_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.RingBond.in_ring" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this bond a constituent of a ring</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -245,13 +257,13 @@
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.base.SMILESAtom">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.base.</code><code class="sig-name descname">SMILESAtom</code><span class="sig-paren">(</span><em class="sig-param">label: str</em>, <em class="sig-param">stereochem: autode.smiles.base.SMILESStereoChem = &lt;SMILESStereoChem.NONE: 0&gt;</em>, <em class="sig-param">n_hydrogens: Union[None</em>, <em class="sig-param">int] = None</em>, <em class="sig-param">charge: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESAtom" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.base.</span></span><span class="sig-name descname"><span class="pre">SMILESAtom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stereochem</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#autode.smiles.base.SMILESStereoChem" title="autode.smiles.base.SMILESStereoChem"><span class="pre">autode.smiles.base.SMILESStereoChem</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">SMILESStereoChem.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_hydrogens</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESAtom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Atom in a SMILES string</p>
-<dl class="method">
-<dt id="autode.smiles.base.SMILESAtom.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">label: str</em>, <em class="sig-param">stereochem: autode.smiles.base.SMILESStereoChem = &lt;SMILESStereoChem.NONE: 0&gt;</em>, <em class="sig-param">n_hydrogens: Union[None</em>, <em class="sig-param">int] = None</em>, <em class="sig-param">charge: int = 0</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stereochem</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#autode.smiles.base.SMILESStereoChem" title="autode.smiles.base.SMILESStereoChem"><span class="pre">autode.smiles.base.SMILESStereoChem</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">SMILESStereoChem.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_hydrogens</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>SMILES atom initialised at the origin</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -259,7 +271,7 @@
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>n_hydrogens</strong> (<em>int | None</em>) – Number of hydrogens, None means unset and
+<li><p><strong>n_hydrogens</strong> (<em>int</em><em> | </em><em>None</em>) – Number of hydrogens, None means unset and
 should be determined implicitly</p></li>
 <li><p><strong>stereochem</strong> (<a class="reference internal" href="#autode.smiles.base.SMILESStereoChem" title="autode.smiles.base.SMILESStereoChem"><em>SMILESStereoChem</em></a>) – </p></li>
 <li><p><strong>charge</strong> (<em>int</em>) – Formal charge on this atom</p></li>
@@ -268,45 +280,70 @@ should be determined implicitly</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESAtom.has_stereochem">
-<em class="property">property </em><code class="sig-name descname">has_stereochem</code><a class="headerlink" href="#autode.smiles.base.SMILESAtom.has_stereochem" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.has_stereochem">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">has_stereochem</span></span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.has_stereochem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does this atom have associated stereochemistry?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESAtom.invert_stereochem">
-<code class="sig-name descname">invert_stereochem</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.invert_stereochem" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.invert_stereochem">
+<span class="sig-name descname"><span class="pre">invert_stereochem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.invert_stereochem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invert the stereochemistry at this centre</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESAtom.is_aromatic">
-<em class="property">property </em><code class="sig-name descname">is_aromatic</code><a class="headerlink" href="#autode.smiles.base.SMILESAtom.is_aromatic" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.is_aromatic">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_aromatic</span></span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.is_aromatic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this atom ‘aromatic’?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESAtom.is_shifted">
-<em class="property">property </em><code class="sig-name descname">is_shifted</code><a class="headerlink" href="#autode.smiles.base.SMILESAtom.is_shifted" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.is_pi">
+<span class="sig-name descname"><span class="pre">is_pi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">valency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.is_pi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if this atom is a ‘π-atom’ i.e. is unsaturated. Only
+approximate! Example:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">is_pi</span><span class="p">(</span><span class="n">valency</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="kc">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">is_pi</span><span class="p">(</span><span class="n">valency</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="kc">False</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>valency</strong> (<em>int</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.is_shifted">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_shifted</span></span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.is_shifted" title="Permalink to this definition">¶</a></dt>
 <dd><p>Has this atom been shifted from the origin?</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESAtom.n_bonded">
-<em class="property">property </em><code class="sig-name descname">n_bonded</code><a class="headerlink" href="#autode.smiles.base.SMILESAtom.n_bonded" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESAtom.n_bonded">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_bonded</span></span><a class="headerlink" href="#autode.smiles.base.SMILESAtom.n_bonded" title="Permalink to this definition">¶</a></dt>
 <dd><p>How many atoms are bonded to this one?</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.base.SMILESBond">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.base.</code><code class="sig-name descname">SMILESBond</code><span class="sig-paren">(</span><em class="sig-param">idx_i: int</em>, <em class="sig-param">idx_j: int</em>, <em class="sig-param">symbol: str</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.base.</span></span><span class="sig-name descname"><span class="pre">SMILESBond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bond in a SMILES string</p>
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">idx_i: int</em>, <em class="sig-param">idx_j: int</em>, <em class="sig-param">symbol: str</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bond between two atoms from a SMILES string, sorted from low to high</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -319,21 +356,21 @@ should be determined implicitly</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.atom_indexes">
-<em class="property">property </em><code class="sig-name descname">atom_indexes</code><a class="headerlink" href="#autode.smiles.base.SMILESBond.atom_indexes" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.atom_indexes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">atom_indexes</span></span><a class="headerlink" href="#autode.smiles.base.SMILESBond.atom_indexes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Atom indexes for the atoms in this bond</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.distance">
-<code class="sig-name descname">distance</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.distance" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.distance">
+<span class="sig-name descname"><span class="pre">distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Distance of this bond (Å) given a set of atoms</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.in_ring">
-<code class="sig-name descname">in_ring</code><span class="sig-paren">(</span><em class="sig-param">rings_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.in_ring" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.in_ring">
+<span class="sig-name descname"><span class="pre">in_ring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rings_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.in_ring" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this bond a constituent of a ring</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -348,9 +385,9 @@ should be determined implicitly</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.is_cis">
-<code class="sig-name descname">is_cis</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.is_cis" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.is_cis">
+<span class="sig-name descname"><span class="pre">is_cis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.is_cis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this bond a cis double bond?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -359,9 +396,9 @@ should be determined implicitly</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.is_trans">
-<code class="sig-name descname">is_trans</code><span class="sig-paren">(</span><em class="sig-param">atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.is_trans" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.is_trans">
+<span class="sig-name descname"><span class="pre">is_trans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBond.is_trans" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this bond a trans double bond?</p>
 <p>Undefined stereochemistry defaults to trans</p>
 <dl class="field-list simple">
@@ -371,38 +408,38 @@ should be determined implicitly</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBond.symbol">
-<em class="property">property </em><code class="sig-name descname">symbol</code><a class="headerlink" href="#autode.smiles.base.SMILESBond.symbol" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBond.symbol">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">symbol</span></span><a class="headerlink" href="#autode.smiles.base.SMILESBond.symbol" title="Permalink to this definition">¶</a></dt>
 <dd><p>SMILES symbol for this bond e.g. # for a triple bond</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.base.SMILESBonds">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.base.</code><code class="sig-name descname">SMILESBonds</code><a class="headerlink" href="#autode.smiles.base.SMILESBonds" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.smiles.base.SMILESBonds.append">
-<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">bond: autode.smiles.base.SMILESBond</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.append" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBonds">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.base.</span></span><span class="sig-name descname"><span class="pre">SMILESBonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBonds.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#autode.smiles.base.SMILESBond" title="autode.smiles.base.SMILESBond"><span class="pre">autode.smiles.base.SMILESBond</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.append" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add another SMILESBond to this list</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBonds.first_involving">
-<code class="sig-name descname">first_involving</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.first_involving" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBonds.first_involving">
+<span class="sig-name descname"><span class="pre">first_involving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.first_involving" title="Permalink to this definition">¶</a></dt>
 <dd><p>First bond that includes some atom indexes</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBonds.insert">
-<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param">index: int</em>, <em class="sig-param">bond: autode.smiles.base.SMILESBond</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.insert" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBonds.insert">
+<span class="sig-name descname"><span class="pre">insert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#autode.smiles.base.SMILESBond" title="autode.smiles.base.SMILESBond"><span class="pre">autode.smiles.base.SMILESBond</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert a bond into this list if it does not already exist</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBonds.involving">
-<code class="sig-name descname">involving</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.involving" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBonds.involving">
+<span class="sig-name descname"><span class="pre">involving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.involving" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all the bonds involving a particular atom (given as a index)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -417,75 +454,75 @@ should be determined implicitly</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.base.SMILESBonds.n_involving">
-<code class="sig-name descname">n_involving</code><span class="sig-paren">(</span><em class="sig-param">idx</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.n_involving" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESBonds.n_involving">
+<span class="sig-name descname"><span class="pre">n_involving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESBonds.n_involving" title="Permalink to this definition">¶</a></dt>
 <dd><p>How many bonds does an atom (given as a index) have?</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="autode.smiles.base.SMILESStereoChem">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.base.</code><code class="sig-name descname">SMILESStereoChem</code><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESStereoChem">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.base.</span></span><span class="sig-name descname"><span class="pre">SMILESStereoChem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem" title="Permalink to this definition">¶</a></dt>
 <dd><p>An enumeration.</p>
-<dl class="attribute">
-<dt id="autode.smiles.base.SMILESStereoChem.ALKENE_DOWN">
-<code class="sig-name descname">ALKENE_DOWN</code><em class="property"> = -2</em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.ALKENE_DOWN" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESStereoChem.ALKENE_DOWN">
+<span class="sig-name descname"><span class="pre">ALKENE_DOWN</span></span><em class="property"> <span class="pre">=</span> <span class="pre">-2</span></em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.ALKENE_DOWN" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.smiles.base.SMILESStereoChem.ALKENE_UP">
-<code class="sig-name descname">ALKENE_UP</code><em class="property"> = 2</em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.ALKENE_UP" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESStereoChem.ALKENE_UP">
+<span class="sig-name descname"><span class="pre">ALKENE_UP</span></span><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.ALKENE_UP" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.smiles.base.SMILESStereoChem.NONE">
-<code class="sig-name descname">NONE</code><em class="property"> = 0</em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.NONE" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESStereoChem.NONE">
+<span class="sig-name descname"><span class="pre">NONE</span></span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.NONE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.smiles.base.SMILESStereoChem.TET_INVERTED">
-<code class="sig-name descname">TET_INVERTED</code><em class="property"> = -1</em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.TET_INVERTED" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESStereoChem.TET_INVERTED">
+<span class="sig-name descname"><span class="pre">TET_INVERTED</span></span><em class="property"> <span class="pre">=</span> <span class="pre">-1</span></em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.TET_INVERTED" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="autode.smiles.base.SMILESStereoChem.TET_NORMAL">
-<code class="sig-name descname">TET_NORMAL</code><em class="property"> = 1</em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.TET_NORMAL" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.smiles.base.SMILESStereoChem.TET_NORMAL">
+<span class="sig-name descname"><span class="pre">TET_NORMAL</span></span><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#autode.smiles.base.SMILESStereoChem.TET_NORMAL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../solvent/index.html" class="btn btn-neutral float-right" title="Solvent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="angles.html" class="btn btn-neutral float-left" title="SMILES Angles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="../solvent/index.html" class="btn btn-neutral float-right" title="Solvent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="angles.html" class="btn btn-neutral float-left" title="SMILES Angles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -493,7 +530,6 @@ should be determined implicitly</p></li>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

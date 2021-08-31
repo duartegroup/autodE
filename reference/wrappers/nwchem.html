@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>NWChem &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="ORCA" href="orca.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Wrappers</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="base.html">Base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="g09.html">Gaussian09</a></li>
@@ -124,6 +131,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -135,6 +144,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -169,11 +179,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -184,7 +196,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/wrappers/nwchem.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -198,27 +210,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.wrappers.NWChem">
+  <div class="section" id="module-autode.wrappers.NWChem">
 <span id="nwchem"></span><h1>NWChem<a class="headerlink" href="#module-autode.wrappers.NWChem" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.wrappers.NWChem.NWChem">
-<em class="property">class </em><code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">NWChem</code><a class="headerlink" href="#autode.wrappers.NWChem.NWChem" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Arguments:
-name (str): wrapper name. ALSO the name of the executable
-path (str): absolute path to the executable
-keywords_set (autode.wrappers.keywords.KeywordsSet):
-implicit_solvation_type (autode.wrappers.</p>
-<blockquote>
-<div><p>keywords.ImplicitSolventType):</p>
-</div></blockquote>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.wrappers.NWChem.</span></span><span class="sig-name descname"><span class="pre">NWChem</span></span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – wrapper name. ALSO the name of the executable</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – absolute path to the executable</p></li>
+<li><p><strong>keywords_set</strong> (<a class="reference internal" href="keywords.html#autode.wrappers.keywords.KeywordsSet" title="autode.wrappers.keywords.KeywordsSet"><em>autode.wrappers.keywords.KeywordsSet</em></a>) – </p></li>
+<li><p><strong>(</strong><strong>autode.wrappers.</strong> (<em>implicit_solvation_type</em>) – keywords.ImplicitSolventType):</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.calculation_terminated_normally">
-<code class="sig-name descname">calculation_terminated_normally</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.calculation_terminated_normally">
+<span class="sig-name descname"><span class="pre">calculation_terminated_normally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.calculation_terminated_normally" title="Permalink to this definition">¶</a></dt>
 <dd><p>Did the calculation terminate correctly?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -233,9 +247,9 @@ implicit_solvation_type (autode.wrappers.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.execute">
-<code class="sig-name descname">execute</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.execute" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the calculation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -244,23 +258,23 @@ implicit_solvation_type (autode.wrappers.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.generate_input">
-<code class="sig-name descname">generate_input</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.generate_input" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.generate_input">
+<span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.generate_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate any input files required</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calculation</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>molecule</strong> (<em>any</em>) – </p></li>
+<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
+<li><p><strong>molecule</strong> (<em>autode.species.Species</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_atomic_charges">
-<code class="sig-name descname">get_atomic_charges</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_atomic_charges">
+<span class="sig-name descname"><span class="pre">get_atomic_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_atomic_charges" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>e.g.</dt><dd><p>Atom              Coordinates                           Charge</p>
 <blockquote>
@@ -272,10 +286,10 @@ implicit_solvation_type (autode.wrappers.</p>
 . .       .            .            .          .</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_energy">
-<code class="sig-name descname">get_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the potential energy</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_energy">
+<span class="sig-name descname"><span class="pre">get_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the potential energy in electronic Hartrees</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -284,31 +298,17 @@ implicit_solvation_type (autode.wrappers.</p>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_enthalpy">
-<code class="sig-name descname">get_enthalpy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_enthalpy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the free energy (enthalpy)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_final_atoms">
-<code class="sig-name descname">get_final_atoms</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_final_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_final_atoms">
+<span class="sig-name descname"><span class="pre">get_final_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_final_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -326,10 +326,10 @@ implicit_solvation_type (autode.wrappers.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_free_energy">
-<code class="sig-name descname">get_free_energy</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_free_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the free energy (G)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_gradients">
+<span class="sig-name descname"><span class="pre">get_gradients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the gradient matrix n_atomsx3 in Ha Å^-1</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -338,15 +338,31 @@ implicit_solvation_type (autode.wrappers.</p>
 <dd class="field-even"><p></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float | None)</p>
+<dd class="field-odd"><p>(np.ndarray)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_gradients">
-<code class="sig-name descname">get_gradients</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_hessian">
+<span class="sig-name descname"><span class="pre">get_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the un-mass weighted Hessian matrix from the calculation. Block
+looks like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="o">----------------------------------------------------</span>
+<span class="n">MASS</span><span class="o">-</span><span class="n">WEIGHTED</span> <span class="n">NUCLEAR</span> <span class="n">HESSIAN</span> <span class="p">(</span><span class="n">Hartree</span><span class="o">/</span><span class="n">Bohr</span><span class="o">/</span><span class="n">Bohr</span><span class="o">/</span><span class="n">Kamu</span><span class="p">)</span>
+<span class="o">----------------------------------------------------</span>
+
+
+             <span class="mi">1</span>            <span class="mi">2</span>           <span class="o">.....</span>
+ <span class="o">-----</span> <span class="o">-----</span> <span class="o">-----</span> <span class="o">-----</span> <span class="o">-----</span>
+  <span class="mi">1</span>    <span class="mf">4.25381</span><span class="n">D</span><span class="o">+</span><span class="mi">01</span>
+  <span class="mi">2</span>   <span class="o">-</span><span class="mf">8.96428</span><span class="n">D</span><span class="o">-</span><span class="mi">10</span> <span class="o">-</span><span class="mf">4.68356</span><span class="n">D</span><span class="o">-</span><span class="mi">04</span>
+  <span class="o">.</span>        <span class="o">.</span>             <span class="o">.</span>           <span class="o">.</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
@@ -358,81 +374,51 @@ implicit_solvation_type (autode.wrappers.</p>
 <dd class="field-odd"><p>(np.ndarray)</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>Raisese:</dt><dd><p>(autode.exceptions.CouldNotGetProperty)</p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_imaginary_freqs">
-<code class="sig-name descname">get_imaginary_freqs</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_imaginary_freqs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(float))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_input_filename">
-<code class="sig-name descname">get_input_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_input_filename" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_input_filename">
+<span class="sig-name descname"><span class="pre">get_input_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_input_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_normal_mode_displacements">
-<code class="sig-name descname">get_normal_mode_displacements</code><span class="sig-paren">(</span><em class="sig-param">calc</em>, <em class="sig-param">mode_number</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_normal_mode_displacements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function implemented in individual child classes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>mode_number</strong> (<em>int</em>) – Number of the normal mode to get the</p></li>
-<li><p><strong>along 6 == first imaginary mode</strong> (<em>displacements</em>) – </p></li>
-</ul>
-</dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p>Name of the input file</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.ndarray)</p>
+<dd class="field-odd"><p>(str)</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_output_filename">
-<code class="sig-name descname">get_output_filename</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_output_filename" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_output_filename">
+<span class="sig-name descname"><span class="pre">get_output_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_output_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the output filename from the calculation name e.g. filename.out</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Name of the output file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.get_version">
-<code class="sig-name descname">get_version</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_version" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.get_version">
+<span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.get_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the NWChem version from the output file</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.optimisation_converged">
-<code class="sig-name descname">optimisation_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.optimisation_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.optimisation_converged">
+<span class="sig-name descname"><span class="pre">optimisation_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.optimisation_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -447,9 +433,9 @@ implicit_solvation_type (autode.wrappers.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.wrappers.NWChem.NWChem.optimisation_nearly_converged">
-<code class="sig-name descname">optimisation_nearly_converged</code><span class="sig-paren">(</span><em class="sig-param">calc</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.NWChem.optimisation_nearly_converged">
+<span class="sig-name descname"><span class="pre">optimisation_nearly_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.NWChem.optimisation_nearly_converged" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function implemented in individual child classes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -466,9 +452,9 @@ implicit_solvation_type (autode.wrappers.</p>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.NWChem.ecp_block">
-<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">ecp_block</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.ecp_block" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.ecp_block">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.NWChem.</span></span><span class="sig-name descname"><span class="pre">ecp_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.ecp_block" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a block of input for any effective core potentials to add</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -486,55 +472,55 @@ implicit_solvation_type (autode.wrappers.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.NWChem.get_keywords">
-<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">get_keywords</code><span class="sig-paren">(</span><em class="sig-param">calc_input</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.get_keywords" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.get_keywords">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.NWChem.</span></span><span class="sig-name descname"><span class="pre">get_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.get_keywords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a keywords list and adding solvent</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.NWChem.print_added_internals">
-<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">print_added_internals</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">calc_input</em>, <em class="sig-param">molecule</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.print_added_internals" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.print_added_internals">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.NWChem.</span></span><span class="sig-name descname"><span class="pre">print_added_internals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.print_added_internals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add internal coordinates to the input file for added internals and
 distance constraints</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.wrappers.NWChem.print_constraints">
-<code class="sig-prename descclassname">autode.wrappers.NWChem.</code><code class="sig-name descname">print_constraints</code><span class="sig-paren">(</span><em class="sig-param">inp_file</em>, <em class="sig-param">molecule</em>, <em class="sig-param">force_constant=20</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.print_constraints" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.wrappers.NWChem.print_constraints">
+<span class="sig-prename descclassname"><span class="pre">autode.wrappers.NWChem.</span></span><span class="sig-name descname"><span class="pre">print_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.NWChem.print_constraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add distance and cartesian constraints to the input file</p>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="orca.html" class="btn btn-neutral float-right" title="ORCA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="mopac.html" class="btn btn-neutral float-left" title="MOPAC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="orca.html" class="btn btn-neutral float-right" title="ORCA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mopac.html" class="btn btn-neutral float-left" title="MOPAC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -542,7 +528,6 @@ distance constraints</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

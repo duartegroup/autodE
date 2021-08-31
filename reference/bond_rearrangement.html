@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Bond Rearrangement &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Calculation" href="calculation.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -97,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bond_lengths.html">Bonds</a></li>
@@ -115,6 +122,8 @@
 <li class="toctree-l2"><a class="reference internal" href="substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
@@ -126,6 +135,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -160,11 +170,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="index.html">Reference</a> &raquo;</li>
         
@@ -173,7 +185,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/bond_rearrangement.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -187,20 +199,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.bond_rearrangement">
+  <div class="section" id="module-autode.bond_rearrangement">
 <span id="bond-rearrangement"></span><h1>Bond Rearrangement<a class="headerlink" href="#module-autode.bond_rearrangement" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.bond_rearrangement.BondRearrangement">
-<em class="property">class </em><code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">BondRearrangement</code><span class="sig-paren">(</span><em class="sig-param">forming_bonds=None</em>, <em class="sig-param">breaking_bonds=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.__eq__">
-<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__eq__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">BondRearrangement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forming_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaking_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.__eq__">
+<span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return self==value.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">forming_bonds=None</em>, <em class="sig-param">breaking_bonds=None</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forming_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaking_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bond rearrangement</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
@@ -214,39 +226,39 @@ breaking in the reaction</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.__str__">
-<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__str__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__str__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return str(self).</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.active_atoms">
-<em class="property">property </em><code class="sig-name descname">active_atoms</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.active_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.active_atoms">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">active_atoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.active_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique atom indexes in forming or breaking bonds</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.batoms">
-<em class="property">property </em><code class="sig-name descname">batoms</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.batoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.batoms">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">batoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.batoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique atoms indexes involved in breaking bonds</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.fatoms">
-<em class="property">property </em><code class="sig-name descname">fatoms</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.fatoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.fatoms">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">fatoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.fatoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique atoms indexes involved in forming bonds</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists">
-<code class="sig-name descname">get_active_atom_neighbour_lists</code><span class="sig-paren">(</span><em class="sig-param">mol_complex</em>, <em class="sig-param">depth</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists">
+<span class="sig-name descname"><span class="pre">get_active_atom_neighbour_lists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get neighbour lists of all the active atoms in the molecule
 (reactant complex)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mol_complex</strong> (<em>autode.species.Complex</em>) – </p></li>
+<li><p><strong>species</strong> (<em>autode.species.Species</em><em> | </em><em>autode.species.Complex</em>) – </p></li>
 <li><p><strong>depth</strong> (<em>int</em>) – Depth of the neighbour list to consider</p></li>
 </ul>
 </dd>
@@ -259,19 +271,19 @@ breaking in the reaction</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.n_bbonds">
-<em class="property">property </em><code class="sig-name descname">n_bbonds</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_bbonds" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.n_bbonds">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_bbonds</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_bbonds" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.n_fbonds">
-<em class="property">property </em><code class="sig-name descname">n_fbonds</code><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_fbonds" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.n_fbonds">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">n_fbonds</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_fbonds" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="autode.bond_rearrangement.BondRearrangement.n_membered_rings">
-<code class="sig-name descname">n_membered_rings</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_membered_rings" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.n_membered_rings">
+<span class="sig-name descname"><span class="pre">n_membered_rings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_membered_rings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the membered-ness of the rings involved in this bond rearrangement
 will add the forming bonds to the graph to determine</p>
 <dl class="field-list simple">
@@ -289,9 +301,9 @@ will add the forming bonds to the graph to determine</p>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.add_bond_rearrangment">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">add_bond_rearrangment</code><span class="sig-paren">(</span><em class="sig-param">bond_rearrangs</em>, <em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">fbonds</em>, <em class="sig-param">bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.add_bond_rearrangment" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.add_bond_rearrangment">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">add_bond_rearrangment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond_rearrangs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.add_bond_rearrangment" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a possible bond rearrangement, sees if the products are made, and
 adds it to the bond rearrang list if it does</p>
 <dl class="field-list simple">
@@ -313,9 +325,9 @@ adds it to the bond rearrang list if it does</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.generate_rearranged_graph">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">generate_rearranged_graph</code><span class="sig-paren">(</span><em class="sig-param">graph</em>, <em class="sig-param">fbonds</em>, <em class="sig-param">bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.generate_rearranged_graph" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.generate_rearranged_graph">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">generate_rearranged_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.generate_rearranged_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a rearranged graph by breaking bonds (edge) and forming others
 (edge)</p>
 <dl class="field-list simple">
@@ -335,9 +347,9 @@ adds it to the bond rearrang list if it does</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_bond_rearrangs">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_bond_rearrangs</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">name</em>, <em class="sig-param">save=True</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_bond_rearrangs" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_bond_rearrangs">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_bond_rearrangs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_bond_rearrangs" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a reactant and product (mol_complex) find the set of breaking and
 forming bonds that will turn reactants into products. This works by
 determining the types of bonds that have been made/broken (i.e CH) and
@@ -362,9 +374,9 @@ then only considering rearrangements involving those bonds.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_bond_rearrangs_from_file">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_bond_rearrangs_from_file</code><span class="sig-paren">(</span><em class="sig-param">filename='bond_rearrangs.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_bond_rearrangs_from_file" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_bond_rearrangs_from_file">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_bond_rearrangs_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bond_rearrangs.txt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_bond_rearrangs_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract a list of bond rearrangements from a file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
@@ -379,34 +391,34 @@ then only considering rearrangements involving those bonds.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_fbonds_bbonds_1b">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_1b</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_1b">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_1b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_fbonds_bbonds_1b1f">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_1b1f</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b1f" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_1b1f">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_1b1f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b1f" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_fbonds_bbonds_2b">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_2b</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_2b">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_2b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_fbonds_bbonds_2b1f">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_2b1f</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b1f" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_2b1f">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_2b1f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b1f" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.get_fbonds_bbonds_2b2f">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">get_fbonds_bbonds_2b2f</code><span class="sig-paren">(</span><em class="sig-param">reac</em>, <em class="sig-param">prod</em>, <em class="sig-param">possible_brs</em>, <em class="sig-param">all_possible_bbonds</em>, <em class="sig-param">all_possible_fbonds</em>, <em class="sig-param">possible_bbond_and_fbonds</em>, <em class="sig-param">bbond_atom_type_fbonds</em>, <em class="sig-param">fbond_atom_type_bbonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b2f" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_2b2f">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_2b2f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b2f" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.prune_small_ring_rearrs">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">prune_small_ring_rearrs</code><span class="sig-paren">(</span><em class="sig-param">possible_brs</em>, <em class="sig-param">mol</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.prune_small_ring_rearrs" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.prune_small_ring_rearrs">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">prune_small_ring_rearrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.prune_small_ring_rearrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove any bond rearrangements that go via small (3, 4) rings if there is
 an alternative that goes vie</p>
 <dl class="field-list simple">
@@ -419,9 +431,9 @@ an alternative that goes vie</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.save_bond_rearrangs_to_file">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">save_bond_rearrangs_to_file</code><span class="sig-paren">(</span><em class="sig-param">brs</em>, <em class="sig-param">filename='bond_rearrangs.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.save_bond_rearrangs_to_file" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.save_bond_rearrangs_to_file">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">save_bond_rearrangs_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bond_rearrangs.txt'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.save_bond_rearrangs_to_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a list of bond rearrangements to a file in plane text</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -433,9 +445,9 @@ an alternative that goes vie</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.bond_rearrangement.strip_equiv_bond_rearrs">
-<code class="sig-prename descclassname">autode.bond_rearrangement.</code><code class="sig-name descname">strip_equiv_bond_rearrs</code><span class="sig-paren">(</span><em class="sig-param">possible_brs</em>, <em class="sig-param">mol</em>, <em class="sig-param">depth=6</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.strip_equiv_bond_rearrs" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.strip_equiv_bond_rearrs">
+<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">strip_equiv_bond_rearrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.strip_equiv_bond_rearrs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove any bond rearrangement from possible_brs for which
 there is already an equivalent in the unique_bond_rearrangements list</p>
 <dl class="field-list simple">
@@ -458,36 +470,36 @@ of atoms to be considered equivalent (default: {6})</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="calculation.html" class="btn btn-neutral float-right" title="Calculation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="bond_lengths.html" class="btn btn-neutral float-left" title="Bonds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="calculation.html" class="btn btn-neutral float-right" title="Calculation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="bond_lengths.html" class="btn btn-neutral float-left" title="Bonds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -495,7 +507,6 @@ of atoms to be considered equivalent (default: {6})</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

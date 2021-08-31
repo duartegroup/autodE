@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>PES 1D &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="PES 2D" href="pes_2d.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -104,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -122,6 +129,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -133,6 +142,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -167,11 +177,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -182,7 +194,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/pes/pes_1d.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -196,14 +208,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.pes.pes_1d">
+  <div class="section" id="module-autode.pes.pes_1d">
 <span id="pes-1d"></span><span id="pes1d"></span><h1>PES 1D<a class="headerlink" href="#module-autode.pes.pes_1d" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.pes.pes_1d.PES1d">
-<em class="property">class </em><code class="sig-prename descclassname">autode.pes.pes_1d.</code><code class="sig-name descname">PES1d</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">rs</em>, <em class="sig-param">r_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="autode.pes.pes_1d.PES1d.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">rs</em>, <em class="sig-param">r_idxs</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.PES1d">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.pes.pes_1d.</span></span><span class="sig-name descname"><span class="pre">PES1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.PES1d.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_idxs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>A one dimensional potential energy surface</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -217,37 +229,37 @@
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.pes.pes_1d.PES1d.calculate">
-<code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.calculate" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.PES1d.calculate">
+<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate all the points on the surface in serial using the maximum
 number of cores available</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.pes.pes_1d.PES1d.get_species_saddle_point">
-<code class="sig-name descname">get_species_saddle_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.PES1d.get_species_saddle_point">
+<span class="sig-name descname"><span class="pre">get_species_saddle_point</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the possible first order saddle points, which are just the
 peaks in the PES</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.pes.pes_1d.PES1d.print_plot">
-<code class="sig-name descname">print_plot</code><span class="sig-paren">(</span><em class="sig-param">method_name</em>, <em class="sig-param">name='PES1d'</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.print_plot" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.PES1d.print_plot">
+<span class="sig-name descname"><span class="pre">print_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PES1d'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.print_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a 1D surface using matplotlib</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.pes.pes_1d.PES1d.products_made">
-<code class="sig-name descname">products_made</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.products_made" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.PES1d.products_made">
+<span class="sig-name descname"><span class="pre">products_made</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.PES1d.products_made" title="Permalink to this definition">¶</a></dt>
 <dd><p>Have the products been made somewhere on the surface?</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="autode.pes.pes_1d.get_ts_guess_1d">
-<code class="sig-prename descclassname">autode.pes.pes_1d.</code><code class="sig-name descname">get_ts_guess_1d</code><span class="sig-paren">(</span><em class="sig-param">reactant</em>, <em class="sig-param">product</em>, <em class="sig-param">bond</em>, <em class="sig-param">name</em>, <em class="sig-param">method</em>, <em class="sig-param">keywords</em>, <em class="sig-param">dr=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.get_ts_guess_1d" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.pes.pes_1d.get_ts_guess_1d">
+<span class="sig-prename descclassname"><span class="pre">autode.pes.pes_1d.</span></span><span class="sig-name descname"><span class="pre">get_ts_guess_1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_1d.get_ts_guess_1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scan the distance between two atoms and return a guess for the TS</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -272,36 +284,36 @@ peaks in the PES</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="pes_2d.html" class="btn btn-neutral float-right" title="PES 2D" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="pes.html" class="btn btn-neutral float-left" title="PES" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="pes_2d.html" class="btn btn-neutral float-right" title="PES 2D" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pes.html" class="btn btn-neutral float-left" title="PES" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -309,7 +321,6 @@ peaks in the PES</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

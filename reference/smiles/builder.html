@@ -1,39 +1,44 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>3D Geometry Builder &mdash; autodE  documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="SMILES Atom Types" href="atom_types.html" />
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                1.0.4
+                1.1.0
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -105,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../solvent/index.html">Solvent</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../species/index.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../transition_states/index.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../wrappers/index.html">Wrappers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../bond_lengths.html">Bonds</a></li>
@@ -123,6 +130,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
@@ -134,6 +143,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -168,11 +178,13 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Reference</a> &raquo;</li>
         
@@ -183,7 +195,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../../_sources/reference/smiles/builder.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -197,28 +209,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="module-autode.smiles.builder">
+  <div class="section" id="module-autode.smiles.builder">
 <span id="d-geometry-builder"></span><h1>3D Geometry Builder<a class="headerlink" href="#module-autode.smiles.builder" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="autode.smiles.builder.Builder">
-<em class="property">class </em><code class="sig-prename descclassname">autode.smiles.builder.</code><code class="sig-name descname">Builder</code><a class="headerlink" href="#autode.smiles.builder.Builder" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">autode.smiles.builder.</span></span><span class="sig-name descname"><span class="pre">Builder</span></span><a class="headerlink" href="#autode.smiles.builder.Builder" title="Permalink to this definition">¶</a></dt>
 <dd><p>3D geometry builder:</p>
 <p>Atoms:  C, 4H               H  H
 Bonds:  4 x C-H      –&gt;     C</p>
 <blockquote>
 <div><p>H  H</p>
 </div></blockquote>
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.__init__" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Coordinate builder initialised from a set of atoms and bonds connecting
 them. This builder should generate something <em>reasonable</em> that can
 be cleaned up with a forcefield</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.build">
-<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.build" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.build" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a molecule by iterating through all the atoms adding it and
 each of it’s neighbours. i.e.</p>
 <p>atoms = [C, H, H, H]</p>
@@ -243,9 +255,9 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.built">
-<em class="property">property </em><code class="sig-name descname">built</code><a class="headerlink" href="#autode.smiles.builder.Builder.built" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.built">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">built</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.built" title="Permalink to this definition">¶</a></dt>
 <dd><p>Have all the atoms been shifted appropriately?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -257,9 +269,9 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.built_atom_idxs">
-<em class="property">property </em><code class="sig-name descname">built_atom_idxs</code><a class="headerlink" href="#autode.smiles.builder.Builder.built_atom_idxs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.built_atom_idxs">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">built_atom_idxs</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.built_atom_idxs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Atom indexes that have been built</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -271,9 +283,9 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.canonical_atoms">
-<em class="property">property </em><code class="sig-name descname">canonical_atoms</code><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.canonical_atoms">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">canonical_atoms</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate canonical autodE atoms from this set</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -285,9 +297,9 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.canonical_atoms_at_origin">
-<em class="property">property </em><code class="sig-name descname">canonical_atoms_at_origin</code><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms_at_origin" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.canonical_atoms_at_origin">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">canonical_atoms_at_origin</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms_at_origin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Canonical set of autodE atoms all located at the origin</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -299,9 +311,9 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.max_ring_n">
-<em class="property">property </em><code class="sig-name descname">max_ring_n</code><a class="headerlink" href="#autode.smiles.builder.Builder.max_ring_n" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.max_ring_n">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">max_ring_n</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.max_ring_n" title="Permalink to this definition">¶</a></dt>
 <dd><p>Maximum ring size in this molecule</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -313,9 +325,9 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.non_bonded_idx_matrix">
-<em class="property">property </em><code class="sig-name descname">non_bonded_idx_matrix</code><a class="headerlink" href="#autode.smiles.builder.Builder.non_bonded_idx_matrix" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.non_bonded_idx_matrix">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">non_bonded_idx_matrix</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.non_bonded_idx_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a matrix of ones if atoms are non-bonded and zero if for
 self pairs or they are bonded</p>
 <dl class="field-list simple">
@@ -328,9 +340,9 @@ self pairs or they are bonded</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="autode.smiles.builder.Builder.set_atoms_bonds">
-<code class="sig-name descname">set_atoms_bonds</code><span class="sig-paren">(</span><em class="sig-param">atoms</em>, <em class="sig-param">bonds</em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.set_atoms_bonds" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.smiles.builder.Builder.set_atoms_bonds">
+<span class="sig-name descname"><span class="pre">set_atoms_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.set_atoms_bonds" title="Permalink to this definition">¶</a></dt>
 <dd><p>From a list of SMILESAtoms, and SMILESBonds set the required attributes
 and convert all implicit hydrogens into explicit atoms</p>
 <dl class="field-list simple">
@@ -345,36 +357,36 @@ and convert all implicit hydrogens into explicit atoms</p>
 
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="atom_types.html" class="btn btn-neutral float-right" title="SMILES Atom Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="parser.html" class="btn btn-neutral float-left" title="SMILES Parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="atom_types.html" class="btn btn-neutral float-right" title="SMILES Atom Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="parser.html" class="btn btn-neutral float-left" title="SMILES Parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Tom Young, Joseph Silcock
+        &#169; Copyright 2020, Tom Young, Joseph Silcock.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -382,7 +394,6 @@ and convert all implicit hydrogens into explicit atoms</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {
