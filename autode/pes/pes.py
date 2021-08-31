@@ -59,7 +59,7 @@ def get_closest_species(point, pes):
 def get_point_species(point, species, distance_constraints, name, method,
                       keywords, n_cores, energy_threshold=1):
     """
-    On a 2d PES calculate the energy and the structure using a constrained
+    On a PES calculate the energy and the structure using a constrained
     optimisation
 
     Arguments:
@@ -88,16 +88,16 @@ def get_point_species(point, species, distance_constraints, name, method,
     """
     logger.info(f'Calculating point {point} on PES surface')
 
-    species.name = f'{name}_scan_{"-".join([str(p) for p in point])}'
-    original_species = deepcopy(species)
+    original_species = species.copy()
+    p_species = species.new_species(name=f'{name}_scan_{"-".join([str(p) for p in point])}')
 
     # Set up and run the calculation
-    const_opt = Calculation(name=species.name, molecule=species, method=method,
+    const_opt = Calculation(name=p_species.name, molecule=p_species, method=method,
                             n_cores=n_cores,
                             keywords=keywords,
                             distance_constraints=distance_constraints)
     try:
-        species.optimise(method=method, calc=const_opt)
+        p_species.optimise(method=method, calc=const_opt)
 
     except AtomsNotFound:
         logger.error(f'Optimisation failed for {point}')
@@ -107,12 +107,12 @@ def get_point_species(point, species, distance_constraints, name, method,
     # wrong with the EST method we need to be not on the first point to compute
     # an energy difference..
     if not all(p == 0 for p in point):
-        if species.energy is None or np.abs(original_species.energy - species.energy) > energy_threshold:
+        if species.energy is None or np.abs(species.energy - p_species.energy) > energy_threshold:
             logger.error(f'PES point had a relative energy '
                          f'> {energy_threshold} Ha. Using the closest')
             return original_species
 
-    return species
+    return p_species
 
 
 class PES(ABC):

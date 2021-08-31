@@ -1,7 +1,7 @@
 from copy import deepcopy
 import numpy as np
 from autode.exceptions import FitFailed
-from autode.transition_states.ts_guess import get_ts_guess
+from autode.transition_states.ts_guess import TSguess
 from autode.config import Config
 from autode.log import logger
 from autode.mol_graphs import is_isomorphic
@@ -134,7 +134,11 @@ def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):
     try:
         # May want to iterate through all saddle points not just the highest(?)
         for species in pes.get_species_saddle_point():
-            return get_ts_guess(species=species, reactant=reactant, product=product, name=name)
+
+            return TSguess(atoms=species.atoms,
+                           reactant=reactant,
+                           product=product,
+                           name=name)
 
     except FitFailed:
         logger.error('Could not find saddle point on 1D surface')

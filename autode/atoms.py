@@ -1,26 +1,652 @@
 import numpy as np
-from typing import Union
+from copy import deepcopy
+from typing import Union, Optional, List, Sequence
 from autode.log import logger
 from autode.geom import get_rot_mat_euler
+from autode.values import (Distance, Angle, Mass, Coordinate,
+                           Coordinates, MomentOfInertia)
+
+
+class Atom:
+
+    def __repr__(self):
+        """
+        Representation of this atom
+
+        Returns:
+            (str): Representation
+        """
+        x, y, z = self.coord
+        return f'Atom({self.label}, {x:.4f}, {y:.4f}, {z:.4f})'
+
+    def __str__(self):
+        return self.__repr__()
+
+    @property
+    def atomic_number(self) -> int:
+        """
+        Atomic numbers are the position in the elements (indexed from zero),
+        plus one. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('C')
+            >>> atom.atomic_number
+            6
+
+        Returns:
+            (int): Atomic number
+        """
+        return elements.index(self.label) + 1
+
+    @property
+    def atomic_symbol(self) -> str:
+        """
+        A more interpretable alias for Atom.label. Should be present in the
+        elements. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('Zn')
+            >>> atom.atomic_symbol
+            'Zn'
+
+        Returns:
+            (str): Atomic symbol
+        """
+        return self.label
+
+    @property
+    def coord(self) -> Coordinate:
+        """
+        Position of this atom in space. Coordinate has attributes x, y, z
+        for the Cartesian displacements. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H')
+            >>> atom.coord
+            Coordinate([0. 0. 0.] Å)
+            >>>
+            >>> ade.Atom('H', x=1.0).coord
+            Coordinate([1. 0. 0.] Å)
+            >>> ade.Atom('H', x=1.0).coord.x
+            1.0
+            >>>
+            >>> ade.Atom('H', x=1.0).coord.to('a0')
+            Coordinate([1.889  0.  0. ] bohr)
+
+        Returns:
+            (autode.values.Coordinate): Coordinate
+        """
+        return self._coord
+
+    @coord.setter
+    def coord(self, *args):
+        """
+        Coordinate setter
+
+        Arguments:
+            *args (float | list(float) | np.ndarray(float)):
+
+        Raises:
+            (ValueError): If the arguments cannot be coerced into a (3,) shape
+        """
+        self._coord = Coordinate(*args)
+
+    @property
+    def is_metal(self) -> bool:
+        """
+        Is this atom a metal? Defines metals to be up to and including:
+        Ga, Sn, Bi. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').is_metal
+            False
+            >>> ade.Atom('Zn').is_metal
+            True
+
+        Returns:
+            (bool):
+        """
+        return self.label in metals
+
+    @property
+    def group(self) -> int:
+        """
+        Group of the periodic table is this atom in. 0 if not found. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').group
+            14
+
+        Returns:
+            (int): Group
+        """
+
+        for group_idx in range(1, 18):
+
+            if self.label in PeriodicTable.group(group_idx):
+                return group_idx
+
+        return 0
+
+    @property
+    def period(self) -> int:
+        """
+        Period of the periodic table is this atom in. 0 if not found. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').period
+            2
+
+        Returns:
+            (int): Period
+        """
+
+        for period_idx in range(1, 7):
+
+            if self.label in PeriodicTable.period(period_idx):
+                return period_idx
+
+        return 0
+
+    @property
+    def tm_row(self) -> Optional[int]:
+        """
+        Row of transition metals that this element is in. Returns None if
+        this atom is not a metal. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('Zn').tm_row
+            1
+
+        Returns:
+            (int | None):
+        """
+        for row in [1, 2, 3]:
+            if self.label in PeriodicTable.transition_metals(row):
+                return row
+
+        return None
+
+    @property
+    def weight(self) -> Mass:
+        """
+        Atomic weight. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').weight
+            Mass(12.0107 amu)
+            >>>
+            >>> ade.Atom('C').weight == ade.Atom('C').mass
+            True
+
+        Returns:
+            (autode.values.Mass): Weight
+        """
+
+        try:
+            return Mass(atomic_weights[self.label])
+
+        except KeyError:
+            logger.warning(f'Could not find a valid weight for {self.label}. '
+                           f'Guessing at 70')
+            return Mass(70)
+
+    @property
+    def mass(self) -> Mass:
+        """Alias of weight. Returns Atom.weight an so can be converted
+        to different units. For example, to convert the mass to electron masses:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H').mass.to('me')
+            Mass(1837.36222 m_e)
+
+        Returns:
+            (autode.values.Mass): Mass
+        """
+        return self.weight
+
+    @property
+    def maximal_valance(self) -> int:
+        """
+        The maximum/maximal valance that this atom supports in any charge
+        state (most commonly). i.e. for H the maximal_valance=1. Useful for
+        generating molecular graphs
+
+        Returns:
+            (int): Maximal valance
+        """
+        max_valances = {'H': 1, 'B': 4, 'C': 4, 'N': 4, 'O': 3, 'F': 1,
+                        'Si': 4, 'P': 6, 'S': 6, 'Cl': 4, 'Br': 4, 'I': 6}
+
+        if self.label in max_valances:
+            return max_valances[self.label]
+
+        else:
+            logger.warning(f'Could not find a valid valance for {self}. '
+                           f'Guessing at 6')
+            return 6
+
+    @property
+    def vdw_radius(self) -> Distance:
+        """
+        Van der Waals radius for this atom. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H').vdw_radius
+            Distance(1.1 Å)
+
+        Returns:
+            (autode.values.Distance): Radius
+        """
+
+        if self.label in vdw_radii:
+            radius = vdw_radii[self.label]
+        else:
+            logger.error(f'Couldn\'t find the VdV radii for {self}. '
+                         f'Guessing at 2.3 Å')
+            radius = 2.3
+
+        return Distance(radius, units='ang')
+
+    def is_pi(self, valency: int) -> bool:
+        """
+        Determine if this atom is a 'π-atom' i.e. is unsaturated. Only
+        approximate! Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('C').is_pi(valency=3)
+            True
+            >>> ade.Atom('H').is_pi(valency=1)
+            False
+
+
+        Arguments:
+            valency (int):
+
+        Returns:
+            (bool):
+        """
+
+        if self.label not in pi_valencies:
+            logger.warning(f'{self.label} not found in π valency dictionary - '
+                           f'assuming not a π-atom')
+            return False
+
+        if valency in pi_valencies[self.label]:
+            return True
+
+        return False
+
+    def translate(self, *args, **kwargs) -> None:
+        """
+        Translate this atom by a vector. Arguments should be coercible into
+        a coordinate (i.e. length 3). Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H')
+            >>> atom.translate(1.0, 0.0, 0.0)
+            >>> atom.coord
+            Coordinate([1. 0. 0.] Å)
+
+        Atoms can also be translated using numpy arrays:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> import numpy as np
+            >>>
+            >>> atom = ade.Atom('H')
+            >>> atom.translate(np.ones(3))
+            >>> atom.coord
+            Coordinate([1. 1. 1.] Å)
+            >>>
+            >>> atom.translate(vec=-atom.coord)
+            >>> atom.coord
+            Coordinate([0. 0. 0.] Å)
+
+        Arguments:
+             *args (float | np.ndarray | list(float)):
+
+        Keyword Arguments:
+            vec (np.ndarray): Shape = (3,)
+        """
+        if 'vec' in kwargs:
+            # Assume the vec is cast-able to a numpy array which can be added
+            self.coord += np.asarray(kwargs['vec'])
+
+        elif len(kwargs) > 0:
+            raise ValueError(f'Expecting only a vec keyword argument. '
+                             f'Had {kwargs}')
+
+        else:
+            self.coord += Coordinate(*args)
+
+        return None
+
+    def rotate(self,
+               axis:   Union[np.ndarray, Sequence],
+               theta:  Union[Angle, float],
+               origin: Union[np.ndarray, Sequence, None] = None) -> None:
+        """
+        Rotate this atom theta radians around an axis given an origin. By
+        default the rotation is applied around the origin. To rotate a H atom
+        around the z-axis:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H', x=1.0)
+            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14)
+            >>> atom.coord
+            Coordinate([-1.  0.  0.] Å)
+
+        With an origin:
+
+          .. code-block:: Python
+
+            >>> import autode as ade
+            >>> atom = ade.Atom('H')
+            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14, origin=[1.0, 0.0, 0.0])
+            >>> atom.coord
+            Coordinate([2.  0.  0.] Å)
+
+        And with an angle not in radians:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> from autode.values import Angle
+            >>>
+            >>> atom = ade.Atom('H', x=1.0)
+            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=Angle(180, units='deg'))
+            >>> atom.coord
+            Coordinate([-1.  0.  0.] Å)
+
+        Arguments:
+            axis (np.ndarray): Axis to rotate in. shape = (3,)
+            theta (float): Angle in radians (float)
+
+        Keyword Arguments:
+            origin (np.ndarray): Rotate about this origin. shape = (3,)
+                                 if no origin is specified then the atom
+                                 is rotated without translation.
+        """
+        # If specified shift so that the origin is at (0, 0, 0)
+        if origin is not None:
+            self.translate(vec=-np.asarray(origin))
+
+        # apply the rotation
+        rot_matrix = get_rot_mat_euler(axis=axis, theta=theta)
+        self.coord = np.matmul(rot_matrix, self.coord)
+
+        # and shift back, if required
+        if origin is not None:
+            self.translate(vec=np.asarray(origin))
+
+        return None
+
+    # --- Method aliases ---
+    coordinate = coord
+
+    def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
+        """
+        Atom class. Centered at the origin by default
+
+        Arguments:
+            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
+
+        Keyword Arguments:
+            x (float): x coordinate in 3D space (Å)
+            y (float): y coordinate in 3D space (Å)
+            z (float): z coordinate in 3D space (Å)
+        """
+        assert atomic_symbol in elements
+
+        self.label = atomic_symbol
+        self._coord = Coordinate(float(x), float(y), float(z))
+
+
+class DummyAtom(Atom):
+
+    @property
+    def atomic_number(self):
+        """The atomic number is defined as 0 for a dummy atom"""
+        return 0
+
+    @property
+    def weight(self) -> Mass:
+        """Dummy atoms do not have any weight/mass"""
+        return Mass(0.0)
+
+    @property
+    def mass(self) -> Mass:
+        """Dummy atoms do not have any weight/mass"""
+        return Mass(0.0)
+
+    def __init__(self, x, y, z):
+        """
+        Dummy atom
+
+        Arguments:
+            x (float): x coordinate in 3D space (Å)
+            y (float): y
+            z (float): z
+        """
+        # Superclass constructor called with a valid element...
+        super().__init__('H', x, y, z)
+
+        # then re-assigned
+        self.label = 'D'
+
+
+class Atoms(list):
+
+    def __repr__(self):
+        """Representation"""
+        return f'Atoms({super().__repr__()})'
+
+    def __add__(self, other):
+        """Add another set of Atoms to this one. Can add None"""
+        if other is None:
+            return self
+
+        return super().__add__(other)
+
+    def __radd__(self, other):
+        """Add another set of Atoms to this one. Can add None"""
+        return self.__add__(other)
+
+    def copy(self) -> 'Atoms':
+        """
+        Copy these atoms, deeply
+
+        Returns:
+             (autode.atoms.Atoms):
+        """
+        return deepcopy(self)
+
+    def remove_dummy(self) -> None:
+        """Remove all the dummy atoms from this list of atoms"""
+
+        for i, atom in enumerate(self):
+            if isinstance(atom, DummyAtom):
+                del self[i]
+        return
+
+    @property
+    def coordinates(self) -> Coordinates:
+        return Coordinates(np.array([a.coord for a in self]))
+
+    @property
+    def com(self) -> Coordinate:
+        r"""
+        Centre of mass of these coordinates
+
+        .. math::
+            \text{COM} = \frac{1}{M} \sum_i m_i R_i
+
+        where M is the total mass, m_i the mass of atom i and R_i it's
+        coordinate
+
+        Returns:
+            (autode.values.Coordinate): COM
+        """
+        if len(self) == 0:
+            raise ValueError('Undefined centre of mass with no atoms')
+
+        com = Coordinate(0.0, 0.0, 0.0)
+
+        for atom in self:
+            com += atom.mass * atom.coord
+
+        return Coordinate(com / sum(atom.mass for atom in self))
+
+    @property
+    def moi(self) -> MomentOfInertia:
+        """
+        Moment of inertia matrix (I)::
+
+                (I_00   I_01   I_02)
+            I = (I_10   I_11   I_12)
+                (I_20   I_21   I_22)
+
+        Returns:
+            (autode.values.MomentOfInertia):
+        """
+        moi = MomentOfInertia(np.zeros(shape=(3, 3)), units='amu Å^2')
+
+        for atom in self:
+
+            mass, (x, y, z) = atom.mass, atom.coord
+
+            moi[0, 0] += mass * (y ** 2 + z ** 2)
+            moi[0, 1] -= mass * (x * y)
+            moi[0, 2] -= mass * (x * z)
+
+            moi[1, 0] -= mass * (y * x)
+            moi[1, 1] += mass * (x ** 2 + z ** 2)
+            moi[1, 2] -= mass * (y * z)
+
+            moi[2, 0] -= mass * (z * x)
+            moi[2, 1] -= mass * (z * y)
+            moi[2, 2] += mass * (x ** 2 + y ** 2)
+
+        return moi
+
+    def vector(self,
+               i: int,
+               j: int) -> np.ndarray:
+        """
+        Vector from atom i to atom j
+
+        Arguments:
+            i (int):
+            j (int):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (IndexError): If i or j are not present
+        """
+        return self[j].coord - self[i].coord
+
+    def nvector(self,
+                i: int,
+                j: int) -> np.ndarray:
+        """
+        Normalised vector from atom i to atom j
+
+        Arguments:
+            i (int):
+            j (int):
+
+        Returns:
+            (np.ndarray):
+
+        Raises:
+            (IndexError): If i or j are not present
+        """
+        vec = self.vector(i, j)
+        return vec / np.linalg.norm(vec)
+
+    def are_linear(self,
+                   angle_tol: Angle = Angle(1, units='deg')) -> bool:
+        """
+        Are these set of atoms colinear?
+
+        Arguments:
+            angle_tol (autode.values.Angle): Tolerance on the angle
+
+        Returns:
+            (bool):
+        """
+        if len(self) < 2:      # Must have at least 2 atoms colinear
+            return False
+
+        if len(self) == 2:     # Two atoms must be linear
+            return True
+
+        tol = np.abs(1.0 - np.cos(angle_tol.to('rad')))
+
+        # Take the normalised first vector
+        vec0 = self[1].coord - self[0].coord
+        vec0 /= np.linalg.norm(vec0)
+
+        for atom in self[2:]:
+            vec = atom.coord - self[0].coord
+            cos_theta = np.dot(vec, vec0) / np.linalg.norm(vec)
+
+            # Both e.g. <179° and >1° should satisfy this condition for
+            # angle_tol = 1°
+            if np.abs(np.abs(cos_theta) - 1) > tol:
+                return False
+
+        return True
 
 
 class AtomCollection:
 
     @property
-    def n_atoms(self):
-        """Number of atoms in this set"""
+    def n_atoms(self) -> int:
+        """Number of atoms in this collection"""
         return 0 if self.atoms is None else len(self.atoms)
 
     @property
-    def coordinates(self):
+    def coordinates(self) -> Optional[Coordinates]:
         """Numpy array of coordinates"""
         if self.atoms is None:
             return None
 
-        return np.array([a.coord for a in self.atoms], dtype='f8', copy=True)
+        return self.atoms.coordinates
 
     @coordinates.setter
-    def coordinates(self, value: np.ndarray):
+    def coordinates(self,
+                    value: np.ndarray):
         """Set the coordinates from a numpy array
 
         Arguments:
@@ -44,154 +670,189 @@ class AtomCollection:
                                  f'dimensional')
 
         for i, atom in enumerate(self.atoms):
-            atom.coord = value[i]
+            atom.coord = Coordinate(*value[i])
 
-    def distance(self, i, j):
-        """Get the distance between two atoms (Å)"""
-        if any(idx < 0 or idx >= self.n_atoms for idx in (i, j)):
-            raise ValueError(f'Cannot calculate the distance between {i}-{j}')
+    @property
+    def atoms(self) -> Optional[Atoms]:
+        """Constituent atoms of this collection"""
+        return self._atoms
 
-        return np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+    @atoms.setter
+    def atoms(self,
+              value: Union[List[Atom], Atoms, None]):
+        """Set the constituent atoms of this collection"""
+        self._atoms = Atoms(value) if value is not None else None
 
-    def __init__(self, atoms=None):
+    @property
+    def com(self) -> Optional[Coordinate]:
+        """Centre of mass of this atom collection
+
+        Returns:
+            (autode.values.Coordinate): COM
+
+        Raises:
+            (ValueError): If there are no atoms
+        """
+        return None if self.atoms is None else self.atoms.com
+
+    @property
+    def moi(self) -> Optional[MomentOfInertia]:
+        """
+        Moment of inertia matrix (I)
+
+        Returns:
+            (autode.values.MomentOfInertia):
+        """
+        return None if self.atoms is None else self.atoms.moi
+
+    @property
+    def weight(self) -> Mass:
+        """
+        Molecular weight
+
+        Returns:
+            (autode.values.Mass):
+        """
+        if self.n_atoms == 0:
+            return Mass(0.0)
+
+        return sum(atom.mass for atom in self.atoms)
+
+    def _idxs_are_present(self, *args):
+        """Are a set of indexes present in the collection of atoms?
+
+        Arguments:
+            args (int):
+
+        Returns:
+            (bool):
+        """
+        return set(args).issubset(set(range(self.n_atoms)))
+
+    def distance(self,
+                 i: int,
+                 j: int) -> Distance:
+        """Distance between two atoms (Å), indexed from 0.
+
+        Arguments:
+            i (int): Atom index of the first atom
+            j (int): Atom index of the second atom
+
+        Returns:
+            (autode.values.Distance): Distance
+
+        Raises:
+            (ValueError):
+        """
+        if not self._idxs_are_present(i, j):
+            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
+                             f'At least one atom not present')
+
+        value = np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
+
+        return Distance(value)
+
+    def angle(self,
+              i: int,
+              j: int,
+              k: int) -> Angle:
+        """
+        Angle between three atoms i-j-k
+
+        Arguments:
+            i (int): Atom index of the left hand side in the angle
+            j (int):                ---     middle    ---
+            k (int):                -- right hand side --
+
+        Returns:
+            (autode.values.Angle):
+
+        Raises:
+            (ValueError):
+        """
+        if not self._idxs_are_present(i, j, k):
+            raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
+                             f' At least one atom not present')
+
+        vec1 = self.atoms[i].coord - self.atoms[j].coord
+        vec2 = self.atoms[k].coord - self.atoms[j].coord
+
+        norms = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+
+        if np.isclose(norms, 0.0):
+            raise ValueError(f'Cannot calculate the angle {i}-{j}-{k} - at '
+                             f'least one zero vector')
+
+        value = np.arccos(np.dot(vec1, vec2) / norms)
+
+        return Angle(value)
+
+    def dihedral(self,
+                 x: int,
+                 y: int,
+                 z: int,
+                 w: int) -> Angle:
+        """
+        Dihedral angle between four atoms
+
+        Arguments:
+            w (int): Atom index of the first atom in the dihedral
+            x (int):               -- second --
+            y (int):               -- third  --
+            z (int):               -- fourth --
+
+        Returns:
+            (autode.values.Angle):
+
+        Raises:
+            (ValueError):
+        """
+        if not self._idxs_are_present(w, x, y, z):
+            raise ValueError(f'Cannot calculate the dihedral angle involving '
+                             f'atoms {w}-{x}-{y}-{z}. At least one atom not '
+                             f'present')
+
+        vec_yx = self.atoms[x].coord - self.atoms[y].coord
+        vec_zw = self.atoms[w].coord - self.atoms[z].coord
+        vec_yz = self.atoms[z].coord - self.atoms[y].coord
+
+        vec1, vec2 = np.cross(vec_yx, vec_yz), np.cross(-vec_yz, vec_zw)
+
+        # Normalise and ensure no zero vectors, for which the dihedral is not
+        # defined
+        for vec in (vec1, vec2, vec_yz):
+            norm = np.linalg.norm(vec)
+
+            if np.isclose(norm, 0.0):
+                raise ValueError(f'Cannot calculate the dihedral angle '
+                                 f'{w}-{x}-{y}-{z} - one zero vector')
+            vec /= norm
+
+        """
+        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
+        angle between groups A and D is then considered to be positive if 
+        the bond A-B is rotated in a clockwise direction through less than
+        180 degrees"
+        """
+        value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
+                            np.dot(vec1, vec2))
+
+        return Angle(value)
+
+    # --- Method aliases ---
+    centre_of_mass = com
+    moment_of_inertia = moi
+    mass = weight
+
+    def __init__(self,
+                 atoms: Union[List[Atom], Atoms, None] = None):
         """
         Collection of atoms, used as a a base class for a species etc
 
         Arguments:
-            atoms (list(autode.atoms.Atom)):
+            atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
         """
-        self.atoms = atoms
-
-
-class Atom:
-
-    def __repr__(self):
-        x, y, z = self.coord
-        return f'[{self.label}, {x:.4f}, {y:.4f}, {z:.4f}]'
-
-    def __str__(self):
-        return self.__repr__()
-
-    @property
-    def atomic_number(self):
-        """Atomic numbers are the position in the elements, plus one"""
-        return elements.index(self.label) + 1
-
-    @property
-    def atomic_symbol(self):
-        """A more interpretable alias for label"""
-        return self.label
-
-    @property
-    def is_metal(self):
-        """Is this atom a metal?"""
-        return self.label in metals
-
-    @property
-    def group(self):
-        """Group of the periodic table is this atom in. 0 if not found"""
-
-        for group_idx in range(1, 18):
-
-            if self.label in PeriodicTable.group(group_idx):
-                return group_idx
-
-        return 0
-
-    @property
-    def period(self):
-        """Group of the periodic table is this atom in. 0 if not found"""
-
-        for period_idx in range(1, 7):
-
-            if self.label in PeriodicTable.period(period_idx):
-                return period_idx
-
-        return 0
-
-    @property
-    def tm_row(self):
-        """
-        Row of transition metals that this element is in
-
-        Returns:
-            (int | None):
-        """
-        for row in [1, 2, 3]:
-            if self.label in PeriodicTable.transition_metals(row):
-                return row
-
-        return None
-
-    def translate(self, vec: np.ndarray):
-        """
-        Translate this atom by a vector
-
-         Arguments:
-             vec (np.ndarray): Shape = (3,)
-
-        """
-        self.coord += vec
-        return None
-
-    def rotate(self,
-               axis: np.ndarray,
-               theta: float,
-               origin: Union[np.ndarray, None] = None):
-        """Rotate this atom theta radians around an axis given an origin
-
-        Arguments:
-            axis (np.ndarray): Axis to rotate in. shape = (3,)
-            theta (float): Angle in radians (float)
-
-        Keyword Arguments:
-            origin (np.ndarray): Rotate about this origin. shape = (3,)
-                                 if no origin is specified then the atom
-                                 is rotated without translation.
-        """
-        # If specified shift so that the origin is at (0, 0, 0)
-        if origin is not None:
-            self.translate(vec=-origin)
-
-        # apply the rotation
-        rot_matrix = get_rot_mat_euler(axis=axis, theta=theta)
-        self.coord = np.matmul(rot_matrix, self.coord)
-
-        # and shift back, if required
-        if origin is not None:
-            self.translate(vec=origin)
-
-        return None
-
-    def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
-        """
-        Atom class. Centered at the origin by default
-
-        Arguments:
-            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
-
-        Keyword Arguments:
-            x (float): x coordinate in 3D space (Å)
-            y (float): y coordinate in 3D space (Å)
-            z (float): z coordinate in 3D space (Å)
-        """
-        assert atomic_symbol in elements
-
-        self.label = atomic_symbol
-        self.coord = np.array([float(x), float(y), float(z)])
-
-
-class DummyAtom(Atom):
-
-    @property
-    def atomic_number(self):
-        """The atomic number is defined as 0 for a dummy atom"""
-        return 0
-
-    def __init__(self, x, y, z):
-        super().__init__('H', x, y, z)
-
-        self.label = 'D'
+        self._atoms = Atoms(atoms) if atoms is not None else None
 
 
 elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
@@ -324,18 +985,44 @@ valid_valances = {'H': [0, 1],
                   'Rh': [0, 1, 2, 3, 4, 5, 6]
                   }
 
-# masses from https://ciaaw.org/atomic-masses.htm
-atomic_weights = {'H': 1.01, 'He': 4.0, 'Li': 6.94, 'Be': 9.01, 'B': 10.81, 'C': 12.01, 'N': 14.01, 'O': 16.0, 'F': 19.0, 'Ne': 20.18, 'Na': 22.99, 'Mg': 24.3,
-                  'Al': 26.98, 'Si': 28.08, 'P': 30.97, 'S': 32.06, 'Cl': 35.45, 'Ar': 39.95, 'K': 39.1, 'Ca': 40.08, 'Sc': 44.96, 'Ti': 47.87, 'V': 50.94, 'Cr': 52.0,
-                  'Mn': 54.94, 'Fe': 55.84, 'Co': 58.93, 'Ni': 58.69, 'Cu': 63.55, 'Zn': 65.38, 'Ga': 69.72, 'Ge': 72.63, 'As': 74.92, 'Se': 78.97, 'Br': 79.9, 'Kr': 83.8,
-                  'Rb': 85.47, 'Sr': 87.62, 'Y': 88.91, 'Zr': 91.22, 'Nb': 92.91, 'Mo': 95.95, 'Tc': 97.91, 'Ru': 101.07, 'Rh': 102.91, 'Pd': 106.42, 'Ag': 107.87,
-                  'Cd': 112.41, 'In': 114.82, 'Sn': 118.71, 'Sb': 121.76, 'Te': 127.6, 'I': 126.9, 'Xe': 131.29, 'Cs': 132.91, 'Ba': 137.33, 'La': 138.91, 'Ce': 140.12,
-                  'Pr': 140.91, 'Nd': 144.24, 'Pm': 144.91, 'Sm': 150.36, 'Eu': 151.96, 'Gd': 157.25, 'Tb': 158.93, 'Dy': 162.5, 'Ho': 164.93, 'Er': 167.26, 'Tm': 168.93,
-                  'Yb': 173.04, 'Lu': 174.97, 'Hf': 178.49, 'Ta': 180.95, 'W': 183.84, 'Re': 186.21, 'Os': 190.23, 'Ir': 192.22, 'Pt': 195.08, 'Au': 196.97, 'Hg': 200.59,
-                  'Tl': 204.38, 'Pb': 207.2, 'Bi': 208.98, 'Po': 209.0, 'At': 210.0, 'Rn': 222.0, 'Fr': 223.0, 'Ra': 226.0, 'Ac': 227.0, 'Th': 232.04, 'Pa': 231.04,
-                  'U': 238.03, 'Np': 237.0, 'Pu': 244.0, 'Am': 243.0, 'Cm': 247.0, 'Bk': 247.0, 'Cf': 251.0, 'Es': 252.0, 'Fm': 257.0, 'Md': 258.0, 'No': 259.0, 'Lr': 262.0,
-                  'Rf': 267.0, 'Db': 268.0, 'Sg': 271.0, 'Bh': 274.0, 'Hs': 269.0, 'Mt': 276.0, 'Ds': 281.0, 'Rg': 281.0, 'Cn': 285.0, 'Nh': 286.0, 'Fl': 289.0, 'Mc': 288.0,
-                  'Lv': 293.0, 'Ts': 294.0, 'Og': 294.0}
+
+#  Atomic weights in amu from:
+#  IUPAC-CIAWW's Atomic weights of the elements: Review 2000
+atomic_weights = {"H": 1.00794, "He": 4.002602, "Li": 6.941, "Be": 9.012182,
+                  "B": 10.811, "C": 12.0107, "N": 14.0067, "O": 15.9994,
+                  "F": 18.9984032, "Ne": 2.01797, "Na": 22.989770,
+                  "Mg": 24.3050, "Al": 26.981538, "Si": 28.0855,
+                  "P": 30.973761, "S": 32.065, "Cl": 35.453, "Ar": 39.948,
+                  "K": 39.0983, "Ca": 40.078, "Sc": 44.955910, "Ti": 47.867,
+                  "V": 50.9415, "Cr": 51.9961, "Mn": 54.938049,
+                  "Fe": 55.845, "Co": 58.933200, "Ni": 58.6934,
+                  "Cu": 63.546, "Zn": 65.409, "Ga": 69.723, "Ge": 72.64,
+                  "As": 74.92160, "Se": 78.96, "Br": 79.904, "Kr": 83.798,
+                  "Rb": 85.4678, "Sr": 87.62, "Y": 88.90585, "Zr": 91.224,
+                  "Nb": 92.90638, "Mo": 95.94, "Ru": 101.07,
+                  "Rh": 102.90550, "Pd": 106.42, "Ag": 107.8682,
+                  "Cd": 112.411, "In": 114.818, "Sn": 118.710,
+                  "Sb": 121.760, "Te": 127.60, "I": 126.90447,
+                  "Xe": 131.293, "Cs": 132.90545, "Ba": 137.327,
+                  "La": 138.9055, "Ce": 140.116, "Pr": 140.90765,
+                  "Nd": 144.24, "Sm": 150.36, "Eu": 151.964, "Gd": 157.25,
+                  "Tb": 158.92534, "Dy": 162.500, "Ho": 164.93032,
+                  "Er": 167.259, "Tm": 168.93421, "Yb": 173.04,
+                  "Lu": 174.967, "Hf": 178.49, "Ta": 180.9479,
+                  "W": 183.84, "Re": 186.207, "Os": 190.23, "Ir": 192.217,
+                  "Pt": 195.078, "Au": 196.96655, "Hg": 200.59,
+                  "Tl": 204.3833, "Pb": 207.2, "Bi": 208.98038,
+                  "Th": 232.0381, "Pa": 231.03588, "U": 238.02891,
+                  # Remainder from https://ciaaw.org/atomic-masses.htm
+                  'Np': 237.0, 'Pu': 244.0, 'Am': 243.0, 'Cm': 247.0,
+                  'Bk': 247.0, 'Cf': 251.0, 'Es': 252.0, 'Fm': 257.0,
+                  'Md': 258.0, 'No': 259.0, 'Lr': 262.0, 'Rf': 267.0,
+                  'Db': 268.0, 'Sg': 271.0, 'Bh': 274.0, 'Hs': 269.0,
+                  'Mt': 276.0, 'Ds': 281.0, 'Rg': 281.0, 'Cn': 285.0,
+                  'Nh': 286.0, 'Fl': 289.0, 'Mc': 288.0, 'Lv': 293.0,
+                  'Ts': 294.0, 'Og': 294.0
+                  }
+
 
 # vdw radii from https://books.google.no/books?id=bNDMBQAAQBAJ
 vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, 'N': 1.55, 'O': 1.52, 'F': 1.47, 'Ne': 1.54, 'Na': 2.27, 'Mg': 1.73, 'Al': 1.84,
@@ -356,78 +1043,3 @@ metals = ['Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 
           'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm',
           'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl',
           'Mc', 'Lv']
-
-
-def get_maximal_valance(atom_label):
-    """Get the maximum valance of an atom
-
-    Arguments:
-        atom_label (str): atom label e.g. C or Pd
-
-    Returns:
-        (int): maximal valence of the atom
-    """
-
-    if atom_label in valid_valances.keys():
-        return valid_valances[atom_label][-1]
-    else:
-        logger.warning(f'Could not find a valid valance for {atom_label}. '
-                       f'Guessing at 6')
-        return 6
-
-
-def get_atomic_weight(atom_label):
-    """Get the atomic weight of an atom
-
-    Arguments:
-        atom_label (str): atom label e.g. C or Pd
-
-    Returns:
-        (float): atomic weight of the atom
-    """
-
-    if atom_label in atomic_weights.keys():
-        return atomic_weights[atom_label]
-    else:
-        logger.warning(f'Could not find a valid weight for {atom_label}. '
-                       f'Guessing at 70')
-        return 70
-
-
-def get_vdw_radius(atom_label):
-    """Get the van der waal's radius of an atom
-
-    Arguments:
-        atom_label (str): atom label e.g. C or Pd
-
-    Returns:
-        (float): van der waal's radius of the atom
-    """
-    if atom_label in vdw_radii.keys():
-        return vdw_radii[atom_label]
-    else:
-        logger.error(f'Couldn\'t find the VdV radii for {atom_label}. '
-                     f'Guessing at 2.3')
-        return 2.3
-
-
-def is_pi_atom(atom_label, valency):
-    """
-    Determine if an atom is a 'π-atom' i.e. is unsaturated and is a first or
-    second row element
-
-    Arguments:
-        atom_label (str):
-        valency (int):
-
-    Returns:
-        (bool)
-    """
-
-    if atom_label not in pi_valencies.keys():
-        return False
-
-    if valency in pi_valencies[atom_label]:
-        return True
-
-    return False

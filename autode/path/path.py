@@ -67,8 +67,31 @@ class Path(list):
     def contains_peak(self):
         return self.peak_idx is not None
 
+    def product_idx(self, product):
+        """
+        Get the index of the point in the path at which products are made.
+        If they are not made or they cannot be checked then return None
+
+        Arguments:
+            product (autode.species.Species):
+
+        Returns:
+            (int | None):
+        """
+        if product is None or product.graph is None:
+            logger.warning('Cannot check if products are made')
+            return None
+
+        for i, point in enumerate(self):
+            if mol_graphs.is_isomorphic(graph1=point.species.graph,
+                                        graph2=product.graph):
+                logger.info(f'Products made at point {i}')
+                return i
+
+        return None
+
     def products_made(self, product):
-        """Check whether the products are made on the surface
+        """Are the products are made on the surface?
 
         Arguments:
             product (autode.species.Species):
@@ -76,17 +99,7 @@ class Path(list):
         Returns:
             (bool):
         """
-        if product is None or product.graph is None:
-            logger.warning('Cannot check if products are made')
-            return False
-
-        for i, point in enumerate(self):
-            if mol_graphs.is_isomorphic(graph1=point.species.graph,
-                                        graph2=product.graph):
-                logger.info(f'Products made at point {i}')
-                return True
-
-        return False
+        return self.product_idx(product) is not None
 
     def is_saddle(self, idx):
         """Is an index a saddle point"""
@@ -139,7 +152,7 @@ class Path(list):
                               append=True)
         return None
 
-    def __init__(self, *args, units=KcalMol()):
+    def __init__(self, *args, units=KcalMol):
         """
         Base path class that may be populated with species or nudged elastic
         band images, *must* have .energy attributes

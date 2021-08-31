@@ -32,12 +32,14 @@ def work_in_zipped_dir(zip_path, chdir=True):
             if chdir:
                 os.chdir(dir_path)
 
-            result = func(*args, **kwargs)
+            try:
+                result = func(*args, **kwargs)
 
-            if chdir:
-                os.chdir(here)
+            finally:
+                if chdir:
+                    os.chdir(here)
 
-            shutil.rmtree(dir_path)
+                shutil.rmtree(dir_path)
 
             return result
 

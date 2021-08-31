@@ -104,8 +104,12 @@ class FailedToAdjustAngles(Exception):
 
 
 class CouldNotGetProperty(CalculationException):
-    def __init__(self, name):
-        super().__init__(f'Could not get {name}')
+    def __init__(self, *args, name=None):
+        if name is not None:
+            super().__init__(f'Could not get {name}')
+
+        else:
+            super().__init__(*args)
 
 
 class CannotSplitAcrossBond(Exception):

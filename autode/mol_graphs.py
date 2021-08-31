@@ -6,15 +6,12 @@ import numpy as np
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
-from autode.atoms import get_maximal_valance
-from autode.atoms import is_pi_atom
 from autode.bonds import get_avg_bond_length
 from autode.log import logger
-from autode.atoms import get_atomic_weight
 
 
 def make_graph(species,
-               rel_tolerance=0.25,
+               rel_tolerance=0.3,
                bond_list=None,
                allow_invalid_valancies=False):
     """
@@ -89,7 +86,6 @@ def make_graph(species,
                 # 1.25x average length add a 'bond'
                 if (dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
                         and (i, j) not in graph.edges):
-
                     graph.add_edge(i, j, pi=False, active=False)
 
     species.graph = graph
@@ -104,8 +100,8 @@ def make_graph(species,
 def get_atom_ids_sorted_type(species):
     """
     Get a list of atom ids sorted by increasing atomic weight, useful for when
-     a molecular graph depends on the order
-    of atoms in what will be considered bonded
+    a molecular graph depends on the order of atoms in what will be considered
+    bonded
 
     Arguments:
         species (autode.species.Species):
@@ -115,11 +111,7 @@ def get_atom_ids_sorted_type(species):
     """
     atom_idxs = list(range(species.n_atoms))
 
-    def weight(idx):
-        """Given an atom index return the molecular weight in amu"""
-        return get_atomic_weight(atom_label=species.atoms[idx].label)
-
-    return sorted(atom_idxs, key=weight)
+    return sorted(atom_idxs, key=lambda idx: species.atoms[idx].weight)
 
 
 def remove_bonds_invalid_valancies(species):
@@ -133,12 +125,11 @@ def remove_bonds_invalid_valancies(species):
 
     for i in species.graph.nodes:
 
-        max_valance = get_maximal_valance(atom_label=species.atoms[i].label)
+        max_valance = species.atoms[i].maximal_valance
         neighbours = list(species.graph.neighbors(i))
 
         if len(neighbours) <= max_valance:
-            # All is well
-            continue
+            continue  # All is well
 
         logger.warning(f'Atom {i} exceeds its maximal valence removing edges')
 
@@ -164,8 +155,7 @@ def set_graph_attributes(species):
     logger.info('Setting the π bonds in a species')
 
     def is_idx_pi_atom(idx):
-        return is_pi_atom(atom_label=species.atoms[idx].label,
-                          valency=species.graph.degree[idx])
+        return species.atoms[idx].is_pi(valency=species.graph.degree[idx])
 
     for bond in species.graph.edges:
         atom_i, atom_j = bond
@@ -225,7 +215,7 @@ def species_are_isomorphic(species1, species2):
     if is_isomorphic(species1.graph, species2.graph):
         return True
 
-    if species1.conformers is None and species2.conformers is None:
+    if species1.n_conformers == species2.n_conformers == 0:
         logger.warning('Cannot check for isomorphic species conformers')
         return False
 
@@ -233,7 +223,7 @@ def species_are_isomorphic(species1, species2):
     logger.disabled = True
 
     for species in (species1, species2):
-        if species.conformers is None:
+        if species.n_conformers == 0:
             continue
 
         for conformer in species.conformers:
@@ -246,7 +236,7 @@ def species_are_isomorphic(species1, species2):
     def conformers_or_self(species):
         """If there are no conformers for this species return itself otherwise
         the list of conformers"""
-        if species.conformers is None:
+        if species.n_conformers == 0:
             return [species]
 
         return species.conformers

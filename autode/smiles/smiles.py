@@ -125,7 +125,10 @@ def init_smiles(molecule, smiles):
 
     parser.parse(smiles)
     molecule.charge = parser.charge
-    molecule.mult = parser.mult
+
+    # Only override the default multiplicity (1) with the parser-defined value
+    if molecule.mult == 1:
+        molecule.mult = parser.mult
 
     try:
         builder.build(atoms=parser.atoms, bonds=parser.bonds)

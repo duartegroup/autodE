@@ -1,3 +1,4 @@
+from copy import deepcopy
 from autode.exceptions import SolventNotFound
 
 
@@ -30,6 +31,9 @@ def get_available_solvent_names(method):
 
 class Solvent:
 
+    def __repr__(self):
+        return f'Solvent({self.name})'
+
     def __str__(self):
         return self.name
 
@@ -39,6 +43,10 @@ class Solvent:
             return False
 
         return self.name == other.name and self.smiles == other.smiles
+
+    def copy(self):
+        """Return a copy of this solvent"""
+        return deepcopy(self)
 
     def __init__(self, name, smiles, aliases, **kwargs):
         """

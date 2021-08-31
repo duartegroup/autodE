@@ -162,7 +162,7 @@ class Builder(AtomCollection):
         """
         logger.info(f'Setting {self.n_atoms} atom types')
 
-        self.rings_idxs = nx.cycle_basis(self.graph)
+        self.rings_idxs = nx.minimum_cycle_basis(self.graph)
         logger.info(f'Have {len(self.rings_idxs)} ring(s)')
 
         for i, atom in enumerate(self.atoms):
@@ -329,7 +329,7 @@ class Builder(AtomCollection):
 
             # If both atoms either side of this one are 'pi' atoms e.g. in a
             # benzene ring, then the ideal angle must be 0 to close the ring
-            if all(self.atoms[idx].is_pi for idx in dihedral.mid_idxs):
+            if all(self.atoms[idx].is_pi() for idx in dihedral.mid_idxs):
                 dihedral.phi_ideal = 0.0
 
             # Only yield single bonds, that can be rotated freely

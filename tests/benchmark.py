@@ -72,7 +72,6 @@ def reactions_in_args():
         return None
 
     reactions = []
-    args = get_args()
 
     if args.smallorganic or args.all:
         add_smiles_rxns_from_file(os.path.join(data_path, 'ADE_SO.txt'))
@@ -89,7 +88,9 @@ def reactions_in_args():
 
 if __name__ == '__main__':
 
-    out_file = open('autode_benchmark.txt', 'w')
+    args = get_args()
+    out_file = open(f'autode_benchmark_'
+                    f'{"so" if args.smallorganic else "sm"}.txt', 'w')
 
     print(f'Name      v_imag / cm-1    Time / min     Success', file=out_file)
     for reaction in reactions_in_args():
@@ -115,6 +116,53 @@ if __name__ == '__main__':
 
 
 """
+===============================================================================
+1.1.0
+
+hydroform1     -434.1         38.0           ✓
+MnInsert       -295.7         58.1           ✓
+grubbs         -121.1         63.8           ✓
+vaskas         -94.6          39.8           ✓
+
+SN2            -496.8         1.3            ✓
+cope           -557.3         4.7            ✓
+DA             -484.4         17.6           ✓
+Hshift         -1898.8        2.6            ✓
+C2N2O          -493.6         1.7            ✓
+cycbut         -741.1         14.3           ✓
+DAcpd          -470.4         6.7            ✓
+ethCF2         -377.4         15.4           ✓
+ene            -966.7         17.0           ✓
+HFloss         -1801.7        7.4            ✓
+oxir           -569.5         11.0           ✓
+Ocope          -525.4         2.9            ✓
+SO2loss        -324.1         26.4           ✓
+aldol          -260.3         19.3           ✓
+dipolar        -442.7         8.4            ✓
+
+===============================================================================
+1.1.0dev0
+
+SN2            -497.4         1.1            ✓
+cope           -556.5         3.9            ✓
+DA             -497.0         3.6            ✓
+Hshift         -1898.6        12.3           ✓
+C2N2O          -493.8         1.7            ✓
+cycbut         -741.2         12.5           ✓
+DAcpd          -470.9         4.6            ✓
+ethCF2         -377.7         13.6           ✓
+ene            -970.5         54.1           ✓
+HFloss         -1801.7        16.4           ✓
+oxir           -565.3         5.9            ✓
+Ocope          -553.6         3.3            ✓
+SO2loss        -319.6         76.6           ✓
+
+hydroform1     -433.9         44.1           ✓
+MnInsert       -295.9         85.3           ✓
+grubbs         -118.5         45.1           ✓
+vaskas         -87.8          38.2           ✓
+
+===============================================================================
 1.0.5
 
 SN2            -579.3         3.5            ✓
@@ -132,7 +180,6 @@ Ocope          -524.7         3.6            ✓
 SO2loss        -324.2         35.2           ✓
 
 ===============================================================================
-
 1.0.1
 
 SN2            -490.1         1.8            ✓
@@ -158,8 +205,7 @@ vaskas         -95.5          63.7           ✓
 
 1.0.0a1
 
-   Name      v_imag / cm-1     Time / min    Success
-------------------------------------------------------
+
    sn2           -495.9           0.1           ✓         
 cope_rearr       -583.3          11.3           ✓         
 diels_alder      -486.8           4.3           ✓         

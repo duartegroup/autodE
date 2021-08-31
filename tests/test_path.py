@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from autode.atoms import Atom
-from autode.methods import XTB, ORCA
+from autode.methods import XTB
 from autode.path import Path, AdaptivePath, PathPoint
 from autode.path.adaptive import pruned_active_bonds
 from autode.bonds import FormingBond, BreakingBond
@@ -109,10 +109,10 @@ def test_pruning_bonds():
 
     # Test the correct assigment of the final bond distance
     ru_reac = Species(name='Ru_alkene', charge=0, mult=1,
-                       atoms=[Atom('Ru', 0.45366,  0.70660, -0.25056),
-                              Atom('C',  0.72920,  1.42637,  1.37873),
-                              Atom('C', -1.75749, -0.39358,  0.57059),
-                              Atom('C', -1.10229, -1.02739, -0.43978)])
+                      atoms=[Atom('Ru', 0.45366,  0.70660, -0.25056),
+                             Atom('C',  0.72920,  1.42637,  1.37873),
+                             Atom('C', -1.75749, -0.39358,  0.57059),
+                             Atom('C', -1.10229, -1.02739, -0.43978)])
 
     ru_prod = Species(name='Ru_cycylobutane', charge=0, mult=1,
                       atoms=[Atom('Ru', 0.28841, -1.68905,  0.39833),
@@ -126,6 +126,23 @@ def test_pruning_bonds():
 
     assert np.isclose(bbond.final_dist,
                       ru_prod.distance(0, 2))
+
+
+def test_pruning_bonds2():
+
+    h2 = Species(name='h2', charge=0, mult=2,
+                 atoms=[Atom('H'), Atom('H', x=1)])
+
+    h2_close = Species(name='h2', charge=0, mult=2,
+                       atoms=[Atom('H'), Atom('H', x=0.5)])
+
+    bbond = BreakingBond(atom_indexes=[0, 1],
+                         species=h2,
+                         final_species=h2_close)
+
+    # A breaking bond with a final distance shorter than the current
+    # (which is possible) should be pruned
+    assert len(pruned_active_bonds(h2, fbonds=[], bbonds=[bbond])) == 0
 
 
 def test_products_made():

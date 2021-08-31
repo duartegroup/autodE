@@ -4,7 +4,7 @@ import autode as ade
 from copy import deepcopy
 from itertools import combinations
 from scipy.optimize import minimize
-from autode.conformers.conformer import get_conformer
+from autode.conformers import Conformer
 import autode.exceptions as ex
 from autode.utils import log_time
 from autode.bonds import get_ideal_bond_length_matrix
@@ -17,7 +17,7 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
     """
     Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and
     fixed and 0 otherwise. Can support a partial structure with bonds to atoms
-     that don't (yet) exist
+    that don't (yet) exist.
 
     Arguments:
         n_atoms (int):
@@ -42,7 +42,7 @@ def get_bond_matrix(n_atoms, bonds, fixed_bonds):
 
 
 def get_coords_energy(coords, bonds, k, c, d0, tol, fixed_bonds,
-                      exponent=8):
+                      exponent=8, fixed_idxs=None):
     """
     Get the coordinates that minimise a FF with a bonds + repulsion FF
     where the repulsion is c/r^exponent
@@ -72,9 +72,12 @@ def get_coords_energy(coords, bonds, k, c, d0, tol, fixed_bonds,
                                   bonds=bonds,
                                   fixed_bonds=fixed_bonds)
 
+    if fixed_idxs is None:
+        fixed_idxs = np.array([], dtype=int)
+
     res = minimize(v,
                    x0=coords.reshape(3 * n_atoms),
-                   args=(bond_matrix, k, d0, c, exponent),
+                   args=(bond_matrix, k, d0, c, exponent, fixed_idxs),
                    method='CG',
                    tol=tol,
                    jac=dvdr)
@@ -242,7 +245,7 @@ def get_non_random_atoms(species):
     if len(non_rand_atoms) > 0:
         logger.info(f'Not randomising atom index(es) {set(non_rand_atoms)}')
 
-    return set(non_rand_atoms)
+    return np.array(list(set(non_rand_atoms)), dtype=int)
 
 
 def get_atoms_from_generated_file(species, xyz_filename):
@@ -403,6 +406,7 @@ def get_simanl_atoms(species, dist_consts=None, conf_n=0, save_xyz=True,
         coords, energy = get_coords_energy(coords=init_coords,
                                            bonds=species.graph.edges,
                                            k=1.0, c=0.01, d0=d0, tol=1E-5,
+                                           fixed_idxs=fixed_atom_indexes,
                                            fixed_bonds=constrained_bonds)
     else:
         coords, energy = get_coords_no_init_structure(atoms, species, d0,
@@ -440,8 +444,9 @@ def get_simanl_conformer(species, dist_consts=None, conf_n=0, save_xyz=True):
         (autode.conformers.Conformer): Conformer
     """
     # Generate a conformer from a species - same charge/mult/solvent etc.
-    conformer = get_conformer(species, name=f'{species.name}_conf{conf_n}')
-    conformer.dist_consts = dist_consts
+    conformer = Conformer(species=species,
+                          name=f'{species.name}_conf{conf_n}',
+                          dist_consts=dist_consts)
 
     atoms, energy = get_simanl_atoms(species,
                                      dist_consts=dist_consts,

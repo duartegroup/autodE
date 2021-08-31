@@ -12,6 +12,7 @@ Reference
    solvent/index
    species/index
    transition_states/index
+   thermochemistry/index
    wrappers/index
    atoms
    bond_lengths
@@ -30,3 +31,5 @@ Reference
    substitution
    units
    utils
+   values
+   hessians

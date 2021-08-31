@@ -1,0 +1,41 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: 3.9
+        channels: conda-forge,defaults
+        auto-update-conda: true
+
+    - name: Install
+      run: |
+        conda activate test
+        conda install --file requirements.txt
+        conda install --file doc/requirements.txt
+        python -m pip install . --no-deps
+
+    - name: Build docs
+      run: |
+        cd doc
+        make html
+        touch _build/html/.nojekyll 
+
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@4.1.4
+      with:
+        branch: gh-pages
+        folder: doc/_build/html

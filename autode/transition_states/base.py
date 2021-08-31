@@ -1,19 +1,27 @@
-from copy import deepcopy
+from abc import ABC
+import numpy as np
+from typing import Optional
 import autode.exceptions as ex
 from autode.atoms import metals
-from autode.calculation import Calculation
 from autode.config import Config
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
-from autode.species.molecule import Molecule
-from autode.mol_graphs import make_graph
-from autode.mol_graphs import species_are_isomorphic
+from autode.mol_graphs import make_graph, species_are_isomorphic
 from autode.species.species import Species
 
 
-class TSbase(Species):
+class TSbase(Species, ABC):
+    r"""
+    Base transition state class. e.g.::
 
-    def _init_graph(self):
+                 H   H
+                 \ /
+        F ------- C --------Cl
+           r1    |   r2              r1 = 2.0 Å
+                 H                   r2 = 2.2 Å
+    """
+
+    def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
         if self.reactant is not None:
             logger.warning(f'Setting the graph of {self.name} from reactants')
@@ -28,110 +36,249 @@ class TSbase(Species):
 
         return None
 
-    def _check_reactants_products(self):
-        """Ensure that reactants and products are set"""
-        if self.reactant is None or self.product is None:
-            raise ValueError('Could not check imaginary mode – reactants '
-                             ' and/or products not set ')
+    @property
+    def has_imaginary_frequencies(self) -> bool:
+        """Does this possible transition state have any imaginary modes?"""
+        return self.imaginary_frequencies is not None
 
-    def could_have_correct_imag_mode(self, method=None, threshold=None):
+    @property
+    def could_have_correct_imag_mode(self) -> bool:
         """
         Determine if a point on the PES could have the correct imaginary mode.
         This must have
 
         (0) An imaginary frequency      (quoted as negative in most EST codes)
-        (1) The most negative(/imaginary) is more negative that a threshold
+        (1) The most negative(/imaginary) is more negative that a threshold,
+            which is defined as autode.config.Config.min_imag_freq
 
         Keywords Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
-            threshold (float | None): Negative float (rather than imaginary
-                                      complex number) if None then the default
-                                      Config.min_imag_freq is used
         Returns:
             (bool):
+
+        Raises:
+            (ValueError): If the bond-rearrangement is not set, so that there
+                          is no chance of determining the right mode
         """
-        self._check_reactants_products()
+        if self.bond_rearrangement is None:
+            raise ValueError('Do not have a bond rearrangment - cannot '
+                             'check the imaginary mode')
 
-        # Use the default threshold in Config if unspecified
-        if threshold is None:
-            threshold = Config.min_imag_freq
-
-        # By default the high level method is used to check imaginary modes
-        if method is None:
-            method = get_hmethod()
-
-        if self.calc is None:
+        if self.hessian is None:
             logger.info('Calculating the hessian..')
-            self.calc = Calculation(name=self.name + '_hess',
-                                    molecule=self,
-                                    method=method,
-                                    keywords=method.keywords.hess,
-                                    n_cores=Config.n_cores)
-            self.calc.run()
+            self._run_hess_calculation(method=get_hmethod())
 
-        imag_freqs = self.calc.get_imaginary_freqs()
+        imag_freqs = self.imaginary_frequencies
 
-        if len(imag_freqs) == 0:
-            logger.warning('Hessian had no imaginary modes')
+        if imag_freqs is None:
+            logger.warning('Hessian had no imaginary modes. Do not have the '
+                           'correct mode')
             return False
 
         if len(imag_freqs) > 1:
             logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
 
-        if imag_freqs[0] > threshold:
+        if imag_freqs[0] > Config.min_imag_freq:
             logger.warning('Imaginary modes were too small to be significant')
             return False
 
-        try:
-            _ = self.calc.get_normal_mode_displacements(mode_number=6)
-
-        except ex.NoNormalModesFound:
-            logger.warning('No normal modes could be found cannot determine if'
-                           'this the correct imaginary mode is found')
-            return False
-
         # Check very conservatively for the correct displacement
-        if not imag_mode_has_correct_displacement(self.calc,
-                                                  self.bond_rearrangement,
-                                                  delta_threshold=0.05,
-                                                  req_all=False):
+        if not self.imag_mode_has_correct_displacement(delta_threshold=0.05,
+                                                       req_all=False):
             logger.warning('Species does not have the correct imaginary mode')
             return False
 
         logger.info('Species could have the correct imaginary mode')
         return True
 
-    def has_correct_imag_mode(self, calc=None, method=None):
+    @property
+    def has_correct_imag_mode(self) -> bool:
         """Check that the imaginary mode is 'correct' set the calculation
-        (hessian or optts)"""
-        self._check_reactants_products()
-        self.calc = calc if calc is not None else self.calc
+        (hessian or optts)
 
-        # By default the high level method is used to check imaginary modes
-        if method is None:
-            method = get_hmethod()
+        Returns:
+            (bool):
+
+        Raises:
+            (ValueError): If reactants and products aren't set, thus cannot
+                        run a quick reaction profile
+        """
 
         # Run a fast check on  whether it's likely the mode is correct
-        if not self.could_have_correct_imag_mode(method=method):
+        if not self.could_have_correct_imag_mode:
             return False
 
-        if imag_mode_has_correct_displacement(self.calc, self.bond_rearrangement):
+        if self.imag_mode_has_correct_displacement(req_all=True):
             logger.info('Displacement of the active atoms in the imaginary '
                         'mode bond forms and breaks the correct bonds')
             return True
 
         # Perform displacements over the imaginary mode to ensure the mode
         # connects reactants and products
-        if imag_mode_links_reactant_products(self.calc, self.reactant, self.product, method=method):
+        if self.imag_mode_links_reactant_products(disp_mag=1.0):
             logger.info('Imaginary mode does link reactants and products')
             return True
 
         logger.warning('Species does *not* have the correct imaginary mode')
         return False
 
-    def __init__(self, atoms, reactant=None, product=None, name='ts_guess',
-                 charge=0, mult=1):
+    def imag_mode_has_correct_displacement(self,
+                                           disp_mag:        float = 1.0,
+                                           delta_threshold: float = 0.3,
+                                           req_all:         bool = True) -> bool:
+        """
+        Check whether the imaginary mode in a calculation with a hessian forms
+        and breaks the correct bonds
+
+        Keyword Arguments:
+            disp_mag (float):
+            delta_threshold (float): Required ∆r on a bond for the bond to be
+                                     considered as forming
+            req_all (bool): Require all the bonds to have the correct displacements
+
+        Returns:
+            (bool):
+        """
+        logger.info('Checking displacement on imaginary mode forms the correct'
+                    ' bonds')
+
+        f_species = displaced_species_along_mode(self, mode_number=6,
+                                                 max_atom_disp=0.5,
+                                                 disp_factor=disp_mag)
+
+        b_species = displaced_species_along_mode(self, mode_number=6,
+                                                 max_atom_disp=0.5,
+                                                 disp_factor=-disp_mag)
+
+        # Be conservative with metal complexes - what even is a bond..
+        if imag_mode_generates_other_bonds(self, f_species, b_species,
+                                           allow_mx=True):
+            logger.warning('Imaginary mode generates bonds that are not active')
+            return False
+
+        # Product could be either the forward displaced molecule or the
+        # backwards equivalent
+        for product in (f_species, b_species):
+
+            fbond_bbond_correct_disps = []
+
+            for fbond in self.bond_rearrangement.fbonds:
+
+                ts_dist = self.distance(*fbond)
+                p_dist = product.distance(*fbond)
+
+                # Displaced distance towards products should be shorter than
+                # the distance at the TS if the bond is forming
+                if ts_dist - p_dist > delta_threshold:
+                    fbond_bbond_correct_disps.append(True)
+
+                else:
+                    fbond_bbond_correct_disps.append(False)
+
+            for bbond in self.bond_rearrangement.bbonds:
+
+                ts_dist = self.distance(*bbond)
+                p_dist = product.distance(*bbond)
+
+                # Displaced distance towards products should be longer than the
+                # distance at the TS if the bond is breaking
+                if p_dist - ts_dist > delta_threshold:
+                    fbond_bbond_correct_disps.append(True)
+
+                else:
+                    fbond_bbond_correct_disps.append(False)
+
+            logger.info(f'List of forming and breaking bonds that have the '
+                        f'correct properties {fbond_bbond_correct_disps}')
+
+            if all(fbond_bbond_correct_disps) and req_all:
+                logger.info(f'{product.name} afforded the correct bond '
+                            f'forming/breaking reactants -> products')
+                return True
+
+            if not req_all and any(fbond_bbond_correct_disps):
+                logger.info('At least one bond had the correct displacement')
+                return True
+
+        logger.warning('Displacement along the imaginary mode did not form '
+                       'and break the correct bonds')
+        return False
+
+    def imag_mode_links_reactant_products(self,
+                                          disp_mag: float = 1.0) -> bool:
+        """Displaces atoms along the imaginary mode forwards (f) and backwards (b)
+        to see if products and reactants are made
+
+        Arguments:
+            ts (autode.transition_states.base.TSbase):
+
+        Keyword Arguments:
+            disp_mag (float): Distance to be displaced along the imag mode
+                             (default: 1.0 Å)
+
+        Returns:
+            (bool): if the imag mode is correct or not
+        """
+        logger.info('Displacing along imag modes to check that the TS links '
+                    'reactants and products')
+        if self.reactant is None or self.product is None:
+            raise ValueError('Could not check imaginary mode – reactants '
+                             ' and/or products not set ')
+
+        # Generate and optimise conformers with the low level of theory
+        try:
+            self.reactant.populate_conformers()
+            self.product.populate_conformers()
+        except NotImplementedError:
+            logger.error('Could not generate conformers of reactant/product(s)'
+                         ' QRC will run without conformers')
+
+        # Get the species by displacing forwards along the mode
+        f_mol = displaced_species_along_mode(self,
+                                             mode_number=6,
+                                             disp_factor=disp_mag,
+                                             max_atom_disp=0.2)
+        f_mol.name = f'{self.name}_forwards'
+
+        # and the same backwards
+        b_mol = displaced_species_along_mode(self,
+                                             mode_number=6,
+                                             disp_factor=-disp_mag,
+                                             max_atom_disp=0.2)
+        b_mol.name = f'{self.name}_backwards'
+
+        # The high and low level methods may not have the same minima, so
+        # optimise and recheck isomorphisms
+        for method in (get_hmethod(), get_lmethod()):
+
+            for mol in (f_mol, b_mol):
+
+                try:
+                    mol.optimise(method=method,
+                                 keywords=method.keywords.low_opt,
+                                 reset_graph=True)
+
+                except ex.AtomsNotFound:
+                    logger.error(f'Failed to optimise {mol.name} with '
+                                 f'{method}. Assuming no link')
+                    return False
+
+            if f_b_isomorphic_to_r_p(f_mol, b_mol, self.reactant, self.product):
+                return True
+
+        logger.info(f'Forwards displaced edges {f_mol.graph.edges}')
+        logger.info(f'Backwards displaced edges {b_mol.graph.edges}')
+        return False
+
+    def __init__(self,
+                 atoms:      'autode.atoms.Atoms',
+                 reactant:   Optional['autode.species.ReactantComplex'] = None,
+                 product:    Optional['autode.species.ProductComplex'] = None,
+                 name:       str = 'ts_guess',
+                 charge:     int = 0,
+                 mult:       int = 1,
+                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
         """
         Parent transition state class
 
@@ -152,289 +299,154 @@ class TSbase(Species):
                          charge=charge if reactant is None else reactant.charge,
                          mult=mult if reactant is None else reactant.mult)
 
-        self.solvent = None if reactant is None else reactant.solvent
-        self.atoms = atoms
-
         self.reactant = reactant
         self.product = product
 
-        self.calc = None
-        self.bond_rearrangement = None
+        self.bond_rearrangement = bond_rearr
 
+        self.solvent = None if reactant is None else reactant.solvent
         self._init_graph()
 
 
-def get_displaced_atoms_along_mode(calc, mode_number, disp_magnitude=1.0,
-                                   atoms=None):
-    """Displace the geometry along the imaginary mode with mode number
-    iterating from 0, where 0-2 are translational normal modes, 3-5 are
-    rotational modes and 6 is the largest imaginary mode. To displace along
+def displaced_species_along_mode(species:       Species,
+                                 mode_number:   int,
+                                 disp_factor:   float = 1.0,
+                                 max_atom_disp: float = 99.9) -> Optional[Species]:
+    """
+    Displace the geometry along a normal mode with mode number indexed from 0,
+    where 0-2 are translational normal modes, 3-5 are rotational modes and 6
+    is the largest magnitude imaginary mode (if present). To displace along
     the second imaginary mode we have mode_number=7
 
     Arguments:
-        calc (autode.calculation.Calculation):
+        species (autode.species.Species):
         mode_number (int): Mode number to displace along
 
     Keyword Arguments:
-        disp_magnitude (float): Distance to displace (default: {1.0})
-        atoms (list(autode.atoms.Atom)): Atoms to displace, if None then the
-                                     final set of atoms from the calc are used
+        disp_factor (float): Distance to displace (default: {1.0})
+
+        max_atom_disp (float): Maximum displacement of any atom (Å)
 
     Returns:
-        (list(autode.atoms.Atom)):
+        (autode.species.Species):
+
+    Raises:
+        (autode.exceptions.CouldNotGetProperty):
     """
-    logger.info(f'Displacing along imaginary mode from {calc.name}')
+    logger.info(f'Displacing along mode {mode_number} in {species.name}')
 
-    if atoms is None:
-        s_atoms = calc.get_final_atoms()
-    else:
-        s_atoms = deepcopy(atoms)
+    mode_disp_coords = species.normal_mode(mode_number)
+    if mode_disp_coords is None:
+        logger.error('Could not get a displaced species. No normal mode '
+                     'could be found')
+        return None
 
-    mode_disp_coords = calc.get_normal_mode_displacements(mode_number)
+    coords = species.coordinates
+    disp_coords = coords.copy() + disp_factor * mode_disp_coords
 
-    assert len(s_atoms) == len(mode_disp_coords)
+    # Ensure the maximum displacement distance any single atom is below the
+    # threshold (max_atom_disp), by incrementing backwards in steps of 0.05 Å,
+    # for disp_factor = 1.0 Å
+    for _ in range(20):
 
-    for i in range(len(s_atoms)):
-        s_atoms[i].translate(vec=disp_magnitude * mode_disp_coords[i, :])
+        if np.max(np.linalg.norm(coords - disp_coords, axis=1)) < max_atom_disp:
+            break
 
-    return s_atoms
+        disp_coords -= (disp_factor / 20) * mode_disp_coords
 
+    # Create a new species from the initial
+    disp_species = Species(name=f'{species.name}_disp',
+                           atoms=species.atoms.copy(),
+                           charge=species.charge,
+                           mult=species.mult)
+    disp_species.coordinates = disp_coords
 
-def imag_mode_has_correct_displacement(calc, bond_rearrangement, disp_mag=1.0,
-                                       delta_threshold=0.3, req_all=True):
-    """
-    Check whether the imaginary mode in a calculation with a hessian forms and
-    breaks the correct bonds
-
-    Arguments:
-        calc (autode.calculation.Calculation):
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
-
-    Keyword Arguments:
-        disp_mag (float):
-        delta_threshold (float): Required ∆r on a bond for the bond to be
-                                 considered as forming
-        req_all (bool): Require all the bonds to have the correct displacements
-
-    Returns:
-        (bool):
-    """
-    logger.info('Checking displacement on imaginary mode forms the correct'
-                ' bonds')
-    ts_species = deepcopy(calc.molecule)
-
-    try:
-        # We need to used the optimised set of atoms...
-        ts_species.atoms = calc.get_final_atoms()
-    except (ex.AtomsNotFound, ex.NoCalculationOutput):
-        return False
-
-    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=disp_mag)
-    f_species = Species(name='f_displaced', atoms=f_displaced_atoms,
-                        charge=0, mult=1)  # Charge & mult are placeholders
-
-    b_displaced_atoms = get_displaced_atoms_along_mode(calc,
-                                                       mode_number=6,
-                                                       disp_magnitude=-disp_mag)
-
-    b_species = Species(name='b_displaced', atoms=b_displaced_atoms,
-                        charge=0, mult=1)
-
-    # Be conservative with metal complexes - what even is a bond..
-    if imag_mode_generates_other_bonds(ts_species, f_species, b_species,
-                                       bond_rearrangement, allow_mx=True):
-        logger.warning('Imaginary mode generates bonds that are not active')
-        return False
-
-    # Product could be either the forward displaced molecule or the backwards
-    # equivalent
-    for product in (f_species, b_species):
-
-        fbond_bbond_correct_disps = []
-
-        for fbond in bond_rearrangement.fbonds:
-
-            ts_dist = ts_species.distance(*fbond)
-            p_dist = product.distance(*fbond)
-
-            # Displaced distance towards products should be shorter than the
-            # distance at the TS if the bond is forming
-            if ts_dist - p_dist > delta_threshold:
-                fbond_bbond_correct_disps.append(True)
-
-            else:
-                fbond_bbond_correct_disps.append(False)
-
-        for bbond in bond_rearrangement.bbonds:
-
-            ts_dist = ts_species.distance(*bbond)
-            p_dist = product.distance(*bbond)
-
-            # Displaced distance towards products should be longer than the
-            # distance at the TS if the bond is breaking
-            if p_dist - ts_dist > delta_threshold:
-                fbond_bbond_correct_disps.append(True)
-
-            else:
-                fbond_bbond_correct_disps.append(False)
-
-        logger.info(f'List of forming and breaking bonds that have the '
-                    f'correct properties {fbond_bbond_correct_disps}')
-
-        if all(fbond_bbond_correct_disps) and req_all:
-            logger.info(f'{product.name} afforded the correct bond '
-                        f'forming/breaking reactants -> products')
-            return True
-
-        if not req_all and any(fbond_bbond_correct_disps):
-            logger.info('At least one bond had the correct displacement')
-            return True
-
-    logger.warning('Displacement along the imaginary mode did not form and '
-                   'break the correct bonds')
-    return False
+    return disp_species
 
 
-def imag_mode_generates_other_bonds(ts, f_species, b_species, bond_rearrangement,
-                                    allow_mx=False):
+def imag_mode_generates_other_bonds(ts:        TSbase,
+                                    f_species: Species,
+                                    b_species: Species,
+                                    allow_mx:  bool = False) -> bool:
     """Determine if the forward or backwards displaced molecule break or make
     bonds that aren't in all the active bonds bond_rearrangement.all. Will be
     fairly conservative here
 
     Arguments:
-        ts (autode.species.Species):
+        ts (autode.transition_states.base.TSbase):
+
         f_species (autode.species.Species): Forward displaced species
+
         b_species (autode.species.Species): Backward displaced species
-        bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
+
+    Keyword Arguments:
         allow_mx (bool): Allow any metal-X bonds where X is another element
+
+    Returns:
+        (bool):
     """
 
-    for species in (ts, f_species, b_species):
+    _ts = ts.copy()
+    for species in (_ts, f_species, b_species):
         make_graph(species, rel_tolerance=0.3)
 
     for product in (f_species, b_species):
 
         new_bonds_in_product = set([bond for bond in product.graph.edges
-                                    if bond not in ts.graph.edges])
+                                    if bond not in _ts.graph.edges])
 
         if allow_mx:
             new_bonds_in_product = set([(i, j) for i, j in new_bonds_in_product
-                                        if ts.atoms[i].label not in metals and
-                                        ts.atoms[j].label not in metals])
+                                        if _ts.atoms[i].label not in metals and
+                                        _ts.atoms[j].label not in metals])
 
-        # If there are new bonds in the forward displaced species that are not
-        # part of the bond rearrangement
-        if any(bond not in bond_rearrangement.all for bond in new_bonds_in_product):
+        br = _ts.bond_rearrangement
+        if not set(a for b in new_bonds_in_product for a in b
+                   ).issubset(set(br.active_atoms)):
             logger.warning(f'New bonds in product: {new_bonds_in_product}')
-            logger.warning(f'Bond rearrangement: {bond_rearrangement.all}')
+            logger.warning(f'Active bonds: {br.all}. Active atoms {br.active_atoms}')
             return True
 
     logger.info('Imaginary mode does not generate any other unwanted bonds')
     return False
 
 
-def imag_mode_links_reactant_products(calc, reactant, product, method,
-                                      disp_mag=1.0):
-    """Displaces atoms along the imaginary mode forwards (f) and backwards (b)
-    to see if products and reactants are made
+def f_b_isomorphic_to_r_p(forwards:  Species,
+                          backwards: Species,
+                          reactant:  'autode.species.ReactantComplex',
+                          product:   'autode.species.ProductComplex') -> bool:
+    """
+    Are the forward/backward displaced species isomorphic to
+    reactants/products?
 
     Arguments:
-        calc (autode.calculation.Calculation):
-        reactant (autode.complex.ReactantComplex):
-        product (autode.complex.ProductComplex):
-        method (autode.wrappers.base.ElectronicStructureMethod):
+        forwards (autode.species.Species):
 
-    Keyword Arguments:
-        disp_mag (int): Distance to be displaced along the imag mode
-                     (default: )
+        backwards (autode.species.Species):
+
+        reactant (autode.species.ReactantComplex):
+
+        product (autode.species.ProductComplex):
 
     Returns:
-        (bool): if the imag mode is correct or not
+        (bool):
     """
-    logger.info('Displacing along imag modes to check that the TS links '
-                'reactants and products')
-
-    # Generate and optimise conformers with the low level of theory
-    reactant.populate_conformers()
-    product.populate_conformers()
-
-    # Get the species that is optimised by displacing forwards along the mode
-    f_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=disp_mag)
-    f_displaced_mol = get_optimised_species(calc, method,
-                                            direction='forwards',
-                                            atoms=f_displaced_atoms)
-
-    # Get the species that is optimised by displacing backwards along the mode
-    b_displaced_atoms = get_displaced_atoms_along_mode(calc, mode_number=6,
-                                                       disp_magnitude=-disp_mag)
-    b_displaced_mol = get_optimised_species(calc, method,
-                                            direction='backwards',
-                                            atoms=b_displaced_atoms)
-
-    if f_b_isomorphic_to_r_p(f_displaced_mol, b_displaced_mol, reactant, product):
-        return True
-
-    # The high and low level methods may not have the same minima, so optimise
-    #  and recheck isomorphisms
-    for mol in (f_displaced_mol, b_displaced_mol):
-        mol.optimise(method=get_lmethod(), reset_graph=True)
-
-    if f_b_isomorphic_to_r_p(f_displaced_mol, b_displaced_mol, reactant, product):
-        return True
-
-    logger.info(f'Forwards displaced edges {f_displaced_mol.graph.edges}')
-    logger.info(f'Backwards displaced edges {b_displaced_mol.graph.edges}')
-    return False
-
-
-def f_b_isomorphic_to_r_p(forwards, backwards, reactant, product):
-    """Is the forward/backward displacement to reactants/products?"""
 
     if any(mol.atoms is None for mol in (forwards, backwards)):
-        logger.warning('Atoms not set in the output. Cannot calculate isomorphisms')
+        logger.warning('Atoms not set in the output. '
+                       'Cannot calculate isomorphisms')
         return False
 
-    if species_are_isomorphic(backwards, reactant) and species_are_isomorphic(forwards, product):
-        logger.info('Forwards displacement lead to products and backwards reactants')
+    if (species_are_isomorphic(backwards, reactant)
+            and species_are_isomorphic(forwards, product)):
+        logger.info('Forwards displacement lead to products '
+                    'and backwards reactants')
         return True
 
-    if species_are_isomorphic(forwards, reactant) and species_are_isomorphic(backwards, product):
-        logger.info('Backwards displacement lead to products and forwards to reactants')
+    if (species_are_isomorphic(forwards, reactant)
+            and species_are_isomorphic(backwards, product)):
+        logger.info('Backwards displacement lead to products '
+                    'and forwards to reactants')
         return True
 
     return False
-
-
-def get_optimised_species(calc, method, direction, atoms):
-    """Get the species that is optimised from an initial set of atoms in a
-    particular direction (i.e. forwards or backwards along a normal mode)
-
-    Arguments:
-        calc (autode.calculation.Calculation):
-        method (autode.wrappers.base.ElectronicStructureMethod):
-        direction (str):
-        atoms (list(autode.atoms.Atom)):
-    """
-
-    species = Molecule(name=f'{calc.name}_{direction}', atoms=atoms,
-                       charge=calc.molecule.charge,
-                       mult=calc.molecule.mult)
-
-    # Note that for the surface to be the same the keywords.opt and
-    # keywords.hess need to match in the level of theory
-    calc = Calculation(name=f'{calc.name}_{direction}', molecule=species,
-                       method=method, keywords=method.keywords.opt,
-                       n_cores=Config.n_cores)
-    calc.run()
-
-    try:
-        species.atoms = calc.get_final_atoms()
-        species.energy = calc.get_energy()
-        make_graph(species)
-
-    except ex.AtomsNotFound:
-        logger.error(f'{direction} displacement calculation failed')
-
-    return species

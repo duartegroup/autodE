@@ -87,7 +87,7 @@ def get_ts_templates(folder_path=None):
 
 
 def template_matches(reactant, truncated_graph, ts_template):
-    """
+    r"""
     Determine if a transition state template matches a truncated graph. The
     truncated graph includes all the active bonds in the reaction and the
     nearest neighbours to those atoms e.g. for a Diels-Alder reaction::

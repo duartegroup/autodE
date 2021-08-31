@@ -4,6 +4,7 @@ from scipy import interpolate
 from numpy.polynomial import polynomial
 import numpy as np
 import os
+from autode.values import PlottedEnergy as Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.optimize import minimize
@@ -67,7 +68,7 @@ def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
 
     zz = polynomial.polyval2d(xx, yy, coeff_mat)
     fig = plt.figure(figsize=(12, 4))
-    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+    ax1 = fig.add_subplot(1, 2, 1, projection=Axes3D.name)
     ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
 
     ax1.view_init(45)
@@ -144,13 +145,16 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
     elif enthalpy:
         ec = 'H'
 
-    plt.ylabel(f'∆${ec}$ / {units.name}', fontsize=12)
-    energy_values = [energy.item() for energy in energies]
+    plt.ylabel(f'∆${ec}$ / {units.plot_name}', fontsize=12)
+    energy_values = [energy for energy in energies]
     plt.ylim(min(energy_values)-3, max(energy_values)+3)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
-    fig.text(.1, .05, get_reaction_profile_warnings(reactions), ha='left',
-             fontsize=6, wrap=True)
+    fig.text(.1, .05,
+             get_reaction_profile_warnings(reactions),
+             ha='left',
+             fontsize=6,
+             wrap=True)
 
     prefix = '' if name == 'reaction' else f'{name}_'
     return save_plot(plt, filename=f'{prefix}reaction_profile.png')
@@ -170,7 +174,7 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     # Minimise a set of spline points so the stationary points have y values
     # given in the energies array
-    energies_arr = np.array([energy.item() for energy in energies], dtype='f')
+    energies_arr = np.array([energy for energy in energies], dtype='f')
     result = minimize(error_on_stationary_points, x0=energies_arr,
                       args=(energies_arr,),
                       method='BFGS',
@@ -220,7 +224,7 @@ def plot_points(zi_s, energies, ax):
         energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
         ax (matplotlib.axes.Axes):
     """
-    energies_arr = np.array([energy.item() for energy in energies])
+    energies_arr = np.array([energy for energy in energies])
 
     ax.plot(zi_s, energies_arr, ls='--', c='k', marker='o')
 
@@ -260,14 +264,14 @@ def get_reaction_profile_warnings(reactions):
 
         if reaction.ts is not None:
 
-            n_imag_freqs = len(reaction.ts.imaginary_frequencies)
-            if n_imag_freqs != 1:
-                warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
-                             f'imaginary frequencies. ')
+            if reaction.ts.has_imaginary_frequencies:
+                n_imag_freqs = len(reaction.ts.imaginary_frequencies)
 
-            if (reaction.ts.optts_calc is not None
-                    and not reaction.ts.optts_calc.optimisation_converged()):
-                warnings += f'TS for {reaction.name} was not fully converged. '
+                if n_imag_freqs != 1:
+                    warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
+                                 f'imaginary frequencies. ')
+
+            warnings += reaction.ts.warnings
 
     # If no strings were added then there are no warnings
     if len(warnings) == 0:
@@ -322,7 +326,7 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         # warning added to the plot. Effective free energy barrier =
         # 4.35 kcal mol-1 calcd. from k = 4x10^9 at 298 K (10.1021/cr050205w)
         if de_ts is None:
-            de_ts = Energy(0.00694 + max(0.0, de.item()), estimated=True)
+            de_ts = Energy(0.00694 + max(0.0, de), estimated=True)
 
         else:
             de_ts = Energy(de_ts)
@@ -339,11 +343,7 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         energies += [reaction_energies[i][1] + energies[-1],
                      reaction_energies[i][2] + energies[-1]]
 
-    # Convert to the required units
-    for energy in energies:
-        energy.x *= units.conversion
-
-    return energies
+    return [energy * units.conversion for energy in energies]
 
 
 def get_stationary_points(xs, dydx):
@@ -371,9 +371,9 @@ def error_on_stationary_points(x, energies):
     Calculate the difference between the stationary points of an interpolated
     function and those observed (given in the energies array). Example::
 
-          |     .
-        E |.   / \        The points indicate the true stationary points
-          | \_/   \.
+          |      .
+        E |.   / |        The points indicate the true stationary points
+          | |_/  |.
           |_____________
                 zi
 
@@ -411,33 +411,3 @@ def error_on_stationary_points(x, energies):
     energy_difference = energies - np.array(energies_at_stationary_points)
 
     return np.sum(np.square(energy_difference))
-
-
-class Energy:
-
-    def __repr__(self):
-        return f'Energy({self.x})'
-
-    def __add__(self, other):
-        """Add a number to an energy"""
-        value = self.x + (other.item() if isinstance(other, Energy) else other)
-        return Energy(value, estimated=self.estimated)
-
-    def __sub__(self, other):
-        """Subtract a number from an energy"""
-        return self.__add__(-other.x if isinstance(other, Energy) else -other)
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __mul__(self, other):
-        """Multiply an energy by a number"""
-        value = self.x * (other.item() if isinstance(other, Energy) else other)
-        return Energy(value, estimated=self.estimated)
-
-    def item(self):
-        return self.x
-
-    def __init__(self, value, estimated=False):
-        self.x = value
-        self.estimated = estimated

@@ -3,8 +3,9 @@ import autode.wrappers.keywords as kws
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external_monitored
 from autode.atoms import Atom
+from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
-from autode.exceptions import UnsuppportedCalculationInput
+from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
 from autode.log import logger
 from autode.constants import Constants
 from autode.utils import work_in_tmp_dir
@@ -45,9 +46,12 @@ def get_keywords(calc_input, molecule):
     """Generate a keywords list and adding solvent"""
 
     new_keywords = []
-    scf_block = False
 
     for keyword in calc_input.keywords:
+
+        if 'scf' in keyword.lower(): 
+            if calc_input.solvent:
+                raise UnsuppportedCalculationInput('NWChem only supports solvent for DFT calcs')
 
         if isinstance(keyword, kws.Functional):
             keyword = f'dft\n  maxiter 100\n  xc {keyword.nwchem}\nend'
@@ -59,6 +63,9 @@ def get_keywords(calc_input, molecule):
         elif isinstance(keyword, kws.ECP):
             # ECPs are added to the basis block
             continue
+
+        elif isinstance(keyword, kws.MaxOptCycles):
+            continue  # Maximum number of optimisation cycles in driver block
 
         elif isinstance(keyword, kws.Keyword):
             keyword = keyword.nwchem
@@ -83,27 +90,40 @@ def get_keywords(calc_input, molecule):
             new_keywords.append(new_keyword)
 
         elif keyword.lower().startswith('scf'):
-            if calc_input.solvent:
-                logger.critical('nwchem only supports solvent for DFT calcs')
-                raise UnsuppportedCalculationInput
+        
+            if not any('nopen' in kw for kw in new_keywords):
+                lines = keyword.split('\n')
+                lines.insert(1, f'  nopen {molecule.mult - 1}')
+                new_keywords.append('\n'.join(lines))
 
-            scf_block = True
-            lines = keyword.split('\n')
-            lines.insert(1, f'  nopen {molecule.mult - 1}')
-            new_keyword = '\n'.join(lines)
-            new_keywords.append(new_keyword)
+        elif 'driver' in keyword.lower() and isinstance(calc_input.keywords, kws.OptKeywords):
+            max_opt_cycles = calc_input.keywords.max_opt_cycles
 
-        elif (any(st in keyword.lower() for st in ['ccsd', 'mp2'])
-              and not scf_block):
+            if max_opt_cycles is None:
+                new_keywords.append(keyword)  # No edits needed
+                continue
 
-            if calc_input.solvent.keyword is not None:
-                logger.critical('nwchem only supports solvent for DFT calcs')
-                raise UnsuppportedCalculationInput
+            if 'maxiter' in keyword.lower():
+                logger.info('Found maximum iterations already defined, '
+                            f'overriding with {max_opt_cycles}')
+                kw_lines = [l if 'maxiter' not in l.lower() else f'  maxiter {int(max_opt_cycles)}'
+                            for l in keyword.split('\n')]
+            else:
+                kw_lines = keyword.split('\n')
+                # Add the maximum iteration line before the 'end' final line
+                kw_lines.insert(-1, f'  maxiter {int(max_opt_cycles)}')
 
-            new_keywords.append(f'scf\n  nopen {molecule.mult - 1}\nend')
-            new_keywords.append(keyword)
+            new_keywords.append('\n'.join(kw_lines))
+
         else:
             new_keywords.append(keyword)
+
+
+    if (any('task scf' in kw.lower() for kw in new_keywords) 
+        and not any('nopen' in kw.lower() for kw in new_keywords)):
+        # Need to set the spin state
+        new_keywords.insert(1, f'scf\n    nopen {molecule.mult - 1}\nend') 
+
 
     return new_keywords
 
@@ -173,12 +193,11 @@ def print_constraints(inp_file, molecule, force_constant=20):
 class NWChem(ElectronicStructureMethod):
 
     def generate_input(self, calc, molecule):
-        # TODO impliment partial hessian
         keywords = get_keywords(calc.input, molecule)
 
         with open(calc.input.filename, 'w') as inp_file:
 
-            print(f'start {calc.name}_nwchem\necho', file=inp_file)
+            print(f'start {calc.name}\necho', file=inp_file)
 
             if calc.input.solvent is not None:
                 print(f'cosmo\n '
@@ -204,11 +223,12 @@ class NWChem(ElectronicStructureMethod):
             print_constraints(inp_file, molecule)
 
             if calc.input.point_charges is not None:
-                print('bq')
-                for charge, x, y, z in calc.point_charges:
-                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {charge:^12.8f}',
+                print('bq', file=inp_file)
+                for pc in calc.input.point_charges:
+                    x, y, z = pc.coord
+                    print(f'{x:^12.8f} {y:^12.8f} {z:^12.8f} {pc.charge:^12.8f}',
                           file=inp_file)
-                print('end')
+                print('end', file=inp_file)
 
             print(f'memory {Config.max_core} mb', file=inp_file)
 
@@ -240,7 +260,7 @@ class NWChem(ElectronicStructureMethod):
 
     def execute(self, calc):
 
-        @work_in_tmp_dir(filenames_to_copy=calc.input.get_input_filenames(),
+        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.nw', '.out'))
         def execute_nwchem():
             params = ['mpirun', '-np', str(calc.n_cores), calc.method.path,
@@ -266,19 +286,20 @@ class NWChem(ElectronicStructureMethod):
 
         return False
 
-    def get_enthalpy(self, calc):
-        raise NotImplementedError
-
-    def get_free_energy(self, calc):
-        raise NotImplementedError
-
     def get_energy(self, calc):
+
+        wf_strings = ['Total CCSD energy', 'Total CCSD(T) energy',
+                      'Total SCS-MP2 energy', 'Total MP2 energy',
+                      'Total RI-MP2 energy']
 
         for line in reversed(calc.output.file_lines):
             if any(string in line for string in ['Total DFT energy', 'Total SCF energy']):
                 return float(line.split()[4])
-            if any(string in line for string in ['Total CCSD energy', 'Total CCSD(T) energy', 'Total SCS-MP2 energy', 'Total MP2 energy', 'Total RI-MP2 energy']):
+
+            if any(string in line for string in wf_strings):
                 return float(line.split()[3])
+
+        raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):
 
@@ -297,61 +318,6 @@ class NWChem(ElectronicStructureMethod):
                 return True
 
         return False
-
-    def get_imaginary_freqs(self, calc):
-
-        imag_freqs = []
-        normal_mode_section = False
-
-        for line in calc.output.file_lines:
-            if 'Projected Frequencies' in line:
-                normal_mode_section = True
-                imag_freqs = []
-
-            if '------------------------------' in line:
-                normal_mode_section = False
-
-            if normal_mode_section and 'P.Frequency' in line:
-                freqs = [float(line.split()[i])
-                         for i in range(1, len(line.split()))]
-                for freq in freqs:
-                    if freq < 0:
-                        imag_freqs.append(freq)
-
-        logger.info(f'Found imaginary freqs {imag_freqs}')
-        return imag_freqs
-
-    def get_normal_mode_displacements(self, calc, mode_number):
-
-        # mode numbers start at 1, not 6
-        mode_number -= 5
-        normal_mode_section, displacements = False, []
-
-        for j, line in enumerate(calc.output.file_lines):
-            if 'Projected Frequencies' in line:
-                normal_mode_section = True
-                displacements = []
-
-            if '------------------------------' in line:
-                normal_mode_section = False
-
-            if normal_mode_section:
-                if len(line.split()) == 6:
-                    mode_numbers = [int(val) for val in line.split()]
-                    if mode_number in mode_numbers:
-                        col = [i for i in range(
-                            len(mode_numbers)) if mode_number == mode_numbers[i]][0] + 1
-                        displacements = [float(disp_line.split()[
-                            col]) for disp_line in calc.output.file_lines[j + 4:j + 3 * calc.molecule.n_atoms + 4]]
-
-        displacements_xyz = [displacements[i:i + 3]
-                             for i in range(0, len(displacements), 3)]
-        if len(displacements_xyz) != calc.molecule.n_atoms:
-            logger.error(
-                'Something went wrong getting the displacements n != n_atoms')
-            return None
-
-        return np.array(displacements_xyz)
 
     def get_final_atoms(self, calc):
 
@@ -399,7 +365,6 @@ class NWChem(ElectronicStructureMethod):
             if charges_section and '------------' in line:
                 charges_section = False
 
-        print(charges)
         return charges
 
     def get_gradients(self, calc):
@@ -421,6 +386,98 @@ class NWChem(ElectronicStructureMethod):
         # Convert from Ha a0^-1 to Ha A-1
         gradients = [grad / Constants.a0_to_ang for grad in gradients]
         return np.array(gradients)
+
+    @staticmethod
+    def _atom_masses_from_hessian(calc):
+        """
+        Grab the atomic masses from the 'atom information' section, which
+        should be present from a Hessian calculation. Block looks like::
+
+            ---------------------------- Atom information ----------------
+             atom    #      X           Y          Z            mass
+            --------------------------------------------------------------
+            O        1  0.0000D+00  0.000D+00  2.26367D-01  1.5994910D+01
+            H        2  1.4235D+00  0.000D+00 -9.05466D-01  1.0078250D+00
+            H        3 -1.4435D+00  0.000D+00 -9.05466D-01  1.0078250D+00
+
+        Returns:
+            (list(float)):
+        """
+        n_atoms, file_lines = calc.molecule.n_atoms, calc.output.file_lines
+        atom_lines = None
+
+        for i, line in enumerate(reversed(file_lines)):
+
+            if 'Atom information' not in line:
+                continue
+
+            atom_lines = file_lines[-i+2:-i+2+n_atoms]
+            break
+
+        if atom_lines is None:
+            raise CouldNotGetProperty('No masses found in output file')
+
+        # Replace double notation for standard 'E' and float all the final
+        # entries, which should be the masses in amu
+        return [float(line.split()[-1].replace('D', 'E')) for line in atom_lines]
+
+    def get_hessian(self, calc):
+        """
+        Get the un-mass weighted Hessian matrix from the calculation. Block
+        looks like::
+
+           ----------------------------------------------------
+          MASS-WEIGHTED NUCLEAR HESSIAN (Hartree/Bohr/Bohr/Kamu)
+          ----------------------------------------------------
+
+
+                       1            2           .....
+           ----- ----- ----- ----- -----
+            1    4.25381D+01
+            2   -8.96428D-10 -4.68356D-04
+            .        .             .           .
+
+        Arguments:
+            calc (autode.calculation.Calculation):
+
+        Returns:
+            (np.ndarray):
+        """
+
+        try:
+            line_idx = next(i for i, line in enumerate(calc.output.file_lines)
+                            if 'MASS-WEIGHTED NUCLEAR HESSIAN' in line)
+        except StopIteration:
+            raise CouldNotGetProperty('Hessian not found in the output file')
+
+        hess_lines = [[] for _ in range(calc.molecule.n_atoms*3)]
+
+        for hess_line in calc.output.file_lines[line_idx+6:]:
+
+            if 'NORMAL MODE EIGENVECTORS' in hess_line:
+                break  # Finished the Hessian block
+
+            if 'D' in hess_line:
+                # e.g.     1    4.50945D-01  ...
+                idx = hess_line.split()[0]
+                try:
+                    _ = hess_lines[int(idx) - 1]
+                except (ValueError, IndexError):
+                    raise CouldNotGetProperty("Unexpected hessian formating: "
+                                              f"{hess_line}")
+
+                values = [float(x) for x in hess_line.replace('D', 'E').split()[1:]]
+                hess_lines[int(idx)-1] += values
+
+        atom_masses = self._atom_masses_from_hessian(calc)
+        hess = symm_matrix_from_ltril(array=hess_lines)
+
+        # Un-mass weight from Kamu^-1 to 1
+        mass_arr = np.repeat(atom_masses,  repeats=3, axis=np.newaxis) * 1E-3
+        hess *= np.sqrt(np.outer(mass_arr, mass_arr))
+
+        # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
+        return hess / Constants.a0_to_ang**2
 
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,

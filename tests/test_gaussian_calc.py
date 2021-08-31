@@ -1,7 +1,8 @@
 import pytest
 import os
 import numpy as np
-from autode.wrappers.G09 import G09, print_custom_basis, get_keywords, n_ecp_elements
+from autode.wrappers.G09 import (G09, print_custom_basis, get_keywords,
+                                 n_ecp_elements, add_opt_option)
 from autode.wrappers.G16 import G16
 from autode.calculation import Calculation, CalculationInput, Constraints
 from autode.species.molecule import Molecule
@@ -11,16 +12,13 @@ from autode.wrappers.functionals import pbe0
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
-from autode.exceptions import NoNormalModesFound
 from autode.point_charges import PointCharge
-from autode.config import Config
 from autode.atoms import Atom
 from . import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = G09()
-Config.keyword_prefixes = False
 
 opt_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Opt'])
 optts_keywords = OptKeywords(['PBE1PBE/Def2SVP', 'Freq',
@@ -47,8 +45,7 @@ def test_printing_ecp():
                                   solvent=None,
                                   additional_input=None,
                                   added_internals=None,
-                                  point_charges=None,
-                                  temp=0)
+                                  point_charges=None)
 
     with pytest.raises(RuntimeError):
         print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
@@ -64,6 +61,25 @@ def test_printing_ecp():
     # definitions
     g09_kwds = get_keywords(calc_input, molecule=tmp_mol)
     assert not any(kwd.lower() == 'def2tzvp' for kwd in g09_kwds)
+
+
+def test_add_opt_option():
+
+    keywds = ['Opt=Loose']
+    add_opt_option(keywds, 'MaxCycles=10')
+    assert keywds[0].lower() == 'opt=(loose, maxcycles=10)'
+
+
+def test_input_print_max_opt():
+
+    keywds = opt_keywords.copy()
+    keywds.max_opt_cycles = 10
+
+    str_keywords = get_keywords(CalculationInput(keywds),
+                                molecule=test_mol)
+
+    # Should be only a single instance of the maxcycles declaration
+    assert sum('maxcycles=10' in kw.lower() for kw in str_keywords) == 1
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
@@ -85,7 +101,6 @@ def test_get_gradients():
     calc = Calculation(name='ester', molecule=ester,
                        method=method, keywords=method.keywords.opt)
     calc.output.filename = 'ester_opt_g09.log'
-    calc.output.set_lines()
 
     gradients = calc.get_gradients()
     assert gradients is not None
@@ -105,16 +120,13 @@ def test_gauss_opt_calc():
     assert os.path.exists('opt_g09.log')
     assert len(calc.get_final_atoms()) == 5
     assert calc.get_energy() == -499.729222331
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
-    assert calc.get_imaginary_freqs() == []
-
-    with pytest.raises(NoNormalModesFound):
-        calc.get_normal_mode_displacements(mode_number=1)
+    assert methylchloride.imaginary_frequencies is None
 
     assert calc.input.filename == 'opt_g09.com'
     assert calc.output.filename == 'opt_g09.log'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
 
@@ -135,11 +147,14 @@ def test_gauss_opt_calc():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_optts_calc():
 
-    calc = Calculation(name='test_ts_reopt_optts', molecule=test_mol,
-                       method=method, keywords=optts_keywords,
+    calc = Calculation(name='test_ts_reopt_optts',
+                       molecule=test_mol,
+                       method=method,
+                       keywords=optts_keywords,
                        bond_ids_to_add=[(0, 1)])
     calc.run()
-    print(calc.input.added_internals)
+    assert calc.output.exists
+
     assert os.path.exists('test_ts_reopt_optts_g09.com')
 
     bond_added = False
@@ -152,14 +167,16 @@ def test_gauss_optts_calc():
 
     assert bond_added
 
-    assert calc.get_normal_mode_displacements(mode_number=6) is not None
-    assert calc.terminated_normally()
+    mol = Molecule(atoms=calc.get_final_atoms())
+    mol.calc_thermo(calc=calc, ss='1atm', lfm_method='igm')
+
+    assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
-    assert len(calc.get_imaginary_freqs()) == 1
+    assert len(mol.imaginary_frequencies) == 1
 
-    assert -40.324 < calc.get_free_energy() < -40.322
-    assert -40.301 < calc.get_enthalpy() < -40.299
+    assert -40.324 < mol.free_energy < -40.322
+    assert -40.301 < mol.enthalpy < -40.298
 
 
 def test_bad_gauss_output():
@@ -192,7 +209,7 @@ def test_fix_angle_error():
     assert os.path.exists('angle_fail_g09_cartesian.com') is True
     assert os.path.exists('angle_fail_g09_internal.com') is True
     assert calc.output.filename == 'angle_fail_g09_internal.log'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))

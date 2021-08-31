@@ -1,8 +1,9 @@
 from autode.species.molecule import Molecule
-from autode.conformers.conformer import Conformer
+from autode.conformers import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
 from autode.input_output import atoms_to_xyz_file
+from autode.mol_graphs import make_graph
 from autode.smiles.smiles import calc_multiplicity, init_organic_smiles
 from autode.wrappers.ORCA import orca
 from autode.species.molecule import Reactant
@@ -28,11 +29,14 @@ def test_basic_attributes():
 
     assert methane.name == 'methane'
     assert methane.smiles == 'C'
+
+    assert repr(methane) != ''   # Have some simple representation
+
     assert methane.energy is None
     assert methane.n_atoms == 5
     assert methane.graph.number_of_edges() == 4
     assert methane.graph.number_of_nodes() == methane.n_atoms
-    assert methane.conformers is None
+    assert methane.n_conformers == 0
     assert methane.charge == 0
     assert methane.mult == 1
     assert isinstance(methane.rdkit_mol_obj, Mol)
@@ -83,7 +87,6 @@ def test_gen_conformers():
     ethane._generate_conformers(n_confs=2)
 
     assert ethane.rdkit_conf_gen_is_fine
-    assert type(ethane.conformers) == list
 
     # Even though two conformers have been requested they are pruned on RMSD
     assert len(ethane.conformers) >= 1
@@ -192,3 +195,27 @@ def test_multi_ring_smiles_init():
                                  '=CC=CC%11=C%10C%12=[N+]5C=CC=C%12C=C%11')
 
     assert are_coords_reasonable(cr_complex.coordinates)
+
+
+def test_lowest_energy_conformer_set():
+
+    h2 = Molecule(smiles='[H][H]')
+    h2.energy = -1.0
+    assert h2.graph is not None
+
+    h2_not_bonded = Molecule(atoms=[Atom('H'), Atom('H', x=10)])
+    h2_not_bonded.energy = -1.1
+    # no bonds for a long H-bond
+    assert np.allclose(h2_not_bonded.bond_matrix, np.zeros(shape=(2, 2)))
+
+    h2.conformers = [h2_not_bonded]
+
+    # Throw an exception if no conformers are found
+    with pytest.raises(RuntimeError):
+        h2._set_lowest_energy_conformer()
+
+
+def test_defined_metal_spin_state():
+
+    mol = Molecule(smiles='[Sc]C', mult=3)
+    assert mol.mult == 3

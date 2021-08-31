@@ -1,7 +1,10 @@
 from autode import plotting
 import matplotlib.pyplot as plt
+from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import CouldNotPlotSmoothProfile
 from autode.species.molecule import Reactant, Product
+from autode.calculation import Calculation
+from autode.methods import ORCA
 from autode.transition_states.transition_state import TransitionState
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.reactions.reaction import Reaction
@@ -12,6 +15,7 @@ from autode.config import Config
 from copy import deepcopy
 from scipy.optimize import minimize
 from scipy import interpolate
+from . import testutils
 import numpy as np
 import pytest
 import os
@@ -87,9 +91,9 @@ def test_calculate_reaction_profile_energies():
                                                             units=KcalMol)
 
     # Energies have been set to ∆E = -20 and ∆E‡ = 20 kcal mol-1 respectively
-    assert energies[0].item() == 0
-    assert 19 < energies[1].item() < 21
-    assert -21 < energies[2].item() < -19
+    assert energies[0] == 0
+    assert 19 < energies[1] < 21
+    assert -21 < energies[2] < -19
 
     # Copying the reaction should give relative energies [0, 20, -20, 0, -40]
 
@@ -97,11 +101,12 @@ def test_calculate_reaction_profile_energies():
                                                             units=KcalMol)
 
     # Energies have been set to ∆E = -20 and ∆E‡ = 20 kcal mol-1 respectively
-    assert energies[0].item() == 0
-    assert -0.1 < energies[3].item() < 0.1
-    assert -41 < energies[4].item() < -39
+    assert energies[0] == 0
+    assert -0.1 < energies[3] < 0.1
+    assert -41 < energies[4] < -39
 
 
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'plotting.zip'))
 def test_reaction_warnings():
     test_reac = Reactant(name='test', smiles='C')
     test_reac.energy = -1
@@ -115,7 +120,6 @@ def test_reaction_warnings():
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.98
-    ts.imaginary_frequencies = [-100]
 
     reaction = Reaction(test_reac, test_prod)
     reaction.ts = None
@@ -125,6 +129,15 @@ def test_reaction_warnings():
 
     # Should be no warnings  with a TS that exists and has an energy and one
     # imaginary freq
+    ts.atoms = xyz_file_to_atoms('TS.xyz')
+    orca = ORCA()
+    ts_calc = Calculation(name='TS', molecule=ts, method=orca,
+                          keywords=orca.keywords.opt_ts)
+    ts_calc.output.filename = 'TS.out'
+    ts.atoms = ts_calc.get_final_atoms()
+    ts.hessian = ts_calc.get_hessian()
+    ts.energy = ts_calc.get_energy()
+
     reaction.ts = ts
     warnings = plotting.get_reaction_profile_warnings(reactions=[reaction])
     assert 'None' in warnings
@@ -191,19 +204,19 @@ def test_saving():
 
 def test_energy():
 
-    energy = plotting.Energy(value=5, estimated=False)
+    energy = plotting.Energy(5, estimated=False)
     assert not energy.estimated
-    assert energy.item() == 5
+    assert energy == 5
 
     new_energy = energy * 5
-    assert new_energy.item() == 25
+    assert new_energy == 25
     assert not new_energy.estimated
 
     new_energy = energy - 5
-    assert new_energy.item() == 0
+    assert new_energy == 0
 
-    energy2 = plotting.Energy(value=2, estimated=False)
+    energy2 = plotting.Energy(2, estimated=False)
     new_energy = 5 * energy2
-    assert new_energy.item() == 10
+    assert new_energy == 10
 
-    assert 'energy' in str(energy).lower()
+    assert 'energy' in repr(energy).lower()

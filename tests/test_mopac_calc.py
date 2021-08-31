@@ -14,7 +14,6 @@ import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 method = MOPAC()
-Config.keyword_prefixes = False
 
 methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
                           solvent_name='water')
@@ -35,11 +34,11 @@ def test_mopac_opt_calculation():
     energy = Constants.eV_to_ha * -430.43191
     assert energy - 0.0001 < calc.get_energy() < energy + 0.0001
 
-    assert calc.output.exists()
+    assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_mopac.mop'
     assert calc.output.filename == 'opt_mopac.out'
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
     assert calc.optimisation_converged() is True
 
     with pytest.raises(CouldNotGetProperty):
@@ -47,10 +46,6 @@ def test_mopac_opt_calculation():
 
     with pytest.raises(NotImplementedError):
         _ = calc.optimisation_nearly_converged()
-    with pytest.raises(NotImplementedError):
-        _ = calc.get_imaginary_freqs()
-    with pytest.raises(NotImplementedError):
-        _ = calc.get_normal_mode_displacements(4)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
@@ -131,8 +126,8 @@ def test_bad_geometry():
                        keywords=Config.MOPAC.keywords.opt)
 
     calc.output.filename = 'h2_overlap_opt_mopac.out'
-    calc.output.file_lines = open(calc.output.filename, 'r').readlines()
-    assert not calc.terminated_normally()
+
+    assert not calc.terminated_normally
     assert calc.get_energy() is None
     assert not calc.optimisation_converged()
 
@@ -157,6 +152,9 @@ def test_constrained_opt():
     const.run()
 
     assert opt_energy < const.get_energy()
+
+    with pytest.raises(Exception):
+        _ = calc.get_hessian()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
@@ -187,11 +185,14 @@ def test_grad():
     assert np.abs(gradients[1, 0] - grad) < 1E-1
 
     # Broken gradient file
-    grad_calc.output.filename = 'h2_grad_broken.out'
-    grad_calc.output.file_lines = open('h2_grad_broken.out', 'r').readlines()
-    
+    grad_calc_broken = Calculation(name='h2_grad',
+                                   molecule=h2,
+                                   method=method,
+                                   keywords=Config.MOPAC.keywords.grad)
+    grad_calc_broken.output.filename = 'h2_grad_broken.out'
+
     with pytest.raises(CouldNotGetProperty):
-        _ = grad_calc.get_gradients()
+        _ = grad_calc_broken.get_gradients()
 
 
 def test_termination_short():
@@ -200,9 +201,11 @@ def test_termination_short():
                        method=method, keywords=Config.MOPAC.keywords.sp)
 
     calc.output.filename = 'test.out'
-    calc.output.file_lines = ['JOB ENDED NORMALLY', 'another line']
+    with open(calc.output.filename, 'w') as test_output:
+        print('JOB ENDED NORMALLY', 'another line', sep='\n', file=test_output)
 
-    assert calc.terminated_normally()
+    assert calc.terminated_normally
+    os.remove(calc.output.filename)
 
 
 def test_mopac_keywords():
@@ -211,8 +214,7 @@ def test_mopac_keywords():
                                   solvent=None,
                                   added_internals=None,
                                   additional_input=None,
-                                  point_charges=None,
-                                  temp=298)
+                                  point_charges=None)
 
     keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
     assert any('1scf' == kw.lower() for kw in keywords)
@@ -235,9 +237,13 @@ def test_get_version_no_output():
                        method=method,
                        keywords=method.keywords.sp)
     calc.output.filename = 'test.out'
-    calc.output.file_lines = ['some', 'incorrect', 'lines']
 
-    assert not calc.terminated_normally()
+    with open(calc.output.filename, 'w') as test_output:
+        print('some', 'incorrect', 'lines', sep='\n', file=test_output)
+
+    assert not calc.terminated_normally
 
     version = method.get_version(calc)
     assert version == '???'
+
+    os.remove(calc.output.filename)

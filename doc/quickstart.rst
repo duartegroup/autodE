@@ -1,7 +1,7 @@
 Quick Start
 ===========
 
-Python scripts for this and other examples can be found
+Python scripts for these and other examples can be found
 `here <https://github.com/duartegroup/autodE/tree/master/examples>`_.
 
 ------------
@@ -24,10 +24,17 @@ using 8 CPU cores in around 10 minutes or so using ORCA/XTB.
     >>> rxn = ade.Reaction('C=CC=C.C=C>>C1=CCCCC1', name='DA')
     >>> rxn.calculate_reaction_profile()
 
-A *DA/* directory should be created where electronic structure calculations have
-been performed and an image of the reaction profile saved in the current working directory.
+A directory (*DA/*) will be created where electronic structure calculations have
+been performed and an image of the reaction profile saved in the current working directory. See below:
 
-.. image:: common/diels_alder_quickstart.png
+.. raw:: html
+
+   <iframe width="700" height="394"
+    src="https://www.youtube.com/embed/jWKbtR51zzc"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media;
+           gyroscope; picture-in-picture"
+    allowfullscreen></iframe>
 
 
 ------------
@@ -36,20 +43,17 @@ S\ :sub:`N`\2
 -------------
 
 .. image:: common/sn2_image.png
+   :width: 550
+   :align: center
 
 Considering a reaction profile for the S\ :sub:`N`\2 reaction between F- and
 methyl chloride in water in more depth we have the smiles strings for the
 reactant and products generated from Chemdraw (by selecting a
 molecule → Edit → Copy As → SMILES):
 
+
 .. note::
-    Fluoride : [F-]
-
-    MeCl     : CCl
-
-    Chloride : [Cl-]
-
-    MeF      : CF
+    **Fluoride** : [F-];  **MeCl** : CCl;  **Chloride**: [Cl-];  **MeF**: CF
 
 Import the required objects and set the number of cores that are available for
 this calculation

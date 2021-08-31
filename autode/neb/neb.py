@@ -2,7 +2,7 @@ import autode.exceptions as ex
 from autode.config import Config
 from autode.log import logger
 from autode.neb.ci import CINEB
-from autode.transition_states.ts_guess import get_ts_guess
+from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
 
 
@@ -44,5 +44,7 @@ def get_ts_guess_neb(reactant, product, method, name='neb', n=10):
         logger.error('NEB failed - could not calculate')
         return None
 
-    return get_ts_guess(neb.get_species_saddle_point(), reactant, product,
-                        name=name)
+    return TSguess(atoms=neb.get_species_saddle_point().atoms,
+                   reactant=reactant,
+                   product=product,
+                   name=name)

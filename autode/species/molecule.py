@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
-from autode.conformers.conformer import get_conformer
+from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer
 from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.atoms import metals
@@ -18,6 +18,9 @@ from autode.utils import requires_atoms
 
 
 class Molecule(Species):
+
+    def __repr__(self):
+        return self._repr(prefix='Molecule')
 
     def _init_smiles(self, smiles):
         """Initialise a molecule from a SMILES string using RDKit if it's
@@ -66,7 +69,7 @@ class Molecule(Species):
         make_graph(self)
         return None
 
-    @requires_atoms()
+    @requires_atoms
     def _generate_conformers(self, n_confs=None):
         """
         Use a simulated annealing approach to generate conformers for this
@@ -78,7 +81,7 @@ class Molecule(Species):
         """
 
         n_confs = n_confs if n_confs is not None else Config.num_conformers
-        self.conformers = []
+        self.conformers.clear()
 
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
             logger.info(f'Using RDKit to gen conformers. {n_confs} requested')
@@ -98,11 +101,10 @@ class Molecule(Species):
                                                        params=method))
             logger.info('                                          ... done')
 
-            conformers = []
             for conf_id in conf_ids:
-                conf = get_conformer(self, name=f'{self.name}_conf{conf_id}')
+                conf = Conformer(species=self, name=f'{self.name}_conf{conf_id}')
                 conf.atoms = atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
-                conformers.append(conf)
+                self.conformers.append(conf)
 
             methods.add(f'{m_string} algorithm (10.1021/acs.jcim.5b00654) '
                         f'implemented in RDKit v. {rdkit.__version__}')
@@ -112,11 +114,12 @@ class Molecule(Species):
             with Pool(processes=Config.n_cores) as pool:
                 results = [pool.apply_async(get_simanl_conformer, (self, None, i))
                            for i in range(n_confs)]
-                conformers = [res.get(timeout=None) for res in results]
+                self.conformers = [res.get(timeout=None) for res in results]
 
+            self.conformers.prune_on_energy(e_tol=1E-10)
             methods.add('RR algorithm (???) implemented in autodE')
 
-        self._set_unique_conformers_rmsd(conformers)
+        self.conformers.prune_on_rmsd()
         return None
 
     def populate_conformers(self, n_confs):
@@ -167,8 +170,8 @@ class Molecule(Species):
 
 class SolvatedMolecule(Molecule):
 
-    @requires_atoms()
-    def optimise(self, method):
+    @requires_atoms
+    def optimise(self, method, *args, **kwargs):
         raise NotImplementedError
 
     def __init__(self, name='solvated_molecule', smiles=None, atoms=None,

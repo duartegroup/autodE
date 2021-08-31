@@ -1,3 +1,4 @@
+from typing import Union
 from copy import deepcopy
 from autode.log import logger
 
@@ -47,20 +48,21 @@ class KeywordsSet:
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
-        calculation will look something like:
+        calculation will look something like::
 
-        ---------------------------------------------------------------------
-        <keyword line directive> autode.Keywords.sp[0] autode.Keywords.sp[1]
-        autode.Keywords.optts_block
+            -------------------------------------------------------------------
+            <keyword line directive> autode.Keywords.x[0] ...
+            autode.Keywords.optts_block
 
-        <coordinate directive> <charge> <multiplicity>
-        .
-        .
-        coordinates
-        .
-        .
-        <end of coordinate directive>
-        ---------------------------------------------------------------------
+            <coordinate directive> <charge> <multiplicity>
+            .
+            .
+            coordinates
+            .
+            .
+            <end of coordinate directive>
+            -------------------------------------------------------------------
+
         Keyword Arguments:
 
             low_opt (list(str)): List of keywords for a low level optimisation
@@ -108,12 +110,9 @@ class Keywords:
     def _string(self, prefix):
         """Return a string defining the keywords, with or without a prefix"""
         from autode.config import Config
-        base_str = '_'.join([str(kw) for kw in self.keyword_list])
+        base_str = ' '.join([str(kw) for kw in self.keyword_list])
 
-        if Config.keyword_prefixes:
-            return f'{prefix}({base_str})'
-        else:
-            return base_str
+        return f'{prefix}({base_str})'
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""
@@ -202,25 +201,26 @@ class Keywords:
         """Set the functional in a set of keywords"""
         self._set_keyword(basis_set, keyword_type=BasisSet)
 
+    @property
     def method_string(self):
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
         string = ''
 
         func = self.functional
         if func is not None:
-            string += f'{func.upper()}({func.doi_str()})'
+            string += f'{func.upper()}({func.doi_str})'
 
         disp = self.dispersion
         if disp is not None:
-            string += f'-{disp.upper()}({disp.doi_str()})'
+            string += f'-{disp.upper()}({disp.doi_str})'
 
         wf = self.wf_method
         if wf is not None:
-            string += f'{str(wf)}({wf.doi_str()})'
+            string += f'{str(wf)}({wf.doi_str})'
 
         ri = self._get_keyword(keyword_type=RI)
         if ri is not None:
-            string += f'({ri.upper()}, {ri.doi_str()})'
+            string += f'({ri.upper()}, {ri.doi_str})'
 
         if len(string) == 0:
             logger.warning('Unknown method')
@@ -228,8 +228,28 @@ class Keywords:
 
         return string
 
+    @property
+    def bstring(self):
+        """Brief string without dois of the method e.g. PBE0-D3BJ/def2-SVP"""
+
+        string = ''
+
+        if self.functional is not None:
+            string += self.functional.upper()
+
+        if self.wf_method is not None:
+            string += f'-{self.wf_method.upper()}'
+
+        if self.dispersion is not None:
+            string += f'-{self.dispersion.upper()}'
+
+        if self.basis_set is not None:
+            string += f'/{self.basis_set.name}'
+
+        return string
+
     def copy(self):
-        return deepcopy(self.keyword_list)
+        return deepcopy(self)
 
     def append(self, item):
         assert type(item) is str or isinstance(item, Keyword)
@@ -246,17 +266,45 @@ class Keywords:
     def __getitem__(self, item):
         return self.keyword_list[item]
 
-    def __init__(self, keyword_list):
+    def __len__(self):
+        return len(self.keyword_list)
+
+    def __iter__(self):
+        return iter(self.keyword_list)
+
+    def __init__(self, keyword_list=None):
         """
         Read only list of keywords
 
-        Args:
+        Keyword Arguments:
             keyword_list (list(str)): List of keywords used in a QM calculation
         """
         self.keyword_list = keyword_list if keyword_list is not None else []
 
 
 class OptKeywords(Keywords):
+
+    @property
+    def max_opt_cycles(self):
+        """
+        Maximum number of optimisation cycles
+
+        Returns:
+            (autode.wrappers.keywords.MaxOptCycles):
+        """
+        return self._get_keyword(MaxOptCycles)
+
+    @max_opt_cycles.setter
+    def max_opt_cycles(self, value: Union[int, 'MaxOptCycles', None]):
+        """Set the maximum number of optimisation cycles"""
+        if value is None:
+            self._set_keyword(None, MaxOptCycles)
+            return
+
+        if int(value) <= 0:
+            raise ValueError('Must have a positive number of opt cycles')
+
+        self._set_keyword(MaxOptCycles(int(value)), MaxOptCycles)
 
     def __str__(self):
         return self._string(prefix='OptKeywords')
@@ -297,6 +345,7 @@ class Keyword:
     def upper(self):
         return self.name.upper()
 
+    @property
     def doi_str(self):
         return ' '.join(self.doi_list)
 
@@ -403,3 +452,14 @@ class ECP(Keyword):
         super().__init__(name, doi, doi_list, **kwargs)
 
         self.min_atomic_number = min_atomic_number
+
+
+class MaxOptCycles(Keyword):
+    """Maximum number of optimisation cycles"""
+
+    def __int__(self):
+        return int(self.name)
+
+    def __init__(self,
+                 number: int):
+        super().__init__(name=str(int(number)))

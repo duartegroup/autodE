@@ -4,22 +4,21 @@ from copy import deepcopy
 from autode.log import logger
 from autode.mol_graphs import make_graph
 from autode.path.path import Path
-from autode.transition_states.ts_guess import get_ts_guess
+from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
 
 
-def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
+def get_ts_adaptive_path(reactant, product, method, bond_rearr,
                          name='adaptive'):
     """
     Generate a TS guess geometry based on an adaptive path along multiple
     breaking and/or forming bonds
 
     Arguments:
-        reactant (autode.species.Species):
-        product (autode.species.Species):
+        reactant (autode.species.ReactantComplex):
+        product (autode.species.ProductComplex):
         method (autode.wrappers.base.ElectronicStructureMethod):
-        fbonds (list(autode.pes.pes.FormingBond)):
-        bbonds (list(autode.pes.pes.BreakingBond)):
+        bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Keyword Arguments:
         name (str):
@@ -27,6 +26,7 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
     Returns:
         (autode.transition_states.ts_guess.TSguess | None):
     """
+    fbonds, bbonds = bond_rearr.fbonds, bond_rearr.bbonds
 
     ts_path = AdaptivePath(init_species=reactant,
                            bonds=pruned_active_bonds(reactant, fbonds, bbonds),
@@ -38,8 +38,12 @@ def get_ts_adaptive_path(reactant, product, method, fbonds, bbonds,
         logger.warning('Adaptive path had no peak')
         return None
 
-    return get_ts_guess(ts_path[ts_path.peak_idx].species, reactant, product,
-                        name=name)
+    ts_guess = TSguess(atoms=ts_path[ts_path.peak_idx].species.atoms,
+                       reactant=reactant,
+                       product=product,
+                       bond_rearr=bond_rearr,
+                       name=name)
+    return ts_guess
 
 
 def pruned_active_bonds(reactant, fbonds, bbonds):
@@ -91,6 +95,16 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
             logger.info(f'Excluding {bbonds[1]}')
             bbonds.pop(1)
 
+    if any(bond.dr < 0 for bond in bbonds):
+        logger.info('Found at least one breaking bond where the final distance'
+                    ' is shorter than the initial - removing')
+        """
+        Counterintuitively, this is possible e.g. metallocyclobutate formation
+        from a metalocyclopropane and a alkylidene (due to the way bonds are 
+        defined)
+        """
+        bbonds = [bond for bond in bbonds if bond.dr > 0]
+
     return fbonds + bbonds
 
 
@@ -98,7 +112,7 @@ class PathPoint:
 
     def copy(self):
         """Return a copy of this point"""
-        return PathPoint(self.species.copy(), deepcopy(self.constraints))
+        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
 
     def __init__(self, species, constraints):
         """
@@ -141,10 +155,13 @@ class AdaptivePath(Path):
         super().append(point)
 
         idx = len(self) - 1
+        keywords = self.method.keywords.low_opt.copy()
+        keywords.max_opt_cycles = 50
+
         calc = ade.Calculation(name=f'path_opt{idx}',
                                molecule=self[idx].species,
                                method=self.method,
-                               keywords=self.method.keywords.low_opt,
+                               keywords=keywords,
                                n_cores=ade.Config.n_cores,
                                distance_constraints=self[idx].constraints)
         calc.run()
@@ -181,7 +198,8 @@ class AdaptivePath(Path):
         if not self.contains_peak:
             return False
 
-        if self.products_made(product=self.final_species):
+        idx = self.product_idx(product=self.final_species)
+        if idx is not None and self[idx].energy < self[self.peak_idx].energy:
             logger.info('Products made and have a peak. Assuming suitable!')
             return True
 

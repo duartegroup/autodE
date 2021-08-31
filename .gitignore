@@ -41,4 +41,10 @@ tests/data/__MACOSX/
 
 tests/data/conformers/.autode_calculations
 
-autode/smiles/cdihedrals.c
+autode/ext/*.cpp
+
+autode/ext/cmake-build-debug/
+
+autode/ext/CMakeFiles/
+
+autode/ext/cmake-build-debug*/

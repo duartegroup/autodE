@@ -50,6 +50,10 @@ class SMILESAtom(Atom):
         """How many atoms are bonded to this one?"""
         return 0 if self.neighbours is None else len(self.neighbours)
 
+    def is_pi(self, valency: int = 0) -> bool:
+        # WARNING: does not respect the argument..
+        return self._is_pi
+
     def invert_stereochem(self):
         """Invert the stereochemistry at this centre"""
         logger.info('Inverting stereochemistry')
@@ -57,10 +61,10 @@ class SMILESAtom(Atom):
         return
 
     def __init__(self,
-                 label: str,
-                 stereochem: SMILESStereoChem = SMILESStereoChem.NONE,
+                 label:       str,
+                 stereochem:  SMILESStereoChem = SMILESStereoChem.NONE,
                  n_hydrogens: Union[None, int] = None,
-                 charge: int = 0):
+                 charge:      int = 0):
         """
         SMILES atom initialised at the origin
 
@@ -89,7 +93,7 @@ class SMILESAtom(Atom):
         self.type = None
         self.neighbours = None
         self.in_ring = False
-        self.is_pi = False if label not in aromatic_symbols else True
+        self._is_pi = False if label not in aromatic_symbols else True
 
 
 class SMILESBond:

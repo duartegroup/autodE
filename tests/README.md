@@ -6,21 +6,15 @@ To run the tests in this directory ensure the requirements are satisfied
 conda install --file requirements.txt
 ```
 
-set $AUTODE_FIXUNIQUE to False, e.g. in bash
-
-```bash
-export AUTODE_FIXUNIQUE=False
-```
-
 then run the tests
 
 ```bash
 py.test 
 ```
 
-
+***
 ### Benchmark
-In addition to the tests there is a benchmark of calculations (benchmark.py) to
+In addition to the tests there is a benchmark of calculations (*benchmark.py*) to
 run for every minor release. This benchmark **must** be run and the results 
 posted below to ensure consistent functionality - it should take a few hours 
 on 8 cores. 
@@ -29,27 +23,29 @@ on 8 cores.
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-SN2            -490.1         1.8            ✓
-cope           -557.5         4.8            ✓
-DA             -484.4         12.8           ✓
-Hshift         -1899.2        9.3            ✓
-C2N2O          -494.3         2.3            ✓
-cycbut         -741.1         17.0           ✓
-DAcpd          -470.8         6.1            ✓
-ethCF2         -377.9         17.5           ✓
-ene            -967.6         65.1           ✓
-HFloss         -1801.1        28.3           ✓
-oxir           -559.4         57.5           ✓
-Ocope          -525.4         3.7            ✓
-SO2loss        -324.0         48.0           ✓
+SN2            -496.8         1.3            ✓
+cope           -557.3         4.7            ✓
+DA             -484.4         17.6           ✓
+Hshift         -1898.8        2.6            ✓
+C2N2O          -493.6         1.7            ✓
+cycbut         -741.1         14.3           ✓
+DAcpd          -470.4         6.7            ✓
+ethCF2         -377.4         15.4           ✓
+ene            -966.7         17.0           ✓
+HFloss         -1801.7        7.4            ✓
+oxir           -569.5         11.0           ✓
+Ocope          -525.4         2.9            ✓
+SO2loss        -324.1         26.4           ✓
+aldol          -260.3         19.3           ✓
+dipolar        -442.7         8.4            ✓
 ```
 
 #### SM (small metal)
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-hydroform1     -436.3         61.1           ✓
-MnInsert       -302.0         136.9          ✓
-grubbs         -119.3         90.0           ✓
-vaskas         -95.5          63.7           ✓
+hydroform1     -434.1         38.0           ✓
+MnInsert       -295.7         58.1           ✓
+grubbs         -121.1         63.8           ✓
+vaskas         -94.6          39.8           ✓
 ```

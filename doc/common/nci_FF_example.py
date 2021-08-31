@@ -1,7 +1,6 @@
 import autode as ade
 from autode.methods import XTB
 from autode.calculation import Calculation
-from autode.atoms import get_vdw_radius
 from scipy.optimize import minimize
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -86,7 +85,7 @@ def set_charges_vdw(species):
 
     for i, atom in enumerate(species.atoms):
         atom.charge = charges[i]
-        atom.vdw = get_vdw_radius(atom_label=atom.label)
+        atom.vdw = float(atom.vdw_radius)
 
     return None
 
@@ -99,7 +98,7 @@ if __name__ == '__main__':
     water_dimer = ade.species.NCIComplex(h2o, h2o)
     water_dimer._generate_conformers()
 
-    shift_idxs = water_dimer.get_atom_indexes(mol_index=1)
+    shift_idxs = water_dimer.atom_indexes(mol_index=1)
     fixed_idxs = [i for i in range(water_dimer.n_atoms) if i not in shift_idxs]
 
     for conformer in water_dimer.conformers:
