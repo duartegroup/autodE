@@ -35,4 +35,4 @@ jobs:
 
     - name: Test
       run: |
-        py.test --cov-report xml --cov autode tests/
+        py.test tests/
