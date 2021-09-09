@@ -4,9 +4,15 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: Env ("3.9", "ubuntu-latest")
-    runs-on: "ubuntu-latest"
-      
+    name: Env (${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest"]
+        python-version: ["3.7", "3.9"]   
+        
     defaults:
       run:
         shell: bash -l {0}
