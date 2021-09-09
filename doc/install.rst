@@ -5,7 +5,7 @@ Dependencies
 ------------
 **autodE** is a Python package that relies on external QM codes and requires:
 
-- `Python <https://www.python.org/>`_ > v. 3.5
+- `Python <https://www.python.org/>`_ > v. 3.6
 
 - One of:
 
@@ -64,7 +64,7 @@ Git: Windows
 ------------
 
 .. warning::
-    Windows installation is not currently supported, but *should* be possible through Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_)
+    Windows installation is only supported within Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_)
 
 ******
 
