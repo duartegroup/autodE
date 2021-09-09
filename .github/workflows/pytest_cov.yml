@@ -1,4 +1,4 @@
-name: pytest
+name: pytest_codecov
 
 on: [push, pull_request]
 
