@@ -300,8 +300,9 @@ def timeout(seconds, return_value=None):
                                         args=(q, func, args, kwargs))
             p.start()
             p.join(timeout=seconds)
+
             if p.is_alive():
-                p.terminate()
+                p.kill()
                 p.join()
                 return return_value
 

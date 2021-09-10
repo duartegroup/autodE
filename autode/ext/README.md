@@ -8,7 +8,7 @@ Currently it's written in C++11 for compatibility with older compilers. Build an
 run the tests by, in this directory:
 
 ```bash
-cmake . && make -j2 && ./test
+cmake . && make -j2 && ./unit_tests
 ```
 
 *assuming 2 cores are available*.

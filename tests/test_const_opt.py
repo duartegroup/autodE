@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 from autode.input_output import xyz_file_to_atoms
 from autode.transition_states.ts_guess import TSguess
@@ -11,6 +12,10 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'constrained_opt.zip'))
 def test_constrained_opt():
+
+    # Requires a low-level electronic structure method
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
 
     ts_guess = TSguess(atoms=xyz_file_to_atoms('h_shift_init.xyz'), mult=2)
     ts_guess.run_constrained_opt(name='const_opt',

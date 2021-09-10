@@ -1,4 +1,4 @@
-name: pytest
+name: pytest_codecov
 
 on: [push, pull_request]
 
@@ -6,13 +6,13 @@ jobs:
   test:
     name: Env (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.7", "3.8", "3.9"]
-      
+        os: ["ubuntu-latest"]
+        python-version: ["3.7", "3.9"]   
+        
     defaults:
       run:
         shell: bash -l {0}
@@ -31,8 +31,14 @@ jobs:
         conda activate test
         conda install --file requirements.txt
         conda install --file tests/requirements.txt
+        conda install xtb
         python -m pip install . --no-deps
 
     - name: Test
       run: |
-        py.test tests/
+        py.test --cov-report xml --cov autode tests/
+        
+    - uses: codecov/codecov-action@v1
+      with:
+        flags: unittests
+        fail_ci_if_error: true

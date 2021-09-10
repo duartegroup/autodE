@@ -1,4 +1,5 @@
 import os
+import shutil
 import autode as ade
 from . import testutils
 
@@ -9,6 +10,10 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_reaction_w_complexes():
 
     ade.Config.n_cores = 8
+
+    # Requires a low-level electronic structure method
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
 
     ade.Config.hcode = 'orca'
     ade.Config.ORCA.path = here    # Spoof ORCA install
