@@ -169,6 +169,9 @@ class Conformers(list):
             keywords (autode.wrappers.keywords.Keywords):
         """
         # TODO: Test efficiency + improve with dynamic load balancing
+        if len(self) == 0:
+            logger.error(f'Cannot run {calc_type} over 0 conformers')
+            return
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 

@@ -261,3 +261,12 @@ def test_sp_hmethod_ranking():
     assert butane.energy is not None
 
     Config.hmethod_sp_conformers = False
+
+
+def test_calculation_over_no_conformers():
+
+    confs = Conformers()
+    confs.single_point(method=orca)
+
+    # Should not raise an exception
+    assert len(confs) == 0
