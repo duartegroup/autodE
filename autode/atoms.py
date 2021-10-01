@@ -289,6 +289,9 @@ class Atom:
             (bool):
         """
 
+        if self.label in non_pi_elements:
+            return False
+
         if self.label not in pi_valencies:
             logger.warning(f'{self.label} not found in π valency dictionary - '
                            f'assuming not a π-atom')
@@ -467,7 +470,7 @@ class Atoms(list):
 
     def __repr__(self):
         """Representation"""
-        return f'Atoms({super().__repr__()})'
+        return f'Atoms(N={len(self)}, {super().__repr__()})'
 
     def __add__(self, other):
         """Add another set of Atoms to this one. Can add None"""
@@ -1024,7 +1027,7 @@ atomic_weights = {"H": 1.00794, "He": 4.002602, "Li": 6.941, "Be": 9.012182,
                   }
 
 
-# vdw radii from https://books.google.no/books?id=bNDMBQAAQBAJ
+# van der Walls radii from https://books.google.no/books?id=bNDMBQAAQBAJ
 vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, 'N': 1.55, 'O': 1.52, 'F': 1.47, 'Ne': 1.54, 'Na': 2.27, 'Mg': 1.73, 'Al': 1.84,
              'Si': 2.1, 'P': 1.8, 'S': 1.8, 'Cl': 1.75, 'Ar': 1.88, 'K': 2.75, 'Ca': 2.31, 'Sc': 2.15, 'Ti': 2.11, 'V': 2.07, 'Cr': 2.06, 'Mn': 2.05, 'Fe': 2.04,
              'Co': 2.0, 'Ni': 1.97, 'Cu': 1.96, 'Zn': 2.01, 'Ga': 1.87, 'Ge': 2.11, 'As': 1.85, 'Se': 1.9, 'Br': 1.85, 'Kr': 2.02, 'Rb': 3.03, 'Sr': 2.49, 'Y': 2.32,
@@ -1034,9 +1037,22 @@ vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, '
              'Au': 2.14, 'Hg': 2.23, 'Tl': 1.96, 'Pb': 2.02, 'Bi': 2.07, 'Po': 1.97, 'At': 2.02, 'Rn': 2.2, 'Fr': 3.48, 'Ra': 2.83, 'Ac': 2.47, 'Th': 2.45, 'Pa': 2.43,
              'U': 2.41, 'Np': 2.39, 'Pu': 2.43, 'Am': 2.44, 'Cm': 2.45, 'Bk': 2.44, 'Cf': 2.45, 'Es': 2.45, 'Fm': 2.45, 'Md': 2.46, 'No': 2.46, 'Lr': 2.46}
 
-pi_valencies = {'B': [1, 2], 'N': [1, 2], 'O': [1], 'C': [1, 2, 3], 'P': [1, 2, 3, 4], 'S': [1, 3, 4, 5],
+"""
+Although a π-bond may not be well defined it is useful to have a notion of 
+an a bond about which there is restricted rotation. The below sets are used to
+define which atoms may be π-bonded to another
+"""
+non_pi_elements = ['H', 'He']
+pi_valencies = {'B': [1, 2],
+                'N': [1, 2],
+                'O': [1],
+                'C': [1, 2, 3],
+                'P': [1, 2, 3, 4],
+                'S': [1, 3, 4, 5],
                 'Si': [1, 2, 3]}
 
+# Standard definition of metallic elements: https://en.wikipedia.org/wiki/Metal
+# (all semi-metals not included)
 metals = ['Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga',
           'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Cs', 'Ba', 'La', 'Ce',
           'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os',
