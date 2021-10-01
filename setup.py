@@ -7,14 +7,16 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
                         sources=['autode/ext/ade_dihedrals.pyx'],
                         include_dirs=['autode/ext/include'],
                         language='c++',
-                        extra_compile_args=["-std=c++11"],
+                        extra_compile_args=["-std=c++11",
+                                            "-Wno-missing-braces", "-O3"],
                         extra_link_args=["-std=c++11"]),
 
               Extension('ade_rb_opt',
                         sources=['autode/ext/ade_rb_opt.pyx'],
                         include_dirs=['autode/ext/include'],
                         language='c++',
-                        extra_compile_args=["-std=c++11"],
+                        extra_compile_args=["-std=c++11",
+                                            "-Wno-missing-braces", "-O3"],
                         extra_link_args=["-std=c++11"])]
 
 setup(name='autode',
