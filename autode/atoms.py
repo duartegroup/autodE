@@ -173,7 +173,7 @@ class Atom:
             1
 
         Returns:
-            (int | None):
+            (int | None): Transition metal row
         """
         for row in [1, 2, 3]:
             if self.label in PeriodicTable.transition_metals(row):
@@ -256,7 +256,7 @@ class Atom:
             Distance(1.1 Å)
 
         Returns:
-            (autode.values.Distance): Radius
+            (autode.values.Distance): Van der Waals radius
         """
 
         if self.label in vdw_radii:
@@ -304,8 +304,8 @@ class Atom:
 
     def translate(self, *args, **kwargs) -> None:
         """
-        Translate this atom by a vector. Arguments should be coercible into
-        a coordinate (i.e. length 3). Example:
+        Translate this atom by a vector in place. Arguments should be
+        coercible into a coordinate (i.e. length 3). Example:
 
         .. code-block:: Python
 
@@ -356,8 +356,9 @@ class Atom:
                origin: Union[np.ndarray, Sequence, None] = None) -> None:
         """
         Rotate this atom theta radians around an axis given an origin. By
-        default the rotation is applied around the origin. To rotate a H atom
-        around the z-axis:
+        default the rotation is applied around the origin with the angle
+        in radians (unless an autode.values.Angle). Rotation is applied in
+        place. To rotate a H atom around the z-axis:
 
         .. code-block:: Python
 
@@ -369,13 +370,13 @@ class Atom:
 
         With an origin:
 
-          .. code-block:: Python
+        .. code-block:: Python
 
-            >>> import autode as ade
-            >>> atom = ade.Atom('H')
-            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14, origin=[1.0, 0.0, 0.0])
-            >>> atom.coord
-            Coordinate([2.  0.  0.] Å)
+          >>> import autode as ade
+          >>> atom = ade.Atom('H')
+          >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14, origin=[1.0, 0.0, 0.0])
+          >>> atom.coord
+          Coordinate([2.  0.  0.] Å)
 
         And with an angle not in radians:
 
@@ -390,15 +391,15 @@ class Atom:
             Coordinate([-1.  0.  0.] Å)
 
         Arguments:
-            axis (np.ndarray): Axis to rotate in. shape = (3,)
-            theta (float): Angle in radians (float)
+            axis: Axis to rotate in. shape = (3,)
+            theta: Angle to rotate by
 
         Keyword Arguments:
-            origin (np.ndarray): Rotate about this origin. shape = (3,)
-                                 if no origin is specified then the atom
-                                 is rotated without translation.
+            origin: Rotate about this origin. shape = (3,)
+                    if no origin is specified then the atom
+                    is rotated without translation.
         """
-        # If specified shift so that the origin is at (0, 0, 0)
+        # If specified, shift so that the origin is at (0, 0, 0)
         if origin is not None:
             self.translate(vec=-np.asarray(origin))
 
@@ -760,18 +761,30 @@ class AtomCollection:
               j: int,
               k: int) -> Angle:
         """
-        Angle between three atoms i-j-k
+        Angle between three atoms i-j-k, where the atoms are indexed from
+        zero::
+
+            E_i  --- E_j
+                        \
+                  θ      E_k
+
+        Example::
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            
 
         Arguments:
             i (int): Atom index of the left hand side in the angle
-            j (int):                ---     middle    ---
-            k (int):                -- right hand side --
+            j (int):  --- middle
+            k (int):  --- right
 
         Returns:
-            (autode.values.Angle):
+            (autode.values.Angle): Angle
 
         Raises:
-            (ValueError):
+            (ValueError): If any of the atom indexes are not present
         """
         if not self._idxs_are_present(i, j, k):
             raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
@@ -850,7 +863,8 @@ class AtomCollection:
     def __init__(self,
                  atoms: Union[List[Atom], Atoms, None] = None):
         """
-        Collection of atoms, used as a a base class for a species etc
+        Collection of atoms, used as a a base class for a species, complex
+        or transition state.
 
         Arguments:
             atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
