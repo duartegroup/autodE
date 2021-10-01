@@ -5,6 +5,8 @@ Reference
 .. toctree::
    :maxdepth: 1
 
+   atoms
+   bonds
    conformers/index
    pes/index
    reactions/index
@@ -14,8 +16,6 @@ Reference
    transition_states/index
    thermochemistry/index
    wrappers/index
-   atoms
-   bond_lengths
    bond_rearrangement
    calculation
    config
