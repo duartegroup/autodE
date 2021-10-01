@@ -1,6 +1,17 @@
 Changelog
 =========
 
+1.1.1
+--------
+----------
+
+Documentation and typing hints
+
+Usability improvements/Changes
+******************************
+- Adds `typing <https://docs.python.org/3/library/typing.html>`_ to user-facing functions
+- Updates documentation for readability
+
 
 1.1.0
 --------
