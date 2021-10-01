@@ -59,20 +59,18 @@ easy setting of e.g. a DFT functional.
     >>> kwds.functional
     Functional(pbe0)
 
-Calculation parameters (keywords) also can be changed, e.g to use
-B3LYP/def2-TZVP single point energies in ORCA:
+To modify the functional for single point energies, in ORCA:
 
 .. code-block:: python
   >>> kwds.functional = 'B3LYP'
 
-
-Alternatively, reassign to a new set of keywords:
+Alternatively, reassign to a whole new set of keywords:
 
 .. code-block:: python
   >>> ade.Config.ORCA.keywords.sp = ade.SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
 
 
-To add diffuse functions with the ma scheme to the def2-SVP default optimisation
+To add diffuse functions with the *ma* scheme to the def2-SVP default
 basis set for optimisations
 
 .. code-block:: python
