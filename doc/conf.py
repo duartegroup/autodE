@@ -1,7 +1,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'autodE'
-copyright = '2020, Tom Young, Joseph Silcock'
+copyright = '2020-2021, Tom Young, Joseph Silcock'
 author = 'Tom Young, Joseph Silcock'
 
 import autode
