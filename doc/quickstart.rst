@@ -80,7 +80,7 @@ From reactants and products form a reaction in water and calculate the reaction 
   >>> rxn = ade.Reaction(Fluoride, MeCl, Chloride, MeF, name='sn2', solvent_name='water')
   >>> rxn.calculate_reaction_profile()
 
-This function call will return a plot something like:
+This function call will generate a plot something like:
 
 .. image:: common/sn2_reaction_profile.png
    :width: 550
