@@ -2,9 +2,17 @@ Configuration
 =============
 
 Configuration is handled with :code:`ade.Config` and can be modified for full
-customization of the calculations. By default optimisations are performed at
-PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP in ORCA if it is
-available.
+customization of the calculations. By default, high level optimisations are
+performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP. To
+edit the default configuration permanently edit the config file, the location
+of which can be accessed with:
+
+.. code-block:: python
+
+    >>> import autode as ade
+    >>> ade.config.location
+    '/a/path/.../lib/python3.X/site-packages/autode.../autode/config.py'
+
 
 ------------
 
@@ -14,15 +22,24 @@ Calculations
 General
 *******
 
-For example, to use Gaussian09 as the high level electronic structure method
+The high-level electronic structure code defaults to using the first available
+from {ORCA, Gaussian09, Gaussian16, NWChem} and the low-level from {XTB, MOPAC}.
+To select Gaussian09 as the high-level method:
 
 .. code-block:: python
 
   >>> import autode as ade
   >>> ade.Config.hcode = 'g09'
 
+Similarly, with the low-level:
+
+.. code-block:: python
+
+  >>> ade.Config.lcode = 'MOPAC'
+
+
 To set the number of cores available and the memory per core (in MB), to use a maximum
-of 32 GB for the whole calculation
+of 32 GB for the whole calculation:
 
 .. code-block:: python
 
@@ -34,17 +51,26 @@ of 32 GB for the whole calculation
 Keywords
 ********
 
-Calculation parameters (keywords) also can be changed, e.g to use
-B3LYP/def2-TZVP single point energies in ORCA
+**autodE** uses wrappers around common keywords used in QM calculations to allow
+easy setting of e.g. a DFT functional.
 
 .. code-block:: python
+    >>> kwds = ade.Config.ORCA.keywords.sp
+    >>> kwds.functional
+    Functional(pbe0)
 
-  >>> from autode.wrappers.keywords import SinglePointKeywords
-  >>> ade.Config.ORCA.keywords.sp = SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
+Calculation parameters (keywords) also can be changed, e.g to use
+B3LYP/def2-TZVP single point energies in ORCA:
 
-Alternatively, to just change the functional
+.. code-block:: python
+  >>> kwds.functional = 'B3LYP'
 
-  >>> ade.Config.ORCA.keywords.sp.functional = 'B3LYP'
+
+Alternatively, reassign to a new set of keywords:
+
+.. code-block:: python
+  >>> ade.Config.ORCA.keywords.sp = ade.SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
+
 
 To add diffuse functions with the ma scheme to the def2-SVP default optimisation
 basis set for optimisations

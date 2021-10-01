@@ -1,3 +1,4 @@
+import os
 import autode.wrappers.implicit_solvent_types as solv
 from autode.values import Frequency, Distance
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
@@ -5,6 +6,7 @@ from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.dispersion import d3bj
 from autode.wrappers.ri import rijcosx
+location = os.path.abspath(__file__)
 
 
 class Config:

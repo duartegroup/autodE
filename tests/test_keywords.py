@@ -8,6 +8,12 @@ from copy import deepcopy
 from autode.wrappers.keywords import (Keywords,
                                       KeywordsSet,
                                       ECP,
+                                      Functional,
+                                      BasisSet,
+                                      DispersionCorrection,
+                                      ImplicitSolventType,
+                                      RI,
+                                      WFMethod,
                                       MaxOptCycles,
                                       GradientKeywords,
                                       OptKeywords,
@@ -83,6 +89,18 @@ def test_set_keywordsset():
     kwset.set_dispersion(None)
     assert kwset.opt.dispersion is None
     assert kwset.sp.dispersion is None
+
+
+def test_keyword_repr():
+
+    assert 'basis' in repr(BasisSet('pbe')).lower()
+    assert 'disp' in repr(DispersionCorrection('d3')).lower()
+    assert 'func' in repr(Functional('pbe')).lower()
+    assert 'solv' in repr(ImplicitSolventType('cosmo')).lower()
+    assert 'resolution' in repr(RI('ri')).lower()
+    assert 'wavefunction' in repr(WFMethod('hf')).lower()
+    assert 'effective' in repr(def2ecp).lower()
+    assert 'max' in repr(MaxOptCycles(10)).lower()
 
 
 def test_ecp():
