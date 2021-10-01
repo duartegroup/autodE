@@ -33,7 +33,7 @@ So, you want to bump the version.. make sure the following steps are followed
   - Merge when tests pass
 """
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 
 __all__ = [
