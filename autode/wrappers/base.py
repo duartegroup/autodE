@@ -17,6 +17,10 @@ class Method:
 
 class ElectronicStructureMethod(Method, ABC):
 
+    @abstractmethod
+    def __repr__(self):
+        """Representation of this method"""
+
     @property
     def available(self):
         """Is this method available?"""

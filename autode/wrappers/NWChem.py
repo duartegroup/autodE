@@ -192,6 +192,9 @@ def print_constraints(inp_file, molecule, force_constant=20):
 
 class NWChem(ElectronicStructureMethod):
 
+    def __repr__(self):
+        return f'NWChem(available = {self.available})'
+
     def generate_input(self, calc, molecule):
         keywords = get_keywords(calc.input, molecule)
 
