@@ -91,7 +91,7 @@ class Species(AtomCollection):
 
     @property
     def mult(self) -> int:
-        """Total spin multipliity on this species (2S + 1)"""
+        """Total spin multiplicity on this species (2S + 1)"""
         return self._mult
 
     @mult.setter
@@ -133,13 +133,21 @@ class Species(AtomCollection):
 
     @property
     def formula(self) -> str:
-        """Return the molecular formula of this species, e.g.::
+        """
+        Molecular formula of this species. Example:
 
-            self.atoms = None                 ->   ""
-            self.atoms = [Atom(H), Atom(H)]   ->  "H2"
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> blank_mol = ade.Molecule()
+            >>> blank_mol.formula
+            ''
+            >>> h2 = ade.Molecule(smiles='[H][H]')
+            >>> h2.formula
+            'H2'
 
         Returns:
-            (str):
+            (str): Formula
         """
 
         if self.atoms is None:
@@ -193,8 +201,10 @@ class Species(AtomCollection):
     @property
     def gradient(self) -> Optional[val.Gradient]:
         """
-        Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
-        shape = (n_atoms, 3)
+        Gradient (dE/dx) at this geometry.
+
+        Returns:
+            (autode.values.Gradients | None): Gradient with shape = (n_atoms, 3)
         """
         return self._grad
 
@@ -350,10 +360,42 @@ class Species(AtomCollection):
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
         """
-        Last computed potential energy
+        Last computed potential energy. Setting with a float assumes electornic
+        Hartree units. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> species = ade.Species(name='H', atoms=[ade.Atom('H')], charge=0, mult=1)
+            >>> species.energy is None
+            True
+            >>> species.energy = -0.5
+            >>> species.energy
+            Energy(-0.5 Ha)
+            >>> species.single_point(method=ade.methods.ORCA())
+            >>> species.energy
+            Energy(-0.50104 Ha)
+
+        Energies are instances of autode.values.Energy so can be converted
+        to different units simply:
+
+        .. code-block:: Python
+
+            >>> species.energy.to('kcal mol-1')
+            Energy(-314.40567 kcal mol-1)
+            >>> species.energy.to('eV')
+            Energy(-13.63394 eV)
+
+        All previsouly calculated energies of a species are availble with the
+        energies attribute:
+
+        .. code-block:: Python
+
+            >>> species.energies
+            [Energy(-0.5 Ha), Energy(-0.50104 Ha)]
 
         Returns:
-            (autode.values.PotentialEnergy):
+            (autode.values.PotentialEnergy): Energy
         """
         return self.energies.last(val.PotentialEnergy)
 
@@ -404,7 +446,7 @@ class Species(AtomCollection):
         and free energy contribution
 
         Returns:
-            (autode.values.FreeEnergy | None):
+            (autode.values.FreeEnergy | None): 'Gibbs' free energy
         """
         try:
             return val.FreeEnergy(self.energy + self.g_cont)
@@ -417,10 +459,32 @@ class Species(AtomCollection):
     def enthalpy(self) -> Optional[val.Enthalpy]:
         """
         Enthalpy (H) of this species, calculated using the last energy and
-        enthalpy contribution
+        enthalpy contribution. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> h2 = ade.Molecule(smiles='[H][H]')
+            >>> orca = ade.methods.ORCA()
+            >>>
+            >>> h2.optimise(method=orca)
+            >>> h2.calc_h_cont(method=orca)
+            >>> h2.enthalpy
+            Enthalpy(-1.15069 Ha)
+
+        The enthalpy contribution is seperated, so performing a single point
+        provides a new enthalpy using the electronic energy at the single-point
+        level of theory:
+
+        .. code-block:: Python
+
+            >>> h2.single_point(method=orca)
+            >>> h2.enthalpy
+            Enthalpy(-1.15497 Ha)
+
 
         Returns:
-            (autode.values.FreeEnergy | None):
+            (autode.values.Enthalpy | None): Enthalpy
         """
         try:
             return val.Enthalpy(self.energy + self.h_cont)
@@ -440,12 +504,16 @@ class Species(AtomCollection):
         return 0 if self.conformers is None else len(self.conformers)
 
     @property
-    def conformers(self) -> Conformers:
+    def conformers(self) -> 'autode.conformers.Conformers':
+        """Conformers of this species"""
         return self._conformers
 
     @conformers.setter
     def conformers(self,
-                   value: Optional[List['autode.conformers.Conformer']]) -> None:
+                   value: Union[List['autode.conformers.Conformer'],
+                                'autode.conformers.Conformers',
+                                None]
+                   ) -> None:
         """
         Set conformers of this species
 

@@ -212,9 +212,9 @@ class Energy(Value):
 
     def __init__(self,
                  value,
-                 units: Union[Unit, str] = ha,
-                 method=None,
-                 keywords=None):
+                 units:    Union[Unit, str] = ha,
+                 method:   Optional['autode.wrappers.base.Method'] = None,
+                 keywords: Optional['autode.wrappers.keywords.Keywords'] = None):
         """
         Energy as a value. Has a method_str attribute which is set using a
         method used to calculate the energy along with any keywords e.g.
