@@ -69,6 +69,7 @@ def test_set_keywordsset():
 
     kwset = deepcopy(Config.G09.keywords)
     assert hasattr(kwset, 'opt')
+    assert 'keywords' in repr(kwset).lower()
 
     kwset.set_opt_functional(pbe)
     assert kwset.opt.functional.lower() == 'pbe'

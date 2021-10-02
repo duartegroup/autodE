@@ -6,6 +6,10 @@ from autode.log import logger
 
 class KeywordsSet:
 
+    def __repr__(self):
+        str_methods = ',\n'.join(str(c) for c in self._list if c is not None)
+        return f'KeywordsSet({str_methods})'
+
     def __getitem__(self, item):
         return self._list[item]
 
@@ -339,9 +343,6 @@ class Keyword(ABC):
         return str(self) == str(other)
 
     def __str__(self):
-        return self.name
-
-    def __repr__(self):
         return self.name
 
     def lower(self):
