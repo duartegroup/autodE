@@ -70,14 +70,23 @@ class Atom:
             >>> atom = ade.Atom('H')
             >>> atom.coord
             Coordinate([0. 0. 0.] Å)
-            >>>
+
+        To initialise at a different away from the origin
+
+        .. code-block:: Python
+
             >>> ade.Atom('H', x=1.0).coord
             Coordinate([1. 0. 0.] Å)
             >>> ade.Atom('H', x=1.0).coord.x
             1.0
-            >>>
-            >>> ade.Atom('H', x=1.0).coord.to('a0')
-            Coordinate([1.889  0.  0. ] bohr)
+
+        Coordinates are instances of autode.values.ValueArray so can
+        be converted from the default angstrom units to e.g. Bohr
+
+        .. code-block:: Python
+
+            >>> ade.Atom('H', x=1.0, y=-1.0).coord.to('a0')
+            Coordinate([1.889  -1.889  0. ] bohr)
 
         Returns:
             (autode.values.Coordinate): Coordinate
@@ -418,7 +427,20 @@ class Atom:
 
     def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
         """
-        Atom class. Centered at the origin by default
+        Atom class. Centered at the origin by default. Can be initialised from
+        positional or keyword arguments:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H')
+            Atom(H, 0.0000, 0.0000, 0.0000)
+            >>>
+            >>> ade.Atom('H', x=1.0, y=1.0, z=1.0)
+            Atom(H, 1.0000, 1.0000, 1.0000)
+            >>>
+            >>> ade.Atom('H', 1.0, 1.0, 1.0)
+            Atom(H, 1.0000, 1.0000, 1.0000)
 
         Arguments:
             atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
@@ -760,7 +782,7 @@ class AtomCollection:
               i: int,
               j: int,
               k: int) -> Angle:
-        """
+        r"""
         Angle between three atoms i-j-k, where the atoms are indexed from
         zero::
 
@@ -768,12 +790,16 @@ class AtomCollection:
                         \
                   θ      E_k
 
-        Example::
+
+        Example:
 
         .. code-block:: Python
 
-            >>> import autode as ade
-            
+            >>> from autode import Atom, Molecule
+            >>> h2o = Molecule(atoms=[Atom('H', x=-1), Atom('O'), Atom('H', x=1)])
+            >>> h2o.angle(0, 1, 2).to('deg')
+            Angle(180.0 °)
+
 
         Arguments:
             i (int): Atom index of the left hand side in the angle
@@ -804,12 +830,30 @@ class AtomCollection:
         return Angle(value)
 
     def dihedral(self,
+                 w: int,
                  x: int,
                  y: int,
-                 z: int,
-                 w: int) -> Angle:
-        """
-        Dihedral angle between four atoms
+                 z: int) -> Angle:
+        r"""
+        Dihedral angle between four atoms (x, y, z, w), where the atoms are
+        indexed from zero::
+
+            E_w  --- E_x
+                        \  φ
+                         \
+                          E_y ---- E_z
+
+        Example:
+
+        .. code-block:: Python
+
+            >>> from autode import Atom, Molecule
+            >>> h2s2 = Molecule(atoms=[Atom('S',  0.1527, 0.9668, -0.9288),
+            ...                        Atom('S',  2.0024, 0.0443, -0.4227),
+            ...                        Atom('H', -0.5802, 0.0234, -0.1850),
+            ...                        Atom('H',  2.1446, 0.8424,  0.7276)])
+            >>> h2s2.dihedral(2, 0, 1, 3).to('deg')
+            Angle(-90.0 °)
 
         Arguments:
             w (int): Atom index of the first atom in the dihedral
@@ -818,30 +862,31 @@ class AtomCollection:
             z (int):               -- fourth --
 
         Returns:
-            (autode.values.Angle):
+            (autode.values.Angle): Dihedral angle
 
         Raises:
-            (ValueError):
+            (ValueError): If any of the atom indexes are not present in the
+                          molecule
         """
-        if not self._idxs_are_present(w, x, y, z):
+        if not self._idxs_are_present(z, w, x, y):
             raise ValueError(f'Cannot calculate the dihedral angle involving '
-                             f'atoms {w}-{x}-{y}-{z}. At least one atom not '
+                             f'atoms {z}-{w}-{x}-{y}. At least one atom not '
                              f'present')
 
-        vec_yx = self.atoms[x].coord - self.atoms[y].coord
-        vec_zw = self.atoms[w].coord - self.atoms[z].coord
+        vec_xw = self.atoms[w].coord - self.atoms[x].coord
         vec_yz = self.atoms[z].coord - self.atoms[y].coord
+        vec_xy = self.atoms[y].coord - self.atoms[x].coord
 
-        vec1, vec2 = np.cross(vec_yx, vec_yz), np.cross(-vec_yz, vec_zw)
+        vec1, vec2 = np.cross(vec_xw, vec_xy), np.cross(-vec_xy, vec_yz)
 
         # Normalise and ensure no zero vectors, for which the dihedral is not
         # defined
-        for vec in (vec1, vec2, vec_yz):
+        for vec in (vec1, vec2, vec_xy):
             norm = np.linalg.norm(vec)
 
             if np.isclose(norm, 0.0):
                 raise ValueError(f'Cannot calculate the dihedral angle '
-                                 f'{w}-{x}-{y}-{z} - one zero vector')
+                                 f'{z}-{w}-{x}-{y} - one zero vector')
             vec /= norm
 
         """
@@ -850,7 +895,7 @@ class AtomCollection:
         the bond A-B is rotated in a clockwise direction through less than
         180 degrees"
         """
-        value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
+        value = -np.arctan2(np.dot(np.cross(vec1, vec_xy), vec2),
                             np.dot(vec1, vec2))
 
         return Angle(value)

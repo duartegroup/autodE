@@ -288,7 +288,11 @@ def test_periodic_table():
     assert atoms.PeriodicTable.element(2, 13) == 'B'
 
 
-def test_doc_examples():
+def test_atom_doc_examples():
+    """Examples that appear in doc strings.
+
+            PLEASE update docstrings if changing these tests
+    """
 
     assert Atom('C').atomic_number == 6
 
@@ -296,8 +300,8 @@ def test_doc_examples():
 
     assert Atom('H').coord == Coordinate(0.0, 0.0, 0.0, units='Å')
     assert np.isclose(Atom('H', x=1.0).coord.x, 1.0)
-    assert np.allclose(Atom('H', x=1.0).coord.to('a0'),
-                       Coordinate(1.889, 0.0, 0.0, units='bohr'),
+    assert np.allclose(Atom('H', x=1.0, y=-1.0).coord.to('a0'),
+                       Coordinate(1.889, -1.889, 0.0, units='bohr'),
                        atol=1E-3)
 
     assert not Atom('C').is_metal
@@ -329,8 +333,22 @@ def test_doc_examples():
                        atol=1E-2)
 
     from autode.values import Angle
-    atom  = Atom('H', x=1.0)
+    atom = Atom('H', x=1.0)
     atom.rotate(axis=[0.0, 0.0, 1.0], theta=Angle(180, units='deg'))
     assert np.allclose(atom.coord,
                        Coordinate(-1, 0., 0., units='Å'),
                        atol=1E-5)
+
+
+def test_atoms_collection_doc_examples():
+
+    from autode import Atom, Molecule
+    h2o = Molecule(atoms=[Atom('H', x=-1), Atom('O'), Atom('H', x=1)])
+    assert np.isclose(h2o.angle(0, 1, 2).to('deg'), 180, atol=1E-4)
+
+    h2s2 = Molecule(atoms=[Atom('S', 0.1527, 0.9668, -0.9288),
+                           Atom('S', 2.0024, 0.0443, -0.4227),
+                           Atom('H', -0.5802, 0.0234, -0.1850),
+                           Atom('H', 2.1446, 0.8424, 0.7276)])
+
+    assert np.isclose(h2s2.dihedral(2, 0, 1, 3).to('deg'), -90.0, atol=0.1)
