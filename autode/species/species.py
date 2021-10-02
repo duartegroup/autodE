@@ -2,7 +2,7 @@ import numpy as np
 import autode.values as val
 from copy import deepcopy
 from datetime import date
-from typing import Optional, Union, List, Collection
+from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
@@ -254,7 +254,7 @@ class Species(AtomCollection):
         non-linear molecule and all but the lowest 5 for a linear one
 
         Returns:
-            (list(autode.value.Frequency) | None): Vibrational frequencies
+            (list(autode.values.Frequency) | None): Vibrational frequencies
         """
         n = 6 if not self.is_linear() else 5
 
@@ -266,7 +266,8 @@ class Species(AtomCollection):
         Imaginary frequencies of a molecule
 
         Returns:
-            (list(autode.values.Frequency) | None):
+            (list(autode.values.Frequency) | None): Imaginary frequencies, or
+                                                    None if there are none
         """
         if self.frequencies is None:
             logger.warning('Had no frequencies - could not find any imaginary')
@@ -650,12 +651,12 @@ class Species(AtomCollection):
         return self.atoms.are_linear(angle_tol=angle_tol)
 
     @requires_atoms
-    def translate(self, vec: Collection[float]) -> None:
+    def translate(self, vec: Sequence[float]) -> None:
         """
         Translate the molecule by vector
 
         Arguments:
-            vec (np.ndarray | list(float)): shape = (3,)
+            vec (np.ndarray | list(float)): Vector to translate by shape = (3,)
         """
         for atom in self.atoms:
             atom.translate(vec)
@@ -664,19 +665,20 @@ class Species(AtomCollection):
 
     @requires_atoms
     def rotate(self,
-               axis:   np.ndarray,
-               theta:  float,
-               origin: Optional[np.ndarray] = None) -> None:
+               axis:   Union[np.ndarray, Sequence],
+               theta:  Union[val.Angle, float],
+               origin: Union[np.ndarray, Sequence, None] = None) -> None:
         """
         Rotate the molecule by around an axis
 
         Arguments:
-            axis (np.ndarray): Axis to rotate around. shape = (3,)
+            axis (np.ndarray | list(float)): Axis to rotate around. len(axis)=3
 
-            theta (float): Angle to rotate anticlockwise by (radians)
+            theta (Angle | float): Angle to rotate anticlockwise by if float
+                                   then assume radian units
 
         Keyword Arguments:
-            origin (np.ndarray | None): Origin of the rotation
+            origin (np.ndarray | list(float) | None): Origin of the rotation
         """
         for atom in self.atoms:
             atom.rotate(axis, theta, origin=origin)
