@@ -1,3 +1,19 @@
+"""
+Base classes for electronic structure and other methods that map nuclear
+coordinates to energies, forces and hessians.
+
+To implement a new EST method:
+
+(1) Subclass ElectronicStructureMethod and implement all abstract methods
+
+(2) Add a default configuration to the Config class in config.py implementing
+    keywords for each implemented type of calculation
+
+(3) Optional: Include keywords in keyword wrappers e.g. wrappers/functionals.py
+    so keywords may have associated citations
+
+(4) Write tests!
+"""
 import os
 import numpy as np
 from abc import ABC
