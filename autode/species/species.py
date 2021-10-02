@@ -254,7 +254,7 @@ class Species(AtomCollection):
         non-linear molecule and all but the lowest 5 for a linear one
 
         Returns:
-            (list(autode.value.Frequency) | None):
+            (list(autode.value.Frequency) | None): Vibrational frequencies
         """
         n = 6 if not self.is_linear() else 5
 
@@ -301,13 +301,15 @@ class Species(AtomCollection):
     @property
     @requires_atoms
     def bond_matrix(self) -> np.ndarray:
-        """Return a np.ndarray boolean array of the bonds
+        """
+        Numpy boolean array containing which atoms are bonded, also known as
+        an adjacency matrix.
 
         Returns:
-            (np.ndarray): shape = (n_atoms, n_atoms)
+            (np.ndarray): Adjacency matrix. shape = (n_atoms, n_atoms)
 
         Raises:
-             (ValueError): If the molecular graph is nor set
+             (ValueError): If the molecular graph is not set
         """
 
         matrix = np.zeros(shape=(self.n_atoms, self.n_atoms), dtype=bool)
@@ -649,10 +651,11 @@ class Species(AtomCollection):
 
     @requires_atoms
     def translate(self, vec: Collection[float]) -> None:
-        """Translate the molecule by vector
+        """
+        Translate the molecule by vector
 
         Arguments:
-            vec (np.ndarray): shape = (3,)
+            vec (np.ndarray | list(float)): shape = (3,)
         """
         for atom in self.atoms:
             atom.translate(vec)
@@ -664,7 +667,8 @@ class Species(AtomCollection):
                axis:   np.ndarray,
                theta:  float,
                origin: Optional[np.ndarray] = None) -> None:
-        """Rotate the molecule by around an axis
+        """
+        Rotate the molecule by around an axis
 
         Arguments:
             axis (np.ndarray): Axis to rotate around. shape = (3,)
@@ -778,7 +782,9 @@ class Species(AtomCollection):
                     lfm_method: Union[LFMethod, str, None] = None,
                     ss:         Optional[str] = None,
                     **kwargs) -> None:
-        """Calculate the free energy contribution for a species
+        """
+        Calculate the free energy and enthalpy contributions using the
+        ideal gas approximation
 
         Keyword Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
@@ -798,7 +804,7 @@ class Species(AtomCollection):
             (autode.exceptions.CalculationException | KeyError):
 
         See Also:
-            (autode.thermochemistry.igm.calculate_thermo_cont)
+            autode.thermochemistry.igm.calculate_thermo_cont for additional kwargs
         """
         if lfm_method is not None:
             kwargs['lfm_method'] = lfm_method
@@ -934,8 +940,8 @@ class Species(AtomCollection):
         Arguments:
             name (str): Name of the species
 
-            atoms (list(autode.atoms.Atom)): List of atoms in the species,
-                                             or None
+            atoms (list(autode.atoms.Atom) | None): List of atoms in the
+                                                    species, or None
 
             charge (int): Charge on the species
 
@@ -943,7 +949,7 @@ class Species(AtomCollection):
                         number of unpaired electrons
 
         Keyword Arguments:
-            solvent_name (str | None): Name of the solvent_name, or None for a
+            solvent_name (str | None): Name of the solvent, or None for a
                                        species  in the gas phase
         """
         super().__init__(atoms=atoms)
