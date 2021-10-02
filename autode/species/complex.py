@@ -419,6 +419,3 @@ class SolvatedReactantComplex(Complex):
 class NCIComplex(Complex):
     pass
 
-
-def is_solvated_reactant_complex(molecule_complex):
-    return isinstance(molecule_complex, SolvatedReactantComplex)
