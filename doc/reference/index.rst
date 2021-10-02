@@ -7,6 +7,7 @@ Reference
 
    atoms
    bonds
+   calculation
    conformers/index
    pes/index
    reactions/index
@@ -17,7 +18,6 @@ Reference
    thermochemistry/index
    wrappers/index
    bond_rearrangement
-   calculation
    config
    constants
    exceptions

@@ -571,7 +571,8 @@ class Species(AtomCollection):
                                 0 to n (n > 1). Present for compatibility and
                                 overrides angle_tol if not None
 
-            angle_tol (Angle): Tolerance on the angle considered to be linear
+            angle_tol (autode.values.Angle): Tolerance on the angle considered
+                                             to be linear
         """
         if tol is not None:
             angle_tol = val.Angle(np.arccos(1.0 - tol), units='rad')

@@ -12,6 +12,7 @@ Usability improvements/Changes
 - Adds `typing <https://docs.python.org/3/library/typing.html>`_ to user-facing functions
 - Updates documentation for readability
 
+
 Functionality improvements
 **************************
 
