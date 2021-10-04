@@ -202,7 +202,8 @@ def print_default_params(inp_file):
     print('%output \nxyzfile=True \nend ',
           '%scf \nmaxiter 250 \nend',
           '%output\nPrint[P_Hirshfeld] = 1\nend',
-          '% maxcore', Config.max_core, sep='\n', file=inp_file)
+          '% maxcore', int(Config.max_core.to('MB')),
+          sep='\n', file=inp_file)
     return
 
 
