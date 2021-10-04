@@ -1,6 +1,6 @@
 import os
 import autode.wrappers.implicit_solvent_types as solv
-from autode.values import Frequency, Distance
+from autode.values import Frequency, Distance, Allocation
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
 from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
@@ -9,7 +9,7 @@ from autode.wrappers.ri import rijcosx
 location = os.path.abspath(__file__)
 
 
-class Config:
+class _ConfigClass:
     # -------------------------------------------------------------------------
     # Total number of cores available
     #
@@ -17,7 +17,7 @@ class Config:
     # -------------------------------------------------------------------------
     # Per core memory available in MB
     #
-    max_core = 4000
+    max_core = Allocation(4, units='GB')
     # -------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code
     # will be used:
@@ -317,3 +317,17 @@ class Config:
         #
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
+
+    # =========================================================================
+    # =============               End                        ==================
+    # =========================================================================
+
+    def __setattr__(self, key, value):
+        if key == 'max_core':
+            value = Allocation(value)
+
+        return super().__setattr__(key, value)
+
+
+# Single instance of the configuration
+Config = _ConfigClass()

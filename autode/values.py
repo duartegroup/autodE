@@ -11,7 +11,8 @@ from autode.units import (Unit,
                           wavenumber, hz,
                           amu, kg, m_e,
                           amu_ang_sq, kg_m_sq,
-                          ha_per_ang, ha_per_a0, ev_per_ang)
+                          ha_per_ang, ha_per_a0, ev_per_ang,
+                          MB, GB, TB)
 
 
 def _to(value,
@@ -268,6 +269,26 @@ class FreeEnergyCont(Energy):
 
     def __repr__(self):
         return f'G_cont({round(self, 5)} {self.units.name})'
+
+
+class Allocation(Value):
+
+    implemented_units = [MB, GB, TB]
+
+    def __repr__(self):
+        return f'Allocation({round(self, 1)} {self.units.name})'
+
+    def __init__(self, x,
+                 units: Union[Unit, str, None] = MB):
+        """
+        Allocation of memory or disk, must be non-negative
+
+        """
+        if float(x) <= 0:
+            raise ValueError('Memory allocations must be non-negative. Had '
+                             f'{x}')
+
+        super().__init__(x=x, units=units)
 
 
 class Energies(list):
