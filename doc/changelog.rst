@@ -12,6 +12,7 @@ Usability improvements/Changes
 - Adds `typing <https://docs.python.org/3/library/typing.html>`_ to user-facing functions
 - Adds :code:`autode.config.location` to easily locate the core configuration file for permanent editing
 - Updates documentation for readability
+- Ensures units are kept when :code:`Value(x)`, when :code:`x` is a :code:`Value`
 
 
 Functionality improvements

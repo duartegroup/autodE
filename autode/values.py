@@ -188,7 +188,11 @@ class Value(ABC, float):
         """
 
         float.__init__(float(x))
-        self.units = _units_init(self, units)
+
+        if isinstance(x, Value):
+            self.units = x.units
+        else:
+            self.units = _units_init(self, units)
 
 
 class Energy(Value):
