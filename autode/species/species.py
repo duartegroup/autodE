@@ -7,7 +7,7 @@ from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException
-from autode.geom import calc_rmsd
+from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
@@ -680,8 +680,17 @@ class Species(AtomCollection):
         Keyword Arguments:
             origin (np.ndarray | list(float) | None): Origin of the rotation
         """
-        for atom in self.atoms:
-            atom.rotate(axis, theta, origin=origin)
+
+        origin = np.zeros(3) if origin is None else np.array(origin, copy=True)
+
+        coords = self.coordinates
+        coords -= origin
+        coords = np.dot(coords, get_rot_mat_euler(axis=axis, theta=theta).T)
+        coords += np.asarray(origin)
+
+        # Set the new coordinates of each atom
+        for atom, new_coord in zip(self.atoms, coords):
+            atom.coord = new_coord
 
         return None
 
