@@ -283,4 +283,5 @@ def test_complex_conformers_diff_names():
     h2o_dimer._generate_conformers()
     assert len(set(conf.name for conf in h2o_dimer.conformers)) > 1
 
-    shutil.rmtree('conformers')
+    if os.path.exists('conformers'):
+        shutil.rmtree('conformers')
