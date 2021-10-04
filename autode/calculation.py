@@ -30,7 +30,7 @@ def get_solvent_name(molecule, method):
     Set the solvent keyword to use in the calculation given an QM method
 
     Arguments:
-        molecule (autode.species.Species)
+        molecule (autode.species.Species):
         method (autode.wrappers.base.ElectronicStructureMethod):
     """
 
@@ -69,7 +69,7 @@ class Calculation:
         hasher = hashlib.sha1(string.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()
 
-    def _check_molecule(self):
+    def _check_molecule(self) -> None:
         """Ensure the molecule has the required attributes"""
         assert hasattr(self.molecule, 'n_atoms')
         assert hasattr(self.molecule, 'atoms')
@@ -77,12 +77,11 @@ class Calculation:
         assert hasattr(self.molecule, 'charge')
         assert hasattr(self.molecule, 'solvent')
 
-        # The molecule must have > 0 atoms
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             logger.error('Have no atoms. Can\'t form a calculation')
             raise ex.NoInputError
 
-    def _fix_unique(self, register_name='.autode_calculations'):
+    def _fix_unique(self, register_name='.autode_calculations') -> None:
         """
         If a calculation has already been run for this molecule then it
         shouldn't be run again, unless the input keywords have changed, in
@@ -143,7 +142,7 @@ class Calculation:
 
             n += 1
 
-    def _add_to_comp_methods(self):
+    def _add_to_comp_methods(self) -> None:
         """Add the methods used in this calculation to the used methods list"""
         from autode.log.methods import methods
 
@@ -208,11 +207,12 @@ class Calculation:
             return None
 
     def optimisation_converged(self) -> bool:
-        """Check whether a calculation has has converged to within the theshold
+        """
+        Check whether a calculation has has converged to within the theshold
         on energies and graidents specified in the input
 
         Returns:
-            (bool)
+            (bool):
         """
         logger.info('Checking to see if the geometry converged')
         if not self.output.exists:
@@ -221,11 +221,12 @@ class Calculation:
         return self.method.optimisation_converged(self)
 
     def optimisation_nearly_converged(self) -> bool:
-        """Check whether a calculation has nearly converged and may just need
+        """
+        Check whether a calculation has nearly converged and may just need
         more geometry optimisation steps to complete successfully
 
         Returns:
-            (bool)
+            (bool):
         """
         logger.info('Checking to see if the geometry nearly converged')
         if not self.output.exists:
@@ -287,7 +288,7 @@ class Calculation:
             (autode.values.Gradient): Gradient vectors. shape = (n_atoms, 3)
 
         Raises:
-            (autode.exceptions.CouldNotGetProperty)
+            (autode.exceptions.CouldNotGetProperty):
         """
         logger.info(f'Getting gradients from {self.output.filename}')
         gradients = Gradient(self.method.get_gradients(self))
@@ -307,11 +308,10 @@ class Calculation:
                       .              .               .              . )
 
         Returns:
-            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N) for N
-                                     atoms
+            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N) for N atoms
 
         Raises:
-            (autode.exceptions.CouldNotGetProperty)
+            (autode.exceptions.CouldNotGetProperty):
         """
         logger.info(f'Getting Hessian from calculation')
 
@@ -330,7 +330,12 @@ class Calculation:
 
     @property
     def terminated_normally(self) -> bool:
-        """Determine if the calculation terminated without error"""
+        """
+        Determine if the calculation terminated without error
+
+        Returns:
+            (bool): Normal termination of the calculation?
+        """
         logger.info(f'Checking for {self.output.filename} normal termination')
 
         if not self.output.exists:
@@ -339,8 +344,19 @@ class Calculation:
 
         return self.method.calculation_terminated_normally(self)
 
-    def clean_up(self, force=False, everything=False) -> None:
-        """Clean up input files, if Config.keep_input_files is False"""
+    def clean_up(self,
+                 force:      bool = False,
+                 everything: bool = False) -> None:
+        """
+        Clean up input and output files, if Config.keep_input_files is False
+        (and not force=True)
+
+        Keyword Arguments:
+
+            force (bool): If True then override Config.keep_input_files
+
+            everything (bool): Remove both input and output files
+        """
 
         if Config.keep_input_files and not force:
             logger.info('Keeping input files')
@@ -397,7 +413,10 @@ class Calculation:
         return None
 
     def execute_calculation(self) -> None:
-        """Execute a calculation if it has not been run or finish correctly"""
+        """
+        Execute a calculation if it has not been run, or if it did not finish
+        with a normal termination
+        """
         logger.info(f'Running {self.input.filename} using {self.method.name}')
 
         if not self.input.exists:
@@ -428,16 +447,16 @@ class Calculation:
         return None
 
     def __init__(self,
-                 name,
-                 molecule,
-                 method,
-                 keywords,
-                 n_cores=1,
-                 bond_ids_to_add=None,
-                 other_input_block=None,
-                 distance_constraints=None,
-                 cartesian_constraints=None,
-                 point_charges=None):
+                 name:                  str,
+                 molecule:              'autode.species.Species',
+                 method:                'autode.wrappers.base.Method',
+                 keywords:              'autode.wrappers.keywords.Keywords',
+                 n_cores:               int = 1,
+                 bond_ids_to_add:       Optional[List[tuple]] = None,
+                 other_input_block:     Optional[str] = None,
+                 distance_constraints:  Optional[dict] = None,
+                 cartesian_constraints: Optional[List[int]] = None,
+                 point_charges:         Optional[List[PointCharge]] = None):
         """
         Arguments:
             name (str):

@@ -1,9 +1,14 @@
 from typing import Union
 from copy import deepcopy
+from abc import ABC, abstractmethod
 from autode.log import logger
 
 
 class KeywordsSet:
+
+    def __repr__(self):
+        str_methods = ',\n'.join(str(c) for c in self._list if c is not None)
+        return f'KeywordsSet({str_methods})'
 
     def __getitem__(self, item):
         return self._list[item]
@@ -106,6 +111,10 @@ class Keywords:
 
     def __str__(self):
         return '_'.join([str(kw) for kw in self.keyword_list])
+
+    def __repr__(self):
+        """Representation of these keywords"""
+        return self.__str__()
 
     def _string(self, prefix):
         """Return a string defining the keywords, with or without a prefix"""
@@ -328,15 +337,16 @@ class SinglePointKeywords(Keywords):
         return self._string(prefix='SPKeywords')
 
 
-class Keyword:
+class Keyword(ABC):
+
+    @abstractmethod
+    def __repr__(self):
+        """Representation of this keyword"""
 
     def __eq__(self, other):
         return str(self) == str(other)
 
     def __str__(self):
-        return self.name
-
-    def __repr__(self):
         return self.name
 
     def lower(self):
@@ -402,13 +412,22 @@ class Keyword:
 class BasisSet(Keyword):
     """Basis set for a QM method"""
 
+    def __repr__(self):
+        return f'BasisSet({self.name})'
+
 
 class DispersionCorrection(Keyword):
     """Functional for a DFT method"""
 
+    def __repr__(self):
+        return f'DispersionCorrection({self.name})'
+
 
 class Functional(Keyword):
     """Functional for a DFT method"""
+
+    def __repr__(self):
+        return f'Functional({self.name})'
 
 
 class ImplicitSolventType(Keyword):
@@ -418,17 +437,29 @@ class ImplicitSolventType(Keyword):
         cpcm = ImplicitSolventType(name='cpcm', doi='10.the_doi')
     """
 
+    def __repr__(self):
+        return f'ImplicitSolventType({self.name})'
+
 
 class RI(Keyword):
     """Resolution of identity approximation"""
+
+    def __repr__(self):
+        return f'ResolutionOfIdentity({self.name})'
 
 
 class WFMethod(Keyword):
     """Keyword for a wavefunction method e.g. HF or CCSD(T)"""
 
+    def __repr__(self):
+        return f'WaveFunctionMethod({self.name})'
+
 
 class ECP(Keyword):
     """Effective core potential"""
+
+    def __repr__(self):
+        return f'EffectiveCorePotential({self.name})'
 
     def __eq__(self, other):
         """Equality of ECPs"""
@@ -456,6 +487,9 @@ class ECP(Keyword):
 
 class MaxOptCycles(Keyword):
     """Maximum number of optimisation cycles"""
+
+    def __repr__(self):
+        return f'MaxOptCycles(N = {self.name})'
 
     def __int__(self):
         return int(self.name)

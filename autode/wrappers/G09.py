@@ -313,6 +313,9 @@ def rerun_angle_failure(calc):
 
 class G09(ElectronicStructureMethod):
 
+    def __repr__(self):
+        return f'Gaussian09(available = {self.available})'
+
     def generate_input(self, calc, molecule):
         """Print a Gaussian input file"""
 

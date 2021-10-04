@@ -1,6 +1,6 @@
 from copy import deepcopy
 import numpy as np
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Sequence
 from autode.atoms import Atom, Atoms
 from itertools import product as iterprod
 from scipy.spatial import distance_matrix
@@ -109,8 +109,14 @@ class Complex(Species):
         """Number of molecules in this molecular complex"""
         return len(self._molecules)
 
-    def atom_indexes(self, mol_index):
-        """Get the first and last atom indexes of a molecule in a Complex"""
+    def atom_indexes(self,
+                     mol_index: int):
+        """
+        List of atom indexes of a molecule withibn a Complex
+
+        Arguments:
+            mol_index (int): Index of the molecule
+        """
         if mol_index not in set(range(self.n_molecules)):
             raise AssertionError(f'Could not get idxs for molecule {mol_index}'
                                  f'. Not present in this complex')
@@ -120,7 +126,8 @@ class Complex(Species):
 
         return list(range(first_index, last_index))
 
-    def reorder_atoms(self, mapping: dict) -> None:
+    def reorder_atoms(self,
+                      mapping: dict) -> None:
         """
         Reorder the atoms in this complex using a dictionary keyed with current
         atom indexes and values as their new positions
@@ -178,7 +185,8 @@ class Complex(Species):
     def populate_conformers(self):
         """
         Generate and optimise with a low level method a set of conformers, the
-        number of which is
+        number of which is::
+
         Config.num_complex_sphere_points ×  Config.num_complex_random_rotations
          ^ (n molecules in complex - 1)
         """
@@ -201,12 +209,14 @@ class Complex(Species):
 
         return None
 
-    def translate_mol(self, vec, mol_index):
+    def translate_mol(self,
+                      vec:       Sequence[float],
+                      mol_index: int):
         """
         Translate a molecule within a complex by a vector
 
         Arguments:
-            vec (np.ndarray | list): Length 3 vector
+            vec (np.ndarray | list(float)): Length 3 vector
 
             mol_index (int): Index of the molecule to translate. e.g. 2 will
                              translate molecule 1 in the complex
@@ -224,7 +234,11 @@ class Complex(Species):
 
         return None
 
-    def rotate_mol(self, axis, theta, mol_index, origin=np.zeros(3)):
+    def rotate_mol(self,
+                   axis:      Union[np.ndarray, Sequence],
+                   theta:     Union['autode.values.Angle', float],
+                   mol_index: int,
+                   origin:    Union[np.ndarray, Sequence, None] = None):
         """
         Rotate a molecule within a complex an angle theta about an axis given
         an origin
@@ -253,7 +267,7 @@ class Complex(Species):
         return None
 
     @requires_atoms
-    def calc_repulsion(self, mol_index):
+    def calc_repulsion(self, mol_index: int):
         """Calculate the repulsion between a molecule and the rest of the
         complex"""
 
@@ -286,7 +300,7 @@ class Complex(Species):
                                mol_index=i)
         return None
 
-    def _init_solvent(self, solvent_name):
+    def _init_solvent(self, solvent_name: str):
         """Initial solvent"""
 
         if solvent_name is not None:
@@ -405,6 +419,3 @@ class SolvatedReactantComplex(Complex):
 class NCIComplex(Complex):
     pass
 
-
-def is_solvated_reactant_complex(molecule_complex):
-    return isinstance(molecule_complex, SolvatedReactantComplex)

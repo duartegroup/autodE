@@ -1,6 +1,24 @@
 Changelog
 =========
 
+1.1.1
+--------
+----------
+
+Documentation and typing hints
+
+Usability improvements/Changes
+******************************
+- Adds `typing <https://docs.python.org/3/library/typing.html>`_ to user-facing functions
+- Adds :code:`autode.config.location` to easily locate the core configuration file for permanent editing
+- Updates documentation for readability
+
+
+Functionality improvements
+**************************
+
+- Changes :code:`Keyword` to an abstract base class
+
 
 1.1.0
 --------

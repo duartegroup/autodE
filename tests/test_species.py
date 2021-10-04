@@ -6,7 +6,7 @@ from autode.calculation import Calculation
 from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
-from autode.values import Gradient
+from autode.values import Gradient, EnthalpyCont, Enthalpy, PotentialEnergy
 from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
@@ -436,3 +436,19 @@ def test_hessian_calculation():
     h2o._run_hess_calculation(method=orca)
     assert h2o.hessian is not None
     assert h2o.frequencies is not None
+
+
+def test_enthalpy_doc_example():
+
+    _h2 = Molecule(smiles='[H][H]')
+    _h2.energies.append(EnthalpyCont(0.0133, units='Ha'))
+    _h2.energy = PotentialEnergy(-1.16397, units='Ha',
+                                 method=orca,
+                                 keywords=orca.keywords.opt)
+    assert np.isclose(_h2.enthalpy, -1.15067, atol=1E-4)
+
+    _h2.energy = PotentialEnergy(-1.16827, units='Ha',
+                                 method=orca,
+                                 keywords=orca.keywords.sp)
+
+    assert np.isclose(_h2.enthalpy, -1.15497, atol=1E-4)

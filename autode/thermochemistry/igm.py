@@ -5,7 +5,7 @@ otherm (https://github.com/duartegroup/otherm) 16/05/2021. See
 autode/common/thermochemistry.pdf for mathematical background
 
 
-All calculations performed in SI units, for simplicity
+All calculations performed in SI units, for simplicity.
 """
 import numpy as np
 from enum import Enum
@@ -16,12 +16,20 @@ from autode.values import FreeEnergyCont, EnthalpyCont
 
 
 class SIConstants:
+    """Constants in SI (International System of Units) units"""
+
     k_b = 1.38064852E-23                # J K-1
     h = 6.62607004E-34                  # J s
     c = 299792458                       # m s-1
 
 
 class LFMethod(Enum):
+    """Method to treat low-frequency modes
+
+    See Also:
+        autode.thermochemistry.igm.calculate_thermo_cont for citations for the
+        different methods.
+    """
 
     igm = 0
     truhlar = 1
@@ -36,6 +44,7 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
     autode.config.Config. See references:
 
     [1] Chem. Eur. J. 2012, 18, 9955
+
     [2] J. Phys. Chem. B, 2011, 115, 14556
 
     Arguments:
@@ -68,7 +77,7 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
                   species.sn
 
     Raises:
-        (KeyError | ValueError):
+        (KeyError | ValueError): If frequencies are not defined
     """
     if species.n_atoms == 0:
         logger.warning('Species had no atoms. Cannot calculate thermochemical '
@@ -318,9 +327,10 @@ def _grimme_s_vib(species, temp, omega_0, alpha):
 
         x = omega * SIConstants.h / (SIConstants.k_b * temp)
         s_v = SIConstants.k_b * ((x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x)))
-        s_r = SIConstants.k_b * (0.5 + np.log(np.sqrt((8.0 * np.pi**3 * mu_prime * SIConstants.k_b * temp) /
-                                                  (SIConstants.h**2)
-                                                  )))
+
+        factor = ((8.0 * np.pi**3 * mu_prime * SIConstants.k_b * temp)
+                  / SIConstants.h**2)
+        s_r = SIConstants.k_b * (0.5 + np.log(np.sqrt(factor)))
 
         w = 1.0 / (1.0 + (omega_0 / freq)**alpha)
 

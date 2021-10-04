@@ -2,7 +2,7 @@ import numpy as np
 import autode.values as val
 from copy import deepcopy
 from datetime import date
-from typing import Optional, Union, List, Collection
+from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
@@ -91,7 +91,7 @@ class Species(AtomCollection):
 
     @property
     def mult(self) -> int:
-        """Total spin multipliity on this species (2S + 1)"""
+        """Total spin multiplicity on this species (2S + 1)"""
         return self._mult
 
     @mult.setter
@@ -133,13 +133,21 @@ class Species(AtomCollection):
 
     @property
     def formula(self) -> str:
-        """Return the molecular formula of this species, e.g.::
+        """
+        Molecular formula of this species. Example:
 
-            self.atoms = None                 ->   ""
-            self.atoms = [Atom(H), Atom(H)]   ->  "H2"
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> blank_mol = ade.Molecule()
+            >>> blank_mol.formula
+            ''
+            >>> h2 = ade.Molecule(smiles='[H][H]')
+            >>> h2.formula
+            'H2'
 
         Returns:
-            (str):
+            (str): Formula
         """
 
         if self.atoms is None:
@@ -193,8 +201,10 @@ class Species(AtomCollection):
     @property
     def gradient(self) -> Optional[val.Gradient]:
         """
-        Gradient (dE/dx) at this geometry (autode.values.Gradients | None)
-        shape = (n_atoms, 3)
+        Gradient (dE/dx) at this geometry.
+
+        Returns:
+            (autode.values.Gradients | None): Gradient with shape = (n_atoms, 3)
         """
         return self._grad
 
@@ -244,7 +254,7 @@ class Species(AtomCollection):
         non-linear molecule and all but the lowest 5 for a linear one
 
         Returns:
-            (list(autode.value.Frequency) | None):
+            (list(autode.values.Frequency) | None): Vibrational frequencies
         """
         n = 6 if not self.is_linear() else 5
 
@@ -256,7 +266,8 @@ class Species(AtomCollection):
         Imaginary frequencies of a molecule
 
         Returns:
-            (list(autode.values.Frequency) | None):
+            (list(autode.values.Frequency) | None): Imaginary frequencies, or
+                                                    None if there are none
         """
         if self.frequencies is None:
             logger.warning('Had no frequencies - could not find any imaginary')
@@ -291,13 +302,15 @@ class Species(AtomCollection):
     @property
     @requires_atoms
     def bond_matrix(self) -> np.ndarray:
-        """Return a np.ndarray boolean array of the bonds
+        """
+        Numpy boolean array containing which atoms are bonded, also known as
+        an adjacency matrix.
 
         Returns:
-            (np.ndarray): shape = (n_atoms, n_atoms)
+            (np.ndarray): Adjacency matrix. shape = (n_atoms, n_atoms)
 
         Raises:
-             (ValueError): If the molecular graph is nor set
+             (ValueError): If the molecular graph is not set
         """
 
         matrix = np.zeros(shape=(self.n_atoms, self.n_atoms), dtype=bool)
@@ -350,10 +363,42 @@ class Species(AtomCollection):
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
         """
-        Last computed potential energy
+        Last computed potential energy. Setting with a float assumes electornic
+        Hartree units. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> species = ade.Species(name='H', atoms=[ade.Atom('H')], charge=0, mult=1)
+            >>> species.energy is None
+            True
+            >>> species.energy = -0.5
+            >>> species.energy
+            Energy(-0.5 Ha)
+            >>> species.single_point(method=ade.methods.ORCA())
+            >>> species.energy
+            Energy(-0.50104 Ha)
+
+        Energies are instances of autode.values.Energy so can be converted
+        to different units simply:
+
+        .. code-block:: Python
+
+            >>> species.energy.to('kcal mol-1')
+            Energy(-314.40567 kcal mol-1)
+            >>> species.energy.to('eV')
+            Energy(-13.63394 eV)
+
+        All previsouly calculated energies of a species are availble with the
+        energies attribute:
+
+        .. code-block:: Python
+
+            >>> species.energies
+            [Energy(-0.5 Ha), Energy(-0.50104 Ha)]
 
         Returns:
-            (autode.values.PotentialEnergy):
+            (autode.values.PotentialEnergy): Energy
         """
         return self.energies.last(val.PotentialEnergy)
 
@@ -404,7 +449,7 @@ class Species(AtomCollection):
         and free energy contribution
 
         Returns:
-            (autode.values.FreeEnergy | None):
+            (autode.values.FreeEnergy | None): 'Gibbs' free energy
         """
         try:
             return val.FreeEnergy(self.energy + self.g_cont)
@@ -417,10 +462,32 @@ class Species(AtomCollection):
     def enthalpy(self) -> Optional[val.Enthalpy]:
         """
         Enthalpy (H) of this species, calculated using the last energy and
-        enthalpy contribution
+        enthalpy contribution. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> h2 = ade.Molecule(smiles='[H][H]')
+            >>> orca = ade.methods.ORCA()
+            >>>
+            >>> h2.optimise(method=orca)
+            >>> h2.calc_h_cont(method=orca)
+            >>> h2.enthalpy
+            Enthalpy(-1.15069 Ha)
+
+        The enthalpy contribution is seperated, so performing a single point
+        provides a new enthalpy using the electronic energy at the single-point
+        level of theory:
+
+        .. code-block:: Python
+
+            >>> h2.single_point(method=orca)
+            >>> h2.enthalpy
+            Enthalpy(-1.15497 Ha)
+
 
         Returns:
-            (autode.values.FreeEnergy | None):
+            (autode.values.Enthalpy | None): Enthalpy
         """
         try:
             return val.Enthalpy(self.energy + self.h_cont)
@@ -440,12 +507,16 @@ class Species(AtomCollection):
         return 0 if self.conformers is None else len(self.conformers)
 
     @property
-    def conformers(self) -> Conformers:
+    def conformers(self) -> 'autode.conformers.Conformers':
+        """Conformers of this species"""
         return self._conformers
 
     @conformers.setter
     def conformers(self,
-                   value: Optional[List['autode.conformers.Conformer']]) -> None:
+                   value: Union[List['autode.conformers.Conformer'],
+                                'autode.conformers.Conformers',
+                                None]
+                   ) -> None:
         """
         Set conformers of this species
 
@@ -571,7 +642,8 @@ class Species(AtomCollection):
                                 0 to n (n > 1). Present for compatibility and
                                 overrides angle_tol if not None
 
-            angle_tol (Angle): Tolerance on the angle considered to be linear
+            angle_tol (autode.values.Angle): Tolerance on the angle considered
+                                             to be linear
         """
         if tol is not None:
             angle_tol = val.Angle(np.arccos(1.0 - tol), units='rad')
@@ -579,11 +651,12 @@ class Species(AtomCollection):
         return self.atoms.are_linear(angle_tol=angle_tol)
 
     @requires_atoms
-    def translate(self, vec: Collection[float]) -> None:
-        """Translate the molecule by vector
+    def translate(self, vec: Sequence[float]) -> None:
+        """
+        Translate the molecule by vector
 
         Arguments:
-            vec (np.ndarray): shape = (3,)
+            vec (np.ndarray | list(float)): Vector to translate by shape = (3,)
         """
         for atom in self.atoms:
             atom.translate(vec)
@@ -592,18 +665,20 @@ class Species(AtomCollection):
 
     @requires_atoms
     def rotate(self,
-               axis:   np.ndarray,
-               theta:  float,
-               origin: Optional[np.ndarray] = None) -> None:
-        """Rotate the molecule by around an axis
+               axis:   Union[np.ndarray, Sequence],
+               theta:  Union[val.Angle, float],
+               origin: Union[np.ndarray, Sequence, None] = None) -> None:
+        """
+        Rotate the molecule by around an axis
 
         Arguments:
-            axis (np.ndarray): Axis to rotate around. shape = (3,)
+            axis (np.ndarray | list(float)): Axis to rotate around. len(axis)=3
 
-            theta (float): Angle to rotate anticlockwise by (radians)
+            theta (Angle | float): Angle to rotate anticlockwise by if float
+                                   then assume radian units
 
         Keyword Arguments:
-            origin (np.ndarray | None): Origin of the rotation
+            origin (np.ndarray | list(float) | None): Origin of the rotation
         """
         for atom in self.atoms:
             atom.rotate(axis, theta, origin=origin)
@@ -709,7 +784,9 @@ class Species(AtomCollection):
                     lfm_method: Union[LFMethod, str, None] = None,
                     ss:         Optional[str] = None,
                     **kwargs) -> None:
-        """Calculate the free energy contribution for a species
+        """
+        Calculate the free energy and enthalpy contributions using the
+        ideal gas approximation
 
         Keyword Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
@@ -729,7 +806,7 @@ class Species(AtomCollection):
             (autode.exceptions.CalculationException | KeyError):
 
         See Also:
-            (autode.thermochemistry.igm.calculate_thermo_cont)
+            autode.thermochemistry.igm.calculate_thermo_cont for additional kwargs
         """
         if lfm_method is not None:
             kwargs['lfm_method'] = lfm_method
@@ -865,8 +942,8 @@ class Species(AtomCollection):
         Arguments:
             name (str): Name of the species
 
-            atoms (list(autode.atoms.Atom)): List of atoms in the species,
-                                             or None
+            atoms (list(autode.atoms.Atom) | None): List of atoms in the
+                                                    species, or None
 
             charge (int): Charge on the species
 
@@ -874,7 +951,7 @@ class Species(AtomCollection):
                         number of unpaired electrons
 
         Keyword Arguments:
-            solvent_name (str | None): Name of the solvent_name, or None for a
+            solvent_name (str | None): Name of the solvent, or None for a
                                        species  in the gas phase
         """
         super().__init__(atoms=atoms)

@@ -174,6 +174,9 @@ def print_point_charges(calc, atoms):
 
 class MOPAC(ElectronicStructureMethod):
 
+    def __repr__(self):
+        return f'MOPAC(available = {self.available})'
+
     def generate_input(self, calc, molecule):
 
         with open(calc.input.filename, 'w') as input_file:
@@ -183,6 +186,7 @@ class MOPAC(ElectronicStructureMethod):
             atoms, fixed_atom_idxs = get_atoms_and_fixed_atom_indexes(molecule)
 
             if molecule.constraints.cartesian is not None:
+                # TODO update reference
                 fixed_atom_idxs += calc.cartesian_constraints
 
             print_atoms(input_file, atoms, fixed_atom_idxs)

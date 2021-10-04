@@ -1,5 +1,6 @@
 import re
 import rdkit
+from typing import Optional, Union, List
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
@@ -22,7 +23,7 @@ class Molecule(Species):
     def __repr__(self):
         return self._repr(prefix='Molecule')
 
-    def _init_smiles(self, smiles):
+    def _init_smiles(self, smiles: str):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic.
 
@@ -42,7 +43,7 @@ class Molecule(Species):
                     f'Num. Atoms={self.n_atoms}')
         return None
 
-    def _init_xyz_file(self, xyz_filename):
+    def _init_xyz_file(self, xyz_filename: str):
         """
         Initialise a molecule from a .xyz file
 
@@ -70,14 +71,15 @@ class Molecule(Species):
         return None
 
     @requires_atoms
-    def _generate_conformers(self, n_confs=None):
+    def _generate_conformers(self,
+                             n_confs: Optional[int] = None):
         """
         Use a simulated annealing approach to generate conformers for this
         molecule.
 
         Keyword Arguments:
             n_confs (int): Number of conformers requested if None default to
-            autode.Config.num_conformers
+                           autode.Config.num_conformers
         """
 
         n_confs = n_confs if n_confs is not None else Config.num_conformers
@@ -122,14 +124,28 @@ class Molecule(Species):
         self.conformers.prune_on_rmsd()
         return None
 
-    def populate_conformers(self, n_confs):
-        """Populate self.conformers with a list of Conformer objects"""
+    def populate_conformers(self, n_confs: int):
+        """
+        Populate self.conformers with a conformers generated using a default
+        method
+
+        Arguments:
+            n_confs (int): Number of conformers to try and generate
+        """
         return self._generate_conformers(n_confs=n_confs)
 
-    def __init__(self, name='molecule', smiles=None, atoms=None,
-                 solvent_name=None, charge=0, mult=1):
+    def __init__(self,
+                 name:         str = 'molecule',
+                 smiles:       Optional[str] = None,
+                 atoms:        Union['autode.atoms.Atoms',
+                                     List['autode.atoms.Atom'],
+                                     None] = None,
+                 solvent_name: Optional[str] = None,
+                 charge:       int = 0,
+                 mult:         int = 1):
         """
-        Molecule class
+        A molecular species constructable from SMILES or a set of atoms,
+        has default charge and spin multiplicity.
 
         Keyword Arguments:
             name (str): Name of the molecule or a .xyz filename
@@ -141,9 +157,9 @@ class Molecule(Species):
 
             solvent_name (str): Solvent that the molecule is immersed in
 
-            charge (int): Charge on the molecule
+            charge (int): Charge on the molecule. Default = 0
 
-            mult (int): Spin multiplicity on the molecule
+            mult (int): Spin multiplicity on the molecule. Default = 1
         """
         logger.info(f'Generating a Molecule object for {name}')
         super().__init__(name, atoms, charge, mult, solvent_name)
@@ -154,8 +170,6 @@ class Molecule(Species):
         self.smiles = smiles
         self.rdkit_mol_obj = None
         self.rdkit_conf_gen_is_fine = True
-
-        self.conformers = None
 
         if smiles is not None:
             self._init_smiles(smiles)
@@ -169,6 +183,8 @@ class Molecule(Species):
 
 
 class SolvatedMolecule(Molecule):
+    """Explicitly solvated molecule"""
+    # TODO: This implementation
 
     @requires_atoms
     def optimise(self, method, *args, **kwargs):
@@ -184,11 +200,11 @@ class SolvatedMolecule(Molecule):
 
 
 class Reactant(Molecule):
-    pass
+    """Reactant molecule"""
 
 
 class Product(Molecule):
-    pass
+    """Product molecule"""
 
 
 def reactant_to_product(reactant):

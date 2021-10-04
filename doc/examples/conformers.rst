@@ -16,8 +16,8 @@ using ETKDGv2. The molecule's conformers are a list of
 
 .. code-block:: python
 
-  >>> from autode import Molecule
-  >>> butane = Molecule(name='butane', smiles='CCCC')
+  >>> import autode as ade
+  >>> butane = ade.Molecule(name='butane', smiles='CCCC')
   >>> butane.populate_conformers(n_confs=10)
   >>> len(butane.conformers)
   2
@@ -28,13 +28,12 @@ adjust this threshold
 
 .. code-block:: python
 
-  >>> from autode import Config
-  >>> Config.rmsd_threshold = 0.01
+  >>> ade.Config.rmsd_threshold = 0.01
   >>> butane.populate_conformers(n_confs=10)
   >>> len(butane.conformers)
   8
 
-For organic molecules ETKDGv2 is highly recommended while for metal
+For organic molecules ETKDGv3 is highly recommended, while for metal
 complexes the RR algorithm is used by default. To use RR for butane
 
 .. code-block:: python

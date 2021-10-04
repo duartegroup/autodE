@@ -70,14 +70,23 @@ class Atom:
             >>> atom = ade.Atom('H')
             >>> atom.coord
             Coordinate([0. 0. 0.] Å)
-            >>>
+
+        To initialise at a different position away from the origin
+
+        .. code-block:: Python
+
             >>> ade.Atom('H', x=1.0).coord
             Coordinate([1. 0. 0.] Å)
             >>> ade.Atom('H', x=1.0).coord.x
             1.0
-            >>>
-            >>> ade.Atom('H', x=1.0).coord.to('a0')
-            Coordinate([1.889  0.  0. ] bohr)
+
+        Coordinates are instances of autode.values.ValueArray, so can
+        be converted from the default angstrom units to e.g. Bohr
+
+        .. code-block:: Python
+
+            >>> ade.Atom('H', x=1.0, y=-1.0).coord.to('a0')
+            Coordinate([1.889  -1.889  0. ] bohr)
 
         Returns:
             (autode.values.Coordinate): Coordinate
@@ -173,7 +182,7 @@ class Atom:
             1
 
         Returns:
-            (int | None):
+            (int | None): Transition metal row
         """
         for row in [1, 2, 3]:
             if self.label in PeriodicTable.transition_metals(row):
@@ -256,7 +265,7 @@ class Atom:
             Distance(1.1 Å)
 
         Returns:
-            (autode.values.Distance): Radius
+            (autode.values.Distance): Van der Waals radius
         """
 
         if self.label in vdw_radii:
@@ -289,6 +298,9 @@ class Atom:
             (bool):
         """
 
+        if self.label in non_pi_elements:
+            return False
+
         if self.label not in pi_valencies:
             logger.warning(f'{self.label} not found in π valency dictionary - '
                            f'assuming not a π-atom')
@@ -301,8 +313,8 @@ class Atom:
 
     def translate(self, *args, **kwargs) -> None:
         """
-        Translate this atom by a vector. Arguments should be coercible into
-        a coordinate (i.e. length 3). Example:
+        Translate this atom by a vector in place. Arguments should be
+        coercible into a coordinate (i.e. length 3). Example:
 
         .. code-block:: Python
 
@@ -353,8 +365,9 @@ class Atom:
                origin: Union[np.ndarray, Sequence, None] = None) -> None:
         """
         Rotate this atom theta radians around an axis given an origin. By
-        default the rotation is applied around the origin. To rotate a H atom
-        around the z-axis:
+        default the rotation is applied around the origin with the angle
+        in radians (unless an autode.values.Angle). Rotation is applied in
+        place. To rotate a H atom around the z-axis:
 
         .. code-block:: Python
 
@@ -366,13 +379,13 @@ class Atom:
 
         With an origin:
 
-          .. code-block:: Python
+        .. code-block:: Python
 
-            >>> import autode as ade
-            >>> atom = ade.Atom('H')
-            >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14, origin=[1.0, 0.0, 0.0])
-            >>> atom.coord
-            Coordinate([2.  0.  0.] Å)
+          >>> import autode as ade
+          >>> atom = ade.Atom('H')
+          >>> atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14, origin=[1.0, 0.0, 0.0])
+          >>> atom.coord
+          Coordinate([2.  0.  0.] Å)
 
         And with an angle not in radians:
 
@@ -387,15 +400,15 @@ class Atom:
             Coordinate([-1.  0.  0.] Å)
 
         Arguments:
-            axis (np.ndarray): Axis to rotate in. shape = (3,)
-            theta (float): Angle in radians (float)
+            axis: Axis to rotate in. shape = (3,)
+            theta: Angle to rotate by
 
         Keyword Arguments:
-            origin (np.ndarray): Rotate about this origin. shape = (3,)
-                                 if no origin is specified then the atom
-                                 is rotated without translation.
+            origin: Rotate about this origin. shape = (3,)
+                    if no origin is specified then the atom
+                    is rotated without translation.
         """
-        # If specified shift so that the origin is at (0, 0, 0)
+        # If specified, shift so that the origin is at (0, 0, 0)
         if origin is not None:
             self.translate(vec=-np.asarray(origin))
 
@@ -414,7 +427,20 @@ class Atom:
 
     def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
         """
-        Atom class. Centered at the origin by default
+        Atom class. Centered at the origin by default. Can be initialised from
+        positional or keyword arguments:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H')
+            Atom(H, 0.0000, 0.0000, 0.0000)
+            >>>
+            >>> ade.Atom('H', x=1.0, y=1.0, z=1.0)
+            Atom(H, 1.0000, 1.0000, 1.0000)
+            >>>
+            >>> ade.Atom('H', 1.0, 1.0, 1.0)
+            Atom(H, 1.0000, 1.0000, 1.0000)
 
         Arguments:
             atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
@@ -467,7 +493,7 @@ class Atoms(list):
 
     def __repr__(self):
         """Representation"""
-        return f'Atoms({super().__repr__()})'
+        return f'Atoms(n_atoms={len(self)}, {super().__repr__()})'
 
     def __add__(self, other):
         """Add another set of Atoms to this one. Can add None"""
@@ -756,19 +782,35 @@ class AtomCollection:
               i: int,
               j: int,
               k: int) -> Angle:
-        """
-        Angle between three atoms i-j-k
+        r"""
+        Angle between three atoms i-j-k, where the atoms are indexed from
+        zero::
+
+            E_i  --- E_j
+                        \
+                  θ      E_k
+
+
+        Example:
+
+        .. code-block:: Python
+
+            >>> from autode import Atom, Molecule
+            >>> h2o = Molecule(atoms=[Atom('H', x=-1), Atom('O'), Atom('H', x=1)])
+            >>> h2o.angle(0, 1, 2).to('deg')
+            Angle(180.0 °)
+
 
         Arguments:
             i (int): Atom index of the left hand side in the angle
-            j (int):                ---     middle    ---
-            k (int):                -- right hand side --
+            j (int):  --- middle
+            k (int):  --- right
 
         Returns:
-            (autode.values.Angle):
+            (autode.values.Angle): Angle
 
         Raises:
-            (ValueError):
+            (ValueError): If any of the atom indexes are not present
         """
         if not self._idxs_are_present(i, j, k):
             raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
@@ -788,12 +830,30 @@ class AtomCollection:
         return Angle(value)
 
     def dihedral(self,
+                 w: int,
                  x: int,
                  y: int,
-                 z: int,
-                 w: int) -> Angle:
-        """
-        Dihedral angle between four atoms
+                 z: int) -> Angle:
+        r"""
+        Dihedral angle between four atoms (x, y, z, w), where the atoms are
+        indexed from zero::
+
+            E_w  --- E_x
+                        \  φ
+                         \
+                          E_y ---- E_z
+
+        Example:
+
+        .. code-block:: Python
+
+            >>> from autode import Atom, Molecule
+            >>> h2s2 = Molecule(atoms=[Atom('S',  0.1527, 0.9668, -0.9288),
+            ...                        Atom('S',  2.0024, 0.0443, -0.4227),
+            ...                        Atom('H', -0.5802, 0.0234, -0.1850),
+            ...                        Atom('H',  2.1446, 0.8424,  0.7276)])
+            >>> h2s2.dihedral(2, 0, 1, 3).to('deg')
+            Angle(-90.0 °)
 
         Arguments:
             w (int): Atom index of the first atom in the dihedral
@@ -802,30 +862,31 @@ class AtomCollection:
             z (int):               -- fourth --
 
         Returns:
-            (autode.values.Angle):
+            (autode.values.Angle): Dihedral angle
 
         Raises:
-            (ValueError):
+            (ValueError): If any of the atom indexes are not present in the
+                          molecule
         """
         if not self._idxs_are_present(w, x, y, z):
             raise ValueError(f'Cannot calculate the dihedral angle involving '
-                             f'atoms {w}-{x}-{y}-{z}. At least one atom not '
+                             f'atoms {z}-{w}-{x}-{y}. At least one atom not '
                              f'present')
 
-        vec_yx = self.atoms[x].coord - self.atoms[y].coord
-        vec_zw = self.atoms[w].coord - self.atoms[z].coord
+        vec_xw = self.atoms[w].coord - self.atoms[x].coord
         vec_yz = self.atoms[z].coord - self.atoms[y].coord
+        vec_xy = self.atoms[y].coord - self.atoms[x].coord
 
-        vec1, vec2 = np.cross(vec_yx, vec_yz), np.cross(-vec_yz, vec_zw)
+        vec1, vec2 = np.cross(vec_xw, vec_xy), np.cross(-vec_xy, vec_yz)
 
         # Normalise and ensure no zero vectors, for which the dihedral is not
         # defined
-        for vec in (vec1, vec2, vec_yz):
+        for vec in (vec1, vec2, vec_xy):
             norm = np.linalg.norm(vec)
 
             if np.isclose(norm, 0.0):
                 raise ValueError(f'Cannot calculate the dihedral angle '
-                                 f'{w}-{x}-{y}-{z} - one zero vector')
+                                 f'{z}-{w}-{x}-{y} - one zero vector')
             vec /= norm
 
         """
@@ -834,7 +895,7 @@ class AtomCollection:
         the bond A-B is rotated in a clockwise direction through less than
         180 degrees"
         """
-        value = -np.arctan2(np.dot(np.cross(vec1, vec_yz), vec2),
+        value = -np.arctan2(np.dot(np.cross(vec1, vec_xy), vec2),
                             np.dot(vec1, vec2))
 
         return Angle(value)
@@ -847,7 +908,8 @@ class AtomCollection:
     def __init__(self,
                  atoms: Union[List[Atom], Atoms, None] = None):
         """
-        Collection of atoms, used as a a base class for a species etc
+        Collection of atoms, used as a a base class for a species, complex
+        or transition state.
 
         Arguments:
             atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
@@ -1024,7 +1086,7 @@ atomic_weights = {"H": 1.00794, "He": 4.002602, "Li": 6.941, "Be": 9.012182,
                   }
 
 
-# vdw radii from https://books.google.no/books?id=bNDMBQAAQBAJ
+# van der Walls radii from https://books.google.no/books?id=bNDMBQAAQBAJ
 vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, 'N': 1.55, 'O': 1.52, 'F': 1.47, 'Ne': 1.54, 'Na': 2.27, 'Mg': 1.73, 'Al': 1.84,
              'Si': 2.1, 'P': 1.8, 'S': 1.8, 'Cl': 1.75, 'Ar': 1.88, 'K': 2.75, 'Ca': 2.31, 'Sc': 2.15, 'Ti': 2.11, 'V': 2.07, 'Cr': 2.06, 'Mn': 2.05, 'Fe': 2.04,
              'Co': 2.0, 'Ni': 1.97, 'Cu': 1.96, 'Zn': 2.01, 'Ga': 1.87, 'Ge': 2.11, 'As': 1.85, 'Se': 1.9, 'Br': 1.85, 'Kr': 2.02, 'Rb': 3.03, 'Sr': 2.49, 'Y': 2.32,
@@ -1034,9 +1096,22 @@ vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, '
              'Au': 2.14, 'Hg': 2.23, 'Tl': 1.96, 'Pb': 2.02, 'Bi': 2.07, 'Po': 1.97, 'At': 2.02, 'Rn': 2.2, 'Fr': 3.48, 'Ra': 2.83, 'Ac': 2.47, 'Th': 2.45, 'Pa': 2.43,
              'U': 2.41, 'Np': 2.39, 'Pu': 2.43, 'Am': 2.44, 'Cm': 2.45, 'Bk': 2.44, 'Cf': 2.45, 'Es': 2.45, 'Fm': 2.45, 'Md': 2.46, 'No': 2.46, 'Lr': 2.46}
 
-pi_valencies = {'B': [1, 2], 'N': [1, 2], 'O': [1], 'C': [1, 2, 3], 'P': [1, 2, 3, 4], 'S': [1, 3, 4, 5],
+"""
+Although a π-bond may not be well defined, it is useful to have a notion of 
+a bond about which there is restricted rotation. The below sets are used to
+define which atoms may be π-bonded to another
+"""
+non_pi_elements = ['H', 'He']
+pi_valencies = {'B': [1, 2],
+                'N': [1, 2],
+                'O': [1],
+                'C': [1, 2, 3],
+                'P': [1, 2, 3, 4],
+                'S': [1, 3, 4, 5],
                 'Si': [1, 2, 3]}
 
+# Standard definition of metallic elements: https://en.wikipedia.org/wiki/Metal
+# (all semi-metals not included)
 metals = ['Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga',
           'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Cs', 'Ba', 'La', 'Ce',
           'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os',
