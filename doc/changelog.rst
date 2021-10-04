@@ -18,6 +18,7 @@ Functionality improvements
 **************************
 
 - Changes :code:`Keyword` to an abstract base class
+- Improves speed of rotation (numpy rather than a Python for loop)
 
 
 1.1.0
