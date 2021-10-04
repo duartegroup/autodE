@@ -407,10 +407,6 @@ class Distance(Value):
         return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
-
-        if float(value) < 0:
-            raise ValueError(f'Distances cannot be negative. Had: {value}')
-
         super().__init__(value, units=units)
 
 

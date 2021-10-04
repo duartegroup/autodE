@@ -50,3 +50,10 @@ def test_unknown_attr():
     # misspelling
     with pytest.raises(Exception):
         Config.maxcore = 1
+
+
+def test_step_size_setter():
+
+    # Distances cannot be negative
+    with pytest.raises(ValueError):
+        Config.max_step_size = -0.11

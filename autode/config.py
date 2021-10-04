@@ -332,6 +332,9 @@ class _ConfigClass:
             value = Allocation(value)
 
         if key in ('max_atom_displacement', 'min_step_size', 'max_step_size'):
+            if float(value) < 0:
+                raise ValueError(f'Distances cannot be negative. Had: {value}')
+
             value = Distance(value)
 
         return super(_ConfigClass, self).__setattr__(key, value)

@@ -265,7 +265,7 @@ def _igm_s_vib(species, temp):
         s += SIConstants.k_b * ((x / (np.exp(x) - 1.0))
                                 - np.log(1.0 - np.exp(-x)))
 
-    return s
+    return float(s)
 
 
 def _truhlar_s_vib(species, temp, shift_freq):
@@ -295,7 +295,7 @@ def _truhlar_s_vib(species, temp, shift_freq):
         s += SIConstants.k_b * (((x / temp) / (np.exp(x / temp) - 1.0)) -
                                 np.log(1.0 - np.exp(-x / temp)))
 
-    return s
+    return float(s)
 
 
 def _grimme_s_vib(species, temp, omega_0, alpha):
@@ -336,7 +336,7 @@ def _grimme_s_vib(species, temp, omega_0, alpha):
 
         s += w * s_v + (1.0 - w) * s_r
 
-    return s
+    return float(s)
 
 
 def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
@@ -410,7 +410,7 @@ def _zpe(species):
     for freq in species.vib_frequencies:
         zpe += 0.5 * SIConstants.h * freq.real.to('hz')
 
-    return zpe
+    return float(zpe)
 
 
 def _internal_vib_energy(species, temp):
@@ -428,10 +428,11 @@ def _internal_vib_energy(species, temp):
 
     # Final 6 vibrational frequencies are translational/rotational
     for freq in species.vib_frequencies:
-        x = freq.real * Constants.c_in_cm * SIConstants.h / SIConstants.k_b
+        x = (float(freq.real.to('cm-1')) * Constants.c_in_cm * SIConstants.h
+             / SIConstants.k_b)
         e_vib += SIConstants.k_b * x * (1.0 / (np.exp(x/temp) - 1.0))
 
-    return e_vib
+    return float(e_vib)
 
 
 def _internal_energy(species, temp):
