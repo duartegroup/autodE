@@ -70,7 +70,7 @@ Installation Check
 ------------------
 
 **autodE** will find any electronic structure theory packages with implemented
-wrappers (ORCA, NWChem, Gaussian09, XTB and MOPAC) that are available from your
+wrappers (ORCA, NWChem, Gaussian, XTB and MOPAC) that are available from your
 `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_ environment variable.
 To check the expected high and low level methods are available:
 
@@ -83,7 +83,7 @@ To check the expected high and low level methods are available:
   XTB(available = True)
 
 
-If a MethodUnavailable exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
+If a :code:`MethodUnavailable` exception is raised see the :doc:`troubleshooting page <troubleshooting>`.
 If **autodE** cannot be imported please open a issue on `GitHub <https://github.com/duartegroup/autodE/issues>`_.
 
 ******
@@ -92,7 +92,7 @@ Quick EST Test
 --------------
 
 If the high and/or low level electronic structure methods have been installed
-for the first time it may be useful to check they're installed correctly.
+for the first time, it may be useful to check they're installed correctly.
 To run a quick optimisation of H\ :sub:`2`\:
 
 .. code-block:: python

@@ -112,6 +112,10 @@ class Keywords:
     def __str__(self):
         return '_'.join([str(kw) for kw in self.keyword_list])
 
+    def __repr__(self):
+        """Representation of these keywords"""
+        return self.__str__()
+
     def _string(self, prefix):
         """Return a string defining the keywords, with or without a prefix"""
         from autode.config import Config

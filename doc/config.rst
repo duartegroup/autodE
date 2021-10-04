@@ -2,7 +2,7 @@ Configuration
 =============
 
 Configuration is handled with :code:`ade.Config` and can be modified for full
-customization of the calculations. By default, high level optimisations are
+customization of the calculations. By default, high-level optimisations are
 performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP. To
 edit the default configuration permanently edit the config file, the location
 of which can be accessed with:
@@ -22,7 +22,7 @@ Calculations
 General
 *******
 
-The high-level electronic structure code defaults to using the first available
+The high-level electronic structure code defaults to the first available
 from {ORCA, Gaussian09, Gaussian16, NWChem} and the low-level from {XTB, MOPAC}.
 To select Gaussian09 as the high-level method:
 
@@ -54,28 +54,37 @@ Keywords
 **autodE** uses wrappers around common keywords used in QM calculations to allow
 easy setting of e.g. a DFT functional.
 
+
 .. code-block:: python
-    >>> kwds = ade.Config.ORCA.keywords.sp
-    >>> kwds.functional
-    Functional(pbe0)
+
+  >>> kwds = ade.Config.ORCA.keywords.sp
+  >>> kwds.functional
+  Functional(pbe0)
+
 
 To modify the functional for single point energies, in ORCA:
 
+
 .. code-block:: python
+
   >>> kwds.functional = 'B3LYP'
+
 
 Alternatively, reassign to a whole new set of keywords:
 
+
 .. code-block:: python
+
   >>> ade.Config.ORCA.keywords.sp = ade.SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
 
 
 To add diffuse functions with the *ma* scheme to the def2-SVP default
-basis set for optimisations
+basis set for optimisations:
 
 .. code-block:: python
 
   >>> ade.Config.ORCA.keywords.set_opt_basis_set('ma-def2-SVP')
+
 
 .. note::
     `set_opt_basis_set` sets the basis set in keywords.grad, keywords.opt_ts
@@ -129,3 +138,5 @@ To log with timestamps and colours::
     $ conda install coloredlogs
 
 
+To set the logging level permanently add the above export statements to
+your *bash_profile*.

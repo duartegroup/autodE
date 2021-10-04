@@ -493,7 +493,7 @@ class Atoms(list):
 
     def __repr__(self):
         """Representation"""
-        return f'Atoms(N={len(self)}, {super().__repr__()})'
+        return f'Atoms(n_atoms={len(self)}, {super().__repr__()})'
 
     def __add__(self, other):
         """Add another set of Atoms to this one. Can add None"""

@@ -32,6 +32,7 @@ def test_keywords():
 
     keywords = Keywords(keyword_list=['test'])
     assert 'test' in str(keywords)
+    assert 'test' in repr(keywords)
 
     # Should not add a keyword that's already there
     keywords.append('test')
