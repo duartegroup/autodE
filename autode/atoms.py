@@ -71,7 +71,7 @@ class Atom:
             >>> atom.coord
             Coordinate([0. 0. 0.] Å)
 
-        To initialise at a different away from the origin
+        To initialise at a different position away from the origin
 
         .. code-block:: Python
 
@@ -80,7 +80,7 @@ class Atom:
             >>> ade.Atom('H', x=1.0).coord.x
             1.0
 
-        Coordinates are instances of autode.values.ValueArray so can
+        Coordinates are instances of autode.values.ValueArray, so can
         be converted from the default angstrom units to e.g. Bohr
 
         .. code-block:: Python
@@ -868,7 +868,7 @@ class AtomCollection:
             (ValueError): If any of the atom indexes are not present in the
                           molecule
         """
-        if not self._idxs_are_present(z, w, x, y):
+        if not self._idxs_are_present(w, x, y, z):
             raise ValueError(f'Cannot calculate the dihedral angle involving '
                              f'atoms {z}-{w}-{x}-{y}. At least one atom not '
                              f'present')
@@ -1097,8 +1097,8 @@ vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, '
              'U': 2.41, 'Np': 2.39, 'Pu': 2.43, 'Am': 2.44, 'Cm': 2.45, 'Bk': 2.44, 'Cf': 2.45, 'Es': 2.45, 'Fm': 2.45, 'Md': 2.46, 'No': 2.46, 'Lr': 2.46}
 
 """
-Although a π-bond may not be well defined it is useful to have a notion of 
-an a bond about which there is restricted rotation. The below sets are used to
+Although a π-bond may not be well defined, it is useful to have a notion of 
+a bond about which there is restricted rotation. The below sets are used to
 define which atoms may be π-bonded to another
 """
 non_pi_elements = ['H', 'He']

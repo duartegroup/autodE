@@ -47,7 +47,7 @@ S\ :sub:`N`\2
    :align: center
 
 To generate a reaction profile for the S\ :sub:`N`\2 reaction between fluoride
-and methyl chloride in water in more depth we have the smiles strings for the
+and methyl chloride in water in more depth, we have the SMILES strings for the
 reactant and products generated from Chemdraw (by selecting a
 molecule → Edit → Copy As → SMILES):
 

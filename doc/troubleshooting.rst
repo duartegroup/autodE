@@ -23,7 +23,7 @@ MethodUnavailable
 -----------------
 
 If high and/or low level electronic structure methods cannot be found in your *PATH*
-environment variable it is possible to set the paths manually in ade.Config for e.g. XTB:
+environment variable it is possible to set the paths manually in :code:`ade.Config` for e.g. XTB:
 
 .. code-block:: python
 
