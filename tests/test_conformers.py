@@ -280,7 +280,7 @@ def test_complex_conformers_diff_names():
 
     water = Molecule(smiles='O')
     h2o_dimer = NCIComplex(water, water, name='dimer')
-    h2o_dimer.populate_conformers()
+    h2o_dimer._generate_conformers()
     assert len(set(conf.name for conf in h2o_dimer.conformers)) > 1
 
     shutil.rmtree('conformers')
