@@ -285,8 +285,8 @@ class Allocation(Value):
 
         """
         if float(x) <= 0:
-            raise ValueError('Memory allocations must be non-negative. Had '
-                             f'{x}')
+            raise ValueError('Memory allocations must be non-negative. '
+                             f'Had: {x}')
 
         super().__init__(x=x, units=units)
 
@@ -407,6 +407,10 @@ class Distance(Value):
         return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
+
+        if float(value) < 0:
+            raise ValueError(f'Distances cannot be negative. Had: {value}')
+
         super().__init__(value, units=units)
 
 
