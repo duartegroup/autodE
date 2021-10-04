@@ -147,6 +147,10 @@ def test_distance():
     assert Distance(1.0, units=ang) == Distance(100, units=pm)
     assert Distance(1.0, units=ang) == Distance(1E-10, units=m)
 
+    # Distances cannot be negative
+    with pytest.raises(ValueError):
+        _ = Distance(-0.11)
+
 
 def test_angle():
 

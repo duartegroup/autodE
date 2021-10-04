@@ -42,3 +42,11 @@ def test_maxcore_setter():
     # and should be able to convert MB -> GB
     _config.max_core = Allocation(1, units='GB')
     assert int(_config.max_core.to('MB')) == 1000
+
+
+def test_unknown_attr():
+
+    # Attributes not already present should raise an exception e.g. for
+    # misspelling
+    with pytest.raises(Exception):
+        Config.maxcore = 1
