@@ -329,13 +329,13 @@ class _ConfigClass:
             raise KeyError(f'Cannot set {key}. Not present in ade.Config')
 
         if key == 'max_core':
-            value = Allocation(value)
+            value = Allocation(value).to('MB')
 
         if key in ('max_atom_displacement', 'min_step_size', 'max_step_size'):
             if float(value) < 0:
                 raise ValueError(f'Distances cannot be negative. Had: {value}')
 
-            value = Distance(value)
+            value = Distance(value).to('ang')
 
         return super(_ConfigClass, self).__setattr__(key, value)
 
