@@ -681,12 +681,13 @@ class Species(AtomCollection):
             origin (np.ndarray | list(float) | None): Origin of the rotation
         """
 
+        # NOTE: Requires copy as the origin may be one of the coordinates
         origin = np.zeros(3) if origin is None else np.array(origin, copy=True)
 
         coords = self.coordinates
         coords -= origin
         coords = np.dot(coords, get_rot_mat_euler(axis=axis, theta=theta).T)
-        coords += np.asarray(origin)
+        coords += origin
 
         # Set the new coordinates of each atom
         for atom, new_coord in zip(self.atoms, coords):
