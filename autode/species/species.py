@@ -66,7 +66,7 @@ class Species(AtomCollection):
     def new_species(self, name='species') -> 'Species':
         """
         A new version of this species, identical properties without any
-        energies/gradients/hessian/conformers
+        energies, gradients, hessian, conformers or constraints.
 
         Keyword Arguments:
             name (str): Name of the new species
