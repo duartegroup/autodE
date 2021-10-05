@@ -146,8 +146,12 @@ def plot_reaction_profile(reactions, units, name, free_energy=False,
         ec = 'H'
 
     plt.ylabel(f'∆${ec}$ / {units.plot_name}', fontsize=12)
+    plt.xlabel('Reaction coordinate')
+
     energy_values = [energy for energy in energies]
-    plt.ylim(min(energy_values)-3, max(energy_values)+3)
+    max_delta = max(energy_values) - min(energy_values)
+    plt.ylim(min(energy_values)-0.09*max_delta,
+             max(energy_values)+0.09*max_delta)
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
     fig.text(.1, .05,
@@ -200,6 +204,8 @@ def plot_smooth_profile(zi_s, energies, ax):
     ax.scatter(zi_s, optimised_spline(zi_s), c='b', zorder=10)
 
     # Annotate the plot with the relative energies
+    max_delta = max(energies) - min(energies)
+
     for i, energy in enumerate(optimised_spline(zi_s)):
         if energies[i].estimated:
             # Don't add estimated energies
@@ -207,7 +213,7 @@ def plot_smooth_profile(zi_s, energies, ax):
 
         # Shift the minima labels (even points) below the point and the
         # transition state labels above the point
-        shift = -2.0 if i % 2 == 0 else 0.7
+        shift = -0.07 * max_delta if i % 2 == 0 else 0.03 * max_delta
 
         ax.annotate(f'{energy:.1f}', (zi_s[i], energy + shift),
                     fontsize=12, ha='center')
