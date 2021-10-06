@@ -1,12 +1,12 @@
-from autode import Molecule, Config
+import autode as ade
 from autode.species import NCIComplex
-from autode.wrappers.XTB import xtb
 
-Config.num_complex_sphere_points = 5
-Config.num_complex_random_rotations = 3
+ade.Config.num_complex_sphere_points = 5
+ade.Config.num_complex_random_rotations = 3
+xtb = ade.methods.XTB()
 
 # Make a water molecule and optimise at the XTB level
-water = Molecule(name='water', smiles='O')
+water = ade.Molecule(name='water', smiles='O')
 water.optimise(method=xtb)
 
 # Make the NCI complex and find the lowest energy structure

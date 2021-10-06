@@ -147,7 +147,7 @@ class Conformers(list):
             if any(calc_heavy_atom_rmsd(conf.atoms, other.atoms) < rmsd_tol
                    for o_idx, other in enumerate(self) if o_idx != idx):
 
-                logger.info(f'Conformer {idx} was close in geometry to at'
+                logger.info(f'Conformer {idx} was close in geometry to at '
                             f'least one other - removing')
 
                 del self[idx]
