@@ -12,14 +12,20 @@ Usability improvements/Changes
 - Adds `typing <https://docs.python.org/3/library/typing.html>`_ to user-facing functions
 - Adds :code:`autode.config.location` to easily locate the core configuration file for permanent editing
 - Updates documentation for readability
-- Ensures units are kept when :code:`Value(x)`, when :code:`x` is a :code:`Value`
+- Ensures units are kept if constructing a :code:`Value` from a :code:`Value` (i.e. :code:`Value(x)`, when :code:`x` is a :code:`Value`)
 
 
 Functionality improvements
 **************************
 
 - Changes :code:`Keyword` to an abstract base class
-- Improves speed of rotation (numpy rather than a Python for loop)
+- Improves speed of :code:`Species` rotation (numpy rather than a Python for loop)
+
+
+Bug Fixes
+*********
+
+- Fixes bug where NCI conformers were generated with the same name thus did not optimise uniquely (introduced in v.1.1.0)
 
 
 1.1.0
