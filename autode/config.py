@@ -1,6 +1,6 @@
 import os
 import autode.wrappers.implicit_solvent_types as solv
-from autode.values import Frequency, Distance
+from autode.values import Frequency, Distance, Allocation
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
 from autode.wrappers.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.functionals import pbe0
@@ -9,15 +9,15 @@ from autode.wrappers.ri import rijcosx
 location = os.path.abspath(__file__)
 
 
-class Config:
+class _ConfigClass:
     # -------------------------------------------------------------------------
     # Total number of cores available
     #
     n_cores = 4
     # -------------------------------------------------------------------------
-    # Per core memory available in MB
+    # Per core memory available
     #
-    max_core = 4000
+    max_core = Allocation(4, units='GB')
     # -------------------------------------------------------------------------
     # DFT code to use. If set to None then the highest priority available code
     # will be used:
@@ -71,7 +71,7 @@ class Config:
     # -------------------------------------------------------------------------
     # Maximum random displacement in angstroms for conformational searching
     #
-    max_atom_displacement = 4.0
+    max_atom_displacement = Distance(4.0, units='Å')
     # -------------------------------------------------------------------------
     # Number of evenly spaced points on a sphere that will be used to generate
     # NCI and Reactant and Product complex conformers. Total number of
@@ -111,10 +111,10 @@ class Config:
     #
     adaptive_neb_k = True
     # -------------------------------------------------------------------------
-    # Minimum and maximum step size to use for the adaptive path search (Å)
+    # Minimum and maximum step size to use for the adaptive path search
     #
-    min_step_size = 0.05
-    max_step_size = 0.3
+    min_step_size = Distance(0.05, units='Å')
+    max_step_size = Distance(0.3, units='Å')
     # -------------------------------------------------------------------------
     # Heuristic for pruning the bond rearrangement set. If there are only bond
     # rearrangements that involve small rings then TSs involving small rings
@@ -317,3 +317,28 @@ class Config:
         #
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
+
+    # =========================================================================
+    # =============               End                        ==================
+    # =========================================================================
+
+    def __setattr__(self, key, value):
+        """Custom setters"""
+
+        if not hasattr(self, key):
+            raise KeyError(f'Cannot set {key}. Not present in ade.Config')
+
+        if key == 'max_core':
+            value = Allocation(value).to('MB')
+
+        if key in ('max_atom_displacement', 'min_step_size', 'max_step_size'):
+            if float(value) < 0:
+                raise ValueError(f'Distances cannot be negative. Had: {value}')
+
+            value = Distance(value).to('ang')
+
+        return super(_ConfigClass, self).__setattr__(key, value)
+
+
+# Single instance of the configuration
+Config = _ConfigClass()

@@ -323,7 +323,7 @@ class G09(ElectronicStructureMethod):
 
             # Gaussian defines the total memory for the whole calculation, not
             # per core
-            total_mem = int(Config.max_core * calc.n_cores)
+            total_mem = int(Config.max_core.to('MB') * calc.n_cores)
             print(f'%mem={total_mem}MB', file=inp_file)
 
             if calc.n_cores > 1:
