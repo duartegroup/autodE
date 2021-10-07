@@ -6,7 +6,7 @@ from autode.utils import log_time
 from autode.atoms import Atom, AtomCollection
 from autode.bonds import get_avg_bond_length
 from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
-from autode.smiles.angles import Dihedral, Dihedrals, Angle, Angles
+from autode.smiles.angles import SDihedral, SDihedrals, SAngle, SAngles
 from ade_dihedrals import rotate, closed_ring_coords
 from ade_rb_opt import opt_rb_coords
 from autode.exceptions import (SMILESBuildFailed,
@@ -15,11 +15,13 @@ from autode.exceptions import (SMILESBuildFailed,
 
 
 class Builder(AtomCollection):
-    """3D geometry builder::
+    """
+    3D geometry builder::
 
         Atoms:  C, 4H               H  H
         Bonds:  4 x C-H      -->     C
                                    H  H
+
     """
 
     @property
@@ -321,7 +323,7 @@ class Builder(AtomCollection):
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedral_idxs):
 
-            dihedral = Dihedral(dihedral_idxs)
+            dihedral = SDihedral(dihedral_idxs)
 
             # Optimum distance between the two middle atoms, used for
             # determining if a bond exists thus a dihedral can be rotated
@@ -405,15 +407,15 @@ class Builder(AtomCollection):
         angles_idxs = [tuple(path[i:i + 3]) for i in range(len(path) - 2)]
         logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
 
-        angles = Angles()
+        angles = SAngles()
 
         for angle_idxs in angles_idxs:
 
             graph = self.graph.copy()
             graph.remove_edge(ring_bond[0], ring_bond[1])
 
-            angle = Angle(idxs=angle_idxs,
-                          phi0=(np.pi - (2.0 * np.pi / ring_n)))
+            angle = SAngle(idxs=angle_idxs,
+                           phi0=(np.pi - (2.0 * np.pi / ring_n)))
 
             try:
                 angle.find_rot_idxs(graph=graph, atoms=self.atoms)
@@ -422,9 +424,9 @@ class Builder(AtomCollection):
                 logger.warning(f'Could not adjust angle {angle_idxs}')
                 raise FailedToAdjustAngles
 
-            angle_alt = Angle(idxs=angle_idxs,
-                              rot_idxs=angle.inverse_rot_idxs(self.atoms),
-                              phi0=angle.phi0)
+            angle_alt = SAngle(idxs=angle_idxs,
+                               rot_idxs=angle.inverse_rot_idxs(self.atoms),
+                               phi0=angle.phi0)
 
             angles.append(angle)
             angles.append(angle_alt)
@@ -568,7 +570,7 @@ class Builder(AtomCollection):
         """
         logger.info(f'Closing ring on: {ring_bond} and adjusting atoms')
 
-        dihedrals = Dihedrals()
+        dihedrals = SDihedrals()
         for dihedral in self._ring_dihedrals(ring_bond):
 
             # Generate a graph without the ring or this dihedral to locate
@@ -623,7 +625,7 @@ class Builder(AtomCollection):
         """
         logger.info('Minimising non-bonded repulsion by dihedral rotation')
 
-        dihedrals = Dihedrals()
+        dihedrals = SDihedrals()
 
         for bond in self.bonds:
 
@@ -644,7 +646,7 @@ class Builder(AtomCollection):
             except StopIteration:
                 continue   # No suitable neighbours
 
-            dihedral = Dihedral(idxs=[idx_w, idx_x, idx_y, idx_z])
+            dihedral = SDihedral(idxs=[idx_w, idx_x, idx_y, idx_z])
 
             try:
                 dihedral.find_rot_idxs(self.graph.copy(), atoms=self.atoms)
@@ -775,7 +777,7 @@ class Builder(AtomCollection):
             or stro_x == stro_y == SMILESStereoChem.ALKENE_DOWN):
             phi = 0
 
-        dihedral = Dihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
+        dihedral = SDihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
 
         logger.info(f'Queuing {dihedral}')
         self.queued_dihedrals.append(dihedral)
@@ -893,7 +895,7 @@ class Builder(AtomCollection):
         self.atoms, self.bonds = atoms, bonds
         self.graph = nx.Graph()
         self.queued_atoms = []
-        self.queued_dihedrals = Dihedrals()
+        self.queued_dihedrals = SDihedrals()
 
         self._explicit_all_hydrogens()
 
@@ -973,4 +975,4 @@ class Builder(AtomCollection):
         self.queued_atoms = []
 
         # A queue of dihedrals that need to be applied
-        self.queued_dihedrals = Dihedrals()
+        self.queued_dihedrals = SDihedrals()

@@ -6,7 +6,8 @@ from autode.exceptions import (FailedToSetRotationIdxs,
                                SMILESBuildFailed)
 
 
-class Angle:
+class SAngle:
+    """Angle used in 3D construction from SMILES"""
 
     def __str__(self):
         return f'Angle(idxs={self.idxs})'
@@ -17,7 +18,7 @@ class Angle:
     def value(self, atoms):
         """
 
-        Args:
+        Arguments:
             atoms (list(autode.atoms.Atom)):
 
         Returns:
@@ -93,11 +94,12 @@ class Angle:
         """Find the atom indexes to rotate by splitting rhe graph across
         the edge that appears first in the angle, e.g.::
 
-                   Z
-                  /
-            X  - Y
-              ^
-        split across this bond
+                       Z
+                      /
+                X  - Y
+                  ^
+            split across this bond
+
         """
         return self._find_rot_idxs_from_pair(graph, atoms, pair=self.idxs[:2])
 
@@ -127,7 +129,7 @@ class Angle:
         self.rot_idxs = rot_idxs
 
 
-class Angles(list):
+class SAngles(list):
 
     @property
     def axes(self):
@@ -158,7 +160,7 @@ class Angles(list):
                         dtype='f8')
 
 
-class Dihedrals(Angles):
+class SDihedrals(SAngles):
 
     @property
     def axes(self):
@@ -175,8 +177,10 @@ class Dihedrals(Angles):
         return np.array(origins, dtype='i4')
 
 
-class Dihedral(Angle):
-    """A dihedral defined by 4 atom indexes e.g.::
+class SDihedral(SAngle):
+    r"""
+    A dihedral defined by 4 atom indexes used in building a 3D strucutre
+    from a SMILES string e.g.::
 
            X       W
            |      /
@@ -240,17 +244,16 @@ class Dihedral(Angle):
                                              max_bond_distance=1.5*self.mid_dist)
 
     def __init__(self, idxs, rot_idxs=None, phi0=None, mid_dist=2.0):
-        """
+        r"""
         A dihedral constructed from atom indexes and possibly indexes that
         should be rotated, if this dihedral is altered::
 
              W
               \
                X --- Y
-                     |
-                     Z
+                     \
+                      Z
 
-        -----------------------------------------------------------------------
         Arguments:
             idxs (list(int)): 4 atom indexes defining the dihedral
 
