@@ -1,9 +1,7 @@
+import pytest
 from autode.solvent import solvents
 from autode.wrappers.ORCA import orca
 from autode.exceptions import SolventNotFound
-from autode.point_charges import PointCharge
-import pytest
-import numpy as np
 
 
 def test_aval_solvents():
