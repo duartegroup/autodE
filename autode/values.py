@@ -252,24 +252,28 @@ class PotentialEnergy(Energy):
 
 
 class FreeEnergy(Energy):
+    """(Gibbs) Free Energy (G)"""
 
     def __repr__(self):
         return f'FreeEnergy({round(self, 5)} {self.units.name})'
 
 
 class Enthalpy(Energy):
+    """Enthalpy (H)"""
 
     def __repr__(self):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
 class EnthalpyCont(Energy):
+    """Enthalpy contribution: H = E + H_cont"""
 
     def __repr__(self):
         return f'H_cont({round(self, 5)} {self.units.name})'
 
 
 class FreeEnergyCont(Energy):
+    """Free energy contribution: G = E + G_cont"""
 
     def __repr__(self):
         return f'G_cont({round(self, 5)} {self.units.name})'
@@ -287,6 +291,11 @@ class Allocation(Value):
         """
         Allocation of memory or disk, must be non-negative
 
+        Arguments:
+            x (float):
+
+        Keyword Arguments:
+            units (autode.units.Unit | str | None):
         """
         if float(x) <= 0:
             raise ValueError('Memory allocations must be non-negative. '
