@@ -182,36 +182,33 @@ class Molecule(Species):
             self.name = self.formula
 
 
-class SolvatedMolecule(Molecule):
-    """Explicitly solvated molecule"""
-    # TODO: This implementation
-
-    @requires_atoms
-    def optimise(self, method, *args, **kwargs):
-        raise NotImplementedError
-
-    def __init__(self, name='solvated_molecule', smiles=None, atoms=None,
-                 solvent_name=None, charge=0, mult=1, solvent_mol=None):
-        super().__init__(name, smiles, atoms, solvent_name, charge, mult)
-
-        self.solvent_mol = solvent_mol
-        self.qm_solvent_atoms = None
-        self.mm_solvent_atoms = None
-
-
 class Reactant(Molecule):
     """Reactant molecule"""
+
+    def to_product(self):
+        """
+        Generate a copy of this reactant as a product
+
+        Returns:
+            (autode.species.molecule.Product): Product
+        """
+        product = self.copy()
+        product.__class__ = Product
+
+        return product
 
 
 class Product(Molecule):
     """Product molecule"""
 
+    def to_reactant(self):
+        """
+        Generate a copy of this product as a reactant
 
-def reactant_to_product(reactant):
-    reactant.__class__ = Product
-    return reactant
+        Returns:
+            (autode.species.molecule.Product): Product
+        """
+        reactant = self.copy()
+        reactant.__class__ = Reactant
 
-
-def product_to_reactant(product):
-    product.__class__ = Reactant
-    return product
+        return reactant

@@ -15,6 +15,8 @@ Usability improvements/Changes
 - Adds a setter for :code:`autode.species.Species.solvent` so :code:`mol.solvent = 'water'` will assign a :code:`autode.solvent.Solvent`
 - Removes :code:`autode.calculation.CalculationInput.solvent` as an attribute in favour of using the molecule's solvent
 - Removes :code:`autode.calculation.get_solvent_name` in favour of a molecule check
+- Removes :code:`autode.species.molecule.reactant_to_product` in favour of a :code:`to_product()` method for :code:`autode.species.molecule.Reactant` (and likewise with a Reactant)
+- Removes partially implemented :code:`autode.species.molecule.SolvatedMolecule` and :code:`autode.species.complex.SolvatedReactantComplex` as the type of solvation (implicit/explicit) should be a property of the solvent and not the molecule
 
 
 Functionality improvements

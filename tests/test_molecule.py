@@ -3,12 +3,9 @@ from autode.conformers import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import make_graph
 from autode.smiles.smiles import calc_multiplicity, init_organic_smiles
 from autode.wrappers.ORCA import orca
-from autode.species.molecule import Reactant
-from autode.species.molecule import Product
-from autode.species.molecule import reactant_to_product
+from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
 from rdkit.Chem import Mol
 from . import testutils
@@ -155,8 +152,7 @@ def calc_mult():
 
 def test_reactant_to_product():
 
-    methane = Reactant(smiles='C', charge=0, mult=1)
-    prod = reactant_to_product(reactant=methane)
+    prod = Reactant(smiles='C', charge=0, mult=1).to_product()
 
     assert type(prod) is Product
 
