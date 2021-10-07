@@ -263,3 +263,6 @@ def test_mopac_solvent_no_dielectric():
     # dielectric constant in the dictionary
     with pytest.raises(UnsuppportedCalculationInput):
         calc.generate_input()
+
+    if os.path.exists('tmp_mopac.mop'):
+        os.remove('tmp_mopac.mop')
