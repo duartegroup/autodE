@@ -11,7 +11,7 @@ from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
-from autode.solvent.solvents import get_solvent, Solvent
+from autode.solvent import get_solvent, Solvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
@@ -407,7 +407,14 @@ class Species(AtomCollection):
 
     @property
     def radius(self) -> val.Distance:
-        """Calculate an approximate radius of this species"""
+        """
+        Calculate an approximate radius of this species. Does not consider any
+        VdW radii of the outer most atoms i.e. purely determined on nuclear
+        positions
+
+        Returns:
+            (autode.values.Distance): Radius
+        """
         if self.n_atoms == 0:
             return val.Distance(0.0)
 
@@ -787,7 +794,8 @@ class Species(AtomCollection):
     def print_xyz_file(self,
                        title_line:            Optional[str] = None,
                        filename:              Optional[str] = None,
-                       additional_title_line: Optional[str] = None) -> None:
+                       additional_title_line: Optional[str] = None,
+                       with_solvent:          bool = True) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
 
@@ -800,6 +808,9 @@ class Species(AtomCollection):
 
             additional_title_line (str | None): Additional elements to add to
                                                 then title line
+
+            with_solvent (bool): If the solvent is explicit then include the
+                                 solvent atoms in the .xyz file
         """
 
         if filename is None:
@@ -814,7 +825,12 @@ class Species(AtomCollection):
         if additional_title_line is not None:
             title_line += additional_title_line
 
-        return atoms_to_xyz_file(self.atoms, filename, title_line=title_line)
+        atoms = self.atoms
+        # Add the explicit solvent molecules if present and requested
+        if self.solvent.is_explicit and with_solvent:
+            atoms += self.solvent.atoms
+
+        return atoms_to_xyz_file(atoms, filename, title_line=title_line)
 
     @requires_atoms
     def optimise(self,

@@ -89,7 +89,12 @@ class Solvent(ABC):
     @property
     @abstractmethod
     def is_implicit(self):
-        """Is this solvent implicit or explicit?"""
+        """Is this solvent implicit and just defined by a dielectric"""
+
+    @property
+    def is_explicit(self):
+        """Is this solvent explicit i.e. has atoms in space"""
+        return not self.is_implicit
 
     def __init__(self, name, smiles, aliases, **kwargs):
         """
@@ -129,21 +134,12 @@ class ImplicitSolvent(Solvent):
 
     @property
     def is_implicit(self) -> bool:
-        """Is this solvent implicit?"""
+        """Is this solvent implicit?
+
+        Returns:
+            (bool): True
+        """
         return True
-
-    def to_explicit(self) -> 'ExplicitSolvent':
-        raise NotImplementedError
-
-
-class ExplicitSolvent(Solvent):
-    """Explicit solvation """
-    # TODO: Implement explicit solvation here
-
-    @property
-    def is_implicit(self) -> bool:
-        """Is this solvent implicit?"""
-        return False
 
 
 solvents = [ImplicitSolvent(name='water', smiles='O', aliases=['water', 'h2o'], orca='water', g09='Water', nwchem='water', xtb='Water', mopac='water'),

@@ -1,12 +1,14 @@
-from autode.solvent import explicit_solvent
-from autode.solvent.solvents import get_solvent
-from autode.atoms import Atom
-import numpy as np
 import pytest
+from autode.species.molecule import Molecule
 
 
-def test_get_explicit_solvent():
-    # Implement explicit solvent test here..
+def test_explicit_solvent_gen():
 
-    with pytest.raises(NotImplementedError):
-        _ = get_solvent(solvent_name='water', explicit=True)
+    mol = Molecule(smiles='C', solvent_name='water')
+    mol.explicitly_solvate(num=100)
+    mol.print_xyz_file(filename='tmp.xyz')
+
+
+if __name__ == '__main__':
+
+    test_explicit_solvent_gen()

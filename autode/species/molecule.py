@@ -4,6 +4,7 @@ from typing import Optional, Union, List
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
+from autode.solvent import ExplicitSolvent
 from autode.input_output import xyz_file_to_atoms
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer
@@ -171,7 +172,7 @@ class Molecule(Species):
         self.conformers.prune_on_rmsd()
         return None
 
-    def populate_conformers(self, n_confs: int):
+    def populate_conformers(self, n_confs: int) -> None:
         """
         Populate self.conformers with a conformers generated using a default
         method
@@ -180,6 +181,26 @@ class Molecule(Species):
             n_confs (int): Number of conformers to try and generate
         """
         return self._generate_conformers(n_confs=n_confs)
+
+    def explicitly_solvate(self,
+                           num: int = 10) -> None:
+        """
+        Explicitly solvate this Molecule
+
+        ----------------------------------------------------------------------
+        Keyword Arguments:
+
+            num (int): Number of solvent molecules to add
+
+        """
+        assert self.solvent is not None
+        print('WARNING: Explicit solvation is experimental and does not work '
+              'apart from generating a single reasonable initial structure ')
+
+        self.solvent = ExplicitSolvent(solute=self,
+                                       solvent=Molecule(smiles=self.solvent.smiles),
+                                       num=num)
+        return None
 
 
 class Reactant(Molecule):
