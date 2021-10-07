@@ -141,8 +141,8 @@ class XTB(ElectronicStructureMethod):
         elif isinstance(calc.input.keywords, GradientKeywords):
             flags.append('--grad')
 
-        if calc.input.solvent is not None:
-            flags += ['--gbsa', calc.input.solvent]
+        if calc.molecule.solvent is not None:
+            flags += ['--gbsa', calc.molecule.solvent.xtb]
 
         if len(calc.input.additional_filenames) > 0:
             # XTB allows for an additional xcontrol file, which should be the

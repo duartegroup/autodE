@@ -12,7 +12,9 @@ To implement a new EST method:
 (3) Optional: Include keywords in keyword wrappers e.g. wrappers/functionals.py
     so keywords may have associated citations
 
-(4) Write tests!
+(4) Optional: Add implemented implicit solvent names to solvent/solvents.py
+
+(5) Write tests!
 """
 import os
 import numpy as np
@@ -22,6 +24,7 @@ from typing import List
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
+from autode.solvent.solvents import solvents
 from copy import deepcopy
 
 
@@ -49,6 +52,13 @@ class ElectronicStructureMethod(Method, ABC):
 
         logger.info(f'{self.__name__} is not available')
         return False
+
+    @property
+    def available_implicit_solvents(self) -> List[str]:
+        """Available implicit solvent models for this EST method"""
+
+        return [s.name for s in solvents
+                if s.is_implicit and hasattr(s, self.name)]
 
     @property
     def doi_str(self):

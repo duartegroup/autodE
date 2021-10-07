@@ -9,7 +9,7 @@ from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
-from autode.solvent.solvents import Solvent
+from autode.solvent.solvents import ImplicitSolvent
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
 from autode import utils
@@ -89,10 +89,10 @@ def test_calc_bad_mol():
                     keywords=opt_keywords)
 
     mol = Molecule(name='methane', smiles='C')
-    mol.solvent = Solvent(name='xx', smiles='X', aliases=['X'])
+    mol.solvent = ImplicitSolvent(name='xx', smiles='X', aliases=['X'])
 
     with pytest.raises(ex.SolventUnavailable):
-        Calculation(name='no_atoms_mol', molecule=mol, method=method,
+        Calculation(name='tmp', molecule=mol, method=method,
                     keywords=opt_keywords)
 
 

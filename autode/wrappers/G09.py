@@ -332,8 +332,9 @@ class G09(ElectronicStructureMethod):
             keywords = get_keywords(calc.input, molecule)
             print('#', *keywords, file=inp_file, end=' ')
 
-            if calc.input.solvent is not None:
-                print(f'scrf=(smd,solvent={calc.input.solvent})', file=inp_file)
+            if molecule.solvent is not None:
+                print(f'scrf=(smd,solvent={molecule.solvent.g09})',
+                      file=inp_file)
             else:
                 print('', file=inp_file)
 

@@ -6,12 +6,12 @@ from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
-from autode.exceptions import CalculationException
+from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
-from autode.solvent.solvents import ExplicitSolvent, get_solvent
+from autode.solvent.solvents import ExplicitSolvent, Solvent, get_solvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
@@ -97,6 +97,40 @@ class Species(AtomCollection):
     @mult.setter
     def mult(self, value) -> None:
         self._mult = int(value)
+
+    @property
+    def solvent(self) -> Optional['autode.solvent.Solvent']:
+        """
+        Solvent which this species is immersed in
+
+        Returns:
+            (autode.solvent.Solvent | None): Solvent or None if the species is
+                                             in the gas phase
+        """
+        return self._solvent
+
+    @solvent.setter
+    def solvent(self,
+                value: Union['autode.solvent.Solvent', str, None]):
+        """
+        Set the solvent for this species. For a species in the gas phase
+        set mol.solvent = None
+
+        Arguments;
+            value (autode.solvent.Solvent | str | None):
+        """
+        if value is None:
+            self._solvent = None
+
+        elif type(value) is str:
+            self._solvent = get_solvent(solvent_name=value)
+
+        elif isinstance(value, Solvent):
+            self._solvent = value
+
+        else:
+            raise SolventUnavailable('Expecting either a string or Solvent, '
+                                     f'had: {value}')
 
     @AtomCollection.atoms.setter
     def atoms(self,
@@ -971,7 +1005,7 @@ class Species(AtomCollection):
         self._charge = int(charge)
         self._mult = int(mult)
 
-        self.solvent = get_solvent(solvent_name=solvent_name)
+        self._solvent = get_solvent(solvent_name=solvent_name)
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()

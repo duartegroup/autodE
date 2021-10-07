@@ -211,8 +211,15 @@ def test_species_solvent():
 
     assert mol.solvent is None
 
-    solvated_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1, solvent_name='water')
-    assert type(solvated_mol.solvent) == Solvent
+    solvated_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1,
+                           solvent_name='water')
+    assert isinstance(solvated_mol.solvent, Solvent)
+
+    solvated_mol.solvent = None
+    assert solvated_mol.solvent is None
+
+    solvated_mol.solvent = 'water'
+    assert isinstance(solvated_mol.solvent, Solvent)
 
 
 def test_reorder():

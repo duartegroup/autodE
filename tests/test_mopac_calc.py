@@ -211,7 +211,6 @@ def test_termination_short():
 def test_mopac_keywords():
 
     calc_input = CalculationInput(keywords=Config.MOPAC.keywords.sp,
-                                  solvent=None,
                                   added_internals=None,
                                   additional_input=None,
                                   point_charges=None)

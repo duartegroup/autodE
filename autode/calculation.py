@@ -9,9 +9,7 @@ from autode.utils import cached_property
 from autode.atoms import Atoms
 from autode.point_charges import PointCharge
 from autode.constraints import Constraints
-from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
-from autode.solvent.solvents import Solvent
 from autode.log import logger
 from autode.hessians import Hessian
 from autode.values import PotentialEnergy, Gradient
@@ -25,46 +23,13 @@ def execute_calc(calc):
     return calc.execute_calculation()
 
 
-def get_solvent_name(molecule, method):
-    """
-    Set the solvent keyword to use in the calculation given an QM method
-
-    Arguments:
-        molecule (autode.species.Species):
-        method (autode.wrappers.base.ElectronicStructureMethod):
-    """
-
-    if molecule.solvent is None:
-        logger.info('Calculation is in the gas phase')
-        return None
-
-    if type(molecule.solvent) is str:
-        # Solvent could be a string from e.g. cgbind
-        solvent = get_solvent(solvent_name=molecule.solvent)
-
-    elif isinstance(molecule.solvent, Solvent):
-        # Otherwise expecting a autode.solvents.solvent.Solvent
-        solvent = molecule.solvent
-
-    else:
-        raise ex.SolventUnavailable('Expecting either a str or Solvent')
-
-    try:
-        # Get the name of the solvent for this method
-        return getattr(solvent, method.name)
-
-    except AttributeError:
-        raise ex.SolventUnavailable(f'Available solvents for {method.name} are'
-                                    f' {get_available_solvent_names(method)}')
-
-
 class Calculation:
 
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""
-        string = (f'{self.name}{self.method.name}{str(self.input.keywords)}'
-                  f'{str(self.molecule)}{self.method.implicit_solvation_type}'
-                  f'{str(self.molecule.constraints)}')
+        string = (f'{self.name}{self.method.name}{self.input.keywords}'
+                  f'{self.molecule}{self.method.implicit_solvation_type}'
+                  f'{self.molecule.constraints}')
 
         hasher = hashlib.sha1(string.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()
@@ -78,8 +43,18 @@ class Calculation:
         assert hasattr(self.molecule, 'solvent')
 
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
-            logger.error('Have no atoms. Can\'t form a calculation')
-            raise ex.NoInputError
+            raise ex.NoInputError('Have no atoms. Can\'t form a calculation')
+
+        # Assume all calculations can be performed in the gas phase but
+        # not all implicit solvents are available in all codes
+        if (self.molecule.solvent is not None
+            and self.molecule.solvent.is_implicit
+            and not hasattr(self.molecule.solvent, self.method.name)):
+
+            err_str = (f'Available solvents for {self.method.name} are '
+                       f'{self.method.available_implicit_solvents}')
+
+            raise ex.SolventUnavailable(err_str)
 
     def _fix_unique(self, register_name='.autode_calculations') -> None:
         """
@@ -172,13 +147,13 @@ class Calculation:
             string += (f' in combination with the {str(basis)} '
                        f'({basis.doi_str}) basis set')
 
-        if self.input.solvent is not None:
+        if self.molecule.solvent is not None:
             solv_type = self.method.implicit_solvation_type
             doi = solv_type.doi_str if hasattr(solv_type, 'doi_str') else '?'
 
             string += (f' and {solv_type.upper()} ({doi}) '
                        f'solvation, with parameters appropriate for '
-                       f'{self.input.solvent}')
+                       f'{self.molecule.solvent}')
 
         methods.add(f'{string}.\n')
         return None
@@ -501,7 +476,6 @@ class Calculation:
         else:
             self.molecule.constraints = Constraints(distance=distance_constraints,
                                                     cartesian=cartesian_constraints)
-        self._check_molecule()
 
         # --------------------- Calculation parameters ------------------------
         self.method = method
@@ -509,12 +483,13 @@ class Calculation:
 
         # ------------------- Calculation input/output ------------------------
         self.input = CalculationInput(keywords=deepcopy(keywords),
-                                      solvent=get_solvent_name(molecule, method),
                                       additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
                                       point_charges=point_charges)
 
         self.output = CalculationOutput()
+
+        self._check_molecule()
 
 
 class CalculationOutput:
@@ -556,7 +531,6 @@ class CalculationInput:
         if self.keywords is not None:
             assert isinstance(self.keywords, kws.Keywords)
 
-        assert self.solvent is None or type(self.solvent) is str
         assert self.other_block is None or type(self.other_block) is str
 
         # Ensure the point charges are given as a list of PointCharge objects
@@ -584,7 +558,6 @@ class CalculationInput:
 
     def __init__(self,
                  keywords:        'autode.wrappers.keywords.Keywords',
-                 solvent:          Optional[str] = None,
                  additional_input: Optional[str] = None,
                  added_internals:  Optional[list] = None,
                  point_charges:    Optional[List[PointCharge]] = None):
@@ -605,7 +578,6 @@ class CalculationInput:
                           for each point charge
         """
         self.keywords = keywords
-        self.solvent = solvent
         self.other_block = additional_input
 
         self.added_internals = added_internals

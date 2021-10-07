@@ -44,7 +44,7 @@ def use_vdw_gaussian_solvent(keywords, implicit_solv_type):
     return True
 
 
-def add_solvent_keyword(calc_input, keywords, implicit_solv_type):
+def add_solvent_keyword(molecule, keywords, implicit_solv_type):
     """Add a keyword to the input file based on the solvent"""
 
     if implicit_solv_type.lower() not in ['smd', 'cpcm']:
@@ -52,15 +52,16 @@ def add_solvent_keyword(calc_input, keywords, implicit_solv_type):
 
     # Use CPCM solvation
     if (use_vdw_gaussian_solvent(keywords, implicit_solv_type)
-            and calc_input.solvent not in vdw_gaussian_solvent_dict.keys()):
+        and molecule.solvent.orca not in vdw_gaussian_solvent_dict):
 
-        err = (f'CPCM solvent with gaussian charge not avalible for '
-               f'{calc_input.solvent}. Available solvents are '
+        err = (f'CPCM solvent with gaussian charge not available for '
+               f'{molecule.solvent.name}. Available solvents are '
                f'{vdw_gaussian_solvent_dict.keys()}')
 
         raise UnsuppportedCalculationInput(message=err)
 
-    keywords.append(f'CPCM({vdw_gaussian_solvent_dict[calc_input.solvent]})')
+    solv_name = vdw_gaussian_solvent_dict[molecule.solvent.orca]
+    keywords.append(f'CPCM({solv_name})')
     return
 
 
@@ -88,23 +89,23 @@ def get_keywords(calc_input, molecule, implicit_solv_type):
         else:
             new_keywords.append(str(keyword))
 
-    if calc_input.solvent is not None:
-        add_solvent_keyword(calc_input, new_keywords, implicit_solv_type)
+    if molecule.solvent is not None:
+        add_solvent_keyword(molecule, new_keywords, implicit_solv_type)
 
     # Sort the keywords with all the items with newlines at the end, so
     # the first keyword line is a single contiguous line
     return sorted(new_keywords, key=lambda kw: 1 if '\n' in kw else 0)
 
 
-def print_solvent(inp_file, calc_input, keywords, implicit_solv_type):
+def print_solvent(inp_file, molecule, keywords, implicit_solv_type):
     """Add the solvent block to the input file"""
-    if calc_input.solvent is None:
+    if molecule.solvent is None:
         return
 
     if implicit_solv_type.lower() == 'smd':
         print(f'%cpcm\n'
               f'smd true\n'
-              f'SMDsolvent \"{calc_input.solvent}\"\n'
+              f'SMDsolvent \"{molecule.solvent.orca}\"\n'
               f'end', file=inp_file)
 
     if use_vdw_gaussian_solvent(keywords, implicit_solv_type):
@@ -233,8 +234,7 @@ class ORCA(ElectronicStructureMethod):
         with open(calc.input.filename, 'w') as inp_file:
             print('!', *keywords, file=inp_file)
 
-            print_solvent(inp_file, calc.input, keywords,
-                          self.implicit_solvation_type)
+            print_solvent(inp_file, molecule, keywords, self.implicit_solvation_type)
             print_added_internals(inp_file, calc.input)
             print_distance_constraints(inp_file, molecule)
             print_cartesian_constraints(inp_file, molecule)
