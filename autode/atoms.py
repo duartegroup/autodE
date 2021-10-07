@@ -425,7 +425,11 @@ class Atom:
     # --- Method aliases ---
     coordinate = coord
 
-    def __init__(self, atomic_symbol, x=0.0, y=0.0, z=0.0):
+    def __init__(self,
+                 atomic_symbol: str,
+                 x:             float = 0.0,
+                 y:             float = 0.0,
+                 z:             float = 0.0):
         """
         Atom class. Centered at the origin by default. Can be initialised from
         positional or keyword arguments:
@@ -629,7 +633,7 @@ class Atoms(list):
             angle_tol (autode.values.Angle): Tolerance on the angle
 
         Returns:
-            (bool):
+            (bool): Whether the atoms are linear
         """
         if len(self) < 2:      # Must have at least 2 atoms colinear
             return False
@@ -639,9 +643,7 @@ class Atoms(list):
 
         tol = np.abs(1.0 - np.cos(angle_tol.to('rad')))
 
-        # Take the normalised first vector
-        vec0 = self[1].coord - self[0].coord
-        vec0 /= np.linalg.norm(vec0)
+        vec0 = self.nvector(0, 1)  # Normalised first vector
 
         for atom in self[2:]:
             vec = atom.coord - self[0].coord
