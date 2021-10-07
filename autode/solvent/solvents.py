@@ -52,6 +52,45 @@ def get_solvent(solvent_name: str,
 
 class Solvent(ABC):
 
+    def __repr__(self):
+        return f'Solvent({self.name})'
+
+    def __str__(self):
+        return self.name
+
+    def __eq__(self, other):
+        """Determine if two solvent are the same based on name and SMILES"""
+        if other is None:
+            return False
+
+        return self.name == other.name and self.smiles == other.smiles
+
+    def copy(self) -> 'Solvent':
+        """Return a copy of this solvent"""
+        return deepcopy(self)
+
+    @property
+    def dielectric(self) -> Optional[float]:
+        """
+        Dielectric constant (ε) of this solvent. Used in implicit solvent
+        models to determine the electrostatic interaction
+
+        Returns:
+            (float | None): Dielectric, or None if unknown
+        """
+        for alias in self.aliases:
+            if alias in _solvents_and_dielectrics:
+                return _solvents_and_dielectrics[alias]
+
+        logger.warning(f'Could not find a dielectric for: {self}. '
+                       f'Returning None')
+        return None
+
+    @property
+    @abstractmethod
+    def is_implicit(self):
+        """Is this solvent implicit or explicit?"""
+
     def __init__(self, name, smiles, aliases, **kwargs):
         """
         Solvent class. As electronic structure methods implement implicit
@@ -84,43 +123,6 @@ class Solvent(ABC):
 
     def __repr__(self):
         return f'Solvent({self.name})'
-
-    def __str__(self):
-        return self.name
-
-    def __eq__(self, other):
-        """Determine if two solvents are the same based on name and SMILES"""
-        if other is None:
-            return False
-
-        return self.name == other.name and self.smiles == other.smiles
-
-    def copy(self) -> 'Solvent':
-        """Return a copy of this solvent"""
-        return deepcopy(self)
-
-    @property
-    def dielectric(self) -> Optional[float]:
-        """
-        Dielectric constant (ε) of this solvent. Used in implicit solvent
-        models to determine the electrostatic interaction
-
-        Returns:
-            (float | None): Dielectric, or None if unknown
-        """
-        for alias in self.aliases:
-            if alias in _solvents_and_dielectrics:
-                return _solvents_and_dielectrics[alias]
-
-        logger.warning(f'Could not find a dielectric for: {self}. '
-                       f'Returning None')
-        return None
-
-    @property
-    @abstractmethod
-    def is_implicit(self):
-        """Is this solvent implicit or explicit?"""
-
 
 class ImplicitSolvent(Solvent):
     """Implicit solvent"""
