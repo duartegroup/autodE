@@ -1,4 +1,4 @@
-from autode.solvent.solvents import Solvent
+from autode.solvent.solvents import ImplicitSolvent
 
 
-__all__ = ['Solvent']
+__all__ = ['ImplicitSolvent']

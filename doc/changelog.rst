@@ -10,21 +10,27 @@ Optimisation algorithms for faster and more robust minima and TS location.
 
 Usability improvements/Changes
 ******************************
--
+- Adds more type hints and documentation
 - Updates the TS template saved in the default template library
+- Adds a setter for :code:`autode.species.Species.solvent` so :code:`mol.solvent = 'water'` will assign a :code:`autode.solvent.Solvent`
+- Removes :code:`autode.calculation.CalculationInput.solvent` as an attribute in favour of using the molecule's solvent
+- Removes :code:`autode.calculation.get_solvent_name` in favour of a molecule check
 
 
 Functionality improvements
 **************************
 
 - Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
-- Updates the TS template saved in the default template library
+- Adds a :code:`autode.solvent.Solvent.dielectric` property for a solvent's dielectric constant
+- Adds a :code:`autode.solvent.Solvent.is_implicit` property
+- Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
+
 
 
 Bug Fixes
 *********
 
-- 
+- Updates the TS template saved in the default template library
 
 
 

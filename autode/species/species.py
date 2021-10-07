@@ -11,7 +11,7 @@ from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
-from autode.solvent.solvents import ExplicitSolvent, Solvent, get_solvent
+from autode.solvent.solvents import get_solvent, Solvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
@@ -99,7 +99,7 @@ class Species(AtomCollection):
         self._mult = int(value)
 
     @property
-    def solvent(self) -> Optional['autode.solvent.Solvent']:
+    def solvent(self) -> Optional['autode.solvent.solvents.Solvent']:
         """
         Solvent which this species is immersed in
 
@@ -111,7 +111,7 @@ class Species(AtomCollection):
 
     @solvent.setter
     def solvent(self,
-                value: Union['autode.solvent.Solvent', str, None]):
+                value: Union['autode.solvent.solvents.Solvent', str, None]):
         """
         Set the solvent for this species. For a species in the gas phase
         set mol.solvent = None
@@ -392,7 +392,7 @@ class Species(AtomCollection):
 
     @property
     def is_explicitly_solvated(self) -> bool:
-        return isinstance(self.solvent, ExplicitSolvent)
+        return self.solvent is not None and not self.solvent.is_implicit
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:

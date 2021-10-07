@@ -46,13 +46,15 @@ class Calculation:
             raise ex.NoInputError('Have no atoms. Can\'t form a calculation')
 
         # Assume all calculations can be performed in the gas phase but
-        # not all implicit solvents are available in all codes
+        # not all implicit solvents are available in all EST codes
         if (self.molecule.solvent is not None
             and self.molecule.solvent.is_implicit
             and not hasattr(self.molecule.solvent, self.method.name)):
 
-            err_str = (f'Available solvents for {self.method.name} are '
-                       f'{self.method.available_implicit_solvents}')
+            m_name = self.method.name
+            err_str = (f'Could not find {self.molecule.solvent} for '
+                       f'{m_name}. Available solvents for {m_name} '
+                       f'are: {self.method.available_implicit_solvents}')
 
             raise ex.SolventUnavailable(err_str)
 

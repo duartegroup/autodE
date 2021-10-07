@@ -17,6 +17,13 @@ def test_solvent():
     with pytest.raises(SolventNotFound):
         methane.solvent = 'XXXX'
 
+    # Default to implicit solvation
+    assert methane.solvent.is_implicit
+
+    # generating explicit solvent is not yet implemented
+    with pytest.raises(NotImplementedError):
+        methane.solvent.to_explicit()
+
 
 def test_avail_solvents():
 

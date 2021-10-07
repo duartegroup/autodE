@@ -148,12 +148,12 @@ def test_timeout():
     assert time.time() - start_time > 1.9
 
     @utils.timeout(seconds=1)
-    def sleep_1s():
+    def sleep_2s():
         return time.sleep(2)
 
     # Decorated function should timeout and return in under two seconds
     start_time = time.time()
-    sleep_1s()
+    sleep_2s()
     assert time.time() - start_time < 2
 
     @utils.timeout(seconds=10)
