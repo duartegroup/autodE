@@ -11,17 +11,20 @@ Optimisation algorithms for faster and more robust minima and TS location.
 Usability improvements/Changes
 ******************************
 -
+- Updates the TS template saved in the default template library
+
 
 Functionality improvements
 **************************
 
 - Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
+- Updates the TS template saved in the default template library
 
 
 Bug Fixes
 *********
 
--
+- 
 
 
 
