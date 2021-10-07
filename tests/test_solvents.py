@@ -19,5 +19,5 @@ def test_get_solvent():
     with pytest.raises(SolventNotFound):
         _ = solvents.get_solvent(solvent_name='test_solvent')
 
-    assert not water == None
+    assert not water is None
     assert water == solvents.get_solvent(solvent_name='h2o')
