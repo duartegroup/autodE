@@ -827,7 +827,9 @@ class Species(AtomCollection):
 
         atoms = self.atoms
         # Add the explicit solvent molecules if present and requested
-        if self.solvent.is_explicit and with_solvent:
+        if (self.solvent is not None
+            and self.solvent.is_explicit
+            and with_solvent):
             atoms += self.solvent.atoms
 
         return atoms_to_xyz_file(atoms, filename, title_line=title_line)
