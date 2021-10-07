@@ -403,19 +403,5 @@ class ProductComplex(Complex):
         super().__init__(*args, name=name, **kwargs)
 
 
-class SolvatedReactantComplex(Complex):
-
-    def run_const_opt(self, const_opt):
-        """Run a constrained optimisation of the ReactantComplex"""
-        raise NotImplementedError
-
-    def __init__(self, solvent_mol, *args, name='complex'):
-        super().__init__(*args, name=name)
-        self.solvent_mol = solvent_mol
-        self.qm_solvent_atoms = None
-        self.mm_solvent_atoms = None
-
-
 class NCIComplex(Complex):
-    pass
-
+    """Non covalent interaction complex"""
