@@ -23,14 +23,3 @@ def test_get_solvent():
 
     assert not water == None
     assert water == solvents.get_solvent(solvent_name='h2o')
-
-
-def test_point_charge():
-
-    with pytest.raises(AssertionError):
-        _ = PointCharge(charge=0, coord=[0.0, 1.0, 1.0])
-        _ = PointCharge(charge=0, coord=np.zeros(4))
-
-    pc = PointCharge(charge=0, coord=np.zeros(3))
-    assert pc.charge == 0
-    assert all(pc.coord[i] == 0 for i in range(3))
