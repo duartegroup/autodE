@@ -34,6 +34,7 @@ Functionality improvements
 - Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
 
 
+
 Bug Fixes
 *********
 
