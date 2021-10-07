@@ -1,6 +1,30 @@
 Changelog
 =========
 
+
+1.2.0
+--------
+----------
+
+Optimisation algorithms for faster and more robust minima and TS location.
+
+Usability improvements/Changes
+******************************
+-
+
+Functionality improvements
+**************************
+
+- Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
+
+
+Bug Fixes
+*********
+
+-
+
+
+
 1.1.1
 --------
 ----------
