@@ -111,12 +111,22 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
     def randomise_around(self,
                          solute: 'autode.species.species.Species') -> None:
-        """
-        Randomise the positions of the solvent molecules around the solute::
+        r"""
+        Randomise the positions of the solvent molecules around the solute,
+        for example using a methane solute and water solvent::
 
 
-                    ASCII
+                               H2O
+                        H20
+                 H2o            H2O
+                                        H2O
+               H2O      CH4      H2O
 
+                     H2O      H2O
+
+
+        where the solvent molecules are roughly packed in shells around the
+        solute.
 
         Arguments:
             solute (autode.species.species.Species):

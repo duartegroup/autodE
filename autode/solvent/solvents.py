@@ -21,7 +21,7 @@ def get_solvent(solvent_name: str,
         explicit (bool): Explicit solvent. Default = False
 
     Returns:
-        (autode.solvent.solvent.Solvent | None)
+        (autode.solvent.solvents.Solvent | None)
 
     Raises:
         (ValueError): If both explicit and implicit solvent are selected
