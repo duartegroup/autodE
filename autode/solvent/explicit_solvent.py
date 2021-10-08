@@ -13,6 +13,7 @@ class _RandomPointGenerator:
         """Generate a random point """
 
         if len(self._points) == 0:
+            # Surface are of the sphere scales r^2, so square solvent shell
             self._points = get_points_on_sphere(n_points=self._sphere_n**2 * 10)
             self._sphere_n += 1
 
@@ -77,7 +78,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
             solute_coords (np.ndarray):  Shape = (M, 3)
 
-            solute_radius (float): Radius
+            solute_radius (float): Radius (Å)
         """
         min_dist = np.min(distance_matrix(solute_coords, solvent_coords))
         return min_dist < solute_radius
@@ -85,7 +86,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
     def _too_close_to_solvent(self,
                               coords:       np.ndarray,
                               solvent_idxs: np.ndarray,
-                              max_idx: int) -> bool:
+                              max_idx:      int) -> bool:
         """
         Are a set of solvent coordinates too close to the solvent, given a
         solute radius
@@ -120,11 +121,16 @@ class ExplicitSolvent(AtomCollection, Solvent):
         Arguments:
             solute (autode.species.species.Species):
         """
+        logger.info(f'Randomising {self.n_solvent_molecules} solvent '
+                    f'molecules around {solute}')
+
         coords = self.coordinates
 
+        # ----------------- Properties of the solute molecule -----------------
         m_radius = solute.radius.to('ang') + 1.0       # Assume some exterior H
         m_origin = np.average(solute.coordinates, axis=0)
         m_coords = solute.coordinates - m_origin
+        # ---------------------------------------------------------------------
 
         rand = np.random.RandomState()
         pg = _RandomPointGenerator(random_state=rand)
@@ -138,17 +144,16 @@ class ExplicitSolvent(AtomCollection, Solvent):
             rand_rot_mat = get_rot_mat_euler(axis=rand.uniform(-1.0, 1.0, size=3),
                                              theta=rand.uniform(-np.pi, np.pi))
 
-            coords[idxs] = np.dot(coords[idxs],
-                                  rand_rot_mat.T)
+            coords[idxs] = np.dot(coords[idxs], rand_rot_mat.T)
 
             # Select a random vector along which this solvent molecule is to be
-            # translated, until there is not any close contacts
-            vec = pg.random_point()
+            # translated until there is not any close contacts
+            vec = 0.1 * pg.random_point()
 
             while (self._too_close_to_solute(coords[idxs], m_coords, m_radius)
                    or self._too_close_to_solvent(coords, idxs, i)):
 
-                coords[idxs] += 0.1 * vec
+                coords[idxs] += vec
 
         # Finally, translate to be centred around the solute's origin
         self.coordinates = coords + m_origin
@@ -170,10 +175,14 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
             num (int): Number of solvent molecules to add
         """
+        if num <= 0:
+            raise ValueError('Must solvate with a ')
+
         super().__init__(atoms=sum((solvent.atoms.copy() for _ in range(num)), None))
 
         self.solvent_n_atoms = solvent.n_atoms
-        # TODO: Something better than this hard coded shift
+
+        # TODO: Something better than this hardcoded value
         self.solvent_radius = solvent.radius.to('ang') + 2.0
 
         self.randomise_around(solute)
