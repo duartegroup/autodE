@@ -150,11 +150,13 @@ def calc_mult():
     assert calc_multiplicity(h, n_radical_electrons=2) == 1
 
 
-def test_reactant_to_product():
+def test_reactant_to_product_and_visa_versa():
 
-    prod = Reactant(smiles='C', charge=0, mult=1).to_product()
-
+    prod = Reactant().to_product()
     assert type(prod) is Product
+
+    reac = Product().to_reactant()
+    assert type(reac) is Reactant
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'molecule.zip'))
