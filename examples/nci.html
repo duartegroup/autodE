@@ -1,199 +1,649 @@
 
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
-<head>
-  <meta charset="utf-8" />
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Non-covalent Interaction Complexes &mdash; autodE  documentation</title>
-  
 
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Non-covalent Interaction Complexes &#8212; autodE  documentation</title>
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
 
     
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-book-theme.css?digest=c3fdc42140077d1ad13ad2f1588a4309" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx-book-theme.12a9622fbb08dcb3a2a40b2c02b83a57.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Molecular Manipulation" href="manipulation.html" />
-    <link rel="prev" title="Molecules" href="molecules.html" /> 
-</head>
-
-<body class="wy-body-for-nav">
-
-   
-  <div class="wy-grid-for-nav">
+    <link rel="prev" title="Molecules" href="molecules.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
 
-          
-            <a href="../index.html" class="icon icon-home"> autodE
-          
+    
 
+    <div class="container-xl">
+      <div class="row">
           
-          </a>
-
-          
-            
-            
-              <div class="version">
-                1.1.0
-              </div>
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../config.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../reference/index.html">Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="species.html">Species</a></li>
-<li class="toctree-l2"><a class="reference internal" href="molecules.html">Molecules</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Non-covalent Interaction Complexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="manipulation.html">Molecular Manipulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pes1d.html">1D PES Generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pes2d.html">2D PES Generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="conformers.html">Conformer Generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rmsd.html">RMSD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tss.html">Transition States</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thermochem.html">Thermochemistry</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../citation.html">Citation</a></li>
-</ul>
-
-            
-          
-        </div>
-        
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
+<div class="col-12 col-md-3 bd-sidebar site-navigation show" id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">autodE</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="index.html">Examples</a> &raquo;</li>
-        
-      <li>Non-covalent Interaction Complexes</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-          
-            <a href="../_sources/examples/nci.rst.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-    
+      
+      
+      <h1 class="site-logo" id="site-title">autodE  documentation</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install.html">
+   Install
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../quickstart.html">
+   Quick Start
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../config.html">
+   Configuration
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../reference/index.html">
+   Reference
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/atoms.html">
+     Atoms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/bonds.html">
+     Bonds
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/calculation.html">
+     Calculation
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/conformers/index.html">
+     Conformers
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/conformers/conf_gen.html">
+       Conf Gen
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/conformers/conformer.html">
+       Conformer
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/conformers/conformers.html">
+       Conformers
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/pes/index.html">
+     PES
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/pes/min_energy_pathway.html">
+       Min Energy Pathway
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/pes/pes.html">
+       PES
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/pes/pes_1d.html">
+       PES 1D
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/pes/pes_2d.html">
+       PES 2D
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/pes/saddle_points.html">
+       Saddle Points
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/reactions/index.html">
+     Reactions
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/reactions/multistep.html">
+       Multistep Reaction
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/reactions/reaction.html">
+       Reaction
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/reactions/reaction_types.html">
+       Reaction Types
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/smiles/index.html">
+     SMILES
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/smiles/smiles.html">
+       Molecules from SMILES
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/smiles/parser.html">
+       SMILES Parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/smiles/builder.html">
+       3D Geometry Builder
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/smiles/atom_types.html">
+       SMILES Atom Types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/smiles/angles.html">
+       SMILES Angles
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/smiles/base.html">
+       SMILES Base
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/solvent/index.html">
+     Solvent
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+    <label for="toctree-checkbox-6">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/solvent/solvents.html">
+       Solvents
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/species/index.html">
+     Species
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+    <label for="toctree-checkbox-7">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/species/complex.html">
+       Complex
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/species/molecule.html">
+       Molecule
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/species/species.html">
+       Species
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/transition_states/index.html">
+     Transition States
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
+    <label for="toctree-checkbox-8">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/transition_states/base.html">
+       Base
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/transition_states/locate_tss.html">
+       Locate TSs
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/transition_states/templates.html">
+       Templates
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/transition_states/transition_state.html">
+       Transition State
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/transition_states/truncation.html">
+       Truncation
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/transition_states/ts_guess.html">
+       TS Guess
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/thermochemistry/index.html">
+     Thermochemistry
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+    <label for="toctree-checkbox-9">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/thermochemistry/igm.html">
+       Ideal gas model
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/thermochemistry/symmetry.html">
+       Symmetry
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reference/wrappers/index.html">
+     Wrappers
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <label for="toctree-checkbox-10">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/base.html">
+       Base
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/g09.html">
+       Gaussian09
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/keywords.html">
+       Keywords
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/mopac.html">
+       MOPAC
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/nwchem.html">
+       NWChem
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/orca.html">
+       ORCA
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reference/wrappers/xtb.html">
+       XTB
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/bond_rearrangement.html">
+     Bond Rearrangement
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/config.html">
+     Configuration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/constants.html">
+     Constants
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/exceptions.html">
+     Exceptions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/geom.html">
+     Geometry
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/input_output.html">
+     Input Output
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/log.html">
+     Logging
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/methods.html">
+     Methods
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/mol_graphs.html">
+     Molecular Graphs
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/plotting.html">
+     Plotting
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/point_charges.html">
+     Point Charges
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/substitution.html">
+     Substitution
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/units.html">
+     Units
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/utils.html">
+     Utilities
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/values.html">
+     Values
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../reference/hessians.html">
+     Hessians
+    </a>
+   </li>
   </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../troubleshooting.html">
+   Troubleshooting
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="index.html">
+   Examples
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+  <label for="toctree-checkbox-11">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="species.html">
+     Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="molecules.html">
+     Molecules
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Non-covalent Interaction Complexes
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="manipulation.html">
+     Molecular Manipulation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="pes1d.html">
+     1D PES Generation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="pes2d.html">
+     2D PES Generation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="conformers.html">
+     Conformer Generation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="rmsd.html">
+     RMSD
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="tss.html">
+     Transition States
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="thermochem.html">
+     Thermochemistry
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../changelog.html">
+   Changelog
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../citation.html">
+   Citation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference external" href="https://doi.org/10.1002/anie.202011941">
+   Paper
+  </a>
+ </li>
+</ul>
 
-  
-  <hr/>
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+
+</div>
+
+
+          
+
+
+          
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
             
+            <button id="navbar-toggler" class="navbar-toggler ml-0" type="button" data-toggle="collapse"
+                data-toggle="tooltip" data-placement="bottom" data-target=".site-navigation" aria-controls="navbar-menu"
+                aria-expanded="true" aria-label="Toggle navigation" aria-controls="site-navigation"
+                title="Toggle navigation" data-toggle="tooltip" data-placement="left">
+                <i class="fas fa-bars"></i>
+                <i class="fas fa-arrow-left"></i>
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../_sources/examples/nci.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+            onClick="window.print()" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show">
+            
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+        
+              <div>
+                
   <div class="section" id="non-covalent-interaction-complexes">
 <h1>Non-covalent Interaction Complexes<a class="headerlink" href="#non-covalent-interaction-complexes" title="Permalink to this headline">¶</a></h1>
 <p><strong>autodE</strong> allows for the systematic search of a NCI complexes conformational
 space. For example, to find the lowest energy structure of the water trimer</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Molecule</span><span class="p">,</span> <span class="n">Config</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
 <span class="kn">from</span> <span class="nn">autode.species</span> <span class="kn">import</span> <span class="n">NCIComplex</span>
-<span class="kn">from</span> <span class="nn">autode.wrappers.XTB</span> <span class="kn">import</span> <span class="n">xtb</span>
 
-<span class="n">Config</span><span class="o">.</span><span class="n">num_complex_sphere_points</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">Config</span><span class="o">.</span><span class="n">num_complex_random_rotations</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">num_complex_sphere_points</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">num_complex_random_rotations</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">xtb</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">()</span>
 
 <span class="c1"># Make a water molecule and optimise at the XTB level</span>
-<span class="n">water</span> <span class="o">=</span> <span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
 <span class="n">water</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">xtb</span><span class="p">)</span>
 
 <span class="c1"># Make the NCI complex and find the lowest energy structure</span>
@@ -207,51 +657,56 @@ space. For example, to find the lowest energy structure of the water trimer</p>
 </div>
 
 
-           </div>
-           
-          </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="manipulation.html" class="btn btn-neutral float-right" title="Molecular Manipulation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="molecules.html" class="btn btn-neutral float-left" title="Molecules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+              </div>
+              
+        
+            
+
+
+
+<div class='prev-next-bottom'>
+    
+    <div id="prev">
+        <a class="left-prev" href="molecules.html" title="previous page">
+            <i class="prevnext-label fas fa-angle-left"></i>
+            <div class="prevnext-info">
+                <p class="prevnext-label">previous</p>
+                <p class="prevnext-title">Molecules</p>
+            </div>
+        </a>
     </div>
+     <div id="next">
+        <a class="right-next" href="manipulation.html" title="next page">
+            <div class="prevnext-info">
+                <p class="prevnext-label">next</p>
+                <p class="prevnext-title">Molecular Manipulation</p>
+            </div>
+            <i class="prevnext-label fas fa-angle-right"></i>
+        </a>
+     </div>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Tom Young, Joseph Silcock.
-
-    </p>
-  </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
+</div>
+        
         </div>
+    </div>
+    <footer class="footer">
+    <div class="container">
+      <p>
+        
+          By Tom Young, Joseph Silcock<br/>
+        
+            &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
+      </p>
+    </div>
+  </footer>
+</main>
+
+
       </div>
-
-    </section>
-
-  </div>
+    </div>
   
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
 
   
-  
-    
-   
-
-</body>
+  </body>
 </html>

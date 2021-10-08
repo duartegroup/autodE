@@ -35,6 +35,7 @@ Documentation
    examples/index
    changelog
    citation
+   Paper <https://doi.org/10.1002/anie.202011941>
 
 Indices and tables
 ==================
