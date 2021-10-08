@@ -26,7 +26,7 @@ Functionality improvements
 - Adds a :code:`autode.solvent.Solvent.dielectric` property for a solvent's dielectric constant
 - Adds a :code:`autode.solvent.Solvent.is_implicit` property
 - Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
-
+- Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
 
 
 Bug Fixes
