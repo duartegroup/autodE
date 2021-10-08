@@ -1,4 +1,6 @@
 import os
+import shutil
+
 from . import testutils
 import pytest
 from autode.exceptions import TemplateLoadingFailed
@@ -81,8 +83,10 @@ def test_ts_template_save():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_guess.zip'))
 def test_ts_template():
 
-    # Spoof XTB install
-    Config.XTB.path = here
+    # Spoof XTB install, if not installed
+    if not shutil.which('xtb') is None:
+        Config.XTB.path = here
+
     Config.ts_template_folder_path = os.path.join(here, 'data', 'ts_guess')
 
     bond_rearr = BondRearrangement(breaking_bonds=[(2, 1)],
@@ -111,6 +115,21 @@ def test_ts_template():
     Config.ts_template_folder_path = None
 
     assert tsg_template is not None
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_guess.zip'))
+def test_ts_template_with_scan():
+
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
+
+    Config.lcode = 'xtb'
+    Config.XTB.path = shutil.which('xtb')
+
+
+    # TODO: Implement
+
+
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_template.zip'))

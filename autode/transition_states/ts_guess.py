@@ -110,7 +110,7 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
             return ts_guess
 
         except CalculationException:
-            logger.warning('Failed top run constrained optimisation on the TS')
+            logger.warning('Failed to run constrained optimisation on the TS')
             continue
 
     return None
@@ -138,6 +138,10 @@ class TSguess(TSbase):
         # Number of steps to use is 0.1 Å in the maximum distance delta
         max_delta = max(abs(f_consts[bond] - c_dist) for bond, c_dist in c_consts.items())
         n_steps = int(max_delta / Distance(0.1, units='ang'))
+
+        if n_steps < 2:
+            logger.info(f'No need to scan - only going to do {n_steps} steps')
+            return
 
         for i in range(1, n_steps+1):
 
