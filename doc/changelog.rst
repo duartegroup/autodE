@@ -34,6 +34,7 @@ Functionality improvements
 - Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
 - Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
 - Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
+- Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
 
 
 Bug Fixes

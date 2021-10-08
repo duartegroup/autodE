@@ -105,8 +105,7 @@ def test_ts_template():
     tsg_template = get_template_ts_guess(reac_shift, product_complex,
                                          name='template',
                                          bond_rearr=bond_rearr,
-                                         method=XTB(),
-                                         dist_thresh=4.0)
+                                         method=XTB())
 
     # Reset the folder path to the default
     Config.ts_template_folder_path = None
