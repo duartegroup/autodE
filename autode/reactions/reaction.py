@@ -12,7 +12,7 @@ from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
-from autode.utils import work_in
+from autode.utils import work_in, requires_hl_level_methods
 from autode.reactions import reaction_types
 
 
@@ -374,6 +374,7 @@ class Reaction:
 
         return None
 
+    @requires_hl_level_methods
     @work_in('transition_states')
     def locate_transition_state(self):
 
@@ -530,6 +531,7 @@ class Reaction:
                               enthalpy=enthalpy)
         return None
 
+    @requires_hl_level_methods
     def calculate_reaction_profile(self, units=KcalMol, with_complexes=False,
                                    free_energy=False, enthalpy=False):
         """
