@@ -107,7 +107,7 @@ class Solvent(ABC):
         return self.name
 
     def __eq__(self, other):
-        """Determine if two solvents are the same based on name and SMILES"""
+        """Determine if two solvent are the same based on name and SMILES"""
         if other is None:
             return False
 
