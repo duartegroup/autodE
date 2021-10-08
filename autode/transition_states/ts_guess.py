@@ -136,15 +136,14 @@ class TSguess(TSbase):
         c_consts = {bond: self.distance(*bond) for bond in f_consts.keys()}
 
         # Number of steps to use is 0.1 Å in the maximum distance delta
-        n_steps = ((max(abs(f_consts[bond] - c_dist)
-                        for bond, c_dist in c_consts.items()))
-                   / Distance(0.1, units='ang'))
+        max_delta = max(abs(f_consts[bond] - c_dist) for bond, c_dist in c_consts.items())
+        n_steps = int(max_delta / Distance(0.1, units='ang'))
 
         for i in range(1, n_steps+1):
 
             consts = {}
-            for bond in c_consts.keys():
-                consts[bond] = i * (f_consts[bond] - c_consts[bond]) / n_steps
+            for bond, c_dist in c_consts.items():
+                consts[bond] = c_dist + i * (f_consts[bond] - c_dist) / n_steps
 
             opt = Calculation(name=f'{self.name}_const_opt_ll_{i}',
                               molecule=self,
