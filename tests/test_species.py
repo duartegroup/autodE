@@ -6,7 +6,8 @@ from autode.calculation import Calculation
 from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
-from autode.values import Gradient
+from autode.geom import calc_rmsd
+from autode.values import Gradient, EnthalpyCont, Enthalpy, PotentialEnergy
 from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
@@ -436,3 +437,56 @@ def test_hessian_calculation():
     h2o._run_hess_calculation(method=orca)
     assert h2o.hessian is not None
     assert h2o.frequencies is not None
+
+
+def test_enthalpy_doc_example():
+
+    _h2 = Molecule(smiles='[H][H]')
+    _h2.energies.append(EnthalpyCont(0.0133, units='Ha'))
+    _h2.energy = PotentialEnergy(-1.16397, units='Ha',
+                                 method=orca,
+                                 keywords=orca.keywords.opt)
+    assert np.isclose(_h2.enthalpy, -1.15067, atol=1E-4)
+
+    _h2.energy = PotentialEnergy(-1.16827, units='Ha',
+                                 method=orca,
+                                 keywords=orca.keywords.sp)
+
+    assert np.isclose(_h2.enthalpy, -1.15497, atol=1E-4)
+
+
+def test_species_rotation_preserves_internals():
+
+    methane = Molecule(smiles='C')
+    init_coords = methane.coordinates
+
+    axes = [[1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],  # Need-not be normalised
+            [2.0, 0.1, 0.3]
+            ]
+    thetas = [0.1, 1.0, 3.14159, 5.6]
+
+    for axis in axes:
+        for theta in thetas:
+
+            methane.rotate(axis=axis, theta=theta)
+            # Rotation should preserve the relative positions i.e. a small RMSD
+            assert calc_rmsd(methane.coordinates, init_coords) < 0.01
+
+            # Shift back to original coordinates
+            methane.coordinates = init_coords
+
+
+def test_species_rotation_is_same_as_atom():
+
+    water = Molecule(smiles='O')
+    water_atoms = water.atoms.copy()
+
+    axis, angle = [0.2, 0.7, -0.3], 2.41
+    water.rotate(axis=axis, theta=angle)
+    for atom in water_atoms:
+        atom.rotate(axis=axis, theta=angle)
+
+    assert np.linalg.norm((water.coordinates - water_atoms.coordinates)) < 0.01

@@ -202,7 +202,8 @@ def print_default_params(inp_file):
     print('%output \nxyzfile=True \nend ',
           '%scf \nmaxiter 250 \nend',
           '%output\nPrint[P_Hirshfeld] = 1\nend',
-          '% maxcore', Config.max_core, sep='\n', file=inp_file)
+          '% maxcore', int(Config.max_core.to('MB')),
+          sep='\n', file=inp_file)
     return
 
 
@@ -220,6 +221,9 @@ def print_coordinates(inp_file, molecule):
 
 
 class ORCA(ElectronicStructureMethod):
+
+    def __repr__(self):
+        return f'ORCA(available = {self.available})'
 
     def generate_input(self, calc, molecule):
 

@@ -1,5 +1,5 @@
 from autode.atoms import Atom
-from autode.species import Molecule
+from autode.species import Molecule, NCIComplex
 from autode.conformers import Conformer, Conformers
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
@@ -14,6 +14,7 @@ from . import testutils
 import numpy as np
 import pytest
 import os
+import shutil
 
 here = os.path.dirname(os.path.abspath(__file__))
 orca = ORCA()
@@ -270,3 +271,17 @@ def test_calculation_over_no_conformers():
 
     # Should not raise an exception
     assert len(confs) == 0
+
+
+def test_complex_conformers_diff_names():
+
+    Config.num_complex_sphere_points = 2
+    Config.num_complex_random_rotations = 2
+
+    water = Molecule(smiles='O')
+    h2o_dimer = NCIComplex(water, water, name='dimer')
+    h2o_dimer._generate_conformers()
+    assert len(set(conf.name for conf in h2o_dimer.conformers)) > 1
+
+    if os.path.exists('conformers'):
+        shutil.rmtree('conformers')

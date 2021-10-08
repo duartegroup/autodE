@@ -13,7 +13,7 @@ pes = ade.pes.PES2d(reac, prod,
 
 pes.calculate(name='da_surface',
               method=ade.methods.XTB(),
-              keywords=ade.OptKeywords([]))
+              keywords=ade.OptKeywords())
 
 # Save the matrix of energies (Ha) over the grid
 np.savetxt('da_surface.txt', pes.energies())

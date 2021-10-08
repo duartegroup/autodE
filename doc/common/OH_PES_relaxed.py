@@ -1,12 +1,11 @@
-from autode import Molecule
+import autode as ade
 from autode.pes.pes_1d import PES1d
-from autode.methods import XTB
 import numpy as np
 
 # Initialise the electronic structure method (XTB) and water molecule
-xtb = XTB()
+xtb = ade.methods.XTB()
 
-water = Molecule(name='H2O', smiles='O')
+water = ade.Molecule(name='H2O', smiles='O')
 
 # Initialise a potential energy surface where the reactant and product is
 # the same. A product is required to call pes.products_made() to check products

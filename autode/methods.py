@@ -23,13 +23,12 @@ def get_hmethod() -> ElectronicStructureMethod:
     """Get the 'high-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Method
+        (autode.wrappers.base.ElectronicStructureMethod): High-level method
     """
     h_methods = [ORCA(), G09(), NWChem(), G16()]
 
     if Config.hcode is not None:
-        return get_defined_method(name=Config.hcode.lower(),
-                                  possibilities=h_methods)
+        return get_defined_method(name=Config.hcode, possibilities=h_methods)
     else:
         return get_first_available_method(h_methods)
 
@@ -38,13 +37,12 @@ def get_lmethod() -> ElectronicStructureMethod:
     """Get the 'low-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod):
+        (autode.wrappers.base.ElectronicStructureMethod): Low-level method
     """
     all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem()]
 
     if Config.lcode is not None:
-        return get_defined_method(name=Config.lcode.lower(),
-                                  possibilities=all_methods)
+        return get_defined_method(name=Config.lcode, possibilities=all_methods)
     else:
         return get_first_available_method(all_methods)
 
@@ -52,7 +50,7 @@ def get_lmethod() -> ElectronicStructureMethod:
 def get_first_available_method(possibilities) -> ElectronicStructureMethod:
     """
     Get the first electronic structure method that is available in a list of
-    possibilities
+    possibilities.
 
     Arguments:
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
@@ -73,7 +71,7 @@ def get_first_available_method(possibilities) -> ElectronicStructureMethod:
 
 def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
     """
-    Get an electronic structure method defined by it's name
+    Get an electronic structure method defined by it's name.
 
     Arguments:
         name (str):
@@ -87,13 +85,17 @@ def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
     """
 
     for method in possibilities:
-        if method.name == name:
+        if method.name.lower() == name.lower():
 
             if method.available:
                 return method
 
             else:
-                raise MethodUnavailable('Electronic structure method is '
-                                        'not available')
+                err_str = (f'Electronic structure method *{name}* is not '
+                           f'available. Check that {method.name} exists in a '
+                           f'directory present in $PATH, or set '
+                           f'ade.Config.{method.__name__}.path')
+
+                raise MethodUnavailable(err_str)
 
     raise MethodUnavailable('Requested code does not exist')

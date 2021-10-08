@@ -13,6 +13,9 @@ from autode.log import logger
 
 class XTB(ElectronicStructureMethod):
 
+    def __repr__(self):
+        return f'XTB(available = {self.available})'
+
     def print_distance_constraints(self, inp_file, molecule):
         """Add distance constraints to the input file"""
 

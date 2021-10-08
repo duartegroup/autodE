@@ -232,3 +232,19 @@ wavenumber = BaseUnit(name='cm^-1',
 hz = Unit(name='s^-1',
           conversion=Constants.per_cm_to_hz,
           aliases=['hz', 's-1', '/s'])
+
+
+# ----------------------------------------------------------------------
+# ------------------- Digital storage allocation -----------------------
+
+
+MB = BaseUnit(name='mb',
+              aliases=['megabyte'])
+
+GB = Unit(name='gb',
+          conversion=1E-3,        # 1000 MB = 1 GB
+          aliases=['gigabyte'])
+
+TB = Unit(name='tb',
+          conversion=1E-6,       # 1000 GB = 1 TB
+          aliases=['terabyte'])

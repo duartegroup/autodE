@@ -14,28 +14,24 @@ H•
 
 .. code-block:: python
 
-  >>> from autode import Molecule
-  >>> methane = Molecule(name='CH4', smiles='C')
-  >>> methane.atoms
-  [[C,  0.000,   0.004, -0.020],
-   [H, -0.657,  -0.848, -0.321],
-   [H, -0.458,   0.975, -0.306],
-   [H,  0.085,  -0.025,  1.080],
-   [H,  1.030,  -0.105, -0.432]]
+  >>> import autode as ade
+  >>> methane = ade.Molecule(smiles='C')
+  >>> [atom.atomic_symbol for atom in methane.atoms]
+  ['C', 'H', 'H', 'H', 'H']
 
 .. code-block:: python
 
   >>> from autode.mol_graphs import split_mol_across_bond
   >>> ch3_nodes, h_nodes = split_mol_across_bond(methane.graph, bond=(0, 1))
-  >>> ch3 = Molecule(name='CH3', mult=2, atoms=[methane.atoms[i] for i in ch3_nodes])
+  >>> ch3 = ade.Molecule(name='CH3', mult=2, atoms=[methane.atoms[i] for i in ch3_nodes])
   >>> ch3.atoms
-  [[C,  0.000,   0.004, -0.020],
-   [H, -0.458,   0.975, -0.306],
-   [H,  0.085,  -0.025,  1.080],
-   [H,  1.030,  -0.105, -0.432]]
-  >>> h = Molecule(name='H', mult=2, atoms=[methane.atoms[i] for i in h_nodes])
+  Atoms(n_atoms=4, [Atom(C,  0.0009,  0.0041, -0.0202),
+                    Atom(H, -0.4585,  0.9752, -0.3061),
+                    Atom(H,  0.0853, -0.0253,  1.0804),
+                    Atom(H,  1.0300, -0.1058, -0.4327)])
+  >>> h = ade.Molecule(name='H', mult=2, atoms=[methane.atoms[i] for i in h_nodes])
   >>> h.atoms
-  [[H, -0.657,  -0.848, -0.321]]
+  Atoms(n_atoms=1, [Atom(H, -0.6577, -0.8481, -0.3214)])
 
 
 Functionalisation
@@ -49,7 +45,7 @@ ethane molecule
 
 .. code-block:: python
 
-  >>> ethane = Molecule(name='C2H6', smiles='C%99.C%99')
+  >>> ethane = ade.Molecule(name='C2H6', smiles='C%99.C%99')
   >>> ethane.n_atoms
   8
 
@@ -58,7 +54,7 @@ on a single atom
 
 .. code-block:: python
 
-  >>> propane = Molecule(name='C3H8', smiles='C%99%98.C%99.C%98')
+  >>> propane = ade.Molecule(name='C3H8', smiles='C%99%98.C%99.C%98')
   >>> propane.n_atoms
   11
 

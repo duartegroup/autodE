@@ -192,6 +192,9 @@ def print_constraints(inp_file, molecule, force_constant=20):
 
 class NWChem(ElectronicStructureMethod):
 
+    def __repr__(self):
+        return f'NWChem(available = {self.available})'
+
     def generate_input(self, calc, molecule):
         keywords = get_keywords(calc.input, molecule)
 
@@ -230,7 +233,7 @@ class NWChem(ElectronicStructureMethod):
                           file=inp_file)
                 print('end', file=inp_file)
 
-            print(f'memory {Config.max_core} mb', file=inp_file)
+            print(f'memory {int(Config.max_core.to("MB"))} mb', file=inp_file)
 
             print(*keywords, sep='\n', file=inp_file)
 

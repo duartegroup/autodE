@@ -9,8 +9,8 @@ a name, set of atoms (or possibly None), charge and
 
 .. code-block:: python
 
-  >>> from autode.species import Species
-  >>> species = Species(name='species', atoms=None, charge=0, mult=1)
+  >>> import autode as ade
+  >>> species = ade.Species(name='species', atoms=None, charge=0, mult=1)
   >>> species.n_atoms
   0
 
@@ -19,21 +19,20 @@ a species i.e.
 
 .. code-block:: python
 
-  >>> from autode.atoms import Atom
-  >>> h2 = Species(name='H2', charge=0, mult=1, atoms=[Atom('H'), Atom('H')])
-  >>> h2.n_atoms
-  2
+  >>> h2 = Species(name='H2', charge=0, mult=1, atoms=[ade.Atom('H'), ade.Atom('H')])
+  >>> h2
+  Species(H2, n_atoms=2, charge=0, mult=1)
 
 Atoms contain a coordinate as a numpy array (shape = (3,), initialised at the
-origin) and an a few properties
+origin) and a few properties
 
 .. code-block:: python
 
   >>> atom1, atom2 = h2.atoms
   >>> atom1
-  [H, 0.0000, 0.0000, 0.0000]
+  Atom(H, 0.0000, 0.0000, 0.0000)
   >>> atom1.coord
-  array([0., 0., 0.])
+  Coordinate([0. 0. 0.] Å)
   >>> atom1.atomic_number
   1
   >>> atom1.atomic_symbol
@@ -54,19 +53,18 @@ from the origin along 1 Å in the x axis then rotate in the z-axis
 
 .. code-block:: python
 
-  >>> import numpy as np
-  >>> vector = np.array([1.0, 0.0, 0.0])
+  >>> vector = [1.0, 0.0, 0.0]
   >>> atom1.translate(vector)
   >>> atom1.coord
-  array([1., 0., 0.])
+  Coordinate([1. 0. 0.] Å)
 
 To rotate this atom 180° (π radians) in the z-axis at the origin
 
 .. code-block:: python
 
-  >>> atom1.rotate(theta=np.pi, axis=np.array([0.0, 0.0, 1.0]))
+  >>> atom1.rotate(theta=3.14159, axis=[0.0, 0.0, 1.0])
   >>> atom1.coord
-  array([-1., 0., 0.])
+  Coordinate([-1.  0.  0.] Å)
 
 .. note::
    Rotations are performed anticlockwise
@@ -76,7 +74,7 @@ Translations and rotations are performed in place so the h2 atoms are modified
 .. code-block:: python
 
   >>> h2.atoms
-  [[H, -1.0000, 0.0000, 0.0000], [H, 0.0000, 0.0000, 0.0000]]
+  Atoms(n_atoms=2, [Atom(H, -1.00, 0.00, 0.00), Atom(H, 0.00, 0.00, 0.00)])
 
 
 Distances
@@ -105,7 +103,7 @@ all standard mathematical operations
 Solvents
 --------
 
-Species also support an solvent which need not be specified for a species in
+Species also support a solvent, which need not be specified for a species in
 the gas phase
 
 .. code-block:: python
@@ -117,9 +115,11 @@ For example, to initialise a fluoride ion in dichloromethane
 
 .. code-block:: python
 
-  >>> f = Species(name='F-', charge=-1, mult=1, atoms=[Atom('F')], solvent_name='DCM')
+  >>> f = ade.Species(name='F-', charge=-1, mult=1,
+  ...                 atoms=[ade.Atom('F')],
+  ...                 solvent_name='DCM')
   >>> f.solvent
-  <autode.solvent.solvents.Solvent object at XxXXXXXX>
+  Solvent(dichloromethane)
 
 Given a solvent name string a :ref:`Solvent <solvents>` is added as an attribute
 to the species. A Solvent contains a set of aliases and names of the implicit
@@ -141,11 +141,10 @@ using the io module
 
   >>> from autode.input_output import xyz_file_to_atoms
   >>> methane = Species(name='CH4', charge=0, mult=1,
-  >>>                   atoms=xyz_file_to_atoms('methane.xyz'))
-  >>> methane.n_atoms
-  5
+  ...                   atoms=xyz_file_to_atoms('methane.xyz'))
+  >>> methane
+  Species(CH4, n_atoms=5, charge=0, mult=1)
 
 .. note::
    Only .xyz files are supported currently. Other molecular file formats can
    be converted to .xyz with `openbabel <https://anaconda.org/openbabel/openbabel/>`_.
-
