@@ -60,9 +60,30 @@ class Constraints:
     def distance(self) -> Optional[dict]:
         return None if len(self._distance) == 0 else self._distance
 
+    @distance.setter
+    def distance(self, value: dict):
+        """
+        Set the distance constraints
+
+        Arguments:
+            value (dict): Dictionary keyed with atom indexes with values
+                          as the distance between the two
+        """
+        self._distance = self._init_distance(value)
+
     @property
     def cartesian(self) -> list:
         return None if len(self._cartesian) == 0 else list(set(self._cartesian))
+
+    @cartesian.setter
+    def cartesian(self, value):
+        """
+        Set the Cartesian constraints using a list of atom indexes
+
+        Arguments:
+            value (list(int)): Atom indexes to fix in space
+        """
+        self._cartesian = [int(i) for i in value]
 
     @property
     def any(self):

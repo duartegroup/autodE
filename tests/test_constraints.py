@@ -18,6 +18,23 @@ def test_base_properties():
     assert consts.distance is not None and type(consts.distance) is dict
     assert consts.cartesian is None
 
+    # Constraints should allow for setting
+    consts.distance = {(0, 1): 2}
+    assert int(consts.distance[(0, 1)]) == 2
+
+    with pytest.raises(Exception):
+        consts.distance = 1
+
+    with pytest.raises(Exception):
+        consts.distance = {(0, 1): -1.0}
+
+    # Likewise with setting
+    consts.cartesian = [0, 1]
+    assert int(consts.cartesian[0]) == 0
+
+    with pytest.raises(Exception):
+        consts.cartesian = 5
+
     conts2 = Constraints(cartesian=[0], distance={(0, 1): 1.1})
     assert conts2.cartesian is not None and conts2.distance is not None
 
