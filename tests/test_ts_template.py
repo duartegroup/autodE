@@ -84,7 +84,7 @@ def test_ts_template_save():
 def test_ts_template():
 
     # Spoof XTB install, if not installed
-    if not shutil.which('xtb') is None:
+    if shutil.which('xtb') is None:
         Config.XTB.path = here
 
     Config.ts_template_folder_path = os.path.join(here, 'data', 'ts_guess')

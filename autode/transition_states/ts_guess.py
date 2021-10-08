@@ -156,8 +156,7 @@ class TSguess(TSbase):
                               n_cores=Config.n_cores,
                               distance_constraints=consts)
 
-            # Can raise CalculationException
-            self.optimise(calc=opt)
+            self.optimise(calc=opt)           # Can raise CalculationException
 
         return None
 
