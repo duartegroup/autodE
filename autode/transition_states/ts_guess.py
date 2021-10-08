@@ -97,14 +97,15 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
             continue
 
         logger.info('Found a TS guess from a template')
-        ts_guess = TSguess(atoms=reactant.atoms,
+        ts_guess = TSguess(name=f'ts_guess_{name}',
+                           atoms=reactant.atoms,
                            reactant=reactant,
                            product=product,
                            bond_rearr=bond_rearr)
-        ts_guess.constraints.distance = active_bonds_and_dists_ts
 
         try:
             ts_guess.run_constrained_opt(name=name,
+                                         distance_consts=active_bonds_and_dists_ts,
                                          method=method,
                                          keywords=method.keywords.opt)
             return ts_guess
@@ -161,9 +162,10 @@ class TSguess(TSbase):
         return None
 
     def run_constrained_opt(self,
-                            name:     str,
-                            method:   Optional['autode.wrappers.base.ElectronicStructureMethod'] = None,
-                            keywords: Optional['autode.wrappers.keywords.Keywords'] = None):
+                            name:            str,
+                            distance_consts: Optional[dict] = None,
+                            method:          Optional['autode.wrappers.base.ElectronicStructureMethod'] = None,
+                            keywords:        Optional['autode.wrappers.keywords.Keywords'] = None):
         """Get a TS guess from a constrained optimisation with the active atoms
         fixed at values defined in distance_consts
 
@@ -173,6 +175,9 @@ class TSguess(TSbase):
             keywords (autode.wrappers.keywords.Keywords):
 
         Keyword Arguments:
+
+            distance_consts (dict): Distance constraints to use, if None
+                                    then use self.constraints
 
             method (autode.wrappers.base.ElectronicStructureMethod): if
                    None then use the default method
@@ -184,6 +189,9 @@ class TSguess(TSbase):
             (autode.exceptions.CalculationException):
         """
         logger.info('Running constrained optimisation on TS guess geometry')
+
+        if distance_consts is not None:
+            self.constraints.distance = distance_consts
 
         self._lmethod_scan_to_point()
 
