@@ -117,6 +117,52 @@ class Reaction:
         hasher = hashlib.sha1(name.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()[:6]
 
+    @requires_hl_level_methods
+    def calculate_reaction_profile(self, units=KcalMol, with_complexes=False,
+                                   free_energy=False, enthalpy=False):
+        """
+        Calculate and plot a reaction profile for this reaction in some units
+
+        Keyword Arguments:
+            units (autode.units.Unit):
+            with_complexes (bool): Calculate the lowest energy conformers
+                                   of the reactant and product complexes
+            free_energy (bool): Calculate the free energy profile (G)
+            enthalpy (bool): Calculate the enthalpic profile (H)
+        """
+        logger.info('Calculating reaction profile')
+
+        if with_complexes and (free_energy or enthalpy):
+            raise NotImplementedError('Significant likelihood of very low'
+                                      ' frequency harmonic modes – G and H not'
+                                      'implemented')
+
+        @work_in(self.name)
+        def calculate(reaction):
+            reaction.find_lowest_energy_conformers()
+            reaction.optimise_reacs_prods()
+            reaction.locate_transition_state()
+            reaction.find_lowest_energy_ts_conformer()
+            if with_complexes:
+                reaction.calculate_complexes()
+            if free_energy or enthalpy:
+                reaction.calculate_thermochemical_cont()
+            reaction.calculate_single_points()
+            reaction.print_output()
+            return None
+
+        calculate(self)
+
+        if not with_complexes:
+            plot_reaction_profile([self], units=units, name=self.name,
+                                  free_energy=free_energy, enthalpy=enthalpy)
+
+        if with_complexes:
+            self._plot_reaction_profile_with_complexes(units=units,
+                                                       free_energy=free_energy,
+                                                       enthalpy=enthalpy)
+        return None
+
     def _check_balance(self):
         """Check that the number of atoms and charge balances between reactants
          and products. If they don't then raise excpetions
@@ -588,50 +634,4 @@ class Reaction:
                               units=units, name=self.name,
                               free_energy=free_energy,
                               enthalpy=enthalpy)
-        return None
-
-    @requires_hl_level_methods
-    def calculate_reaction_profile(self, units=KcalMol, with_complexes=False,
-                                   free_energy=False, enthalpy=False):
-        """
-        Calculate and plot a reaction profile for this reaction in some units
-
-        Keyword Arguments:
-            units (autode.units.Unit):
-            with_complexes (bool): Calculate the lowest energy conformers
-                                   of the reactant and product complexes
-            free_energy (bool): Calculate the free energy profile (G)
-            enthalpy (bool): Calculate the enthalpic profile (H)
-        """
-        logger.info('Calculating reaction profile')
-
-        if with_complexes and (free_energy or enthalpy):
-            raise NotImplementedError('Significant likelihood of very low'
-                                      ' frequency harmonic modes – G and H not'
-                                      'implemented')
-
-        @work_in(self.name)
-        def calculate(reaction):
-            reaction.find_lowest_energy_conformers()
-            reaction.optimise_reacs_prods()
-            reaction.locate_transition_state()
-            reaction.find_lowest_energy_ts_conformer()
-            if with_complexes:
-                reaction.calculate_complexes()
-            if free_energy or enthalpy:
-                reaction.calculate_thermochemical_cont()
-            reaction.calculate_single_points()
-            reaction.print_output()
-            return None
-
-        calculate(self)
-
-        if not with_complexes:
-            plot_reaction_profile([self], units=units, name=self.name,
-                                  free_energy=free_energy, enthalpy=enthalpy)
-
-        if with_complexes:
-            self._plot_reaction_profile_with_complexes(units=units,
-                                                       free_energy=free_energy,
-                                                       enthalpy=enthalpy)
         return None
