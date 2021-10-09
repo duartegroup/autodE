@@ -121,6 +121,10 @@ def test_energy_equality():
     assert (Energy(-151.552245224975, units='Ha')
             != Energy(-151.551673511378, units='Ha'))
 
+    # Allowable comparison of energies and floats, assuming Ha units
+    assert (Energy(-151.552245224975, units='Ha')
+            != -151.551673511378)
+
 
 def test_enthalpy():
 
