@@ -158,8 +158,8 @@ using the io module
 .. code-block:: python
 
   >>> from autode.input_output import xyz_file_to_atoms
-  >>> methane = Species(name='CH4', charge=0, mult=1,
-  ...                   atoms=xyz_file_to_atoms('methane.xyz'))
+  >>> methane = ade.Species(name='CH4', charge=0, mult=1,
+  ...                       atoms=xyz_file_to_atoms('methane.xyz'))
   >>> methane
   Species(CH4, n_atoms=5, charge=0, mult=1)
 
