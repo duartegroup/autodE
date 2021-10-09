@@ -1,5 +1,6 @@
 import base64
 import hashlib
+from typing import Union, Optional
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
@@ -46,25 +47,39 @@ def calc_delta_with_cont(left, right, cont):
 
 class Reaction:
 
-    def __init__(self, *args, name='reaction', solvent_name=None, smiles=None,
-                 temp=298.15):
-        """
-        Reaction containing reactants and products. reaction.reactant is the
-        reactant complex which is the same as reacs[0] if there is only
-        reactant
+    def __init__(self,
+                 *args:        Union[str, Reactant, Product],
+                 name:         str = 'reaction',
+                 solvent_name: Optional[str] = None,
+                 smiles:       Optional[str] = None,
+                 temp:         float = 298.15):
+        r"""
+        Elementary chemical reaction formed from reactants and products.
+        Number of atoms, charge and solvent must match on either side of
+        the reaction. For example::
+
+                            H                             H    H
+                           /                               \  /
+            H   +    H -- C -- H     --->     H--H   +      C
+                          \                                 |
+                           H                                H
+
 
         Arguments:
-             args (autode.species.Molecule | autode.species.Complex | str):
-                  Reactant and Product objects or a SMILES string of the whole
-                   reaction
+             args (autode.species.Species | str): Reactant and Product objects
+                  or a SMILES string of the whole reaction.
 
-            name (str):
+            name (str): Name of this reaction.
 
-            solvent_name (str):
+            solvent_name (str | None): Name of the solvent, if None then
+                                       in the gas phase (unless reactants and
+                                       products are in a solvent).
 
-            smiles (str):
+            smiles (str | None): SMILES string of the reaction e.g.
+                                 "C=CC=C.C=C>>C1=CCCCC1" for the [4+2]
+                                 cyclization between ethene and butadiene.
 
-            temp (float): Temperature in Kelvin
+            temp (float): Temperature in Kelvin.
         """
         logger.info(f'Generating a Reaction for {name}')
 
@@ -104,19 +119,16 @@ class Reaction:
 
     def _check_balance(self):
         """Check that the number of atoms and charge balances between reactants
-         and products. If they don't exit
-        immediately
+         and products. If they don't then raise excpetions
         """
         def total(molecules, attr):
             return sum([getattr(m, attr) for m in molecules])
 
         if total(self.reacs, 'n_atoms') != total(self.prods, 'n_atoms'):
-            logger.critical('Number of atoms doesn\'t balance')
-            raise UnbalancedReaction
+            raise UnbalancedReaction('Number of atoms doesn\'t balance')
 
         if total(self.reacs, 'charge') != total(self.prods, 'charge'):
-            logger.critical('Charge doesn\'t balance')
-            raise UnbalancedReaction
+            raise UnbalancedReaction('Charge doesn\'t balance')
 
         # Ensure the number of unpaired electrons is equal on the left and
         # right-hand sides of the reaction, for now
@@ -129,34 +141,36 @@ class Reaction:
         return None
 
     def _check_solvent(self):
-        """Check that all the solvents are the same for reactants and products
+        """
+        Check that all the solvents are the same for reactants and products.
+        If self.solvent is set then override the reactants and products
         """
         molecules = self.reacs + self.prods
+        first_solvent = self.reacs[0].solvent
 
         if self.solvent is None:
             if all([mol.solvent is None for mol in molecules]):
                 logger.info('Reaction is in the gas phase')
                 return
 
+            # Are solvents are defined for all molecules?
             elif all([mol.solvent is not None for mol in molecules]):
-                if not all([mol.solvent == self.reacs[0].solvent for mol in molecules]):
-                    logger.critical('Solvents in reactants and products '
-                                    'don\'t match')
-                    raise SolventsDontMatch
 
+                if not all([mol.solvent == first_solvent for mol in molecules]):
+                    raise SolventsDontMatch('Solvents in reactants and'
+                                            ' products do not match')
                 else:
-                    logger.info(f'Setting the reaction solvent to '
-                                f'{self.reacs[0].solvent}')
-                    self.solvent = self.reacs[0].solvent
+                    logger.info(f'Setting the solvent to {first_solvent}')
+                    self.solvent = first_solvent
 
             else:
-                logger.critical('Some species solvated and some not!')
-                raise SolventsDontMatch
+                raise SolventsDontMatch('Some species solvated and some not. '
+                                        'Ill-determined solvation.')
 
         if self.solvent is not None:
             logger.info(f'Setting solvent to {self.solvent.name} for all '
                         f'molecules in the reaction')
-            for mol in self.reacs + self.prods:
+            for mol in molecules:
                 mol.solvent = self.solvent
 
         logger.info(f'Set the solvent of all species in the reaction to '
@@ -165,11 +179,11 @@ class Reaction:
 
     def _init_from_smiles(self, reaction_smiles):
         """
-        Initialise from a SMILES string of the whole reaction e.g.
+        Initialise from a SMILES string of the whole reaction e.g.::
 
                     CC(C)=O.[C-]#N>>CC([O-])(C#N)C
 
-        for the addition of cyanide to acetone
+        for the addition of cyanide to acetone.
 
         Arguments:
             reaction_smiles (str):
@@ -300,6 +314,8 @@ class Reaction:
          self._reactant_complex) = (self._reactant_complex,
                                     self._product_complex)
         return None
+
+    # TODO: refactoring from here
 
     def calc_delta_e(self):
         """Calculate the ∆Er of a reaction defined as
