@@ -19,7 +19,7 @@ a species i.e.
 
 .. code-block:: python
 
-  >>> h2 = Species(name='H2', charge=0, mult=1, atoms=[ade.Atom('H'), ade.Atom('H')])
+  >>> h2 = ade.Species(name='H2', charge=0, mult=1, atoms=[ade.Atom('H'), ade.Atom('H')])
   >>> h2
   Species(H2, n_atoms=2, charge=0, mult=1)
 

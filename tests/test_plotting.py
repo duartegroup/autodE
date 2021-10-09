@@ -204,7 +204,7 @@ def test_saving():
 
 def test_energy():
 
-    energy = plotting.Energy(5, estimated=False)
+    energy = plotting.Energy(5, units='Ha', estimated=False)
     assert not energy.estimated
     assert energy == 5
 
@@ -215,7 +215,7 @@ def test_energy():
     new_energy = energy - 5
     assert new_energy == 0
 
-    energy2 = plotting.Energy(2, estimated=False)
+    energy2 = plotting.Energy(2, units='Ha', estimated=False)
     new_energy = 5 * energy2
     assert new_energy == 10
 
