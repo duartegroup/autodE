@@ -36,6 +36,34 @@ class Method:
 
 class ElectronicStructureMethod(Method, ABC):
 
+    def __init__(self, name, path, keywords_set, implicit_solvation_type,
+                 doi=None, doi_list=None):
+        """
+        Arguments:
+            name (str): wrapper name. ALSO the name of the executable
+            path (str): absolute path to the executable
+            keywords_set (autode.wrappers.keywords.KeywordsSet):
+            implicit_solvation_type (autode.wrappers.
+                                     keywords.ImplicitSolventType):
+
+        """
+        self.name = name
+        self.__name__ = self.__class__.__name__
+
+        # Digital object identifier(s) of the method/or paper describing the
+        # method
+        self.doi_list = []
+        if doi_list is not None:
+            self.doi_list += doi_list
+
+        if doi is not None:
+            self.doi_list.append(doi)
+
+        # If the path is not set in config.py or input script search in $PATH
+        self.path = path if path is not None else which(name)
+        self.keywords = deepcopy(keywords_set)
+        self.implicit_solvation_type = implicit_solvation_type
+
     @abstractmethod
     def __repr__(self):
         """Representation of this method"""
@@ -239,31 +267,3 @@ class ElectronicStructureMethod(Method, ABC):
             IndexError)
         """
         raise NotImplementedError
-
-    def __init__(self, name, path, keywords_set, implicit_solvation_type,
-                 doi=None, doi_list=None):
-        """
-        Arguments:
-            name (str): wrapper name. ALSO the name of the executable
-            path (str): absolute path to the executable
-            keywords_set (autode.wrappers.keywords.KeywordsSet):
-            implicit_solvation_type (autode.wrappers.
-                                     keywords.ImplicitSolventType):
-
-        """
-        self.name = name
-        self.__name__ = self.__class__.__name__
-
-        # Digital object identifier(s) of the method/or paper describing the
-        # method
-        self.doi_list = []
-        if doi_list is not None:
-            self.doi_list += doi_list
-
-        if doi is not None:
-            self.doi_list.append(doi)
-
-        # If the path is not set in config.py or input script search in $PATH
-        self.path = path if path is not None else which(name)
-        self.keywords = deepcopy(keywords_set)
-        self.implicit_solvation_type = implicit_solvation_type

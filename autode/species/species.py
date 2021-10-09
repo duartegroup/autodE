@@ -30,6 +30,54 @@ from autode.utils import (requires_atoms,
 
 class Species(AtomCollection):
 
+    def __init__(self,
+                 name:         str,
+                 atoms:        Union[List[Atom], Atoms, None],
+                 charge:       Union[float, int],
+                 mult:         Union[float, int],
+                 solvent_name: Optional[str] = None):
+        """
+        A molecular species. A collection of atoms with a charge and spin
+        multiplicity in a solvent (None is gas phase)
+
+        ----------------------------------------------------------------------
+        Arguments:
+            name (str): Name of the species
+
+            atoms (list(autode.atoms.Atom) | None): List of atoms in the
+                                                    species, or None
+
+            charge (int): Charge on the species
+
+            mult (int): Spin multiplicity of the species. 2S+1, where S is the
+                        number of unpaired electrons
+
+        Keyword Arguments:
+            solvent_name (str | None): Name of the solvent, or None for a
+                                       species  in the gas phase
+        """
+        super().__init__(atoms=atoms)
+
+        self.name = name
+
+        self._charge = int(charge)
+        self._mult = int(mult)
+
+        self._solvent = get_solvent(solvent_name=solvent_name)
+
+        #: All energies calculated at a geometry (autode.values.Energies)
+        self.energies = val.Energies()
+
+        self._grad = None
+        self._hess = None
+
+        #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
+        self.graph = None
+
+        self._conformers = Conformers()
+
+        self.constraints = Constraints()
+
     def __str__(self):
         """Unique species identifier"""
 
@@ -971,51 +1019,3 @@ class Species(AtomCollection):
 
     # --- Method aliases ---
     symmetry_number = sn
-
-    def __init__(self,
-                 name:         str,
-                 atoms:        Union[List[Atom], Atoms, None],
-                 charge:       Union[float, int],
-                 mult:         Union[float, int],
-                 solvent_name: Optional[str] = None):
-        """
-        A molecular species. A collection of atoms with a charge and spin
-        multiplicity in a solvent (None is gas phase)
-
-        ----------------------------------------------------------------------
-        Arguments:
-            name (str): Name of the species
-
-            atoms (list(autode.atoms.Atom) | None): List of atoms in the
-                                                    species, or None
-
-            charge (int): Charge on the species
-
-            mult (int): Spin multiplicity of the species. 2S+1, where S is the
-                        number of unpaired electrons
-
-        Keyword Arguments:
-            solvent_name (str | None): Name of the solvent, or None for a
-                                       species  in the gas phase
-        """
-        super().__init__(atoms=atoms)
-
-        self.name = name
-
-        self._charge = int(charge)
-        self._mult = int(mult)
-
-        self._solvent = get_solvent(solvent_name=solvent_name)
-
-        #: All energies calculated at a geometry (autode.values.Energies)
-        self.energies = val.Energies()
-
-        self._grad = None
-        self._hess = None
-
-        #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
-        self.graph = None
-
-        self._conformers = Conformers()
-
-        self.constraints = Constraints()

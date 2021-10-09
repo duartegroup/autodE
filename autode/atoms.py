@@ -9,6 +9,40 @@ from autode.values import (Distance, Angle, Mass, Coordinate,
 
 class Atom:
 
+    def __init__(self,
+                 atomic_symbol: str,
+                 x:             float = 0.0,
+                 y:             float = 0.0,
+                 z:             float = 0.0):
+        """
+        Atom class. Centered at the origin by default. Can be initialised from
+        positional or keyword arguments:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H')
+            Atom(H, 0.0000, 0.0000, 0.0000)
+            >>>
+            >>> ade.Atom('H', x=1.0, y=1.0, z=1.0)
+            Atom(H, 1.0000, 1.0000, 1.0000)
+            >>>
+            >>> ade.Atom('H', 1.0, 1.0, 1.0)
+            Atom(H, 1.0000, 1.0000, 1.0000)
+
+        Arguments:
+            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
+
+        Keyword Arguments:
+            x (float): x coordinate in 3D space (Å)
+            y (float): y coordinate in 3D space (Å)
+            z (float): z coordinate in 3D space (Å)
+        """
+        assert atomic_symbol in elements
+
+        self.label = atomic_symbol
+        self._coord = Coordinate(float(x), float(y), float(z))
+
     def __repr__(self):
         """
         Representation of this atom
@@ -425,57 +459,8 @@ class Atom:
     # --- Method aliases ---
     coordinate = coord
 
-    def __init__(self,
-                 atomic_symbol: str,
-                 x:             float = 0.0,
-                 y:             float = 0.0,
-                 z:             float = 0.0):
-        """
-        Atom class. Centered at the origin by default. Can be initialised from
-        positional or keyword arguments:
-
-        .. code-block:: Python
-
-            >>> import autode as ade
-            >>> ade.Atom('H')
-            Atom(H, 0.0000, 0.0000, 0.0000)
-            >>>
-            >>> ade.Atom('H', x=1.0, y=1.0, z=1.0)
-            Atom(H, 1.0000, 1.0000, 1.0000)
-            >>>
-            >>> ade.Atom('H', 1.0, 1.0, 1.0)
-            Atom(H, 1.0000, 1.0000, 1.0000)
-
-        Arguments:
-            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
-
-        Keyword Arguments:
-            x (float): x coordinate in 3D space (Å)
-            y (float): y coordinate in 3D space (Å)
-            z (float): z coordinate in 3D space (Å)
-        """
-        assert atomic_symbol in elements
-
-        self.label = atomic_symbol
-        self._coord = Coordinate(float(x), float(y), float(z))
-
 
 class DummyAtom(Atom):
-
-    @property
-    def atomic_number(self):
-        """The atomic number is defined as 0 for a dummy atom"""
-        return 0
-
-    @property
-    def weight(self) -> Mass:
-        """Dummy atoms do not have any weight/mass"""
-        return Mass(0.0)
-
-    @property
-    def mass(self) -> Mass:
-        """Dummy atoms do not have any weight/mass"""
-        return Mass(0.0)
 
     def __init__(self, x, y, z):
         """
@@ -491,6 +476,21 @@ class DummyAtom(Atom):
 
         # then re-assigned
         self.label = 'D'
+
+    @property
+    def atomic_number(self):
+        """The atomic number is defined as 0 for a dummy atom"""
+        return 0
+
+    @property
+    def weight(self) -> Mass:
+        """Dummy atoms do not have any weight/mass"""
+        return Mass(0.0)
+
+    @property
+    def mass(self) -> Mass:
+        """Dummy atoms do not have any weight/mass"""
+        return Mass(0.0)
 
 
 class Atoms(list):
@@ -658,6 +658,17 @@ class Atoms(list):
 
 
 class AtomCollection:
+
+    def __init__(self,
+                 atoms: Union[List[Atom], Atoms, None] = None):
+        """
+        Collection of atoms, used as a a base class for a species, complex
+        or transition state.
+
+        Arguments:
+            atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
+        """
+        self._atoms = Atoms(atoms) if atoms is not None else None
 
     @property
     def n_atoms(self) -> int:
@@ -906,17 +917,6 @@ class AtomCollection:
     centre_of_mass = com
     moment_of_inertia = moi
     mass = weight
-
-    def __init__(self,
-                 atoms: Union[List[Atom], Atoms, None] = None):
-        """
-        Collection of atoms, used as a a base class for a species, complex
-        or transition state.
-
-        Arguments:
-            atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
-        """
-        self._atoms = Atoms(atoms) if atoms is not None else None
 
 
 elements = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',

@@ -46,6 +46,49 @@ def calc_delta_with_cont(left, right, cont):
 
 class Reaction:
 
+    def __init__(self, *args, name='reaction', solvent_name=None, smiles=None,
+                 temp=298.15):
+        """
+        Reaction containing reactants and products. reaction.reactant is the
+        reactant complex which is the same as reacs[0] if there is only
+        reactant
+
+        Arguments:
+             args (autode.species.Molecule | autode.species.Complex | str):
+                  Reactant and Product objects or a SMILES string of the whole
+                   reaction
+
+            name (str):
+
+            solvent_name (str):
+
+            smiles (str):
+
+            temp (float): Temperature in Kelvin
+        """
+        logger.info(f'Generating a Reaction for {name}')
+
+        self.name = name
+        self.reacs,  self.prods = [], []
+        self._reactant_complex, self._product_complex = None, None
+        self.ts, self.tss = None, None
+
+        # If there is only one string argument assume it's a SMILES
+        if len(args) == 1 and type(args[0]) is str:
+            smiles = args[0]
+
+        if smiles is not None:
+            self._init_from_smiles(smiles)
+        else:
+            self._init_from_molecules(molecules=args)
+
+        self.type = reaction_types.classify(self.reacs, self.prods)
+        self.solvent = get_solvent(solvent_name=solvent_name)
+        self.temp = float(temp)
+
+        self._check_solvent()
+        self._check_balance()
+
     def __str__(self):
         """Return a very short 6 character hash of the reaction, not guaranteed
          to be unique"""
@@ -576,46 +619,3 @@ class Reaction:
                                                        free_energy=free_energy,
                                                        enthalpy=enthalpy)
         return None
-
-    def __init__(self, *args, name='reaction', solvent_name=None, smiles=None,
-                 temp=298.15):
-        """
-        Reaction containing reactants and products. reaction.reactant is the
-        reactant complex which is the same as reacs[0] if there is only
-        reactant
-
-        Arguments:
-             args (autode.species.Molecule | autode.species.Complex | str):
-                  Reactant and Product objects or a SMILES string of the whole
-                   reaction
-
-            name (str):
-
-            solvent_name (str):
-
-            smiles (str):
-
-            temp (float): Temperature in Kelvin
-        """
-        logger.info(f'Generating a Reaction for {name}')
-
-        self.name = name
-        self.reacs,  self.prods = [], []
-        self._reactant_complex, self._product_complex = None, None
-        self.ts, self.tss = None, None
-
-        # If there is only one string argument assume it's a SMILES
-        if len(args) == 1 and type(args[0]) is str:
-            smiles = args[0]
-
-        if smiles is not None:
-            self._init_from_smiles(smiles)
-        else:
-            self._init_from_molecules(molecules=args)
-
-        self.type = reaction_types.classify(self.reacs, self.prods)
-        self.solvent = get_solvent(solvent_name=solvent_name)
-        self.temp = float(temp)
-
-        self._check_solvent()
-        self._check_balance()

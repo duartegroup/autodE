@@ -25,6 +25,76 @@ def execute_calc(calc):
 
 class Calculation:
 
+    def __init__(self,
+                 name:                  str,
+                 molecule:              'autode.species.Species',
+                 method:                'autode.wrappers.base.Method',
+                 keywords:              'autode.wrappers.keywords.Keywords',
+                 n_cores:               int = 1,
+                 bond_ids_to_add:       Optional[List[tuple]] = None,
+                 other_input_block:     Optional[str] = None,
+                 distance_constraints:  Optional[dict] = None,
+                 cartesian_constraints: Optional[List[int]] = None,
+                 point_charges:         Optional[List[PointCharge]] = None):
+        """
+        Arguments:
+            name (str):
+
+            molecule (autode.species.Species): Molecule to be calculated
+
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+            keywords (autode.wrappers.keywords.Keywords):
+
+        Keyword Arguments:
+
+            n_cores (int): Number of cores available (default: {1})
+
+            bond_ids_to_add (list(tuples)): List of bonds to add to internal
+                                            coordinates (default: {None})
+
+            other_input_block (str): Other input block to add (default: {None})
+
+            distance_constraints (dict): keys = tuple of atom ids for a bond to
+                                         be kept at fixed length, value = dist
+                                         to be fixed at (default: {None})
+
+            cartesian_constraints (list(int)): List of atom ids to fix at their
+                                               cartesian coordinates
+                                               (default: {None})
+
+            point_charges (list(autode.point_charges.PointCharge)): List of
+                                             float of point charges, x, y, z
+                                             coordinates for each point charge
+        """
+        # Calculation names that start with "-" can break EST methods
+        self.name = (f'{name}_{method.name}' if not name.startswith('-')
+                     else f'_{name}_{method.name}')
+
+        # ------------------- System specific parameters ----------------------
+        self.molecule = deepcopy(molecule)
+
+        if hasattr(self.molecule, 'constraints'):
+            self.molecule.constraints.update(distance=distance_constraints,
+                                             cartesian=cartesian_constraints)
+        else:
+            self.molecule.constraints = Constraints(distance=distance_constraints,
+                                                    cartesian=cartesian_constraints)
+
+        # --------------------- Calculation parameters ------------------------
+        self.method = method
+        self.n_cores = int(n_cores)
+
+        # ------------------- Calculation input/output ------------------------
+        self.input = CalculationInput(keywords=deepcopy(keywords),
+                                      additional_input=other_input_block,
+                                      added_internals=bond_ids_to_add,
+                                      point_charges=point_charges)
+
+        self.output = CalculationOutput()
+
+        self._check_molecule()
+
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""
         string = (f'{self.name}{self.method.name}{self.input.keywords}'
@@ -422,76 +492,6 @@ class Calculation:
         self._add_to_comp_methods()
 
         return None
-
-    def __init__(self,
-                 name:                  str,
-                 molecule:              'autode.species.Species',
-                 method:                'autode.wrappers.base.Method',
-                 keywords:              'autode.wrappers.keywords.Keywords',
-                 n_cores:               int = 1,
-                 bond_ids_to_add:       Optional[List[tuple]] = None,
-                 other_input_block:     Optional[str] = None,
-                 distance_constraints:  Optional[dict] = None,
-                 cartesian_constraints: Optional[List[int]] = None,
-                 point_charges:         Optional[List[PointCharge]] = None):
-        """
-        Arguments:
-            name (str):
-
-            molecule (autode.species.Species): Molecule to be calculated
-
-            method (autode.wrappers.base.ElectronicStructureMethod):
-
-            keywords (autode.wrappers.keywords.Keywords):
-
-        Keyword Arguments:
-
-            n_cores (int): Number of cores available (default: {1})
-
-            bond_ids_to_add (list(tuples)): List of bonds to add to internal
-                                            coordinates (default: {None})
-
-            other_input_block (str): Other input block to add (default: {None})
-
-            distance_constraints (dict): keys = tuple of atom ids for a bond to
-                                         be kept at fixed length, value = dist
-                                         to be fixed at (default: {None})
-
-            cartesian_constraints (list(int)): List of atom ids to fix at their
-                                               cartesian coordinates
-                                               (default: {None})
-
-            point_charges (list(autode.point_charges.PointCharge)): List of
-                                             float of point charges, x, y, z
-                                             coordinates for each point charge
-        """
-        # Calculation names that start with "-" can break EST methods
-        self.name = (f'{name}_{method.name}' if not name.startswith('-')
-                     else f'_{name}_{method.name}')
-
-        # ------------------- System specific parameters ----------------------
-        self.molecule = deepcopy(molecule)
-
-        if hasattr(self.molecule, 'constraints'):
-            self.molecule.constraints.update(distance=distance_constraints,
-                                             cartesian=cartesian_constraints)
-        else:
-            self.molecule.constraints = Constraints(distance=distance_constraints,
-                                                    cartesian=cartesian_constraints)
-
-        # --------------------- Calculation parameters ------------------------
-        self.method = method
-        self.n_cores = int(n_cores)
-
-        # ------------------- Calculation input/output ------------------------
-        self.input = CalculationInput(keywords=deepcopy(keywords),
-                                      additional_input=other_input_block,
-                                      added_internals=bond_ids_to_add,
-                                      point_charges=point_charges)
-
-        self.output = CalculationOutput()
-
-        self._check_molecule()
 
 
 class CalculationOutput:

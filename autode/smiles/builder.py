@@ -24,6 +24,25 @@ class Builder(AtomCollection):
 
     """
 
+    def __init__(self):
+        """
+        Coordinate builder initialised from a set of atoms and bonds connecting
+        them. This builder should generate something *reasonable* that can
+        be cleaned up with a forcefield
+        """
+        super().__init__()
+
+        self.atoms = None              # list(SMILESAtom)
+        self.bonds = None              # SMILESBonds
+        self.graph = None              # nx.Graph
+        self.rings_idxs = None         # Iterator for atom indexes in all rings
+
+        # A queue of atom indexes, the neighbours for which need to be added
+        self.queued_atoms = []
+
+        # A queue of dihedrals that need to be applied
+        self.queued_dihedrals = SDihedrals()
+
     @property
     def built(self):
         """Have all the atoms been shifted appropriately?
@@ -957,22 +976,3 @@ class Builder(AtomCollection):
 
         self._minimise_non_ring_dihedrals()
         return None
-
-    def __init__(self):
-        """
-        Coordinate builder initialised from a set of atoms and bonds connecting
-        them. This builder should generate something *reasonable* that can
-        be cleaned up with a forcefield
-        """
-        super().__init__()
-
-        self.atoms = None              # list(SMILESAtom)
-        self.bonds = None              # SMILESBonds
-        self.graph = None              # nx.Graph
-        self.rings_idxs = None         # Iterator for atom indexes in all rings
-
-        # A queue of atom indexes, the neighbours for which need to be added
-        self.queued_atoms = []
-
-        # A queue of dihedrals that need to be applied
-        self.queued_dihedrals = SDihedrals()

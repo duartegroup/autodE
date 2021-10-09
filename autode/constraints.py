@@ -4,6 +4,21 @@ from autode.log import logger
 
 class Constraints:
 
+    def __init__(self,
+                 distance:  Optional[Dict] = None,
+                 cartesian: Optional[List] = None):
+        """
+        Arguments:
+            distance (dict | None): Keys of: tuple(int) for two atom indexes
+                                    and values of the distance in Å, or None
+
+            cartesian (list(int) | None): List of atom indexes or None
+        """
+        self._distance = {}
+        self._cartesian = []
+
+        self.update(distance, cartesian)
+
     def __str__(self):
         """String of constraints"""
         string = ''
@@ -74,18 +89,3 @@ class Constraints:
             self._cartesian += cartesian
 
         return None
-
-    def __init__(self,
-                 distance:  Optional[Dict] = None,
-                 cartesian: Optional[List] = None):
-        """
-        Arguments:
-            distance (dict | None): Keys of: tuple(int) for two atom indexes
-                                    and values of the distance in Å, or None
-
-            cartesian (list(int) | None): List of atom indexes or None
-        """
-        self._distance = {}
-        self._cartesian = []
-
-        self.update(distance, cartesian)

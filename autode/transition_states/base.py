@@ -21,6 +21,42 @@ class TSbase(Species, ABC):
                  H                   r2 = 2.2 Å
     """
 
+    def __init__(self,
+                 atoms:      'autode.atoms.Atoms',
+                 reactant:   Optional['autode.species.ReactantComplex'] = None,
+                 product:    Optional['autode.species.ProductComplex'] = None,
+                 name:       str = 'ts_guess',
+                 charge:     int = 0,
+                 mult:       int = 1,
+                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
+        """
+        Parent transition state class
+
+        Arguments:
+            atoms (list(autode.atoms.Atom)):
+
+        Keyword Arguments:
+            reactant (autode.species.Species): If None then mode checking will
+                                               not be available
+            product (autode.species.Species): If None then mode checking will
+                                             not be available
+            name (str):
+            charge (int):
+            mult (int):
+        """
+        super().__init__(name=name,
+                         atoms=atoms,
+                         charge=charge if reactant is None else reactant.charge,
+                         mult=mult if reactant is None else reactant.mult)
+
+        self.reactant = reactant
+        self.product = product
+
+        self.bond_rearrangement = bond_rearr
+
+        self.solvent = None if reactant is None else reactant.solvent
+        self._init_graph()
+
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
         if self.reactant is not None:
@@ -270,42 +306,6 @@ class TSbase(Species, ABC):
         logger.info(f'Forwards displaced edges {f_mol.graph.edges}')
         logger.info(f'Backwards displaced edges {b_mol.graph.edges}')
         return False
-
-    def __init__(self,
-                 atoms:      'autode.atoms.Atoms',
-                 reactant:   Optional['autode.species.ReactantComplex'] = None,
-                 product:    Optional['autode.species.ProductComplex'] = None,
-                 name:       str = 'ts_guess',
-                 charge:     int = 0,
-                 mult:       int = 1,
-                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
-        """
-        Parent transition state class
-
-        Arguments:
-            atoms (list(autode.atoms.Atom)):
-
-        Keyword Arguments:
-            reactant (autode.species.Species): If None then mode checking will
-                                               not be available
-            product (autode.species.Species): If None then mode checking will
-                                             not be available
-            name (str):
-            charge (int):
-            mult (int):
-        """
-        super().__init__(name=name,
-                         atoms=atoms,
-                         charge=charge if reactant is None else reactant.charge,
-                         mult=mult if reactant is None else reactant.mult)
-
-        self.reactant = reactant
-        self.product = product
-
-        self.bond_rearrangement = bond_rearr
-
-        self.solvent = None if reactant is None else reactant.solvent
-        self._init_graph()
 
 
 def displaced_species_along_mode(species:       Species,

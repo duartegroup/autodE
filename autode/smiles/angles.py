@@ -9,6 +9,13 @@ from autode.exceptions import (FailedToSetRotationIdxs,
 class SAngle:
     """Angle used in 3D construction from SMILES"""
 
+    def __init__(self, idxs, rot_idxs=None, phi0=None):
+        """Angle between a set of atoms. In order"""
+
+        self.idxs = idxs
+        self.phi_ideal = phi0
+        self.rot_idxs = rot_idxs
+
     def __str__(self):
         return f'Angle(idxs={self.idxs})'
 
@@ -121,13 +128,6 @@ class SAngle:
         """A non-None ideal angle, default to 100 degrees"""
         return 1.74533 if self.phi_ideal is None else self.phi_ideal
 
-    def __init__(self, idxs, rot_idxs=None, phi0=None):
-        """Angle between a set of atoms. In order"""
-
-        self.idxs = idxs
-        self.phi_ideal = phi0
-        self.rot_idxs = rot_idxs
-
 
 class SAngles(list):
 
@@ -187,6 +187,37 @@ class SDihedral(SAngle):
            Y---- Z
 
     """
+
+    def __init__(self, idxs, rot_idxs=None, phi0=None, mid_dist=2.0):
+        r"""
+        A dihedral constructed from atom indexes and possibly indexes that
+        should be rotated, if this dihedral is altered::
+
+             W
+              \
+               X --- Y
+                     \
+                      Z
+
+        Arguments:
+            idxs (list(int)): 4 atom indexes defining the dihedral
+
+        Keyword Arguments:
+            rot_idxs (list(int) | None): Indexes to rotate, 1 if the atoms
+                                         should be rotated else 0
+
+            phi0 (float | None): Ideal angle for this dihedral (radians)
+
+            mid_dist (float): Optimum distance between X-Y
+        """
+        super().__init__(idxs=idxs, rot_idxs=rot_idxs, phi0=phi0)
+
+        # Atom indexes of the central two atoms (X, Y)
+        _, idx_x, idx_y, _ = idxs
+
+        self.mid_idxs = (idx_x, idx_y)
+        self.mid_dist = mid_dist
+
     def __str__(self):
         return f'Dihedral(idxs={self.idxs}, φ0={round(self.phi0, 2)})'
 
@@ -242,33 +273,3 @@ class SDihedral(SAngle):
         """
         return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs,
                                              max_bond_distance=1.5*self.mid_dist)
-
-    def __init__(self, idxs, rot_idxs=None, phi0=None, mid_dist=2.0):
-        r"""
-        A dihedral constructed from atom indexes and possibly indexes that
-        should be rotated, if this dihedral is altered::
-
-             W
-              \
-               X --- Y
-                     \
-                      Z
-
-        Arguments:
-            idxs (list(int)): 4 atom indexes defining the dihedral
-
-        Keyword Arguments:
-            rot_idxs (list(int) | None): Indexes to rotate, 1 if the atoms
-                                         should be rotated else 0
-
-            phi0 (float | None): Ideal angle for this dihedral (radians)
-
-            mid_dist (float): Optimum distance between X-Y
-        """
-        super().__init__(idxs=idxs, rot_idxs=rot_idxs, phi0=phi0)
-
-        # Atom indexes of the central two atoms (X, Y)
-        _, idx_x, idx_y, _ = idxs
-
-        self.mid_idxs = (idx_x, idx_y)
-        self.mid_dist = mid_dist

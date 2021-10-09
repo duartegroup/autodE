@@ -53,6 +53,36 @@ def get_solvent(solvent_name: str,
 
 class Solvent(ABC):
 
+    def __init__(self, name, smiles, aliases, **kwargs):
+        """
+        Solvent class. As electronic structure methods implement implicit
+        solvation without a unique list of solvents there needs to be
+        conversion between them, while also allowing for user specifying
+        one possibility from a list of aliases
+
+        Arguments:
+            name (str): Unique name of the solvent
+            smiles (str): SMILES string
+            aliases (list(str)): Different names for the same solvent e.g.
+                                 water and H2O
+
+        Keyword Arguments:
+            kwargs (str): Name of the solvent in the electronic structure
+                          package e.g. Solvent(..., orca='water')
+        """
+
+        self.name = name
+        self.smiles = smiles
+        self.aliases = [alias.lower() for alias in aliases]
+
+        # Add attributes for all the methods specified e.g. initialisation with
+        # orca='water' -> self.orca = 'water'
+        self.__dict__.update(kwargs)
+
+        # Gaussian 09 and Gaussian 16 solvents are named the same
+        if 'g09' in kwargs.keys():
+            self.g16 = kwargs['g09']
+
     def __repr__(self):
         return f'Solvent({self.name})'
 
@@ -91,36 +121,6 @@ class Solvent(ABC):
     @abstractmethod
     def is_implicit(self):
         """Is this solvent implicit or explicit?"""
-
-    def __init__(self, name, smiles, aliases, **kwargs):
-        """
-        Solvent class. As electronic structure methods implement implicit
-        solvation without a unique list of solvents there needs to be
-        conversion between them, while also allowing for user specifying
-        one possibility from a list of aliases
-
-        Arguments:
-            name (str): Unique name of the solvent
-            smiles (str): SMILES string
-            aliases (list(str)): Different names for the same solvent e.g.
-                                 water and H2O
-
-        Keyword Arguments:
-            kwargs (str): Name of the solvent in the electronic structure
-                          package e.g. Solvent(..., orca='water')
-        """
-
-        self.name = name
-        self.smiles = smiles
-        self.aliases = [alias.lower() for alias in aliases]
-
-        # Add attributes for all the methods specified e.g. initialisation with
-        # orca='water' -> self.orca = 'water'
-        self.__dict__.update(kwargs)
-
-        # Gaussian 09 and Gaussian 16 solvents are named the same
-        if 'g09' in kwargs.keys():
-            self.g16 = kwargs['g09']
 
 
 class ImplicitSolvent(Solvent):

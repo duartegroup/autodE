@@ -193,6 +193,12 @@ def print_constraints(inp_file, molecule, force_constant=20):
 
 class NWChem(ElectronicStructureMethod):
 
+    def __init__(self):
+        super().__init__('nwchem', path=Config.NWChem.path,
+                         keywords_set=Config.NWChem.keywords,
+                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
+                         doi='10.1063/5.0004997')
+
     def __repr__(self):
         return f'NWChem(available = {self.available})'
 
@@ -482,12 +488,6 @@ class NWChem(ElectronicStructureMethod):
 
         # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
         return hess / Constants.a0_to_ang**2
-
-    def __init__(self):
-        super().__init__('nwchem', path=Config.NWChem.path,
-                         keywords_set=Config.NWChem.keywords,
-                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
-                         doi='10.1063/5.0004997')
 
 
 nwchem = NWChem()

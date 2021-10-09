@@ -6,48 +6,6 @@ from autode.log import logger
 
 class KeywordsSet:
 
-    def __repr__(self):
-        str_methods = ',\n'.join(str(c) for c in self._list if c is not None)
-        return f'KeywordsSet({str_methods})'
-
-    def __getitem__(self, item):
-        return self._list[item]
-
-    def set_opt_functional(self, functional):
-        """Set the functional for all optimisation and gradient calculations"""
-        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
-            getattr(self, attr).functional = functional
-
-        return None
-
-    def set_opt_basis_set(self, basis_set):
-        """Set the basis set for all optimisation and gradient calculations"""
-        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
-            getattr(self, attr).basis_set = basis_set
-
-        return None
-
-    def set_functional(self, functional):
-        """Set the functional for all calculation types"""
-        for keywords in self:
-            keywords.functional = functional
-
-        return None
-
-    def set_dispersion(self, dispersion):
-        """Set the dispersion correction for all calculation types"""
-        for keywords in self:
-            keywords.dispersion = dispersion
-
-        return None
-
-    def set_ecp(self, ecp):
-        """Set the effective core potential for all calculation types"""
-        for keywords in self:
-            keywords.ecp = ecp
-
-        return None
-
     def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None,
                  hess=None, optts_block='', sp=None, ecp=None):
         """
@@ -106,8 +64,59 @@ class KeywordsSet:
         if ecp is not None:
             self.set_ecp(ecp)
 
+    def __repr__(self):
+        str_methods = ',\n'.join(str(c) for c in self._list if c is not None)
+        return f'KeywordsSet({str_methods})'
+
+    def __getitem__(self, item):
+        return self._list[item]
+
+    def set_opt_functional(self, functional):
+        """Set the functional for all optimisation and gradient calculations"""
+        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
+            getattr(self, attr).functional = functional
+
+        return None
+
+    def set_opt_basis_set(self, basis_set):
+        """Set the basis set for all optimisation and gradient calculations"""
+        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
+            getattr(self, attr).basis_set = basis_set
+
+        return None
+
+    def set_functional(self, functional):
+        """Set the functional for all calculation types"""
+        for keywords in self:
+            keywords.functional = functional
+
+        return None
+
+    def set_dispersion(self, dispersion):
+        """Set the dispersion correction for all calculation types"""
+        for keywords in self:
+            keywords.dispersion = dispersion
+
+        return None
+
+    def set_ecp(self, ecp):
+        """Set the effective core potential for all calculation types"""
+        for keywords in self:
+            keywords.ecp = ecp
+
+        return None
+
 
 class Keywords:
+
+    def __init__(self, keyword_list=None):
+        """
+        Read only list of keywords
+
+        Keyword Arguments:
+            keyword_list (list(str)): List of keywords used in a QM calculation
+        """
+        self.keyword_list = keyword_list if keyword_list is not None else []
 
     def __str__(self):
         return '_'.join([str(kw) for kw in self.keyword_list])
@@ -281,15 +290,6 @@ class Keywords:
     def __iter__(self):
         return iter(self.keyword_list)
 
-    def __init__(self, keyword_list=None):
-        """
-        Read only list of keywords
-
-        Keyword Arguments:
-            keyword_list (list(str)): List of keywords used in a QM calculation
-        """
-        self.keyword_list = keyword_list if keyword_list is not None else []
-
 
 class OptKeywords(Keywords):
 
@@ -339,39 +339,6 @@ class SinglePointKeywords(Keywords):
 
 class Keyword(ABC):
 
-    @abstractmethod
-    def __repr__(self):
-        """Representation of this keyword"""
-
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __str__(self):
-        return self.name
-
-    def lower(self):
-        return self.name.lower()
-
-    def upper(self):
-        return self.name.upper()
-
-    @property
-    def doi_str(self):
-        return ' '.join(self.doi_list)
-
-    def has_only_name(self):
-        """Determine if only a name has been set, in which case it will
-        be printed verbatim into an input file, otherwise needs keyword.method
-        to be set, where method is e.g. orca"""
-
-        excl_attrs = ('name', 'doi_list')
-        for attr in self.__dict__:
-            if attr in excl_attrs:
-                continue
-            return False
-
-        return True
-
     def __init__(self, name, doi=None, doi_list=None, **kwargs):
         """
         A keyword for an electronic structure theory method e.g. basis set or
@@ -407,6 +374,39 @@ class Keyword(ABC):
         # Gaussian 09 and Gaussian 16 keywords are the same(?)
         if 'g09' in kwargs.keys():
             self.g16 = kwargs['g09']
+
+    @abstractmethod
+    def __repr__(self):
+        """Representation of this keyword"""
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __str__(self):
+        return self.name
+
+    def lower(self):
+        return self.name.lower()
+
+    def upper(self):
+        return self.name.upper()
+
+    @property
+    def doi_str(self):
+        return ' '.join(self.doi_list)
+
+    def has_only_name(self):
+        """Determine if only a name has been set, in which case it will
+        be printed verbatim into an input file, otherwise needs keyword.method
+        to be set, where method is e.g. orca"""
+
+        excl_attrs = ('name', 'doi_list')
+        for attr in self.__dict__:
+            if attr in excl_attrs:
+                continue
+            return False
+
+        return True
 
 
 class BasisSet(Keyword):

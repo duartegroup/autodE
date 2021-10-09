@@ -139,6 +139,12 @@ def print_point_charges(calc, atoms):
 
 class MOPAC(ElectronicStructureMethod):
 
+    def __init__(self):
+        super().__init__(name='mopac', path=Config.MOPAC.path,
+                         keywords_set=Config.MOPAC.keywords,
+                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
+                         doi='10.1007/BF00128336')
+
     def __repr__(self):
         return f'MOPAC(available = {self.available})'
 
@@ -297,12 +303,6 @@ class MOPAC(ElectronicStructureMethod):
         grad_array = grad_array.reshape((calc.molecule.n_atoms, 3))
 
         return grad_array
-
-    def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path,
-                         keywords_set=Config.MOPAC.keywords,
-                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
-                         doi='10.1007/BF00128336')
 
 
 mopac = MOPAC()

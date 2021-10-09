@@ -74,6 +74,25 @@ class Value(ABC, float):
     """
     implemented_units = []
 
+    def __init__(self, x,
+                 units: Union[Unit, str, None] = None):
+        """
+        Value constructor
+
+        Arguments:
+            x (float | int):
+
+        Keyword Arguments:
+            units (autode.units.Unit | str | None):
+        """
+
+        float.__init__(float(x))
+
+        if isinstance(x, Value):
+            self.units = x.units
+        else:
+            self.units = _units_init(self, units)
+
     @abstractmethod
     def __repr__(self):
         """Internal representation of this value"""
@@ -175,25 +194,6 @@ class Value(ABC, float):
             (TypeError):
         """
         return _to(self, units)
-
-    def __init__(self, x,
-                 units: Union[Unit, str, None] = None):
-        """
-        Value constructor
-
-        Arguments:
-            x (float | int):
-
-        Keyword Arguments:
-            units (autode.units.Unit | str | None):
-        """
-
-        float.__init__(float(x))
-
-        if isinstance(x, Value):
-            self.units = x.units
-        else:
-            self.units = _units_init(self, units)
 
 
 class Energy(Value):

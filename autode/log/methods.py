@@ -3,6 +3,13 @@
 class ComputationalMethods:
     """Generic computational methods section built by autodE"""
 
+    def __init__(self):
+        """
+        ComputationalMethods as a list of sentences and digital object
+        identifiers (DOIs) for all the methods used
+        """
+        self._list = []
+
     def __add__(self, other):
         """Add another sentence to the methods if it's not already present"""
         assert type(other) is str
@@ -32,13 +39,6 @@ class ComputationalMethods:
         """Clear the current string"""
         self._list = []
         return None
-
-    def __init__(self):
-        """
-        ComputationalMethods as a list of sentences and digital object
-        identifiers (DOIs) for all the methods used
-        """
-        self._list = []
 
 
 methods = ComputationalMethods()

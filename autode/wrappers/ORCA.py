@@ -223,6 +223,13 @@ def print_coordinates(inp_file, molecule):
 
 class ORCA(ElectronicStructureMethod):
 
+    def __init__(self):
+        super().__init__('orca',
+                         path=Config.ORCA.path,
+                         keywords_set=Config.ORCA.keywords,
+                         implicit_solvation_type=Config.ORCA.implicit_solvation_type,
+                         doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])
+
     def __repr__(self):
         return f'ORCA(available = {self.available})'
 
@@ -529,13 +536,6 @@ class ORCA(ElectronicStructureMethod):
 
         # Hessians printed in Ha/a0^2, so convert to base Ha/Å^2
         return np.array(hessian, dtype='f8') / Constants.a0_to_ang**2
-
-    def __init__(self):
-        super().__init__('orca',
-                         path=Config.ORCA.path,
-                         keywords_set=Config.ORCA.keywords,
-                         implicit_solvation_type=Config.ORCA.implicit_solvation_type,
-                         doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])
 
 
 orca = ORCA()
