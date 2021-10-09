@@ -115,6 +115,13 @@ def test_energy():
     assert (10.0 * Energy(1.0)) == 10
 
 
+def test_energy_equality():
+    """Energies must be equal to within """
+
+    assert (Energy(-151.552245224975, units='Ha')
+            != Energy(-151.551673511378, units='Ha'))
+
+
 def test_enthalpy():
 
     assert Enthalpy(1.0) != PotentialEnergy(1.0)

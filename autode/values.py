@@ -208,12 +208,16 @@ class Energy(Value):
     def __eq__(self, other):
         """Is an energy equal to another? Compares only the value, with
         implicit unit conversion"""
+        tol_ha = 0.0000159    # 0.01 kcal mol-1
 
         # A PotentialEnergy is not equal to a FreeEnergy, for example
         if isinstance(other, Energy) and not isinstance(other, self.__class__):
             return False
 
-        return super().__eq__(other)
+        if isinstance(other, Value):
+            other = other.to('Ha')
+
+        return abs(other - float(self.to('Ha'))) < tol_ha
 
     def __init__(self,
                  value,
