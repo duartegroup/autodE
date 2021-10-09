@@ -100,6 +100,24 @@ all standard mathematical operations
   Distance(2.0 Å)
 
 
+
+Angles
+------
+
+Bond angles can be calculated between three atoms. For example, in a water molecule
+
+.. code-block:: python
+
+  >>> h2o = ade.Species(name='H2O', charge=0, mult=1,
+  ...                   atoms=[ade.Atom('H', x=-1.0),
+  ...                          ade.Atom('O'),
+  ...                          ade.Atom('H', x=0.25, y=0.97)])
+  >>> h2o.angle(0, 1, 2).to('degrees')
+  Angle(104.45247 °)
+
+
+Similarly, dihedral angles are available using :code:`Species.dihedral`.
+
 Solvents
 --------
 
