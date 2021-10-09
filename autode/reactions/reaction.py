@@ -1,6 +1,6 @@
 import base64
 import hashlib
-from typing import List, Union, Optional
+from typing import Union, Optional
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
@@ -14,7 +14,7 @@ from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
-from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
+from autode.values import Energy, Enthalpy, FreeEnergy
 from autode.utils import work_in, requires_hl_level_methods
 from autode.reactions import reaction_types
 
@@ -22,7 +22,7 @@ from autode.reactions import reaction_types
 class Reaction:
 
     def __init__(self,
-                 *args:        Union[str, Reactant, Product],
+                 *args:        Union[str, 'autode.species.species.Species'],
                  name:         str = 'reaction',
                  solvent_name: Optional[str] = None,
                  smiles:       Optional[str] = None,
@@ -611,8 +611,8 @@ class Reaction:
                 ts_title_str += f'. Imaginary frequency = {imags[0]:.1f} cm-1'
 
             if self.ts.has_imaginary_frequencies and len(imags) > 1:
-                ts_title_str += (f'. Additional imaginary frequencies: {imags[1:]}'
-                          f' cm-1')
+                ts_title_str += (f'. Additional imaginary frequencies: '
+                                 f'{imags[1:]} cm-1')
 
             print_energies_to_csv(self.ts)
             self.ts.print_xyz_file(additional_title_line=ts_title_str)
