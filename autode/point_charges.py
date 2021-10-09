@@ -1,4 +1,3 @@
-import numpy as np
 from typing import Sequence, Optional
 from autode.atoms import DummyAtom
 
