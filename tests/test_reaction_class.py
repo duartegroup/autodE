@@ -12,6 +12,7 @@ from autode.exceptions import SolventsDontMatch
 from autode.mol_graphs import make_graph
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
+from autode.values import PotentialEnergy
 from autode.methods import get_hmethod
 from autode.config import Config
 from .testutils import work_in_zipped_dir
@@ -54,7 +55,7 @@ def test_reaction_class():
     assert hh_reac.ts is None
     assert hh_reac.tss is None
     assert hh_reac.name == 'h2_assoc'
-    assert hh_reac.calc_delta_e() == -4
+    assert hh_reac.delta('E') == PotentialEnergy(-4.0)
 
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H')])
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
@@ -220,8 +221,8 @@ def test_calc_delta_e():
     reac = reaction.Reaction(r1, r2, p)
     reac.ts = ts
 
-    assert -1E-6 < reac.calc_delta_e() < 1E-6
-    assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
+    assert -1E-6 < reac.delta('E') < 1E-6
+    assert 0.2 - 1E-6 < reac.delta('E‡') < 0.2 + 1E-6
 
 
 def test_from_smiles():
@@ -295,17 +296,11 @@ def test_free_energy_profile():
 
     # Allow ~0.5 kcal mol-1 either side of the 'true' value
 
-    dg_ts = rxn.calc_delta_g_ddagger()
-    assert 16 < dg_ts.to('kcal mol-1') < 18
+    assert 16 < rxn.delta('G‡').to('kcal mol-1') < 18
+    assert -14 < rxn.delta('G').to('kcal mol-1') < -12
 
-    dg_r = rxn.calc_delta_g()
-    assert -14 < dg_r.to('kcal mol-1') < -12
-
-    dh_ts = rxn.calc_delta_h_ddagger()
-    assert 9 < dh_ts.to('kcal mol-1') < 11
-
-    dh_r = rxn.calc_delta_h()
-    assert -14 < dh_r.to('kcal mol-1') < -12
+    assert 9 < rxn.delta('H‡').to('kcal mol-1') < 11
+    assert -14 < rxn.delta('H').to('kcal mol-1') < -12
 
     # Should be able to plot an enthalpy profile
     plot_reaction_profile([rxn], units=KcalMol, name='enthalpy',
@@ -321,14 +316,5 @@ def test_free_energy_profile():
 
 
 def test_unavail_properties():
-    ha = reaction.Reactant(name='ha', atoms=[Atom('H')])
 
-    hb = reaction.Product(name='hb', atoms=[Atom('H')])
-
-    rxn = reaction.Reaction(ha, hb)
-    delta = reaction.calc_delta_with_cont(left=[ha], right=[hb], cont='h_cont')
-    assert delta is None
-
-    # Should not raise an exception(?)
-    rxn.find_lowest_energy_ts_conformer()
-    rxn.calculate_thermochemical_cont(free_energy=False, enthalpy=False)
+    pass

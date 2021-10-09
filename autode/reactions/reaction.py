@@ -1,6 +1,6 @@
 import base64
 import hashlib
-from typing import Union, Optional
+from typing import List, Union, Optional
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
@@ -13,36 +13,9 @@ from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
+from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
 from autode.utils import work_in, requires_hl_level_methods
 from autode.reactions import reaction_types
-
-
-def calc_delta(attr, left, right):
-    """Calculate the difference (∆) for a molecular attribute for some L → R"""
-    if any(mol is None for mol in left + right):
-        logger.error('Could not calculate ∆, a molecule was None')
-        return None
-
-    if any(getattr(mol, attr) is None for mol in left + right):
-        logger.error(f'Cannot calculate ∆ for {attr}. At least one required '
-                     f'attribute was None')
-        return None
-
-    return (sum([getattr(mol, attr) for mol in right]) -
-            sum([getattr(mol, attr) for mol in left]))
-
-
-def calc_delta_with_cont(left, right, cont):
-    """Calculate a ∆H or ∆G by adding a contribution to ∆E"""
-    de = calc_delta(attr='energy', left=left, right=right)
-    d_cont = calc_delta(attr=cont, left=left, right=right)
-
-    if de is None or d_cont is None:
-        logger.warning('Could not calculate ∆ either the energy or thermal '
-                       'contribution was None')
-        return None
-
-    return de + d_cont
 
 
 class Reaction:
@@ -287,6 +260,119 @@ class Reaction:
 
         return None
 
+    def _estimated_barrierless_delta(self, e_type: str) -> Optional[Energy]:
+        """
+        Assume an effective free energy barrier = 4.35 kcal mol-1 calcd.
+        from k = 4x10^9 at 298 K (doi: 10.1021/cr050205w). Must have a ∆G_r
+
+        Arguments:
+            e_type (str): Type of energy to calculate: {'energy', 'enthalpy',
+                                                        'free_energy'}
+        Returns:
+            (autode.values.Energy | None):
+        """
+        logger.warning('Have a barrierless reaction. Assuming a diffusion '
+                       'limited reaction with a rate of 4 x 10^9 s^-1')
+
+        if self.delta(e_type) is None:
+            logger.error(f'Could not estimate barrierless {e_type},'
+                         f' an energy was None')
+            return None
+
+        value = Energy(0.00694, units='Ha') + max(0.0, self.delta(e_type))
+
+        if e_type == 'free_energy':
+            return FreeEnergy(value, estimated=True)
+        elif e_type == 'enthalpy':
+            return Enthalpy(value, estimated=True)
+        else:
+            return Energy(value, estimated=True)
+
+    def delta(self, delta_type: str) -> Optional[Energy]:
+        """
+        Energy difference for either reactants->TS or reactants -> products.
+        Allows for equivelances "E‡" == "E ddagger" == "E double dagger" all
+        return the potential energy barrier ∆E^‡. Can return None if energies
+        of the reactants/products are None but will estimate for a TS (provided
+        reactants and product energies are present). Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> rxn = ade.Reaction(ade.Reactant(), ade.Product())
+            >>> rxn.delta('E') is None
+            True
+
+        For reactants and products with energies:
+
+        .. code-block:: Python
+
+            >>> A = ade.Reactant()
+            >>> A.energy = 1
+            >>> B = ade.Product()
+            >>> B.energy = 2
+            >>>
+            >>> rxn = ade.Reaction(A, B)
+            >>> rxn.delta('E')
+            Energy(1.0 Ha)
+
+        Arguments:
+            delta_type (str): Type of difference to calculate. Possibles:
+                              {E, H, G, E‡, H‡, G‡}
+
+        Returns:
+            (autode.values.Energy | None): Difference if all energies are
+                                          defined or None otherwise
+        """
+        def delta_type_matches(*args):
+            return any(s in delta_type.lower() for s in args)
+
+        def ts_delta():
+            return delta_type_matches('ddagger', '‡', 'double dagger')
+
+        # Determine the left and right hand sides of the equation
+        if ts_delta():
+            left, right = self.reacs, [self.ts]
+        else:
+            left, right = self.reacs, self.prods
+
+        # and the type of energy to calculate
+        if delta_type_matches('h', 'enthalpy'):
+            e_type = 'enthalpy'
+        elif delta_type_matches('g', 'free energy', 'free_energy'):
+            e_type = 'free_energy'
+        elif delta_type_matches('e', 'energy'):
+            e_type = 'energy'
+        else:
+            raise ValueError('Could not determine the type of energy change '
+                             f'to calculate from {delta_type}')
+
+        # If there is no TS estimate the effective barrier from diffusion limit
+        if ts_delta() and self.is_barrierless:
+            return self._estimated_barrierless_delta(e_type)
+
+        # If the electronic structure has failed to calculate the energy then
+        # the difference between the left and right cannot be calculated
+        if any(getattr(mol, e_type) is None for mol in left + right):
+            logger.warning(f'Could not calculate ∆{delta_type}, an energy was '
+                           f'None')
+            return None
+
+        return (sum(getattr(mol, e_type).to('Ha') for mol in right)
+                - sum(getattr(mol, e_type).to('Ha') for mol in left))
+
+    @property
+    def is_barrierless(self) -> bool:
+        """
+        Is this reaction barrierless? i.e. without a barrier either because
+        there is no enthalpic barrier to the reaction, or because a TS cannot
+        be located.
+
+        Returns:
+            (bool): If this reaction has a barrier
+        """
+        return self.ts is None
+
     @property
     def reactant(self) -> ReactantComplex:
         """
@@ -362,58 +448,6 @@ class Reaction:
         return None
 
     # TODO: refactoring from here
-
-    def calc_delta_e(self):
-        """Calculate the ∆Er of a reaction defined as
-        ∆E = E(products) - E(reactants)
-
-        Returns:
-            (float): Energy difference in Hartrees
-        """
-        logger.info('Calculating ∆Er')
-        return calc_delta(attr='energy', left=self.reacs, right=self.prods)
-
-    def calc_delta_h(self):
-        """Calculate ∆H_r = H(products) - H(reactants)
-
-        Returns:
-            (float): Energy difference in Hartrees
-        """
-        logger.info('Calculating ∆Hr')
-        return calc_delta_with_cont(left=self.reacs, right=self.prods,
-                                    cont='h_cont')
-
-    def calc_delta_g(self):
-        """Calculate ∆G_r = G(products) - G(reactants)
-
-        Returns:
-            (float): Energy difference in Hartrees
-        """
-        logger.info('Calculating ∆Hr')
-        return calc_delta_with_cont(left=self.reacs, right=self.prods,
-                                    cont='g_cont')
-
-    def calc_delta_e_ddagger(self):
-        """Calculate the ∆E‡ of a reaction defined as
-         ∆E = E(ts) - E(reactants)
-
-        Returns:
-            float: energy difference in Hartrees
-        """
-        logger.info('Calculating ∆E‡')
-        return calc_delta(attr='energy', left=self.reacs, right=[self.ts])
-
-    def calc_delta_h_ddagger(self):
-        """Calculate ∆H‡ in Hartrees"""
-        logger.info('Calculating ∆H‡')
-        return calc_delta_with_cont(left=self.reacs, right=[self.ts],
-                                    cont='h_cont')
-
-    def calc_delta_g_ddagger(self):
-        """Calculate ∆G‡ in Hartrees"""
-        logger.info('Calculating ∆G‡')
-        return calc_delta_with_cont(left=self.reacs, right=[self.ts],
-                                    cont='g_cont')
 
     def find_lowest_energy_ts(self):
         """From all the transition state objects in Reaction.pes1d choose the

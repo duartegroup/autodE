@@ -4,7 +4,7 @@ from scipy import interpolate
 from numpy.polynomial import polynomial
 import numpy as np
 import os
-from autode.values import PlottedEnergy as Energy
+from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.optimize import minimize
@@ -260,11 +260,11 @@ def get_reaction_profile_warnings(reactions):
 
     for reaction in reactions:
 
-        if reaction.calc_delta_e() is None:
+        if reaction.delta('E') is None:
             warnings += (f'∆Er not calculated for {reaction.name}, '
                          f'∆Er = 0 assumed. ')
 
-        if reaction.calc_delta_e_ddagger() is None:
+        if reaction.delta('E‡') is None:
             warnings += (f'∆E‡ not calculated for {reaction.name}, '
                          f'barrierless reaction assumed. ')
 
@@ -304,38 +304,23 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
     # Populate a list of reaction relative energies
     # [reactants -> TS -> products], all floats
     reaction_energies = []
+    e_type = ('G' if free_energy else 'E') if not enthalpy else 'H'
 
     for reaction in reactions:
 
-        if free_energy:
-            de = reaction.calc_delta_g()
-        elif enthalpy:
-            de = reaction.calc_delta_h()
-        else:
-            de = reaction.calc_delta_e()
+        de = reaction.delta(e_type)
 
         # If ∆Er cannot be calculated then assume isoenergetic and add a
         # warning to the plot
         if de is None:
             de = Energy(0.0, estimated=True)
-        else:
-            de = Energy(de)
 
-        if free_energy:
-            de_ts = reaction.calc_delta_g_ddagger()
-        elif enthalpy:
-            de_ts = reaction.calc_delta_h_ddagger()
-        else:
-            de_ts = reaction.calc_delta_e_ddagger()
+        de_ts = reaction.delta(f'{e_type}‡')
 
-        # If there is no TS then a barrierless reaction will be assumed and a
-        # warning added to the plot. Effective free energy barrier =
-        # 4.35 kcal mol-1 calcd. from k = 4x10^9 at 298 K (10.1021/cr050205w)
+        # If there is no ∆E then de_ts could be None. Use the Effective free
+        # energy barrier of 4.35 kcal mol-1
         if de_ts is None:
-            de_ts = Energy(0.00694 + max(0.0, de), estimated=True)
-
-        else:
-            de_ts = Energy(de_ts)
+            de_ts = Energy(0.00694, units='Ha', estimated=True)
 
         reaction_energies.append([Energy(0.0), de_ts, de])
 

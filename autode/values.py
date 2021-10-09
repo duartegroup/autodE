@@ -221,9 +221,10 @@ class Energy(Value):
 
     def __init__(self,
                  value,
-                 units:    Union[Unit, str] = ha,
-                 method:   Optional['autode.wrappers.base.Method'] = None,
-                 keywords: Optional['autode.wrappers.keywords.Keywords'] = None):
+                 units:     Union[Unit, str] = ha,
+                 method:    Optional['autode.wrappers.base.Method'] = None,
+                 keywords:  Optional['autode.wrappers.keywords.Keywords'] = None,
+                 estimated: bool = False):
         """
         Energy as a value. Has a method_str attribute which is set using a
         method used to calculate the energy along with any keywords e.g.
@@ -240,9 +241,13 @@ class Energy(Value):
 
             keywords (autode.wrappers.keywords.Keywords | None): Set of
                      keywords which this energy has been calculated at
+
+            estimated (bool): Has this energy been estimated rather than
+                              calculated
         """
         super().__init__(value, units=units)
 
+        self.estimated = estimated
         self.method_str = f'{method.name} ' if method is not None else 'unknown'
         self.method_str += keywords.bstring if keywords is not None else ''
 
@@ -387,28 +392,6 @@ class Energies(list):
             *args (autode.values.Energy):
         """
         super().__init__(args)
-
-
-class PlottedEnergy(Energy):
-
-    def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value, not
-        whether they are estimated"""
-        return super().__eq__(other)
-
-    def __init__(self, value, units=kcalmol, estimated=False):
-        """
-        An energy to be plotted on a reaction profile
-
-        Arguments:
-            value (float):
-
-            estimated (bool): Has this energy been estimated rather than
-                              calculated
-        """
-        super().__init__(value, units=units)
-
-        self.estimated = estimated
 
 
 class Distance(Value):

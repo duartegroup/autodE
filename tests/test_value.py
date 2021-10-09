@@ -5,7 +5,7 @@ from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
 from autode.values import (Value, Distance, Angle,
-                           Energy, PlottedEnergy, Energies,
+                           Energy, Energies,
                            PotentialEnergy, Enthalpy, FreeEnergy,
                            FreeEnergyCont, EnthalpyCont,
                            Frequency)
@@ -137,12 +137,6 @@ def test_free_energy():
     assert FreeEnergy(1.0) != PotentialEnergy(1.0)
     assert FreeEnergy(1.0) != Enthalpy(1.0)
     assert PotentialEnergy(1.0) != FreeEnergy(1.0)
-
-
-def test_plotted_energy():
-
-    # Equality does not check estimation
-    assert PlottedEnergy(1, estimated=True) == PlottedEnergy(1, estimated=False)
 
 
 def test_distance():

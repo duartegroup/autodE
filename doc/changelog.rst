@@ -17,6 +17,9 @@ Usability improvements/Changes
 - Removes :code:`autode.calculation.get_solvent_name` in favour of a molecule check
 - Removes :code:`autode.species.molecule.reactant_to_product` in favour of a :code:`to_product()` method for :code:`autode.species.molecule.Reactant` (and likewise with a Reactant)
 - Removes partially implemented :code:`autode.species.molecule.SolvatedMolecule` and :code:`autode.species.complex.SolvatedReactantComplex` as the type of solvation (implicit/explicit) should be a property of the solvent and not the molecule
+- Removes :code:`autode.reactions.Reaction.calc_deltaXXX` in favour of :code:`autode.reactions.Reaction.delta()`
+- Refactors classes to place constructors at the top
+- Removes :code:`autode.values.PlottedEnergy` as an estimated attribute is useful for all energies, not just those that are plotted
 
 
 Functionality improvements
