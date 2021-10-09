@@ -5,6 +5,7 @@ from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.transition_states.locate_tss import find_tss
+from autode.transition_states import TransitionState, TransitionStates
 from autode.exceptions import UnbalancedReaction, SolventsDontMatch
 from autode.log import logger
 from autode.methods import get_hmethod
@@ -59,7 +60,7 @@ class Reaction:
         self.name = name
         self.reacs,  self.prods = [], []
         self._reactant_complex, self._product_complex = None, None
-        self.ts, self.tss = None, None
+        self.tss = TransitionStates()
 
         # If there is only one string argument assume it's a SMILES
         if len(args) == 1 and type(args[0]) is str:
@@ -433,6 +434,37 @@ class Reaction:
 
         self._product_complex = value
 
+    @property
+    def ts(self) -> Optional[TransitionState]:
+        """
+        _The_ transition state for this reaction. If there are multiple then
+        return the lowest energy but if there are no transtion states then
+        return None
+
+        Returns:
+            (autode.transition_states.TransitionState | None):
+        """
+        return self.tss.lowest_energy
+
+    @ts.setter
+    def ts(self, value: Optional[TransitionState]):
+        """
+        Set the TS of this reaction, will override any other transition states
+        located.
+
+        Arguments:
+            value (autode.transition_states.TransitionState | None):
+        """
+        self.tss.clear()
+
+        if value is None:
+            return
+
+        if not isinstance(value, TransitionState):
+            raise ValueError(f'TS of {self.name} must be a TransitionState')
+
+        self.tss.append(value)
+
     def switch_reactants_products(self):
         """Addition reactions are hard to find the TSs for, so swap reactants
         and products and classify as dissociation. Likewise for reactions wher
@@ -446,26 +478,6 @@ class Reaction:
          self._reactant_complex) = (self._reactant_complex,
                                     self._product_complex)
         return None
-
-    # TODO: refactoring from here
-
-    def find_lowest_energy_ts(self):
-        """From all the transition state objects in Reaction.pes1d choose the
-        lowest energy if there is more than one otherwise return the single
-        transtion state or None if there no TS objects.
-        """
-
-        if self.tss is None:
-            logger.error('Could not find a transition state')
-            return None
-
-        elif len(self.tss) > 1:
-            logger.info('Found more than 1 TS. Choosing the lowest energy')
-            min_ts_energy = min([ts.energy for ts in self.tss])
-            return [ts for ts in self.tss if ts.energy == min_ts_energy][0]
-
-        else:
-            return self.tss[0]
 
     def find_lowest_energy_conformers(self):
         """Try and locate the lowest energy conformation using simulated
@@ -529,7 +541,6 @@ class Reaction:
         else:
             self.tss = find_tss(self)
 
-        self.ts = self.find_lowest_energy_ts()
         return None
 
     @work_in('transition_states')
@@ -626,11 +637,7 @@ class Reaction:
 
         # Calculate G and H contributions for all components
         for mol in self._reasonable_components_with_energy():
-            if free_energy:
-                mol.calc_g_cont(temp=self.temp)
-
-            if enthalpy:
-                mol.calc_h_cont(temp=self.temp)
+            mol.calc_thermo(temp=self.temp)
 
         return None
 

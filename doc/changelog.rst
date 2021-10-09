@@ -20,6 +20,8 @@ Usability improvements/Changes
 - Removes :code:`autode.reactions.Reaction.calc_deltaXXX` in favour of :code:`autode.reactions.Reaction.delta()`
 - Refactors classes to place constructors at the top
 - Removes :code:`autode.values.PlottedEnergy` as an estimated attribute is useful for all energies, not just those that are plotted
+- Removes :code:`autode.reactions.Reaction.find_lowest_energy_ts` as the function is not well named and can be replaced by a :code:`autode.reactions.Reaction.ts` property
+- Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
 
 
 Functionality improvements

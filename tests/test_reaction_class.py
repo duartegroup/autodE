@@ -53,7 +53,7 @@ def test_reaction_class():
     assert len(hh_reac.prods) == 1
     assert len(hh_reac.reacs) == 2
     assert hh_reac.ts is None
-    assert hh_reac.tss is None
+    assert len(hh_reac.tss) == 0
     assert hh_reac.name == 'h2_assoc'
     assert hh_reac.delta('E') == PotentialEnergy(-4.0)
 
