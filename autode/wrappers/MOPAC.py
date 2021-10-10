@@ -39,9 +39,8 @@ def get_keywords(calc_input, molecule):
         keywords.append('QMMM')
 
     if molecule.solvent is not None:
-        e_r = molecule.solvent.dielectric
 
-        if e_r is None:
+        if molecule.solvent.dielectric is None:
             err_str = (f'Could not use solvent {molecule.solvent} for MOPAC '
                        f'calculation, a dielectric constant was not defined')
             raise UnsuppportedCalculationInput(message=err_str)

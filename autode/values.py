@@ -211,7 +211,7 @@ class Energy(Value):
         tol_ha = 0.0000159    # 0.01 kcal mol-1
 
         # A PotentialEnergy is not equal to a FreeEnergy, for example
-        if isinstance(other, Energy) and not isinstance(other, self.__class__):
+        if isinstance(other, Value) and not isinstance(other, self.__class__):
             return False
 
         if isinstance(other, Value):

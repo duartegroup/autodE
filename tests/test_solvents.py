@@ -9,6 +9,7 @@ def test_solvent():
 
     methane = Molecule(smiles='C')
     methane.solvent = 'water'
+    assert 'water' in repr(methane.solvent).lower()
 
     # Calculation should be able to handle a solvent given as just a string
     assert hasattr(methane.solvent, 'mopac')

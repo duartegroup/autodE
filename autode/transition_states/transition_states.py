@@ -16,5 +16,5 @@ class TransitionStates(list):
         if len(self) == 0:
             return None
 
-        energies = np.array([ts.energy for ts in self])
-        return self[np.argmin(energies)]
+        min_idx = np.argmin([ts.energy for ts in self])
+        return self[min_idx]

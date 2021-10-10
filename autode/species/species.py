@@ -166,6 +166,9 @@ class Species(AtomCollection):
 
         Arguments;
             value (autode.solvent.Solvent | str | None):
+
+        Raises:
+            (autode.exceptions.SolventUnavailable):
         """
         if value is None:
             self._solvent = None

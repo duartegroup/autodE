@@ -268,19 +268,19 @@ def requires_hl_level_methods(func):
     def wrapped_function(*args, **kwargs):
         from autode.methods import get_lmethod, get_hmethod
 
-        avail_str = 'neither was available'
+        suffix = 'neither was available.'
 
         try:
             _ = get_lmethod()
 
             # Have found the low-level method, so the high-level must not be
-            avail_str = 'the high-level was not available'
+            suffix = 'the high-level was not available.'
             _ = get_hmethod()
 
         except MethodUnavailable:
             raise MethodUnavailable(f'Function *{func.__name__}* requires both'
                                     f' a high and low-level method but '
-                                    f'{avail_str}.')
+                                    f'{suffix}')
 
         return func(*args, **kwargs)
 

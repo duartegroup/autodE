@@ -9,8 +9,7 @@ def get_solvent(solvent_name: str,
                 implicit:     bool = True,
                 explicit:     bool = False):
     """
-    For a named solvent_name return the Solvent which matches one of the
-    aliases
+    For a named solvent return the Solvent which matches one of the aliases
 
     ---------------------------------------------------------------------------
     Arguments:
@@ -90,7 +89,7 @@ class Solvent(ABC):
         return self.name
 
     def __eq__(self, other):
-        """Determine if two solvent are the same based on name and SMILES"""
+        """Determine if two solvents are the same based on name and SMILES"""
         if other is None:
             return False
 

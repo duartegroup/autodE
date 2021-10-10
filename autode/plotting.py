@@ -305,18 +305,18 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
     # Populate a list of reaction relative energies
     # [reactants -> TS -> products], all floats
     reaction_energies = []
-    e_type = ('G' if free_energy else 'E') if not enthalpy else 'H'
+    energy_type = 'H' if enthalpy else ('G' if free_energy else 'E')
 
     for reaction in reactions:
 
-        de = reaction.delta(e_type)
+        de = reaction.delta(energy_type)
 
         # If ∆Er cannot be calculated then assume isoenergetic and add a
         # warning to the plot
         if de is None:
             de = Energy(0.0, estimated=True)
 
-        de_ts = reaction.delta(f'{e_type}‡')
+        de_ts = reaction.delta(f'{energy_type}‡')
 
         # If there is no ∆E then de_ts could be None. Use the Effective free
         # energy barrier of 4.35 kcal mol-1
