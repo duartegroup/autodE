@@ -13,7 +13,8 @@ from autode.exceptions import SolventsDontMatch
 from autode.mol_graphs import make_graph
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
-from autode.values import PotentialEnergy
+from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
+                           EnthalpyCont, FreeEnergyCont)
 from autode.methods import get_hmethod
 from autode.config import Config
 from .testutils import work_in_zipped_dir
@@ -78,6 +79,10 @@ def test_reaction_class():
     assert h_sub.solvent.smiles == 'O'
     for mol in h_sub.reacs + h_sub.prods:
         assert mol.solvent.name == 'water'
+
+    # Must set the transition state with a TransitionState
+    with pytest.raises(ValueError):
+        h_sub.ts = h1
 
 
 def test_reactant_product_complexes():
@@ -417,3 +422,31 @@ def test_doc_example():
     assert np.isclose(float(rxn.delta('E‡').to('kcal mol-1')),
                       14.3,
                       atol=0.1)
+
+
+def test_barrierless_h_g():
+
+    a = Reactant(atoms=[Atom('H'), Atom('H', x=-1.0), Atom('H', x=1.0)])
+    a.energies.extend([PotentialEnergy(-1),
+                       EnthalpyCont(0.1),
+                       FreeEnergyCont(0.3)])
+
+    b = Product(atoms=[Atom('H'), Atom('H', x=0.7, y=0.7), Atom('H', x=1.0)])
+    b.energies.extend([PotentialEnergy(-2),
+                       EnthalpyCont(0.2),
+                       FreeEnergyCont(0.6)])
+
+    rxn = reaction.Reaction(a, b)
+    assert rxn.delta('E‡') == 0.0
+    assert rxn.delta('H‡') == 0.0
+    assert rxn.delta('G‡') == 0.0
+
+    rxn.switch_reactants_products()
+    assert np.isclose(rxn.delta('E‡'),
+                      1.0)
+
+    assert np.isclose(rxn.delta('H‡'),
+                      0.9)                  # -2+0.2 -> -1+0.1   --> ∆ = 0.9
+
+    assert np.isclose(rxn.delta('G‡'),
+                      0.7)                  # -2+0.6 -> -1+0.3   --> ∆ = 0.7
