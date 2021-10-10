@@ -92,23 +92,32 @@ class Reaction:
         return base64.urlsafe_b64encode(hasher).decode()[:6]
 
     @requires_hl_level_methods
-    def calculate_reaction_profile(self, units=KcalMol, with_complexes=False,
-                                   free_energy=False, enthalpy=False):
+    def calculate_reaction_profile(self,
+                                   units:         'autode.units.Unit' = KcalMol,
+                                   with_complexes: bool = False,
+                                   free_energy:    bool = False,
+                                   enthalpy:       bool = False):
         """
-        Calculate and plot a reaction profile for this reaction in some units
+        Calculate and plot a reaction profile for this elemtary reaction. Will
+        search conformers, find the lowest energy TS and plot a profile.
+        Calculations are performed in a new directory (self.name/)
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             units (autode.units.Unit):
+
             with_complexes (bool): Calculate the lowest energy conformers
                                    of the reactant and product complexes
+
             free_energy (bool): Calculate the free energy profile (G)
+
             enthalpy (bool): Calculate the enthalpic profile (H)
         """
         logger.info('Calculating reaction profile')
 
         if with_complexes and (free_energy or enthalpy):
-            raise NotImplementedError('Significant likelihood of very low'
-                                      ' frequency harmonic modes – G and H not'
+            raise NotImplementedError('Significant likelihood of very low '
+                                      'frequency harmonic modes – G and H not '
                                       'implemented')
 
         @work_in(self.name)
@@ -177,8 +186,8 @@ class Reaction:
             elif all([mol.solvent is not None for mol in molecules]):
 
                 if not all([mol.solvent == first_solvent for mol in molecules]):
-                    raise SolventsDontMatch('Solvents in reactants and'
-                                            ' products do not match')
+                    raise SolventsDontMatch('Solvents in reactants and '
+                                            'products do not match')
                 else:
                     logger.info(f'Setting the solvent to {first_solvent}')
                     self.solvent = first_solvent
@@ -334,11 +343,11 @@ class Reaction:
         def delta_type_matches(*args):
             return any(s in delta_type.lower() for s in args)
 
-        def ts_delta():
+        def is_ts_delta():
             return delta_type_matches('ddagger', '‡', 'double dagger')
 
-        # Determine the species on the left and right of the reaction
-        left, right = self.reacs, [self.ts] if ts_delta() else self.prods
+        # Determine the species on the left and right hand sides of the eqn.
+        lhs, rhs = self.reacs, [self.ts] if is_ts_delta() else self.prods
 
         # and the type of energy to calculate
         if delta_type_matches('h', 'enthalpy'):
@@ -352,18 +361,18 @@ class Reaction:
                              f'to calculate from: {delta_type}')
 
         # If there is no TS estimate the effective barrier from diffusion limit
-        if ts_delta() and self.is_barrierless:
+        if is_ts_delta() and self.is_barrierless:
             return self._estimated_barrierless_delta(e_type)
 
         # If the electronic structure has failed to calculate the energy then
         # the difference between the left and right cannot be calculated
-        if any(getattr(mol, e_type) is None for mol in left + right):
+        if any(getattr(mol, e_type) is None for mol in lhs + rhs):
             logger.warning(f'Could not calculate ∆{delta_type}, an energy was '
                            f'None')
             return None
 
-        return (sum(getattr(mol, e_type).to('Ha') for mol in right)
-                - sum(getattr(mol, e_type).to('Ha') for mol in left))
+        return (sum(getattr(mol, e_type).to('Ha') for mol in rhs)
+                - sum(getattr(mol, e_type).to('Ha') for mol in lhs))
 
     @property
     def is_barrierless(self) -> bool:
@@ -468,7 +477,7 @@ class Reaction:
 
         self.tss.append(value)
 
-    def switch_reactants_products(self):
+    def switch_reactants_products(self) -> None:
         """Addition reactions are hard to find the TSs for, so swap reactants
         and products and classify as dissociation. Likewise for reactions wher
         the change in the number of bonds is negative
@@ -482,7 +491,7 @@ class Reaction:
                                     self._product_complex)
         return None
 
-    def find_lowest_energy_conformers(self):
+    def find_lowest_energy_conformers(self) -> None:
         """Try and locate the lowest energy conformation using simulated
         annealing, then optimise them with xtb, then optimise the unique
         (defined by an energy cut-off) conformers with an electronic structure
@@ -496,7 +505,7 @@ class Reaction:
         return None
 
     @work_in('reactants_and_products')
-    def optimise_reacs_prods(self):
+    def optimise_reacs_prods(self) -> None:
         """Perform a geometry optimisation on all the reactants and products
         using the method"""
         h_method = get_hmethod()
@@ -508,7 +517,7 @@ class Reaction:
         return None
 
     @work_in('complexes')
-    def calculate_complexes(self):
+    def calculate_complexes(self) -> None:
         """Find the lowest energy conformers of reactant and product complexes
         using optimisation and single points"""
         h_method = get_hmethod()
@@ -530,7 +539,7 @@ class Reaction:
 
     @requires_hl_level_methods
     @work_in('transition_states')
-    def locate_transition_state(self):
+    def locate_transition_state(self) -> None:
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
@@ -547,7 +556,7 @@ class Reaction:
         return None
 
     @work_in('transition_states')
-    def find_lowest_energy_ts_conformer(self):
+    def find_lowest_energy_ts_conformer(self) -> None:
         """Find the lowest energy conformer of the transition state"""
         if self.ts is None:
             logger.error('No transition state to evaluate the conformer of')
@@ -557,7 +566,7 @@ class Reaction:
             return self.ts.find_lowest_energy_ts_conformer()
 
     @work_in('single_points')
-    def calculate_single_points(self):
+    def calculate_single_points(self) -> None:
         """Perform a single point energy evaluations on all the reactants and
         products using the hmethod"""
         h_method = get_hmethod()
@@ -569,7 +578,7 @@ class Reaction:
         return None
 
     @work_in('output')
-    def print_output(self):
+    def print_output(self) -> None:
         """Print the final optimised structures along with the methods used"""
         from autode.log.methods import methods
 
@@ -624,7 +633,9 @@ class Reaction:
         return None
 
     @work_in('thermal')
-    def calculate_thermochemical_cont(self, free_energy=True, enthalpy=True):
+    def calculate_thermochemical_cont(self,
+                                      free_energy: bool = True,
+                                      enthalpy:    bool = True) -> None:
         """
         Calculate thermochemical contributions to the energies
 
@@ -644,8 +655,10 @@ class Reaction:
 
         return None
 
-    def _plot_reaction_profile_with_complexes(self, units, free_energy,
-                                              enthalpy):
+    def _plot_reaction_profile_with_complexes(self,
+                                              units:       'autode.units.Unit',
+                                              free_energy: bool,
+                                              enthalpy:    bool):
         """Plot a reaction profile with the association complexes of R, P"""
         rxns = []
 
