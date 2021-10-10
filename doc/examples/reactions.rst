@@ -56,7 +56,7 @@ barrierless and the barrier estimated from a diffusion limited process
 
 .. code-block:: python
 
-  >>> rxn.is_barrierless and rxn.delta('E‡').estimated
+  >>> rxn.is_barrierless and rxn.delta('E‡').is_estimated
   True
   >>> rxn.delta('E‡').to('kcal mol-1')
   Energy(4.35491 kcal mol-1)

@@ -125,7 +125,9 @@ def test_reaction_warnings():
     reaction.ts = None
 
     # Should be some warning with no TS
-    assert len(plotting.get_reaction_profile_warnings(reactions=[reaction])) > 10
+    warning_str = plotting.get_reaction_profile_warnings(reactions=[reaction])
+    assert len(warning_str) > 10
+    assert 'barrierless' in warning_str
 
     # Should be no warnings  with a TS that exists and has an energy and one
     # imaginary freq
@@ -205,12 +207,12 @@ def test_saving():
 def test_energy():
 
     energy = plotting.Energy(5, units='Ha', estimated=False)
-    assert not energy.estimated
+    assert not energy.is_estimated
     assert energy == 5
 
     new_energy = energy * 5
     assert new_energy == 25
-    assert not new_energy.estimated
+    assert not new_energy.is_estimated
 
     new_energy = energy - 5
     assert new_energy == 0

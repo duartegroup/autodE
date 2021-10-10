@@ -207,7 +207,7 @@ def plot_smooth_profile(zi_s, energies, ax):
     max_delta = max(energies) - min(energies)
 
     for i, energy in enumerate(optimised_spline(zi_s)):
-        if energies[i].estimated:
+        if energies[i].is_estimated:
             # Don't add estimated energies
             continue
 
@@ -236,7 +236,7 @@ def plot_points(zi_s, energies, ax):
 
     # Annotate the plot with the relative energies
     for i, energy in enumerate(energies):
-        if hasattr(energy, 'estimated') and energy.estimated:
+        if hasattr(energy, 'estimated') and energy.is_estimated:
             # Don't add estimated energies
             continue
 
@@ -264,7 +264,8 @@ def get_reaction_profile_warnings(reactions):
             warnings += (f'∆Er not calculated for {reaction.name}, '
                          f'∆Er = 0 assumed. ')
 
-        if reaction.delta('E‡') is None:
+        de_ts = reaction.delta('E‡')
+        if de_ts is None or (de_ts is not None and de_ts.is_estimated):
             warnings += (f'∆E‡ not calculated for {reaction.name}, '
                          f'barrierless reaction assumed. ')
 

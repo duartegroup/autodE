@@ -252,7 +252,7 @@ class Energy(Value):
         """
         super().__init__(value, units=units)
 
-        self.estimated = estimated
+        self.is_estimated = estimated
         self.method_str = f'{method.name} ' if method is not None else 'unknown'
         self.method_str += keywords.bstring if keywords is not None else ''
 
