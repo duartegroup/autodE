@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from autode.reactions import reaction
 from autode.reactions import reaction_types
 from autode.transition_states.transition_state import TransitionState
@@ -20,6 +21,10 @@ import shutil
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+# Spoof ORCA install
+Config.hcode = 'ORCA'
+Config.ORCA.path = here
 
 h1 = Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
@@ -209,8 +214,9 @@ def test_calc_delta_e():
     r2 = reaction.Reactant(name='h', atoms=[Atom('H')])
     r2.energy = -0.5
 
-    tsguess = TSguess(atoms=None, reactant=ReactantComplex(r1),
-                      product=ProductComplex(r2))
+    tsguess = TSguess(atoms=None,
+                      reactant=ReactantComplex(r1),
+                      product=ProductComplex(r2.to_product()))
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.8
@@ -223,6 +229,8 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.delta('E') < 1E-6
     assert 0.2 - 1E-6 < reac.delta('E‡') < 0.2 + 1E-6
+
+    # Without calculated
 
 
 def test_from_smiles():
@@ -318,3 +326,94 @@ def test_free_energy_profile():
 def test_unavail_properties():
 
     pass
+
+
+def test_barrierless_rearrangment():
+
+    rxn = reaction.Reaction(Reactant(), Product())
+    assert rxn.is_barrierless
+    assert rxn.delta('E') is rxn.delta('E‡') is None
+
+    a = Reactant(atoms=[Atom('H'), Atom('H', x=-1.0), Atom('H', x=1.0)])
+    a.energy = -2.0
+
+    b = Product(atoms=[Atom('H'), Atom('H', x=0.7, y=0.7), Atom('H', x=1.0)])
+    b.energy = -2.5
+
+    rxn = reaction.Reaction(a, b)
+    # Barrier should be ~0 for an exothermic reaction
+    assert rxn.delta('E‡') == 0.0
+
+    # but the reaction energy for an endothermic reaction
+    b.energy = -1.5
+    assert rxn.delta('E‡') == 0.5
+
+
+def test_doc_example():
+    """If this test changes PLEASE update the documentation at the same time"""
+
+    ethene = Reactant(smiles='C=C')
+    butadiene = Reactant(smiles='C=CC=C')
+    cyclohexene = Product(smiles='C1=CCCCC1')
+
+    rxn = reaction.Reaction(ethene, butadiene, cyclohexene)
+    assert rxn.solvent is None
+
+    assert np.isclose(rxn.temp, 298.15)
+
+    assert rxn.delta('E') is None
+    assert rxn.delta('E‡') is None
+
+    # Only allow some indication of energy/enthalpy/free energy
+    with pytest.raises(ValueError):
+        _ = rxn.delta('X')
+
+    ethene.energy = -6.27126052543
+    butadiene.energy = -11.552702027244
+    cyclohexene.energy = -17.93143795711
+
+    assert np.isclose(float(rxn.delta('E').to('kcal mol-1')),
+                      -67.441,
+                      atol=0.01)
+
+    # Should allow for aliases of the kind of ∆ difference
+    assert rxn.delta('E') == rxn.delta('energy')
+    assert rxn.delta('G') == rxn.delta('free energy') == rxn.delta('free_energy')
+    assert rxn.delta('H') == rxn.delta('enthalpy') != rxn.delta('energy')
+
+    assert np.isclose(float(rxn.delta('E‡').to('kcal mol-1')),
+                      4.35491,
+                      atol=1)
+
+    # Post-optimisation
+    cyclohexene.energy = -234.206929484613
+    butadiene.energy = -155.686225567141
+    ethene.energy = -78.427547239225
+
+    atoms = [
+        Atom('C',  1.54832502175757,   0.47507857149246, -0.17608869645477),
+        Atom('C',  0.63680758724295,   1.48873574610658,  0.18687763919775),
+        Atom('C', -0.48045277463960,   1.22774144243181,  0.94515144035260),
+        Atom('C', -1.56617230970127,  -0.32194220965435, -0.36403038119916),
+        Atom('C', -0.67418142609443,  -1.30824343582455, -0.72092960944319),
+        Atom('C',  1.37354885332651,  -0.83414272445258,  0.20733555387781),
+        Atom('H',  2.28799156107427,   0.70407896562267, -0.95011846456488),
+        Atom('H',  0.71504911441008,   2.45432905429025, -0.32320231835197),
+        Atom('H', -1.22975529929055,   2.00649252772661,  1.11086944491345),
+        Atom('H', -0.48335986214289,   0.41671089728999,  1.67449683583301),
+        Atom('H', -2.28180803085362,  -0.49278222876383,  0.44394762543300),
+        Atom('H', -1.83362998587976,   0.46266072581502, -1.07348798508224),
+        Atom('H', -0.67829969484189,  -2.26880762586176, -0.19982465470916),
+        Atom('H', -0.22671274865021,  -1.31325250991020, -1.71602826881263),
+        Atom('H',  0.86381884115892,  -1.08003298402692,  1.13995512315906),
+        Atom('H',  2.02879115312393,  -1.61656419228120, -0.18499328414869)
+    ]
+
+    rxn.ts = TransitionState(TSguess(atoms=atoms))
+    rxn.ts.energy = -234.090983203239
+
+    assert 'TransitionState' in repr(rxn.ts)
+
+    assert np.isclose(float(rxn.delta('E‡').to('kcal mol-1')),
+                      14.3,
+                      atol=0.1)

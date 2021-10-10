@@ -14,7 +14,7 @@ from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
-from autode.values import Energy, Enthalpy, FreeEnergy
+from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
 from autode.utils import work_in, requires_hl_level_methods
 from autode.reactions import reaction_types
 
@@ -272,22 +272,28 @@ class Reaction:
         Returns:
             (autode.values.Energy | None):
         """
-        logger.warning('Have a barrierless reaction. Assuming a diffusion '
-                       'limited reaction with a rate of 4 x 10^9 s^-1')
 
         if self.delta(e_type) is None:
             logger.error(f'Could not estimate barrierless {e_type},'
                          f' an energy was None')
             return None
 
-        value = Energy(0.00694, units='Ha') + max(0.0, self.delta(e_type))
+        # Minimum barrier is the 0 for an exothermic reaction but the reaction
+        # energy for a endothermic reaction
+        value = max(Energy(0.0), self.delta(e_type))
+
+        if self.type != reaction_types.Rearrangement:
+            logger.warning('Have a barrierless bimolecular reaction. Assuming'
+                           'a diffusion limited with a rate of 4 x 10^9 s^-1')
+
+            value += Energy(0.00694, units='Ha')
 
         if e_type == 'free_energy':
             return FreeEnergy(value, estimated=True)
         elif e_type == 'enthalpy':
             return Enthalpy(value, estimated=True)
         else:
-            return Energy(value, estimated=True)
+            return PotentialEnergy(value, estimated=True)
 
     def delta(self, delta_type: str) -> Optional[Energy]:
         """
@@ -331,22 +337,19 @@ class Reaction:
         def ts_delta():
             return delta_type_matches('ddagger', '‡', 'double dagger')
 
-        # Determine the left and right hand sides of the equation
-        if ts_delta():
-            left, right = self.reacs, [self.ts]
-        else:
-            left, right = self.reacs, self.prods
+        # Determine the species on the left and right of the reaction
+        left, right = self.reacs, [self.ts] if ts_delta() else self.prods
 
         # and the type of energy to calculate
         if delta_type_matches('h', 'enthalpy'):
             e_type = 'enthalpy'
+        elif delta_type_matches('e', 'energy') and not delta_type_matches('free'):
+            e_type = 'energy'
         elif delta_type_matches('g', 'free energy', 'free_energy'):
             e_type = 'free_energy'
-        elif delta_type_matches('e', 'energy'):
-            e_type = 'energy'
         else:
             raise ValueError('Could not determine the type of energy change '
-                             f'to calculate from {delta_type}')
+                             f'to calculate from: {delta_type}')
 
         # If there is no TS estimate the effective barrier from diffusion limit
         if ts_delta() and self.is_barrierless:

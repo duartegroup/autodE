@@ -47,6 +47,9 @@ class TransitionState(TSbase):
         #: str for any warnings that may arise
         self.warnings = ''
 
+    def __repr__(self):
+        return self._repr(prefix='TransitionState')
+
     @requires_graph
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being

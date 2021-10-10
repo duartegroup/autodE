@@ -217,6 +217,11 @@ class Energy(Value):
         if isinstance(other, Value):
             other = other.to('Ha')
 
+        try:
+            other = float(other)   # Must be float-able
+        except TypeError:
+            return False
+
         return abs(other - float(self.to('Ha'))) < tol_ha
 
     def __init__(self,
