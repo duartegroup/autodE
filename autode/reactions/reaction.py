@@ -182,7 +182,7 @@ class Reaction:
                 logger.info('Reaction is in the gas phase')
                 return
 
-            # Are solvents are defined for all molecules?
+            # Are solvents defined for all molecules?
             elif all([mol.solvent is not None for mol in molecules]):
 
                 if not all([mol.solvent == first_solvent for mol in molecules]):

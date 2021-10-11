@@ -186,10 +186,3 @@ def test_req_high_and_low_level_methods():
     # but not if one is spoofed to be available
     Config.ORCA.path = here
     assert test_function() == 'test'
-
-
-if __name__ == '__main__':
-
-    test_req_high_and_low_level_methods()
-
-

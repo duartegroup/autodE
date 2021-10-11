@@ -14,7 +14,7 @@ class Path(list):
         band images, *must* have .energy attributes
 
         Arguments:
-            args (list(autode.species.Species | autode.neb.Image)):
+            args (list(autode.path.PathPoint | autode.neb.Image)):
 
         Keyword Arguments:
             units (autode.units.Unit):
@@ -22,7 +22,10 @@ class Path(list):
         super().__init__()
 
         for arg in args:
-            assert hasattr(arg, 'energy') and hasattr(arg, 'species')
+            if not (hasattr(arg, 'energy') or hasattr(arg, 'species')):
+                raise ValueError('A Path must be initialised from a class '
+                                 'with both energy and species attributes')
+
             self.append(arg)
 
         self.units = units

@@ -273,7 +273,7 @@ def requires_hl_level_methods(func):
         try:
             _ = get_lmethod()
 
-            # Have found the low-level method, so the high-level must not be
+            # Have a low-level method, so the high-level must not be available
             suffix = 'the high-level was not available.'
             _ = get_hmethod()
 

@@ -2,6 +2,7 @@
 The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
+from typing import Optional
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.path import Path
@@ -85,7 +86,7 @@ def derivative(flat_coords, images, method, n_cores):
 
 class Image:
 
-    def __init__(self, name, k):
+    def __init__(self, name: str, k: float):
         """
         Image in a NEB
 
@@ -100,9 +101,9 @@ class Image:
         # Force constant in Eh/Å^2
         self.k = k
 
-        self.species = None         # autode.species.Species
-        self.energy = None          # float
-        self.grad = None            # np.ndarray shape (3xn_atoms,)
+        self.species: Optional['autode.species.Species'] = None
+        self.energy: Optional['autode.values.Energy'] = None
+        self.grad: Optional[np.ndarray] = None
 
     def _tau_xl_x_xr(self, im_l, im_r):
         """
