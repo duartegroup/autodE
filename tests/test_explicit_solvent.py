@@ -43,6 +43,10 @@ def test_explicit_solvent_gen():
 
     os.remove('tmp.xyz')
 
+    mol.solvent = None
+    mol.explicitly_solvate(num=10, solvent='water')
+    assert mol.is_explicitly_solvated
+
 
 def test_invalid_solvation():
 
@@ -61,6 +65,13 @@ def test_invalid_solvation():
 
     with pytest.raises(ValueError):
         solv.solvent_atom_idxs(1)    # or with index 1
+
+    with pytest.raises(ValueError):
+        mol.explicitly_solvate(1, solvent=-1)
+
+    gas_phase_mol = Molecule(smiles='C')
+    with pytest.raises(ValueError):
+        gas_phase_mol.explicitly_solvate(num=1)
 
 
 def test_too_close_to_solute():

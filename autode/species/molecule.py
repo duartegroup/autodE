@@ -4,7 +4,7 @@ from typing import Optional, Union, List
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
-from autode.solvent import ExplicitSolvent
+from autode.solvent import ExplicitSolvent, get_solvent
 from autode.input_output import xyz_file_to_atoms
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer
@@ -183,22 +183,42 @@ class Molecule(Species):
         return self._generate_conformers(n_confs=n_confs)
 
     def explicitly_solvate(self,
-                           num: int = 10) -> None:
+                           num:     int = 10,
+                           solvent: Union[str, Species, None] = None) -> None:
         """
         Explicitly solvate this Molecule
 
         ----------------------------------------------------------------------
         Keyword Arguments:
 
-            num (int): Number of solvent molecules to add
+            num (int): Number of solvent molecules to add around this molecule
+
+            solvent (str | autode.species.Species | None):
 
         """
-        assert self.solvent is not None
+        if solvent is None and self.solvent is None:
+            raise ValueError(f'{self} must be solvated with a solvent '
+                             'specified, as it is currently in the gas phase')
+
+        if isinstance(solvent, Species):
+            solvent_mol = solvent
+
+        elif type(solvent) is str:
+            # TODO: Would be much better to return optimised Species with get_solvent
+            solvent_mol = Molecule(smiles=get_solvent(solvent).smiles)
+
+        elif solvent is None:
+            solvent_mol = Molecule(smiles=self.solvent.smiles)
+
+        else:
+            raise ValueError(f'Unsupported solvent *{solvent}*. Must be '
+                             f'either a string or a Species.')
+
         print('WARNING: Explicit solvation is experimental and does not work '
               'apart from generating a single reasonable initial structure ')
 
         self.solvent = ExplicitSolvent(solute=self,
-                                       solvent=Molecule(smiles=self.solvent.smiles),
+                                       solvent=solvent_mol,
                                        num=num)
         return None
 
