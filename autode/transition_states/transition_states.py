@@ -1,4 +1,5 @@
 import numpy as np
+from autode.log import logger
 from typing import Optional
 
 
@@ -14,6 +15,7 @@ class TransitionStates(list):
                                                                there are none.
         """
         if len(self) == 0:
+            logger.error('Have no transition states so no lowest energy TS')
             return None
 
         min_idx = np.argmin([ts.energy for ts in self])

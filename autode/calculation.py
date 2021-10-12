@@ -105,12 +105,18 @@ class Calculation:
         return base64.urlsafe_b64encode(hasher).decode()
 
     def _check_molecule(self) -> None:
-        """Ensure the molecule has the required attributes"""
-        assert hasattr(self.molecule, 'n_atoms')
-        assert hasattr(self.molecule, 'atoms')
-        assert hasattr(self.molecule, 'mult')
-        assert hasattr(self.molecule, 'charge')
-        assert hasattr(self.molecule, 'solvent')
+        """
+        Ensure the molecule has the required properties and raise exceptions
+        if they are not present.
+
+        Raises:
+            (ValueError | SolventUnavailable | NoInputError):
+        """
+
+        for attr in ('n_atoms', 'atoms', 'mult', 'charge', 'solvent'):
+            if not hasattr(self.molecule, attr):
+                raise ValueError(f'Molecule {self.molecule} must have '
+                                 f'{attr} but was not present')
 
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             raise ex.NoInputError('Have no atoms. Can\'t form a calculation')
@@ -127,6 +133,8 @@ class Calculation:
                        f'are: {self.method.available_implicit_solvents}')
 
             raise ex.SolventUnavailable(err_str)
+
+        return None
 
     def _fix_unique(self, register_name='.autode_calculations') -> None:
         """
