@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 from copy import deepcopy
 from autode.log import logger
 from autode.exceptions import SolventNotFound
@@ -59,7 +59,7 @@ class Solvent(ABC):
         return self.name
 
     def __eq__(self, other):
-        """Determine if two solvent are the same based on name and SMILES"""
+        """Determine if two solvents are the same based on name and SMILES"""
         if other is None:
             return False
 
@@ -88,24 +88,31 @@ class Solvent(ABC):
 
     @property
     @abstractmethod
-    def is_implicit(self):
+    def is_implicit(self) -> bool:
         """Is this solvent implicit and just defined by a dielectric"""
 
     @property
-    def is_explicit(self):
+    def is_explicit(self) -> bool:
         """Is this solvent explicit i.e. has atoms in space"""
         return not self.is_implicit
 
-    def __init__(self, name, smiles, aliases, **kwargs):
+    def __init__(self,
+                 name:    str,
+                 smiles:  str,
+                 aliases: List[str],
+                 **kwargs):
         """
-        Solvent class. As electronic structure methods implement implicit
-        solvation without a unique list of solvents there needs to be
-        conversion between them, while also allowing for user specifying
-        one possibility from a list of aliases
+        Abstract base class for a solvent. As electronic structure methods
+        implement implicit solvation without a unique list of solvents there
+        needs to be conversion between them, while also allowing for user
+        specifying one possibility from a list of aliases
 
+        ----------------------------------------------------------------------
         Arguments:
             name (str): Unique name of the solvent
+
             smiles (str): SMILES string
+
             aliases (list(str)): Different names for the same solvent e.g.
                                  water and H2O
 
@@ -126,8 +133,6 @@ class Solvent(ABC):
         if 'g09' in kwargs.keys():
             self.g16 = kwargs['g09']
 
-    def __repr__(self):
-        return f'Solvent({self.name})'
 
 class ImplicitSolvent(Solvent):
     """Implicit solvent"""

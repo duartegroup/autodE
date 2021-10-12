@@ -10,7 +10,14 @@ from autode.solvent.solvents import Solvent
 class _RandomPointGenerator:
 
     def random_point(self) -> np.ndarray:
-        """Generate a random point """
+        """
+        Generate a random point in a solvent shell. Will return points on
+        the surface of the solvent shell (self._sphere_n) and increment the
+        solvent shell when there are none left
+
+        Returns:
+            (np.ndarray): Point on the 3D sphere
+        """
 
         if len(self._points) == 0:
             # Surface are of the sphere scales r^2, so square solvent shell
@@ -175,7 +182,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
                  num:     int):
         """
         Explicit solvent. Initial construction attempts to generate a
-        reasonable distrobution around the (unmodified) solute. Only supports
+        reasonable distribution around the (unmodified) solute. Only supports
         unicomponent solvents.
 
         Arguments:
@@ -186,9 +193,11 @@ class ExplicitSolvent(AtomCollection, Solvent):
             num (int): Number of solvent molecules to add
         """
         if num <= 0:
-            raise ValueError('Must solvate with a ')
+            raise ValueError('Must solvate with at least a single solvent '
+                             f'molecule. Had {num}')
 
-        super().__init__(atoms=sum((solvent.atoms.copy() for _ in range(num)), None))
+        super().__init__(atoms=sum((solvent.atoms.copy() for _ in range(num)),
+                                   None))
 
         self.solvent_n_atoms = solvent.n_atoms
 

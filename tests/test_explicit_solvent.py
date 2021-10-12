@@ -54,6 +54,14 @@ def test_invalid_solvation():
     with pytest.raises(ValueError):
         mol.explicitly_solvate(num=0)
 
+    solv = ExplicitSolvent(mol, solvent=water_mol(), num=1)
+
+    with pytest.raises(ValueError):
+        solv.solvent_atom_idxs(-1)   # No solvent with index -1
+
+    with pytest.raises(ValueError):
+        solv.solvent_atom_idxs(1)    # or with index 1
+
 
 def test_too_close_to_solute():
 
