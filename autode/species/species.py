@@ -6,12 +6,12 @@ from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.atoms import Atom, Atoms, AtomCollection
-from autode.exceptions import CalculationException
+from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
-from autode.solvent.solvents import ExplicitSolvent, get_solvent
+from autode.solvent.solvents import get_solvent, Solvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
@@ -29,6 +29,54 @@ from autode.utils import (requires_atoms,
 
 
 class Species(AtomCollection):
+
+    def __init__(self,
+                 name:         str,
+                 atoms:        Union[List[Atom], Atoms, None],
+                 charge:       Union[float, int],
+                 mult:         Union[float, int],
+                 solvent_name: Optional[str] = None):
+        """
+        A molecular species. A collection of atoms with a charge and spin
+        multiplicity in a solvent (None is gas phase)
+
+        ----------------------------------------------------------------------
+        Arguments:
+            name (str): Name of the species
+
+            atoms (list(autode.atoms.Atom) | None): List of atoms in the
+                                                    species, or None
+
+            charge (int): Charge on the species
+
+            mult (int): Spin multiplicity of the species. 2S+1, where S is the
+                        number of unpaired electrons
+
+        Keyword Arguments:
+            solvent_name (str | None): Name of the solvent, or None for a
+                                       species  in the gas phase
+        """
+        super().__init__(atoms=atoms)
+
+        self.name = name
+
+        self._charge = int(charge)
+        self._mult = int(mult)
+
+        self._solvent = get_solvent(solvent_name=solvent_name)
+
+        #: All energies calculated at a geometry (autode.values.Energies)
+        self.energies = val.Energies()
+
+        self._grad = None
+        self._hess = None
+
+        #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
+        self.graph = None
+
+        self._conformers = Conformers()
+
+        self.constraints = Constraints()
 
     def __str__(self):
         """Unique species identifier"""
@@ -97,6 +145,43 @@ class Species(AtomCollection):
     @mult.setter
     def mult(self, value) -> None:
         self._mult = int(value)
+
+    @property
+    def solvent(self) -> Optional['autode.solvent.solvents.Solvent']:
+        """
+        Solvent which this species is immersed in
+
+        Returns:
+            (autode.solvent.Solvent | None): Solvent or None if the species is
+                                             in the gas phase
+        """
+        return self._solvent
+
+    @solvent.setter
+    def solvent(self,
+                value: Union['autode.solvent.solvents.Solvent', str, None]):
+        """
+        Set the solvent for this species. For a species in the gas phase
+        set mol.solvent = None
+
+        Arguments;
+            value (autode.solvent.Solvent | str | None):
+
+        Raises:
+            (autode.exceptions.SolventUnavailable):
+        """
+        if value is None:
+            self._solvent = None
+
+        elif type(value) is str:
+            self._solvent = get_solvent(solvent_name=value)
+
+        elif isinstance(value, Solvent):
+            self._solvent = value
+
+        else:
+            raise SolventUnavailable('Expecting either a string or Solvent, '
+                                     f'had: {value}')
 
     @AtomCollection.atoms.setter
     def atoms(self,
@@ -358,7 +443,7 @@ class Species(AtomCollection):
 
     @property
     def is_explicitly_solvated(self) -> bool:
-        return isinstance(self.solvent, ExplicitSolvent)
+        return self.solvent is not None and not self.solvent.is_implicit
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
@@ -937,51 +1022,3 @@ class Species(AtomCollection):
 
     # --- Method aliases ---
     symmetry_number = sn
-
-    def __init__(self,
-                 name:         str,
-                 atoms:        Union[List[Atom], Atoms, None],
-                 charge:       Union[float, int],
-                 mult:         Union[float, int],
-                 solvent_name: Optional[str] = None):
-        """
-        A molecular species. A collection of atoms with a charge and spin
-        multiplicity in a solvent (None is gas phase)
-
-        ----------------------------------------------------------------------
-        Arguments:
-            name (str): Name of the species
-
-            atoms (list(autode.atoms.Atom) | None): List of atoms in the
-                                                    species, or None
-
-            charge (int): Charge on the species
-
-            mult (int): Spin multiplicity of the species. 2S+1, where S is the
-                        number of unpaired electrons
-
-        Keyword Arguments:
-            solvent_name (str | None): Name of the solvent, or None for a
-                                       species  in the gas phase
-        """
-        super().__init__(atoms=atoms)
-
-        self.name = name
-
-        self._charge = int(charge)
-        self._mult = int(mult)
-
-        self.solvent = get_solvent(solvent_name=solvent_name)
-
-        #: All energies calculated at a geometry (autode.values.Energies)
-        self.energies = val.Energies()
-
-        self._grad = None
-        self._hess = None
-
-        #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
-        self.graph = None
-
-        self._conformers = Conformers()
-
-        self.constraints = Constraints()

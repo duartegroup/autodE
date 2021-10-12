@@ -74,6 +74,25 @@ class Value(ABC, float):
     """
     implemented_units = []
 
+    def __init__(self, x,
+                 units: Union[Unit, str, None] = None):
+        """
+        Value constructor
+
+        Arguments:
+            x (float | int):
+
+        Keyword Arguments:
+            units (autode.units.Unit | str | None):
+        """
+
+        float.__init__(float(x))
+
+        if isinstance(x, Value):
+            self.units = x.units
+        else:
+            self.units = _units_init(self, units)
+
     @abstractmethod
     def __repr__(self):
         """Internal representation of this value"""
@@ -176,25 +195,6 @@ class Value(ABC, float):
         """
         return _to(self, units)
 
-    def __init__(self, x,
-                 units: Union[Unit, str, None] = None):
-        """
-        Value constructor
-
-        Arguments:
-            x (float | int):
-
-        Keyword Arguments:
-            units (autode.units.Unit | str | None):
-        """
-
-        float.__init__(float(x))
-
-        if isinstance(x, Value):
-            self.units = x.units
-        else:
-            self.units = _units_init(self, units)
-
 
 class Energy(Value):
     """Type of energy in some units e.g. Potential, Free etc.
@@ -211,19 +211,25 @@ class Energy(Value):
         tol_ha = 0.0000159    # 0.01 kcal mol-1
 
         # A PotentialEnergy is not equal to a FreeEnergy, for example
-        if isinstance(other, Energy) and not isinstance(other, self.__class__):
+        if isinstance(other, Value) and not isinstance(other, self.__class__):
             return False
 
         if isinstance(other, Value):
             other = other.to('Ha')
 
+        try:
+            other = float(other)   # Must be float-able
+        except TypeError:
+            return False
+
         return abs(other - float(self.to('Ha'))) < tol_ha
 
     def __init__(self,
                  value,
-                 units:    Union[Unit, str] = ha,
-                 method:   Optional['autode.wrappers.base.Method'] = None,
-                 keywords: Optional['autode.wrappers.keywords.Keywords'] = None):
+                 units:     Union[Unit, str] = ha,
+                 method:    Optional['autode.wrappers.base.Method'] = None,
+                 keywords:  Optional['autode.wrappers.keywords.Keywords'] = None,
+                 estimated: bool = False):
         """
         Energy as a value. Has a method_str attribute which is set using a
         method used to calculate the energy along with any keywords e.g.
@@ -240,9 +246,13 @@ class Energy(Value):
 
             keywords (autode.wrappers.keywords.Keywords | None): Set of
                      keywords which this energy has been calculated at
+
+            estimated (bool): Has this energy been estimated rather than
+                              calculated
         """
         super().__init__(value, units=units)
 
+        self.is_estimated = estimated
         self.method_str = f'{method.name} ' if method is not None else 'unknown'
         self.method_str += keywords.bstring if keywords is not None else ''
 
@@ -252,24 +262,28 @@ class PotentialEnergy(Energy):
 
 
 class FreeEnergy(Energy):
+    """(Gibbs) Free Energy (G)"""
 
     def __repr__(self):
         return f'FreeEnergy({round(self, 5)} {self.units.name})'
 
 
 class Enthalpy(Energy):
+    """Enthalpy (H)"""
 
     def __repr__(self):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
 class EnthalpyCont(Energy):
+    """Enthalpy contribution: H = E + H_cont"""
 
     def __repr__(self):
         return f'H_cont({round(self, 5)} {self.units.name})'
 
 
 class FreeEnergyCont(Energy):
+    """Free energy contribution: G = E + G_cont"""
 
     def __repr__(self):
         return f'G_cont({round(self, 5)} {self.units.name})'
@@ -287,6 +301,11 @@ class Allocation(Value):
         """
         Allocation of memory or disk, must be non-negative
 
+        Arguments:
+            x (float):
+
+        Keyword Arguments:
+            units (autode.units.Unit | str | None):
         """
         if float(x) <= 0:
             raise ValueError('Memory allocations must be non-negative. '
@@ -378,28 +397,6 @@ class Energies(list):
             *args (autode.values.Energy):
         """
         super().__init__(args)
-
-
-class PlottedEnergy(Energy):
-
-    def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value, not
-        whether they are estimated"""
-        return super().__eq__(other)
-
-    def __init__(self, value, units=kcalmol, estimated=False):
-        """
-        An energy to be plotted on a reaction profile
-
-        Arguments:
-            value (float):
-
-            estimated (bool): Has this energy been estimated rather than
-                              calculated
-        """
-        super().__init__(value, units=units)
-
-        self.estimated = estimated
 
 
 class Distance(Value):

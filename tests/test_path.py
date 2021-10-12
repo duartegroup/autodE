@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import pytest
+
 from autode.atoms import Atom
 from autode.methods import XTB
 from autode.path import Path, AdaptivePath, PathPoint
@@ -21,6 +23,9 @@ def test_path_properties_empty():
 
     assert path == Path()  # should be able to compare paths
     assert path != 0
+
+    with pytest.raises(ValueError):
+        _ = Path('does not have correct attributes')
 
     # With no species there should be no peak/saddle/energies
     assert len(path.rel_energies) == 0

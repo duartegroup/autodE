@@ -9,6 +9,16 @@ from autode.log import logger
 
 class CImage(Image):
 
+    def __init__(self, image):
+        """Construct a climbing image from a non-climbing one
+
+        Arguments:
+            image (autode.neb.Image):
+        """
+        super().__init__(image.name, image.k)
+        # Set all the current attributes from the regular image
+        self.__dict__.update(image.__dict__)
+
     def get_force(self, im_l, im_r):
         """
         Compute F_m
@@ -23,18 +33,23 @@ class CImage(Image):
         # F_m = ∇V(x_m) + (2∇V(x_m).τ)τ
         return -self.grad + 2.0 * np.dot(self.grad, hat_tau) * hat_tau
 
-    def __init__(self, image):
-        """Construct a climbing image from a non-climbing one
-
-        Arguments:
-            image (autode.neb.Image):
-        """
-        super().__init__(image.name, image.k)
-        # Set all the current attributes from the regular image
-        self.__dict__.update(image.__dict__)
-
 
 class CImages(Images):
+
+    def __init__(self, images, wait_iterations=4):
+        """Initialise a set of images
+
+        Arguments:
+            images (autode.neb.Images):
+
+            wait_iterations (int): Number of iterations to wait before turning
+                                  on the climbing image
+        """
+        super().__init__(num=len(images), init_k=images[0].k)
+
+        self.wait_iteration = wait_iterations
+        for i, image in enumerate(images):
+            self[i] = image
 
     def __eq__(self, other):
         """Equality of climbing image NEB"""
@@ -60,23 +75,13 @@ class CImages(Images):
         self[self.peak_idx] = CImage(image=self[self.peak_idx])
         return None
 
-    def __init__(self, images, wait_iterations=4):
-        """Initialise a set of images
-
-        Arguments:
-            images (autode.neb.Images):
-
-            wait_iterations (int): Number of iterations to wait before turning
-                                  on the climbing image
-        """
-        super().__init__(num=len(images), init_k=images[0].k)
-
-        self.wait_iteration = wait_iterations
-        for i, image in enumerate(images):
-            self[i] = image
-
 
 class CINEB(NEB):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.images = CImages(self.images)
 
     def _minimise(self, method, n_cores, etol, max_n=30):
         """Minimise th energy of every image in the NEB"""
@@ -100,7 +105,3 @@ class CINEB(NEB):
         self.images = CImages(self.images)
         return None
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.images = CImages(self.images)

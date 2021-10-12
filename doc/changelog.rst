@@ -1,6 +1,46 @@
 Changelog
 =========
 
+
+1.2.0
+--------
+----------
+
+Optimisation algorithms for faster and more robust minima and TS location.
+
+Usability improvements/Changes
+******************************
+- Adds more type hints and documentation
+- Updates the TS template saved in the default template library
+- Adds a setter for :code:`autode.species.Species.solvent` so :code:`mol.solvent = 'water'` will assign a :code:`autode.solvent.Solvent`
+- Removes :code:`autode.calculation.CalculationInput.solvent` as an attribute in favour of using the molecule's solvent
+- Removes :code:`autode.calculation.get_solvent_name` in favour of a molecule check
+- Removes :code:`autode.species.molecule.reactant_to_product` in favour of a :code:`to_product()` method for :code:`autode.species.molecule.Reactant` (and likewise with a Reactant)
+- Removes partially implemented :code:`autode.species.molecule.SolvatedMolecule` and :code:`autode.species.complex.SolvatedReactantComplex` as the type of solvation (implicit/explicit) should be a property of the solvent and not the molecule
+- Removes :code:`autode.reactions.Reaction.calc_deltaXXX` in favour of :code:`autode.reactions.Reaction.delta()`
+- Refactors classes to place constructors at the top
+- Removes :code:`autode.values.PlottedEnergy` as an estimated attribute is useful for all energies, not just those that are plotted
+- Removes :code:`autode.reactions.Reaction.find_lowest_energy_ts` as the function is not well named and can be replaced by a :code:`autode.reactions.Reaction.ts` property
+- Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
+
+
+Functionality improvements
+**************************
+
+- Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
+- Adds a :code:`autode.solvent.Solvent.dielectric` property for a solvent's dielectric constant
+- Adds a :code:`autode.solvent.Solvent.is_implicit` property
+- Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
+- Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
+
+
+Bug Fixes
+*********
+
+- Updates the TS template saved in the default template library
+
+
+
 1.1.1
 --------
 ----------

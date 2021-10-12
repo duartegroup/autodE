@@ -2,6 +2,7 @@
 The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
+from typing import Optional
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.path import Path
@@ -85,6 +86,25 @@ def derivative(flat_coords, images, method, n_cores):
 
 class Image:
 
+    def __init__(self, name: str, k: float):
+        """
+        Image in a NEB
+
+        Arguments:
+            name (str):
+        """
+        self.name = name
+
+        # Current optimisation iteration of this image
+        self.iteration = 0
+
+        # Force constant in Eh/Å^2
+        self.k = k
+
+        self.species: Optional['autode.species.Species'] = None
+        self.energy: Optional['autode.values.Energy'] = None
+        self.grad: Optional[np.ndarray] = None
+
     def _tau_xl_x_xr(self, im_l, im_r):
         """
         Calculate the normalised τ vector, along with the coordinates of the
@@ -153,27 +173,24 @@ class Image:
         # F_i = F_i^s|| -  ∇V(x)_i|_|_
         return f_parallel - grad_perp
 
-    def __init__(self, name, k):
-        """
-        Image in a NEB
-
-        Arguments:
-            name (str):
-        """
-        self.name = name
-
-        # Current optimisation iteration of this image
-        self.iteration = 0
-
-        # Force constant in Eh/Å^2
-        self.k = k
-
-        self.species = None         # autode.species.Species
-        self.energy = None          # float
-        self.grad = None            # np.ndarray shape (3xn_atoms,)
-
 
 class Images(Path):
+
+    def __init__(self, num, init_k, min_k=None, max_k=None):
+        """
+        Set of images joined by harmonic springs with force constant k
+
+        Arguments:
+
+            num (int): Number of images
+            init_k (float): Initial force constant (Ha Å^-2)
+            min_k (None | float): Minimum value of k
+            max_k (None | float): Maximum value of k
+        """
+        super().__init__(*(Image(name=str(i), k=init_k) for i in range(num)))
+
+        self.min_k = init_k / 10 if min_k is None else float(min_k)
+        self.max_k = 2 * init_k if max_k is None else float(max_k)
 
     def __eq__(self, other):
         """Equality od two climbing image NEB paths"""
@@ -253,24 +270,34 @@ class Images(Path):
 
         return None
 
-    def __init__(self, num, init_k, min_k=None, max_k=None):
-        """
-        Set of images joined by harmonic springs with force constant k
-
-        Arguments:
-
-            num (int): Number of images
-            init_k (float): Initial force constant (Ha Å^-2)
-            min_k (None | float): Minimum value of k
-            max_k (None | float): Maximum value of k
-        """
-        super().__init__(*(Image(name=str(i), k=init_k) for i in range(num)))
-
-        self.min_k = init_k / 10 if min_k is None else float(min_k)
-        self.max_k = 2 * init_k if max_k is None else float(max_k)
-
 
 class NEB:
+
+    def __init__(self, initial_species=None, final_species=None, num=8,
+                 species_list=None, k=0.1):
+        """
+        Nudged elastic band
+
+        Arguments:
+            initial_species (autode.species.Species):
+            final_species (autode.species.Species):
+            num (int): Number of images in the NEB
+            species_list (list(autode.species.Species)): Intermediate images
+                         along the NEB
+        """
+        self.images = Images(num=num, init_k=k)
+
+        if species_list is not None:
+            # Initialise from a list of species rather than just end points
+            self.images = Images(num=len(species_list), init_k=k)
+
+            for i, image in enumerate(self.images):
+                image.species = species_list[i]
+
+        else:
+            self._init_from_end_points(initial_species, final_species)
+
+        logger.info(f'Initialised a NEB with {len(self.images)} images')
 
     def _minimise(self, method, n_cores, etol, max_n=30):
         """Minimise th energy of every image in the NEB"""
@@ -393,29 +420,3 @@ class NEB:
         self.interpolate_geometries()
 
         return None
-
-    def __init__(self, initial_species=None, final_species=None, num=8,
-                 species_list=None, k=0.1):
-        """
-        Nudged elastic band
-
-        Arguments:
-            initial_species (autode.species.Species):
-            final_species (autode.species.Species):
-            num (int): Number of images in the NEB
-            species_list (list(autode.species.Species)): Intermediate images
-                         along the NEB
-        """
-        self.images = Images(num=num, init_k=k)
-
-        if species_list is not None:
-            # Initialise from a list of species rather than just end points
-            self.images = Images(num=len(species_list), init_k=k)
-
-            for i, image in enumerate(self.images):
-                image.species = species_list[i]
-
-        else:
-            self._init_from_end_points(initial_species, final_species)
-
-        logger.info(f'Initialised a NEB with {len(self.images)} images')

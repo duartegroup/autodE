@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 from autode.exceptions import NoMapping
 from autode.atoms import metals
 from autode.species import Complex
-from autode.transition_states.transition_state import TransitionState
+from autode.transition_states import TransitionState, TransitionStates
 from autode.transition_states.truncation import get_truncated_species
 from autode.transition_states.truncation import is_worth_truncating
 from autode.transition_states.ts_guess import get_template_ts_guess
@@ -32,7 +32,7 @@ def find_tss(reaction):
         (list(autode.reaction.Reaction)): Reaction
 
     Returns:
-        (list(autode.transition_states.transition_state.TransitionState)):
+        (autode.transition_states.transition_states.TransitionStates):
     """
     logger.info('Finding possible transition states')
     reactant, product = reaction.reactant, reaction.product
@@ -47,7 +47,7 @@ def find_tss(reaction):
         logger.error('Could not find a set of forming/breaking bonds')
         return None
 
-    tss = []
+    tss = TransitionStates()
     for bond_rearrangement in bond_rearrs:
         logger.info(f'Locating transition state using active bonds '
                     f'{bond_rearrangement.all}')
@@ -56,10 +56,6 @@ def find_tss(reaction):
 
         if ts is not None:
             tss.append(ts)
-
-    if len(tss) == 0:
-        logger.error('Did not find any transition state(s)')
-        return None
 
     logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
     return tss

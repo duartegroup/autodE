@@ -16,6 +16,30 @@ from autode.utils import work_in
 
 class PES1d(PES):
 
+    def __init__(self, reactant, product, rs, r_idxs):
+        """
+        A one dimensional potential energy surface
+
+        Arguments:
+            reactant (autode.complex.ReactantComplex): Species at rs[0]
+            product (autode.complex.ProductComplex):
+            rs (np.ndarray): Bond length array
+            r_idxs (tuple): Atom indexes that the PES will be calculated over
+        """
+        self.n_points = len(rs)
+        self.rs = np.array([(r, ) for r in rs])
+
+        # Vector to store the species
+        self.species = np.empty(shape=(self.n_points,), dtype=object)
+        self.species[0] = deepcopy(reactant)
+
+        # Tuple of the atom indices scanned in coordinate r
+        self.rs_idxs = [r_idxs]
+
+        # Molecular graph of the product. Used to check that the products have
+        # been made & find the MEP
+        self.product_graph = product.graph
+
     def get_species_saddle_point(self):
         """Get the possible first order saddle points, which are just the
         peaks in the PES"""
@@ -71,30 +95,6 @@ class PES1d(PES):
                                                 keywords,
                                                 Config.n_cores)
         return None
-
-    def __init__(self, reactant, product, rs, r_idxs):
-        """
-        A one dimensional potential energy surface
-
-        Arguments:
-            reactant (autode.complex.ReactantComplex): Species at rs[0]
-            product (autode.complex.ProductComplex):
-            rs (np.ndarray): Bond length array
-            r_idxs (tuple): Atom indexes that the PES will be calculated over
-        """
-        self.n_points = len(rs)
-        self.rs = np.array([(r, ) for r in rs])
-
-        # Vector to store the species
-        self.species = np.empty(shape=(self.n_points,), dtype=object)
-        self.species[0] = deepcopy(reactant)
-
-        # Tuple of the atom indices scanned in coordinate r
-        self.rs_idxs = [r_idxs]
-
-        # Molecular graph of the product. Used to check that the products have
-        # been made & find the MEP
-        self.product_graph = product.graph
 
 
 def get_ts_guess_1d(reactant, product, bond, name, method, keywords, dr=0.1):

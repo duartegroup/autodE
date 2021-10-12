@@ -5,7 +5,7 @@ from autode.atoms import Atom
 from autode.smiles.atom_types import TetrahedralAtom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds, RingBond, SMILESAtom
-from autode.smiles.builder import Builder, Angle, Dihedral
+from autode.smiles.builder import Builder, SAngle, SDihedral
 from autode.exceptions import SMILESBuildFailed
 from autode.mol_graphs import get_mapping
 
@@ -134,7 +134,7 @@ def test_d8():
 def test_angle():
 
     water = Molecule(smiles='O')
-    angle = Angle(idxs=[1, 0, 2])   # H, O, H
+    angle = SAngle(idxs=[1, 0, 2])   # H, O, H
 
     assert angle.phi_ideal is None
     assert np.isclose(angle.phi0, np.deg2rad(100), atol=10)
@@ -148,7 +148,7 @@ def test_dihedrals():
              Atom('C',  0.54343, -1.02958, -0.02291),
              Atom('C', -1.81126, -0.12418, -0.02130),
              Atom('C',  1.40662, -2.28788, -0.02401)]
-    dihedral = Dihedral(idxs=[2, 0, 1, 3])
+    dihedral = SDihedral(idxs=[2, 0, 1, 3])
     assert np.isclose(dihedral.value(trans),
                       np.pi, atol=0.05)
 
@@ -184,7 +184,7 @@ def test_cdihedral_rotation():
     builder.build(parser.atoms, parser.bonds)
     mol = Molecule(atoms=builder.atoms)
 
-    dihedral = Dihedral(idxs=[2, 0, 1, 5])
+    dihedral = SDihedral(idxs=[2, 0, 1, 5])
     coords = mol.coordinates
 
     rot_idxs = np.zeros(shape=(1, mol.n_atoms), dtype='i4')
@@ -276,7 +276,7 @@ def test_double_bonds():
     parser.parse(smiles='C/C=C/C')
     builder.build(parser.atoms, parser.bonds)
 
-    dihedral = Dihedral(idxs=[0, 1, 2, 3])
+    dihedral = SDihedral(idxs=[0, 1, 2, 3])
     value = np.abs(dihedral.value(builder.atoms))
 
     assert (np.isclose(value, -np.pi, atol=1E-4)
@@ -475,7 +475,7 @@ def test_trans_small_rings():
     builder.build(parser.atoms, parser.bonds)
     assert are_coords_reasonable(builder.coordinates)
 
-    dihedral = Dihedral(idxs=[3, 4, 5, 6])
+    dihedral = SDihedral(idxs=[3, 4, 5, 6])
     # Should be anything with no defined stereochem
     parser.parse(smiles='C1CCCC=CCC1')
     builder.build(parser.atoms, parser.bonds)
@@ -499,7 +499,7 @@ def test_dihedral_force():
     parser.parse(smiles='CCCC')
     builder.build(atoms=parser.atoms, bonds=parser.bonds)
 
-    dihedral = Dihedral(idxs=[0, 1, 2, 3], phi0=np.pi/2.0)
+    dihedral = SDihedral(idxs=[0, 1, 2, 3], phi0=np.pi/2.0)
 
     # Can only force to 0º or 180º, distances are hard coded
     with pytest.raises(ValueError):
@@ -565,7 +565,7 @@ def test_double_bond_stereo_branch():
 
     # Carbon dihedral should be ~π for this trans double bond, as hydrogens
     # don't count
-    dihedral = Dihedral(idxs=[i for i, atom in enumerate(builder.atoms)
+    dihedral = SDihedral(idxs=[i for i, atom in enumerate(builder.atoms)
                               if atom.label == 'C'])
     assert np.isclose(np.abs(dihedral.value(builder.atoms)),
                       np.pi,
@@ -654,8 +654,8 @@ def test_cis_dihedral_force():
     for atom, new_coord in zip(builder.atoms, coords):
         atom.coord = new_coord
 
-    builder._force_double_bond_stereochem(dihedral=Dihedral([0, 1, 2, 3],
-                                                            phi0=0.0))
+    builder._force_double_bond_stereochem(dihedral=SDihedral([0, 1, 2, 3],
+                                                             phi0=0.0))
 
     # Distance between the end carbons needs to be smaller than the trans
     assert 2.0 < builder.distance(0, 3) < 3.1

@@ -12,7 +12,9 @@ To implement a new EST method:
 (3) Optional: Include keywords in keyword wrappers e.g. wrappers/functionals.py
     so keywords may have associated citations
 
-(4) Write tests!
+(4) Optional: Add implemented implicit solvent names to solvent/solvents.py
+
+(5) Write tests!
 """
 import os
 import numpy as np
@@ -22,6 +24,7 @@ from typing import List
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
+from autode.solvent.solvents import solvents
 from copy import deepcopy
 
 
@@ -32,6 +35,34 @@ class Method:
 
 
 class ElectronicStructureMethod(Method, ABC):
+
+    def __init__(self, name, path, keywords_set, implicit_solvation_type,
+                 doi=None, doi_list=None):
+        """
+        Arguments:
+            name (str): wrapper name. ALSO the name of the executable
+            path (str): absolute path to the executable
+            keywords_set (autode.wrappers.keywords.KeywordsSet):
+            implicit_solvation_type (autode.wrappers.
+                                     keywords.ImplicitSolventType):
+
+        """
+        self.name = name
+        self.__name__ = self.__class__.__name__
+
+        # Digital object identifier(s) of the method/or paper describing the
+        # method
+        self.doi_list = []
+        if doi_list is not None:
+            self.doi_list += doi_list
+
+        if doi is not None:
+            self.doi_list.append(doi)
+
+        # If the path is not set in config.py or input script search in $PATH
+        self.path = path if path is not None else which(name)
+        self.keywords = deepcopy(keywords_set)
+        self.implicit_solvation_type = implicit_solvation_type
 
     @abstractmethod
     def __repr__(self):
@@ -49,6 +80,13 @@ class ElectronicStructureMethod(Method, ABC):
 
         logger.info(f'{self.__name__} is not available')
         return False
+
+    @property
+    def available_implicit_solvents(self) -> List[str]:
+        """Available implicit solvent models for this EST method"""
+
+        return [s.name for s in solvents
+                if s.is_implicit and hasattr(s, self.name)]
 
     @property
     def doi_str(self):
@@ -229,31 +267,3 @@ class ElectronicStructureMethod(Method, ABC):
             IndexError)
         """
         raise NotImplementedError
-
-    def __init__(self, name, path, keywords_set, implicit_solvation_type,
-                 doi=None, doi_list=None):
-        """
-        Arguments:
-            name (str): wrapper name. ALSO the name of the executable
-            path (str): absolute path to the executable
-            keywords_set (autode.wrappers.keywords.KeywordsSet):
-            implicit_solvation_type (autode.wrappers.
-                                     keywords.ImplicitSolventType):
-
-        """
-        self.name = name
-        self.__name__ = self.__class__.__name__
-
-        # Digital object identifier(s) of the method/or paper describing the
-        # method
-        self.doi_list = []
-        if doi_list is not None:
-            self.doi_list += doi_list
-
-        if doi is not None:
-            self.doi_list.append(doi)
-
-        # If the path is not set in config.py or input script search in $PATH
-        self.path = path if path is not None else which(name)
-        self.keywords = deepcopy(keywords_set)
-        self.implicit_solvation_type = implicit_solvation_type

@@ -22,6 +22,16 @@ from autode.smiles.base import (SMILESAtom,
 
 class Parser:
 
+    def __init__(self):
+        """SMILES Parser"""
+
+        self._string = ''
+
+        # Indexes of the characters in the SMILES string that have been parsed
+        self.parsed_idxs = set()
+        self.atoms = []
+        self.bonds = SMILESBonds()
+
     @property
     def n_atoms(self):
         """Number of atoms in parsed, not including implicit hydrogens"""
@@ -424,16 +434,6 @@ class Parser:
 
         self._set_implicit_hs()
         return None
-
-    def __init__(self):
-        """SMILES Parser"""
-
-        self._string = ''
-
-        # Indexes of the characters in the SMILES string that have been parsed
-        self.parsed_idxs = set()
-        self.atoms = []
-        self.bonds = SMILESBonds()
 
 
 def atomic_charge(string):

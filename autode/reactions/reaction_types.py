@@ -3,11 +3,12 @@ from autode.log import logger
 
 
 class ReactionType:
+    """Type of a reaction e.g. Addition"""
 
     def __eq__(self, other):
         return self.name == other.name
 
-    def __init__(self, name):
+    def __init__(self, name: str):
 
         self.name = name
 
@@ -50,5 +51,5 @@ def classify(reactants, products):
         raise ReactionFormationFalied
 
     else:
-        logger.critical('Unsupported reaction type')
-        raise NotImplementedError
+        raise NotImplementedError('Unsupported reaction type: '
+                                  f'{len(reactants)} -> {len(products)}')

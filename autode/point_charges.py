@@ -1,9 +1,15 @@
-import numpy as np
+from typing import Sequence, Optional
+from autode.atoms import DummyAtom
 
 
-class PointCharge:
+class PointCharge(DummyAtom):
 
-    def __init__(self, charge, x=0.0, y=0.0, z=0.0, coord=None):
+    def __init__(self,
+                 charge: float,
+                 x:      float = 0.0,
+                 y:      float = 0.0,
+                 z:      float = 0.0,
+                 coord:  Optional[Sequence] = None):
         """
         Point charge
 
@@ -14,13 +20,12 @@ class PointCharge:
             x (float): x coordinate (Å)
             y (float): y coordinate (Å)
             z (float): z coordinate (Å)
-            coord (np.ndarray): Length 3 array of x, y, z coordinates or None
+            coord (np.ndarray | None): Length 3 array of x, y, z coordinates
+                                       or None
         """
-        self.charge = float(charge)
-        self.coord = np.array([float(x), float(y), float(z)])
+        super().__init__(x, y, z)
 
-        # If initialised with a coordinate override the default
+        self.charge = float(charge)
+
         if coord is not None:
-            assert type(coord) is np.ndarray
-            assert len(coord) == 3
             self.coord = coord
