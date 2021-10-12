@@ -105,3 +105,18 @@ def test_too_close_to_solvent():
     assert solv._too_close_to_solvent(coords,
                                       solvent_idxs=second_solv_idxs,
                                       max_idx=1)
+
+
+def test_equality():
+
+    solv1 = ExplicitSolvent(solute=methane_mol(),
+                            solvent=water_mol(),
+                            num=2)
+
+    solv2 = ExplicitSolvent(solute=methane_mol(),
+                            solvent=water_mol(),
+                            num=1)
+
+    assert solv1 != 2
+    assert solv1 != solv2
+    assert solv1 == solv1

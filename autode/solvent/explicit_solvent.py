@@ -1,4 +1,3 @@
-from copy import deepcopy
 import numpy as np
 from scipy.spatial import distance_matrix
 from autode.geom import get_points_on_sphere, get_rot_mat_euler
@@ -36,6 +35,45 @@ class _RandomPointGenerator:
 
 class ExplicitSolvent(AtomCollection, Solvent):
     """Explicit solvation """
+
+    def __init__(self,
+                 solute:  'autode.species.species.Species',
+                 solvent: 'autode.species.species.Species',
+                 num:     int):
+        """
+        Explicit solvent. Initial construction attempts to generate a
+        reasonable distribution around the (unmodified) solute. Only supports
+        unicomponent solvents.
+
+        Arguments:
+            solute (autode.species.species.Species): Solute
+
+            solvent (autode.species.species.Species): Solvent molecule (copied)
+
+            num (int): Number of solvent molecules to add
+        """
+        if num <= 0:
+            raise ValueError('Must solvate with at least a single solvent '
+                             f'molecule. Had {num}')
+
+        super().__init__(atoms=sum((solvent.atoms.copy() for _ in range(num)),
+                                   None))
+
+        self.solvent_n_atoms = solvent.n_atoms
+
+        # TODO: Something better than this hardcoded value
+        self.solvent_radius = solvent.radius.to('ang') + 2.0
+
+        self.randomise_around(solute)
+
+    def __eq__(self, other) -> bool:
+        """Equality between two explicit solvent environments"""
+
+        if isinstance(other, ExplicitSolvent) and self.n_atoms == other.n_atoms:
+            return all(o_at.label == at.label
+                       for o_at, at in zip(other.atoms, self.atoms))
+
+        return False
 
     @property
     def is_implicit(self) -> bool:
@@ -175,33 +213,3 @@ class ExplicitSolvent(AtomCollection, Solvent):
         # Finally, translate to be centred around the solute's origin
         self.coordinates = coords + m_origin
         return None
-
-    def __init__(self,
-                 solute:  'autode.species.species.Species',
-                 solvent: 'autode.species.species.Species',
-                 num:     int):
-        """
-        Explicit solvent. Initial construction attempts to generate a
-        reasonable distribution around the (unmodified) solute. Only supports
-        unicomponent solvents.
-
-        Arguments:
-            solute (autode.species.species.Species): Solute
-
-            solvent (autode.species.species.Species): Solvent molecule (copied)
-
-            num (int): Number of solvent molecules to add
-        """
-        if num <= 0:
-            raise ValueError('Must solvate with at least a single solvent '
-                             f'molecule. Had {num}')
-
-        super().__init__(atoms=sum((solvent.atoms.copy() for _ in range(num)),
-                                   None))
-
-        self.solvent_n_atoms = solvent.n_atoms
-
-        # TODO: Something better than this hardcoded value
-        self.solvent_radius = solvent.radius.to('ang') + 2.0
-
-        self.randomise_around(solute)
