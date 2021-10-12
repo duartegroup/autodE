@@ -9,6 +9,19 @@ from autode.utils import work_in
 
 class MultiStepReaction:
 
+    def __init__(self, *args, name='reaction'):
+        """
+        Reaction with multiple steps
+
+        Arguments:
+            *args (autode.reaction.Reaction): Set of reactions to calculate the
+                                              reaction profile for
+        """
+        self.name = str(name)
+        self.reactions = args
+
+        assert all(type(reaction) is Reaction for reaction in self.reactions)
+
     def calculate_reaction_profile(self, units=KcalMol):
         """Calculate a multistep reaction profile using the products of step 1
         as the reactants of step 2 etc."""
@@ -53,16 +66,3 @@ class MultiStepReaction:
 
         plot_reaction_profile(self.reactions, units=units, name=self.name)
         return None
-
-    def __init__(self, *args, name='reaction'):
-        """
-        Reaction with multiple steps
-
-        Arguments:
-            *args (autode.reaction.Reaction): Set of reactions to calculate the
-                                              reaction profile for
-        """
-        self.name = str(name)
-        self.reactions = args
-
-        assert all(type(reaction) is Reaction for reaction in self.reactions)

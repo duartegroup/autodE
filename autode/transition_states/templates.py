@@ -267,6 +267,40 @@ def get_values_dict_from_file(key, file_lines):
 
 class TStemplate:
 
+    def __init__(self, graph=None, charge=None, mult=None, solvent=None,
+                 species=None, filename=None):
+        """
+        TS template
+
+        Keyword Arguments:
+            graph (nx.Graph): Active bonds in the TS are represented by the
+                  edges with attribute active=True, going out to nearest bonded
+                  neighbours
+
+            solvent (autode.solvent.solvents.Solvent):
+
+            charge (int):
+
+            mult (int):
+
+            species (autode.species.Species):
+
+            filename (str): Saved template to load
+        """
+
+        self.graph = graph
+        self.solvent = solvent
+        self.charge = charge
+        self.mult = mult
+
+        if species is not None:
+            self.solvent = species.solvent
+            self.charge = species.charge
+            self.mult = species.mult
+
+        if filename is not None:
+            self.load(filename)
+
     def _save_to_file(self, file):
         """Save this template to a plain text .txt file with a ~yaml syntax"""
 
@@ -418,37 +452,3 @@ class TStemplate:
             raise TemplateLoadingFailed('Incorrect graph structure')
 
         return None
-
-    def __init__(self, graph=None, charge=None, mult=None, solvent=None,
-                 species=None, filename=None):
-        """
-        TS template
-
-        Keyword Arguments:
-            graph (nx.Graph): Active bonds in the TS are represented by the
-                  edges with attribute active=True, going out to nearest bonded
-                  neighbours
-
-            solvent (autode.solvent.solvents.Solvent):
-
-            charge (int):
-
-            mult (int):
-
-            species (autode.species.Species):
-
-            filename (str): Saved template to load
-        """
-
-        self.graph = graph
-        self.solvent = solvent
-        self.charge = charge
-        self.mult = mult
-
-        if species is not None:
-            self.solvent = species.solvent
-            self.charge = species.charge
-            self.mult = species.mult
-
-        if filename is not None:
-            self.load(filename)

@@ -11,7 +11,8 @@ from autode.log import logger
 from autode.exceptions import (NoAtomsInMolecule,
                                NoCalculationOutput,
                                NoConformers,
-                               NoMolecularGraph)
+                               NoMolecularGraph,
+                               MethodUnavailable)
 
 try:
     mp.set_start_method("fork")
@@ -257,6 +258,32 @@ def requires_conformers(func):
 
         if args[0].n_conformers == 0:
             raise NoConformers
+
+        return func(*args, **kwargs)
+
+    return wrapped_function
+
+
+def requires_hl_level_methods(func):
+    """A function requiring both high and low-level methods to be available"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        from autode.methods import get_lmethod, get_hmethod
+
+        suffix = 'neither was available.'
+
+        try:
+            _ = get_lmethod()
+
+            # Have a low-level method, so the high-level must not be available
+            suffix = 'the high-level was not available.'
+            _ = get_hmethod()
+
+        except MethodUnavailable:
+            raise MethodUnavailable(f'Function *{func.__name__}* requires both'
+                                    f' a high and low-level method but '
+                                    f'{suffix}')
 
         return func(*args, **kwargs)
 

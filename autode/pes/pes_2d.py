@@ -23,6 +23,45 @@ from autode.units import KcalMol
 
 class PES2d(PES):
 
+    def __init__(self, reactant, product, r1s, r1_idxs, r2s, r2_idxs):
+        """
+        A two dimensional potential energy surface::
+
+                  /
+              r2 /
+                /
+               /___________
+                    r1
+
+        Arguments:
+            reactant (autode.complex.ReactantComplex): Species at r1s[0] and r2s[0]
+            r1s (np.ndarray): Bond length array in r1
+            r1_idxs (tuple): Atom indexes that the PES will be calculated over in r1
+            r2s (np.ndarray): Bond length array in r2
+            r2_idxs (tuple): Atom indexes that the PES will be calculated over in r2
+        """
+        self.r1s, self.r2s = r1s, r2s
+        self.n_points_r1, self.n_points_r2 = len(r1s), len(r2s)
+
+        # Matrices to store the species and r1, r2 values at a point (i, j)
+        self.species = np.empty(shape=(self.n_points_r1, self.n_points_r2),
+                                dtype=object)
+        self.rs = np.empty(shape=(self.n_points_r1, self.n_points_r2),
+                           dtype=tuple)
+
+        # List of tuples that contain atom indices of the coordinate r1
+        self.rs_idxs = [r1_idxs, r2_idxs]
+
+        # Populate the rs array and set species[0, 0] to the reactant
+        self._init_tensors(reactant=reactant, r1s=r1s, r2s=r2s)
+
+        # Coefficients of the fitted surface
+        self.coeff_mat = None
+
+        # Molecular graph of the product. Used to check that the products have
+        # been made & find the MEP
+        self.product_graph = product.graph
+
     def get_species_saddle_point(self, name, method, keywords):
         """Get the species at the true saddle point on the surface"""
         saddle_points = poly2d_saddlepoints(coeff_mat=self.coeff_mat, xs=self.r1s, ys=self.r2s)
@@ -186,45 +225,6 @@ class PES2d(PES):
         self.species[0, 0] = deepcopy(reactant)
 
         return None
-
-    def __init__(self, reactant, product, r1s, r1_idxs, r2s, r2_idxs):
-        """
-        A two dimensional potential energy surface::
-
-                  /
-              r2 /
-                /
-               /___________
-                    r1
-
-        Arguments:
-            reactant (autode.complex.ReactantComplex): Species at r1s[0] and r2s[0]
-            r1s (np.ndarray): Bond length array in r1
-            r1_idxs (tuple): Atom indexes that the PES will be calculated over in r1
-            r2s (np.ndarray): Bond length array in r2
-            r2_idxs (tuple): Atom indexes that the PES will be calculated over in r2
-        """
-        self.r1s, self.r2s = r1s, r2s
-        self.n_points_r1, self.n_points_r2 = len(r1s), len(r2s)
-
-        # Matrices to store the species and r1, r2 values at a point (i, j)
-        self.species = np.empty(shape=(self.n_points_r1, self.n_points_r2),
-                                dtype=object)
-        self.rs = np.empty(shape=(self.n_points_r1, self.n_points_r2),
-                           dtype=tuple)
-
-        # List of tuples that contain atom indices of the coordinate r1
-        self.rs_idxs = [r1_idxs, r2_idxs]
-
-        # Populate the rs array and set species[0, 0] to the reactant
-        self._init_tensors(reactant=reactant, r1s=r1s, r2s=r2s)
-
-        # Coefficients of the fitted surface
-        self.coeff_mat = None
-
-        # Molecular graph of the product. Used to check that the products have
-        # been made & find the MEP
-        self.product_graph = product.graph
 
 
 def get_ts_guess_2d(reactant, product, bond1, bond2, name, method, keywords,

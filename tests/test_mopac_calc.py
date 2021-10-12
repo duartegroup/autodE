@@ -3,6 +3,7 @@ from autode.wrappers.MOPAC import get_keywords
 from autode.exceptions import CouldNotGetProperty, UnsuppportedCalculationInput
 from autode.calculation import Calculation, CalculationInput
 from autode.species.molecule import Molecule
+from autode.solvent import ImplicitSolvent
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.config import Config
@@ -211,7 +212,6 @@ def test_termination_short():
 def test_mopac_keywords():
 
     calc_input = CalculationInput(keywords=Config.MOPAC.keywords.sp,
-                                  solvent=None,
                                   added_internals=None,
                                   additional_input=None,
                                   point_charges=None)
@@ -247,3 +247,22 @@ def test_get_version_no_output():
     assert version == '???'
 
     os.remove(calc.output.filename)
+
+
+def test_mopac_solvent_no_dielectric():
+
+    mol = methylchloride.copy()
+    mol.solvent = ImplicitSolvent('X', smiles='X', aliases=['X'], mopac='X')
+
+    calc = Calculation('tmp',
+                       molecule=mol,
+                       method=method,
+                       keywords=method.keywords.sp)
+
+    # Cannot generate an input if the solvent does not have a defined
+    # dielectric constant in the dictionary
+    with pytest.raises(UnsuppportedCalculationInput):
+        calc.generate_input()
+
+    if os.path.exists('tmp_mopac.mop'):
+        os.remove('tmp_mopac.mop')

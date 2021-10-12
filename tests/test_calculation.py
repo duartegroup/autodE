@@ -1,4 +1,4 @@
-from autode.calculation import Calculation, get_solvent_name, Constraints
+from autode.calculation import Calculation, Constraints
 from autode.solvent.solvents import get_solvent
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
@@ -167,35 +167,28 @@ def test_fix_unique():
 
 def test_solvent_get():
     xtb = XTB()
+    _test_mol = Molecule(smiles='O', name='test_mol')
 
     # Can't get the name of a solvent if molecule.solvent is not a string
-    test_mol.solvent = 5
     with pytest.raises(ex.SolventUnavailable):
-        _ = get_solvent_name(molecule=test_mol,  method=xtb)
+        _test_mol.solvent = 5
 
-    test_mol.solvent = None
-    assert get_solvent_name(test_mol, method=xtb) is None
-
-    test_mol.solvent = 'a_solvent_that_doesnt_exist'
     with pytest.raises(ex.SolventNotFound):
-        _ = get_solvent_name(molecule=test_mol,  method=xtb)
+        _test_mol.solvent = 'a_solvent_that_doesnt_exist'
 
     # Should work fine with a normal solvent
-    test_mol.solvent = get_solvent(solvent_name='water')
-    solv_name_xtb = get_solvent_name(test_mol, method=xtb)
-    assert solv_name_xtb.lower() in ['water', 'h2o']
+    _test_mol.solvent = get_solvent(solvent_name='water')
+    assert _test_mol.solvent.xtb.lower() in ['water', 'h2o']
 
     # Currently iodoethane is not in XTB - might be in the future
-    test_mol.solvent = get_solvent(solvent_name='iodoethane')
-    with pytest.raises(ex.SolventUnavailable):
-        _ = get_solvent_name(test_mol, method=xtb)
+    _test_mol.solvent = 'iodoethane'
+    assert not hasattr(test_mol.solvent, 'xtb')
+    assert _test_mol.solvent.is_implicit
 
-    test_mol.solvent = 0
     with pytest.raises(ex.SolventUnavailable):
-        _ = get_solvent_name(test_mol, method=xtb)
-
-    # return to the gas phase
-    test_mol.solvent = None
+        _ = Calculation('test',
+                        molecule=_test_mol,
+                        method=xtb, keywords=xtb.keywords.sp)
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])

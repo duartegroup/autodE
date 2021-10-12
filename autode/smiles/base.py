@@ -24,6 +24,41 @@ class SMILESStereoChem(enum.Enum):
 class SMILESAtom(Atom):
     """Atom in a SMILES string"""
 
+    def __init__(self,
+                 label:       str,
+                 stereochem:  SMILESStereoChem = SMILESStereoChem.NONE,
+                 n_hydrogens: Union[None, int] = None,
+                 charge:      int = 0):
+        """
+        SMILES atom initialised at the origin
+
+        ----------------------------------------------------------------------
+        Arguments:
+            label (str): Label / atomic symbol of this atom
+
+        Keyword Arguments:
+            n_hydrogens (int | None): Number of hydrogens, None means unset and
+                                      should be determined implicitly
+
+            stereochem (SMILESStereoChem):
+
+            charge (int): Formal charge on this atom
+        """
+        super().__init__(atomic_symbol=label.capitalize())
+
+        # SMILES label may be distinct from the atom label, e.g. aromatic atoms
+        self.smiles_label = label
+
+        self.charge = charge
+        self.n_hydrogens = n_hydrogens
+        self.stereochem = stereochem
+
+        # ---------- Attributes used for building the 3D structure ----------
+        self.type = None
+        self.neighbours = None
+        self.in_ring = False
+        self._is_pi = False if label not in aromatic_symbols else True
+
     def __str__(self):
         return self.__repr__()
 
@@ -60,44 +95,28 @@ class SMILESAtom(Atom):
         self.stereochem = SMILESStereoChem(-self.stereochem.value)
         return
 
-    def __init__(self,
-                 label:       str,
-                 stereochem:  SMILESStereoChem = SMILESStereoChem.NONE,
-                 n_hydrogens: Union[None, int] = None,
-                 charge:      int = 0):
-        """
-        SMILES atom initialised at the origin
-
-        ----------------------------------------------------------------------
-        Arguments:
-            label (str): Label / atomic symbol of this atom
-
-        Keyword Arguments:
-            n_hydrogens (int | None): Number of hydrogens, None means unset and
-                                      should be determined implicitly
-
-            stereochem (SMILESStereoChem):
-
-            charge (int): Formal charge on this atom
-        """
-        super().__init__(atomic_symbol=label.capitalize())
-
-        # SMILES label may be distinct from the atom label, e.g. aromatic atoms
-        self.smiles_label = label
-
-        self.charge = charge
-        self.n_hydrogens = n_hydrogens
-        self.stereochem = stereochem
-
-        # ---------- Attributes used for building the 3D structure ----------
-        self.type = None
-        self.neighbours = None
-        self.in_ring = False
-        self._is_pi = False if label not in aromatic_symbols else True
-
 
 class SMILESBond:
     """Bond in a SMILES string"""
+
+    def __init__(self, idx_i: int, idx_j: int, symbol: str):
+        """
+        Bond between two atoms from a SMILES string, sorted from low to high
+
+        Arguments:
+            idx_i (int):
+            idx_j (int):
+            symbol (str): Bond order symbol
+        """
+        self._list = [idx_i, idx_j]
+
+        if symbol not in bond_order_symbols:
+            raise InvalidSmilesString(f'{symbol} is an unknown bond type')
+
+        self.closes_ring = False
+        self.order = bond_order_symbols.index(symbol) + 1
+
+        self.r0 = None                               # Ideal bond distance (Å)
 
     def __str__(self):
         return self.__repr__()
@@ -167,25 +186,6 @@ class SMILESBond:
     def symbol(self, value):
         """Allow for a symbol to be set, keeping track of only the order"""
         self.order = bond_order_symbols.index(value) + 1
-
-    def __init__(self, idx_i: int, idx_j: int, symbol: str):
-        """
-        Bond between two atoms from a SMILES string, sorted from low to high
-
-        Arguments:
-            idx_i (int):
-            idx_j (int):
-            symbol (str): Bond order symbol
-        """
-        self._list = [idx_i, idx_j]
-
-        if symbol not in bond_order_symbols:
-            raise InvalidSmilesString(f'{symbol} is an unknown bond type')
-
-        self.closes_ring = False
-        self.order = bond_order_symbols.index(symbol) + 1
-
-        self.r0 = None                               # Ideal bond distance (Å)
 
 
 class RingBond(SMILESBond):

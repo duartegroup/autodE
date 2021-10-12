@@ -13,6 +13,15 @@ from autode.log import logger
 
 class XTB(ElectronicStructureMethod):
 
+    def __init__(self):
+        super().__init__(name='xtb',
+                         path=Config.XTB.path,
+                         keywords_set=Config.XTB.keywords,
+                         implicit_solvation_type=Config.XTB.implicit_solvation_type,
+                         doi_list=['10.1002/wcms.1493'])
+
+        self.force_constant = Config.XTB.force_constant
+
     def __repr__(self):
         return f'XTB(available = {self.available})'
 
@@ -141,8 +150,8 @@ class XTB(ElectronicStructureMethod):
         elif isinstance(calc.input.keywords, GradientKeywords):
             flags.append('--grad')
 
-        if calc.input.solvent is not None:
-            flags += ['--gbsa', calc.input.solvent]
+        if calc.molecule.solvent is not None:
+            flags += ['--gbsa', calc.molecule.solvent.xtb]
 
         if len(calc.input.additional_filenames) > 0:
             # XTB allows for an additional xcontrol file, which should be the
@@ -329,15 +338,6 @@ class XTB(ElectronicStructureMethod):
         # Convert from Ha a0^-1 to Ha A-1
         gradients = [grad / Constants.a0_to_ang for grad in gradients]
         return np.array(gradients)
-
-    def __init__(self):
-        super().__init__(name='xtb',
-                         path=Config.XTB.path,
-                         keywords_set=Config.XTB.keywords,
-                         implicit_solvation_type=Config.XTB.implicit_solvation_type,
-                         doi_list=['10.1002/wcms.1493'])
-
-        self.force_constant = Config.XTB.force_constant
 
 
 xtb = XTB()

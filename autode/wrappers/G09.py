@@ -356,6 +356,22 @@ def calc_uses_external_method(calc):
 
 class G09(ElectronicStructureMethod):
 
+    def __init__(self, name='g09', path=None, keywords_set=None,
+                 implicit_solvation_type=None):
+        """Gaussian 09"""
+
+        if keywords_set is None:
+            keywords_set = Config.G09.keywords
+
+        if implicit_solvation_type is None:
+            implicit_solvation_type = Config.G09.implicit_solvation_type
+
+        super().__init__(name=name,
+                         path=Config.G09.path if path is None else path,
+                         keywords_set=keywords_set,
+                         implicit_solvation_type=implicit_solvation_type,
+                         doi='http://gaussian.com/citation/')
+
     def __repr__(self):
         return f'Gaussian09(available = {self.available})'
 
@@ -375,8 +391,9 @@ class G09(ElectronicStructureMethod):
             keywords = get_keywords(calc.input, molecule)
             print('#', *keywords, file=inp_file, end=' ')
 
-            if calc.input.solvent is not None:
-                print(f'scrf=(smd,solvent={calc.input.solvent})', file=inp_file)
+            if molecule.solvent is not None:
+                print(f'scrf=(smd,solvent={molecule.solvent.g09})',
+                      file=inp_file)
             else:
                 print('', file=inp_file)
 
@@ -643,22 +660,6 @@ class G09(ElectronicStructureMethod):
 
         # Gaussian Hessians are quoted in Ha a0^-2
         return symm_matrix_from_ltril(hess_values) / Constants.a0_to_ang**2
-
-    def __init__(self, name='g09', path=None, keywords_set=None,
-                 implicit_solvation_type=None):
-        """Gaussian 09"""
-
-        if keywords_set is None:
-            keywords_set = Config.G09.keywords
-
-        if implicit_solvation_type is None:
-            implicit_solvation_type = Config.G09.implicit_solvation_type
-
-        super().__init__(name=name,
-                         path=Config.G09.path if path is None else path,
-                         keywords_set=keywords_set,
-                         implicit_solvation_type=implicit_solvation_type,
-                         doi='http://gaussian.com/citation/')
 
 
 g09 = G09()

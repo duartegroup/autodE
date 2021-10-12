@@ -42,7 +42,6 @@ def test_printing_ecp():
     assert n_ecp_elements(kwds.Keywords(keyword_list=[]), molecule=tmp_mol) == 0
 
     calc_input = CalculationInput(keywords,
-                                  solvent=None,
                                   additional_input=None,
                                   added_internals=None,
                                   point_charges=None)

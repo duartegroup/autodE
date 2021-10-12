@@ -147,12 +147,6 @@ def test_free_energy():
     assert PotentialEnergy(1.0) != FreeEnergy(1.0)
 
 
-def test_plotted_energy():
-
-    # Equality does not check estimation
-    assert PlottedEnergy(1, estimated=True) == PlottedEnergy(1, estimated=False)
-
-
 def test_distance():
 
     assert 'dist' in repr(Distance(1.0)).lower()

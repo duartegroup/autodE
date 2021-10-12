@@ -13,6 +13,7 @@ surface (PES) scans and conformational searching.
 
    species
    molecules
+   reactions
    nci
    manipulation
    pes1d

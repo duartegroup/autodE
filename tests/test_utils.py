@@ -1,18 +1,19 @@
 from autode import utils
+from autode.config import Config
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.conformers import Conformer
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.keywords import Keywords
-from autode.exceptions import NoCalculationOutput
-from autode.exceptions import NoConformers
-from autode.utils import work_in_tmp_dir
-from autode.mol_graphs import is_isomorphic
 from subprocess import Popen, TimeoutExpired
 import multiprocessing as mp
+from autode import exceptions as ex
+from autode.utils import work_in_tmp_dir, requires_hl_level_methods
 import time
 import pytest
 import os
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_clear_files():
@@ -88,7 +89,7 @@ def test_calc_output():
     def test(calculation):
         print(calculation.molecule.n_atoms)
 
-    with pytest.raises(NoCalculationOutput):
+    with pytest.raises(ex.NoCalculationOutput):
         test(calc)
 
     # Calling the same function with some calculation output should not raise
@@ -108,7 +109,7 @@ def test_conformers():
     def test(mol):
         print(mol.conformers[0].n_atoms)
 
-    with pytest.raises(NoConformers):
+    with pytest.raises(ex.NoConformers):
         test(methane)
 
     # Populating a species conformers should allow this function to be called
@@ -148,7 +149,7 @@ def test_timeout():
 
     start_time = time.time()
     sleep_2s()
-    assert time.time() - start_time > 2
+    assert time.time() - start_time > 1.9
 
     @utils.timeout(seconds=1)
     def sleep_2s():

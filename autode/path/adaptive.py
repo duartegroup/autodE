@@ -110,10 +110,6 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
 
 class PathPoint:
 
-    def copy(self):
-        """Return a copy of this point"""
-        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
-
     def __init__(self, species, constraints):
         """
         Point on a PES path
@@ -131,8 +127,42 @@ class PathPoint:
         self.energy = None    # Ha
         self.grad = None      # Ha Å^-1
 
+    def copy(self):
+        """Return a copy of this point"""
+        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
+
 
 class AdaptivePath(Path):
+
+    def __init__(self, init_species, bonds, method, final_species=None):
+        """
+        PES Path
+
+        Arguments:
+            init_species (autode.species.Species):
+            bonds (list(autode.pes.ScannedBond)):
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+        Keyword Arguments:
+            final_species (autode.species.Species):
+        """
+        super().__init__()
+
+        self.method = method
+        self.bonds = bonds
+        self.final_species = final_species
+
+        # Bonds need to have the initial and final dists to drive along them
+        for bond in bonds:
+            assert bond.curr_dist is not None and bond.final_dist is not None
+
+        # Add the first point - will run a constrained minimisation if possible
+        init_point = PathPoint(species=init_species,
+                               constraints={bond.atom_indexes: bond.curr_dist
+                                            for bond in bonds})
+
+        if init_point.species.n_atoms > 0:
+            self.append(init_point)
 
     def __eq__(self, other):
         """Equality of two adaptive paths"""
@@ -320,32 +350,3 @@ class AdaptivePath(Path):
 
         return None
 
-    def __init__(self, init_species, bonds, method, final_species=None):
-        """
-        PES Path
-
-        Arguments:
-            init_species (autode.species.Species):
-            bonds (list(autode.pes.ScannedBond)):
-            method (autode.wrappers.base.ElectronicStructureMethod):
-
-        Keyword Arguments:
-            final_species (autode.species.Species):
-        """
-        super().__init__()
-
-        self.method = method
-        self.bonds = bonds
-        self.final_species = final_species
-
-        # Bonds need to have the initial and final dists to drive along them
-        for bond in bonds:
-            assert bond.curr_dist is not None and bond.final_dist is not None
-
-        # Add the first point - will run a constrained minimisation if possible
-        init_point = PathPoint(species=init_species,
-                               constraints={bond.atom_indexes: bond.curr_dist
-                                            for bond in bonds})
-
-        if init_point.species.n_atoms > 0:
-            self.append(init_point)
