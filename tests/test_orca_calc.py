@@ -74,7 +74,7 @@ def test_calc_bad_mol():
 
     mol = Mol()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(Exception):
         Calculation(name='bad_mol_object', molecule=mol, method=method,
                     keywords=opt_keywords)
 
