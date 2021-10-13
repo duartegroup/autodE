@@ -7,7 +7,7 @@ from autode.exceptions import SolventNotFound
 
 def get_solvent(solvent_name: str,
                 implicit:     bool = True,
-                explicit:     bool = False):
+                explicit:     bool = False) -> 'Solvent':
     """
     For a named solvent return the Solvent which matches one of the aliases
 
@@ -27,9 +27,13 @@ def get_solvent(solvent_name: str,
         (ValueError): If both explicit and implicit solvent are selected
     """
     if solvent_name is None or not (implicit or explicit):
+        logger.warning('Not requested any solvent - returning None')
         return None
 
-    if implicit and not explicit:
+    if implicit and explicit:
+        raise ValueError('Cannot have both and implicit and explict solvent')
+
+    if implicit:
 
         for solvent in solvents:
             if solvent.is_implicit and solvent_name.lower() in solvent.aliases:
