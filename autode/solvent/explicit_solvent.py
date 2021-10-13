@@ -7,6 +7,28 @@ from autode.solvent.solvents import Solvent
 
 
 class _RandomPointGenerator:
+    r"""
+    Generator for points (unit vectors) in solvent shells. e.g. where if x is
+    a solute molecule the vectors in the different shells::
+
+            ------
+                   `
+            ---      `
+                \     |
+            x    |    |
+
+    """
+
+    def __init__(self, random_state):
+        """
+        Point generator
+
+        Arguments:
+            random_state (numpy.random.mtrand.RandomState):
+        """
+        self.random_state = random_state
+        self._sphere_n = 1
+        self._points = []
 
     def random_point(self) -> np.ndarray:
         """
@@ -25,12 +47,6 @@ class _RandomPointGenerator:
 
         idx = self.random_state.randint(0, len(self._points))
         return self._points.pop(idx)
-
-    def __init__(self, random_state):
-        # Points distributed around the origin in the first solvent sphere
-        self.random_state = random_state
-        self._sphere_n = 1
-        self._points = []
 
 
 class ExplicitSolvent(AtomCollection, Solvent):
