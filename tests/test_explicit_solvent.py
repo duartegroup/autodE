@@ -58,7 +58,7 @@ def test_invalid_solvation():
     with pytest.raises(ValueError):
         mol.explicitly_solvate(num=0)
 
-    solv = ExplicitSolvent(mol, solvent=water_mol(), num=1)
+    solv = ExplicitSolvent(solute=mol, solvent=water_mol(), num=1)
 
     with pytest.raises(ValueError):
         solv.solvent_atom_idxs(-1)   # No solvent with index -1
@@ -79,7 +79,7 @@ def test_too_close_to_solute():
     solute = methane_mol()
     water = water_mol()
 
-    solv = ExplicitSolvent(solute, solvent=water, num=1)
+    solv = ExplicitSolvent(solute=solute, solvent=water, num=1)
     assert solv._too_close_to_solute(water.coordinates,
                                      solute.coordinates,
                                      solute_radius=1.2)
@@ -87,7 +87,7 @@ def test_too_close_to_solute():
 
 def test_too_close_to_solvent():
 
-    solv = ExplicitSolvent(methane_mol(), solvent=water_mol(), num=2)
+    solv = ExplicitSolvent(solute=methane_mol(), solvent=water_mol(), num=2)
     assert solv.n_solvent_molecules == 2
     assert solv.solvent_n_atoms == 3
 

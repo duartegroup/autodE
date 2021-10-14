@@ -32,11 +32,13 @@ def test_get_solvent():
     water = solvents.get_solvent(solvent_name='water')
     assert water.name == 'water'
     assert water.smiles == 'O'
+    assert 'h2o' in water.aliases
+    assert 'water' in water.aliases
 
     with pytest.raises(SolventNotFound):
         _ = solvents.get_solvent(solvent_name='test_solvent')
 
-    assert not water is None
+    assert water is not None
     assert water == solvents.get_solvent(solvent_name='h2o')
 
 
