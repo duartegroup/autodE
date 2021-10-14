@@ -31,13 +31,9 @@ def test_get_solvent():
 
     # Solvent must be implicit or explicit
     with pytest.raises(ValueError):
-        _ = get_solvent(solvent_name='water')
+        _ = get_solvent(solvent_name='water', kind='x')
 
-    # and not both
-    with pytest.raises(ValueError):
-        _ = get_solvent('water', implicit=True, explicit=True)
-
-    water = get_solvent(solvent_name='water', implicit=True)
+    water = get_solvent(solvent_name='water', kind='implicit')
     assert water.name == 'water'
     assert water.smiles == 'O'
     assert 'h2o' in water.aliases
@@ -45,21 +41,22 @@ def test_get_solvent():
     assert water.dielectric is not None
 
     with pytest.raises(SolventNotFound):
-        _ = get_solvent(solvent_name='test_solvent', implicit=True)
+        _ = get_solvent(solvent_name='test_solvent', kind='implicit')
 
     assert water is not None
-    assert water == get_solvent(solvent_name='h2o', implicit=True)
+    assert water == get_solvent(solvent_name='h2o', kind='implicit')
 
     # Must define the number of explicit solvent molecules to add
     with pytest.raises(ValueError):
-        _ = get_solvent('water', explicit=True)
+        _ = get_solvent('water', kind='explicit')
 
-    assert get_solvent('h2o', implicit=True) != get_solvent('h2o', explicit=True, num=10)
+    assert (get_solvent('h2o', kind='implicit')
+            != get_solvent('h2o', kind='explicit', num=10))
 
 
 def test_solvent_dielectric():
 
-    water = solvents.get_solvent('water', implicit=True)
+    water = solvents.get_solvent('water', kind='implicit')
     assert abs(water.dielectric - 78) < 1
 
     assert solvents.ImplicitSolvent('X', 'X', aliases=['X']).dielectric is None

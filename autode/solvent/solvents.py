@@ -8,7 +8,8 @@ from autode.exceptions import SolventNotFound
 
 
 def get_solvent(solvent_name: str,
-                **kwargs) -> Optional['Solvent']:
+                kind:         str,
+                num:          Optional[int] = None) -> Optional['Solvent']:
     """
     For a named solvent return the Solvent which matches one of the aliases
 
@@ -16,39 +17,30 @@ def get_solvent(solvent_name: str,
     Arguments:
         solvent_name (str): Name of the solvent e.g. DCM. Not case sensitive
 
+        kind (str): Kind of solvent. One of: {"implicit", "explicit"}
+
     Keyword Arguments:
-        implicit (bool): Implicit solvent.
-
-        explicit (bool): Explicit solvent.
-
-        num (int): Number of explicit solvent molecules to include in the
-                   explicit solvent
+        num (int | None): Number of explicit solvent molecules to include in
+                          the explicit solvent
 
     Returns:
-        (autode.solvent.solvents.Solvent | None)
+        (autode.solvent.solvents.Solvent | None): Solvent
 
     Raises:
         (ValueError): If both explicit and implicit solvent are selected
     """
-    # Must be either implicit or explicit solvent
-    implicit = kwargs.get('implicit', False)
-    explicit = kwargs.get('explicit', False)
+    kind = kind.lower()
 
-    n_explicit = kwargs.get('num', None)
-    if explicit and n_explicit is None:
-        raise ValueError('Requested an explicit solvent but number of explicit'
-                         ' solvent molecules was not defined')
+    if kind not in ('explicit', 'implicit'):
+        raise ValueError(f'Solvent must be explicit or implicit. Had: {kind}')
 
     if solvent_name is None:
         logger.warning('Not requested any solvent - returning None')
         return None
 
-    if implicit and explicit:
-        raise ValueError('Cannot have both and implicit and explict solvent')
-
-    if not (implicit or explicit):
-        raise ValueError('Solvent must be implicit or explicit. get_solvent '
-                         'requires e.g. get_solvent("water", implicit=True)')
+    if kind == 'explicit' and num is None:
+        raise ValueError('Requested an explicit solvent but number of explicit'
+                         ' solvent molecules was not defined')
 
     for solvent in solvents:
 
@@ -57,7 +49,7 @@ def get_solvent(solvent_name: str,
             continue
 
         if solvent.is_implicit:
-            return solvent if implicit else solvent.to_explicit(num=n_explicit)
+            return solvent if kind == 'implicit' else solvent.to_explicit(num=num)
 
         # Allow for solvent.is_explicit in solvents?
 

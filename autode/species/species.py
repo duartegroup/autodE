@@ -63,7 +63,7 @@ class Species(AtomCollection):
         self._charge = int(charge)
         self._mult = int(mult)
 
-        self._solvent = get_solvent(solvent_name=solvent_name, implicit=True)
+        self._solvent = get_solvent(solvent_name, kind='implicit')
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
@@ -171,7 +171,7 @@ class Species(AtomCollection):
             self._solvent = None
 
         elif type(value) is str:
-            self._solvent = get_solvent(solvent_name=value, implicit=True)
+            self._solvent = get_solvent(solvent_name=value, kind='implicit')
 
         elif isinstance(value, Solvent):
             self._solvent = value
@@ -1061,7 +1061,7 @@ class Species(AtomCollection):
             self.solvent = ExplicitSolvent(solvent=solvent, num=num)
 
         elif type(solvent) is str:
-            self.solvent = get_solvent(solvent, explicit=True, num=num)
+            self.solvent = get_solvent(solvent, kind='explicit', num=num)
 
         elif solvent is None and self.solvent.is_implicit:
             self.solvent = self.solvent.to_explicit(num=num)
