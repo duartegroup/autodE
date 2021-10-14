@@ -31,8 +31,6 @@ tests/htmlcov/
 
 *.pyc
 
-*.xyz
-
 htmlcov/
 
 tests/.autode_calculations
