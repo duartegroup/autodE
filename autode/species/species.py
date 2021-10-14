@@ -11,7 +11,7 @@ from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
-from autode.solvent import get_solvent, Solvent
+from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
@@ -63,7 +63,7 @@ class Species(AtomCollection):
         self._charge = int(charge)
         self._mult = int(mult)
 
-        self._solvent = get_solvent(solvent_name=solvent_name)
+        self._solvent = get_solvent(solvent_name=solvent_name, implicit=True)
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
@@ -1033,6 +1033,47 @@ class Species(AtomCollection):
         self._set_lowest_energy_conformer()
 
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
+        return None
+
+    def explicitly_solvate(self,
+                           num:     int = 10,
+                           solvent: Union[str, 'Species', None] = None) -> None:
+        """
+        Explicitly solvate this Molecule
+
+        ----------------------------------------------------------------------
+        Keyword Arguments:
+
+            num (int): Number of solvent molecules to add around this molecule.
+                       Default = 10
+
+            solvent (str | autode.species.Species | None):
+
+        Raises:
+            (ValueError): If the solvent is not defined as a string or a
+                          Species and the solvent of this species is not defined
+        """
+        if solvent is None and self.solvent is None:
+            raise ValueError(f'{self.name} must be solvated with a solvent '
+                             'specified, as it is currently in the gas phase')
+
+        if isinstance(solvent, Species):
+            self.solvent = ExplicitSolvent(solvent=solvent, num=num)
+
+        elif type(solvent) is str:
+            self.solvent = get_solvent(solvent, explicit=True, num=num)
+
+        elif solvent is None and self.solvent.is_implicit:
+            self.solvent = self.solvent.to_explicit(num=num)
+
+        else:
+            raise ValueError(f'Unsupported solvent *{solvent}*. Must be '
+                             f'either a string or a Species.')
+
+        print('WARNING: Explicit solvation is experimental is not implemented '
+              'beyond generating a single reasonable initial structure ')
+
+        self.solvent.randomise_around(self)
         return None
 
     # --- Method aliases ---
