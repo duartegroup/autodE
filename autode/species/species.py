@@ -171,7 +171,7 @@ class Species(AtomCollection):
             self._solvent = None
 
         elif type(value) is str:
-            self._solvent = get_solvent(solvent_name=value)
+            self._solvent = get_solvent(solvent_name=value, implicit=True)
 
         elif isinstance(value, Solvent):
             self._solvent = value
@@ -447,7 +447,7 @@ class Species(AtomCollection):
 
     @property
     def is_explicitly_solvated(self) -> bool:
-        return self.solvent is not None and not self.solvent.is_implicit
+        return self.solvent is not None and self.solvent.is_explicit
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:

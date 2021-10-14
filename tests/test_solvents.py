@@ -1,6 +1,6 @@
 import pytest
 from autode.species import Molecule
-from autode.solvent import solvents
+from autode.solvent import solvents, get_solvent
 from autode.wrappers.ORCA import orca
 from autode.exceptions import SolventNotFound
 
@@ -29,17 +29,32 @@ def test_avail_solvents():
 
 def test_get_solvent():
 
-    water = solvents.get_solvent(solvent_name='water')
+    # Solvent must be implicit or explicit
+    with pytest.raises(ValueError):
+        _ = get_solvent(solvent_name='water')
+
+    # and not both
+    with pytest.raises(ValueError):
+        _ = get_solvent('water', implicit=True, explicit=True)
+
+    water = get_solvent(solvent_name='water', implicit=True)
     assert water.name == 'water'
     assert water.smiles == 'O'
     assert 'h2o' in water.aliases
     assert 'water' in water.aliases
+    assert water.dielectric is not None
 
     with pytest.raises(SolventNotFound):
-        _ = solvents.get_solvent(solvent_name='test_solvent')
+        _ = get_solvent(solvent_name='test_solvent', implicit=True)
 
     assert water is not None
-    assert water == solvents.get_solvent(solvent_name='h2o')
+    assert water == get_solvent(solvent_name='h2o', implicit=True)
+
+    # Must define the number of explicit solvent molecules to add
+    with pytest.raises(ValueError):
+        _ = get_solvent('water', explicit=True)
+
+    assert get_solvent('h2o', implicit=True) != get_solvent('h2o', explicit=True, num=10)
 
 
 def test_solvent_dielectric():

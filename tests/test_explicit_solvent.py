@@ -26,6 +26,7 @@ def test_explicit_solvent_gen():
     mol = Molecule(smiles='C', solvent_name='water')
     mol.explicitly_solvate(num=10)
     assert mol.solvent.is_explicit
+    assert 75 < mol.solvent.dielectric < 80
 
     mol.print_xyz_file(filename='tmp.xyz')
 
