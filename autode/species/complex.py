@@ -342,7 +342,7 @@ class Complex(Species):
         """Initial solvent"""
 
         if solvent_name is not None:
-            return get_solvent(solvent_name)
+            return get_solvent(solvent_name, implicit=True)
 
         if self.n_molecules > 0:
             solvent = self._molecules[0].solvent

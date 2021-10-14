@@ -56,7 +56,7 @@ def get_solvent(solvent_name: str,
         if solvent_name.lower() not in solvent.aliases:
             continue
 
-        if solvent.is_implicit and solvent_name in solvent.aliases:
+        if solvent.is_implicit:
             return solvent if implicit else solvent.to_explicit(num=n_explicit)
 
         # Allow for solvent.is_explicit in solvents?

@@ -4,7 +4,6 @@ from typing import Optional, Union, List
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
-from autode.solvent import ExplicitSolvent, get_solvent
 from autode.input_output import xyz_file_to_atoms
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer

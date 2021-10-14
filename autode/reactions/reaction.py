@@ -72,7 +72,7 @@ class Reaction:
             self._init_from_molecules(molecules=args)
 
         self.type = reaction_types.classify(self.reacs, self.prods)
-        self.solvent = get_solvent(solvent_name=solvent_name)
+        self.solvent = get_solvent(solvent_name=solvent_name, implicit=True)
         self.temp = float(temp)
 
         self._check_solvent()
