@@ -34,7 +34,10 @@ def get_solvent(solvent_name: str,
     implicit = kwargs.get('implicit', False)
     explicit = kwargs.get('explicit', False)
 
-    n_explicit = kwargs.get('num', None)   # Num. of explicit solvent molecules
+    n_explicit = kwargs.get('num', None)
+    if explicit and n_explicit is None:
+        raise ValueError('Requested an explicit solvent but number of explicit'
+                         ' solvent molecules was not defined')
 
     if solvent_name is None:
         logger.warning('Not requested any solvent - returning None')
@@ -56,8 +59,7 @@ def get_solvent(solvent_name: str,
         if solvent.is_implicit and solvent_name in solvent.aliases:
             return solvent if implicit else solvent.to_explicit(num=n_explicit)
 
-        if explicit and solvent.is_explicit:
-            return solvent
+        # Allow for solvent.is_explicit in solvents?
 
     raise SolventNotFound('No matching solvent in the library for '
                           f'{solvent_name}')
