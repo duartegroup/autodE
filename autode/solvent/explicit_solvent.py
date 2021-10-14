@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 from scipy.spatial import distance_matrix
 from autode.geom import get_points_on_sphere, get_rot_mat_euler
 from autode.log import logger
@@ -53,34 +54,48 @@ class ExplicitSolvent(AtomCollection, Solvent):
     """Explicit solvation """
 
     def __init__(self,
-                 solute:  'autode.species.species.Species',
                  solvent: 'autode.species.species.Species',
-                 num:     int):
+                 num:     int,
+                 solute:  Optional['autode.species.species.Species'] = None,
+                 **kwargs):
         """
         Explicit solvent. Initial construction attempts to generate a
         reasonable distribution around the (unmodified) solute. Only supports
-        unicomponent solvents.
+        unicomponent uncharged solvents.
 
+        ----------------------------------------------------------------------
         Arguments:
-            solute (autode.species.species.Species): Solute
 
             solvent (autode.species.species.Species): Solvent molecule (copied)
 
             num (int): Number of solvent molecules to add
+
+
+        Keyword Arguments:
+
+            solute (autode.species.species.Species | None): Solute which this
+                   solvent surrounds. If None then no translation to the
+                   explicit solvent molecules will be applied
+
+            aliases (list(str)): List of aliases of this solvent
         """
         if num <= 0:
             raise ValueError('Must solvate with at least a single solvent '
                              f'molecule. Had {num}')
 
-        super().__init__(atoms=sum((solvent.atoms.copy() for _ in range(num)),
-                                   None))
+        solvent_atoms = sum((solvent.atoms.copy() for _ in range(num)), None)
+        AtomCollection.__init__(self, atoms=solvent_atoms)
+        Solvent.__init__(self,
+                         name=solvent.name,
+                         smiles=None,
+                         aliases=kwargs.get('aliases', None))
 
         self.solvent_n_atoms = solvent.n_atoms
-
         # TODO: Something better than this hardcoded value
         self.solvent_radius = solvent.radius.to('ang') + 2.0
 
-        self.randomise_around(solute)
+        if solute is not None:
+            self.randomise_around(solute)
 
     def __eq__(self, other) -> bool:
         """Equality between two explicit solvent environments"""
