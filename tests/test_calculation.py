@@ -177,7 +177,7 @@ def test_solvent_get():
         _test_mol.solvent = 'a_solvent_that_doesnt_exist'
 
     # Should work fine with a normal solvent
-    _test_mol.solvent = get_solvent(solvent_name='water')
+    _test_mol.solvent = get_solvent('water', kind='implicit')
     assert _test_mol.solvent.xtb.lower() in ['water', 'h2o']
 
     # Currently iodoethane is not in XTB - might be in the future

@@ -1,13 +1,15 @@
+import os
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 from copy import deepcopy
 from autode.log import logger
+from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import SolventNotFound
 
 
 def get_solvent(solvent_name: str,
-                implicit:     bool = True,
-                explicit:     bool = False):
+                kind:         str,
+                num:          Optional[int] = None) -> Optional['Solvent']:
     """
     For a named solvent return the Solvent which matches one of the aliases
 
@@ -15,55 +17,68 @@ def get_solvent(solvent_name: str,
     Arguments:
         solvent_name (str): Name of the solvent e.g. DCM. Not case sensitive
 
-    Keyword Arguments:
-        implicit (bool): Implicit solvent. Default = True
+        kind (str): Kind of solvent. One of: {"implicit", "explicit"}
 
-        explicit (bool): Explicit solvent. Default = False
+    Keyword Arguments:
+        num (int | None): Number of explicit solvent molecules to include in
+                          the explicit solvent
 
     Returns:
-        (autode.solvent.solvent.Solvent | None)
+        (autode.solvent.solvents.Solvent | None): Solvent
 
     Raises:
         (ValueError): If both explicit and implicit solvent are selected
     """
-    if solvent_name is None or not (implicit or explicit):
+    kind = kind.lower()
+
+    if kind not in ('explicit', 'implicit'):
+        raise ValueError(f'Solvent must be explicit or implicit. Had: {kind}')
+
+    if solvent_name is None:
+        logger.warning('Not requested any solvent - returning None')
         return None
 
-    if implicit and not explicit:
+    if kind == 'explicit' and num is None:
+        raise ValueError('Requested an explicit solvent but number of explicit'
+                         ' solvent molecules was not defined')
 
-        for solvent in solvents:
-            if solvent.is_implicit and solvent_name.lower() in solvent.aliases:
-                return solvent
+    for solvent in solvents:
 
-        raise SolventNotFound('No matching solvent in the library for '
-                              f'{solvent_name}')
+        # Comparisons of solvents are not case sensitive
+        if solvent_name.lower() not in solvent.aliases:
+            continue
 
-    if explicit:
-        """
-        for solvent in solvents:
-            if solvent_name.lower() in solvent.aliases:
-                if solvent.is_implicit:
-                    return solvent.to_explicit()
-                else:
-                    return solvent
-        """
-        raise NotImplementedError
+        if solvent.is_implicit:
+            return solvent if kind == 'implicit' else solvent.to_explicit(num=num)
+
+        # Allow for solvent.is_explicit in solvents?
+
+    raise SolventNotFound('No matching solvent in the library for '
+                          f'{solvent_name}')
 
 
 class Solvent(ABC):
 
-    def __init__(self, name, smiles, aliases, **kwargs):
+    def __init__(self,
+                 name:    str,
+                 smiles:  Optional[str] = None,
+                 aliases: Optional[List[str]] = None,
+                 **kwargs):
         """
-        Solvent class. As electronic structure methods implement implicit
-        solvation without a unique list of solvents there needs to be
-        conversion between them, while also allowing for user specifying
-        one possibility from a list of aliases
+        Abstract base class for a solvent. As electronic structure methods
+        implement implicit solvation without a unique list of solvents there
+        needs to be conversion between them, while also allowing for user
+        specifying one possibility from a list of aliases
 
+        ----------------------------------------------------------------------
         Arguments:
             name (str): Unique name of the solvent
-            smiles (str): SMILES string
-            aliases (list(str)): Different names for the same solvent e.g.
-                                 water and H2O
+
+            smiles (str | None): SMILES string
+
+            aliases (list(str) | None): Different names for the same solvent
+                                       e.g. water and H2O. If None then will
+                                       only use the name as an alias
 
         Keyword Arguments:
             kwargs (str): Name of the solvent in the electronic structure
@@ -72,7 +87,10 @@ class Solvent(ABC):
 
         self.name = name
         self.smiles = smiles
-        self.aliases = [alias.lower() for alias in aliases]
+        self.aliases = [name.lower()]
+
+        if aliases is not None:
+            self.aliases.extend(alias.lower() for alias in aliases)
 
         # Add attributes for all the methods specified e.g. initialisation with
         # orca='water' -> self.orca = 'water'
@@ -118,8 +136,13 @@ class Solvent(ABC):
 
     @property
     @abstractmethod
-    def is_implicit(self):
-        """Is this solvent implicit or explicit?"""
+    def is_implicit(self) -> bool:
+        """Is this solvent implicit and just defined by a dielectric"""
+
+    @property
+    def is_explicit(self) -> bool:
+        """Is this solvent explicit i.e. has atoms in space"""
+        return not self.is_implicit
 
 
 class ImplicitSolvent(Solvent):
@@ -127,21 +150,45 @@ class ImplicitSolvent(Solvent):
 
     @property
     def is_implicit(self) -> bool:
-        """Is this solvent implicit?"""
+        """Is this solvent implicit?
+
+        Returns:
+            (bool): True
+        """
         return True
 
-    def to_explicit(self) -> 'ExplicitSolvent':
-        raise NotImplementedError
+    def to_explicit(self, num: int) -> 'autode.solvent.ExplicitSolvent':
+        """
+        Convert this implicit solvent into an explicit one
 
+        -----------------------------------------------------------------------
+        Arguments:
+            num (int): Number of explicit solvent molecules to include
 
-class ExplicitSolvent(Solvent):
-    """Explicit solvation """
-    # TODO: Implement explicit solvation here
+        Raises:
+            (IOError): If the expected 3D structure cannot be located
 
-    @property
-    def is_implicit(self) -> bool:
-        """Is this solvent implicit?"""
-        return False
+        Returns:
+            (autode.solvent.explicit_solvent.ExplicitSolvent): Solvent
+        """
+        from autode.species.species import Species           # cyclic imports..
+        from autode.solvent.explicit_solvent import ExplicitSolvent
+
+        here = os.path.dirname(os.path.abspath(__file__))
+        xyz_path = os.path.join(here, 'lib', f'{self.name}.xyz')
+
+        if not os.path.exists(xyz_path):
+            raise IOError(f'Could not convert {self.name} to explicit solvent '
+                          f'{xyz_path} did not exist')
+
+        # Solvent must be neutral and with a spin multiplicity of one
+        solvent_mol = Species(name=self.name,
+                              charge=0,
+                              mult=1,
+                              atoms=xyz_file_to_atoms(xyz_path))
+
+        return ExplicitSolvent(solvent=solvent_mol, num=num,
+                               solute=None, aliases=self.aliases)
 
 
 solvents = [ImplicitSolvent(name='water', smiles='O', aliases=['water', 'h2o'], orca='water', g09='Water', nwchem='water', xtb='Water', mopac='water'),

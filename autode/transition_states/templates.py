@@ -430,7 +430,7 @@ class TStemplate:
         if name.lower() == 'none':
             self.solvent = None
         else:
-            self.solvent = get_solvent(solvent_name=name)
+            self.solvent = get_solvent(solvent_name=name, kind='implicit')
 
         self.charge = int(get_value_from_file('charge', template_lines))
         self.mult = int(get_value_from_file('multiplicity', template_lines))
