@@ -11,7 +11,7 @@ from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
-from autode.solvent.solvents import get_solvent, Solvent
+from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
@@ -63,7 +63,7 @@ class Species(AtomCollection):
         self._charge = int(charge)
         self._mult = int(mult)
 
-        self._solvent = get_solvent(solvent_name=solvent_name)
+        self._solvent = get_solvent(solvent_name, kind='implicit')
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
@@ -166,15 +166,12 @@ class Species(AtomCollection):
 
         Arguments;
             value (autode.solvent.Solvent | str | None):
-
-        Raises:
-            (autode.exceptions.SolventUnavailable):
         """
         if value is None:
             self._solvent = None
 
         elif type(value) is str:
-            self._solvent = get_solvent(solvent_name=value)
+            self._solvent = get_solvent(solvent_name=value, kind='implicit')
 
         elif isinstance(value, Solvent):
             self._solvent = value
@@ -410,7 +407,14 @@ class Species(AtomCollection):
 
     @property
     def radius(self) -> val.Distance:
-        """Calculate an approximate radius of this species"""
+        """
+        Calculate an approximate radius of this species. Does not consider any
+        VdW radii of the outer most atoms i.e. purely determined on nuclear
+        positions
+
+        Returns:
+            (autode.values.Distance): Radius
+        """
         if self.n_atoms == 0:
             return val.Distance(0.0)
 
@@ -443,7 +447,7 @@ class Species(AtomCollection):
 
     @property
     def is_explicitly_solvated(self) -> bool:
-        return self.solvent is not None and not self.solvent.is_implicit
+        return self.solvent is not None and self.solvent.is_explicit
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
@@ -790,7 +794,8 @@ class Species(AtomCollection):
     def print_xyz_file(self,
                        title_line:            Optional[str] = None,
                        filename:              Optional[str] = None,
-                       additional_title_line: Optional[str] = None) -> None:
+                       additional_title_line: Optional[str] = None,
+                       with_solvent:          bool = True) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
 
@@ -803,6 +808,9 @@ class Species(AtomCollection):
 
             additional_title_line (str | None): Additional elements to add to
                                                 then title line
+
+            with_solvent (bool): If the solvent is explicit then include the
+                                 solvent atoms in the .xyz file
         """
 
         if filename is None:
@@ -817,7 +825,14 @@ class Species(AtomCollection):
         if additional_title_line is not None:
             title_line += additional_title_line
 
-        return atoms_to_xyz_file(self.atoms, filename, title_line=title_line)
+        atoms = self.atoms
+        # Add the explicit solvent molecules if present and requested
+        if (self.solvent is not None
+            and self.solvent.is_explicit
+            and with_solvent):
+            atoms += self.solvent.atoms
+
+        return atoms_to_xyz_file(atoms, filename, title_line=title_line)
 
     @requires_atoms
     def optimise(self,
@@ -1018,6 +1033,47 @@ class Species(AtomCollection):
         self._set_lowest_energy_conformer()
 
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
+        return None
+
+    def explicitly_solvate(self,
+                           num:     int = 10,
+                           solvent: Union[str, 'Species', None] = None) -> None:
+        """
+        Explicitly solvate this Molecule
+
+        ----------------------------------------------------------------------
+        Keyword Arguments:
+
+            num (int): Number of solvent molecules to add around this molecule.
+                       Default = 10
+
+            solvent (str | autode.species.Species | None):
+
+        Raises:
+            (ValueError): If the solvent is not defined as a string or a
+                          Species and the solvent of this species is not defined
+        """
+        if solvent is None and self.solvent is None:
+            raise ValueError(f'{self.name} must be solvated with a solvent '
+                             'specified, as it is currently in the gas phase')
+
+        if isinstance(solvent, Species):
+            self.solvent = ExplicitSolvent(solvent=solvent, num=num)
+
+        elif isinstance(solvent, str):
+            self.solvent = get_solvent(solvent, kind='explicit', num=num)
+
+        elif solvent is None and self.solvent.is_implicit:
+            self.solvent = self.solvent.to_explicit(num=num)
+
+        else:
+            raise ValueError(f'Unsupported solvent *{solvent}*. Must be '
+                             f'either a string or a Species.')
+
+        print('WARNING: Explicit solvation is experimental is not implemented '
+              'beyond generating a single reasonable initial structure ')
+
+        self.solvent.randomise_around(self)
         return None
 
     # --- Method aliases ---

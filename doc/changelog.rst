@@ -22,6 +22,7 @@ Usability improvements/Changes
 - Removes :code:`autode.values.PlottedEnergy` as an estimated attribute is useful for all energies, not just those that are plotted
 - Removes :code:`autode.reactions.Reaction.find_lowest_energy_ts` as the function is not well named and can be replaced by a :code:`autode.reactions.Reaction.ts` property
 - Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
+- Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
 
 
 Functionality improvements
@@ -32,6 +33,7 @@ Functionality improvements
 - Adds a :code:`autode.solvent.Solvent.is_implicit` property
 - Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
 - Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
+- Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
 
 
 Bug Fixes
