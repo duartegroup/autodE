@@ -121,3 +121,12 @@ def test_equality():
     assert solv1 != 2
     assert solv1 != solv2
     assert solv1 == solv1
+
+
+def test_solvate_with_molecule():
+
+    solute = methane_mol()
+
+    # Solvent should be able to be any valid solvent molecule
+    solute.explicitly_solvate(solvent=methane_mol(), num=2)
+    assert solute.n_atoms + solute.solvent.n_atoms == 15

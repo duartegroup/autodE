@@ -42,7 +42,7 @@ class _RandomPointGenerator:
         """
 
         if len(self._points) == 0:
-            # Surface are of the sphere scales r^2, so square solvent shell
+            # Surface area of the sphere scales r^2, so square solvent shell
             self._points = get_points_on_sphere(n_points=self._sphere_n**2 * 10)
             self._sphere_n += 1
 
@@ -146,8 +146,8 @@ class ExplicitSolvent(AtomCollection, Solvent):
                              solute_coords:  np.ndarray,
                              solute_radius:  float) -> bool:
         """
-        Are a set of solvent coordinates too close to the solvent, given a
-        solute radius
+        Are a set of solvent coordinates too close to the solute? (for a
+        particular solute radius)
 
         Arguments:
             solvent_coords (np.ndarray):  Shape = (N, 3)
@@ -164,15 +164,15 @@ class ExplicitSolvent(AtomCollection, Solvent):
                               solvent_idxs: np.ndarray,
                               max_idx:      int) -> bool:
         """
-        Are a set of solvent coordinates too close to the solvent, given a
-        solute radius
+        Are a set of solvent coordinates too close to the solvent molecules
+        that have already been translated?
 
         Arguments:
             coords (np.ndarray):  Shape = (N, 3) Coordinates of all
                                   the solvent molecules
 
             solvent_idxs (np.ndarray): Integer array of atom indexes of a
-                                       particular solvent atom
+                                       particular solvent molecule
 
             max_idx (int): Indexes up to which the repulsion should be
                                 calculated. NOT INCLUSIVE

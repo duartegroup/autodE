@@ -1060,7 +1060,7 @@ class Species(AtomCollection):
         if isinstance(solvent, Species):
             self.solvent = ExplicitSolvent(solvent=solvent, num=num)
 
-        elif type(solvent) is str:
+        elif isinstance(solvent, str):
             self.solvent = get_solvent(solvent, kind='explicit', num=num)
 
         elif solvent is None and self.solvent.is_implicit:
