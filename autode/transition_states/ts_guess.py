@@ -2,6 +2,7 @@ from typing import Optional
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
+from autode.input_output import atoms_to_xyz_file
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.values import Distance
@@ -159,6 +160,9 @@ class TSguess(TSbase):
 
             self.optimise(calc=opt)           # Can raise CalculationException
 
+            atoms_to_xyz_file(self.atoms,
+                              filename=f'{self.name}_ll_path.xyz',
+                              append=True)
         return None
 
     def run_constrained_opt(self,

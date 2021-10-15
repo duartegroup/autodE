@@ -1,6 +1,6 @@
 import os
 import shutil
-
+import numpy as np
 from . import testutils
 import pytest
 from autode.exceptions import TemplateLoadingFailed
@@ -126,10 +126,23 @@ def test_ts_template_with_scan():
     Config.lcode = 'xtb'
     Config.XTB.path = shutil.which('xtb')
 
+    ts_guess = TSguess(atoms=[Atom('C', -0.29102, 0.31489, -0.00001),
+                              Atom('Cl', 1.48694, 0.31490, 0.00000),
+                              Atom('H', -0.66083, - 0.11622, -0.95298),
+                              Atom('H', -0.66086, 1.35574, 0.10314),
+                              Atom('H', -0.66083, - 0.29487, 0.84984),
+                              Atom('Cl', -5.20436, 0.68301, - 0.00000)],
+                       charge=-1)
+    ts_guess.solvent = 'water'
 
-    # TODO: Implement
+    # Running this constrained optimisation would break without intermediate
+    # steps, so check that it worksw
+    ts_guess.run_constrained_opt('ll_const_opt',
+                                 distance_consts={(0, 5): 2.3},
+                                 method=XTB())
 
-
+    # Ensure the correct final distance
+    assert np.isclose(ts_guess.distance(0, 5), 2.3, atol=0.1)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_template.zip'))
