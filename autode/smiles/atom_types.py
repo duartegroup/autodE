@@ -52,7 +52,7 @@ class AtomType:
         # Take a copy of the template coordinates to rotate and delete
         site_coords = np.copy(self.template_site_coords)
 
-        if len(site_coords) == len(points):
+        if len(site_coords) == len(points) or len(points) == 0:
             logger.info('No reset needed - sites were all occupied')
             return
 
