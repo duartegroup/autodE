@@ -311,6 +311,29 @@ def rerun_angle_failure(calc):
     return fixed_calc
 
 
+def verify_hess(calc):
+    hess_calc = deepcopy(calc)
+    # Check if freq calculation has been done
+    if not any(["Freq" in str(keyword) for keyword in hess_calc.input.keywords]):
+        # Remove keywords that contain opt
+        keywords = [keyword for keyword in hess_calc.input.keywords if "opt" not in keyword.lower()]
+        keywords.append("Freq")
+        keywords.append("Geom(Redundant)")
+
+        hess_calc.input.keywords = keywords
+
+        # Generate the new calculation and run
+        hess_calc.name += '_hess'
+        hess_calc.molecule.atoms = calc.get_final_atoms()
+        hess_calc.molecule.constraints = Constraints(distance=None, cartesian=None)
+        hess_calc.input.added_internals = None
+        hess_calc.output = CalculationOutput()
+        hess_calc.run()
+
+        return hess_calc
+    else:
+        return None
+
 class G09(ElectronicStructureMethod):
 
     def __repr__(self):
@@ -438,6 +461,9 @@ class G09(ElectronicStructureMethod):
             if 'E(CIS(D))' in line:
                 return float(line.split()[5])
 
+            if line.startswith(' Energy=') and 'NIter=' in line:
+                return float(line.split()[1])
+
         raise CouldNotGetProperty(name='energy')
 
     def optimisation_converged(self, calc):
@@ -556,6 +582,10 @@ class G09(ElectronicStructureMethod):
         Raises:
             (IndexError | ValueError):
         """
+
+        fixed_calc = verify_hess(calc)
+        if fixed_calc is not None:
+            calc = fixed_calc
 
         hess_lines = []
         append_line = False
