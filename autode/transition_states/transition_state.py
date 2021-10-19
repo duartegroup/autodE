@@ -75,6 +75,7 @@ class TransitionState(TSbase):
             else:
                 self.warnings += f'TS for {self.name} was not fully converged.'
                 logger.info('Optimisation did not converge')
+
         try:
             self.atoms = optts_calc.get_final_atoms()
             self.energy = optts_calc.get_energy()

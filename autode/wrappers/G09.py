@@ -312,15 +312,24 @@ def rerun_angle_failure(calc):
 
 
 def verify_hess(calc):
+    """
+    Checks for Gaussian jobs run without the 'Freq' keyword and reruns the
+    calculation with this keyword added. Any 'Opt' keywords are removed.
+
+    Arguments:
+        calc (autode.calculation.Calculation):
+
+    Returns:
+        (autode.calculation.Calculation):
+    """    
     hess_calc = deepcopy(calc)
     # Check if freq calculation has been done
     if not any(["Freq" in str(keyword) for keyword in hess_calc.input.keywords]):
         # Remove keywords that contain opt
-        keywords = [keyword for keyword in hess_calc.input.keywords if "opt" not in keyword.lower()]
-        keywords.append("Freq")
-        keywords.append("Geom(Redundant)")
-
-        hess_calc.input.keywords = keywords
+        to_remove = [keyword for keyword in hess_calc.input.keywords if "opt" in keyword.lower()]
+        for keyword in to_remove:
+            hess_calc.input.keywords.remove(keyword)
+        hess_calc.input.keywords.append("Freq Geom(Redundant)") # Geom(Redundant) to be compatible with External
 
         # Generate the new calculation and run
         hess_calc.name += '_hess'
@@ -333,6 +342,7 @@ def verify_hess(calc):
         return hess_calc
     else:
         return None
+
 
 class G09(ElectronicStructureMethod):
 
