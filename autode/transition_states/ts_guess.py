@@ -133,12 +133,13 @@ class TSguess(TSbase):
         """
         l_method = get_lmethod()
 
-        # Final and current sets of constraints
-        f_consts = self.constraints.distance
-        c_consts = {bond: self.distance(*bond) for bond in f_consts.keys()}
+        final_constraints = self.constraints.distance
+        current_constraints = {atom_idx_pair: self.distance(*atom_idx_pair)
+                               for atom_idx_pair in final_constraints.keys()}
 
         # Number of steps to use is 0.1 Å in the maximum distance delta
-        max_delta = max(abs(f_consts[bond] - c_dist) for bond, c_dist in c_consts.items())
+        max_delta = max(abs(final_constraints[bond] - c_dist)
+                        for bond, c_dist in current_constraints.items())
         n_steps = int(max_delta / Distance(0.1, units='ang'))
 
         if n_steps < 2:
@@ -147,16 +148,17 @@ class TSguess(TSbase):
 
         for i in range(1, n_steps+1):
 
-            consts = {}
-            for bond, c_dist in c_consts.items():
-                consts[bond] = c_dist + i * (f_consts[bond] - c_dist) / n_steps
+            constraints = {}
+            for atom_idx_pair, c_dist in current_constraints.items():
+                delta_dist = final_constraints[atom_idx_pair] - c_dist   # ∆r
+                constraints[atom_idx_pair] = c_dist + i * delta_dist / n_steps
 
             opt = Calculation(name=f'{self.name}_const_opt_ll_{i}',
                               molecule=self,
                               method=l_method,
                               keywords=l_method.keywords.low_opt,
                               n_cores=Config.n_cores,
-                              distance_constraints=consts)
+                              distance_constraints=constraints)
 
             self.optimise(calc=opt)           # Can raise CalculationException
 
