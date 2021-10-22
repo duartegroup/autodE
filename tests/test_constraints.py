@@ -15,20 +15,38 @@ def test_base_properties():
 
     consts.update(distance={(0, 1): 1.0})
     assert consts.any
-    assert consts.distance is not None and type(consts.distance) is dict
+    assert consts.distance is not None
     assert consts.cartesian is None
 
     # Constraints should allow for setting
     consts.distance = {(0, 1): 2}
     assert int(consts.distance[(0, 1)]) == 2
 
+    # And be permutationally invariant
+    assert consts.distance[(0, 1)] == consts.distance[(1, 0)]
+
     with pytest.raises(Exception):
         consts.distance = 1
 
     with pytest.raises(Exception):
-        consts.distance = {(0, 1): -1.0}
+        consts.distance = {(0, 1): -1.0}  # Invalid distance
 
-    # Likewise with setting
+    with pytest.raises(Exception):
+        consts.distance = {0: 1.0}        # Invalid atom index pair
+
+    with pytest.raises(Exception):
+        consts.distance = {(0, -1): 1.0}  # Invalid atom index (-1)
+
+    # Non-unique pairs are skipped
+    consts.distance[(0,)] = 1.0
+    assert len(consts.distance) == 1
+    consts.distance[(0, 0)] = 1.0
+    assert len(consts.distance) == 1
+
+    with pytest.raises(Exception):
+        consts.distance[(0, 1)] = -1.0
+
+    # Likewise with setting cartesian constraints
     consts.cartesian = [0, 1]
     assert int(consts.cartesian[0]) == 0
 
@@ -67,3 +85,31 @@ def test_cartesian_update():
     # Should only have the unique components
     conts.update(cartesian=[0])
     assert len(conts.cartesian) == 2
+
+
+def test_clear():
+
+    # Like species.conformers setting to None should still allow future updates
+
+    consts = Constraints(distance={(0, 1): 1.0})
+    assert consts.distance is not None
+    consts.distance.clear()
+    assert consts.distance is None
+
+    consts.update(distance={(0, 1): 1.0})
+    consts.distance = None
+    assert consts.distance is None
+
+    consts.update(distance={(0, 1): 1.0})
+    assert len(consts.distance) == 1
+
+    consts.cartesian = [0, 1]
+    assert len(consts.cartesian) == 2
+    consts.cartesian = None
+    assert consts.cartesian is None
+
+    consts.update(cartesian=[0])
+    assert len(consts.cartesian) == 1
+
+
+
