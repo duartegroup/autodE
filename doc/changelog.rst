@@ -23,6 +23,7 @@ Usability improvements/Changes
 - Removes :code:`autode.reactions.Reaction.find_lowest_energy_ts` as the function is not well named and can be replaced by a :code:`autode.reactions.Reaction.ts` property
 - Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
 - Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
+- Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
 
 
 Functionality improvements
@@ -34,6 +35,7 @@ Functionality improvements
 - Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
 - Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
 - Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
+- Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
 
 
 Bug Fixes
