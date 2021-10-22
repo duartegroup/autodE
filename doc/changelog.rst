@@ -23,6 +23,7 @@ Usability improvements/Changes
 - Removes :code:`autode.reactions.Reaction.find_lowest_energy_ts` as the function is not well named and can be replaced by a :code:`autode.reactions.Reaction.ts` property
 - Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
 - Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
+- Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
 
 
 Functionality improvements

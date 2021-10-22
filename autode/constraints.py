@@ -57,7 +57,8 @@ class Constraints:
             self._distance = DistanceConstraints(value)
 
     @property
-    def cartesian(self) -> list:
+    def cartesian(self) -> Optional[list]:
+        """Cartesian constraints"""
         return None if len(self._cartesian) == 0 else list(set(self._cartesian))
 
     @cartesian.setter
