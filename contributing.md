@@ -12,7 +12,7 @@ Contributions in any form are very much welcome. To make managing these easier, 
 
 # Reporting a bug or suggesting changes/improvements
 
-If you think you've found a bug in `autode`, please let us know bu opening an issue on the main autoDE GitHub repository. This will give the autoDE developers a chance to confirm the bug, investigate it and hopefully fix it!
+If you think you've found a bug in `autode`, please let us know by opening an issue on the main autodE GitHub repository. This will give the autoDE developers a chance to confirm the bug, investigate it and hopefully fix it!
 
 When reporting an issue, we suggest you follow the following
 
@@ -20,7 +20,7 @@ When reporting an issue, we suggest you follow the following
 
 -   Operating System (*e.g.* Ubuntu Linux 20.04)
 -   Python version: (*e.g* 3.9.4)
--   autoDE version: (
+-   autodE version: (*e.g* 1.1.0)
 
 ****Description**** <A one-line description of the bug>
 
@@ -45,7 +45,7 @@ The high-level contributing workflow is:
 
 1.  Fork the main repository (`duartegroup/autode`)
 2.  Implement changes and tests on your own fork on a given branch (`<gh-username>/autode:<branch-name>`)
-3.  Create a new Pull Request on the main autoDE repository from your development branch onto `autode:master`.
+3.  Create a new Pull Request on the main autodE repository from your development branch onto `autode:master`.
 
 If you're unfamiliar with GitHub forks and pull requests, you can read [Fork a repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and [Creating a pull request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on the GitHub docs.
 
@@ -59,14 +59,14 @@ If you're unfamiliar with GitHub forks and pull requests, you can read [Fork a r
 
 ### Forks instead of branches
 
-By default contributors do not have permission to push branches to the main autode remote repository. In most scenarios, you should propose your contribution through a Pull Request from a fork.
+By default, contributors do not have permission to push branches to the main autode remote repository. In most scenarios, you should propose your contribution through a Pull Request from a fork.
 
 
 <a id="orga180d26"></a>
 
 ### Small pull requests
 
-Smaller PRs are reviewed faster, and more accurately. We therefore, ask that contributors keep the set of of change within a Pull Request as small as possible. If your PR modifies more than 5 files, and/or several hunder lines of code, you should probably break it down to two or more PRs.
+Smaller PRs are reviewed faster, and more accurately. We therefore, ask that contributors keep the set of changes within a Pull Request as small as possible. If your PR modifies more than 5 files, and/or several hundred lines of code, you should probably break it down to two or more PRs.
 
 
 <a id="org8074798"></a>
