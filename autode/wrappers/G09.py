@@ -311,7 +311,7 @@ def rerun_angle_failure(calc):
     return fixed_calc
 
 
-def verify_hess(calc):
+def _rerun_hessian(calc):
     """
     Checks for Gaussian jobs run without the 'Freq' keyword and reruns the
     calculation with this keyword added. Any 'Opt' keywords are removed.
@@ -323,13 +323,16 @@ def verify_hess(calc):
         (autode.calculation.Calculation):
     """    
     hess_calc = deepcopy(calc)
+
     # Check if freq calculation has been done
     if not any(["Freq" in str(keyword) for keyword in hess_calc.input.keywords]):
         # Remove keywords that contain opt
         to_remove = [keyword for keyword in hess_calc.input.keywords if "opt" in keyword.lower()]
         for keyword in to_remove:
             hess_calc.input.keywords.remove(keyword)
-        hess_calc.input.keywords.append("Freq Geom(Redundant)") # Geom(Redundant) to be compatible with External
+
+        # Geom(Redundant) to be compatible with External
+        hess_calc.input.keywords.append("Freq Geom(Redundant)")
 
         # Generate the new calculation and run
         hess_calc.name += '_hess'
@@ -339,9 +342,18 @@ def verify_hess(calc):
         hess_calc.output = CalculationOutput()
         hess_calc.run()
 
-        return hess_calc
-    else:
-        return None
+    return hess_calc
+
+
+def calc_uses_external_method(calc):
+    """
+    Does this Gaussian calculation use an external force driver?
+    """
+    for keyword in calc.input.keywords:
+        if 'external' in keyword.lower():
+            return True
+
+    return False
 
 
 class G09(ElectronicStructureMethod):
@@ -593,9 +605,9 @@ class G09(ElectronicStructureMethod):
             (IndexError | ValueError):
         """
 
-        fixed_calc = verify_hess(calc)
-        if fixed_calc is not None:
-            calc = fixed_calc
+        if calc_uses_external_method(calc):
+            # Using external force drivers can lead to failed Hessian calcs.
+            calc = _rerun_hessian(calc)
 
         hess_lines = []
         append_line = False
