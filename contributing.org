@@ -49,7 +49,7 @@ these easier, we kindly ask that you follow the guidelines below.
   If you're unfamiliar with GitHub forks and pull requests, you can
   read [[https://docs.github.com/en/get-started/quickstart/fork-a-repo][Fork a repo]] and [[https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request][Creating a pull request]] on the GitHub docs.
 
-** Guidelines
+** Guidelines for Pull Requests
 *** Forks instead of branches
     By default contributors do not have permission to push branches to
     the main autode remote repository. In most scenarios, you should
@@ -60,7 +60,7 @@ these easier, we kindly ask that you follow the guidelines below.
     a Pull Request as small as possible. If your PR modifies more than
     5 files, and/or several hunder lines of code, you should probably
     break it down to two or more PRs.
-*** Well described Pull Requests
+*** Pull Requests are more than just code
     A Pull Request is difficult to review without a description of
     context and motivation for the attached set of changes. Whenever
     you open a new PR, please include the following information:
