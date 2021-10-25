@@ -9,7 +9,7 @@ from autode.species.molecule import Molecule
 from autode.wrappers import keywords as kwds
 from autode.wrappers.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.functionals import pbe0
-from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
+from autode.wrappers.keywords import OptKeywords, SinglePointKeywords, HessianKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 from autode.point_charges import PointCharge
@@ -335,3 +335,32 @@ def test_external_basis_set_file():
     assert pd_cl2.energy is not None
     # ensure the energy is in the right ball-park
     assert np.abs(pd_cl2.energy - -1046.7287) < 1E-2
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
+def test_xtb_optts():
+
+    g09 = G09()
+
+    kwd_list = ["External='xtb-gaussian'",
+                "Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, "
+                "NoTrustUpdate, NoMicro)",
+                "IOp(3/5=30)"]
+
+    orca_ts = Molecule(atoms=[Atom('F', - 5.15221, 4.39259,  0.10105),
+                              Atom('Cl', -1.03103, 4.55239, -0.06066),
+                              Atom('C',  -3.15949, 4.47211,  0.02185),
+                              Atom('H',  -3.27697, 3.86557, -0.86787),
+                              Atom('H',  -3.20778, 3.99594,  0.99353),
+                              Atom('H',  -3.30829, 5.54289, -0.04740)],
+                       charge=-1,
+                       solvent_name='water')
+
+    calc = Calculation(name='tmp',
+                       molecule=orca_ts,
+                       method=g09,
+                       keywords=OptKeywords(kwd_list))
+    calc.run()
+
+    # Even though a Hessian is not requested it should be added
+    assert calc.get_hessian() is not None
