@@ -364,3 +364,7 @@ def test_xtb_optts():
 
     # Even though a Hessian is not requested it should be added
     assert calc.get_hessian() is not None
+    assert np.isclose(calc.get_energy().to('Ha'),
+                      -13.1297380,
+                      atol=1E-5)
+    
