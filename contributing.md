@@ -1,18 +1,24 @@
-- [Reporting a bug or suggesting changes/improvements](#org7882dfb)
-- [Contributing to the code](#org9d1c221)
-  - [Guidelines](#orgca8a8b3)
-    - [Forks instead of branches](#org6954b1d)
-    - [Small pull requests](#orga180d26)
-    - [Well described Pull Requests](#org8074798)
+- [Reporting a bug or suggesting changes/improvements](#org78b0aec)
+- [Contributing to the code](#org65ed898)
+  - [Guidelines for Pull Requests](#org91a34ec)
+    - [Forks instead of branches](#orge9dbc3f)
+    - [Small pull requests](#orgb903811)
+    - [Pull Requests are more than just code](#org5b3b5c2)
+    - [Draft Pull Requests](#org216d85b)
+  - [Style guidelines](#org18ac4f9)
+    - [PEP8 formatting](#org1701069)
+    - [Naming](#org05d504b)
+    - [Custom types instead of primitive types](#orgd4a961c)
+  - [Tests](#orgd23b0d0)
 
 Contributions in any form are very much welcome. To make managing these easier, we kindly ask that you follow the guidelines below.
 
 
-<a id="org7882dfb"></a>
+<a id="org78b0aec"></a>
 
 # Reporting a bug or suggesting changes/improvements
 
-If you think you've found a bug in `autode`, please let us know by opening an issue on the main autodE GitHub repository. This will give the autoDE developers a chance to confirm the bug, investigate it and hopefully fix it!
+If you think you've found a bug in `autode`, please let us know bu opening an issue on the main autoDE GitHub repository. This will give the autoDE developers a chance to confirm the bug, investigate it and hopefully fix it!
 
 When reporting an issue, we suggest you follow the following
 
@@ -20,7 +26,7 @@ When reporting an issue, we suggest you follow the following
 
 -   Operating System (*e.g.* Ubuntu Linux 20.04)
 -   Python version: (*e.g* 3.9.4)
--   autodE version: (*e.g* 1.1.0)
+-   autoDE version: (
 
 ****Description**** <A one-line description of the bug>
 
@@ -35,7 +41,7 @@ When it comes to reporting bugs, the more details the better. Do not hesitate to
 **An idea for a fix?**, feel free to describe it in your bug report.
 
 
-<a id="org9d1c221"></a>
+<a id="org65ed898"></a>
 
 # Contributing to the code
 
@@ -45,37 +51,92 @@ The high-level contributing workflow is:
 
 1.  Fork the main repository (`duartegroup/autode`)
 2.  Implement changes and tests on your own fork on a given branch (`<gh-username>/autode:<branch-name>`)
-3.  Create a new Pull Request on the main autodE repository from your development branch onto `autode:master`.
+3.  Create a new Pull Request on the main autoDE repository from your development branch onto `autode:master`.
 
 If you're unfamiliar with GitHub forks and pull requests, you can read [Fork a repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and [Creating a pull request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) on the GitHub docs.
 
 
-<a id="orgca8a8b3"></a>
+<a id="org91a34ec"></a>
 
-## Guidelines
+## Guidelines for Pull Requests
 
 
-<a id="org6954b1d"></a>
+<a id="orge9dbc3f"></a>
 
 ### Forks instead of branches
 
-By default, contributors do not have permission to push branches to the main autode remote repository. In most scenarios, you should propose your contribution through a Pull Request from a fork.
+By default contributors do not have permission to push branches to the main autode remote repository. In most scenarios, you should propose your contribution through a Pull Request from a fork.
 
 
-<a id="orga180d26"></a>
+<a id="orgb903811"></a>
 
 ### Small pull requests
 
-Smaller PRs are reviewed faster, and more accurately. We therefore, ask that contributors keep the set of changes within a Pull Request as small as possible. If your PR modifies more than 5 files, and/or several hundred lines of code, you should probably break it down to two or more PRs.
+Smaller Pull Requests are reviewed faster, and more accurately. We therefore, ask that contributors keep the set of of change within a Pull Request as small as possible. If your Pull Request modifies more than 5 files, and/or several hunder lines of code, you should probably break it down to two or more Pull Requests.
 
 
-<a id="org8074798"></a>
+<a id="org5b3b5c2"></a>
 
-### Well described Pull Requests
+### Pull Requests are more than just code
 
-A Pull Request is difficult to review without a description of context and motivation for the attached set of changes. Whenever you open a new PR, please include the following information:
+A Pull Request is difficult to review without a description of context and motivation for the attached set of changes. Whenever you open a new Pull Request, please include the following information:
 
--   **A title** that explicits the main change addressed by the PR. If you struggle to come out with a short and descriptive title, this is perhaps an indication that it could be broken down into smaller pieces.
+-   **A title** that explicits the main change addressed by the Pull Request. If you struggle to come out with a short and descriptive title, this is perhaps an indication that it could be broken down into smaller pieces.
 -   **A description** of the context and motivation for the attached set of changes. *What is the current state of things?*, *Why should it be changed?*.
 -   **A summary** of changes outlining the the main points addressed by your Pull Request, and how they relate to each other. Be sure to mention any assumption(s) and/or choices that your made and alternative design/implementaions that you considered. *What did you change or add?* *How?*. *Anything you could have done differently? Why not?*.
 -   **Some advice for reviewers**. Explicit the parts of your changes on which you would expect reviwers to focus their attention. These are often parts that you're unsure about or code that may be difficult to read.
+
+
+<a id="org216d85b"></a>
+
+### Draft Pull Requests
+
+If you're planning to work on something and can answer the four points above, you can open a new Pull Request and convert it to "Draft". This is especially useful if you'd like to make some of your changes visible but do not consider them ready for review yet.
+
+Draft Pull Requests are a way to signal to other developers that you are currently working on something and open for discussion about it. It's also providing the development team a glimpse of future code reviews.
+
+
+<a id="org18ac4f9"></a>
+
+## Style guidelines
+
+Enforcing code style in contributions is key to maintain a consistent code base.
+
+
+<a id="org1701069"></a>
+
+### PEP8 formatting
+
+autoDE's code follows the PEP8 guidelines for code formatting. You can check and apply formatting to your contribution(s) using tools such as flake8 or black.
+
+
+<a id="org05d504b"></a>
+
+### Naming
+
+1.  Variables
+
+    -   Variable names should be 'snake<sub>case</sub>'.
+
+2.  Functions
+
+    -   Function names should be 'snake<sub>case</sub>'.
+    -   Functions should always exit with an explicit `return` statement, even if this `return None`.
+
+3.  Classes
+
+    -   Classes names should be 'CamelCase'.
+
+
+<a id="orgd4a961c"></a>
+
+### Custom types instead of primitive types
+
+
+<a id="orgd23b0d0"></a>
+
+## Tests
+
+As much as possible, contributions should be tested.
+
+Tests live in `tests/`, with roughly one `test_<module>` per module or class. Unless your contribution adds a new module, your tests should be added to an existing test file.
