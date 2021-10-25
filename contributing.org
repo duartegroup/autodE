@@ -55,20 +55,20 @@ these easier, we kindly ask that you follow the guidelines below.
     the main autode remote repository. In most scenarios, you should
     propose your contribution through a Pull Request from a fork.
 *** Small pull requests 
-    Smaller PRs are reviewed faster, and more accurately.  We
+    Smaller Pull Requests are reviewed faster, and more accurately.  We
     therefore, ask that contributors keep the set of of change within
-    a Pull Request as small as possible. If your PR modifies more than
+    a Pull Request as small as possible. If your Pull Request modifies more than
     5 files, and/or several hunder lines of code, you should probably
-    break it down to two or more PRs.
+    break it down to two or more Pull Requests.
 *** Pull Requests are more than just code
     A Pull Request is difficult to review without a description of
     context and motivation for the attached set of changes. Whenever
-    you open a new PR, please include the following information:
+    you open a new Pull Request, please include the following information:
 
-    - *A title* that explicits the main change addressed by the PR. If
-      you struggle to come out with a short and descriptive title,
-      this is perhaps an indication that it could be broken down into
-      smaller pieces.
+    - *A title* that explicits the main change addressed by the Pull
+      Request. If you struggle to come out with a short and
+      descriptive title, this is perhaps an indication that it could
+      be broken down into smaller pieces.
     - *A description* of the context and motivation for the attached set
       of changes. /What is the current state of things?/, /Why should
       it be changed?/.
@@ -84,7 +84,7 @@ these easier, we kindly ask that you follow the guidelines below.
       difficult to read. 
 *** Draft Pull Requests
     If you're planning to work on something and can answer the four
-    points above, you can open a new PR and convert it to
+    points above, you can open a new Pull Request and convert it to
     "Draft". This is especially useful if you'd like to make some of
     your changes visible but do not consider them ready for review yet.
 
