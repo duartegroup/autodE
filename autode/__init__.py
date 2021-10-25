@@ -1,6 +1,6 @@
 from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
                                       HessianKeywords, SinglePointKeywords,
-                                      Keywords)
+                                      Keywords, GradientKeywords)
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.atoms import Atom
@@ -42,6 +42,7 @@ __all__ = [
     'OptKeywords',
     'HessianKeywords',
     'SinglePointKeywords',
+    'GradientKeywords',
     'Reaction',
     'MultiStepReaction',
     'Atom',
