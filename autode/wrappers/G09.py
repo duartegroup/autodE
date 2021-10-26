@@ -346,14 +346,8 @@ def _rerun_hessian(calc):
 
 
 def calc_uses_external_method(calc):
-    """
-    Does this Gaussian calculation use an external force driver?
-    """
-    for keyword in calc.input.keywords:
-        if 'external' in keyword.lower():
-            return True
-
-    return False
+    """Does this Gaussian calculation use an external force driver?"""
+    return any('external' in kwd.lower() for kwd in calc.input.keywords)
 
 
 class G09(ElectronicStructureMethod):

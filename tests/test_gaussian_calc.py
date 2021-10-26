@@ -9,7 +9,7 @@ from autode.species.molecule import Molecule
 from autode.wrappers import keywords as kwds
 from autode.wrappers.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.functionals import pbe0
-from autode.wrappers.keywords import OptKeywords, SinglePointKeywords, HessianKeywords
+from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import AtomsNotFound
 from autode.exceptions import NoInputError
 from autode.point_charges import PointCharge
