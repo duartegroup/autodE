@@ -108,9 +108,17 @@ these easier, we kindly ask that you follow the guidelines below.
      - Function names should be 'snake_case'.
      - Functions should always exit with an explicit ~return~
        statement, even if this ~return None~.
+     - Functions should raise ValueError for invalid input
+     - Functions should return None rather than raising exceptions upon /failure/
+     - Docstrings are in Google format
 **** Classes
      - Classes names should be 'CamelCase'.
 *** Custom types instead of primitive types
+*** Versioning
+    Versioning is semantic in the *X.Y.Z* style. X is unlikely to exceed 1
+    baring a complete rewrite; Y should be updated whenever there are backwards
+    incompatible changes; Z should be incremented for bugfixes and tweaks that
+    maintain all components of the public facing API.
 ** Tests
 
    As much as possible, contributions should be tested.
