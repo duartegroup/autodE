@@ -311,10 +311,12 @@ def rerun_angle_failure(calc):
     return fixed_calc
 
 
-def _rerun_hessian(calc):
+def _run_hessian(calc):
     """
-    Checks for Gaussian jobs run without the 'Freq' keyword and reruns the
-    calculation with this keyword added. Any 'Opt' keywords are removed.
+    Run a hessian calculation based on a corresponding optimisation or
+    single point calculation. Used for when an external force driver is used
+    and the dummy basis set does not carry over to the frequency calculation.
+    See: https://github.com/duartegroup/autodE/pull/86
 
     Arguments:
         calc (autode.calculation.Calculation):
@@ -322,26 +324,29 @@ def _rerun_hessian(calc):
     Returns:
         (autode.calculation.Calculation):
     """    
-    hess_calc = deepcopy(calc)
+    hess_calc = deepcopy(calc)  # Uses a copy so the current calc. is unchanged
 
-    # Check if freq calculation has been done
-    if not any(["Freq" in str(keyword) for keyword in hess_calc.input.keywords]):
+    # Remove any optimisation keywords
+    for keyword in filter(lambda kwd: "opt" in kwd.lower(), hess_calc.input.keywords):
+        hess_calc.input.keywords.remove(keyword)
 
-        for keyword in filter(lambda kwd: "opt" in kwd.lower(), hess_calc.input.keywords):
-            hess_calc.input.keywords.remove(keyword)
+    # Add Geom(Redundant) to be compatible with External
+    hess_calc.input.keywords.append("Freq Geom(Redundant)")
 
-        # Geom(Redundant) to be compatible with External
-        hess_calc.input.keywords.append("Freq Geom(Redundant)")
-
-        # Generate the new calculation and run
-        hess_calc.name += '_hess'
-        hess_calc.molecule.atoms = calc.get_final_atoms()
-        hess_calc.molecule.constraints = Constraints(distance=None, cartesian=None)
-        hess_calc.input.added_internals = None
-        hess_calc.output = CalculationOutput()
-        hess_calc.run()
+    # Generate the new calculation and run
+    hess_calc.name += '_hess'
+    hess_calc.molecule.atoms = calc.get_final_atoms()
+    hess_calc.molecule.constraints = Constraints(distance=None, cartesian=None)
+    hess_calc.input.added_internals = None
+    hess_calc.output = CalculationOutput()
+    hess_calc.run()
 
     return hess_calc
+
+
+def freq_in_keywords(calc):
+    """Is 'Freq' in a a set of keywords used to run a calculation"""
+    return any('freq' in keyword.lower() for keyword in calc.input.keywords)
 
 
 def calc_uses_external_method(calc):
@@ -598,9 +603,9 @@ class G09(ElectronicStructureMethod):
             (IndexError | ValueError):
         """
 
-        if calc_uses_external_method(calc):
+        if calc_uses_external_method(calc) and not freq_in_keywords(calc):
             # Using external force drivers can lead to failed Hessian calcs.
-            calc = _rerun_hessian(calc)
+            calc = _run_hessian(calc)
 
         hess_lines = []
         append_line = False
