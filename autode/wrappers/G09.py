@@ -326,9 +326,8 @@ def _rerun_hessian(calc):
 
     # Check if freq calculation has been done
     if not any(["Freq" in str(keyword) for keyword in hess_calc.input.keywords]):
-        # Remove keywords that contain opt
-        to_remove = [keyword for keyword in hess_calc.input.keywords if "opt" in keyword.lower()]
-        for keyword in to_remove:
+
+        for keyword in filter(lambda kwd: "opt" in kwd.lower(), hess_calc.input.keywords):
             hess_calc.input.keywords.remove(keyword)
 
         # Geom(Redundant) to be compatible with External
