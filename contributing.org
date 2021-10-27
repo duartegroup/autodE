@@ -107,10 +107,23 @@ these easier, we kindly ask that you follow the guidelines below.
 **** Functions
      - Function names should be 'snake_case'.
      - Functions should always exit with an explicit ~return~
-       statement, even if this ~return None~.
-     - Functions should raise ValueError for invalid input
-     - Functions should return None rather than raising exceptions upon /failure/
-     - Docstrings are in Google format
+       statement, even if means ~return None~.
+     - Functions should raise ~ValueError~ for invalid input.
+     - Functions should return ~None~ rather than raising exceptions upon /failure/.
+     - Docstrings are in Google format. See [[https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings][Comments and Docstrings]] in
+       the Google Python Style Guide.
+     - Functions should be type annotated:
+       #+begin_src python
+	 def _plot_reaction_profile_with_complexes(self,
+						   units:       'autode.units.Unit',
+						   free_energy: bool,
+						   enthalpy:    bool) -> None:
+	     """Plot a reaction profile with the association complexes of R, P"""
+
+	     # ...
+       #+end_src
+       To learn more about type annotations, read [[https://realpython.com/python-type-checking/][Type Checking in
+       Python]] (realpython.com).
 **** Classes
      - Classes names should be 'CamelCase'.
 *** Custom types instead of primitive types
