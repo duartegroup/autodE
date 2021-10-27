@@ -1,21 +1,6 @@
 Contributions in any form are very much welcome. To make managing these
 easier, we kindly ask that you follow the guidelines below.
 
--   [Reporting a bug or suggesting changes/improvements](#orgd7dedb1)
--   [Contributing to the code](#org6e13923)
-    -   [Guidelines for pull requests](#org1a7d337)
-        -   [Forks instead of branches](#org0369d1a)
-        -   [Several, smaller pull requests instead of one big
-            PR](#org7832279)
-        -   [pull requests are more than code](#org59a4e91)
-        -   [Draft pull requests](#org2778063)
-    -   [Style guidelines](#orge8e74f9)
-        -   [Formatting](#orgc05cbd2)
-        -   [Naming](#org79aee40)
-        -   [Custom types instead of primitive types](#org8f04bda)
-        -   [Versioning](#org49821aa)
-    -   [Tests](#org252e70b)
-
 # Reporting a bug or suggesting changes/improvements
 
 If you think you've found a bug in `autode`, please let us know bu
