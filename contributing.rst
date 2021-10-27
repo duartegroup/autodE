@@ -1,25 +1,27 @@
 Contributions in any form are very much welcome. To make managing these
 easier, we kindly ask that you follow the guidelines below.
 
--  `Reporting a bug or suggesting changes/improvements <#orgd7dedb1>`__
--  `Contributing to the code <#org6e13923>`__
+-  :ref:`Reporting a bug or suggesting changes/improvements <reporting-a-bug>`
+-  :ref:`Contributing to the code <contributing-to-the-code>`
 
-   -  `Guidelines for pull requests <#org1a7d337>`__
+   -  :ref:`Guidelines for pull requests <pr-guidelines>`
 
-      -  `Forks instead of branches <#org0369d1a>`__
-      -  `Several, smaller pull requests instead of one big
-         PR <#org7832279>`__
-      -  `pull requests are more than code <#org59a4e91>`__
-      -  `Draft pull requests <#org2778063>`__
+      -  :ref:`Forks instead of branches <forks-instead-of-branches>`
+      -  :ref:`Several, smaller pull requests instead of one big
+         PR <small-prs>`
+      -  :ref:`pull requests are more than code <prs-more-than-code>`
+      -  :ref:`Draft pull requests <drafts_prs>`
 
-   -  `Style guidelines <#orge8e74f9>`__
+   -  :ref:`Style guidelines <style-guidelines>`
 
-      -  `Formatting <#orgc05cbd2>`__
-      -  `Naming <#org79aee40>`__
-      -  `Custom types instead of primitive types <#org8f04bda>`__
-      -  `Versioning <#org49821aa>`__
+      -  :ref:`Formatting <formatting>`
+      -  :ref:`Naming <naming>`
+      -  :ref:`Custom types instead of primitive types <custom-types>`
+      -  :ref:`Versioning <versioning>`
 
-   -  `Tests <#org252e70b>`__
+   -  :ref:`Tests <#org252e70b>`
+
+.. _reporting-a-bug:
 
 Reporting a bug or suggesting changes/improvements
 ==================================================
@@ -52,6 +54,8 @@ bug report.
 
 **An idea for a fix?**, feel free to describe it in your bug report.
 
+.. _contributing-to-the-code:
+
 Contributing to the code
 ========================
 
@@ -73,8 +77,12 @@ and `Creating a pull
 request <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`__
 on the GitHub docs.
 
+.. _pr-guidelines:
+
 Guidelines for pull requests
 ----------------------------
+
+.. _forks-instead-of-branches:
 
 Forks instead of branches
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,6 +90,8 @@ Forks instead of branches
 By default, contributors do not have permission to push branches to the
 main autoDE remote repository (``duartegroup/autode``). In most cases,
 you should contribute to autoDE through a pull request from a fork.
+
+.. _small-prs:
 
 Several, smaller pull requests instead of one big PR
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,6 +101,8 @@ therefore encourage contributors to keep the set of changes within a
 single pull request as small as possible. If your pull request modifies
 more than 5 files, and/or several hundred lines of code, you should
 probably break it down to two or more pull requests.
+
+.. _prs-more-than-code:
 
 Pull requests are more than code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -116,6 +128,8 @@ pull request, please include the following information:
    often parts that you areunsure about or code that may be difficult to
    read.
 
+.. _drafts_prs:
+
 Draft pull requests
 ~~~~~~~~~~~~~~~~~~~
 
@@ -126,11 +140,15 @@ also providing the development team a glimpse of future code reviews.
 Look out for the “Convert to draft” button on the right hand side pane
 when creating a pull request.
 
+.. _style-guidelines:
+
 Style guidelines
 ----------------
 
 Enforcing code style in contributions is key to maintain a consistent
 code base.
+
+.. _formatting:
 
 Formatting
 ~~~~~~~~~~
@@ -141,6 +159,8 @@ formatting. At the very least, we expect all contributors to use
 formatters like `Black <https://github.com/psf/black>`__,
 `autopep8 <https://github.com/hhatto/autopep8>`__ or
 `YAPF <https://github.com/google/yapf>`__.
+
+.. _naming:
 
 Naming
 ~~~~~~
@@ -185,12 +205,16 @@ Naming
 
    -  Classes names should be ‘CamelCase’.
 
+.. _custom-types:
+
 Custom types instead of primitive types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
    # TODO
+
+.. _versioning:
 
 Versioning
 ~~~~~~~~~~
@@ -199,6 +223,8 @@ Versioning is semantic in the **X.Y.Z** style. X is unlikely to exceed 1
 baring a complete rewrite; Y should be updated whenever there are
 backwards incompatible changes; Z should be incremented for bugfixes and
 tweaks that maintain all components of the public facing API.
+
+.. _tests:
 
 Tests
 -----
