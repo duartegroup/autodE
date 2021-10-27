@@ -1,6 +1,24 @@
 Changelog
 =========
 
+1.1.2
+--------
+----------
+
+Bugfixes
+
+Usability improvements/Changes
+******************************
+- Fixes typo in :code:`autode.exceptions.ReactionFormationFalied`
+
+Bug Fixes
+*********
+
+- Fixes a bug where rings containing mostly double bonds failed to build with :code:`autode.smiles.builder.Builder`
+- Fixes using XTB as a high-level method with the xtb-gaussian wrapper (thanks @kjelljorner)
+
+
+
 1.1.1
 --------
 ----------

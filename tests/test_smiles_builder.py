@@ -659,3 +659,9 @@ def test_cis_dihedral_force():
 
     # Distance between the end carbons needs to be smaller than the trans
     assert 2.0 < builder.distance(0, 3) < 3.1
+
+
+def test_many_ring_double_bonds():
+
+    assert built_molecule_is_reasonable(smiles=r'C1=C\N=C/C=N\C=C/C/1')
+    assert built_molecule_is_reasonable(smiles=r'C1=CC=C/N=N\C=C1')

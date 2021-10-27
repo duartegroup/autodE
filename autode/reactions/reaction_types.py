@@ -1,4 +1,4 @@
-from autode.exceptions import ReactionFormationFalied
+from autode.exceptions import ReactionFormationFailed
 from autode.log import logger
 
 
@@ -43,11 +43,11 @@ def classify(reactants, products):
 
     elif len(reactants) == 0:
         logger.critical('Reaction had no reactants – cannot form a reaction')
-        raise ReactionFormationFalied
+        raise ReactionFormationFailed
 
     elif len(products) == 0:
         logger.critical('Reaction had no products – cannot form a reaction')
-        raise ReactionFormationFalied
+        raise ReactionFormationFailed
 
     else:
         logger.critical('Unsupported reaction type')
