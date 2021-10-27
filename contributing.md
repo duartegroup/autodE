@@ -1,7 +1,9 @@
+# Contributing to autoDE
+
 Contributions in any form are very much welcome. To make managing these
 easier, we kindly ask that you follow the guidelines below.
 
-# Reporting a bug or suggesting changes/improvements
+## Reporting a bug or suggesting changes/improvements
 
 If you think you've found a bug in `autode`, please let us know bu
 opening an issue on the main autoDE GitHub repository. This will give
@@ -31,7 +33,7 @@ bug report.
 
 **An idea for a fix?**, feel free to describe it in your bug report.
 
-# Contributing to the code
+## Contributing to the code
 
 Anybody is free to modify their own copy of autoDE. We would also love
 for you to contribute your changes back to the main repository, so that
@@ -51,15 +53,15 @@ repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and
 request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
 on the GitHub docs.
 
-## Guidelines for pull requests
+### Guidelines for pull requests
 
-### Forks instead of branches
+#### Forks instead of branches
 
 By default, contributors do not have permission to push branches to the
 main autoDE remote repository (`duartegroup/autode`). In most cases, you
 should contribute to autoDE through a pull request from a fork.
 
-### Several, smaller pull requests instead of one big PR
+#### Several, smaller pull requests instead of one big PR
 
 Smaller pull requests are reviewed faster, and more accurately. We
 therefore encourage contributors to keep the set of changes within a
@@ -67,7 +69,7 @@ single pull request as small as possible. If your pull request modifies
 more than 5 files, and/or several hundred lines of code, you should
 probably break it down to two or more pull requests.
 
-### Pull requests are more than code
+#### Pull requests are more than code
 
 A pull request is difficult to review without a description of context
 and motivation for the attached set of changes. Whenever you open a new
@@ -90,7 +92,7 @@ pull request, please include the following information:
     often parts that you areunsure about or code that may be difficult
     to read.
 
-### Draft pull requests
+#### Draft pull requests
 
 Draft pull requests are a way to signal to other developers that you are
 currently working on something and open for discussion about it. It's
@@ -99,12 +101,12 @@ also providing the development team a glimpse of future code reviews.
 Look out for the "Convert to draft" button on the right hand side pane
 when creating a pull request.
 
-## Style guidelines
+### Style guidelines
 
 Enforcing code style in contributions is key to maintain a consistent
 code base.
 
-### Formatting
+#### Formatting
 
 autoDE's code loosely follows [the PEP8
 guidelines](https://www.python.org/dev/peps/pep-0008/) for code
@@ -113,7 +115,7 @@ formatters like [Black](https://github.com/psf/black),
 [autopep8](https://github.com/hhatto/autopep8) or
 [YAPF](https://github.com/google/yapf).
 
-### Naming
+#### Naming
 
 1.  Variables
     -   Variable names should be `snake_case`.
@@ -150,20 +152,20 @@ formatters like [Black](https://github.com/psf/black),
 3.  Classes
     -   Classes names should be 'CamelCase'.
 
-### Custom types instead of primitive types
+#### Custom types instead of primitive types
 
 ``` {.python}
 # TODO
 ```
 
-### Versioning
+#### Versioning
 
 Versioning is semantic in the **X.Y.Z** style. X is unlikely to exceed 1
 baring a complete rewrite; Y should be updated whenever there are
 backwards incompatible changes; Z should be incremented for bugfixes and
 tweaks that maintain all components of the public facing API.
 
-## Tests
+### Tests
 
 As much as possible, contributions should be tested.
 
