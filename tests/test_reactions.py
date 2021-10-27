@@ -1,5 +1,5 @@
 from autode.reactions.reaction_types import classify
-from autode.exceptions import ReactionFormationFalied
+from autode.exceptions import ReactionFormationFailed
 import pytest
 
 
@@ -23,7 +23,7 @@ def test_classify():
     assert rearrangement.name == 'rearrangement'
 
     # Needs to have at least some reactants and products
-    with pytest.raises(ReactionFormationFalied):
+    with pytest.raises(ReactionFormationFailed):
         _ = classify([], [])
         _ = classify([0], [])
         _ = classify([], [0])
