@@ -59,7 +59,7 @@ class XYZfileWrongFormat(Exception):
     pass
 
 
-class ReactionFormationFalied(Exception):
+class ReactionFormationFailed(Exception):
     pass
 
 

@@ -96,16 +96,16 @@ XTB as a hmethod
 ****************
 
 To use XTB as the *hmethod* for minima and TS optimisations with the `xtb-gaussian <https://github.com/aspuru-guzik-group/xtb-gaussian>`_ wrapper
-and some default options
+and some default options. Note that the string to call `xtb-gaussian` will need to be modified with the appropriate keywords for spin and solvent, e.g., "xtb-gaussian --alpb water".
 
 .. code-block:: python
 
-  >>> ade.Config.G16.keywords.sp = SinglePointKeywords([f"external='xtb-gaussian'"])
-  >>> ade.Config.G16.keywords.low_opt = OptKeywords([f"external='xtb-gaussian'", "opt=loose"])
-  >>> ade.Config.G16.keywords.opt = OptKeywords([f"external='xtb-gaussian'", "opt"])
-  >>> ade.Config.G16.keywords.opt_ts = OptKeywords([f"external='xtb-gaussian'", 'Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate)', "freq"])
-  >>> ade.Config.G16.keywords.hess = HessianKeywords([f"external='xtb-gaussian'", 'freq'])
-  >>> ade.Config.G16.keywords.grad = GradientKeywords([f"external='xtb-gaussian'", 'Force(NoStep)'])
+  >>> ade.Config.G16.keywords.sp = ade.SinglePointKeywords(["External='xtb-gaussian'", "IOp(3/5=30)"])
+  >>> ade.Config.G16.keywords.low_opt = ade.OptKeywords(["External='xtb-gaussian'", "Opt(Loose, NoMicro)", "IOp(3/5=30)"])
+  >>> ade.Config.G16.keywords.opt = ade.OptKeywords(["External='xtb-gaussian'", "Opt(NoMicro)", "IOp(3/5=30)"])
+  >>> ade.Config.G16.keywords.opt_ts = ade.OptKeywords(["External='xtb-gaussian'", "Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)", "IOp(3/5=30)"])
+  >>> ade.Config.G16.keywords.hess = ade.HessianKeywords(["External='xtb-gaussian'", "Freq", "Geom(Redundant)", "IOp(3/5=30)"])
+  >>> ade.Config.G16.keywords.grad = ade.GradientKeywords(["External='xtb-gaussian'", 'Force(NoStep)', "IOp(3/5=30)"])
 
 ------------
 
