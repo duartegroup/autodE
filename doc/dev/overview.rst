@@ -76,3 +76,29 @@ A :code:`Calculation` is initialised with a :code:`Species`, using a
 :code:`Method` and :code:`Keywords` describing the type of calculation to
 perform. See :ref:`here <adding_est>` for more details on methods and
 how to add new ones.
+
+
+calculate_reaction_profile
+**************************
+
+From the description of a reaction (e.g SMILES strings), **autodE** can generate
+the reaction profile. It starts by building a :class:`Reaction` instance,
+describing the reactants/products involved (see :class:`Molecule`) as well as
+the transition states (see :code:`TransitionStates`). Calling the
+:code:`calculate_reaction_profile` method on the reaction instance first locates
+the lowest energy conformers of each reactant and product
+(:code:`species.find_lowest_energy_conformer()`). The intermediate optimisations
+are performed using a :code:`Calculation` instance, which is responsible for calling
+a specified QM package (e.g. XTB or Gaussian) with :code:`calculation.run()`.
+The generated output is then parsed and the output available from the calculation
+instance e.g. :code:`calculation.get_final_atoms()`. A :code:`Calculation`
+is constructed with a :code:`Method`, which serves as the QM wrapper. From
+optimised reactants and products a transition state (TS) search is performed
+by constructing association complexes of reactants and products, then searching
+over bond additions and deletions to traverse a reasonable path. Once the
+:code:`TransitionStates` instance has been populated the lowest is selected to
+perform a conformer search. If required, the conformational space of the
+:code:`ReactantComplex` and :code:`ProductComplex` attributes of the reaction
+are optimised. Hessian calculations are performed if the thermochemical contributions
+to the energy are required, followed by single-point energy evaluations on the
+final geometries.
