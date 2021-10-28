@@ -1,13 +1,12 @@
 import shutil
-
 from autode.species.complex import Complex, NCIComplex
 from autode.config import Config
-from autode.methods import get_lmethod
+from autode.methods import XTB
 from autode.species.molecule import Molecule
 from autode.geom import are_coords_reasonable
-from autode.exceptions import MethodUnavailable
 from autode.atoms import Atom
 from autode.values import Distance
+from autode.utils import work_in_tmp_dir
 import numpy as np
 from copy import deepcopy
 import pytest
@@ -218,21 +217,22 @@ def test_complex_atom_reorder():
     assert hf_dimer.n_molecules == 2
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_allow_connectivity_change():
 
-    # Reset the XTB path
-    Config.XTB.path = shutil.which('xtb')
+    # Don't run the calculation without a working XTB install
+    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
+        return
 
-    try:
-        lmethod = get_lmethod()
-    except MethodUnavailable:
-        return  # Cannot run this test without a working low-level method
+    xtb = XTB()
+    xtb.path = shutil.which('xtb')
+    assert xtb.available
 
     na_h2o = NCIComplex(Molecule(smiles='[Na+]'), Molecule(smiles='O'))
 
     # Should prune connectivity change
     try:
-        na_h2o.find_lowest_energy_conformer(lmethod=lmethod)
+        na_h2o.find_lowest_energy_conformer(lmethod=xtb)
         assert na_h2o.n_conformers == 0
 
     # Will fail to set the lowest energy conformer
