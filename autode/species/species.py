@@ -644,7 +644,7 @@ class Species(AtomCollection):
         return None
 
     @requires_conformers
-    def _set_lowest_energy_conformer(self):
+    def _set_lowest_energy_conformer(self, check_graph: bool = True):
         """Set the species energy and atoms as those of the lowest energy
         conformer"""
         lowest_energy = None
@@ -653,13 +653,14 @@ class Species(AtomCollection):
             if conformer.energy is None or conformer.atoms is None:
                 continue
 
-            # Conformers don't have a molecular graph, so make it
-            make_graph(conformer)
+            if check_graph:
+                # Conformers may not have a molecular graph, so make it
+                make_graph(conformer)
 
-            if not is_isomorphic(conformer.graph, self.graph,
-                                 ignore_active_bonds=True):
-                logger.warning('Conformer had a different graph. Ignoring')
-                continue
+                if not is_isomorphic(conformer.graph, self.graph,
+                                     ignore_active_bonds=True):
+                    logger.warning('Conformer had a different graph. Ignoring')
+                    continue
 
             # If the conformer retains the same connectivity, up the the active
             # atoms in the species graph
@@ -986,15 +987,25 @@ class Species(AtomCollection):
 
     @work_in('conformers')
     def find_lowest_energy_conformer(self,
-                                     lmethod: Optional[ElectronicStructureMethod] = None,
-                                     hmethod: Optional[ElectronicStructureMethod] = None) -> None:
+                                     lmethod:                   Optional[ElectronicStructureMethod] = None,
+                                     hmethod:                   Optional[ElectronicStructureMethod] = None,
+                                     allow_connectivity_changes: bool = False
+                                     ) -> None:
         """
-        For a molecule object find the lowest conformer in energy and set the
-        molecule.atoms and molecule.energy
+        Find the lowest energy conformer of this species, and species.atoms
+        and species.energy. Populates species.conformers
 
-        Arguments:
-            lmethod (autode.wrappers.ElectronicStructureMethod):
-            hmethod (autode.wrappers.ElectronicStructureMethod):
+        -----------------------------------------------------------------------
+        Keyword Arguments:
+            lmethod (autode.wrappers.ElectronicStructureMethod): Low-level
+                     method to use.
+
+            hmethod (autode.wrappers.ElectronicStructureMethod): High-level
+                     method to use.
+
+            allow_connectivity_changes (bool): Allow changes in connectivity,
+                                               although not (by definition) a
+                                               conformer it is useful to allow
         """
         logger.info('Finding lowest energy conformer')
 
@@ -1030,7 +1041,7 @@ class Species(AtomCollection):
                 # Otherwise run a full optimisation
                 self.conformers.optimise(hmethod)
 
-        self._set_lowest_energy_conformer()
+        self._set_lowest_energy_conformer(check_graph=False if allow_connectivity_changes else True)
 
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
