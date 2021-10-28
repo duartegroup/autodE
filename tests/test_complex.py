@@ -1,3 +1,5 @@
+import shutil
+
 from autode.species.complex import Complex, NCIComplex
 from autode.config import Config
 from autode.methods import get_lmethod
@@ -217,6 +219,9 @@ def test_complex_atom_reorder():
 
 
 def test_allow_connectivity_change():
+
+    # Reset the XTB path
+    Config.XTB.path = shutil.which('xtb')
 
     try:
         lmethod = get_lmethod()
