@@ -1,7 +1,9 @@
-from autode.species.complex import Complex
+from autode.species.complex import Complex, NCIComplex
 from autode.config import Config
+from autode.methods import get_lmethod
 from autode.species.molecule import Molecule
 from autode.geom import are_coords_reasonable
+from autode.exceptions import MethodUnavailable
 from autode.atoms import Atom
 from autode.values import Distance
 import numpy as np
@@ -212,3 +214,21 @@ def test_complex_atom_reorder():
     hf_dimer.reorder_atoms(mapping={0: 1, 1: 0, 2: 2, 3: 3})
     assert [atom.label for atom in hf_dimer.atoms] == ['F', 'H', 'H', 'F']
     assert hf_dimer.n_molecules == 2
+
+
+def test_allow_connectivity_change():
+
+    try:
+        lmethod = get_lmethod()
+    except MethodUnavailable:
+        return  # Cannot run this test without a working low-level method
+
+    na_h2o = NCIComplex(Molecule(smiles='[Na+]'), Molecule(smiles='O'))
+    na_h2o.find_lowest_energy_conformer()
+
+    # Should prune connectivity change
+    assert na_h2o.n_conformers == 0
+
+    # but should generate more conformers allowing the Na-OH2 'bond'
+    na_h2o.find_lowest_energy_conformer(allow_connectivity_changes=True)
+    assert na_h2o.n_conformers > 1
