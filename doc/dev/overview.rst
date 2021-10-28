@@ -23,12 +23,11 @@ reactants and products are held in :code:`tss`. From these attributes are genera
 properties, including :code:`reactant` and :code:`product`, which are the associated
 association complexes of all reactants and products. The :code:`ts` property is
 simply the lowest energy transition state and :code:`None` if
-:code:`len(reaction.tss) == 0`. Throughout the code properties are :code:`None`
-rather than raising exceptions.
+:code:`len(reaction.tss) == 0`.
 
 
-Partial UML
-###########
+Overall class structure
+#######################
 
 Zooming out, the composition and inheritance between of some of the
 classes arising from :code:`Reaction` (center) is shown below.
