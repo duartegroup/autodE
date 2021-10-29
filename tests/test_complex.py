@@ -1,4 +1,5 @@
 import shutil
+from autode.exceptions import NoConformers
 from autode.species.complex import Complex, NCIComplex
 from autode.config import Config
 from autode.methods import XTB
@@ -236,7 +237,7 @@ def test_allow_connectivity_change():
         assert na_h2o.n_conformers == 0
 
     # Will fail to set the lowest energy conformer
-    except RuntimeError:
+    except (NoConformers, RuntimeError):
         pass
 
     # but should generate more conformers allowing the Na-OH2 'bond'
