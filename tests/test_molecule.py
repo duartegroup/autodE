@@ -195,7 +195,7 @@ def test_multi_ring_smiles_init():
     assert are_coords_reasonable(cr_complex.coordinates)
 
 
-def test_lowest_energy_conformer_set():
+def test_prune_diff_graphs():
 
     h2 = Molecule(smiles='[H][H]')
     h2.energy = -1.0
@@ -208,9 +208,25 @@ def test_lowest_energy_conformer_set():
 
     h2.conformers = [h2_not_bonded]
 
-    # Throw an exception if no conformers are found
-    with pytest.raises(RuntimeError):
-        h2._set_lowest_energy_conformer()
+    h2.conformers.prune_diff_graph(graph=h2.graph)
+
+    # Should prune all conformers
+    assert h2.n_conformers == 0
+
+
+def test_lowest_energy_conformer_set():
+
+    h2 = Molecule(smiles='[H][H]')
+    h2.energy = -1.0
+
+    h2_conf = Molecule(atoms=[Atom('H'), Atom('H', x=1)])
+    assert h2_conf.energy is None
+
+    h2.conformers = [h2_conf]
+
+    # Cannot set the lowest energy with no conformers having defined energies
+    with pytest.raises(Exception):
+        h2_conf._set_lowest_energy_conformer()
 
 
 def test_defined_metal_spin_state():

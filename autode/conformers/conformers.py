@@ -5,6 +5,7 @@ from rdkit import Chem
 from autode.values import Distance, Energy
 from autode.atoms import Atom
 from autode.config import Config
+from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 
@@ -18,6 +19,23 @@ def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
 
 
 class Conformers(list):
+
+    @property
+    def lowest_energy(self) -> Optional['autode.conformers.Conformer']:
+        """
+        Return the lowest energy conformer state from this set. If no
+        conformers have an energy then return None
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.conformers.Conformer | None): Conformer
+        """
+        if all(c.energy is None for c in self):
+            logger.error('Have no conformers with an energy, so no lowest')
+            return None
+
+        energies = [c.energy if c.energy is not None else np.inf for c in self]
+        return self[np.argmin(energies)]
 
     def prune(self,
               e_tol:            Union[Energy, float] = Energy(1, units='kJ mol-1'),
@@ -153,6 +171,33 @@ class Conformers(list):
                 del self[idx]
 
         logger.info(f'Pruned to {len(self)} unique conformer(s) on RMSD')
+        return None
+
+    def prune_diff_graph(self,
+                         graph: 'networkx.Graph') -> None:
+        """
+        Remove conformers with a different molecular graph to a defined
+        reference. Although all conformers should have the same molecular
+        graph there are situations where not pruning these is useful
+
+        -----------------------------------------------------------------------
+
+        Arguments:
+            graph (networkx.Graph): Reference graph
+        """
+        n_prev_confs = len(self)
+
+        for idx in reversed(range(len(self))):
+            conformer = self[idx]
+
+            make_graph(conformer)
+
+            if not is_isomorphic(conformer.graph, graph,
+                                 ignore_active_bonds=True):
+                logger.warning('Conformer had a different graph. Ignoring')
+                del self[idx]
+
+        logger.info(f'Pruned on connectivity {n_prev_confs} -> {len(self)}')
         return None
 
     def _parallel_calc(self, calc_type, method, keywords):

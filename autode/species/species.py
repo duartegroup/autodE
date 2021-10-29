@@ -16,9 +16,8 @@ from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import is_isomorphic, reorder_nodes
+from autode.mol_graphs import make_graph, is_isomorphic, reorder_nodes
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
-from autode.mol_graphs import make_graph
 from autode.hessians import Hessian
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
@@ -644,39 +643,17 @@ class Species(AtomCollection):
         return None
 
     @requires_conformers
-    def _set_lowest_energy_conformer(self, check_graph: bool = True):
+    def _set_lowest_energy_conformer(self):
         """Set the species energy and atoms as those of the lowest energy
         conformer"""
-        lowest_energy = None
+        conformer = self.conformers.lowest_energy
 
-        for conformer in self.conformers:
-            if conformer.energy is None or conformer.atoms is None:
-                continue
-
-            if check_graph:
-                # Conformers may not have a molecular graph, so make it
-                make_graph(conformer)
-
-                if not is_isomorphic(conformer.graph, self.graph,
-                                     ignore_active_bonds=True):
-                    logger.warning('Conformer had a different graph. Ignoring')
-                    continue
-
-            # If the conformer retains the same connectivity, up the the active
-            # atoms in the species graph
-
-            if lowest_energy is None:
-                lowest_energy = conformer.energy
-
-            if conformer.energy <= lowest_energy:
-                self.atoms = conformer.atoms
-                self.energy = conformer.energy
-                lowest_energy = conformer.energy
-
-        if lowest_energy is None:
+        if conformer is None:
             raise RuntimeError("Failed to set the lowest energy conformer as "
                                "no suitable conformers were present")
 
+        self.atoms = conformer.atoms.copy()
+        self.energy = conformer.energy
         return None
 
     def populate_conformers(self, *args, **kwargs):
@@ -1041,8 +1018,10 @@ class Species(AtomCollection):
                 # Otherwise run a full optimisation
                 self.conformers.optimise(hmethod)
 
-        self._set_lowest_energy_conformer(check_graph=False if allow_connectivity_changes else True)
+        if not allow_connectivity_changes:
+            self.conformers.prune_diff_graph(self.graph)
 
+        self._set_lowest_energy_conformer()
         logger.info(f'Lowest energy conformer found. E = {self.energy}')
         return None
 
