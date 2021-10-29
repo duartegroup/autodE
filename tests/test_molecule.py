@@ -223,6 +223,7 @@ def test_lowest_energy_conformer_set():
     assert h2_conf.energy is None
 
     h2.conformers = [h2_conf]
+    assert h2.conformers.lowest_energy is None
 
     # Cannot set the lowest energy with no conformers having defined energies
     with pytest.raises(Exception):
