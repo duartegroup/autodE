@@ -1,5 +1,5 @@
 **********************
-Contributing to autoDE
+Contributing to autodE
 **********************
 
 Contributions in any form are very much welcome. To make managing these
@@ -8,9 +8,9 @@ easier, we kindly ask that you follow the guidelines below.
 Reporting a bug or suggesting changes/improvements
 ==================================================
 
-If you think you’ve found a bug in ``autode``, please let us know bu
+If you think you’ve found a bug in ``autode``, please let us know by
 opening an issue on the main autoDE GitHub repository. This will give
-the autoDE developers a chance to confirm the bug, investigate it and…
+the autodE developers a chance to confirm the bug, investigate it and…
 fix it!
 
 When reporting an issue, we suggest you follow the following template:
@@ -19,7 +19,7 @@ When reporting an issue, we suggest you follow the following template:
 
 -  Operating System: (*e.g.* Ubuntu Linux 20.04)
 -  Python version: (*e.g* 3.9.4)
--  autoDE version: (*e.g.* v1.1.2)
+-  autodE version: (*e.g.* 1.1.2)
 
 **Description** *A one-line description of the bug.*
 
@@ -39,16 +39,16 @@ bug report.
 Contributing to the code
 ========================
 
-Anybody is free to modify their own copy of autoDE. We would also love
+Anybody is free to modify their own copy of autodE. We would also love
 for you to contribute your changes back to the main repository, so that
-other autoDE users can benefit from them.
+other autodE users can benefit from them.
 
 The high-level view of the contributing workflow is:
 
 1. Fork the main repository (``duartegroup/autode``).
 2. Implement changes and tests on your own fork on a given branch
    (``<gh-username>/autode:<branch-name>``).
-3. Create a new pull request on the main autoDE repository from your
+3. Create a new pull request on the main autodE repository from your
    development branch onto ``autode:master``.
 
 To learn more about GitHub forks and pull requests, read `Fork a
@@ -66,14 +66,14 @@ Forks instead of branches
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, contributors do not have permission to push branches to the
-main autoDE remote repository (``duartegroup/autode``). In most cases,
-you should contribute to autoDE through a pull request from a fork.
+main autodE remote repository (``duartegroup/autode``). In most cases,
+you should contribute to autodE through a pull request from a fork.
 
 
 Several, smaller pull requests instead of one big PR
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Smaller pull requests are reviewed faster, and more accurately. We
+Smaller pull requests (PRs) are reviewed faster, and more accurately. We
 therefore encourage contributors to keep the set of changes within a
 single pull request as small as possible. If your pull request modifies
 more than 5 files, and/or several hundred lines of code, you should
@@ -126,7 +126,7 @@ code base.
 Formatting
 ~~~~~~~~~~
 
-autoDE’s code loosely follows `the PEP8
+autodE’s code loosely follows `the PEP8
 guidelines <https://www.python.org/dev/peps/pep-0008/>`__ for code
 formatting. At the very least, we expect all contributors to use
 formatters like `Black <https://github.com/psf/black>`__,
