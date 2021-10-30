@@ -181,10 +181,28 @@ Naming
 Custom types instead of primitive types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+For numbers and arrays that have associated units ``autode`` makes use of
+custom floats (:code:`autode.values.Value`) and numpy arrays
+(:code:`autode.values.ValueArray`). These have unit conversion with a :code:`to()`
+method and enable comparison of quantities independent of units.
+
 .. code:: python
 
-   # TODO
+   >>> from autode.values import Distance
+   >>> r = Distance(1.0)
+   >>> r            # Values have default units (e.g. Angstroms for distances)
+   Distance(1.0 Å)
+   >>> r.to('nm')   # and to() methods
+   Distance(0.1 nm)
+   >>> r.to('nanometer')  # that allow for unit name alises
+   Distance(0.1 nm)
+   >>> r > Distance(9.0, units='pm')   # allow for comparisons
+   True
+   >>> r.to('eV')  # raise exceptions for invalid conversion
+   ...
+   TypeError: No viable unit conversion from Unit(Å) -> eV
 
+New quantities with units should be autode values.
 
 Versioning
 ~~~~~~~~~~
