@@ -21,11 +21,11 @@ When reporting an issue, we suggest you follow the following template:
 -  Python version: (*e.g* 3.9.4)
 -  autodE version: (*e.g.* 1.1.2)
 
-**Description** *A one-line description of the bug.*
+**Description**: *A one-line description of the bug.*
 
-**To Reproduce** *The exact steps to reproduce the bug.*
+**To Reproduce**: *The exact steps to reproduce the bug.*
 
-**Expected behaviour** *A description of what you expected instead of
+**Expected behaviour**: *A description of what you expected instead of
 the observed behaviour.*
 
 --------------
@@ -151,7 +151,8 @@ Naming
    -  Functions should raise ``ValueError`` for invalid input.
 
    -  Functions should return ``None`` rather than raising exceptions
-      upon *failure*.
+      upon *failure*. If something is irrevocably wrong they should raise a
+      ``RuntimeError``.
 
    -  Docstrings are in Google format. See `Comments and
       Docstrings <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>`__
@@ -190,15 +191,15 @@ method and enable comparison of quantities independent of units.
 
    >>> from autode.values import Distance
    >>> r = Distance(1.0)
-   >>> r            # Values have default units (e.g. Angstroms for distances)
+   >>> r                                  # Values have default units
    Distance(1.0 Å)
-   >>> r.to('nm')   # and to() methods
+   >>> r.to('nm')                         # and to() methods
    Distance(0.1 nm)
-   >>> r.to('nanometer')  # that allow for unit name alises
+   >>> r.to('nanometer')                  # that allow for unit name alises
    Distance(0.1 nm)
-   >>> r > Distance(9.0, units='pm')   # allow for comparisons
+   >>> r > Distance(9.0, units='pm')      # also allow for comparisons
    True
-   >>> r.to('eV')  # raise exceptions for invalid conversion
+   >>> r.to('eV')              # and raise exceptions for impossible conversion
    ...
    TypeError: No viable unit conversion from Unit(Å) -> eV
 
