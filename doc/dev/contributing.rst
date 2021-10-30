@@ -77,7 +77,7 @@ Smaller pull requests (PRs) are reviewed faster, and more accurately. We
 therefore encourage contributors to keep the set of changes within a
 single pull request as small as possible. If your pull request modifies
 more than 5 files, and/or several hundred lines of code, you should
-probably break it down to two or more pull requests.
+probably break it down into two or more pull requests.
 
 
 Pull requests are more than code
@@ -100,8 +100,8 @@ pull request, please include the following information:
    design/implementaions that you considered. *What did you change or
    add?* *How?*. *Anything you could have done differently? Why not?*.
 -  **Some advice for reviewers**. Explicit the parts of your changes on
-   which you would expect reviwers to focus their attention. These are
-   often parts that you areunsure about or code that may be difficult to
+   which you would expect reviewers to focus their attention. These are
+   often parts that you are unsure about or code that may be difficult to
    read.
 
 
