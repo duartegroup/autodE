@@ -9,7 +9,7 @@ Reporting a bug or suggesting changes/improvements
 ==================================================
 
 If you think you’ve found a bug in ``autode``, please let us know by
-opening an issue on the main autoDE GitHub repository. This will give
+opening an issue on the main autodE GitHub repository. This will give
 the autodE developers a chance to confirm the bug, investigate it and…
 fix it!
 
@@ -89,7 +89,7 @@ pull request, please include the following information:
 
 -  **A title** that explicits the main change addressed by the pull
    request. If you struggle to come out with a short and descriptive
-   title, this is an indication that your could (should?) be broken down
+   title, this is an indication that your PR could (should?) be broken down
    into smaller PRs.
 -  **A description** of the context and motivation for the attached set
    of changes. *What is the current state of things?*, *Why should it be
@@ -99,7 +99,7 @@ pull request, please include the following information:
    any assumption(s) and/or choices that your made and alternative
    design/implementaions that you considered. *What did you change or
    add?* *How?*. *Anything you could have done differently? Why not?*.
--  **Some advice for reviewers**. Explicit the parts of your changes on
+-  **Some advice for reviewers**. Indicate the parts of your changes on
    which you would expect reviewers to focus their attention. These are
    often parts that you are unsure about or code that may be difficult to
    read.
