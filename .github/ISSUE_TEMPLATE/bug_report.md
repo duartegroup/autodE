@@ -18,8 +18,9 @@ assignees: ''
 
 **Environment**
 <!-- please complete the following information. -->
- - OS:
- - Version:
+ - Operating System:
+ - Python version:
+ - autodE version:
 
 **Additional context**
 <!-- Add any other context about the problem here. -->
