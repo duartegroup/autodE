@@ -189,7 +189,6 @@ class Conformers(list):
 
         for idx in reversed(range(len(self))):
             conformer = self[idx]
-
             make_graph(conformer)
 
             if not is_isomorphic(conformer.graph, graph,

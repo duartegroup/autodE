@@ -214,10 +214,31 @@ def test_prune_diff_graphs():
     assert h2.n_conformers == 0
 
 
-def test_lowest_energy_conformer_set():
+def test_lowest_energy_conformer_set_ok():
 
     h2 = Molecule(smiles='[H][H]')
     h2.energy = -1.0
+
+    h2_long = Molecule(atoms=[Atom('H'), Atom('H', x=0.5)])
+    h2_long.energy = -1.1
+
+    h2.conformers = [h2_long]
+
+    # Setting the lowest energy conformer should override the atoms
+    # and energy of the molecule
+    h2._set_lowest_energy_conformer()
+
+    assert h2.energy == -1.1
+    assert np.isclose(h2.distance(0, 1).to('ang'), 0.5)
+
+
+def test_lowest_energy_conformer_set_no_energy():
+
+    h2 = Molecule(smiles='[H][H]')
+    h2.energy = -1.0
+
+    # No lowest energy conformer without any conformers..
+    assert h2.conformers.lowest_energy is None
 
     h2_conf = Molecule(atoms=[Atom('H'), Atom('H', x=1)])
     assert h2_conf.energy is None

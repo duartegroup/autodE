@@ -16,7 +16,7 @@ from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import make_graph, is_isomorphic, reorder_nodes
+from autode.mol_graphs import make_graph, reorder_nodes
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.hessians import Hessian
 from autode.units import ha_per_ang_sq, ha_per_ang
@@ -964,13 +964,14 @@ class Species(AtomCollection):
 
     @work_in('conformers')
     def find_lowest_energy_conformer(self,
-                                     lmethod:                   Optional[ElectronicStructureMethod] = None,
-                                     hmethod:                   Optional[ElectronicStructureMethod] = None,
+                                     lmethod:                    Optional[ElectronicStructureMethod] = None,
+                                     hmethod:                    Optional[ElectronicStructureMethod] = None,
                                      allow_connectivity_changes: bool = False
                                      ) -> None:
         """
-        Find the lowest energy conformer of this species, and species.atoms
-        and species.energy. Populates species.conformers
+        Find the lowest energy conformer of this species. Populates
+        species.conformers and sets species.atoms and species.energy. By
+        default will only optimise at a low-level method
 
         -----------------------------------------------------------------------
         Keyword Arguments:
@@ -983,6 +984,9 @@ class Species(AtomCollection):
             allow_connectivity_changes (bool): Allow changes in connectivity,
                                                although not (by definition) a
                                                conformer it is useful to allow
+
+        Raises:
+            (RuntimeError): If no conformers (with energies) can be generated
         """
         logger.info('Finding lowest energy conformer')
 
