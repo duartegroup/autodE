@@ -215,3 +215,17 @@ def test_mass():
 
     assert np.isclose(one_amu.to('kg'), 1E-17, atol=1E-17)
     assert np.isclose(one_amu.to('me'), 1823, atol=1)
+
+
+def test_contrib_guidelines():
+    """If any of these tests fail please modify doc/dev/contributing.rst
+    to reflect any changes"""
+
+    r = Distance(1.0)
+    assert repr(r) == 'Distance(1.0 Å)'
+    assert repr(r.to('nm')) == 'Distance(0.1 nm)'
+    assert repr(r.to('nanometer')) == "Distance(0.1 nm)"
+    assert r > Distance(9.0, units='pm')
+
+    with pytest.raises(TypeError):
+        _ = r.to('eV')

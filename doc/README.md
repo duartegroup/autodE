@@ -3,7 +3,7 @@
 Documentation can be found at
 [duartegroup.github.io/autodE](https://duartegroup.github.io/autodE/)
 
-To build the html docs manually install the dependencies
+To build the html docs manually, in this directory first install the dependencies
 
 ```
 conda install --file requirements.txt

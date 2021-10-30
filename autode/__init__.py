@@ -5,6 +5,7 @@ from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.atoms import Atom
 from autode.species.molecule import (Reactant,  Product, Molecule, Species)
+from autode.species.complex import NCIComplex
 from autode.config import Config
 from autode.units import KcalMol
 from autode.units import KjMol
@@ -50,6 +51,7 @@ __all__ = [
     'Reactant',
     'Product',
     'Molecule',
+    'NCIComplex',
     'Config',
     'KcalMol',
     'Calculation',
