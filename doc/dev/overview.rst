@@ -19,8 +19,8 @@ the initial singular goal of calculating reaction profiles.
 
 The key attributes include :code:`reacs` and :code:`prods` as individual molecules
 comprising the reactants and products of the reaction. Transition states connecting
-reactants and products are held in :code:`tss`. From these attributes are generated
-properties, including :code:`reactant` and :code:`product`, which are the associated
+reactants and products are held in :code:`tss`. From these, property attributes are generated,
+including :code:`reactant` and :code:`product`, which are the corresponding
 association complexes of all reactants and products. The :code:`ts` property is
 simply the lowest energy transition state and :code:`None` if
 :code:`len(reaction.tss) == 0`.
