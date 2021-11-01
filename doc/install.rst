@@ -50,7 +50,7 @@ then, install the appropriate dependencies (you may want to create a new `virtua
 environment <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_) and install::
 
     $ conda install --file requirements.txt --channel conda-forge
-    $ python setup.py install
+    $ pip install . --no-deps
 
 
 .. note::

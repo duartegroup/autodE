@@ -27,7 +27,7 @@ the TS can be located with
 Out (visualised)
 
 .. image:: ../common/curtius_ts.png
-   :width: 450
+   :width: 400
    :align: center
 
 
