@@ -497,6 +497,29 @@ class Species(AtomCollection):
             return None
 
     @property
+    def zpe(self) -> Optional[val.Energy]:
+        """
+        Zero point vibrational energy of this species
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.values.Energy | None): ZPE if frequencies are defined
+        """
+        if self.n_atoms < 2:
+            # A single atom does not have any vibrational energy
+            return val.Energy(0.0)
+
+        if self.vib_frequencies is None:
+            logger.warning('Vibrational frequencies not available, cannot '
+                           'determine zero point energy')
+            return None
+
+        h = 6.62607004E-34  # Planks constant
+        zpe = 0.5 * h * sum(nu.real.to('hz') for nu in self.vib_frequencies)
+
+        return val.Energy(float(zpe), units='J').to('Ha')
+
+    @property
     def n_conformers(self) -> int:
         """
         Number of conformers of this species

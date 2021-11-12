@@ -259,6 +259,11 @@ def test_calc_thermo_with_keywords():
 
     assert water.enthalpy is not None
 
+    # Ensure the ZPE is close to the expected value
+    assert np.isclose(water.zpe.to('Ha'),
+                      0.01952143,
+                      atol=1E-5)
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
 def test_calc_thermo_with_calc():
