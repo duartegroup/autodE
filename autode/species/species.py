@@ -536,7 +536,9 @@ class Species(AtomCollection):
     def _default_hessian_calculation(self, **kwargs):
         """Construct a default Hessian calculation"""
 
-        mthd = kwargs['method'] if 'method' in kwargs else get_hmethod()
+        # NOTE: method=None can be passed to this function
+        mthd = kwargs.get('method', None)
+        mthd = mthd if mthd is not None else get_hmethod()
 
         calc = Calculation(name=f'{self.name}_hess',
                            molecule=self,
