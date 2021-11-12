@@ -556,17 +556,16 @@ class Species(AtomCollection):
         raise NotImplementedError('Could not generate conformers. '
                                   'generate_conformers() not implemented')
 
-    def _default_hessian_calculation(self, **kwargs):
+    def _default_hessian_calculation(self, method=None, keywords=None):
         """Construct a default Hessian calculation"""
 
-        # NOTE: method=None can be passed to this function
-        mthd = kwargs.get('method', None)
-        mthd = mthd if mthd is not None else get_hmethod()
+        method = method if method is not None else get_hmethod()
+        keywords = keywords if keywords is not None else method.keywords.hess
 
         calc = Calculation(name=f'{self.name}_hess',
                            molecule=self,
-                           method=mthd,
-                           keywords=kwargs.get('keywords', mthd.keywords.hess),
+                           method=method,
+                           keywords=keywords,
                            n_cores=Config.n_cores)
 
         return calc
