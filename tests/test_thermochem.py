@@ -101,6 +101,8 @@ def test_single_atom():
 
     assert np.isclose(_zpe(f_atom), 0.0)
 
+    assert np.isclose(f_atom.zpe, 0.0)
+
 
 def test_no_atoms():
 
@@ -116,10 +118,12 @@ def test_no_frequencies():
 
     mol = Molecule(smiles='O')
 
-    # Cannot calculate the virbational component without vibrational
+    # Cannot calculate the vibrational component without vibrational
     # frequencies
     with pytest.raises(ValueError):
         calculate_thermo_cont(mol)
+
+    assert mol.zpe is None
 
 
 def test_linear_non_linear_rot():
