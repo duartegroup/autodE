@@ -7,7 +7,7 @@ from autode.wrappers.keywords import Keywords
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
 from autode.utils import work_in_tmp_dir
-from subprocess import Popen
+from subprocess import Popen, TimeoutExpired
 import time
 import pytest
 import os
@@ -180,13 +180,15 @@ def test_spawn_multiprocessing():
               '    with mp.Pool(2) as pool:',
               '        res = [pool.apply_async(mol) for _ in range(2)]',
               '        mols = [r.get() for r in res]',
-              file=py_file)
+              sep='\n', file=py_file)
 
     process = Popen(['python', 'tmp.py'])
-    process.wait(timeout=5)
 
     # Executing the script should not take more than a second, if the function
     # hangs then it should timeout after 5s
-    assert (time.time() - start_time) < 1
+    try:
+        process.wait(timeout=5)
+    except TimeoutExpired:
+        raise AssertionError
 
     os.remove('tmp.py')
