@@ -7,7 +7,9 @@ from autode.wrappers.keywords import Keywords
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
 from autode.utils import work_in_tmp_dir
+from autode.mol_graphs import is_isomorphic
 from subprocess import Popen, TimeoutExpired
+import multiprocessing as mp
 import time
 import pytest
 import os
@@ -169,7 +171,6 @@ def test_timeout():
 
 def test_spawn_multiprocessing():
 
-    start_time = time.time()
     with open('tmp.py', 'w') as py_file:
         print('import multiprocessing as mp',
               'import autode as ade',
@@ -192,3 +193,14 @@ def test_spawn_multiprocessing():
         raise AssertionError
 
     os.remove('tmp.py')
+
+
+def test_spawn_multiprocessing_graph():
+
+    mp.set_start_method("spawn", force=True)
+
+    # Isomorphism should still be able to be checked
+    h2o_a, h2o_b = Molecule(smiles='O'), Molecule(smiles='O')
+    assert is_isomorphic(h2o_a.graph, h2o_b.graph)
+
+    mp.set_start_method('fork', force=True)
