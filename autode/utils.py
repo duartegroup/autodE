@@ -298,7 +298,13 @@ def timeout(seconds, return_value=None):
             q = multiprocessing.Queue()
             p = multiprocessing.Process(target=handler,
                                         args=(q, func, args, kwargs))
-            p.start()
+
+            try:
+                p.start()
+            except AttributeError:
+                logger.error('Failed to wrap function')
+                return func(*args, **kwargs)
+
             p.join(timeout=seconds)
 
             if p.is_alive():
