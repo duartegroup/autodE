@@ -1,6 +1,19 @@
 Changelog
 =========
 
+
+1.1.3
+--------
+----------
+
+Usability improvements
+
+Usability improvements/Changes
+******************************
+- Improves consistency and behaviour of :code:`calc_thermo` method of a species, allowing for keywords and non-run calculations
+
+
+
 1.1.2
 --------
 ----------
@@ -16,7 +29,6 @@ Bug Fixes
 
 - Fixes a bug where rings containing mostly double bonds failed to build with :code:`autode.smiles.builder.Builder`
 - Fixes using XTB as a high-level method with the xtb-gaussian wrapper (thanks @kjelljorner)
-
 
 
 1.1.1
