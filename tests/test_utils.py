@@ -7,6 +7,7 @@ from autode.wrappers.keywords import Keywords
 from autode.exceptions import NoCalculationOutput
 from autode.exceptions import NoConformers
 from autode.utils import work_in_tmp_dir
+from subprocess import Popen
 import time
 import pytest
 import os
@@ -164,3 +165,28 @@ def test_timeout():
     start_time = time.time()
     assert return_string() == 'test'
     assert time.time() - start_time < 10
+
+
+def test_spawn_multiprocessing():
+
+    start_time = time.time()
+    with open('tmp.py', 'w') as py_file:
+        print('import multiprocessing as mp',
+              'import autode as ade',
+              'mp.set_start_method("spawn", force=True)',
+              'def mol():',
+              '    return ade.Molecule(atoms=[ade.Atom("H"), ade.Atom("H", x=0.7)])',
+              'if __name__ == "__main__":',
+              '    with mp.Pool(2) as pool:',
+              '        res = [pool.apply_async(mol) for _ in range(2)]',
+              '        mols = [r.get() for r in res]',
+              file=py_file)
+
+    process = Popen(['python', 'tmp.py'])
+    process.wait(timeout=5)
+
+    # Executing the script should not take more than a second, if the function
+    # hangs then it should timeout after 5s
+    assert (time.time() - start_time) < 1
+
+    os.remove('tmp.py')
