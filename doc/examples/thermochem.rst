@@ -24,6 +24,41 @@ calculations including those when calculating a profile with
 
 ******
 
+General
+-------
+
+To calculate thermochemical contributions (enthalpy, Gibbs free energy) in **autodE** the minimal required input
+is
+
+.. code-block:: Python
+
+    import autode as ade
+
+    water = ade.Molecule(smiles='O')
+    water.calc_thermo()
+    print(f'E = {water.energy:.6f}',
+          f'H = {water.enthalpy:.6f}',
+          f'G = {water.free_energy:.6f}',
+          f'units = {water.energy.units}')
+
+**Out**:
+:code:`E = -76.269260
+H = -76.245955
+G = -76.264398
+units = Unit(Ha)`
+
+
+For a non-default set method and keywords:
+
+.. code-block:: Python
+
+    import autode as ade
+
+    water = ade.Molecule(smiles='O')
+    water.calc_thermo(method=ade.methods.G09(),
+                      keywords=ade.HessianKeywords(['PBEPBE', 'def2SVP', 'Freq']))
+
+
 ORCA
 ----
 To calculate thermochemical contributions from a completed ORCA Hessian file (*H2O_hess_orca.hess*):
