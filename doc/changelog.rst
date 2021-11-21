@@ -11,7 +11,7 @@ Usability improvements
 Usability improvements/Changes
 ******************************
 - Improves consistency and behaviour of :code:`calc_thermo` method of a species, allowing for keywords and non-run calculations
-
+- Allows for a non-fork multiprocessing 'start_method'
 
 
 1.1.2
