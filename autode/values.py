@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Type, Optional
+from typing import Union, Type, Optional, Sequence
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -487,8 +487,8 @@ class ValueArray(ABC, np.ndarray):
         return not self.__eq__(other)
 
     def __new__(cls,
-                input_array: np.ndarray,
-                units: Union[Unit, str, None] = None):
+                input_array: Union[np.ndarray, Sequence],
+                units:       Union[Unit, str, None] = None):
         """
         Initialise a ValueArray from a numpy array, or another ValueArray
 
