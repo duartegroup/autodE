@@ -4,8 +4,10 @@ import pytest
 
 
 def test_classify():
-    # Can do this with integers are in classify there is no check on their
-    # contents, only their length
+    """
+    Testing with integers as in classify there is no check on the type
+    of reactants and products, only their length
+    """
 
     addition = classify([0, 0], [0])
     assert addition.name == 'addition'
@@ -26,10 +28,10 @@ def test_classify():
     with pytest.raises(ReactionFormationFailed):
         _ = classify([], [])
 
-    with pytest.raises(ReactionFormationFailed):
+    with pytest.raises(ReactionFormationFalied):
         _ = classify([0], [])
 
-    with pytest.raises(ReactionFormationFailed):
+    with pytest.raises(ReactionFormationFalied):
         _ = classify([], [0])
 
     # 3 -> 3 reactions are not currently supported
