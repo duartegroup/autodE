@@ -1,6 +1,6 @@
-from autode.reactions.reaction_types import classify, Addition
-from autode.exceptions import ReactionFormationFailed
 import pytest
+from autode.reactions.reaction_types import classify, Addition
+from autode.exceptions import ReactionFormationFalied
 
 
 def test_classify():
@@ -42,3 +42,4 @@ def test_classify():
 def test_equality():
 
     assert Addition == Addition
+    assert Addition != 0

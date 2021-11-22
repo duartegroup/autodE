@@ -15,8 +15,12 @@ class ReactionType:
         """
         self.name = name
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Equality of two types is just based on their names"""
+
+        if not isinstance(other, ReactionType):
+            return False
+
         return self.name == other.name
 
 
