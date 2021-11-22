@@ -23,29 +23,29 @@ on 8 cores.
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-SN2            -496.8         1.3            ✓
-cope           -557.3         4.7            ✓
-DA             -484.4         17.6           ✓
-Hshift         -1898.8        2.6            ✓
-C2N2O          -493.6         1.7            ✓
-cycbut         -741.1         14.3           ✓
-DAcpd          -470.4         6.7            ✓
-ethCF2         -377.4         15.4           ✓
-ene            -966.7         17.0           ✓
-HFloss         -1801.7        7.4            ✓
-oxir           -569.5         11.0           ✓
-Ocope          -525.4         2.9            ✓
-SO2loss        -324.1         26.4           ✓
-aldol          -260.3         19.3           ✓
-dipolar        -442.7         8.4            ✓
+SN2            -497.4         1.3            ✓
+cope           -557.4         4.8            ✓
+DA             -484.4         19.4           ✓
+Hshift         -1898.9        3.0            ✓
+C2N2O          -494.0         2.0            ✓
+cycbut         -741.2         14.6           ✓
+DAcpd          -470.8         6.9            ✓
+ethCF2         -377.5         16.0           ✓
+ene            -966.9         19.7           ✓
+HFloss         -1801.7        8.3            ✓
+oxir           -567.7         6.4            ✓
+Ocope          -525.4         3.0            ✓
+SO2loss        -325.0         27.5           ✓
+aldol          -259.6         19.2           ✓
+dipolar        -442.1         8.2            ✓
 ```
 
 #### SM (small metal)
 ```
 Name      v_imag / cm-1    Time / min     Success
 -------------------------------------------------
-hydroform1     -434.1         38.0           ✓
-MnInsert       -295.7         58.1           ✓
-grubbs         -121.1         63.8           ✓
+hydroform1     -434.1         31.7           ✓
+MnInsert       -302.1         68.1           ✓
+grubbs         -122.6         48.2           ✓
 vaskas         -94.6          39.8           ✓
 ```
