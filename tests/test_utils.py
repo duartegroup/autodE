@@ -186,9 +186,9 @@ def test_spawn_multiprocessing():
     process = Popen(['python', 'tmp.py'])
 
     # Executing the script should not take more than a second, if the function
-    # hangs then it should timeout after 5s
+    # hangs then it should timeout after 10s
     try:
-        process.wait(timeout=5)
+        process.wait(timeout=10)
     except TimeoutExpired:
         raise AssertionError
 
