@@ -1,5 +1,5 @@
 from typing import Sequence
-from autode.exceptions import ReactionFormationFalied
+from autode.exceptions import ReactionFormationFailed
 from autode.log import logger
 
 
@@ -48,12 +48,12 @@ def classify(reactants: Sequence['autode.species.molecule.Reactant'],
     n_reactants, n_products = len(reactants), len(products)
 
     if n_reactants == 0:
-        raise ReactionFormationFalied(f'Reaction had 0 reactants and '
+        raise ReactionFormationFailed(f'Reaction had 0 reactants and '
                                       f'{n_products} products. A reaction '
                                       f'requires at least 1 reactant!')
 
     if n_products == 0:
-        raise ReactionFormationFalied(f'Reaction had 0 products but '
+        raise ReactionFormationFailed(f'Reaction had 0 products but '
                                       f'{n_reactants} reactants. A reaction '
                                       f'requires at least 1 product!')
 

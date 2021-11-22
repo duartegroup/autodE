@@ -1,6 +1,6 @@
 import pytest
 from autode.reactions.reaction_types import classify, Addition
-from autode.exceptions import ReactionFormationFalied
+from autode.exceptions import ReactionFormationFailed
 
 
 def test_classify():
@@ -28,10 +28,10 @@ def test_classify():
     with pytest.raises(ReactionFormationFailed):
         _ = classify([], [])
 
-    with pytest.raises(ReactionFormationFalied):
+    with pytest.raises(ReactionFormationFailed):
         _ = classify([0], [])
 
-    with pytest.raises(ReactionFormationFalied):
+    with pytest.raises(ReactionFormationFailed):
         _ = classify([], [0])
 
     # 3 -> 3 reactions are not currently supported
