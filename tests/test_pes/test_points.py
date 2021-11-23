@@ -65,3 +65,30 @@ def test_closest_coordinates_no_energy():
     with pytest.raises(RuntimeError):
         pes._closest_coordinates(point=(1,))
 
+
+def test_constraints_1d():
+
+    pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.3, 3)})
+
+    consts = pes._constraints(point=(0,))
+    assert len(consts) == 1
+    assert np.isclose(consts[(0, 1)], 0.1, atol=1E-10)
+
+    for i in range(3):
+        consts = pes._constraints(point=(i,))
+        assert np.isclose(consts[(0, 1)], 0.1*(i+1), atol=1E-10)
+
+
+def test_invalid_constraints_1d():
+
+    pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.3, 3)})
+
+    # Cannot determine constraints for a point not on the surface
+    with pytest.raises(ValueError):
+        pes._constraints(point=(-1,))
+
+    with pytest.raises(ValueError):
+        pes._constraints(point=(0, 0))
+
+    with pytest.raises(ValueError):
+        pes._constraints(point=(3,))

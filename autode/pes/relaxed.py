@@ -21,7 +21,9 @@ class RelaxedPESnD(PESnD):
             logger.info(f'Calculating point {point} on PES surface')
 
             species = self._species.new_species(name=self._point_name(point))
-            species.coordinates = self._closest_coordinates(point)
+
+            if point != self.origin:
+                species.coordinates = self._closest_coordinates(point)
 
             const_opt = Calculation(
                         name=species.name,
@@ -85,3 +87,22 @@ class RelaxedPESnD(PESnD):
 
         raise RuntimeError('Failed to find coordinates with an associated '
                            f'energy close to point {point} in the PES')
+
+    def _constraints(self,
+                     point: Tuple) -> dict:
+        """
+        Construct the distance constraints required for a particular point
+        on the PES
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Indicied of a point on the surface
+
+        Returns:
+            (dict): Distance constraints
+        """
+        if not self._point_is_contained(point):
+            raise ValueError(f'Cannot determine constraints for a point: '
+                             f'{point} in a {self.ndim}D-PES')
+
+        return {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
