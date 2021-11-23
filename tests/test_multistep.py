@@ -10,6 +10,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'multistep.zip'))
+@testutils.requires_with_working_xtb_install
 def test_multistep_reaction():
 
     Config.num_conformers = 1
@@ -20,11 +21,6 @@ def test_multistep_reaction():
 
     Config.hcode = 'orca'
     Config.ORCA.path = here
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
-
     Config.XTB.path = shutil.which('xtb')
 
     Config.ORCA.implicit_solvation_type = cpcm

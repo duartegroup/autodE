@@ -9,6 +9,7 @@ from autode.atoms import Atom
 from autode.values import Distance
 from autode.utils import work_in_tmp_dir
 import numpy as np
+from . import testutils
 from copy import deepcopy
 import pytest
 
@@ -219,11 +220,8 @@ def test_complex_atom_reorder():
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@testutils.requires_with_working_xtb_install
 def test_allow_connectivity_change():
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     xtb = XTB()
     xtb.path = shutil.which('xtb')
