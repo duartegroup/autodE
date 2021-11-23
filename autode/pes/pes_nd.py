@@ -7,6 +7,8 @@ import numpy as np
 import itertools as it
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union, Optional, Sequence
+from autode.config import Config
+from autode.log import logger
 from autode.values import ValueArray, Energy
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
 
@@ -51,7 +53,7 @@ class PESnD(ABC):
 
         self._species = species
         self._energies = Energies(np.zeros(self.shape), units='Ha')
-        self._coordinates = np.zeros(shape=())
+        self._coordinates = np.zeros(shape=(*self.shape, ))
 
     @property
     def shape(self) -> Tuple:
@@ -75,11 +77,22 @@ class PESnD(ABC):
         """
         return len(self._rs)
 
-    @abstractmethod
+    @property
+    def origin(self) -> Tuple:
+        """
+        Tuple of the origin e.g. (0,) in 1D and (0, 0, 0) in 3D
+
+        -----------------------------------------------------------------------
+        Returns:
+            (tuple(int, ...)):
+        """
+        return tuple(0 for _ in range(self.ndim))
+
     def calculate(self,
                   method:   'autode.wrapper.ElectronicStructureMethod',
                   keywords:  Optional['autode.wrappers.Keywords'] = None,
-                  n_cores:   Optional[int] = None) -> None:
+                  n_cores:   Optional[int] = None
+                  ) -> None:
         """
         Calculate the surface
 
@@ -87,10 +100,53 @@ class PESnD(ABC):
         Arguments:
             method: Method to use
 
-            keywords:
+            keywords: Keywords to use. If None then will use method.keywords.sp
+                      for an unrelaxed or method.keywords.opt for a relaxed
 
-            n_cores:
+            n_cores: Number of cores. If None then use ade.Config.n_cores
         """
+        if self._species is None:
+            raise ValueError('Cannot calculate a PES without an initial '
+                             'species. Initialise PESNd with a species '
+                             'or reactant')
+
+        if keywords is None:
+            keywords = self._default_keywords(method)
+            logger.info('PES calculation keywords not specified, using:\n'
+                        f'{keywords}')
+
+        self._coordinates = np.zeros(shape=(*self.shape, self._species.n_atoms, 3),
+                                     dtype=np.float64)
+
+        # Set the coordinates of the first point in the PES
+        self._coordinates[self.origin] = self._species.coordinates
+
+        self._calculate(method=method,
+                        keywords=keywords,
+                        n_cores=Config.n_cores if n_cores is None else n_cores)
+        return None
+
+    @abstractmethod
+    def _default_keywords(self,
+                          method: 'autode.wrapper.ElectronicStructureMethod'
+                          ) -> 'autode.wrappers.Keywords':
+        """
+        Default keywords to use for this type of PES e.g. opt or sp
+
+        -----------------------------------------------------------------------
+        Arguments:
+            method:
+
+        Returns:
+            (autode.wrappers.keywords.Keywords):
+        """
+
+    @abstractmethod
+    def _calculate(self,
+                   method:  'autode.wrapper.ElectronicStructureMethod',
+                   keywords: Optional['autode.wrappers.Keywords'],
+                   n_cores:  int) -> None:
+        """Calculate the surface"""
 
     def _points(self) -> Sequence[Tuple]:
         """
@@ -121,6 +177,47 @@ class PESnD(ABC):
             (str):
         """
         return f'{self._species.name}_scan_{"-".join([str(p) for p in point])}'
+
+    def _point_is_contained(self, point: Tuple) -> bool:
+        """
+        Is a point contained on this PES, defined by its indices. For example,
+        (-1,) is never on a 1D PES, (2,) is on a 1D PES with 3 points in it
+        and (1,) is not on a 2D PES as it doesn't have the same dimension
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Indices of a point on the grid
+
+        Returns:
+            (bool): If the point is on the PES
+        """
+        if len(point) != self.ndim:
+            return False
+
+        if sum(point) < 0:
+            return False
+
+        if any(p_n >= s_n or p_n < 0 for p_n, s_n in zip(point, self.shape)):
+            return False
+
+        return True
+
+    def _point_has_energy(self, point: Tuple) -> bool:
+        """
+        Does a point have a defined energy? Energies are initialised to
+        zero so only need to check that the energy is not vanishing
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point:
+
+        Returns:
+            (bool):
+
+        Raises:
+            (IndexError): If the point is not on the PES
+        """
+        return not np.isclose(self._energies[point], 0.0, atol=1E-10)
 
     def __getitem__(self,
                     indices: Union[Tuple, int]):

@@ -12,7 +12,10 @@ class PESnD(pes_nd.PESnD):
 
     __test__ = False
 
-    def calculate(self, method, keywords=None, n_cores=None):
+    def _calculate(self, method, keywords=None, n_cores=1):
+        raise NotImplementedError
+
+    def _default_keywords(self, method):
         raise NotImplementedError
 
 
