@@ -41,6 +41,9 @@ def test_pes_nd_attrs():
     # Empty PES has an empty tuple for a shape
     assert pes.shape == tuple()
 
+    assert 'pes' in repr(pes).lower()
+    assert 'pes' in repr(pes._energies).lower()
+
 
 def test_pes_nd_rs_init():
 
@@ -52,6 +55,10 @@ def test_pes_nd_rs_init():
     pes = PESnD(rs={(0, 1): (1.0, 2.0, 10)})
     assert pes.shape == (10,)
 
+    # As is defining the array directly
+    pes = PESnD(rs={(0, 1): np.linspace(1.0, 2.0, num=10)})
+    assert pes.shape == (10,)
+
     # while defining a a non-integer number raises a value error if no steps
     # are going to be performed
     with pytest.raises(ValueError):
@@ -60,6 +67,24 @@ def test_pes_nd_rs_init():
     # or if only a single step is to be performed
     with pytest.raises(ValueError):
         _ = PESnD(rs={(0, 1): (1., 2., 1)})
+
+    # or if there is only a float as the value
+    with pytest.raises(ValueError):
+        _ = PESnD(rs={(0, 1): 1.0})
+
+    # or if the tuple has <2 or >3 elements
+    with pytest.raises(ValueError):
+        _ = PESnD(rs={(0, 1): (1.0,)})
+
+    with pytest.raises(ValueError):
+        _ = PESnD(rs={(0, 1): (1.0, 2.0, 10, 0.1)})
+
+    # or the final element in the tuple is not an int or float
+    with pytest.raises(ValueError):
+        _ = PESnD(rs={(0, 1): (1.0, 'a')})
+
+    with pytest.raises(ValueError):
+        _ = PESnD(rs={(0, 1): (1.0, 2.0, 'a')})
 
 
 def test_pes_nd_rs_species_init():

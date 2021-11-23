@@ -23,6 +23,8 @@ class PESnD:
         """
         N-dimensional PES
 
+        # TODO: Add example initialisation
+
         -----------------------------------------------------------------------
         Arguments:
             species: Initial species which to evaluate from
@@ -65,16 +67,11 @@ class PESnD:
                              'species. Initialise PESNd with a species '
                              'or reactant')
 
-        self._validate_rs()
-
         # TODO: this function
         return None
 
-    def _validate_rs(self) -> None:
-        """
-        Ensure that the
-        """
-        raise NotImplementedError
+    def __repr__(self):
+        return f'PES(shape={self.shape})'
 
 
 class _ListDistances1D(list):
