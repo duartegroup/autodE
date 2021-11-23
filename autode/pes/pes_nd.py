@@ -5,6 +5,7 @@ surface and connecting minima and saddle points
 """
 import numpy as np
 from typing import Dict, Tuple, Union, Optional, Sequence
+from autode.log import logger
 from autode.values import ValueArray
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
 
@@ -99,6 +100,9 @@ class _ListDistances1D(list):
 
         Returns:
             (autode.pes.pes_nd.Distances1D):
+
+        Raises:
+            (ValueError): If the value is not of the correct type
         """
 
         if isinstance(value, tuple):
@@ -153,12 +157,11 @@ class _ListDistances1D(list):
             num = value[-1]
 
         elif isinstance(value[-1], float):
-            num = int(round(abs((r_final - r_init) / value[-1])))
+            num = int(round(abs((r_final - r_init) / value[-1]))) + 1
 
             if not self._allow_rounding_of_stepsize:
-                r_final = (r_init
-                           + np.sign(r_final - r_init) * abs(value[-1]) * num)
-                num += 1
+                dr = np.sign(r_final - r_init) * abs(value[-1]) * (num - 1)
+                r_final = r_init + dr
 
         else:
             raise ValueError(f'Uninterpretable type: {type(value)}')

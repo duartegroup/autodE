@@ -48,7 +48,7 @@ def test_pes_nd_attrs():
 def test_pes_nd_rs_init():
 
     # For a step-size of 0.1 Å there should be 10 steps in a single dimension
-    pes = PESnD(rs={(0, 1): (1.0, 2.0, 0.1)})
+    pes = PESnD(rs={(0, 1): (1.0, 2.0, 0.11)})
     assert pes.shape == (10,)
 
     # Defining the number of steps should be equivalent
@@ -77,7 +77,8 @@ def test_pes_nd_rs_init():
         _ = PESnD(rs={(0, 1): (1.0,)})
 
     with pytest.raises(ValueError):
-        _ = PESnD(rs={(0, 1): (1.0, 2.0, 10, 0.1)})
+        _ = PESnD(rs={(0, 1): (1.0, 2.0, 10, 0.11
+                               )})
 
     # or the final element in the tuple is not an int or float
     with pytest.raises(ValueError):
@@ -101,28 +102,28 @@ def test_pes_nd_rs_species_init():
     # It is possible when a species is defined
     h2 = Molecule(atoms=[Atom('H'), Atom('H', x=1.0)])
 
-    pes = PESnD(species=h2, rs={(0, 1): (1.5, 0.1)})
+    pes = PESnD(species=h2, rs={(0, 1): (1.4, 0.1)})
     assert pes.shape == (5,)
 
-    pes = PESnD(species=h2, rs={(0, 1): (1.5, 5)})
+    pes = PESnD(species=h2, rs={(0, 1): (1.4, 5)})
     assert pes.shape == (5,)
 
     # negative increments give the same behaviour
-    pes = PESnD(species=h2, rs={(0, 1): (0.5, -0.1)})
+    pes = PESnD(species=h2, rs={(0, 1): (0.6, -0.1)})
     assert pes.shape == (5,)
 
     # the atom indices must be in the molecule
     with pytest.raises(ValueError):
-        _ = PESnD(rs={(0, 2): (1.5, 5)})
+        _ = PESnD(rs={(0, 2): (1.4, 5)})
 
     # and the number still be positive for negative steps
-    assert PESnD(species=h2, rs={(0, 1): (0.5, 5)}).shape == (5,)
-    assert PESnD(species=h2, rs={(0, 1): (0.5, 0.1)}).shape == (5,)
+    assert PESnD(species=h2, rs={(0, 1): (0.6, 5)}).shape == (5,)
+    assert PESnD(species=h2, rs={(0, 1): (0.6, 0.1)}).shape == (5,)
 
 
 def test_pes_nd_rs_rounding():
 
-    pes = PESnD(rs={(0, 1): (1.0, 2.03, 0.1)},
+    pes = PESnD(rs={(0, 1): (1.0, 1.87, 0.1)},
                 allow_rounding=True)
     assert pes.shape == (10,)
 
@@ -134,12 +135,23 @@ def test_pes_nd_rs_rounding():
 
     # but if rounding is not allowed then the final point should be
     # shifted
-    pes = PESnD(rs={(0, 1): (1.0, 2.03, 0.1)},
+    pes = PESnD(rs={(0, 1): (1.0, 1.87, 0.1)},
                 allow_rounding=False)
 
     # no rounding means there are 11 steps from 1.0 to 2.0 in 0.1 Å steps
-    assert pes.shape == (11,)
+    assert pes.shape == (10,)
 
     r1_arr = pes._rs[0]
+    # Final point should be rounded
+    assert np.isclose(r1_arr[-1], 1.9, atol=1E-10)
+
+    # and the step size fixed
     assert np.isclose(r1_arr[1] - r1_arr[0], 0.1, atol=1E-10)
-    assert np.isclose(r1_arr[-1], 2.0, atol=1E-10)
+
+
+def test_mesh():
+
+    pes = PESnD(rs={(0, 1): (0.1, 0.3, 0.1),
+                    (1, 2): (0.1, 0.3, 0.1)})
+    assert pes.shape == (3, 3)
+
