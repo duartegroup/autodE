@@ -115,6 +115,9 @@ def test_reactant_product_complexes():
 
 def test_invalid_with_complexes():
 
+    Config.hcode = 'ORCA'
+    Config.ORCA.path = here
+
     h3_reaction = reaction.Reaction(lin_h3, trig_h3)
 
     # Currently free energies with association complexes is not supported
@@ -156,6 +159,9 @@ def test_check_solvent():
 
 
 def test_reaction_identical_reac_prods():
+
+    Config.hcode = 'ORCA'
+    Config.ORCA.path = here
 
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
                                                       Atom('H', x=1.0)])
