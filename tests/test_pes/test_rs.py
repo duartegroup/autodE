@@ -4,7 +4,16 @@ from autode.units import ang
 from autode.species import Molecule
 from autode.values import Energy
 from autode.atoms import Atom
-from autode.pes.pes_nd import Distances1D, PESnD
+from autode.pes.pes_nd import Distances1D
+from autode.pes import pes_nd
+
+
+class PESnD(pes_nd.PESnD):
+
+    __test__ = False
+
+    def calculate(self, method, keywords=None, n_cores=None):
+        raise NotImplementedError
 
 
 def test_distances1d():
@@ -165,15 +174,22 @@ def test_mesh():
     # Second item in the matrix should modify r1
     # but leave unchanged r2 (row) i.e. the array be
     """
-                r1
+                r2
        ----------------------
        | (0, 0)   (0, 1)  ..
-       |   .        .
-    r2 |   .        . 
+       | (1, 0)     .
+    r1 |   .        . 
        |
+       
     """
-    assert np.allclose(pes.r1[0, 1], 0.2, atol=1E-10)
-    assert np.allclose(pes.r2[0, 1], 0.1, atol=1E-10)
+    assert np.allclose(pes.r1[0, 1], 0.1, atol=1E-10)
+    assert np.allclose(pes.r2[0, 1], 0.2, atol=1E-10)
+
+
+def test_unset_values():
+
+    pes = PESnD(rs={(0, 1): (0.1, 0.3, 3),
+                    (1, 2): (0.1, 0.3, 3)})
 
     # All elements on a non-calculated surface are initialised to 0
     for i in range(3):
@@ -181,4 +197,3 @@ def test_mesh():
             assert np.isclose(pes[i, j], 0.0, atol=1E-10)
 
     assert isinstance(pes[0, 0], Energy)
-

@@ -4,16 +4,18 @@ calculations over the grid of points, location of saddle points in the
 surface and connecting minima and saddle points
 """
 import numpy as np
+import itertools as it
+from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union, Optional, Sequence
-from autode.log import logger
 from autode.values import ValueArray, Energy
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
+
 
 # Type is a dictionary keyed with tuples and has a set of floats* as a value
 _rs_type = Dict[Tuple[int, int], Union[Tuple, np.ndarray]]
 
 
-class PESnD:
+class PESnD(ABC):
     """Potential energy surface (PES) in N-dimensions"""
 
     def __init__(self,
@@ -43,8 +45,8 @@ class PESnD:
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
 
-        # Dynamically add public attributes for r1, r2, ... etc.
-        for i, meshed_rs in enumerate(np.meshgrid(*self._rs)):
+        # Dynamically add public attributes for r1, r2, ... etc. as nD arrays
+        for i, meshed_rs in enumerate(np.meshgrid(*self._rs, indexing='ij')):
             setattr(self, f'r{i+1}', meshed_rs)
 
         self._species = species
@@ -62,6 +64,64 @@ class PESnD:
         """
         return tuple(len(arr) for arr in self._rs)
 
+    @property
+    def ndim(self) -> int:
+        """
+        Number of dimensions in this PES
+
+        -----------------------------------------------------------------------
+        Returns:
+            (int):
+        """
+        return len(self._rs)
+
+    @abstractmethod
+    def calculate(self,
+                  method:   'autode.wrapper.ElectronicStructureMethod',
+                  keywords:  Optional['autode.wrappers.Keywords'] = None,
+                  n_cores:   Optional[int] = None) -> None:
+        """
+        Calculate the surface
+
+        -----------------------------------------------------------------------
+        Arguments:
+            method: Method to use
+
+            keywords:
+
+            n_cores:
+        """
+
+    def _points(self) -> Sequence[Tuple]:
+        """
+        A list of points in this PES sorted by their sum. For example, for a
+        1D PES containing 3 points the list is: [(0,), (1,), (2,)] while for
+        a 2D PES of 4 total points the points list is:
+        [(0, 0), (0, 1), (1, 0), (1, 1)]
+        used for enumerating over the surface in from the initial species
+        point (located at the origin).
+
+        -----------------------------------------------------------------------
+        Returns:
+            (list(tuple(int, ..))): List of points
+        """
+        ranges = (range(len(r)) for r in self._rs)
+
+        return sorted(it.product(*ranges), key=lambda x: sum(x))
+
+    def _point_name(self, point: Tuple) -> str:
+        """
+        Name of a particular point in the surface
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Indices of the point
+
+        Returns:
+            (str):
+        """
+        return f'{self._species.name}_scan_{"-".join([str(p) for p in point])}'
+
     def __getitem__(self,
                     indices: Union[Tuple, int]):
         """
@@ -76,19 +136,6 @@ class PESnD:
             (autode.values.Energy): Energy
         """
         return Energy(self._energies[indices], units=self._energies.units)
-
-    def calculate(self) -> None:
-        """
-        Calculate the n-dimensional surface
-        """
-
-        if self._species is None:
-            raise ValueError('Cannot calculate a PES without an initial '
-                             'species. Initialise PESNd with a species '
-                             'or reactant')
-
-        # TODO: this function
-        return None
 
     def __repr__(self):
         return f'PES(shape={self.shape})'
