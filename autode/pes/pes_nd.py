@@ -6,7 +6,7 @@ surface and connecting minima and saddle points
 import numpy as np
 from typing import Dict, Tuple, Union, Optional, Sequence
 from autode.log import logger
-from autode.values import ValueArray
+from autode.values import ValueArray, Energy
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
 
 # Type is a dictionary keyed with tuples and has a set of floats* as a value
@@ -43,8 +43,12 @@ class PESnD:
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
 
+        # Dynamically add public attributes for r1, r2, ... etc.
+        for i, meshed_rs in enumerate(np.meshgrid(*self._rs)):
+            setattr(self, f'r{i+1}', meshed_rs)
+
         self._species = species
-        self._energies = Energies(np.zeros(self.shape))
+        self._energies = Energies(np.zeros(self.shape), units='Ha')
         self._coordinates = np.zeros(shape=())
 
     @property
@@ -57,6 +61,21 @@ class PESnD:
             (tuple(int)):
         """
         return tuple(len(arr) for arr in self._rs)
+
+    def __getitem__(self,
+                    indices: Union[Tuple, int]):
+        """
+        Get a value on this potential energy surface (PES) at a (set of)
+        indices
+
+        -----------------------------------------------------------------------
+        Arguments:
+            indices:
+
+        Returns:
+            (autode.values.Energy): Energy
+        """
+        return Energy(self._energies[indices], units=self._energies.units)
 
     def calculate(self) -> None:
         """

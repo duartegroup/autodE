@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from autode.units import ang
 from autode.species import Molecule
+from autode.values import Energy
 from autode.atoms import Atom
 from autode.pes.pes_nd import Distances1D, PESnD
 
@@ -154,4 +155,30 @@ def test_mesh():
     pes = PESnD(rs={(0, 1): (0.1, 0.3, 0.1),
                     (1, 2): (0.1, 0.3, 0.1)})
     assert pes.shape == (3, 3)
+
+    assert hasattr(pes, 'r1')
+    assert hasattr(pes, 'r2')
+
+    assert np.allclose(pes.r1[0, 0], 0.1, atol=1E-10)
+    assert np.allclose(pes.r2[0, 0], 0.1, atol=1E-10)
+
+    # Second item in the matrix should modify r1
+    # but leave unchanged r2 (row) i.e. the array be
+    """
+                r1
+       ----------------------
+       | (0, 0)   (0, 1)  ..
+       |   .        .
+    r2 |   .        . 
+       |
+    """
+    assert np.allclose(pes.r1[0, 1], 0.2, atol=1E-10)
+    assert np.allclose(pes.r2[0, 1], 0.1, atol=1E-10)
+
+    # All elements on a non-calculated surface are initialised to 0
+    for i in range(3):
+        for j in range(3):
+            assert np.isclose(pes[i, j], 0.0, atol=1E-10)
+
+    assert isinstance(pes[0, 0], Energy)
 
