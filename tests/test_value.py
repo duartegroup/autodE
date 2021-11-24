@@ -4,7 +4,7 @@ from autode.constants import Constants
 from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
-from autode.values import (Value, Distance, Angle,
+from autode.values import (Value, Distance, Angle, Mass,
                            Energy, PlottedEnergy, Energies,
                            PotentialEnergy, Enthalpy, FreeEnergy,
                            FreeEnergyCont, EnthalpyCont,
@@ -20,6 +20,7 @@ def test_base_value():
 
     val = TmpValue(0.0)
     assert val == 0.0
+    assert val != None
     assert hasattr(val, 'units')
 
     # Same representation as the string
@@ -33,6 +34,13 @@ def test_base_value():
     # Values are equal to default numpy isclose precision
     # (1e-08 as of 20/05/21)
     assert TmpValue(0.0) == TmpValue(1E-10)
+
+
+def test_base_value_numpy_add():
+
+    res = np.array([0.0, 0.0]) + TmpValue(0.1)
+    assert isinstance(res, np.ndarray)
+    assert np.allclose(res, np.array([0.1, 0.1]), atol=1E-10)
 
 
 def test_energy():
@@ -200,6 +208,16 @@ def test_freqs():
     # codes)
     assert Frequency(-1.0).is_imaginary
     assert not Frequency(1.0).is_imaginary
+    assert 'freq' in repr(Frequency(1.0)).lower()
 
     assert Frequency(-1.0) != Frequency(1.0)
     assert Frequency(-1.0).real == Frequency(1.0)
+
+
+def test_mass():
+
+    one_amu = Mass(1.0, units='amu')
+    assert 'mass' in repr(one_amu).lower()
+
+    assert np.isclose(one_amu.to('kg'), 1E-17, atol=1E-17)
+    assert np.isclose(one_amu.to('me'), 1823, atol=1)

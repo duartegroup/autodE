@@ -476,15 +476,18 @@ class ValueArray(ABC, np.ndarray):
     def __eq__(self, other):
         """Define equality for a valuearray, with implicit type conversion"""
 
-        if (other is None
-                or not hasattr(other, 'shape')
-                or other.shape != self.shape):
-            return False
-
         if isinstance(other, ValueArray):
             other = other.to(self.units)
 
-        return np.allclose(self, other)
+        eq = (other is not None
+              and hasattr(other, 'shape')
+              and other.shape == self.shape
+              and np.allclose(self, other))
+
+        return eq
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __new__(cls,
                 input_array: np.ndarray,
