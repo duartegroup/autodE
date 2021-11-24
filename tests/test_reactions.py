@@ -1,11 +1,13 @@
+import pytest
 from autode.reactions.reaction_types import classify, Addition
 from autode.exceptions import ReactionFormationFailed
-import pytest
 
 
 def test_classify():
-    # Can do this with integers are in classify there is no check on their
-    # contents, only their length
+    """
+    Testing with integers, as in classify there is no check on the type
+    of reactants and products, only their length
+    """
 
     addition = classify([0, 0], [0])
     assert addition.name == 'addition'
@@ -40,3 +42,4 @@ def test_classify():
 def test_equality():
 
     assert Addition == Addition
+    assert Addition != 0
