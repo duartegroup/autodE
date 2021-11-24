@@ -5,7 +5,7 @@ from autode.exceptions import ReactionFormationFailed
 
 def test_classify():
     """
-    Testing with integers as in classify there is no check on the type
+    Testing with integers, as in classify there is no check on the type
     of reactants and products, only their length
     """
 
