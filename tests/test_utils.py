@@ -1,5 +1,4 @@
 from autode import utils
-from autode.config import Config
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.conformers import Conformer
@@ -8,7 +7,8 @@ from autode.wrappers.keywords import Keywords
 from subprocess import Popen, TimeoutExpired
 import multiprocessing as mp
 from autode import exceptions as ex
-from autode.utils import work_in_tmp_dir, requires_hl_level_methods
+from autode.mol_graphs import is_isomorphic
+from autode.utils import work_in_tmp_dir
 import time
 import pytest
 import os
@@ -170,6 +170,7 @@ def test_timeout():
     assert time.time() - start_time < 10
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_spawn_multiprocessing():
 
     with open('tmp.py', 'w') as py_file:

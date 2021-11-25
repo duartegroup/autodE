@@ -5,7 +5,7 @@ from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
 from autode.values import (Value, Distance, Angle, Mass,
-                           Energy, PlottedEnergy, Energies,
+                           Energy, Energies,
                            PotentialEnergy, Enthalpy, FreeEnergy,
                            FreeEnergyCont, EnthalpyCont,
                            Frequency)
