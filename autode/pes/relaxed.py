@@ -9,10 +9,7 @@ from autode.exceptions import CalculationException
 
 class RelaxedPESnD(PESnD):
 
-    def _calculate(self,
-                   method:   'autode.wrapper.ElectronicStructureMethod',
-                   keywords: Optional['autode.wrappers.Keywords'],
-                   n_cores:  int) -> None:
+    def _calculate(self) -> None:
         """
         Calculate the n-dimensional surface
         """
@@ -20,31 +17,31 @@ class RelaxedPESnD(PESnD):
         for point in self._points():
             logger.info(f'Calculating point {point} on PES surface')
 
-            species = self._species.new_species(name=self._point_name(point))
+            m = self._species.new_species(name=self._point_name(point))
+            m.coordinates = self._closest_coordinates(point)
+            m.constraints.distance = self._constraints(point)
 
-            if point != self.origin:
-                species.coordinates = self._closest_coordinates(point)
-
-            const_opt = Calculation(
-                        name=species.name,
-                        molecule=species,
-                        method=method,
-                        n_cores=n_cores,
-                        keywords=keywords,
-                        distance_constraints=self._constraints(point)
-                        )
-
-            try:
-                species.optimise(method=method, calc=const_opt)
-                self._coordinates[point] = np.array(species.coordinates,
-                                                    copy=True)
-                self._energies[point] = float(species.energy)
-
-            except CalculationException:
-                logger.error(f'Optimisation failed for {point}')
-                self._energies[point] = np.nan
+            (self._energies[point],
+             self._coordinates[point]) = self._single_energy_coordinates(m)
 
         return None
+
+    def _single_energy_coordinates(self, species) -> Tuple[float, np.ndarray]:
+        """Calculate a single energy and set of coordinates on this surface"""
+
+        const_opt = Calculation(name=species.name,
+                                molecule=species,
+                                method=self._method,
+                                n_cores=self._n_cores,
+                                keywords=self._keywords)
+
+        try:
+            species.optimise(method=self._method, calc=const_opt)
+            return float(species.energy), np.array(species.coordinates)
+
+        except CalculationException:
+            logger.error(f'Optimisation failed for: {species.name}')
+            return np.nan, np.zeros(shape=(species.n_atoms, 3))
 
     def _default_keywords(self,
                           method: 'autode.wrapper.ElectronicStructureMethod'
@@ -68,6 +65,8 @@ class RelaxedPESnD(PESnD):
         Returns:
             (np.ndarray): Coordinates. shape = (n_atoms, 3)
         """
+        if point == self.origin:
+            return self._coordinates[self.origin]
 
         # Increment out from the nearest neighbours ('distance' 1)
         for n in range(1, max(self.shape)):

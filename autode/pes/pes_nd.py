@@ -55,6 +55,11 @@ class PESnD(ABC):
         self._energies = Energies(np.zeros(self.shape), units='Ha')
         self._coordinates = np.zeros(shape=(*self.shape, ))
 
+        # Attributes set when calling calcualte()
+        self._method:   Optional['autode.wrappers.base.Method'] = None
+        self._n_cores:  Optional[int] = None
+        self._keywords: Optional['autode.wrappers.keywords.Keywords'] = None
+
     @property
     def shape(self) -> Tuple:
         """
@@ -111,19 +116,22 @@ class PESnD(ABC):
                              'or reactant')
 
         if keywords is None:
-            keywords = self._default_keywords(method)
+            self._keywords = self._default_keywords(method)
             logger.info('PES calculation keywords not specified, using:\n'
-                        f'{keywords}')
+                        f'{self._keywords}')
+        else:
+            self._keywords = keywords
 
+        # Coordinates tensor is the shape of the PES plus (N, 3) dimensions
         self._coordinates = np.zeros(shape=(*self.shape, self._species.n_atoms, 3),
                                      dtype=np.float64)
 
-        # Set the coordinates of the first point in the PES
+        # Set the coordinates of the first point in the PES, and other attrs
         self._coordinates[self.origin] = self._species.coordinates
+        self._method = method
+        self._n_cores = Config.n_cores if n_cores is None else n_cores
 
-        self._calculate(method=method,
-                        keywords=keywords,
-                        n_cores=Config.n_cores if n_cores is None else n_cores)
+        self._calculate()
         return None
 
     @abstractmethod
@@ -142,11 +150,8 @@ class PESnD(ABC):
         """
 
     @abstractmethod
-    def _calculate(self,
-                   method:  'autode.wrapper.ElectronicStructureMethod',
-                   keywords: Optional['autode.wrappers.Keywords'],
-                   n_cores:  int) -> None:
-        """Calculate the surface"""
+    def _calculate(self) -> None:
+        """Calculate the surface, using method, keywords, n_cores attributes"""
 
     def _points(self) -> Sequence[Tuple]:
         """
