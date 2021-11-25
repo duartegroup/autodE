@@ -5,7 +5,7 @@ from time import time
 from functools import wraps
 from subprocess import Popen, DEVNULL, PIPE, STDOUT
 from tempfile import mkdtemp
-import multiprocessing
+import multiprocessing as mp
 import multiprocessing.pool
 from autode.log import logger
 from autode.exceptions import (NoAtomsInMolecule,
@@ -13,8 +13,11 @@ from autode.exceptions import (NoAtomsInMolecule,
                                NoConformers,
                                NoMolecularGraph)
 
-# Needed for additional pickle-ability
-multiprocessing.set_start_method("fork")
+try:
+    mp.set_start_method("fork")
+except RuntimeError:
+    logger.warning('Multiprocessing context has already been defined')
+
 
 if sys.version_info.minor > 7:                                    # Python >3.7
     from functools import cached_property # lgtm[py/unused-import]
@@ -298,7 +301,13 @@ def timeout(seconds, return_value=None):
             q = multiprocessing.Queue()
             p = multiprocessing.Process(target=handler,
                                         args=(q, func, args, kwargs))
-            p.start()
+
+            if isinstance(mp.get_context(), mp.context.ForkContext):
+                p.start()
+            else:
+                logger.error('Failed to wrap function')
+                return func(*args, **kwargs)
+
             p.join(timeout=seconds)
 
             if p.is_alive():
@@ -328,7 +337,7 @@ class NoDaemonContext(type(multiprocessing.get_context())):
     Process = NoDaemonProcess
 
 
-class NoDaemonPool(multiprocessing.pool.Pool):
+class NoDaemonPool(mp.pool.Pool):
     """Subclass of Pool to allow child multiprocessing"""
 
     def __init__(self, *args, **kwargs):

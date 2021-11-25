@@ -1,7 +1,7 @@
 import os
 import pytest
 import numpy as np
-from autode import Molecule, Atom, Calculation
+from autode import Molecule, Atom, Calculation, HessianKeywords
 from autode.transition_states import TSguess, TransitionState
 from autode.thermochemistry import calculate_thermo_cont
 from autode.input_output import xyz_file_to_atoms
@@ -101,6 +101,8 @@ def test_single_atom():
 
     assert np.isclose(_zpe(f_atom), 0.0)
 
+    assert np.isclose(f_atom.zpe, 0.0)
+
 
 def test_no_atoms():
 
@@ -116,10 +118,12 @@ def test_no_frequencies():
 
     mol = Molecule(smiles='O')
 
-    # Cannot calculate the virbational component without vibrational
+    # Cannot calculate the vibrational component without vibrational
     # frequencies
     with pytest.raises(ValueError):
         calculate_thermo_cont(mol)
+
+    assert mol.zpe is None
 
 
 def test_linear_non_linear_rot():
@@ -244,3 +248,40 @@ def test_unknown_entropy_method():
     with pytest.raises(NotImplementedError):
         _ = _entropy(species=h2, method='an_unkown_method',
                      temp=298, ss='1M', shift=100, w0=100, alpha=4, sigma_r=1)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
+def test_calc_thermo_with_keywords():
+
+    water = Molecule(smiles='O', name='water_pbe')
+    water.calc_thermo(keywords=HessianKeywords(['PBE', 'def2-SVP', 'Freq']),
+                      method=orca)
+
+    assert os.path.exists('water_pbe_hess_orca.inp')
+    inp_line = open('water_pbe_hess_orca.inp', 'r').readline()
+    assert 'PBE ' in inp_line
+
+    assert water.enthalpy is not None
+
+    # Ensure the ZPE is close to the expected value
+    assert np.isclose(water.zpe.to('Ha'),
+                      0.01952143,
+                      atol=1E-5)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'thermochem.zip'))
+def test_calc_thermo_with_calc():
+
+    mol = Molecule(smiles='[H][H]', name='h2_calc')
+
+    calc = Calculation('h2_calc_hess',
+                       method=orca,
+                       keywords=HessianKeywords(['B3LYP', 'def2-SVP', 'Freq']),
+                       molecule=mol)
+
+    # Should run and non-run calculation
+    mol.calc_thermo(calc=calc)
+    assert mol.enthalpy is not None
+
+    assert os.path.exists('h2_calc_hess_orca.inp')
+    assert 'B3LYP ' in open('h2_calc_hess_orca.inp', 'r').readline()

@@ -497,6 +497,30 @@ class Species(AtomCollection):
             return None
 
     @property
+    def zpe(self) -> Optional[val.Energy]:
+        """
+        Zero point vibrational energy of this species. Any imaginary
+        vibrational frequencies present are converted to their real analogues.
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.values.Energy | None): ZPE if frequencies are defined
+        """
+        if self.n_atoms < 2:
+            # A single atom (or empty set) does not have any vibrational energy
+            return val.Energy(0.0)
+
+        if self.vib_frequencies is None:
+            logger.warning('Vibrational frequencies not available, cannot '
+                           'determine zero point energy')
+            return None
+
+        h = 6.62607004E-34  # Planks constant / J s
+        zpe = 0.5 * h * sum(nu.real.to('hz') for nu in self.vib_frequencies)
+
+        return val.Energy(float(zpe), units='J').to('Ha')
+
+    @property
     def n_conformers(self) -> int:
         """
         Number of conformers of this species
@@ -533,22 +557,46 @@ class Species(AtomCollection):
         raise NotImplementedError('Could not generate conformers. '
                                   'generate_conformers() not implemented')
 
-    def _run_hess_calculation(self, method):
-        """Run a Hessian calculation on this species"""
+    def _default_hessian_calculation(self, method=None, keywords=None):
+        """Construct a default Hessian calculation"""
+
+        method = method if method is not None else get_hmethod()
+        keywords = keywords if keywords is not None else method.keywords.hess
+
+        calc = Calculation(name=f'{self.name}_hess',
+                           molecule=self,
+                           method=method,
+                           keywords=keywords,
+                           n_cores=Config.n_cores)
+
+        return calc
+
+    def _run_hess_calculation(self, **kwargs):
+        """Run a Hessian calculation on this species
+
+        ----------------------------------------------------------------------
+        Keyword Arguments:
+            calc: Calculation, if undefined then use a default calculation
+
+            method: Method to use for the calculation, if it's undefined.
+                    Defaults to methods.get_hmethod()
+
+            keywords: Keywords to use in a calculation, if it's undefined.
+                      Defaults to method.keywords.hess
+        """
 
         if self.n_atoms < 2:
             logger.warning(f'Not running a Hessian calculation on only '
                            f'{self.n_atoms} atom(s). Cannot have frequencies')
             return None
 
-        method = method if method is not None else get_hmethod()
+        calc = kwargs.pop('calc', None)
 
-        calc = Calculation(name=f'{self.name}_hess',
-                           molecule=self,
-                           method=method,
-                           keywords=method.keywords.hess,
-                           n_cores=Config.n_cores)
+        if calc is None:
+            calc = self._default_hessian_calculation(**kwargs)
+
         calc.run()
+
         self.energy = calc.get_energy()
         self.hessian = calc.get_hessian()
 
@@ -793,15 +841,19 @@ class Species(AtomCollection):
                     temp:       float = 298.15,
                     lfm_method: Union[LFMethod, str, None] = None,
                     ss:         Optional[str] = None,
+                    keywords:   Optional[Keywords] = None,
                     **kwargs) -> None:
         """
         Calculate the free energy and enthalpy contributions using the
         ideal gas approximation
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
             calc (autode.calculation.Calculation):
+
+            keywords (autode.wrappers.keywords.Keywords):
 
             temp (float): Temperature in K
 
@@ -816,7 +868,8 @@ class Species(AtomCollection):
             (autode.exceptions.CalculationException | KeyError):
 
         See Also:
-            autode.thermochemistry.igm.calculate_thermo_cont for additional kwargs
+            :meth:`autode.thermochemistry.igm.calculate_thermo_cont` for
+            additional kwargs
         """
         if lfm_method is not None:
             kwargs['lfm_method'] = lfm_method
@@ -843,7 +896,9 @@ class Species(AtomCollection):
               or self.hessian is None):
             logger.info('Calculation did not exist or Hessian was None - '
                         'calculating the Hessian')
-            self._run_hess_calculation(method=method)
+            self._run_hess_calculation(method=method,
+                                       calc=calc,
+                                       keywords=keywords)
 
         calculate_thermo_cont(self, temp=temp, **kwargs)
         return None
