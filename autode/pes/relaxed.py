@@ -2,6 +2,7 @@ import numpy as np
 import itertools as it
 from typing import Tuple, List
 from autode.log import logger
+from autode.config import Config
 from autode.utils import NoDaemonPool
 from autode.pes.pes_nd import PESnD
 from autode.calculation import Calculation
@@ -16,15 +17,24 @@ class RelaxedPESnD(PESnD):
         """
 
         for points in self._points_generator():
-            for point in points:
-                logger.info(f'Calculating point {point} on PES surface')
+            logger.info(f'Calculating tranche {points} on the surface')
 
-                m = self._species.new_species(name=self._point_name(point))
-                m.coordinates = self._closest_coordinates(point)
-                m.constraints.distance = self._constraints(point)
+            with NoDaemonPool(processes=Config.n_cores) as pool:
 
-                (self._energies[point],
-                 self._coordinates[point]) = self._single_energy_coordinates(m)
+                results = []
+                for point in points:
+                    m = self._species.new_species(name=self._point_name(point))
+                    m.coordinates = self._closest_coordinates(point)
+                    m.constraints.distance = self._constraints(point)
+
+                    results.append(pool.apply_async(func=_energy_coordinates,
+                                                    args=(self, m))
+                                   )
+
+                for i, point in enumerate(points):
+                    print(point)
+                    (self._energies[point],
+                     self._coordinates[point]) = results[i].get(timeout=None)
 
         return None
 
@@ -134,3 +144,7 @@ class RelaxedPESnD(PESnD):
             yield points
 
         return StopIteration
+
+
+def _energy_coordinates(pes, species):
+    return pes._single_energy_coordinates(species)
