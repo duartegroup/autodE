@@ -94,7 +94,7 @@ class PESnD(ABC):
         return tuple(0 for _ in range(self.ndim))
 
     def calculate(self,
-                  method:   'autode.wrapper.ElectronicStructureMethod',
+                  method:   'autode.wrappers.ElectronicStructureMethod',
                   keywords:  Optional['autode.wrappers.Keywords'] = None,
                   n_cores:   Optional[int] = None
                   ) -> None:
@@ -136,7 +136,7 @@ class PESnD(ABC):
 
     @abstractmethod
     def _default_keywords(self,
-                          method: 'autode.wrapper.ElectronicStructureMethod'
+                          method: 'autode.wrappers.ElectronicStructureMethod'
                           ) -> 'autode.wrappers.Keywords':
         """
         Default keywords to use for this type of PES e.g. opt or sp
