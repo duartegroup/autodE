@@ -17,7 +17,10 @@ class RelaxedPESnD(PESnD):
         """
 
         for points in self._points_generator():
-            logger.info(f'Calculating tranche {points} on the surface')
+
+            n_cores_pp = max(Config.n_cores // len(points), 1)
+            logger.info(f'Calculating tranche {points} on the surface, using '
+                        f'{n_cores_pp} cores per process')
 
             with NoDaemonPool(processes=Config.n_cores) as pool:
 
@@ -28,30 +31,32 @@ class RelaxedPESnD(PESnD):
                     m.constraints.distance = self._constraints(point)
 
                     results.append(pool.apply_async(func=_energy_coordinates,
-                                                    args=(self, m))
+                                                    args=(self, m),
+                                                    kwds={'n_cores': n_cores_pp})
                                    )
 
                 for i, point in enumerate(points):
-                    print(point)
                     (self._energies[point],
                      self._coordinates[point]) = results[i].get(timeout=None)
 
         return None
 
-    def _single_energy_coordinates(self, species) -> Tuple[float, np.ndarray]:
+    def _single_energy_coordinates(self,
+                                   species,
+                                   **kwargs) -> Tuple[float, np.ndarray]:
         """Calculate a single energy and set of coordinates on this surface"""
 
         const_opt = Calculation(name=species.name,
                                 molecule=species,
                                 method=self._method,
-                                n_cores=self._n_cores,
+                                n_cores=kwargs.get('n_cores', self._n_cores),
                                 keywords=self._keywords)
 
         try:
             species.optimise(method=self._method, calc=const_opt)
             return float(species.energy), np.array(species.coordinates)
 
-        except CalculationException:
+        except (CalculationException, ValueError, TypeError):
             logger.error(f'Optimisation failed for: {species.name}')
             return np.nan, np.zeros(shape=(species.n_atoms, 3))
 
@@ -141,10 +146,12 @@ class RelaxedPESnD(PESnD):
 
                 points.insert(0, all_points.pop(0))
 
-            yield points
+            if len(points) > 0:
+                yield points
 
         return StopIteration
 
 
-def _energy_coordinates(pes, species):
-    return pes._single_energy_coordinates(species)
+def _energy_coordinates(pes, *args, **kwargs):
+    """Top-level hashable function for python multiprocessing"""
+    return pes._single_energy_coordinates(*args, **kwargs)
