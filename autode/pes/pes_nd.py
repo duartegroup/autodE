@@ -340,6 +340,10 @@ class _ListDistances1D(list):
         return Distances1D(np.linspace(r_init, r_final, num=num),
                            atom_idxs=atom_idxs)
 
+    def __eq__(self, other):
+        """Equality of two _ListDistances1D instances"""
+        return isinstance(other, _ListDistances1D) and super().__eq__(other)
+
 
 class Distances1D(ValueArray):
 

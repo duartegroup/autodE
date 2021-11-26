@@ -200,3 +200,22 @@ def test_unset_values():
             assert np.isclose(pes[i, j], 0.0, atol=1E-10)
 
     assert isinstance(pes[0, 0], Energy)
+
+
+def test_list_distances_1d_equality():
+    dists1 = pes_nd._ListDistances1D(species=Molecule(),
+                                     rs_dict={},
+                                     allow_rounding=False)
+
+    dists2 = pes_nd._ListDistances1D(species=Molecule(),
+                                     rs_dict={},
+                                     allow_rounding=False)
+
+    assert not dists1 == 'a'
+    assert dists1 == dists2
+
+    h2 = Molecule(atoms=[Atom('H'), Atom('H', x=0.7)])
+    dists3 = pes_nd._ListDistances1D(species=h2,
+                                     rs_dict={(0, 1): (1.0, 5)},
+                                     allow_rounding=False)
+    assert not dists1 == dists3

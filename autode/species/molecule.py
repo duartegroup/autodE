@@ -1,6 +1,6 @@
 import re
 import rdkit
-from typing import Optional, Union, Sequence
+from typing import Optional, Sequence
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
