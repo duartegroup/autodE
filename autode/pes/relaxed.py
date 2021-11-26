@@ -1,7 +1,8 @@
 import numpy as np
 import itertools as it
-from typing import Optional, Tuple
+from typing import Tuple, List
 from autode.log import logger
+from autode.utils import NoDaemonPool
 from autode.pes.pes_nd import PESnD
 from autode.calculation import Calculation
 from autode.exceptions import CalculationException
@@ -105,3 +106,30 @@ class RelaxedPESnD(PESnD):
                              f'{point} in a {self.ndim}D-PES')
 
         return {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
+
+    def _points_generator(self) -> List[Tuple]:
+        """
+        Yield points on this surface that sum to the same total, thus are
+        close and should be calculated in a group, in parallel. This *should*
+        provide the most efficient calculation decomposition on the surface
+
+        -----------------------------------------------------------------------
+        Yields:
+            (list(tuple(int))):
+        """
+        all_points = list(self._points())
+
+        for i in range(0, sum(self.shape)):
+
+            points = []
+            while all_points:
+
+                # Next point is the next step in the grid
+                if len(points) > 0 and sum(all_points[0]) > i:
+                    break
+
+                points.insert(0, all_points.pop(0))
+
+            yield points
+
+        raise StopIteration
