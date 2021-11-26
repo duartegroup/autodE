@@ -1,6 +1,13 @@
-import numpy as np
+import os
 import pytest
+import numpy as np
+from .. import testutils
+from autode.atoms import Atom
+from autode.species import Molecule
+from autode.wrappers.ORCA import ORCA
+from autode.wrappers.keywords import OptKeywords
 from autode.pes.relaxed import RelaxedPESnD
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_points_gen_idxs_1d():
@@ -41,3 +48,27 @@ def test_points_gen_idxs_3d():
     for expected, true in zip(expected_points, pes3d._points_generator()):
         # order doesn't matter, so convert to sets
         assert set(expected) == set(true)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
+def test_relaxed_with_keywords():
+
+    pes = RelaxedPESnD(Molecule(atoms=[Atom('H'), Atom('H', x=0.70)]),
+                       rs={(0, 1): (1.5, 5)})
+
+    orca = ORCA()
+
+    # Spoof ORCA availability
+    orca.path = here
+    assert orca.available
+
+    pes.calculate(method=orca,
+                  keywords=OptKeywords(['PBE', 'def2-SVP', 'LooseOpt']))
+
+    # Ensure the PES has been populated, using the saved output files
+    assert all(e < -1 for e in pes._energies)
+
+    # Ensure the correct keywords have been used *NOTE* needs whitespace
+    assert os.path.exists('H2_scan_0_orca.inp')
+    assert 'pbe ' in open('H2_scan_0_orca.inp', 'r').readline().lower()
+

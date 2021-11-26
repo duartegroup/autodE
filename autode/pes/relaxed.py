@@ -42,9 +42,20 @@ class RelaxedPESnD(PESnD):
         return None
 
     def _single_energy_coordinates(self,
-                                   species,
-                                   **kwargs) -> Tuple[float, np.ndarray]:
-        """Calculate a single energy and set of coordinates on this surface"""
+                                   species: 'autode.species.Species',
+                                   **kwargs
+                                   ) -> Tuple[float, np.ndarray]:
+        """
+        Calculate a single energy and set of coordinates on this surface
+
+        -----------------------------------------------------------------------
+        Arguments:
+            species: Species on which to perform a constrained minimisation
+
+        Keyword Arguments:
+            n_cores: Number of cores to use for the calculation, if left
+                     unassigned then use self._n_cores
+        """
 
         const_opt = Calculation(name=species.name,
                                 molecule=species,
@@ -67,7 +78,8 @@ class RelaxedPESnD(PESnD):
         return method.keywords.opt
 
     def _closest_coordinates(self,
-                             point: Tuple) -> np.ndarray:
+                             point: Tuple
+                             ) -> np.ndarray:
         """
         From a point in the PES defined by its indices obtain the closest set
         of coordinates, which to use as a starting guess for the constrained
@@ -105,7 +117,8 @@ class RelaxedPESnD(PESnD):
                            f'energy close to point {point} in the PES')
 
     def _constraints(self,
-                     point: Tuple) -> dict:
+                     point: Tuple
+                     ) -> dict:
         """
         Construct the distance constraints required for a particular point
         on the PES
