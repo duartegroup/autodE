@@ -3,7 +3,7 @@ import itertools as it
 from typing import Tuple, List
 from autode.log import logger
 from autode.config import Config
-from autode.utils import NoDaemonPool
+from multiprocessing.pool import Pool
 from autode.pes.pes_nd import PESnD
 from autode.calculation import Calculation
 from autode.exceptions import CalculationException
@@ -22,7 +22,7 @@ class RelaxedPESnD(PESnD):
             logger.info(f'Calculating tranche {points} on the surface, using '
                         f'{n_cores_pp} cores per process')
 
-            with NoDaemonPool(processes=Config.n_cores) as pool:
+            with Pool(processes=Config.n_cores) as pool:
 
                 results = []
                 for point in points:
