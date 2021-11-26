@@ -15,15 +15,16 @@ class RelaxedPESnD(PESnD):
         Calculate the n-dimensional surface
         """
 
-        for point in self._points():
-            logger.info(f'Calculating point {point} on PES surface')
+        for points in self._points_generator():
+            for point in points:
+                logger.info(f'Calculating point {point} on PES surface')
 
-            m = self._species.new_species(name=self._point_name(point))
-            m.coordinates = self._closest_coordinates(point)
-            m.constraints.distance = self._constraints(point)
+                m = self._species.new_species(name=self._point_name(point))
+                m.coordinates = self._closest_coordinates(point)
+                m.constraints.distance = self._constraints(point)
 
-            (self._energies[point],
-             self._coordinates[point]) = self._single_energy_coordinates(m)
+                (self._energies[point],
+                 self._coordinates[point]) = self._single_energy_coordinates(m)
 
         return None
 
@@ -132,4 +133,4 @@ class RelaxedPESnD(PESnD):
 
             yield points
 
-        raise StopIteration
+        return StopIteration
