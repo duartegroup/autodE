@@ -72,3 +72,16 @@ def test_relaxed_with_keywords():
     assert os.path.exists('H2_scan_0_orca.inp')
     assert 'pbe ' in open('H2_scan_0_orca.inp', 'r').readline().lower()
 
+
+def test_calculate_single_without_est():
+
+    pes = RelaxedPESnD(Molecule(atoms=[Atom('H'), Atom('H', x=0.70)]),
+                       rs={(0, 1): (1.5, 5)})
+
+    orca = ORCA()
+    orca.path = '/a/path/that/does/not/exist'
+    assert not orca.available
+
+    # Cannot calculate a surface without a working method
+    with pytest.raises(RuntimeError):
+        pes.calculate(method=orca)

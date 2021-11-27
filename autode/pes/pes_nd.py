@@ -132,6 +132,11 @@ class PESnD(ABC):
         self._n_cores = Config.n_cores if n_cores is None else n_cores
 
         self._calculate()
+
+        if not self._point_has_energy(self.origin):
+            raise RuntimeError('PES calculation failed. Not even the first '
+                               'point had an energy')
+
         return None
 
     @abstractmethod
@@ -210,7 +215,7 @@ class PESnD(ABC):
     def _point_has_energy(self, point: Tuple) -> bool:
         """
         Does a point have a defined energy? Energies are initialised to
-        zero so only need to check that the energy is not vanishing
+        zero, while failed calculations have np.nan energy.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -222,7 +227,8 @@ class PESnD(ABC):
         Raises:
             (IndexError): If the point is not on the PES
         """
-        return not np.isclose(self._energies[point], 0.0, atol=1E-10)
+        e = self._energies[point]
+        return not (np.isnan(e) or np.isclose(e, 0.0, atol=1E-10))
 
     def __getitem__(self,
                     indices: Union[Tuple, int]):
