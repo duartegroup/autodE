@@ -5,6 +5,7 @@ surface and connecting minima and saddle points
 """
 import numpy as np
 import itertools as it
+import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union, Optional, Sequence
 from autode.config import Config
@@ -134,6 +135,59 @@ class PESnD(ABC):
             raise RuntimeError('PES calculation failed. Not even the first '
                                'point had an energy')
 
+        return None
+
+    def plot(self,
+             filename:      Optional[str] = 'PES.pdf',
+             interp_factor: int = 0,
+             units:         str = 'kcal mol-1') -> None:
+        """
+        Plot this PES along a number of dimensions
+
+        -----------------------------------------------------------------------
+        Arguments:
+            *axes: Axes to use e.g. 0 for a 1D plot along r1
+
+            filename: Name of the file to save, type inferred from extension.
+                      If None then return .show() on the matplotlib plot
+
+            interp_factor: Factor by which to interpolate the surface with,
+                           if 0 (the default) then no interpolation is used
+
+            units: Units of the surface. One of {'Ha', 'eV', 'kcal', 'kJ'}
+        """
+
+        if interp_factor < 0:
+            raise ValueError(f'Unsupported interpolation factor: '
+                             f'{interp_factor}, must be >= 0')
+
+        logger.info(f'Plotting the {self.ndim}D-PES')
+        import matplotlib as mpl
+
+        mpl.rcParams['axes.labelsize'] = 15
+        mpl.rcParams['lines.linewidth'] = 1
+        mpl.rcParams['lines.markersize'] = 5
+        mpl.rcParams['xtick.labelsize'] = 14
+        mpl.rcParams['ytick.labelsize'] = 14
+        mpl.rcParams['xtick.direction'] = 'in'
+        mpl.rcParams['ytick.direction'] = 'in'
+        mpl.rcParams['xtick.top'] = True
+        mpl.rcParams['ytick.right'] = True
+        mpl.rcParams['axes.linewidth'] = 1.2
+
+        if self.ndim == 1:
+            self._plot_1d(interp_factor, units)
+
+        elif self.ndim == 2:
+            self._plot_2d(interp_factor, units)
+
+        else:
+            raise NotImplementedError(f'Cannot plot a surface in {self.ndim} '
+                                      f'dimensions')
+
+        plt.tight_layout()
+        plt.savefig(filename, dpi=500) if filename is not None else plt.show()
+        plt.close()
         return None
 
     def clear(self) -> None:
@@ -304,6 +358,99 @@ class PESnD(ABC):
         """
         e = self._energies[point]
         return not (np.isnan(e) or np.isclose(e, 0.0, atol=1E-10))
+
+    def _plot_1d(self, interp_factor: int, units: str) -> None:
+        """
+        Plot a PES in a single dimension
+
+        -----------------------------------------------------------------------
+        Args:
+            interp_factor:
+            units:
+        """
+        r_x = self._rs[0]
+        energies, units = self._energies, self._energy_unit_from_name(units)
+        energies = units.conversion * (energies - np.min(energies))
+
+        if interp_factor > 0:
+            plt.scatter(r_x, energies, marker='o', c='k')
+
+            from scipy.interpolate import UnivariateSpline
+            spline = UnivariateSpline(r_x, energies)
+            r_x = r_x.smoothed(interp_factor)
+            energies = spline(energies)
+
+        plt.plot(r_x,
+                 energies,
+                 marker='o' if interp_factor == 0 else None,
+                 markersize=8,
+                 markerfacecolor='white'
+                 )
+
+        plt.ylabel(f'$E$ / {units.plot_name}')
+        plt.xlabel('$r$ / Å')
+
+        return None
+
+    def _plot_2d(self, interp_factor: int, units: str) -> None:
+        """
+        Plot the PES in two dimensions
+
+        -----------------------------------------------------------------------
+        Arguments:
+            interp_factor:
+            units:
+        """
+        from mpl_toolkits.mplot3d import Axes3D
+
+        r_x, r_y = self._rs[0], self._rs[1]
+        energies = self._energies
+
+        if interp_factor > 0:
+            from scipy.interpolate import RectBivariateSpline
+
+            spline = RectBivariateSpline(r_x, r_y, self._energies)
+            r_x, r_y = r_x.smoothed(interp_factor), r_y.smoothed(interp_factor)
+            energies = spline(r_x, r_y)
+
+        _ = plt.figure(figsize=(10, 6))
+        ax0 = plt.subplot(1, 2, 1, projection=Axes3D.name)
+        ax1 = plt.subplot(1, 2, 2)
+
+        # Convert the energies in the 2D array from the base Hartree units
+        units = self._energy_unit_from_name(units)
+        energies = units.conversion * (energies - np.min(energies))
+
+        ax0.plot_surface(*np.meshgrid(r_x, r_y),
+                         energies,
+                         cmap=plt.get_cmap('plasma'))
+
+        im = ax1.imshow(energies,
+                        aspect=(r_x.abs_diff / r_y.abs_diff),
+                        extent=(r_x.min, r_x.max,
+                                r_y.min, r_y.max),
+                        origin='lower',
+                        cmap=plt.get_cmap('plasma'))
+
+        cbar = plt.colorbar(im, fraction=0.046, pad=0.04)
+        cbar.set_label(f'$E$ / {units.plot_name}')
+
+        for ax in (ax0, ax1):
+            ax.set_xlabel('$r_2$ / Å')
+            ax.set_ylabel('$r_1$ / Å')
+
+        return None
+
+    @staticmethod
+    def _energy_unit_from_name(name: str):
+        """Generate an energy unit given a name"""
+
+        for unit in (ha, ev, kcalmol, kjmol, J):
+            if name.lower() in unit.aliases:
+                return unit
+
+        raise StopIteration(f'Failed to convert {name} to a valid energy unit '
+                            f'must be one of: {ha, ev, kcalmol, kjmol, J}')
 
     def __getitem__(self,
                     indices: Union[Tuple, int]):
@@ -480,6 +627,33 @@ class Distances1D(ValueArray):
             (float):
         """
         return max(self)
+
+    @property
+    def abs_diff(self) -> float:
+        """
+        Absolute difference between the minimum and maximum values on this
+        array of distances
+
+        Returns:
+            (float):
+        """
+        return abs(self.max - self.min)
+
+    def smoothed(self, factor: int) -> ValueArray:
+        """
+        Generate a smoothed version of this set of distances, with factor times
+        more intermediate points
+
+        -----------------------------------------------------------------------
+        Arguments:
+            factor: Factor by which to smooth
+
+        Returns:
+            (autode.pes.pes_nd.Distances1D):
+        """
+
+        new_arr = np.linspace(self.min, self.max, num=factor*len(self))
+        return Distances1D(input_array=new_arr, atom_idxs=self.atom_idxs)
 
     def __repr__(self):
         return f'Distances(n={len(self)}, [{self.min, self.max}])'

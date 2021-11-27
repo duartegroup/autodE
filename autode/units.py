@@ -1,4 +1,4 @@
-from typing import Union, Collection
+from typing import Union, Collection, Optional
 from autode.constants import Constants
 
 
@@ -21,8 +21,8 @@ class Unit:
     def __init__(self,
                  name:       str,
                  conversion: float,
-                 aliases:    Union[Collection, None] = None,
-                 plot_name:  Union[str, None] = None):
+                 aliases:    Optional[Collection] = None,
+                 plot_name:  Optional[str] = None):
         """
         Unit
 
