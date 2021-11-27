@@ -46,19 +46,16 @@ class PESnD(ABC):
         self._rs = _ListDistances1D(species,
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
-
-        # Dynamically add public attributes for r1, r2, ... etc. as nD arrays
-        for i, meshed_rs in enumerate(np.meshgrid(*self._rs, indexing='ij')):
-            setattr(self, f'r{i+1}', meshed_rs)
+        self._mesh()
 
         self._species = species
         self._energies = Energies(np.zeros(self.shape), units='Ha')
-        self._coordinates = np.zeros(shape=(*self.shape, ))
 
-        # Attributes set when calling calcualte()
-        self._method:   Optional['autode.wrappers.base.Method'] = None
-        self._n_cores:  Optional[int] = None
-        self._keywords: Optional['autode.wrappers.keywords.Keywords'] = None
+        # Attributes set in calculate()
+        self._coordinates: Optional[np.ndarray] = None
+        self._method:      Optional['autode.wrappers.base.Method'] = None
+        self._n_cores:     Optional[int] = None
+        self._keywords:    Optional['autode.wrappers.keywords.Keywords'] = None
 
     @property
     def shape(self) -> Tuple:
@@ -149,6 +146,61 @@ class PESnD(ABC):
 
         return None
 
+    def save(self, filename: str) -> None:
+        """
+        Save the PES as a compressed numpy array, such that the whole object
+        can be re-loaded simply, either into a PES or otherwise in pure-numpy.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            filename: Name of the file to save, if it does not end with .npz
+                      then it will be added
+        """
+        if len(self._rs) == 0:
+            raise ValueError('Cannot save an empty PES')
+
+        if not filename.endswith('.npz'):
+            filename += '.npz'
+
+        # Dictionary of flat arrays in each dimension, and their atom indices
+        kwds = {f'r{i+1}': np.array(_r) for i, _r in enumerate(self._rs)}
+        kwds.update({f'a{i+1}': np.array(_r.atom_idxs, dtype=int)
+                     for i, _r in enumerate(self._rs)})
+
+        np.savez(filename,
+                 R=self._coordinates,
+                 E=np.array(self._energies.to('Ha')),
+                 **kwds)
+
+        return None
+
+    def load(self, filename: str) -> None:
+        """
+        Load a PES from a saved numpy file
+
+        -----------------------------------------------------------------------
+        Arguments:
+            filename:
+
+        Raises:
+            (FileNotFoundError):
+        """
+
+        data = np.load(filename, allow_pickle=True)
+        self._energies = Energies(data['E'], units='Ha')
+        self._coordinates = data['R']
+
+        # Maximum dimension is the largest integer out of e.g. 'r0', 'r1', ...
+        ndim = max(int(key.split('r')[1]) for key in data.keys() if 'r' in key)
+        self._rs = _ListDistances1D(species=None, rs_dict={})
+
+        for i in range(ndim):
+            idx_i, idx_j = tuple(int(idx) for idx in data[f'a{i+1}'])
+
+            self._rs.append(Distances1D(input_array=data[f'r{i+1}'],
+                                        atom_idxs=(idx_i, idx_j)))
+        return None
+
     @abstractmethod
     def _default_keywords(self,
                           method: 'autode.wrappers.ElectronicStructureMethod'
@@ -167,6 +219,19 @@ class PESnD(ABC):
     @abstractmethod
     def _calculate(self) -> None:
         """Calculate the surface, using method, keywords, n_cores attributes"""
+
+    def _mesh(self) -> None:
+        """
+        Dynamically add public attributes for r1, r2, ... etc. as nD arrays.
+        For example if _rs contains two lists of [0.0, 0.1] then this function
+        adds self.r1 and self.r2, each with indexing appropriate for the
+        value of r1 at the point (0, 0) on the grid.
+        """
+
+        for i, meshed_rs in enumerate(np.meshgrid(*self._rs, indexing='ij')):
+            setattr(self, f'r{i+1}', meshed_rs)
+
+        return None
 
     def _points(self) -> Sequence[Tuple]:
         """
@@ -261,7 +326,7 @@ class PESnD(ABC):
 
 class _ListDistances1D(list):
 
-    def __init__(self, species, rs_dict, allow_rounding):
+    def __init__(self, species, rs_dict, allow_rounding=True):
         """Construct a list of distance arrays in each dimension"""
         super().__init__([])
 
