@@ -26,20 +26,38 @@ class RelaxedPESnD(PESnD):
 
                 results = []
                 for point in points:
-                    m = self._species.new_species(name=self._point_name(point))
-                    m.coordinates = self._closest_coordinates(point)
-                    m.constraints.distance = self._constraints(point)
-
-                    results.append(pool.apply_async(func=_energy_coordinates,
-                                                    args=(self, m),
-                                                    kwds={'n_cores': n_cores_pp})
-                                   )
+                    res = pool.apply_async(func=_energy_coordinates,
+                                           args=(self, self._species_at(point)),
+                                           kwds={'n_cores': n_cores_pp})
+                    results.append(res)
 
                 for i, point in enumerate(points):
                     (self._energies[point],
                      self._coordinates[point]) = results[i].get(timeout=None)
 
         return None
+
+    def _species_at(self, point: Tuple) -> 'autode.species.Species':
+        """
+        Generate a species on the PES at a defined point. Attributes are
+        obtained from the internal species (molecule at the origin in the PES)
+        while the coordinates are set from the closest point and the
+        constraints defined by the point.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Point at which to generate the species e.g. (0,) in a 1D
+                   surface or (1, 2 3) for a 3D surface
+
+        Returns:
+            (autode.species.Species): Species
+        """
+
+        species = self._species.new_species(name=self._point_name(point))
+        species.coordinates = self._closest_coordinates(point)
+        species.constraints.distance = self._constraints(point)
+
+        return species
 
     def _single_energy_coordinates(self,
                                    species: 'autode.species.Species',

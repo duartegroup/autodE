@@ -21,7 +21,7 @@ class PESnD(ABC):
     """Potential energy surface (PES) in N-dimensions"""
 
     def __init__(self,
-                 species:        Optional['autode.species.species.Species'] = None,
+                 species:        Optional['autode.species.Species'] = None,
                  rs:             Optional[_rs_type] = None,
                  allow_rounding: bool = True
                  ):
@@ -136,6 +136,16 @@ class PESnD(ABC):
         if not self._point_has_energy(self.origin):
             raise RuntimeError('PES calculation failed. Not even the first '
                                'point had an energy')
+
+        return None
+
+    def clear(self) -> None:
+        """
+        Clear the energies and coordinates on this surface
+        """
+
+        self._energies.fill(0.0)
+        self._coordinates.fill(0.0)
 
         return None
 
