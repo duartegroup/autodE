@@ -364,7 +364,55 @@ class PESnD(ABC):
             (tuple(int)): Indices oF A
         """
 
+        for point in self._points():
+
+            stationary_dims = 0
+
+            for i in range(self.ndim):
+                # p - 1 and p + 1 in this dimension. May not be on the surface
+                pm, pp = list(point), list(point)
+                pm[i] -= 1
+                pp[i] += 1
+
+                if not self._is_peak_or_trough(tuple(pm), point, tuple(pp)):
+                    break
+
+                stationary_dims += 1
+
+            if stationary_dims == self.ndim:
+                yield point
+
         return
+
+    def _is_peak_or_trough(self,
+                           p_a: Tuple,
+                           p_b: Tuple,
+                           p_c: Tuple) -> bool:
+        r"""
+        Is a set of points a peak or a trough? e.g.
+
+         A  B  C
+
+         \    /                 / |                 /
+           \/                  /   |            ___/
+
+        contains a trough      peak           neither
+
+        -----------------------------------------------------------------------
+        Arguments:
+            p_a: Point perhaps on this PES e.g. (0,) or (-1, 0) or (1, 2, 3)
+            p_b:
+            p_c:
+        """
+        for p in (p_a, p_b, p_c):
+            if not (self._point_is_contained(p) and self._point_has_energy(p)):
+                return False
+
+        # Relative energies to either side of point B
+        dE_a = self._energies[p_b] - self._energies[p_a]
+        dE_c = self._energies[p_b] - self._energies[p_c]
+
+        return np.sign(dE_a * dE_c) > 0
 
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""

@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from autode.pes.relaxed import RelaxedPESnD
+from autode.pes.pes_nd import Energies
 
 
 def test_point_list_1d():
@@ -92,3 +93,21 @@ def test_invalid_constraints_1d():
 
     with pytest.raises(ValueError):
         pes._constraints(point=(3,))
+
+
+def test_stationary_points_1d():
+    """For a set 1D PESs ensure the stationary points can be found"""
+
+    pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})
+
+    pes._energies = Energies(np.array([1.0, 0.01, 1.0]))
+    assert len(list(pes._stationary_points())) == 1
+
+    pes._energies = Energies(np.array([1.0, 1.1, 1.2]))
+    assert len(list(pes._stationary_points())) == 0
+
+    pes._energies = Energies(np.array([-1.0, -1.1, -1.2]))
+    assert len(list(pes._stationary_points())) == 0
+
+    pes._energies = Energies(np.array([-1.0, -1.0, -1.0]))
+    assert len(list(pes._stationary_points())) == 0
