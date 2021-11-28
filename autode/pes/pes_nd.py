@@ -348,24 +348,6 @@ class PESnD(ABC):
         e = self._energies[point]
         return not (np.isnan(e) or np.isclose(e, 0.0, atol=1E-10))
 
-    @staticmethod
-    def _set_mpl_params() -> None:
-        """Set some matplotlib (mpl) parameters for nice plotting"""
-        import matplotlib as mpl
-
-        mpl.rcParams['axes.labelsize'] = 15
-        mpl.rcParams['lines.linewidth'] = 1
-        mpl.rcParams['lines.markersize'] = 5
-        mpl.rcParams['xtick.labelsize'] = 14
-        mpl.rcParams['ytick.labelsize'] = 14
-        mpl.rcParams['xtick.direction'] = 'in'
-        mpl.rcParams['ytick.direction'] = 'in'
-        mpl.rcParams['xtick.top'] = True
-        mpl.rcParams['ytick.right'] = True
-        mpl.rcParams['axes.linewidth'] = 1.2
-
-        return None
-
     def _plot_1d(self, interp_factor: int, units: str) -> None:
         """
         Plot a PES in a single dimension
@@ -454,6 +436,24 @@ class PESnD(ABC):
         for ax in (ax0, ax1):
             ax.set_xlabel('$r_2$ / Å')
             ax.set_ylabel('$r_1$ / Å')
+
+        return None
+
+    @staticmethod
+    def _set_mpl_params() -> None:
+        """Set some matplotlib (mpl) parameters for nice plotting"""
+        import matplotlib as mpl
+
+        mpl.rcParams['axes.labelsize'] = 15
+        mpl.rcParams['lines.linewidth'] = 1
+        mpl.rcParams['lines.markersize'] = 5
+        mpl.rcParams['xtick.labelsize'] = 14
+        mpl.rcParams['ytick.labelsize'] = 14
+        mpl.rcParams['xtick.direction'] = 'in'
+        mpl.rcParams['ytick.direction'] = 'in'
+        mpl.rcParams['xtick.top'] = True
+        mpl.rcParams['ytick.right'] = True
+        mpl.rcParams['axes.linewidth'] = 1.2
 
         return None
 
