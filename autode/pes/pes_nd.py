@@ -146,7 +146,6 @@ class PESnD(ABC):
 
         -----------------------------------------------------------------------
         Arguments:
-            *axes: Axes to use e.g. 0 for a 1D plot along r1
 
             filename: Name of the file to save, type inferred from extension.
                       If None then return .show() on the matplotlib plot
@@ -162,18 +161,7 @@ class PESnD(ABC):
                              f'{interp_factor}, must be >= 0')
 
         logger.info(f'Plotting the {self.ndim}D-PES')
-        import matplotlib as mpl
-
-        mpl.rcParams['axes.labelsize'] = 15
-        mpl.rcParams['lines.linewidth'] = 1
-        mpl.rcParams['lines.markersize'] = 5
-        mpl.rcParams['xtick.labelsize'] = 14
-        mpl.rcParams['ytick.labelsize'] = 14
-        mpl.rcParams['xtick.direction'] = 'in'
-        mpl.rcParams['ytick.direction'] = 'in'
-        mpl.rcParams['xtick.top'] = True
-        mpl.rcParams['ytick.right'] = True
-        mpl.rcParams['axes.linewidth'] = 1.2
+        self._set_mpl_params()
 
         if self.ndim == 1:
             self._plot_1d(interp_factor, units)
@@ -186,6 +174,7 @@ class PESnD(ABC):
                                       f'dimensions')
 
         plt.tight_layout()
+        plt.subplots_adjust(wspace=0.4 if self.ndim > 1 else None)
         plt.savefig(filename, dpi=500) if filename is not None else plt.show()
         plt.close()
         return None
@@ -359,6 +348,24 @@ class PESnD(ABC):
         e = self._energies[point]
         return not (np.isnan(e) or np.isclose(e, 0.0, atol=1E-10))
 
+    @staticmethod
+    def _set_mpl_params() -> None:
+        """Set some matplotlib (mpl) parameters for nice plotting"""
+        import matplotlib as mpl
+
+        mpl.rcParams['axes.labelsize'] = 15
+        mpl.rcParams['lines.linewidth'] = 1
+        mpl.rcParams['lines.markersize'] = 5
+        mpl.rcParams['xtick.labelsize'] = 14
+        mpl.rcParams['ytick.labelsize'] = 14
+        mpl.rcParams['xtick.direction'] = 'in'
+        mpl.rcParams['ytick.direction'] = 'in'
+        mpl.rcParams['xtick.top'] = True
+        mpl.rcParams['ytick.right'] = True
+        mpl.rcParams['axes.linewidth'] = 1.2
+
+        return None
+
     def _plot_1d(self, interp_factor: int, units: str) -> None:
         """
         Plot a PES in a single dimension
@@ -372,20 +379,27 @@ class PESnD(ABC):
         energies, units = self._energies, self._energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
-        if interp_factor > 0:
-            plt.scatter(r_x, energies, marker='o', c='k')
+        plt.scatter(r_x, energies,
+                    marker='o',
+                    s=80,  # Marker size
+                    alpha=0.8,  # Opacity
+                    zorder=10,  # Order
+                    facecolors='white',
+                    edgecolors='blue')
 
+        if interp_factor > 0:
             from scipy.interpolate import UnivariateSpline
             spline = UnivariateSpline(r_x, energies)
             r_x = r_x.smoothed(interp_factor)
-            energies = spline(energies)
+            energies = spline(r_x)
 
+        # Plot straight lines between the points
         plt.plot(r_x,
                  energies,
-                 marker='o' if interp_factor == 0 else None,
-                 markersize=8,
-                 markerfacecolor='white'
-                 )
+                 lw=2,
+                 ls='--' if interp_factor > 0 else '-',
+                 c='blue',
+                 alpha=0.9 if interp_factor > 0 else 0.4)
 
         plt.ylabel(f'$E$ / {units.plot_name}')
         plt.xlabel('$r$ / Å')
@@ -413,6 +427,7 @@ class PESnD(ABC):
             r_x, r_y = r_x.smoothed(interp_factor), r_y.smoothed(interp_factor)
             energies = spline(r_x, r_y)
 
+        # Set up the figure and axes to plot the 3D and projected surfaces on
         _ = plt.figure(figsize=(10, 6))
         ax0 = plt.subplot(1, 2, 1, projection=Axes3D.name)
         ax1 = plt.subplot(1, 2, 2)
@@ -424,6 +439,7 @@ class PESnD(ABC):
         ax0.plot_surface(*np.meshgrid(r_x, r_y),
                          energies,
                          cmap=plt.get_cmap('plasma'))
+        ax0.set_zlabel(f'$E$ / {units.plot_name}')
 
         im = ax1.imshow(energies,
                         aspect=(r_x.abs_diff / r_y.abs_diff),
@@ -432,7 +448,7 @@ class PESnD(ABC):
                         origin='lower',
                         cmap=plt.get_cmap('plasma'))
 
-        cbar = plt.colorbar(im, fraction=0.046, pad=0.04)
+        cbar = plt.colorbar(im, fraction=0.0458, pad=0.04)
         cbar.set_label(f'$E$ / {units.plot_name}')
 
         for ax in (ax0, ax1):

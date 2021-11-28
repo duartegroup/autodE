@@ -1,7 +1,9 @@
 import os
 import pytest
+from .. import testutils
 from autode.utils import work_in_tmp_dir
 from autode.pes.relaxed import RelaxedPESnD
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_save_empty():
@@ -26,3 +28,19 @@ def test_save_1d():
 
     pes.load('tmp.npz')
     assert pes.shape == (3,)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
+def test_save_plot():
+    """Not easy to test what these look like, so just check that
+    the plots exist..."""
+
+    pes = RelaxedPESnD()
+
+    for filename in ('pes1d_water.npz', 'pes2d_water.npz'):
+        pes.load(filename)
+
+        for interp_factor in (0, 2):
+            pes.plot('tmp.pdf', interp_factor=interp_factor)
+            assert os.path.exists('tmp.pdf')
+            os.remove('tmp.pdf')
