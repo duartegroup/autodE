@@ -191,29 +191,30 @@ class PESnD(ABC):
 
     def save(self, filename: str) -> None:
         """
-        Save the PES as a compressed numpy array, such that the whole object
-        can be re-loaded simply, either into a PES or otherwise in pure-numpy.
+        Save the PES as a text file (.txt) or compressed numpy file (.npz). If
+        .npz then re-loading is possible, either into a PES or otherwise in
+        pure numpy. If .txt then will save only the energies in units of
+        Hartrees.
 
         -----------------------------------------------------------------------
         Arguments:
-            filename: Name of the file to save, if it does not end with .npz
-                      then it will be added
+            filename: Name of the file to save. (.txt or .npz) If unknown
+                      extension .npz will be added
         """
         if len(self._rs) == 0:
             raise ValueError('Cannot save an empty PES')
 
-        if not filename.endswith('.npz'):
-            filename += '.npz'
+        if filename.endswith('.txt'):
+            logger.warning('Saving a PES as a .txt file. Not re-loadable')
+            arr = np.array(self._energies.to('Ha'))
 
-        # Dictionary of flat arrays in each dimension, and their atom indices
-        kwds = {f'r{i+1}': np.array(_r) for i, _r in enumerate(self._rs)}
-        kwds.update({f'a{i+1}': np.array(_r.atom_idxs, dtype=int)
-                     for i, _r in enumerate(self._rs)})
+            if self.ndim > 2:
+                logger.warning('Flattening PES to save to .txt file')
 
-        np.savez(filename,
-                 R=self._coordinates,
-                 E=np.array(self._energies.to('Ha')),
-                 **kwds)
+            np.savetxt(filename, arr.flatten() if self.ndim > 2 else arr)
+
+        else:
+            self._save_npz(filename)
 
         return None
 
@@ -228,6 +229,10 @@ class PESnD(ABC):
         Raises:
             (FileNotFoundError):
         """
+
+        if not filename.endswith('.npz'):
+            raise ValueError(f'Cannot reload a PES from {filename}. Must be a '
+                             f'.npz compressed numpy file')
 
         data = np.load(filename, allow_pickle=True)
         self._energies = Energies(data['E'], units='Ha')
@@ -347,6 +352,37 @@ class PESnD(ABC):
         """
         e = self._energies[point]
         return not (np.isnan(e) or np.isclose(e, 0.0, atol=1E-10))
+
+    def _stationary_points(self) -> Sequence[Tuple]:
+        """
+        Find all the stationary points on this surface. Based on a both points
+        either side of one point being higher or lower in energy, in each
+        dimension.
+
+        -----------------------------------------------------------------------
+        Yields:
+            (tuple(int)): Indices oF A
+        """
+
+        return
+
+    def _save_npz(self, filename: str) -> None:
+        """Save a compressed numpy array, from which a PES can be re-loaded"""
+
+        if not filename.endswith('.npz'):
+            filename += '.npz'
+
+        # Dictionary of flat arrays in each dimension, and their atom indices
+        kwds = {f'r{i+1}': np.array(_r) for i, _r in enumerate(self._rs)}
+        kwds.update({f'a{i+1}': np.array(_r.atom_idxs, dtype=int)
+                     for i, _r in enumerate(self._rs)})
+
+        np.savez(filename,
+                 R=self._coordinates,
+                 E=np.array(self._energies.to('Ha')),
+                 **kwds)
+
+        return None
 
     def _plot_1d(self, interp_factor: int, units: str) -> None:
         """

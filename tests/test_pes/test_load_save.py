@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pytest
 from .. import testutils
 from autode.utils import work_in_tmp_dir
@@ -23,11 +24,21 @@ def test_save_1d():
     # .npz should be automatically added
     assert os.path.exists('tmp.npz')
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(Exception):
         pes.load('a_file_that_does_not_exist')
 
     pes.load('tmp.npz')
     assert pes.shape == (3,)
+
+    # Should also be able to save the pure .txt file of energies
+    pes.save('tmp.txt')
+    assert os.path.exists('tmp.txt')
+    assert np.allclose(np.loadtxt('tmp.txt'),
+                       np.zeros(3))
+
+    # Cannot reload from a .txt file
+    with pytest.raises(ValueError):
+        pes.load('tmp.txt')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
