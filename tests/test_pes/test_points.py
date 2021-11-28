@@ -1,19 +1,30 @@
-import numpy as np
 import pytest
+import numpy as np
 from autode.pes.relaxed import RelaxedPESnD
-from autode.pes.pes_nd import Energies
+from autode.pes.pes_nd import Energies, PESnD
+
+
+class TestPESnd(PESnD):
+
+    __test__ = False
+
+    def _default_keywords(self, method):
+        return None
+
+    def _calculate(self) -> None:
+        raise NotImplementedError
 
 
 def test_point_list_1d():
 
-    pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})
+    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 3)})
     assert pes.ndim == 1
     assert pes._points() == [(0,), (1,), (2,)]
 
 
 def test_point_list_2d():
 
-    pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 2),
+    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 2),
                            (1, 2): (1.0, 2.0, 2)})
     assert pes.ndim == 2
     assert pes.shape == (2, 2)
@@ -23,7 +34,7 @@ def test_point_list_2d():
 
 def test_point_list_non_square():
 
-    pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 2),
+    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 2),
                            (1, 2): (1.0, 3.0, 3)})
 
     assert pes.ndim == 2 and pes.shape == (2, 3)
@@ -98,7 +109,7 @@ def test_invalid_constraints_1d():
 def test_stationary_points_1d():
     """For a set 1D PESs ensure the stationary points can be found"""
 
-    pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})
+    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 3)})
 
     pes._energies = Energies(np.array([1.0, 0.01, 1.0]))
     assert len(list(pes._stationary_points())) == 1
@@ -111,3 +122,21 @@ def test_stationary_points_1d():
 
     pes._energies = Energies(np.array([-1.0, -1.0, -1.0]))
     assert len(list(pes._stationary_points())) == 0
+
+
+def test_stationary_points_2d():
+
+    def energy(x, y):
+        return x * y - x**2 - x * y**2
+
+    pes = TestPESnd(rs={(0, 1): (-1.5, 1.5, 10),
+                        (1, 0): (-1.5, 1.5, 10)})
+
+    pes._energies = Energies(energy(pes.r1, pes.r2))
+    # pes.plot('tmp.pdf', interp_factor=0)
+    # assert pes.shape == (50, 50)
+
+    # Should have at least one stationary point. While in the
+    # continuous surface there is 3, the finite surface may not have
+    stat_points = list(pes._stationary_points())
+    assert len(stat_points) > 0

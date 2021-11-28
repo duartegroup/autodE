@@ -4,6 +4,7 @@ import pytest
 from .. import testutils
 from autode.utils import work_in_tmp_dir
 from autode.pes.relaxed import RelaxedPESnD
+from autode.pes.pes_nd import Energies
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -41,6 +42,19 @@ def test_save_1d():
         pes.load('tmp.txt')
 
 
+def save_3d_as_text_file():
+
+    pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.2, 3),
+                           (1, 2): (0.1, 0.2, 3),
+                           (2, 3): (0.1, 0.2, 3)})
+    pes._energies = Energies(np.ones(shape=(3, 3)))
+    pes.save(filename='tmp.txt')
+
+    # 3D, or more PESs should be flattened to be saved as a .txt file
+    assert os.path.exists('tmp.txt')
+    assert np.loadtxt('tmp.txt').shape == (9,)
+
+
 @testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
 def test_save_plot():
     """Not easy to test what these look like, so just check that
@@ -50,6 +64,10 @@ def test_save_plot():
 
     for filename in ('pes1d_water.npz', 'pes2d_water.npz'):
         pes.load(filename)
+
+        with pytest.raises(Exception):
+            # Cannot plot with a negative interpolation factor
+            pes.plot('tmp.pdf', interp_factor=-1)
 
         for interp_factor in (0, 2):
             pes.plot('tmp.pdf', interp_factor=interp_factor)

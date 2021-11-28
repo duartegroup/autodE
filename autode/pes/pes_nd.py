@@ -442,7 +442,7 @@ class PESnD(ABC):
             units:
         """
         r_x = self._rs[0]
-        energies, units = self._energies, self._energy_unit_from_name(units)
+        energies, units = self._energies, _energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
         plt.scatter(r_x, energies,
@@ -499,7 +499,7 @@ class PESnD(ABC):
         ax1 = plt.subplot(1, 2, 2)
 
         # Convert the energies in the 2D array from the base Hartree units
-        units = self._energy_unit_from_name(units)
+        units = _energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
         ax0.plot_surface(*np.meshgrid(r_x, r_y),
@@ -540,17 +540,6 @@ class PESnD(ABC):
         mpl.rcParams['axes.linewidth'] = 1.2
 
         return None
-
-    @staticmethod
-    def _energy_unit_from_name(name: str):
-        """Generate an energy unit given a name"""
-
-        for unit in (ha, ev, kcalmol, kjmol, J):
-            if name.lower() in unit.aliases:
-                return unit
-
-        raise StopIteration(f'Failed to convert {name} to a valid energy unit '
-                            f'must be one of: {ha, ev, kcalmol, kjmol, J}')
 
     def __getitem__(self,
                     indices: Union[Tuple, int]):
@@ -766,3 +755,23 @@ class Energies(ValueArray):
     def __repr__(self):
         """Representation of the energies in a PES"""
         return f'PES{self.ndim}d'
+
+
+def _energy_unit_from_name(name: str) -> 'autode.units.Unit':
+    """
+    Generate an energy unit given a name
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        name: Name of the unit
+
+    Raises:
+        (StopIteration): If a suitable energy unit is not found
+    """
+
+    for unit in (ha, ev, kcalmol, kjmol, J):
+        if name.lower() in unit.aliases:
+            return unit
+
+    raise StopIteration(f'Failed to convert {name} to a valid energy unit '
+                        f'must be one of: {ha, ev, kcalmol, kjmol, J}')

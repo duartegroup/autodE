@@ -1,12 +1,13 @@
 import os
 import pytest
-import numpy as np
 from .. import testutils
 from autode.atoms import Atom
 from autode.species import Molecule
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.keywords import OptKeywords
 from autode.pes.relaxed import RelaxedPESnD
+from autode.pes.pes_nd import _energy_unit_from_name
+from autode.units import Unit
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -85,3 +86,13 @@ def test_calculate_single_without_est():
     # Cannot calculate a surface without a working method
     with pytest.raises(RuntimeError):
         pes.calculate(method=orca)
+
+
+def test_units_name_to_units():
+
+    unit = _energy_unit_from_name('eV')
+    assert isinstance(unit, Unit)
+    assert unit.name.lower() == 'ev'
+
+    with pytest.raises(Exception):
+        _ = _energy_unit_from_name('ang')
