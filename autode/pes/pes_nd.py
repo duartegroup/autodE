@@ -251,6 +251,29 @@ class PESnD(ABC):
                                         atom_idxs=(idx_i, idx_j)))
         return None
 
+    def ts_guesses(self) -> Iterable['autode.species.Species']:
+        """
+        Generate TS guesses from the saddle points in the energy on this
+        surface
+
+        -----------------------------------------------------------------------
+        Yields:
+            (autode.species.species.Species):
+        """
+        if not self._point_has_energy(self.origin):
+            logger.warning('Initial point on the PES not calculate - have '
+                           'no transition state guesses')
+            return StopIteration
+
+        for idx, point in enumerate(self._saddle_points()):
+
+            ts_guess = self._species.new_species(name=f'ts_guess{idx}')
+            ts_guess.coordinates = self._coordinates[point]
+
+            yield ts_guess
+
+        return StopIteration
+
     @abstractmethod
     def _default_keywords(self,
                           method: 'autode.wrappers.ElectronicStructureMethod'
@@ -552,23 +575,23 @@ class PESnD(ABC):
         energies = units.conversion * (energies - np.min(energies))
 
         ax0.plot_surface(*np.meshgrid(r_x, r_y),
-                         energies,
+                         energies.T,
                          cmap=plt.get_cmap('plasma'))
+        ax0.set_xlabel('$r_1$ / Å')
+        ax0.set_ylabel('$r_2$ / Å')
         ax0.set_zlabel(f'$E$ / {units.plot_name}')
 
         im = ax1.imshow(energies,
-                        aspect=(r_x.abs_diff / r_y.abs_diff),
-                        extent=(r_x.min, r_x.max,
-                                r_y.min, r_y.max),
+                        aspect=(r_y.abs_diff / r_x.abs_diff),
+                        extent=(r_y[0], r_y[-1],
+                                r_x[0], r_x[-1]),
                         origin='lower',
                         cmap=plt.get_cmap('plasma'))
 
         cbar = plt.colorbar(im, fraction=0.0458, pad=0.04)
         cbar.set_label(f'$E$ / {units.plot_name}')
-
-        for ax in (ax0, ax1):
-            ax.set_xlabel('$r_2$ / Å')
-            ax.set_ylabel('$r_1$ / Å')
+        ax1.set_xlabel('$r_2$ / Å')
+        ax1.set_ylabel('$r_1$ / Å')
 
         return None
 

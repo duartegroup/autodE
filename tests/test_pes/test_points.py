@@ -19,7 +19,7 @@ def test_point_list_1d():
 
     pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 3)})
     assert pes.ndim == 1
-    assert pes._points() == [(0,), (1,), (2,)]
+    assert list(pes._points()) == [(0,), (1,), (2,)]
 
 
 def test_point_list_2d():
@@ -29,7 +29,7 @@ def test_point_list_2d():
     assert pes.ndim == 2
     assert pes.shape == (2, 2)
 
-    assert pes._points() == [(0, 0), (0, 1), (1, 0), (1, 1)]
+    assert list(pes._points()) == [(0, 0), (0, 1), (1, 0), (1, 1)]
 
 
 def test_point_list_non_square():
@@ -158,5 +158,11 @@ def test_saddle_points_2d():
 
     # Should have at least one stationary point. While in the
     # continuous surface there is 3, the finite surface may not have
-    stat_points = list(pes._saddle_points())
-    assert len(stat_points) == 1
+    points = list(pes._saddle_points())
+    assert len(points) == 1
+
+    p = points[0]
+
+    # Saddle point should be close to (0, 0)
+    assert np.isclose(pes.r1[p], 0.0, atol=0.1)
+    assert np.isclose(pes.r2[p], 0.0, atol=0.1)
