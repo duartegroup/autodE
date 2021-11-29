@@ -50,7 +50,9 @@ class PESnD(ABC):
         self._mesh()
 
         self._species = species
-        self._energies = Energies(np.zeros(self.shape), units='Ha')
+
+        self._energies = Energies(np.empty(self.shape), units='Ha')
+        self._energies.fill(np.nan)
 
         # Attributes set in calculate()
         self._coordinates: Optional[np.ndarray] = None
@@ -350,18 +352,22 @@ class PESnD(ABC):
         Raises:
             (IndexError): If the point is not on the PES
         """
-        e = self._energies[point]
-        return not (np.isnan(e) or np.isclose(e, 0.0, atol=1E-10))
+        return not np.isnan(self._energies[point])
 
     def _stationary_points(self) -> Sequence[Tuple]:
         """
         Find all the stationary points on this surface. Based on a both points
         either side of one point being higher or lower in energy, in each
-        dimension.
+        dimension. NOTE: this function is a pure Python for loop over N^M
+        points (N dimensions, M points), it will therefore not be very fast.
+        However, because the energy needs to have been evaluated at each point
+        this will not be the rate limiting step (unless the electronic
+        structure, or force-field calculation at each point is exceptionally
+        fast).
 
         -----------------------------------------------------------------------
         Yields:
-            (tuple(int)): Indices oF A
+            (tuple(int)): Indices of a stationary point
         """
 
         for point in self._points():
@@ -383,6 +389,35 @@ class PESnD(ABC):
                 yield point
 
         return
+
+    def _saddle_points(self) -> Sequence[Tuple]:
+        """
+        Find all the saddle points on the surface, by fitting quadratics to
+        each point and evaluating the eigenvalues of the Hessian.
+
+        -----------------------------------------------------------------------
+        Yields:
+            (tuple(int)): Indices of a saddle point
+        """
+        for point in self._stationary_points():
+
+            ks = []
+
+            for i in range(self.ndim):
+                # Adjacent points are on this surface, otherwise it would not
+                # be a stationary point
+                pm, pp = list(point), list(point)
+                pm[i] -= 1
+                pp[i] += 1
+
+                ks.append(self._approx_k(tuple(pm), point, tuple(pp)))
+
+            if len([k for k in ks if k < 0]) == 1:
+                logger.info('Found saddle point, with single negative force '
+                            'constant')
+                yield point
+
+        return StopIteration
 
     def _is_peak_or_trough(self,
                            p_a: Tuple,
@@ -413,6 +448,20 @@ class PESnD(ABC):
         dE_c = self._energies[p_b] - self._energies[p_c]
 
         return np.sign(dE_a * dE_c) > 0
+
+    def _approx_k(self, p_a: Tuple, p_b: Tuple, p_c: Tuple) -> float:
+        """
+        Approximate force constant on a point b, sandwiched between points
+        a and c
+
+        -----------------------------------------------------------------------
+        Raises:
+              (IndexError): If any point is not on the surface
+        """
+        dE_a = self._energies[p_a] - self._energies[p_b]
+        dE_c = self._energies[p_c] - self._energies[p_b]
+
+        return np.average([dE_a, dE_c])
 
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""

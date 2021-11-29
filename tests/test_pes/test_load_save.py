@@ -34,8 +34,9 @@ def test_save_1d():
     # Should also be able to save the pure .txt file of energies
     pes.save('tmp.txt')
     assert os.path.exists('tmp.txt')
-    assert np.allclose(np.loadtxt('tmp.txt'),
-                       np.zeros(3))
+
+    loaded_arr = np.loadtxt('tmp.txt')
+    assert loaded_arr.shape == (3,)
 
     # Cannot reload from a .txt file
     with pytest.raises(ValueError):

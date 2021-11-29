@@ -194,10 +194,10 @@ def test_unset_values():
     pes = PESnD(rs={(0, 1): (0.1, 0.3, 3),
                     (1, 2): (0.1, 0.3, 3)})
 
-    # All elements on a non-calculated surface are initialised to 0
+    # All elements on a non-calculated surface are initialised to nan
     for i in range(3):
         for j in range(3):
-            assert np.isclose(pes[i, j], 0.0, atol=1E-10)
+            assert np.isnan(pes[i, j])
 
     assert isinstance(pes[0, 0], Energy)
 

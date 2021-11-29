@@ -140,3 +140,23 @@ def test_stationary_points_2d():
     # continuous surface there is 3, the finite surface may not have
     stat_points = list(pes._stationary_points())
     assert len(stat_points) > 0
+
+
+def test_saddle_points_2d():
+
+    def energy(x, y):
+        return -x**2 + y**2
+
+    pes = TestPESnd(rs={(0, 1): (-1.0, 1.0, 11),
+                        (1, 0): (-1.0, 1.0, 11)})
+
+    pes._energies = Energies(energy(pes.r1, pes.r2))
+    pes.plot('tmp.pdf', interp_factor=0)
+
+    # assert pes.shape == (50, 50)
+    assert len(list(pes._stationary_points())) == 1
+
+    # Should have at least one stationary point. While in the
+    # continuous surface there is 3, the finite surface may not have
+    stat_points = list(pes._saddle_points())
+    assert len(stat_points) == 1
