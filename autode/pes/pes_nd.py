@@ -7,7 +7,7 @@ import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union, Optional, Sequence
+from typing import Dict, Tuple, Union, Optional, Sequence, Iterable
 from autode.config import Config
 from autode.log import logger
 from autode.values import ValueArray, Energy
