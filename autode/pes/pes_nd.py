@@ -576,50 +576,6 @@ class PESnD(ABC):
         idx = point[dim]
         return self._rs[dim][idx]
 
-    def _is_peak_or_trough(self,
-                           p_a: Tuple,
-                           p_b: Tuple,
-                           p_c: Tuple) -> bool:
-        r"""
-        Is a set of points a peak or a trough? e.g.
-
-         A  B  C
-
-         \    /                 / |                 /
-           \/                  /   |            ___/
-
-        contains a trough      peak           neither
-
-        -----------------------------------------------------------------------
-        Arguments:
-            p_a: Point perhaps on this PES e.g. (0,) or (-1, 0) or (1, 2, 3)
-            p_b:
-            p_c:
-        """
-        for p in (p_a, p_b, p_c):
-            if not (self._is_contained(p) and self._point_has_energy(p)):
-                return False
-
-        # Relative energies to either side of point B
-        dE_a = self._energies[p_b] - self._energies[p_a]
-        dE_c = self._energies[p_b] - self._energies[p_c]
-
-        return np.sign(dE_a * dE_c) > 0
-
-    def _approx_k(self, p_a: Tuple, p_b: Tuple, p_c: Tuple) -> float:
-        """
-        Approximate force constant on a point b, sandwiched between points
-        a and c
-
-        -----------------------------------------------------------------------
-        Raises:
-              (IndexError): If any point is not on the surface
-        """
-        dE_a = self._energies[p_a] - self._energies[p_b]
-        dE_c = self._energies[p_c] - self._energies[p_b]
-
-        return np.average([dE_a, dE_c])
-
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""
 
