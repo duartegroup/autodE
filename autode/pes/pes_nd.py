@@ -47,17 +47,18 @@ class PESnD(ABC):
         self._rs = _ListDistances1D(species,
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
-        self._mesh()
 
         self._species = species
 
         self._energies = Energies(np.empty(self.shape), units='Ha')
-        self._energies.fill(np.nan)
+        self._gradients = np.empty(shape=(*self.shape, self.ndim))
+        self._hessians = np.empty(shape=(*self.shape, self.ndim, self.ndim))
+        self._init_tensors()
 
         # Attributes set in calculate()
         self._coordinates: Optional[np.ndarray] = None
         self._method:      Optional['autode.wrappers.base.Method'] = None
-        self._n_cores:     Optional[int] = None
+        self._n_cores:     int = Config.n_cores
         self._keywords:    Optional['autode.wrappers.keywords.Keywords'] = None
 
     @property
@@ -183,13 +184,9 @@ class PESnD(ABC):
 
     def clear(self) -> None:
         """
-        Clear the energies and coordinates on this surface
+        Clear the energies, derivatives of, and coordinates on this surface
         """
-
-        self._energies.fill(0.0)
-        self._coordinates.fill(0.0)
-
-        return None
+        return self._init_tensors()
 
     def save(self, filename: str) -> None:
         """
@@ -293,6 +290,21 @@ class PESnD(ABC):
     def _calculate(self) -> None:
         """Calculate the surface, using method, keywords, n_cores attributes"""
 
+    def _init_tensors(self) -> None:
+        """
+        Initialise the tensors for the energy (i.e. values on this surface)
+        and gradients with respect to each dimension of the surface
+        """
+
+        for array in (self._energies, self._gradients, self._hessians):
+            array.fill(np.nan)
+
+        if hasattr(self, 'coordinates') and self._coordinates is not None:
+            self._coordinates.fill(0.0)
+
+        self._mesh()  # Mesh each coordinate and dynamically add r1, r2.. attrs
+        return None
+
     def _mesh(self) -> None:
         """
         Dynamically add public attributes for r1, r2, ... etc. as nD arrays.
@@ -336,7 +348,7 @@ class PESnD(ABC):
         """
         return f'{self._species.name}_scan_{"-".join([str(p) for p in point])}'
 
-    def _point_is_contained(self, point: Tuple) -> bool:
+    def _is_contained(self, point: Tuple) -> bool:
         """
         Is a point contained on this PES, defined by its indices. For example,
         (-1,) is never on a 1D PES, (2,) is on a 1D PES with 3 points in it
@@ -371,52 +383,43 @@ class PESnD(ABC):
 
         Returns:
             (bool):
-
-        Raises:
-            (IndexError): If the point is not on the PES
         """
-        return not np.isnan(self._energies[point])
+        return (self._is_contained(point)
+                and not np.isnan(self._energies[point]))
 
-    def _stationary_points(self) -> Sequence[Tuple]:
+    def _stationary_points(self,
+                           threshold: float = 0.01) -> Sequence[Tuple]:
         """
-        Find all the stationary points on this surface. Based on a both points
-        either side of one point being higher or lower in energy, in each
-        dimension. NOTE: this function is a pure Python for loop over N^M
-        points (N dimensions, M points), it will therefore not be very fast.
-        However, because the energy needs to have been evaluated at each point
-        this will not be the rate limiting step (unless the electronic
-        structure, or force-field calculation at each point is exceptionally
-        fast).
+        Stationary points on the surface, characterised by a zero gradient
+        vector. On a finite surface the gradient (g) will never truly vanish,
+        so this function will only return those with |g| less than a threshold
+        for which all surrounding points have a larger |g|. Is this a
+        sufficient condition? who knows.
 
         -----------------------------------------------------------------------
+        Arguments:
+            threshold: Maximum |g| (Ha / Å-1) which to consider a
+                       stationary point.
+
         Yields:
             (tuple(int)): Indices of a stationary point
         """
+        self._set_gradients()
 
         for point in self._points():
+            grad = self._gradients[point]
 
-            stationary_dims = 0
+            if np.linalg.norm(grad) > threshold:
+                continue
 
-            for i in range(self.ndim):
-                # p - 1 and p + 1 in this dimension. May not be on the surface
-                pm, pp = list(point), list(point)
-                pm[i] -= 1
-                pp[i] += 1
-
-                if not self._is_peak_or_trough(tuple(pm), point, tuple(pp)):
-                    break
-
-                stationary_dims += 1
-
-            if stationary_dims == self.ndim:
+            if self._is_minimum_in_gradient(point):
                 yield point
 
         return
 
     def _saddle_points(self) -> Sequence[Tuple]:
         """
-        Find all the saddle points on the surface, by fitting quadratics to
-        each point and evaluating the eigenvalues of the Hessian.
+        Find all the saddle points on the surface
 
         -----------------------------------------------------------------------
         Yields:
@@ -424,67 +427,154 @@ class PESnD(ABC):
         """
         for point in self._stationary_points():
 
-            ks = []
+            self._set_hessian(point)
+            hess = self._hessians[point]
 
-            for i in range(self.ndim):
-                # Adjacent points are on this surface, otherwise it would not
-                # be a stationary point
-                pm, pp = list(point), list(point)
-                pm[i] -= 1
-                pp[i] += 1
-
-                ks.append(self._approx_k(tuple(pm), point, tuple(pp)))
-
-            if len([k for k in ks if k < 0]) == 1:
-                logger.info('Found saddle point, with single negative force '
-                            'constant')
+            if sum(mu < 0 for mu in np.linalg.eigvals(hess)) == 1:
                 yield point
 
         return StopIteration
 
-    def _is_peak_or_trough(self,
-                           p_a: Tuple,
-                           p_b: Tuple,
-                           p_c: Tuple) -> bool:
-        r"""
-        Is a set of points a peak or a trough? e.g.
-
-         A  B  C
-
-         \    /                 / |                 /
-           \/                  /   |            ___/
-
-        contains a trough      peak           neither
+    def _set_hessian(self, point: Tuple) -> None:
+        """
+        Set the Hessian for a particular point in the surface, evaluated
+        using finite differences
 
         -----------------------------------------------------------------------
         Arguments:
-            p_a: Point perhaps on this PES e.g. (0,) or (-1, 0) or (1, 2, 3)
-            p_b:
-            p_c:
+            point:
         """
-        for p in (p_a, p_b, p_c):
-            if not (self._point_is_contained(p) and self._point_has_energy(p)):
-                return False
+        hessian = self._hessians[point]
 
-        # Relative energies to either side of point B
-        dE_a = self._energies[p_b] - self._energies[p_a]
-        dE_c = self._energies[p_b] - self._energies[p_c]
+        for i in range(self.ndim):
+            for j in range(i, self.ndim):
 
-        return np.sign(dE_a * dE_c) > 0
+                pm, pp = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
 
-    def _approx_k(self, p_a: Tuple, p_b: Tuple, p_c: Tuple) -> float:
+                hessian[i, j] = ((self._gradients[pm][i] - self._gradients[pp][i])
+                                 / (self._r(pp, j) - self._r(pm, j)))
+
+                # Hessians are symmetric
+                hessian[j, i] = hessian[i, j]
+
+        return None
+
+    def _set_gradients(self) -> None:
         """
-        Approximate force constant on a point b, sandwiched between points
-        a and c
+        Set the numerical gradient for each point on the surface, in each
+        dimension.
+        """
+        for p in self._points():
+            grad = self._gradients[p]   # Gradient with shape: (ndim,)
+
+            if not self._point_has_energy(p):
+                logger.warning(f'Cannot set the gradient for point: {p} as it '
+                               'did not have an energy')
+                grad.fill(np.nan)
+                continue
+
+            for n in range(self.ndim):
+                pm, pp = self._neighbour(p, n, +1), self._neighbour(p, n, -1)
+
+                if not self._point_has_energy(pm):
+                    pm = p
+
+                if not self._point_has_energy(pp):
+                    pp = p
+
+                if pm == pp:
+                    logger.warning('Cannot determine gradient. Neither '
+                                   'neighbour had an energy')
+                    grad[n] = np.nan
+                    continue
+
+                grad[n] = ((self._energies[pp] - self._energies[pm])
+                           / (self._r(pp, n) - self._r(pm, n)))
+
+        return None
+
+    def _is_minimum_in_gradient(self,
+                                point:          Tuple) -> bool:
+        """
+        Is a particular point surrounded by points with larger gradients?
+        Only checks ±1 in each dimension, NOT combinations (i.e. diagonals)
+        and uses the norm of the gradient (|g|).
 
         -----------------------------------------------------------------------
-        Raises:
-              (IndexError): If any point is not on the surface
-        """
-        dE_a = self._energies[p_a] - self._energies[p_b]
-        dE_c = self._energies[p_c] - self._energies[p_b]
+        Arguments:
+            point:
 
-        return np.average([dE_a, dE_c])
+        Returns:
+            (bool):
+        """
+        norm_grad = np.linalg.norm(self._gradients[point])
+
+        for n in range(self.ndim):
+            pm, pp = self._neighbour(point, n, +1), self._neighbour(point, n, -1)
+
+            if not (self._is_contained(pm) and self._is_contained(pp)):
+                return False
+
+            for grad in (self._gradients[pm], self._gradients[pp]):
+
+                if np.any(np.isnan(grad)):
+                    # Cannot determine if it is a minimum with undefined NN
+                    return False
+
+                if np.linalg.norm(grad) < norm_grad:
+                    return False
+
+        return True
+
+    @staticmethod
+    def _neighbour(point: Tuple, dim: int, delta: int) -> Tuple:
+        r"""
+        Generate a neighbour of a particular point on the surface. Example::
+
+            Point      dim   delta   -->   Result
+            -------------------------------------
+            (0,)       0     1              (1,)
+            (1, 2)     0     2              (3, 2)
+            (1, 2)     1     1              (2, 3)
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Current point
+
+            dim: Dimension in which to find a neighbour
+
+            delta: Order of the neighbour e.g. 1 => nearest neighbour etc.
+
+        Returns:
+            (tuple(int, ..)): Point
+
+        Raises:
+            (ValueError, IndexError):
+        """
+        if delta == 0:
+            raise ValueError('Cannot find a neighbour using ∆=0 in dimension '
+                             f'{dim}')
+
+        new_point = list(point)
+        new_point[dim] += delta
+        return tuple(new_point)
+
+    def _r(self, point: Tuple, dim: int) -> float:
+        """
+        Value of r at a particular point, in a given dimension e.g. (0,) in
+        a 1D surface in dim 0 -> r_1[0]
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Point on the surface
+
+            dim: Dimension on the surface (indexed from 0)
+
+        Returns:
+            (float): r
+        """
+        idx = point[dim]
+        return self._rs[dim][idx]
 
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""
