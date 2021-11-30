@@ -125,7 +125,7 @@ class RelaxedPESnD(PESnD):
 
                 close_point = tuple(np.array(point) + np.array(d_point))
 
-                if not self._point_is_contained(close_point):
+                if not self._is_contained(close_point):
                     continue
 
                 if self._point_has_energy(close_point):
@@ -148,7 +148,7 @@ class RelaxedPESnD(PESnD):
         Returns:
             (dict): Distance constraints
         """
-        if not self._point_is_contained(point):
+        if not self._is_contained(point):
             raise ValueError(f'Cannot determine constraints for a point: '
                              f'{point} in a {self.ndim}D-PES')
 

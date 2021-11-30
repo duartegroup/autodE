@@ -4,7 +4,7 @@ from autode.units import ang
 from autode.species import Molecule
 from autode.values import Energy
 from autode.atoms import Atom
-from autode.pes.pes_nd import Distances1D
+from autode.pes.pes_nd import Distances1D, Energies
 from autode.pes import pes_nd
 
 
@@ -12,7 +12,7 @@ class PESnD(pes_nd.PESnD):
 
     __test__ = False
 
-    def _calculate(self, method, keywords=None, n_cores=1):
+    def _calculate(self):
         raise NotImplementedError
 
     def _default_keywords(self, method):

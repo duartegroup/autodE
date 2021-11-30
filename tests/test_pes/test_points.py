@@ -120,26 +120,31 @@ def test_stationary_points_1d():
     pes._energies = Energies(np.array([-1.0, -1.1, -1.2]))
     assert len(list(pes._stationary_points())) == 0
 
+    # Idential energies will return the middle point
     pes._energies = Energies(np.array([-1.0, -1.0, -1.0]))
-    assert len(list(pes._stationary_points())) == 0
+    stat_points = list(pes._stationary_points())
+    assert len(stat_points) == 1
+    assert stat_points[0] == (1,)
 
 
 def test_stationary_points_2d():
 
     def energy(x, y):
-        return x * y - x**2 - x * y**2
+        return 0.01 * (x * y - x**2 - x * y**2)
 
-    pes = TestPESnd(rs={(0, 1): (-1.5, 1.5, 10),
-                        (1, 0): (-1.5, 1.5, 10)})
+    pes = TestPESnd(rs={(0, 1): (-1.5, 1.5, 11),
+                        (1, 0): (-1.5, 1.5, 11)})
 
     pes._energies = Energies(energy(pes.r1, pes.r2))
-    # pes.plot('tmp.pdf', interp_factor=0)
+    pes.plot('tmp.pdf', interp_factor=0)
     # assert pes.shape == (50, 50)
 
     # Should have at least one stationary point. While in the
     # continuous surface there is 3, the finite surface may not have
     stat_points = list(pes._stationary_points())
     assert len(stat_points) > 0
+    # The central point close to (0, 0) really should be present
+    assert len([p for p in stat_points if p == (5, 5)]) == 1
 
 
 def test_saddle_points_2d():
@@ -166,3 +171,31 @@ def test_saddle_points_2d():
     # Saddle point should be close to (0, 0)
     assert np.isclose(pes.r1[p], 0.0, atol=0.1)
     assert np.isclose(pes.r2[p], 0.0, atol=0.1)
+
+
+def harmonic_pes():
+    # Symmetric PES in x and y (atom indexes are dummy)
+    pes = TestPESnd(rs={(0, 1): np.linspace(-1, 1, num=21),
+                        (1, 2): np.linspace(-1, 1, num=21)})
+
+    def energy(x, y):
+        return 0.01 * (x ** 2 + y ** 2)
+
+    pes._energies = Energies(energy(pes.r1, pes.r2))
+
+    return pes
+
+
+def test_numerical_gradient_harmonic_well():
+    pes = harmonic_pes()
+
+    # Gradients should be initialised to nan
+    assert all(np.isnan(g_k) for g_k in pes._gradients[1, 1])
+
+    # With set gradients they should be a minimum at the centre
+    # i.e close to r1=0, r2=0
+    pes._set_gradients()
+
+    # Norm is taken over the final axis (with length 2)
+    norm_grad = np.linalg.norm(pes._gradients, axis=2)
+    assert np.unravel_index(np.argmin(norm_grad), norm_grad.shape) == (10, 10)
