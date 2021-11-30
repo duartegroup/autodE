@@ -1,4 +1,6 @@
 import os
+
+import numpy as np
 import pytest
 from .. import testutils
 from autode.atoms import Atom
@@ -96,3 +98,35 @@ def test_units_name_to_units():
 
     with pytest.raises(Exception):
         _ = _energy_unit_from_name('ang')
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
+def test_sn2_ts_guesses():
+
+    reac = Molecule(name='reac', charge=-1, mult=1,
+                    atoms=[Atom('F', -6.16710, 4.34010,  0.14884),
+                           Atom('Cl', -0.96539, 4.54693, -0.06342),
+                           Atom('C', -2.73988, 4.47792,  0.00591),
+                           Atom('H', -3.09044, 3.88869, -0.83567),
+                           Atom('H', -3.02574, 4.01317,  0.94432),
+                           Atom('H', -3.12217, 5.49228, -0.05113)])
+
+    # Construct the 2D PES from the current C-F and C-Cl distances to the
+    # ones at the product, hopefully over the TS
+    pes = RelaxedPESnD(species=reac,
+                       rs={(0, 2): (1.45, 10),
+                           (2, 1): (2.5, 10)})
+
+    pes.load('sn2_pes.npz')
+
+    ts_guesses = list(pes.ts_guesses())
+    assert len(ts_guesses) == 1
+
+    ts_guess = ts_guesses[0]
+    assert np.isclose(ts_guess.distance(0, 2).to('Å'),  # C-F
+                      1.891,
+                      atol=1E-3)
+
+    assert np.isclose(ts_guess.distance(2, 1).to('Å'),   # C-Cl
+                      2.179,
+                      atol=1E-3)

@@ -430,10 +430,6 @@ class PESnD(ABC):
             self._set_hessian(point)
             hess = self._hessians[point]
 
-            print(point)
-            print(hess)
-
-
             if sum(mu < 0 for mu in np.linalg.eigvals(hess)) == 1:
                 yield point
 
