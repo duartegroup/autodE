@@ -47,17 +47,18 @@ class PESnD(ABC):
         self._rs = _ListDistances1D(species,
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
-        self._mesh()
 
         self._species = species
 
         self._energies = Energies(np.empty(self.shape), units='Ha')
-        self._energies.fill(np.nan)
+        self._gradients = np.empty(shape=(*self.shape, self.ndim))
+        self._hessians = np.empty(shape=(*self.shape, self.ndim, self.ndim))
+        self._init_tensors()
 
         # Attributes set in calculate()
         self._coordinates: Optional[np.ndarray] = None
         self._method:      Optional['autode.wrappers.base.Method'] = None
-        self._n_cores:     Optional[int] = None
+        self._n_cores:     int = Config.n_cores
         self._keywords:    Optional['autode.wrappers.keywords.Keywords'] = None
 
     @property
@@ -183,13 +184,9 @@ class PESnD(ABC):
 
     def clear(self) -> None:
         """
-        Clear the energies and coordinates on this surface
+        Clear the energies, derivatives of, and coordinates on this surface
         """
-
-        self._energies.fill(0.0)
-        self._coordinates.fill(0.0)
-
-        return None
+        return self._init_tensors()
 
     def save(self, filename: str) -> None:
         """
@@ -292,6 +289,21 @@ class PESnD(ABC):
     @abstractmethod
     def _calculate(self) -> None:
         """Calculate the surface, using method, keywords, n_cores attributes"""
+
+    def _init_tensors(self) -> None:
+        """
+        Initialise the tensors for the energy (i.e. values on this surface)
+        and gradients with respect to each dimension of the surface
+        """
+
+        for array in (self._energies, self._gradients, self._hessians):
+            array.fill(np.nan)
+
+        if hasattr(self, 'coordinates') and self._coordinates is not None:
+            self._coordinates.fill(0.0)
+
+        self._mesh()  # Mesh each coordinate and dynamically add r1, r2.. attrs
+        return None
 
     def _mesh(self) -> None:
         """
