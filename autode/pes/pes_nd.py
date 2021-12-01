@@ -27,9 +27,8 @@ class PESnD(ABC):
                  allow_rounding: bool = True
                  ):
         """
-        N-dimensional PES
-
-        # TODO: Add example initialisation
+        N-dimensional PES for a species in a number of distances, defined by
+        the 'rs' dictionary containing atom pairs and distances
 
         -----------------------------------------------------------------------
         Arguments:
@@ -299,7 +298,7 @@ class PESnD(ABC):
         for array in (self._energies, self._gradients, self._hessians):
             array.fill(np.nan)
 
-        if hasattr(self, 'coordinates') and self._coordinates is not None:
+        if hasattr(self, '_coordinates') and self._coordinates is not None:
             self._coordinates.fill(0.0)
 
         self._mesh()  # Mesh each coordinate and dynamically add r1, r2.. attrs

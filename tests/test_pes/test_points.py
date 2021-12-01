@@ -214,3 +214,19 @@ def test_gradient_some_undefined_energies():
     # Should still have a stationary point, even if a point is undefined,
     # so long as it's not the stationary one
     assert len(list(pes._stationary_points())) > 0
+
+
+def test_grad_neither_side_has_energy():
+
+    pes = TestPESnd(rs={(0, 1): np.array([1.0, 2.0, 3.0])})
+
+    mid_point = (1,)
+    pes._energies[mid_point] = 1.0
+    pes._set_gradients()
+
+    # Cannot determine the numerical gradient if both enegies either side of
+    # the mid-point do not have an energy
+    assert np.all(np.isnan(pes._gradients[mid_point]))
+
+    # Thus cannot be a minimum in |g|
+    assert not pes._is_minimum_in_gradient(mid_point)
