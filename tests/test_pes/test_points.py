@@ -57,6 +57,22 @@ def test_closest_coordinates():
                        atol=1E-10)
 
 
+def test_distance():
+
+    pes = TestPES(rs={(0, 1): np.array([1.0, 2.0])})
+
+    assert np.isclose(pes._distance(point1=(0,), point2=(1,)),
+                      1.0,
+                      atol=1E-10)
+
+    pes = TestPES(rs={(0, 1): np.array([1.0, 2.0]),
+                      (1, 2): np.array([1.0, 2.0])})
+
+    assert np.isclose(pes._distance(point1=(0, 0), point2=(1, 1)),
+                      np.sqrt(2),
+                      atol=1E-10)
+
+
 def test_closest_coordinates_no_energy():
 
     pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})

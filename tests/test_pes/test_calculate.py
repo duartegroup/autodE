@@ -29,7 +29,7 @@ def test_calculate_1d():
 
     # All points should have a defined energy
     for i in range(10):
-        assert pes._point_has_energy(point=(i,))
+        assert pes._has_energy(point=(i,))
 
 
 @testutils.requires_with_working_xtb_install

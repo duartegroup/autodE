@@ -128,7 +128,7 @@ class RelaxedPESnD(PESnD):
                 if not self._is_contained(close_point):
                     continue
 
-                if self._point_has_energy(close_point):
+                if self._has_energy(close_point):
                     return self._coordinates[close_point]
 
         raise RuntimeError('Failed to find coordinates with an associated '

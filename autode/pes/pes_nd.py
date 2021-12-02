@@ -11,7 +11,7 @@ from typing import Dict, Tuple, Union, Optional, Sequence, Iterable
 from scipy.interpolate import RectBivariateSpline
 from autode.config import Config
 from autode.log import logger
-from autode.values import ValueArray, Energy
+from autode.values import ValueArray, Energy, Distance
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
 
 
@@ -134,7 +134,7 @@ class PESnD(ABC):
 
         self._calculate()
 
-        if not self._point_has_energy(self.origin):
+        if not self._has_energy(self.origin):
             raise RuntimeError('PES calculation failed. Not even the first '
                                'point had an energy')
 
@@ -248,25 +248,39 @@ class PESnD(ABC):
                                         atom_idxs=(idx_i, idx_j)))
         return None
 
-    def ts_guesses(self) -> Iterable['autode.species.Species']:
+    def ts_guesses(self,
+                   min_separation: Distance = Distance(0.5, units='Å')
+                   ) -> Iterable['autode.species.Species']:
         """
         Generate TS guesses from the saddle points in the energy on this
-        surface
+        surface. Only those that are seperated by at least min_separation will
+        be yielded
 
         -----------------------------------------------------------------------
+        Arguments:
+            min_separation: Minimum separation on the surface between TS guess
+                            structures.
+
         Yields:
             (autode.species.species.Species):
         """
-        if not self._point_has_energy(self.origin):
+        if not self._has_energy(self.origin):
             logger.warning('Initial point on the PES not calculate - have '
                            'no transition state guesses')
             return StopIteration
 
-        for idx, point in enumerate(self._saddle_points()):
+        points = sorted(self._saddle_points(), key=lambda p: self._energies[p])
+        yielded_p = []
+
+        for idx, point in enumerate(points):
+
+            if any(self._distance(p, point) < min_separation for p in yielded_p):
+                continue
 
             ts_guess = self._species.new_species(name=f'ts_guess{idx}')
             ts_guess.coordinates = self._coordinates[point]
 
+            yielded_p.append(point)
             yield ts_guess
 
         return StopIteration
@@ -318,7 +332,7 @@ class PESnD(ABC):
 
         return None
 
-    def _points(self) -> Sequence[Tuple]:
+    def _points(self) -> Iterable[Tuple]:
         """
         A list of points in this PES sorted by their sum. For example, for a
         1D PES containing 3 points the list is: [(0,), (1,), (2,)] while for
@@ -372,7 +386,7 @@ class PESnD(ABC):
 
         return True
 
-    def _point_has_energy(self, point: Tuple) -> bool:
+    def _has_energy(self, point: Tuple) -> bool:
         """
         Does a point have a defined energy? Energies are initialised to
         zero, while failed calculations have np.nan energy.
@@ -388,7 +402,9 @@ class PESnD(ABC):
                 and not np.isnan(self._energies[point]))
 
     def _stationary_points(self,
-                           threshold: float = 0.01) -> Sequence[Tuple]:
+                           threshold:      float = 0.01,
+                           require_energy: bool = True
+                           ) -> Iterable[Tuple]:
         """
         Stationary points on the surface, characterised by a zero gradient
         vector. On a finite surface the gradient (g) will never truly vanish,
@@ -407,6 +423,10 @@ class PESnD(ABC):
         self._set_gradients()
 
         for point in self._points():
+
+            if require_energy and not self._has_energy(point):
+                continue
+
             grad = self._gradients[point]
 
             if np.linalg.norm(grad) > threshold:
@@ -415,7 +435,7 @@ class PESnD(ABC):
             if self._is_minimum_in_gradient(point):
                 yield point
 
-        return
+        return StopIteration
 
     def _saddle_points(self) -> Sequence[Tuple]:
         """
@@ -467,7 +487,7 @@ class PESnD(ABC):
         for p in self._points():
             grad = self._gradients[p]   # Gradient with shape: (ndim,)
 
-            if not self._point_has_energy(p):
+            if not self._has_energy(p):
                 logger.warning(f'Cannot set the gradient for point: {p} as it '
                                'did not have an energy')
                 grad.fill(np.nan)
@@ -476,10 +496,10 @@ class PESnD(ABC):
             for n in range(self.ndim):
                 pm, pp = self._neighbour(p, n, +1), self._neighbour(p, n, -1)
 
-                if not self._point_has_energy(pm):
+                if not self._has_energy(pm):
                     pm = p
 
-                if not self._point_has_energy(pp):
+                if not self._has_energy(pp):
                     pp = p
 
                 if pm == pp:
@@ -575,6 +595,23 @@ class PESnD(ABC):
         """
         idx = point[dim]
         return self._rs[dim][idx]
+
+    def _distance(self, point1: Tuple, point2: Tuple) -> Distance:
+        """
+        Distance between two points on this surface
+
+        -----------------------------------------------------------------------
+        Args:
+            point1: Point on the surface
+            point2:
+
+        Returns:
+            (autode.values.Distance):
+        """
+        r1 = np.array([self._r(point1, i) for i in range(self.ndim)])
+        r2 = np.array([self._r(point2, i) for i in range(self.ndim)])
+
+        return Distance(np.linalg.norm(r1 - r2), units='Å')
 
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""
