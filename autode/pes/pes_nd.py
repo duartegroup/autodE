@@ -8,6 +8,7 @@ import itertools as it
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union, Optional, Sequence, Iterable
+from scipy.interpolate import RectBivariateSpline
 from autode.config import Config
 from autode.log import logger
 from autode.values import ValueArray, Energy
@@ -643,16 +644,14 @@ class PESnD(ABC):
             units:
         """
         from mpl_toolkits.mplot3d import Axes3D
+        from matplotlib.ticker import FormatStrFormatter
 
         r_x, r_y = self._rs[0], self._rs[1]
         energies = self._energies
 
         if interp_factor > 0:
-            from scipy.interpolate import RectBivariateSpline
-
-            spline = RectBivariateSpline(r_x, r_y, self._energies)
             r_x, r_y = r_x.smoothed(interp_factor), r_y.smoothed(interp_factor)
-            energies = spline(r_x, r_y)
+            energies = self._spline_2d()(r_x, r_y)
 
         # Set up the figure and axes to plot the 3D and projected surfaces on
         _ = plt.figure(figsize=(10, 6))
@@ -670,17 +669,29 @@ class PESnD(ABC):
         ax0.set_ylabel('$r_2$ / Å')
         ax0.set_zlabel(f'$E$ / {units.plot_name}')
 
-        im = ax1.imshow(energies,
-                        aspect=(r_y.abs_diff / r_x.abs_diff),
-                        extent=(r_y[0], r_y[-1],
-                                r_x[0], r_x[-1]),
+        im = ax1.imshow(energies.T,
+                        aspect=(r_x.abs_diff / r_y.abs_diff),
+                        extent=(r_x[0], r_x[-1],
+                                r_y[0], r_y[-1]),
                         origin='lower',
                         cmap=plt.get_cmap('plasma'))
 
+        contour = ax1.contour(*np.meshgrid(r_x, r_y),
+                              energies.T,
+                              levels=8,
+                              origin='lower',
+                              colors='k',
+                              linewidths=1,
+                              alpha=0.5)
+
+        plt.clabel(contour, inline=1, fontsize=10)
+
         cbar = plt.colorbar(im, fraction=0.0458, pad=0.04)
         cbar.set_label(f'$E$ / {units.plot_name}')
-        ax1.set_xlabel('$r_2$ / Å')
-        ax1.set_ylabel('$r_1$ / Å')
+        ax1.set_xlabel('$r_1$ / Å')
+        ax1.set_ylabel('$r_2$ / Å')
+        ax1.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax1.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
 
         return None
 
@@ -701,6 +712,35 @@ class PESnD(ABC):
         mpl.rcParams['axes.linewidth'] = 1.2
 
         return None
+
+    def _spline_2d(self) -> 'scipy.interpolate.RectBivariateSpline':
+        """
+        Spline the surface using Scipy. As of scipy v1.7.1 RectBivariateSpline
+        can only accept monotonically increasing arrays. This function thus
+        reverses arrays and the energies when appropriate, so the spline can
+        be fit.
+
+        -----------------------------------------------------------------------
+        Returns:
+            (scipy.interpolate.RectBivariateSpline): Spline
+        """
+        r_x, r_y = self._rs[0], self._rs[1]
+
+        if r_x[0] < r_x[-1] and r_y[0] < r_y[-1]:
+            # Both x and y are strictly increasing functions
+            return RectBivariateSpline(r_x, r_y, self._energies)
+
+        if r_x[0] > r_x[-1] and r_y[0] < r_y[-1]:
+            # Swap x order to get strictly increasing in both dims
+            return RectBivariateSpline(r_x[::-1], r_y, self._energies[::-1, :])
+
+        if r_x[0] < r_x[-1] and r_y[0] > r_y[-1]:
+            # or with y
+            return RectBivariateSpline(r_x, r_y[::-1], self._energies[:, ::-1])
+
+        # Reverse both the x and y arrays
+        return RectBivariateSpline(r_x[::-1], r_y[::-1],
+                                   self._energies[::-1, ::-1])
 
     def __getitem__(self,
                     indices: Union[Tuple, int]):
