@@ -4,19 +4,8 @@ import pytest
 from autode.atoms import Atom
 from autode.methods import ORCA
 from autode.species.molecule import Molecule
-from autode.pes.pes_nd import PESnD
+from .sample_pes import TestPES, harmonic_2d_pes
 here = os.path.dirname(os.path.abspath(__file__))
-
-
-class TestPES(PESnD):
-
-    __test__ = False
-
-    def _default_keywords(self, method):
-        raise NotImplementedError
-
-    def _calculate(self) -> None:
-        """Skip the calculation in the test class"""
 
 
 def h2():
@@ -86,3 +75,18 @@ def test_point_neighbour():
     # a point (3,) is not on the surface, as the only valid indices are 0, 1, 2
     p = pes._neighbour(point=(1,), dim=0, delta=2)
     assert not pes._is_contained(p)
+
+
+def test_spline():
+    """Ensure that no matter the ordering of energies a spline can be fit
+    to a 2D surface"""
+
+    pes = harmonic_2d_pes()
+
+    _ = pes._spline_2d()
+
+    for i in (0, 1):
+        for direction in (1, -1):
+            pes._rs[i] = pes._rs[i][::-direction]
+            pes._mesh()
+            _ = pes._spline_2d()           # Should still be able to spline

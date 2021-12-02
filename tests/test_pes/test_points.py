@@ -2,29 +2,19 @@ import pytest
 import numpy as np
 from autode.pes.relaxed import RelaxedPESnD
 from autode.pes.pes_nd import Energies, PESnD
-
-
-class TestPESnd(PESnD):
-
-    __test__ = False
-
-    def _default_keywords(self, method):
-        return None
-
-    def _calculate(self) -> None:
-        raise NotImplementedError
+from .sample_pes import TestPES, harmonic_2d_pes
 
 
 def test_point_list_1d():
 
-    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 3)})
+    pes = TestPES(rs={(0, 1): (1.0, 2.0, 3)})
     assert pes.ndim == 1
     assert list(pes._points()) == [(0,), (1,), (2,)]
 
 
 def test_point_list_2d():
 
-    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 2),
+    pes = TestPES(rs={(0, 1): (1.0, 2.0, 2),
                            (1, 2): (1.0, 2.0, 2)})
     assert pes.ndim == 2
     assert pes.shape == (2, 2)
@@ -34,7 +24,7 @@ def test_point_list_2d():
 
 def test_point_list_non_square():
 
-    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 2),
+    pes = TestPES(rs={(0, 1): (1.0, 2.0, 2),
                            (1, 2): (1.0, 3.0, 3)})
 
     assert pes.ndim == 2 and pes.shape == (2, 3)
@@ -109,7 +99,7 @@ def test_invalid_constraints_1d():
 def test_stationary_points_1d():
     """For a set 1D PESs ensure the stationary points can be found"""
 
-    pes = TestPESnd(rs={(0, 1): (1.0, 2.0, 3)})
+    pes = TestPES(rs={(0, 1): (1.0, 2.0, 3)})
 
     pes._energies = Energies(np.array([1.0, 0.01, 1.0]))
     assert len(list(pes._stationary_points())) == 1
@@ -132,7 +122,7 @@ def test_stationary_points_2d():
     def energy(x, y):
         return 0.01 * (x * y - x**2 - x * y**2)
 
-    pes = TestPESnd(rs={(0, 1): (-1.5, 1.5, 11),
+    pes = TestPES(rs={(0, 1): (-1.5, 1.5, 11),
                         (1, 0): (-1.5, 1.5, 11)})
 
     pes._energies = Energies(energy(pes.r1, pes.r2))
@@ -152,7 +142,7 @@ def test_saddle_points_2d():
     def energy(x, y):
         return -x**2 + y**2
 
-    pes = TestPESnd(rs={(0, 1): (-1.0, 1.0, 11),
+    pes = TestPES(rs={(0, 1): (-1.0, 1.0, 11),
                         (1, 0): (-1.0, 1.0, 11)})
 
     pes._energies = Energies(energy(pes.r1, pes.r2))
@@ -170,19 +160,6 @@ def test_saddle_points_2d():
     # Saddle point should be close to (0, 0)
     assert np.isclose(pes.r1[p], 0.0, atol=0.1)
     assert np.isclose(pes.r2[p], 0.0, atol=0.1)
-
-
-def harmonic_2d_pes():
-    # Symmetric PES in x and y (atom indexes are dummy)
-    pes = TestPESnd(rs={(0, 1): np.linspace(-1, 1, num=21),
-                        (1, 2): np.linspace(-1, 1, num=21)})
-
-    def energy(x, y):
-        return 0.01 * (x ** 2 + y ** 2)
-
-    pes._energies = Energies(energy(pes.r1, pes.r2))
-
-    return pes
 
 
 def test_numerical_gradient_harmonic_well():
@@ -218,7 +195,7 @@ def test_gradient_some_undefined_energies():
 
 def test_grad_neither_side_has_energy():
 
-    pes = TestPESnd(rs={(0, 1): np.array([1.0, 2.0, 3.0])})
+    pes = TestPES(rs={(0, 1): np.array([1.0, 2.0, 3.0])})
 
     mid_point = (1,)
     pes._energies[mid_point] = 1.0
