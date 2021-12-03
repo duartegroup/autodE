@@ -29,6 +29,7 @@ def test_species_at():
     h2 = Molecule(atoms=[Atom('H'), Atom('H', x=0.8)])
 
     pes = UnRelaxedPESnD(h2, rs={(0, 1): (1.5, 3)})
+    pes._init_tensors()
 
     h2_final = pes._species_at(point=(2,))
     assert np.isclose(h2_final.distance(0, 1), 1.5, atol=1E-6)

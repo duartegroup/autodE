@@ -120,9 +120,7 @@ class PESnD(ABC):
         else:
             self._keywords = keywords
 
-        # Coordinates tensor is the shape of the PES plus (N, 3) dimensions
-        self._coordinates = np.zeros(shape=(*self.shape, self._species.n_atoms, 3),
-                                     dtype=np.float64)
+        self._init_tensors()
 
         # Set the coordinates of the first point in the PES, and other attrs
         self._coordinates[self.origin] = self._species.coordinates
@@ -271,6 +269,11 @@ class PESnD(ABC):
         """
 
         self._energies.fill(np.nan)
+
+        if self._species is not None:
+            # Coordinates tensor is the shape of the PES plus (N, 3) dimensions
+            self._coordinates = np.zeros((*self.shape, self._species.n_atoms, 3),
+                                         dtype=np.float64)
 
         if hasattr(self, '_coordinates') and self._coordinates is not None:
             self._coordinates.fill(0.0)
