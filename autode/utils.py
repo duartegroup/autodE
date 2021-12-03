@@ -350,6 +350,12 @@ def timeout(seconds, return_value=None):
     return decorator
 
 
+def hashable(_method_name, _object):
+    """Multiprocessing requires hashable top-level functions to be executed,
+    so convert a method into a top-level function"""
+    return getattr(_object, _method_name)
+
+
 class NoDaemonProcess(multiprocessing.Process):
     @property
     def daemon(self):

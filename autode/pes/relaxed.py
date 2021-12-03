@@ -2,7 +2,7 @@ import numpy as np
 import itertools as it
 from typing import Tuple, List
 from autode.log import logger
-from autode.config import Config
+from autode.utils import hashable
 from multiprocessing.pool import Pool
 from autode.pes.reactive import ReactivePESnD
 from autode.calculation import Calculation
@@ -18,16 +18,18 @@ class RelaxedPESnD(ReactivePESnD):
 
         for points in self._points_generator():
 
-            n_cores_pp = max(Config.n_cores // len(points), 1)
+            n_cores_pp = max(self._n_cores // len(points), 1)
             logger.info(f'Calculating tranche {points} on the surface, using '
                         f'{n_cores_pp} cores per process')
 
-            with Pool(processes=Config.n_cores) as pool:
+            with Pool(processes=self._n_cores) as pool:
 
                 results = []
+                func = hashable('_single_energy_coordinates', self)
+
                 for point in points:
-                    res = pool.apply_async(func=_energy_coordinates,
-                                           args=(self, self._species_at(point)),
+                    res = pool.apply_async(func=func,
+                                           args=(self._species_at(point),),
                                            kwds={'n_cores': n_cores_pp})
                     results.append(res)
 
@@ -181,8 +183,3 @@ class RelaxedPESnD(ReactivePESnD):
                 yield points
 
         return StopIteration
-
-
-def _energy_coordinates(pes, *args, **kwargs):
-    """Top-level hashable function for python multiprocessing"""
-    return pes._single_energy_coordinates(*args, **kwargs)

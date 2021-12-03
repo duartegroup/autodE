@@ -535,7 +535,7 @@ class PESnD(ABC):
                               linewidths=1,
                               alpha=0.5)
 
-        plt.clabel(contour, inline=1, fontsize=10)
+        plt.clabel(contour, inline=1, fontsize=10, colors='white')
 
         cbar = plt.colorbar(im, fraction=0.0458, pad=0.04)
         cbar.set_label(f'$E$ / {units.plot_name}')
