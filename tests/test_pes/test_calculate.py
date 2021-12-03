@@ -41,7 +41,6 @@ def test_calculate_1d_serial():
     PES as the default parallel analogue, although on a 1D
     surface they should be the same
     """
-    from autode.pes.relaxed import _energy_coordinates
 
     n_points = 5
     pes = RelaxedPESnD(species=h2(),
@@ -53,7 +52,7 @@ def test_calculate_1d_serial():
 
     # Recalculate in serial
     for i in range(n_points):
-        e, coords = _energy_coordinates(pes, pes._species_at(point=(i,)))
+        e, coords = pes._single_energy_coordinates(pes._species_at(point=(i,)))
         pes._energies[i] = e
         pes._coordinates[i] = coords
         assert np.isclose(energies[i], e, atol=1E-6)
