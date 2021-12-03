@@ -16,7 +16,7 @@ from autode.calculation import Calculation
 from autode.wrappers.keywords import Keywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import make_graph, reorder_nodes
+from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
 from autode.hessians import Hessian
 from autode.units import ha_per_ang_sq, ha_per_ang
@@ -817,6 +817,38 @@ class Species(AtomCollection):
         return None
 
     @requires_atoms
+    def reset_graph(self) -> None:
+        """
+        Reset the molecular graph of this species by its connectivity
+        """
+        return make_graph(self)
+
+    def has_same_connectivity_as(self, other: 'Species') -> bool:
+        """
+        Determine if this species have the same connectivity as another
+
+        -----------------------------------------------------------------------
+        Arguments:
+            other: A species which to check connectivity against
+
+        Returns:
+            (bool): Does another species have the same connectivity?
+        """
+        if self.n_atoms <= 1 and other.n_atoms <= 1:
+            # Single or no atom molecules must have the same connectivity
+            return True
+
+        if not hasattr(other, 'graph'):
+            raise ValueError(f'Could not check if {other} had the same '
+                             f'connectivity as {self}, it had no graph '
+                             'attribute')
+
+        if self.graph is None or other.graph is None:
+            raise ValueError('Cannot check connectivity, a graph was undefined')
+
+        return is_isomorphic(self.graph, other.graph)
+
+    @requires_atoms
     def print_xyz_file(self,
                        title_line:            Optional[str] = None,
                        filename:              Optional[str] = None,
@@ -908,7 +940,7 @@ class Species(AtomCollection):
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
 
         if reset_graph:
-            make_graph(self)
+            self.reset_graph()
 
         return None
 

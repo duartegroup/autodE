@@ -4,12 +4,12 @@ from typing import Tuple, List
 from autode.log import logger
 from autode.config import Config
 from multiprocessing.pool import Pool
-from autode.pes.pes_nd import PESnD
+from autode.pes.reactive import ReactivePESnD
 from autode.calculation import Calculation
 from autode.exceptions import CalculationException
 
 
-class RelaxedPESnD(PESnD):
+class RelaxedPESnD(ReactivePESnD):
 
     def _calculate(self) -> None:
         """

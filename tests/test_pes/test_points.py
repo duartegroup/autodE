@@ -1,8 +1,16 @@
 import pytest
 import numpy as np
-from autode.pes.relaxed import RelaxedPESnD
-from autode.pes.pes_nd import Energies, PESnD
+from autode.pes.pes_nd import Energies
+from autode.pes.relaxed import RelaxedPESnD as PESnD
 from .sample_pes import TestPES, harmonic_2d_pes
+
+
+class RelaxedPESnD(PESnD):
+
+    __test__ = False
+
+    def __init__(self, species=None, rs=None):
+        super(RelaxedPESnD, self).__init__(species=species, rs=rs)
 
 
 def test_point_list_1d():

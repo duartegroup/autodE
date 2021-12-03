@@ -6,10 +6,17 @@ from autode.atoms import Atom
 from autode.species import Molecule
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.keywords import OptKeywords
-from autode.pes.relaxed import RelaxedPESnD
+from autode.pes.relaxed import RelaxedPESnD as PESnD
 from autode.pes.pes_nd import _energy_unit_from_name
 from autode.units import Unit
+from autode.utils import work_in_tmp_dir
 here = os.path.dirname(os.path.abspath(__file__))
+
+
+class RelaxedPESnD(PESnD):
+
+    def __init__(self, species=None, rs=None):
+        super(RelaxedPESnD, self).__init__(species=species, rs=rs)
 
 
 def test_points_gen_idxs_1d():
@@ -75,6 +82,7 @@ def test_relaxed_with_keywords():
     assert 'pbe ' in open('H2_scan_0_orca.inp', 'r').readline().lower()
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calculate_single_without_est():
 
     pes = RelaxedPESnD(Molecule(atoms=[Atom('H'), Atom('H', x=0.70)]),
@@ -134,22 +142,22 @@ def test_sn2_ts_guesses():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
 def test_da_ts_guesses():
 
-    cyclohexene = Molecule(atoms=[Atom('C', -1.25524,  0.55843 ,- 0.45127),
-                                  Atom('C', -0.11901,  1.52914 ,- 0.34083),
-                                  Atom('C',  1.12810,   1.05947, - 0.22343),
-                                  Atom('C',  1.36167, - 0.42098, - 0.26242),
-                                  Atom('C',  0.31173, - 1.21999,  0.53472),
-                                  Atom('C', -1.08411, - 0.56797,  0.57151),
-                                  Atom('H', -1.28068,  0.12348 ,- 1.46969),
-                                  Atom('H', -2.22404,  1.06103 ,- 0.30930),
-                                  Atom('H', -0.31910,  2.60539 ,- 0.34475),
-                                  Atom('H',  1.98105,   1.73907, - 0.13515),
-                                  Atom('H',  2.37438, - 0.67767,  0.08526),
-                                  Atom('H',  1.32299, - 0.74206, - 1.32088),
-                                  Atom('H',  0.25137, - 2.23441,  0.11110),
-                                  Atom('H',  0.67503, - 1.34778,  1.56617),
-                                  Atom('H', -1.86306, - 1.33147,  0.42039),
-                                  Atom('H', -1.26117, - 0.13357,  1.56876)])
+    cyclohexene = Molecule(atoms=[Atom('C', -1.25524,  0.55843, -0.45127),
+                                  Atom('C', -0.11901,  1.52914, -0.34083),
+                                  Atom('C',  1.12810,  1.05947, -0.22343),
+                                  Atom('C',  1.36167, -0.42098, -0.26242),
+                                  Atom('C',  0.31173, -1.21999,  0.53472),
+                                  Atom('C', -1.08411, -0.56797,  0.57151),
+                                  Atom('H', -1.28068,  0.12348, -1.46969),
+                                  Atom('H', -2.22404,  1.06103, -0.30930),
+                                  Atom('H', -0.31910,  2.60539, -0.34475),
+                                  Atom('H',  1.98105,  1.73907, -0.13515),
+                                  Atom('H',  2.37438, -0.67767,  0.08526),
+                                  Atom('H',  1.32299, -0.74206, -1.32088),
+                                  Atom('H',  0.25137, -2.23441,  0.11110),
+                                  Atom('H',  0.67503, -1.34778,  1.56617),
+                                  Atom('H', -1.86306, -1.33147,  0.42039),
+                                  Atom('H', -1.26117, -0.13357,  1.56876)])
 
     pes = RelaxedPESnD(species=cyclohexene,
                        rs={(0, 5): (1.45, 3.0, 10),
@@ -157,11 +165,12 @@ def test_da_ts_guesses():
 
     pes.load('da_pes.npz')
     ts_guesses = list(pes.ts_guesses())
-    assert len(ts_guesses) == 1
+    assert len(ts_guesses) > 0
 
-    ts_guess = ts_guesses[0]
+    def has_correct_dists(mol):
+        return (np.isclose(mol.distance(0, 5), 2.311, atol=1E-3)
+                and np.isclose(mol.distance(3, 4), 2.311, atol=1E-3))
 
     # Diels-Alder TS should be symmetric, and for this surface the bond lengths
     # ~2.3 Å
-    assert np.isclose(ts_guess.distance(0, 5), 2.311, atol=1E-3)
-    assert np.isclose(ts_guess.distance(3, 4), 2.311, atol=1E-3)
+    assert any(has_correct_dists(ts_guess) for ts_guess in ts_guesses)

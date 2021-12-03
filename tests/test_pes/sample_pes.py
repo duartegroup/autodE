@@ -1,10 +1,14 @@
 import numpy as np
 from autode.pes.pes_nd import PESnD, Energies
+from autode.pes.reactive import ReactivePESnD
 
 
-class TestPES(PESnD):
+class TestPES(ReactivePESnD):
 
     __test__ = False
+
+    def __init__(self, rs, species=None):
+        super().__init__(species=species, rs=rs)
 
     def _default_keywords(self, method):
         raise NotImplementedError
@@ -16,7 +20,7 @@ class TestPES(PESnD):
 def harmonic_2d_pes():
     # Symmetric PES in x and y (atom indexes are dummy)
     pes = TestPES(rs={(0, 1): np.linspace(-1, 1, num=21),
-                        (1, 2): np.linspace(-1, 1, num=21)})
+                      (1, 2): np.linspace(-1, 1, num=21)})
 
     def energy(x, y):
         return 0.01 * (x ** 2 + y ** 2)

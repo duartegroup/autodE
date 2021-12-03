@@ -2,15 +2,15 @@ import os
 import numpy as np
 import pytest
 from .. import testutils
+from .sample_pes import TestPES
 from autode.utils import work_in_tmp_dir
-from autode.pes.relaxed import RelaxedPESnD
 from autode.pes.pes_nd import Energies
 here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_save_empty():
 
-    pes = RelaxedPESnD()
+    pes = TestPES(rs={})
 
     with pytest.raises(ValueError):
         pes.save('tmp')
@@ -18,7 +18,7 @@ def test_save_empty():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_save_1d():
-    pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.2, 3)})
+    pes = TestPES(rs={(0, 1): (0.1, 0.2, 3)})
     assert pes.shape == (3,)
 
     pes.save('tmp')
@@ -45,7 +45,7 @@ def test_save_1d():
 
 def save_3d_as_text_file():
 
-    pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.2, 3),
+    pes = TestPES(rs={(0, 1): (0.1, 0.2, 3),
                            (1, 2): (0.1, 0.2, 3),
                            (2, 3): (0.1, 0.2, 3)})
     pes._energies = Energies(np.ones(shape=(3, 3)))
@@ -61,7 +61,7 @@ def test_save_plot():
     """Not easy to test what these look like, so just check that
     the plots exist..."""
 
-    pes = RelaxedPESnD()
+    pes = TestPES(rs={})
 
     for filename in ('pes1d_water.npz', 'pes2d_water.npz'):
         pes.load(filename)

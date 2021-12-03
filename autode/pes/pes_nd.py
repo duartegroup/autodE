@@ -14,7 +14,6 @@ from autode.log import logger
 from autode.values import ValueArray, Energy, Distance
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
 
-
 # Type is a dictionary keyed with tuples and has a set of floats* as a value
 _rs_type = Dict[Tuple[int, int], Union[Tuple, np.ndarray]]
 
@@ -44,15 +43,13 @@ class PESnD(ABC):
                             integer number of steps between the initial and
                             final distances
         """
+        self._species = species
+
         self._rs = _ListDistances1D(species,
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
 
-        self._species = species
-
         self._energies = Energies(np.empty(self.shape), units='Ha')
-        self._gradients = np.empty(shape=(*self.shape, self.ndim))
-        self._hessians = np.empty(shape=(*self.shape, self.ndim, self.ndim))
         self._init_tensors()
 
         # Attributes set in calculate()
@@ -248,43 +245,6 @@ class PESnD(ABC):
                                         atom_idxs=(idx_i, idx_j)))
         return None
 
-    def ts_guesses(self,
-                   min_separation: Distance = Distance(0.5, units='Å')
-                   ) -> Iterable['autode.species.Species']:
-        """
-        Generate TS guesses from the saddle points in the energy on this
-        surface. Only those that are seperated by at least min_separation will
-        be yielded
-
-        -----------------------------------------------------------------------
-        Arguments:
-            min_separation: Minimum separation on the surface between TS guess
-                            structures.
-
-        Yields:
-            (autode.species.species.Species):
-        """
-        if not self._has_energy(self.origin):
-            logger.warning('Initial point on the PES not calculate - have '
-                           'no transition state guesses')
-            return StopIteration
-
-        points = sorted(self._saddle_points(), key=lambda p: self._energies[p])
-        yielded_p = []
-
-        for idx, point in enumerate(points):
-
-            if any(self._distance(p, point) < min_separation for p in yielded_p):
-                continue
-
-            ts_guess = self._species.new_species(name=f'ts_guess{idx}')
-            ts_guess.coordinates = self._coordinates[point]
-
-            yielded_p.append(point)
-            yield ts_guess
-
-        return StopIteration
-
     @abstractmethod
     def _default_keywords(self,
                           method: 'autode.wrappers.ElectronicStructureMethod'
@@ -310,8 +270,7 @@ class PESnD(ABC):
         and gradients with respect to each dimension of the surface
         """
 
-        for array in (self._energies, self._gradients, self._hessians):
-            array.fill(np.nan)
+        self._energies.fill(np.nan)
 
         if hasattr(self, '_coordinates') and self._coordinates is not None:
             self._coordinates.fill(0.0)
@@ -400,151 +359,6 @@ class PESnD(ABC):
         """
         return (self._is_contained(point)
                 and not np.isnan(self._energies[point]))
-
-    def _stationary_points(self,
-                           threshold:      float = 0.01,
-                           require_energy: bool = True
-                           ) -> Iterable[Tuple]:
-        """
-        Stationary points on the surface, characterised by a zero gradient
-        vector. On a finite surface the gradient (g) will never truly vanish,
-        so this function will only return those with |g| less than a threshold
-        for which all surrounding points have a larger |g|. Is this a
-        sufficient condition? who knows.
-
-        -----------------------------------------------------------------------
-        Arguments:
-            threshold: Maximum |g| (Ha / Å-1) which to consider a
-                       stationary point.
-
-        Yields:
-            (tuple(int)): Indices of a stationary point
-        """
-        self._set_gradients()
-
-        for point in self._points():
-
-            if require_energy and not self._has_energy(point):
-                continue
-
-            grad = self._gradients[point]
-
-            if np.linalg.norm(grad) > threshold:
-                continue
-
-            if self._is_minimum_in_gradient(point):
-                yield point
-
-        return StopIteration
-
-    def _saddle_points(self) -> Sequence[Tuple]:
-        """
-        Find all the saddle points on the surface
-
-        -----------------------------------------------------------------------
-        Yields:
-            (tuple(int)): Indices of a saddle point
-        """
-        for point in self._stationary_points():
-
-            self._set_hessian(point)
-            hess = self._hessians[point]
-
-            if sum(mu < 0 for mu in np.linalg.eigvals(hess)) == 1:
-                yield point
-
-        return StopIteration
-
-    def _set_hessian(self, point: Tuple) -> None:
-        """
-        Set the Hessian for a particular point in the surface, evaluated
-        using finite differences
-
-        -----------------------------------------------------------------------
-        Arguments:
-            point:
-        """
-        hessian = self._hessians[point]
-
-        for i in range(self.ndim):
-            for j in range(i, self.ndim):
-
-                pm, pp = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
-
-                hessian[i, j] = ((self._gradients[pm][i] - self._gradients[pp][i])
-                                 / (self._r(pp, j) - self._r(pm, j)))
-
-                # Hessians are symmetric
-                hessian[j, i] = hessian[i, j]
-
-        return None
-
-    def _set_gradients(self) -> None:
-        """
-        Set the numerical gradient for each point on the surface, in each
-        dimension.
-        """
-        for p in self._points():
-            grad = self._gradients[p]   # Gradient with shape: (ndim,)
-
-            if not self._has_energy(p):
-                logger.warning(f'Cannot set the gradient for point: {p} as it '
-                               'did not have an energy')
-                grad.fill(np.nan)
-                continue
-
-            for n in range(self.ndim):
-                pm, pp = self._neighbour(p, n, +1), self._neighbour(p, n, -1)
-
-                if not self._has_energy(pm):
-                    pm = p
-
-                if not self._has_energy(pp):
-                    pp = p
-
-                if pm == pp:
-                    logger.warning('Cannot determine gradient. Neither '
-                                   'neighbour had an energy')
-                    grad[n] = np.nan
-                    continue
-
-                grad[n] = ((self._energies[pp] - self._energies[pm])
-                           / (self._r(pp, n) - self._r(pm, n)))
-
-        return None
-
-    def _is_minimum_in_gradient(self,
-                                point:          Tuple) -> bool:
-        """
-        Is a particular point surrounded by points with larger gradients?
-        Only checks ±1 in each dimension, NOT combinations (i.e. diagonals)
-        and uses the norm of the gradient (|g|).
-
-        -----------------------------------------------------------------------
-        Arguments:
-            point:
-
-        Returns:
-            (bool):
-        """
-        norm_grad = np.linalg.norm(self._gradients[point])
-
-        for n in range(self.ndim):
-            pm, pp = self._neighbour(point, n, +1), self._neighbour(point, n, -1)
-
-            if not (self._is_contained(pm) and self._is_contained(pp)):
-                return False
-
-            for grad in (self._gradients[pm], self._gradients[pp]):
-
-                if np.any(np.isnan(grad)):
-                    # Cannot determine if it is a minimum with undefined NN
-                    return False
-
-                if np.linalg.norm(grad) < norm_grad:
-                    return False
-
-        return True
 
     @staticmethod
     def _neighbour(point: Tuple, dim: int, delta: int) -> Tuple:

@@ -12,8 +12,9 @@ def h2():
     return Molecule(atoms=[Atom('H'), Atom('H', x=0.70)])
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calculate_no_species():
-    pes = RelaxedPESnD()
+    pes = RelaxedPESnD(species=None, rs={})
 
     # cannot calculate a PES without a species
     with pytest.raises(ValueError):
