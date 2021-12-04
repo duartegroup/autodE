@@ -36,6 +36,7 @@ Functionality improvements
 - Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
 - Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
 - Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
+- Rewrites :code:`autode.pes` into a consistent module while maintaining much of the functionality. Simplifies the interface
 
 
 Bug Fixes
