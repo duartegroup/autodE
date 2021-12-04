@@ -291,13 +291,19 @@ class PESnD(ABC):
     def _calculate(self) -> None:
         """Calculate the surface, using method, keywords, n_cores attributes"""
 
+    @property
+    def _tensors(self) -> Sequence[np.ndarray]:
+        """Tensors that can be nan-ed"""
+        return [self._energies]
+
     def _init_tensors(self) -> None:
         """
         Initialise the tensors for the energy (i.e. values on this surface)
         and gradients with respect to each dimension of the surface
         """
 
-        self._energies.fill(np.nan)
+        for tensor in self._tensors:
+            tensor.fill(np.nan)
 
         if self._species is not None:
             # Coordinates tensor is the shape of the PES plus (N, 3) dimensions

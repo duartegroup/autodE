@@ -4,7 +4,7 @@ and transition state guess finding
 """
 import numpy as np
 from abc import ABC
-from typing import Iterator, Tuple, Optional, Dict, Union
+from typing import Iterator, Tuple, Optional, Dict, Union, Sequence
 from autode.pes.pes_nd import PESnD
 from autode.log import logger
 from autode.values import Distance
@@ -332,13 +332,9 @@ class ReactivePESnD(PESnD, ABC):
 
         return True
 
-    def _init_tensors(self) -> None:
-        """Initialise the tensors for the finite difference gradient and
-        hessian at each point on the surface, as well as the energies
-        (handled by the superclass)"""
-
-        for attr in ('_gradients', '_hessians'):
-            if hasattr(self, attr):
-                getattr(self, attr).fill(np.nan)
-
-        return super()._init_tensors()
+    @property
+    def _tensors(self) -> Sequence[np.ndarray]:
+        """Tensors in this PES"""
+        attrs = ('_energies', '_gradients', '_hessians')
+        
+        return [getattr(self, a) for a in attrs if hasattr(self, a)]

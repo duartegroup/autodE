@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from scipy import interpolate
-from numpy.polynomial import polynomial
-import numpy as np
 import os
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import interpolate
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
-from scipy.ndimage.filters import gaussian_filter1d
 from scipy.optimize import minimize
 from autode.config import Config
 from autode.log import logger
