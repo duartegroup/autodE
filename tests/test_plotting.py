@@ -186,24 +186,6 @@ def test_stat_point_minimisation():
         assert len(stationary_points) == 5
 
 
-def test_saving():
-
-    plotting.plot_1dpes(rs=[1, 2, 3],
-                        rel_energies=[0.0, 0.2, 0.0],
-                        method_name='test',
-                        name='tmp_pes')
-    assert os.path.exists('tmp_pes.png')
-
-    # Plotting again wit the same name shouldn't plot on top, rather override
-    plotting.plot_1dpes(rs=[1, 2, 3],
-                        rel_energies=[0.0, 0.3, 0.0],
-                        method_name='test',
-                        name='tmp_pes')
-    assert os.path.exists('tmp_pes.png')
-    # checked manually...
-    os.remove('tmp_pes.png')
-
-
 def test_energy():
 
     energy = plotting.Energy(5, units='Ha', estimated=False)

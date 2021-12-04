@@ -1,6 +1,6 @@
-from autode.pes.pes_1d import PES1d
-from autode.pes.pes_2d import PES2d
+from autode.pes.relaxed import RelaxedPESnD
+from autode.pes.unrelaxed import UnRelaxedPES1D
 
 
-__all__ = ['PES1d',
-           'PES2d']
+__all__ = ['RelaxedPESnD',
+           'UnRelaxedPES1D']

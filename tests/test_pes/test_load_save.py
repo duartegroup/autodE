@@ -4,7 +4,7 @@ import pytest
 from .. import testutils
 from .sample_pes import TestPES
 from autode.utils import work_in_tmp_dir
-from autode.pes.pes_nd import Energies
+from autode.pes.pes_nd import EnergyArray as Energies
 here = os.path.dirname(os.path.abspath(__file__))
 
 

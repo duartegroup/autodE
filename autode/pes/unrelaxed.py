@@ -9,7 +9,7 @@ from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CalculationException
 
 
-class UnRelaxedPESnD(ReactivePESnD):
+class UnRelaxedPES1D(ReactivePESnD):
 
     def _calculate(self) -> None:
         """Calculate this surface, in the maximally parallel way"""

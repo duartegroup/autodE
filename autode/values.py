@@ -601,3 +601,12 @@ class MomentOfInertia(ValueArray):
 
     def __new__(cls,  input_array, units=amu_ang_sq):
         return super().__new__(cls, input_array, units)
+
+
+class EnergyArray(ValueArray):
+
+    implemented_units = [ha, ev, kcalmol, kjmol, J]
+
+    def __repr__(self):
+        """Representation of the energies in a PES"""
+        return f'PES{self.ndim}d'

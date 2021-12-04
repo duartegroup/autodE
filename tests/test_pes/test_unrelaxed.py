@@ -5,7 +5,7 @@ from autode.utils import work_in_tmp_dir
 from autode.species.molecule import Molecule
 from autode.wrappers.XTB import XTB
 from autode.atoms import Atom
-from autode.pes.unrelaxed import UnRelaxedPESnD
+from autode.pes.unrelaxed import UnRelaxedPES1D
 
 
 @testutils.requires_with_working_xtb_install
@@ -14,7 +14,7 @@ def test_h2_points():
 
     h2 = Molecule(atoms=[Atom('H'), Atom('H', x=0.8)])
 
-    pes = UnRelaxedPESnD(h2,
+    pes = UnRelaxedPES1D(h2,
                          rs={(0, 1): (1.5, 10)})  # -> 1.5 Å in 10 steps
 
     pes.calculate(method=XTB())
@@ -28,7 +28,7 @@ def test_species_at():
 
     h2 = Molecule(atoms=[Atom('H'), Atom('H', x=0.8)])
 
-    pes = UnRelaxedPESnD(h2, rs={(0, 1): (1.5, 3)})
+    pes = UnRelaxedPES1D(h2, rs={(0, 1): (1.5, 3)})
     pes._init_tensors()
 
     h2_final = pes._species_at(point=(2,))
@@ -38,7 +38,7 @@ def test_species_at():
 def test_non_bond_unrelaxed():
     h2o = Molecule(atoms=[Atom('O'), Atom('H', x=-0.9), Atom('H', x=0.9)])
 
-    pes = UnRelaxedPESnD(h2o, rs={(1, 2): (3.0, 3)})
+    pes = UnRelaxedPES1D(h2o, rs={(1, 2): (3.0, 3)})
     pes._init_tensors()
 
     # Cannot pass the checks if the scanned distance is not a bond

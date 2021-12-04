@@ -1,5 +1,6 @@
 import numpy as np
-from autode.pes.pes_nd import PESnD, Energies
+from autode.pes.pes_nd import PESnD
+from autode.values import EnergyArray as Energies
 from autode.pes.reactive import ReactivePESnD
 
 

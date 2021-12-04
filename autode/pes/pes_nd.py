@@ -11,7 +11,7 @@ from typing import Dict, Tuple, Union, Optional, Sequence, Iterable
 from scipy.interpolate import RectBivariateSpline
 from autode.config import Config
 from autode.log import logger
-from autode.values import ValueArray, Energy, Distance
+from autode.values import ValueArray, Energy, Distance, EnergyArray
 from autode.units import ha, ev, kcalmol, kjmol, J, ang
 
 # Type is a dictionary keyed with tuples and has a set of floats* as a value
@@ -24,8 +24,7 @@ class PESnD(ABC):
     def __init__(self,
                  species:        Optional['autode.species.Species'] = None,
                  rs:             Optional[_rs_type] = None,
-                 allow_rounding: bool = True
-                 ):
+                 allow_rounding: bool = True):
         """
         N-dimensional PES for a species in a number of distances, defined by
         the 'rs' dictionary containing atom pairs and distances
@@ -49,7 +48,7 @@ class PESnD(ABC):
                                     rs_dict=rs if rs is not None else {},
                                     allow_rounding=allow_rounding)
 
-        self._energies = Energies(np.empty(self.shape), units='Ha')
+        self._energies = EnergyArray(np.empty(self.shape), units='Ha')
         self._init_tensors()
 
         # Attributes set in calculate()
@@ -90,6 +89,17 @@ class PESnD(ABC):
             (tuple(int, ...)):
         """
         return tuple(0 for _ in range(self.ndim))
+
+    @property
+    def relative_energies(self) -> EnergyArray:
+        """
+        Relative energies on this PES
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.values.EnergyArray): Numpy array of energies
+        """
+        return self._energies - np.min(self._energies)
 
     def calculate(self,
                   method:   'autode.wrappers.ElectronicStructureMethod',
@@ -229,7 +239,7 @@ class PESnD(ABC):
                              f'.npz compressed numpy file')
 
         data = np.load(filename, allow_pickle=True)
-        self._energies = Energies(data['E'], units='Ha')
+        self._energies = EnergyArray(data['E'], units='Ha')
         self._coordinates = data['R']
 
         # Maximum dimension is the largest integer out of e.g. 'r0', 'r1', ...
@@ -241,7 +251,26 @@ class PESnD(ABC):
 
             self._rs.append(Distances1D(input_array=data[f'r{i+1}'],
                                         atom_idxs=(idx_i, idx_j)))
+
+        self._mesh()
         return None
+
+    @classmethod
+    def from_file(cls, filename: str) -> 'PESnD':
+        """
+        Load a potential energy surface from a compressed numpy file (.npz)
+
+        -----------------------------------------------------------------------
+        Arguments:
+            filename: Name of the file to load
+
+        Returns:
+            (autode.pes.pes_nd.PESnD):
+        """
+        pes = cls(species=None, rs={})
+        pes.load(filename=filename)
+
+        return pes
 
     @abstractmethod
     def _default_keywords(self,
@@ -538,7 +567,7 @@ class PESnD(ABC):
                               linewidths=1,
                               alpha=0.5)
 
-        plt.clabel(contour, inline=1, fontsize=10, colors='white')
+        plt.clabel(contour, inline=1, fontsize=10, colors='k')
 
         cbar = plt.colorbar(im, fraction=0.0458, pad=0.04)
         cbar.set_label(f'$E$ / {units.plot_name}')
@@ -801,15 +830,6 @@ class Distances1D(ValueArray):
 
     def __repr__(self):
         return f'Distances(n={len(self)}, [{self.min, self.max}])'
-
-
-class Energies(ValueArray):
-
-    implemented_units = [ha, ev, kcalmol, kjmol, J]
-
-    def __repr__(self):
-        """Representation of the energies in a PES"""
-        return f'PES{self.ndim}d'
 
 
 def _energy_unit_from_name(name: str) -> 'autode.units.Unit':

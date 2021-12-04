@@ -4,7 +4,7 @@ from autode.units import ang
 from autode.species import Molecule
 from autode.values import Energy
 from autode.atoms import Atom
-from autode.pes.pes_nd import Distances1D, Energies
+from autode.pes.pes_nd import Distances1D
 from autode.pes import pes_nd
 
 
