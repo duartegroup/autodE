@@ -174,3 +174,22 @@ def test_da_ts_guesses():
     # Diels-Alder TS should be symmetric, and for this surface the bond lengths
     # ~2.3 Å
     assert any(has_correct_dists(ts_guess) for ts_guess in ts_guesses)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
+def test_1d_pes_acetone_cn():
+
+    species = Molecule('acetone_cn.xyz', charge=-1, solvent_name='water')
+    pes = RelaxedPESnD(species=species,
+                       rs={(1, 10): (1.5, 15)})
+
+    pes.load('acetone_cn.npz')
+
+    # Should only have a single TS guess on the surface
+    ts_guesses = list(pes.ts_guesses())
+    assert len(ts_guesses) == 1
+
+    ts_guess = ts_guesses[0]  # Check the distance is close to the true value
+    assert np.isclose(ts_guess.distance(1, 10).to('Å'),
+                      1.919,
+                      atol=0.1)

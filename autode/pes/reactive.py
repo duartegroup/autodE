@@ -255,9 +255,9 @@ class ReactivePESnD(PESnD, ABC):
         for i in range(self.ndim):
             for j in range(i, self.ndim):
 
-                pm, pp = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
+                pp, pm = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
 
-                hessian[i, j] = ((self._gradients[pm][i] - self._gradients[pp][i])
+                hessian[i, j] = ((self._gradients[pp][i] - self._gradients[pm][i])
                                  / (self._r(pp, j) - self._r(pm, j)))
 
                 # Hessians are symmetric
@@ -336,5 +336,5 @@ class ReactivePESnD(PESnD, ABC):
     def _tensors(self) -> Sequence[np.ndarray]:
         """Tensors in this PES"""
         attrs = ('_energies', '_gradients', '_hessians')
-        
+
         return [getattr(self, a) for a in attrs if hasattr(self, a)]
