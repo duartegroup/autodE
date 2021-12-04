@@ -834,14 +834,17 @@ class Species(AtomCollection):
         Returns:
             (bool): Does another species have the same connectivity?
         """
-        if self.n_atoms <= 1 and other.n_atoms <= 1:
-            # Single or no atom molecules must have the same connectivity
-            return True
 
-        if not hasattr(other, 'graph'):
+        if not (hasattr(other, 'n_atoms') and hasattr(other, 'graph')):
             raise ValueError(f'Could not check if {other} had the same '
-                             f'connectivity as {self}, it had no graph '
-                             'attribute')
+                             f'connectivity as {self}, it had no n_atoms or '
+                             'graph attribute')
+
+        if self.n_atoms != other.n_atoms:
+            return False    # Must have an identical number of atoms
+
+        if self.n_atoms <= 1:
+            return True      # 1 or 0 atom molecules have the same connectivity
 
         if self.graph is None or other.graph is None:
             raise ValueError('Cannot check connectivity, a graph was undefined')

@@ -133,6 +133,12 @@ def test_connectivity():
     with pytest.raises(ValueError):
         _h2.has_same_connectivity_as('a')
 
+    # Different number of atoms have different connectivity
+    assert not _h2.has_same_connectivity_as(Molecule(atoms=None))
+
+    # No atom molecule have the same connectivity
+    assert Molecule(atoms=None).has_same_connectivity_as(Molecule(atoms=None))
+
 
 def test_species_xyz_file():
 

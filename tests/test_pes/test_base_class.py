@@ -4,6 +4,7 @@ import pytest
 from autode.atoms import Atom
 from autode.methods import ORCA
 from autode.species.molecule import Molecule
+from autode.pes.pes_nd import PESnD
 from .sample_pes import TestPES, harmonic_2d_pes
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -90,3 +91,26 @@ def test_spline():
             pes._rs[i] = pes._rs[i][::-direction]
             pes._mesh()
             _ = pes._spline_2d()           # Should still be able to spline
+
+
+def test_relative_energies():
+
+    rel_energies = harmonic_2d_pes().relative_energies
+
+    # Minimum should be 0
+    assert np.isclose(np.min(rel_energies), 0.0, atol=1E-6)
+
+    # and support conversion between units
+    assert hasattr(rel_energies, 'to')
+
+
+def test_reload_from_only_file():
+
+    harmonic_2d_pes().save('tmp.npz')
+    assert os.path.exists('tmp.npz')
+
+    loaded_pes = TestPES.from_file('tmp.npz')
+    assert isinstance(loaded_pes, PESnD)
+    assert loaded_pes.shape == (21, 21)
+
+    os.remove('tmp.npz')
