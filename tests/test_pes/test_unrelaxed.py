@@ -1,5 +1,5 @@
+import pytest
 import numpy as np
-
 from .. import testutils
 from autode.utils import work_in_tmp_dir
 from autode.species.molecule import Molecule
@@ -35,6 +35,12 @@ def test_species_at():
     assert np.isclose(h2_final.distance(0, 1), 1.5, atol=1E-6)
 
 
+def test_non_bond_unrelaxed():
+    h2o = Molecule(atoms=[Atom('O'), Atom('H', x=-0.9), Atom('H', x=0.9)])
 
+    pes = UnRelaxedPESnD(h2o, rs={(1, 2): (3.0, 3)})
+    pes._init_tensors()
 
-
+    # Cannot pass the checks if the scanned distance is not a bond
+    with pytest.raises(ValueError):
+        pes._check()

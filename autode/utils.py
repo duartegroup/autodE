@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 from time import time
+from typing import Any
 from functools import wraps
 from subprocess import Popen, DEVNULL, PIPE, STDOUT
 from tempfile import mkdtemp
@@ -350,7 +351,7 @@ def timeout(seconds, return_value=None):
     return decorator
 
 
-def hashable(_method_name, _object):
+def hashable(_method_name: str, _object: Any):
     """Multiprocessing requires hashable top-level functions to be executed,
     so convert a method into a top-level function"""
     return getattr(_object, _method_name)

@@ -59,21 +59,25 @@ class ReactivePESnD(PESnD, ABC):
             (autode.transition_states.ts_guess.TSguess):
         """
         if not self._has_energy(self.origin):
-            logger.warning('Initial point on the PES not calculate - have '
+            logger.warning('Initial point on the PES not calculated - have '
                            'no transition state guesses')
             return StopIteration
 
         if product is not None:
             # Find *thee* TS guess by traversing the minimum energy pathway
             # from the origin species (reactant state) to a product
-            yield next(self._mep_ts_guess(product=product))
+            try:
+                yield next(self._mep_ts_guess(product=product))
+
+            except StopIteration:
+                logger.warning('Found no TS guesses from the minimum energy '
+                               'path')
+
             return StopIteration
 
-        points = sorted(self._saddle_points(),
-                        key=lambda p: self._energies[p])
         yielded_p = []
 
-        for idx, point in enumerate(points):
+        for idx, point in enumerate(self._sorted_saddle_points()):
 
             if any(self._distance(p, point) < min_separation for p in
                    yielded_p):
@@ -152,6 +156,16 @@ class ReactivePESnD(PESnD, ABC):
                                f'not true stationary point')
 
         return StopIteration
+
+    def _sorted_saddle_points(self) -> Iterator[Tuple]:
+        """
+        Iterator of saddle points sorted by their energy (low -> high)
+
+        -----------------------------------------------------------------------
+        Returns:
+            (Iterator):
+        """
+        return sorted(self._saddle_points(), key=lambda p: self._energies[p])
 
     def _mep_ts_guess(self,
                       product:  'autode.species.Species'

@@ -8,6 +8,18 @@ from autode import Molecule, Atom
 here = os.path.dirname(os.path.abspath(__file__))
 
 
+def flat_h2_pes():
+    """Flat H2 PES with shape (11,)"""
+
+    pes = TestPES(rs={(0, 1): np.linspace(-1, 1, num=11)},
+                  species=Molecule(atoms=[Atom('H'), Atom('H', x=0.7)]))
+    pes._energies.fill(-1.0)
+    pes._coordinates = np.zeros(shape=(11, 2, 3))
+    pes._coordinates[:, 1, 0] = 0.7         # Set all x values for H_b to 0.7 Å
+
+    return pes
+
+
 def test_simple_peak():
 
     pes = TestPES(rs={(0, 1): np.linspace(-1, 1, num=11),
@@ -50,3 +62,26 @@ def test_sn2_ts_guesses():
 
     assert np.isclose(ts_guess.distance(0, 2).to('Å'), 1.891, atol=0.1)
     assert np.isclose(ts_guess.distance(2, 1).to('Å'), 2.179, atol=0.1)
+
+
+def test_mep_ts_guess_no_graph():
+
+    pes = flat_h2_pes()
+
+    h2_no_graph = Molecule(atoms=[Atom('H'), Atom('H', x=1.0)])
+    h2_no_graph.graph = None
+
+    # Cannot find TS guesses from a product if it doesn't have a graph
+    assert len(list(pes.ts_guesses(product=h2_no_graph))) == 0
+
+
+def test_mep_ts_guess_no_isomorphism():
+
+    pes = flat_h2_pes()
+
+    h2_no_bond = Molecule(atoms=[Atom('H'), Atom('H', x=2.0)])
+    assert len(h2_no_bond.graph.edges) == 0
+
+    # Cannot find TS guess if the product is not isomorphic to any point on the
+    # surface
+    assert len(list(pes.ts_guesses(product=h2_no_bond))) == 0
