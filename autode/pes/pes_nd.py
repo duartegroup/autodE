@@ -12,7 +12,7 @@ from scipy.interpolate import RectBivariateSpline
 from autode.config import Config
 from autode.log import logger
 from autode.values import ValueArray, Energy, Distance, EnergyArray
-from autode.units import ha, ev, kcalmol, kjmol, J, ang
+from autode.units import energy_unit_from_name, ang
 
 # Type is a dictionary keyed with tuples and has a set of floats* as a value
 _rs_type = Dict[Tuple[int, int], Union[Tuple, np.ndarray]]
@@ -107,7 +107,8 @@ class PESnD(ABC):
                   n_cores:   Optional[int] = None
                   ) -> None:
         """
-        Calculate the surface
+        Calculate the surface by running calculations over each structure on
+        the surface. Requires the PES to be initialised with a species
 
         -----------------------------------------------------------------------
         Arguments:
@@ -124,12 +125,11 @@ class PESnD(ABC):
                              'or reactant')
 
         if keywords is None:
-            self._keywords = self._default_keywords(method)
+            keywords = self._default_keywords(method)
             logger.info('PES calculation keywords not specified, using:\n'
-                        f'{self._keywords}')
-        else:
-            self._keywords = keywords
+                        f'{keywords}')
 
+        self._keywords = keywords
         self._init_tensors()
 
         # Set the coordinates of the first point in the PES, and other attrs
@@ -148,7 +148,8 @@ class PESnD(ABC):
     def plot(self,
              filename:      Optional[str] = 'PES.pdf',
              interp_factor: int = 0,
-             units:         str = 'kcal mol-1') -> None:
+             units:         str = 'kcal mol-1'
+             ) -> None:
         """
         Plot this PES along a number of dimensions
 
@@ -249,8 +250,8 @@ class PESnD(ABC):
         for i in range(ndim):
             idx_i, idx_j = tuple(int(idx) for idx in data[f'a{i+1}'])
 
-            self._rs.append(Distances1D(input_array=data[f'r{i+1}'],
-                                        atom_idxs=(idx_i, idx_j)))
+            self._rs.append(_Distances1D(input_array=data[f'r{i + 1}'],
+                                         atom_idxs=(idx_i, idx_j)))
 
         self._mesh()
         return None
@@ -289,7 +290,7 @@ class PESnD(ABC):
 
     @abstractmethod
     def _calculate(self) -> None:
-        """Calculate the surface, using method, keywords, n_cores attributes"""
+        """Calculate the surface, using _method, _keywords, _n_cores attrs"""
 
     @property
     def _tensors(self) -> Sequence[np.ndarray]:
@@ -493,7 +494,7 @@ class PESnD(ABC):
             units:
         """
         r_x = self._rs[0]
-        energies, units = self._energies, _energy_unit_from_name(units)
+        energies, units = self._energies, energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
         plt.scatter(r_x, energies,
@@ -548,7 +549,7 @@ class PESnD(ABC):
         ax1 = plt.subplot(1, 2, 2)
 
         # Convert the energies in the 2D array from the base Hartree units
-        units = _energy_unit_from_name(units)
+        units = energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
         ax0.plot_surface(*np.meshgrid(r_x, r_y),
@@ -674,7 +675,7 @@ class _ListDistances1D(list):
             value: Some representation of the final and initial points
 
         Returns:
-            (autode.pes.pes_nd.Distances1D):
+            (autode.pes.pes_nd._Distances1D):
 
         Raises:
             (ValueError): If the value is not of the correct type
@@ -684,7 +685,7 @@ class _ListDistances1D(list):
             return self._distance1d_from_key_val_tuple(atom_idxs, value)
 
         elif isinstance(value, np.ndarray):
-            return Distances1D(value, atom_idxs=atom_idxs)
+            return _Distances1D(value, atom_idxs=atom_idxs)
 
         else:
             raise ValueError('Unable to populate distance array for atom '
@@ -706,7 +707,7 @@ class _ListDistances1D(list):
             value:
 
         Returns:
-            (autode.pes.pes_nd.Distances1D):
+            (autode.pes.pes_nd._Distances1D):
         """
 
         if len(value) == 2:
@@ -744,15 +745,15 @@ class _ListDistances1D(list):
         if num <= 1:
             raise ValueError(f'Unsupported number of steps: {num}')
 
-        return Distances1D(np.linspace(r_init, r_final, num=num),
-                           atom_idxs=atom_idxs)
+        return _Distances1D(np.linspace(r_init, r_final, num=num),
+                            atom_idxs=atom_idxs)
 
     def __eq__(self, other):
         """Equality of two _ListDistances1D instances"""
         return isinstance(other, _ListDistances1D) and super().__eq__(other)
 
 
-class Distances1D(ValueArray):
+class _Distances1D(ValueArray):
 
     implemented_units = [ang]
 
@@ -828,31 +829,11 @@ class Distances1D(ValueArray):
             factor: Factor by which to smooth
 
         Returns:
-            (autode.pes.pes_nd.Distances1D):
+            (autode.pes.pes_nd._Distances1D):
         """
 
-        new_arr = np.linspace(self.min, self.max, num=factor*len(self))
-        return Distances1D(input_array=new_arr, atom_idxs=self.atom_idxs)
+        new_arr = np.linspace(self.min, self.max, num=factor * len(self))
+        return _Distances1D(input_array=new_arr, atom_idxs=self.atom_idxs)
 
     def __repr__(self):
         return f'Distances(n={len(self)}, [{self.min, self.max}])'
-
-
-def _energy_unit_from_name(name: str) -> 'autode.units.Unit':
-    """
-    Generate an energy unit given a name
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        name: Name of the unit
-
-    Raises:
-        (StopIteration): If a suitable energy unit is not found
-    """
-
-    for unit in (ha, ev, kcalmol, kjmol, J):
-        if name.lower() in unit.aliases:
-            return unit
-
-    raise StopIteration(f'Failed to convert {name} to a valid energy unit '
-                        f'must be one of: {ha, ev, kcalmol, kjmol, J}')

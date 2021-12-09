@@ -266,9 +266,20 @@ class ReactivePESnD(PESnD, ABC):
         return None
 
     def _set_gradients(self) -> None:
-        """
+        r"""
         Set the numerical gradient for each point on the surface, in each
         dimension.
+
+        .. math::
+
+            \frac{\text{d}E}{\text{d}r_i}
+            = \frac{E(R + \Delta r) - E(R - \Delta r)}{\Delta r}
+
+        where :math:`\Delta r` is the difference between two points on
+        the surface and :math:`R` is the nuclear positions, :math:`r_i` is a
+        dimension on the dimension on the surface. If possible, central
+        differences are used otherwise forwards or backwards finite differences
+        are used. If neither possible then the gradient is set as np.nan
         """
         for p in self._points():
             grad = self._gradients[p]   # Gradient with shape: (ndim,)

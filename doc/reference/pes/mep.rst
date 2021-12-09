@@ -2,7 +2,7 @@
 Min Energy Pathway
 ******************
 
-.. automodule:: autode.pes.min_energy_pathway
+.. automodule:: autode.pes.mep
    :members:
    :undoc-members:
    :special-members: __init__

@@ -25,6 +25,7 @@ Usability improvements/Changes
 - Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
 - Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
 - Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
+- Removes :code:`autode.KcalMol` and :code:`KjMol` and enables a reaction to be plotted using a string representation of the units.
 
 
 Functionality improvements

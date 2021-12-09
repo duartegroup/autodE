@@ -1,11 +1,13 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Sequence, Union
 from scipy import interpolate
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.optimize import minimize
 from autode.config import Config
+from autode.units import energy_unit_from_name
 from autode.log import logger
 
 
@@ -22,23 +24,34 @@ def save_plot(plot, filename):
     return None
 
 
-def plot_reaction_profile(reactions, units, name, free_energy=False,
-                          enthalpy=False):
-    """For a set of reactions plot the reaction profile using matplotlib
+def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
+                          units:       Union['autode.units.Unit', str],
+                          name:        str,
+                          free_energy: bool = False,
+                          enthalpy:    bool = False
+                          ) -> None:
+    """
+    For a set of reactions plot the reaction profile using matplotlib
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactions (list((autode.reaction.Reaction)):
-        units (autode.units.Units):
+
+        units (autode.units.Units | str):
+
         name (str):
 
-    Keyword Arguments:
         free_energy (bool): Plot the free energy profile (G)
+
         enthalpy (bool): Plot the enthalpic profile (H)
     """
     logger.info('Plotting reaction profile')
 
     if free_energy and enthalpy:
         raise AssertionError('Cannot plot a profile in both G and H')
+
+    if isinstance(units, str):
+        units = energy_unit_from_name(name=units)
 
     fig, ax = plt.subplots()
 

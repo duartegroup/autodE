@@ -4,7 +4,7 @@ from autode.units import ang
 from autode.species import Molecule
 from autode.values import Energy
 from autode.atoms import Atom
-from autode.pes.pes_nd import Distances1D
+from autode.pes.pes_nd import _Distances1D
 from autode.pes import pes_nd
 
 
@@ -21,7 +21,7 @@ class PESnD(pes_nd.PESnD):
 
 def test_distances1d():
 
-    rs = Distances1D([0.1, 0.2, -0.1], atom_idxs=(0, 1))
+    rs = _Distances1D([0.1, 0.2, -0.1], atom_idxs=(0, 1))
 
     assert np.isclose(rs.min, -0.1)
     assert np.isclose(rs.max, 0.2)
@@ -31,20 +31,20 @@ def test_distances1d():
     assert rs.units == ang
 
     # Distances can be empty
-    rs = Distances1D([], atom_idxs=(0, 1))
+    rs = _Distances1D([], atom_idxs=(0, 1))
     assert len(rs) == 0
 
     # but cannot have negative atom indexes
     with pytest.raises(ValueError):
-        Distances1D([], atom_idxs=(-1, 1))
+        _Distances1D([], atom_idxs=(-1, 1))
 
     # or not have two atom indices
     with pytest.raises(ValueError):
-        Distances1D([], atom_idxs=(0,))
+        _Distances1D([], atom_idxs=(0,))
 
     # or have non-integer types
     with pytest.raises(ValueError):
-        Distances1D([], atom_idxs=(0.1, 1))
+        _Distances1D([], atom_idxs=(0.1, 1))
 
 
 def test_pes_nd_attrs():

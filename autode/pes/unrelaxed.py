@@ -1,4 +1,4 @@
-"""Unrelaxed potential energy surface"""
+"""Unrelaxed potential energy surfaces"""
 import numpy as np
 from typing import Tuple
 from multiprocessing import Pool
@@ -10,6 +10,8 @@ from autode.exceptions import CalculationException
 
 
 class UnRelaxedPES1D(ReactivePESnD):
+    """1D potential energy surface without minimising other degrees of freedom.
+    Only supports over bonds"""
 
     def _calculate(self) -> None:
         """Calculate this surface, in the maximally parallel way"""

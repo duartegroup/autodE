@@ -10,6 +10,8 @@ from autode.exceptions import CalculationException
 
 
 class RelaxedPESnD(ReactivePESnD):
+    """Potential energy surface over a set of distances, where all other
+     degrees of freedom are minimised"""
 
     def _calculate(self) -> None:
         """

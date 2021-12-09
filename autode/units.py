@@ -127,6 +127,27 @@ J = Unit(name='J',
          conversion=Constants.ha_to_J,
          aliases=['joule'])
 
+
+def energy_unit_from_name(name: str) -> 'autode.units.Unit':
+    """
+    Generate an energy unit given a name
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        name: Name of the unit
+
+    Raises:
+        (StopIteration): If a suitable energy unit is not found
+    """
+
+    for unit in (ha, ev, kcalmol, kjmol, J):
+        if name.lower() in unit.aliases:
+            return unit
+
+    raise StopIteration(f'Failed to convert {name} to a valid energy unit '
+                        f'must be one of: {ha, ev, kcalmol, kjmol, J}')
+
+
 # ----------------------------------------------------------------------
 # ------------------------------ Angles --------------------------------
 
