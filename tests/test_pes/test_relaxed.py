@@ -7,8 +7,7 @@ from autode.species import Molecule
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.keywords import OptKeywords
 from autode.pes.relaxed import RelaxedPESnD as PESnD
-from autode.pes.pes_nd import _energy_unit_from_name
-from autode.units import Unit
+from autode.units import Unit, energy_unit_from_name
 from autode.utils import work_in_tmp_dir
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -99,12 +98,12 @@ def test_calculate_single_without_est():
 
 def test_units_name_to_units():
 
-    unit = _energy_unit_from_name('eV')
+    unit = energy_unit_from_name('eV')
     assert isinstance(unit, Unit)
     assert unit.name.lower() == 'ev'
 
     with pytest.raises(Exception):
-        _ = _energy_unit_from_name('ang')
+        _ = energy_unit_from_name('ang')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data.zip'))
