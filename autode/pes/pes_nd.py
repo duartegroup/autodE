@@ -58,13 +58,13 @@ class PESnD(ABC):
         self._keywords:    Optional['autode.wrappers.keywords.Keywords'] = None
 
     @property
-    def shape(self) -> Tuple:
+    def shape(self) -> Tuple[int, ...]:
         """
         Shape of the surface, which is the number of points in each dimension
 
         -----------------------------------------------------------------------
         Returns:
-            (tuple(int)):
+            (tuple(int, ...)):
         """
         return tuple(len(arr) for arr in self._rs)
 
@@ -80,7 +80,7 @@ class PESnD(ABC):
         return len(self._rs)
 
     @property
-    def origin(self) -> Tuple:
+    def origin(self) -> Tuple[int, ...]:
         """
         Tuple of the origin e.g. (0,) in 1D and (0, 0, 0) in 3D
 
@@ -210,13 +210,7 @@ class PESnD(ABC):
             raise ValueError('Cannot save an empty PES')
 
         if filename.endswith('.txt'):
-            logger.warning('Saving a PES as a .txt file. Not re-loadable')
-            arr = np.array(self._energies.to('Ha'))
-
-            if self.ndim > 2:
-                logger.warning('Flattening PES to save to .txt file')
-
-            np.savetxt(filename, arr.flatten() if self.ndim > 2 else arr)
+            self._save_txt(filename)
 
         else:
             self._save_npz(filename)
@@ -465,6 +459,25 @@ class PESnD(ABC):
         r2 = np.array([self._r(point2, i) for i in range(self.ndim)])
 
         return Distance(np.linalg.norm(r1 - r2), units='Å')
+
+    def _save_txt(self, filename: str) -> None:
+        """
+        Save a pure .txt file of the energies contained within this PES, as
+        much of the data in this object is not saved it is is not re-loadable.
+        Only useful for storing an interpretable (human readable) file
+
+        -----------------------------------------------------------------------
+        Arguments:
+            filename: Name of the file ot save
+        """
+        logger.warning('Saving a PES as a .txt file. Not re-loadable')
+        arr = np.array(self._energies.to('Ha'))
+
+        if self.ndim > 2:
+            logger.warning('Flattening PES to save to .txt file')
+
+        np.savetxt(filename, arr.flatten() if self.ndim > 2 else arr)
+        return None
 
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""
@@ -788,24 +801,10 @@ class _Distances1D(ValueArray):
 
     @property
     def min(self) -> float:
-        """
-        Minimum value of the array
-
-        -----------------------------------------------------------------------
-        Returns:
-            (float):
-        """
         return min(self)
 
     @property
     def max(self) -> float:
-        """
-        Maximum value of the array
-
-        -----------------------------------------------------------------------
-        Returns:
-            (float):
-        """
         return max(self)
 
     @property
@@ -814,6 +813,7 @@ class _Distances1D(ValueArray):
         Absolute difference between the minimum and maximum values on this
         array of distances
 
+        -----------------------------------------------------------------------
         Returns:
             (float):
         """
@@ -829,7 +829,7 @@ class _Distances1D(ValueArray):
             factor: Factor by which to smooth
 
         Returns:
-            (autode.pes.pes_nd._Distances1D):
+            (autode.pes.pes_nd._Distances1D): Distance array
         """
 
         new_arr = np.linspace(self.min, self.max, num=factor * len(self))

@@ -17,8 +17,8 @@ Potential Energy Surfaces
 .. automodule:: autode.pes.reactive
    :members:
    :undoc-members:
-   :special-members: __init__, _set_gradients
-
+   :special-members: __init__
+   :private-members: _set_gradients
 
 |
 

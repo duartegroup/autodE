@@ -33,11 +33,8 @@ class ReactivePESnD(PESnD, ABC):
         """
         PESnD.__init__(self, species, rs, allow_rounding)
 
-        self._gradients = np.empty(shape=(*self.shape, self.ndim))
-        self._gradients.fill(np.nan)
-
-        self._hessians = np.empty(shape=(*self.shape, self.ndim, self.ndim))
-        self._hessians.fill(np.nan)
+        self._gradients = np.full(shape=(*self.shape, self.ndim), fill_value=np.nan)
+        self._hessians = np.full(shape=(*self.shape, self.ndim, self.ndim), fill_value=np.nan)
 
     def ts_guesses(self,
                    product:        Optional['autode.species.Species'] = None,
@@ -64,7 +61,7 @@ class ReactivePESnD(PESnD, ABC):
             return StopIteration
 
         if product is not None:
-            # Find *thee* TS guess by traversing the minimum energy pathway
+            # Find the one TS guess by traversing the minimum energy pathway
             # from the origin species (reactant state) to a product
             try:
                 yield next(self._mep_ts_guess(product=product))
@@ -135,9 +132,9 @@ class ReactivePESnD(PESnD, ABC):
 
         -----------------------------------------------------------------------
         Arguments:
-            threshold: Threshold on |λ|, below which they are set to zero. Used
-                       to discard small negative eigenvectors which would not
-                       be negative on a finer surface
+            threshold: Threshold on |λ_i|/max(|λ|), below which they are set
+                       to zero. Used to discard small negative eigenvectors
+                       which would not be negative on a finer surface
 
         Yields:
             (tuple(int)): Indices of a saddle point
@@ -145,19 +142,13 @@ class ReactivePESnD(PESnD, ABC):
         for point in self._stationary_points():
 
             self._set_hessian(point)
-            eigvals = np.linalg.eigvals(self._hessians[point])
 
-            if sum(lmda < 0 and abs(lmda) > np.max(np.abs(eigvals)) * threshold
-                   for lmda in eigvals) == 1:
+            if self._is_saddle_point(point, threshold=threshold):
                 yield point
-
-            else:
-                logger.warning(f'Point {point} had eigenvalues: {eigvals}, so '
-                               f'not true stationary point')
 
         return StopIteration
 
-    def _sorted_saddle_points(self) -> Iterator[Tuple]:
+    def _sorted_saddle_points(self) -> Sequence[Tuple]:
         """
         Iterator of saddle points sorted by their energy (low -> high)
 
@@ -255,6 +246,7 @@ class ReactivePESnD(PESnD, ABC):
         for i in range(self.ndim):
             for j in range(i, self.ndim):
 
+                # Point plus 1 (pp) and point minus 1 (pm) in this dimension
                 pp, pm = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
 
                 hessian[i, j] = ((self._gradients[pp][i] - self._gradients[pm][i])
@@ -342,6 +334,36 @@ class ReactivePESnD(PESnD, ABC):
                     return False
 
         return True
+
+    def _is_saddle_point(self,
+                         point:     Tuple,
+                         threshold: float = 0.2
+                         ) -> bool:
+        """
+        Is this point in the surface a saddle point. In the ideal case of a
+        continuous surface a saddle point has a single negative eigenvalue
+        of the Hessian matrix. However,
+
+        -----------------------------------------------------------------------
+        Arguments:
+            point: Point on the surface. Hessian must be set here
+
+            threshold: Threshold on |λ_i|/|max(λ)|, below which they are set
+                       to zero. Used to discard spurious imaginary modes
+
+        Returns:
+            (bool): If this point is a saddle point, to within a threshold
+        """
+
+        eigenvals = np.linalg.eigvals(self._hessians[point])
+
+        tol = np.max(np.abs(eigenvals)) * threshold
+
+        # Eigenvalues (λ) with an absolute value less than the tolerance are 0
+        eigenvals[np.abs(eigenvals) < tol] = 0.0
+
+        logger.warning(f'{point} had eigenvalues: {eigenvals}')
+        return len([x for x in eigenvals if x < 0]) == 1
 
     @property
     def _tensors(self) -> Sequence[np.ndarray]:
