@@ -380,10 +380,9 @@ class NDOptimiser(Optimiser, ABC):
         e1, e2 = self._coords.e, self._history.penultimate.e
 
         if e1 is None or e2 is None:
-            raise RuntimeError('Cannot determing')
+            raise RuntimeError('Cannot determine absolute energy difference')
 
-        # NOTE: no abs() call to preserve PotentialEnergy type
-        return e1 - e2 if (e1 > e2) else e2 - e1
+        return abs(e1 - e2)
 
     @property
     def _g_norm(self) -> GradientNorm:

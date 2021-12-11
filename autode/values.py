@@ -181,6 +181,10 @@ class Value(ABC, float):
     def __sub__(self, other):
         return self.__add__(-other)
 
+    def __abs__(self):
+        """Absolute value"""
+        return self if self > 0 else self * -1
+
     def to(self, units):
         """Convert this value to a new unit, returning a copy
 

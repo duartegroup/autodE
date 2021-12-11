@@ -85,6 +85,18 @@ def test_hessian_set():
             coords.h_inv = invalid_h
 
 
+def test_hessian_inv():
+
+    coords = CartesianCoordinates(np.array([1.0, 2.0]))
+    coords.h = 2.0 * np.eye(2)
+
+    expected_h_inv = 0.5 * np.eye(2)
+
+    # Without setting the inverse Hessian it should be
+    # calculable
+    assert np.allclose(coords.h_inv, expected_h_inv, atol=1E-10)
+
+
 def test_cartesian_update_clear():
 
     arr = np.array([[0.0, 0.0, 0.0],

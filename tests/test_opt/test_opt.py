@@ -5,6 +5,7 @@ from autode import Molecule, Atom
 from autode.methods import XTB
 from autode.values import GradientNorm, PotentialEnergy
 from autode.utils import work_in_tmp_dir
+from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.steepest_decent import (CartesianSDOptimiser,
                                                    DIC_SD_Optimiser)
 
@@ -57,6 +58,53 @@ def test_optimiser_construct():
         _ = CartesianSDOptimiser(maxiter=1,
                                  gtol=GradientNorm(0.1),
                                  etol=PotentialEnergy(-0.1))
+
+
+def test_initialise_species_and_method():
+
+    optimiser = sample_cartesian_optimiser()
+
+    # Species and method need to be valid
+    with pytest.raises(ValueError):
+        optimiser._initialise_species_and_method(species=None,
+                                                 method=None)
+
+    with pytest.raises(ValueError):
+        optimiser._initialise_species_and_method(species='a',
+                                                 method=None)
+
+
+def test_coords_set():
+
+    optimiser = sample_cartesian_optimiser()
+
+    # Internal set of coordinates must be an instance of OptCoordinate
+    with pytest.raises(ValueError):
+        optimiser._coords = 'a'
+
+
+def test_abs_diff_e():
+
+    # Define a intermediate optimiser state with two sets of coordinates
+    optimiser = sample_cartesian_optimiser()
+    optimiser._history.append(CartesianCoordinates([0.0, 1.0]))
+    optimiser._history.append(CartesianCoordinates([0.0, 1.1]))
+
+    # 2nd iteration for a history of two, indexed from 0
+    assert optimiser.iteration == 1
+
+    # without defined energies |E_0 - E_1| cannot be calculated
+    with pytest.raises(RuntimeError):
+        _ = optimiser._abs_delta_e
+
+    # but can be if both structures have a potential energy
+    optimiser._history.final.e = PotentialEnergy(-1.0)
+    optimiser._history.penultimate.e = PotentialEnergy(-1.1)
+
+    diff_e = optimiser._abs_delta_e
+    assert isinstance(diff_e, PotentialEnergy)
+
+    assert np.isclose(diff_e, 0.1, atol=1E-6)
 
 
 @work_in_tmp_dir()

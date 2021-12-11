@@ -11,10 +11,6 @@ class OptCoordinates(ValueArray, ABC):
 
     implemented_units = [ang, nm, pm, m]
 
-    @abstractmethod
-    def __repr__(self):
-        """Representation of these coordinates"""
-
     def __new__(cls,
                 input_array: Union[Sequence, np.ndarray],
                 units:       Union[str, 'autode.units.Unit']
@@ -109,8 +105,16 @@ class OptCoordinates(ValueArray, ABC):
         return arr.ndim == 2 and arr.shape[0] == arr.shape[1] == len(self)
 
     @abstractmethod
-    def to(self, *args, **kwargs):
+    def __repr__(self) -> str:
+        """String representation of these coordinates"""
+
+    @abstractmethod
+    def to(self, *args, **kwargs) -> 'OptCoordinates':
         """Transformation between these coordinates and another type"""
+
+    @abstractmethod
+    def iadd(self, value: np.ndarray) -> 'OptCoordinates':
+        """Inplace addition of some coordinates"""
 
     def __setitem__(self, key, value):
         """
@@ -123,15 +127,14 @@ class OptCoordinates(ValueArray, ABC):
         self.clear_tensors()
         return super().__setitem__(key, value)
 
-    @abstractmethod
-    def iadd(self, value: np.ndarray) -> 'OptCoordinates':
-        """Inplace addition of some coordinates"""
-
-    def __add__(self, other: Union[np.ndarray, float]):
+    def __add__(self,
+                other: Union[np.ndarray, float]
+                ) -> 'OptKeywords':
         """
-        Eddition of another set of coordinates. Clears the current
+        Addition of another set of coordinates. Clears the current
         gradient vector and Hessian matrix.
 
+        -----------------------------------------------------------------------
         Arguments:
             other (np.ndarray): Array to add to the coordinates
 
@@ -144,20 +147,25 @@ class OptCoordinates(ValueArray, ABC):
 
         return new_coords
 
-    def __sub__(self, other: Union[np.ndarray, float]):
+    def __sub__(self, other: Union[np.ndarray, float]) -> 'OptKeywords':
+        """Subtraction"""
         return self.__add__(-other)
 
     def __rsub__(self, other):
+        """Subtraction"""
         return self.__sub__(other)
 
     def __radd__(self, other):
+        """Addition"""
         return self.__add__(other)
 
     def __iadd__(self, other):
+        """Inplace addition"""
         self.clear_tensors()
         return self.__add__(other)
 
     def __isub__(self, other):
+        """Inplace subtraction"""
         self.clear_tensors()
         return self.__sub__(other)
 
