@@ -297,7 +297,7 @@ class Allocation(Value):
         return f'Allocation({round(self, 1)} {self.units.name})'
 
     def __init__(self, x,
-                 units: Union[Unit, str, None] = MB):
+                 units: Union[Unit, str] = MB):
         """
         Allocation of memory or disk, must be non-negative
 
@@ -593,6 +593,19 @@ class Gradient(ValueArray):
 
     def __new__(cls,  input_array, units=ha_per_ang):
         return super().__new__(cls, input_array, units)
+
+
+class GradientNorm(Value):
+
+    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
+
+    def __repr__(self):
+        return f'|∇E|({round(self, 1)} {self.units.name})'
+
+    def __init__(self, x,
+                 units: Union[Unit, str] = ha_per_ang):
+
+        super().__init__(x=x, units=units)
 
 
 class MomentOfInertia(ValueArray):

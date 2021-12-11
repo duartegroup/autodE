@@ -139,7 +139,9 @@ def work_in(dir_ext):
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
+def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
+                    kept_file_exts:    Optional[List[str]] = None,
+                    use_ll_tmp:        bool = False):
     """Execute a function in a temporary directory.
 
     Arguments:
@@ -147,8 +149,15 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
 
         kept_file_exts (list(str): Filename extensions to copy back from
                        the temp dir
+
+        use_ll_tmp (bool): If true then use autode.config.Config.ll_tmp_dir
     """
     from autode.config import Config
+    if filenames_to_copy is None:
+        filenames_to_copy = []
+
+    if kept_file_exts is None:
+        kept_file_exts = []
 
     def func_decorator(func):
 

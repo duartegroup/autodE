@@ -18,6 +18,7 @@ Reference
    transition_states/index
    thermochemistry/index
    wrappers/index
+   opt/index
    bond_rearrangement
    config
    constants
