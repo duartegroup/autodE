@@ -7,8 +7,6 @@ from autode.atoms import Atom
 from autode.species.molecule import (Reactant,  Product, Molecule, Species)
 from autode.species.complex import NCIComplex
 from autode.config import Config
-from autode.units import KcalMol
-from autode.units import KjMol
 from autode.calculation import Calculation
 from autode import methods
 from autode import geom
@@ -53,9 +51,7 @@ __all__ = [
     'Molecule',
     'NCIComplex',
     'Config',
-    'KcalMol',
     'Calculation',
-    'KjMol',
     'pes',
     'neb',
     'geom',

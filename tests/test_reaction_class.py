@@ -17,7 +17,7 @@ from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
                            EnthalpyCont, FreeEnergyCont)
 from autode.methods import get_hmethod
 from autode.config import Config
-from .testutils import work_in_zipped_dir
+from .testutils import work_in_zipped_dir, requires_with_working_xtb_install
 import shutil
 import pytest
 
@@ -115,6 +115,9 @@ def test_reactant_product_complexes():
 
 def test_invalid_with_complexes():
 
+    Config.hcode = 'ORCA'
+    Config.ORCA.path = here
+
     h3_reaction = reaction.Reaction(lin_h3, trig_h3)
 
     # Currently free energies with association complexes is not supported
@@ -156,6 +159,9 @@ def test_check_solvent():
 
 
 def test_reaction_identical_reac_prods():
+
+    Config.hcode = 'ORCA'
+    Config.ORCA.path = here
 
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
                                                       Atom('H', x=1.0)])
@@ -278,6 +284,7 @@ def test_single_points():
 
 
 @work_in_zipped_dir(os.path.join(here, 'data', 'free_energy_profile.zip'))
+@requires_with_working_xtb_install
 def test_free_energy_profile():
 
     # Use a spoofed Gaussian09 and XTB install
@@ -300,10 +307,6 @@ def test_free_energy_profile():
                             Product(name='Cl-', smiles='[Cl-]'),
                             Product(name='CH3F', smiles='CF'),
                             name='sn2', solvent_name='water')
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     rxn.calculate_reaction_profile(free_energy=True)
 

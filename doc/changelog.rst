@@ -6,7 +6,8 @@ Changelog
 --------
 ----------
 
-Optimisation algorithms for faster and more robust minima and TS location.
+Optimisation algorithms for faster and more robust minima and TS location. Improves potential energy surface module
+
 
 Usability improvements/Changes
 ******************************
@@ -24,6 +25,7 @@ Usability improvements/Changes
 - Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
 - Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
 - Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
+- Removes :code:`autode.KcalMol` and :code:`KjMol` and enables a reaction to be plotted using a string representation of the units.
 
 
 Functionality improvements
@@ -36,6 +38,7 @@ Functionality improvements
 - Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
 - Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
 - Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
+- Rewrites :code:`autode.pes` into a consistent module while maintaining much of the functionality. Simplifies the interface
 
 
 Bug Fixes

@@ -1,21 +1,11 @@
 import autode as ade
-import numpy as np
-ade.Config.n_cores = 4
+ade.Config.n_cores = 10   # Distribute over 10 cores
 
-reac = ade.Reactant('DA_r.xyz')
-prod = ade.Product('DA_p.xyz')
+# PES from the current C-C distances (~1.5 Å) to broken (3.0 Å) in 10 steps
+pes = ade.pes.RelaxedPESnD(species=ade.Molecule('cyclohexene.xyz'),
+                           rs={(0, 5): (3.0, 10),
+                               (3, 4): (3.0, 10)})
 
-pes = ade.pes.PES2d(reac, prod,
-                    r1s=np.linspace(1.45, 3.0, 10),
-                    r1_idxs=(0, 5),
-                    r2s=np.linspace(1.45, 3.0, 10),
-                    r2_idxs=(3, 4))
-
-pes.calculate(name='da_surface',
-              method=ade.methods.XTB(),
-              keywords=ade.OptKeywords())
-
-# Save the matrix of energies (Ha) over the grid
-np.savetxt('da_surface.txt', pes.energies())
-# and print the 2D surface
-pes.print_plot()
+pes.calculate(method=ade.methods.XTB())
+pes.plot('DA_surface.png')
+pes.save('DA_surface.npz')

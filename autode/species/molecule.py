@@ -1,6 +1,6 @@
 import re
 import rdkit
-from typing import Optional, Union, List
+from typing import Optional, Sequence
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
@@ -23,9 +23,7 @@ class Molecule(Species):
     def __init__(self,
                  name:         str = 'molecule',
                  smiles:       Optional[str] = None,
-                 atoms:        Union['autode.atoms.Atoms',
-                                     List['autode.atoms.Atom'],
-                                     None] = None,
+                 atoms:        Optional[Sequence['autode.atoms.Atom']] = None,
                  solvent_name: Optional[str] = None,
                  charge:       int = 0,
                  mult:         int = 1):

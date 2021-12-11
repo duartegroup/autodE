@@ -121,6 +121,26 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
 class TSguess(TSbase):
     """Transition state guess"""
 
+    @classmethod
+    def from_species(cls, species: 'autode.species.Species') -> 'TSguess':
+        """
+        Generate a TS guess from a species
+
+        -----------------------------------------------------------------------
+        Arguments:
+            species:
+
+        Returns:
+            (autode.transition_states.ts_guess.TSguess): TS guess
+        """
+
+        ts_guess = cls(atoms=species.atoms,
+                       charge=species.charge,
+                       mult=species.mult,
+                       name=f'ts_guess_{species.name}')
+
+        return ts_guess
+
     @work_in('scan_to_template')
     def _lmethod_scan_to_point(self):
         """

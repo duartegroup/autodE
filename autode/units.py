@@ -1,4 +1,4 @@
-from typing import Union, Collection
+from typing import Union, Collection, Optional
 from autode.constants import Constants
 
 
@@ -21,8 +21,8 @@ class Unit:
     def __init__(self,
                  name:       str,
                  conversion: float,
-                 aliases:    Union[Collection, None] = None,
-                 plot_name:  Union[str, None] = None):
+                 aliases:    Optional[Collection] = None,
+                 plot_name:  Optional[str] = None):
         """
         Unit
 
@@ -126,6 +126,27 @@ kcalmol = KcalMol = Unit(name='kcal mol-1',
 J = Unit(name='J',
          conversion=Constants.ha_to_J,
          aliases=['joule'])
+
+
+def energy_unit_from_name(name: str) -> 'autode.units.Unit':
+    """
+    Generate an energy unit given a name
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        name: Name of the unit
+
+    Raises:
+        (StopIteration): If a suitable energy unit is not found
+    """
+
+    for unit in (ha, ev, kcalmol, kjmol, J):
+        if name.lower() in unit.aliases:
+            return unit
+
+    raise StopIteration(f'Failed to convert {name} to a valid energy unit '
+                        f'must be one of: {ha, ev, kcalmol, kjmol, J}')
+
 
 # ----------------------------------------------------------------------
 # ------------------------------ Angles --------------------------------

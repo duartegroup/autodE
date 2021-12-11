@@ -115,6 +115,31 @@ def test_species_energies_reset():
     assert tmp_species.energy is None
 
 
+def test_connectivity():
+
+    _h2 = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+    _h2.reset_graph()
+
+    # Must have the same connectivity as itself
+    assert _h2.has_same_connectivity_as(_h2)
+
+    # Undetermined if one doesn't have a graph
+    _h2_no_graph = _h2.copy()
+    _h2_no_graph.graph = None
+    with pytest.raises(ValueError):
+        _h2.has_same_connectivity_as(_h2_no_graph)
+
+    # Or something without a graph attribute is passed
+    with pytest.raises(ValueError):
+        _h2.has_same_connectivity_as('a')
+
+    # Different number of atoms have different connectivity
+    assert not _h2.has_same_connectivity_as(Molecule(atoms=None))
+
+    # No atom molecule have the same connectivity
+    assert Molecule(atoms=None).has_same_connectivity_as(Molecule(atoms=None))
+
+
 def test_species_xyz_file():
 
     mol.print_xyz_file()

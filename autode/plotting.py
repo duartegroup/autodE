@@ -1,14 +1,13 @@
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from scipy import interpolate
-from numpy.polynomial import polynomial
-import numpy as np
 import os
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import Sequence, Union
+from scipy import interpolate
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
-from scipy.ndimage.filters import gaussian_filter1d
 from scipy.optimize import minimize
 from autode.config import Config
+from autode.units import energy_unit_from_name
 from autode.log import logger
 
 
@@ -25,103 +24,34 @@ def save_plot(plot, filename):
     return None
 
 
-def plot_2dpes(r1, r2, coeff_mat, mep=None, name='2d_scan'):
-    """For flat lists of r1, r2 and relative energies plot the PES by
-    interpolating on a 50x50 grid after fitting with
-    a 2d polynomial function
-
-    Arguments:
-        r1 (np.ndarray): r1 distance points
-        r2 (np.ndarray): r2 distance points
-        coeff_mat (np.array): matrix of polynomial coefficients for the energy
-                              surface
-
-    Keyword Arguments:
-        mep (list(tuple)): list of coordinates on the grid for the min energy
-        pathway across the surface (default: {None})
-        name (str): name of the plot (default: {'2d_scan'})
+def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
+                          units:       Union['autode.units.Unit', str],
+                          name:        str,
+                          free_energy: bool = False,
+                          enthalpy:    bool = False
+                          ) -> None:
     """
-    plt.close()
+    For a set of reactions plot the reaction profile using matplotlib
 
-    try:
-        if '_ll2d' in name:
-            name_split = name.split('_ll2d')[0].split('_')
-        else:
-            name_split = name.split('_hl2d')[0].split('_')
-        bond1_atoms_ids = [int(idx) for idx in name_split[-2].split('-')]
-        bond2_atoms_ids = [int(idx) for idx in name_split[-1].split('-')]
-        xlabel = f'$r_1$({bond1_atoms_ids[0]}, {bond1_atoms_ids[1]}) / Å'
-        ylabel = f'$r_2$({bond2_atoms_ids[0]}, {bond2_atoms_ids[1]}) / Å'
-
-    except (IndexError, ValueError):
-        xlabel = '$r_1$ / Å'
-        ylabel = '$r_2$ / Å'
-
-    logger.info(f'Plotting 2D scan and saving to {name}.png')
-
-    nx, ny = 50, 50
-    xx, yy = np.meshgrid(np.linspace(r1.min(), r1.max(), nx),
-                         np.linspace(r2.min(), r2.max(), ny))
-
-    # polyval2d gives matrix with element i,j = f(x,y) with f being the
-    # polynomial defined by m and x = xx[i,j] and y = yy[i,j]
-
-    zz = polynomial.polyval2d(xx, yy, coeff_mat)
-    fig = plt.figure(figsize=(12, 4))
-    ax1 = fig.add_subplot(1, 2, 1, projection=Axes3D.name)
-    ax1.plot_surface(xx, yy, zz, cmap=plt.get_cmap('plasma'))
-
-    ax1.view_init(45)
-    ax1.set_xlabel(xlabel)
-    ax1.set_ylabel(ylabel)
-    ax2 = fig.add_subplot(1, 2, 2)
-
-    pos2 = ax2.imshow(zz, aspect=(abs(r1.max()-r1.min())/abs(r2.max()-r2.min())),
-                      extent=(r1.min(), r1.max(),
-                              r2.min(), r2.max()),
-                      origin='lower', cmap=plt.get_cmap('plasma'))
-
-    if mep is not None:
-        xsmoothed = gaussian_filter1d([coord[0] for coord in mep], sigma=2)
-        ysmoothed = gaussian_filter1d([coord[1] for coord in mep], sigma=2)
-        ax2.plot(xsmoothed, ysmoothed, color='forestgreen', lw=2)
-
-    ax2.set_xlabel(xlabel)
-    ax2.set_ylabel(ylabel)
-    cbar = plt.colorbar(pos2, ax=ax2)
-    cbar.ax.set_ylabel('∆$E$ / kcal mol$^{-1}$')
-
-    return save_plot(plot=plt, filename=f'{name}.png')
-
-
-def plot_1dpes(rs, rel_energies, method_name, name='1d_scan', xlabel='$r$ / Å'):
-    logger.info(f'Plotting 1D scan and saving to {name}.png')
-
-    plt.plot(rs, rel_energies, marker='o', color='k', label=method_name)
-    plt.legend()
-    plt.xlabel(xlabel)
-    plt.ylabel('∆$E$ / kcal mol$^{-1}$')
-
-    return save_plot(plot=plt, filename=f'{name}.png')
-
-
-def plot_reaction_profile(reactions, units, name, free_energy=False,
-                          enthalpy=False):
-    """For a set of reactions plot the reaction profile using matplotlib
-
+    ---------------------------------------------------------------------------
     Arguments:
         reactions (list((autode.reaction.Reaction)):
-        units (autode.units.Units):
+
+        units (autode.units.Units | str):
+
         name (str):
 
-    Keyword Arguments:
         free_energy (bool): Plot the free energy profile (G)
+
         enthalpy (bool): Plot the enthalpic profile (H)
     """
     logger.info('Plotting reaction profile')
 
     if free_energy and enthalpy:
         raise AssertionError('Cannot plot a profile in both G and H')
+
+    if isinstance(units, str):
+        units = energy_unit_from_name(name=units)
 
     fig, ax = plt.subplots()
 

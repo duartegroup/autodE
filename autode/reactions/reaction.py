@@ -13,7 +13,6 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
 from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
-from autode.units import KcalMol
 from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
 from autode.utils import work_in, requires_hl_level_methods
 from autode.reactions import reaction_types
@@ -93,7 +92,7 @@ class Reaction:
 
     @requires_hl_level_methods
     def calculate_reaction_profile(self,
-                                   units:         'autode.units.Unit' = KcalMol,
+                                   units:         Union['autode.units.Unit', str] = 'kcal mol-1',
                                    with_complexes: bool = False,
                                    free_energy:    bool = False,
                                    enthalpy:       bool = False):
@@ -104,7 +103,7 @@ class Reaction:
 
         -----------------------------------------------------------------------
         Keyword Arguments:
-            units (autode.units.Unit):
+            units (autode.units.Unit | str):
 
             with_complexes (bool): Calculate the lowest energy conformers
                                    of the reactant and product complexes
