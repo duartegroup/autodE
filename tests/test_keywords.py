@@ -153,3 +153,47 @@ def test_max_opt_cycles():
 
     with pytest.raises(ValueError):
         kwds.max_opt_cycles = -1
+
+
+def test_type_init():
+
+    keyword_set = Config.ORCA.keywords.copy()
+
+    for opt_type in ('low_opt', 'opt', 'opt_ts'):
+        kwds = getattr(keyword_set, opt_type)
+        assert isinstance(kwds, OptKeywords)
+
+    for opt_type in ('low_sp', 'sp'):
+        kwds = getattr(keyword_set, opt_type)
+        assert kwds is None or isinstance(kwds, SinglePointKeywords)
+
+    assert isinstance(keyword_set.hess, HessianKeywords)
+    assert isinstance(keyword_set.grad, GradientKeywords)
+
+
+def test_type_inference():
+    """Ensure that setting keywords with lists retains their type"""
+
+    keyword_set = Config.ORCA.keywords.copy()
+
+    keyword_set.low_opt = ['a']
+    assert isinstance(keyword_set.low_opt, OptKeywords)
+
+    keyword_set.low_opt = OptKeywords(['a', 'different', 'set'])
+    assert isinstance(keyword_set.low_opt, OptKeywords)
+
+    keyword_set.opt = ['a']
+    assert isinstance(keyword_set.opt, OptKeywords)
+
+    keyword_set.sp = ['a']
+    assert isinstance(keyword_set.sp, SinglePointKeywords)
+
+    keyword_set.low_sp = ['a']
+    assert isinstance(keyword_set.low_sp, SinglePointKeywords)
+    keyword_set.low_sp = None
+
+    keyword_set.grad = ['a']
+    assert isinstance(keyword_set.grad, GradientKeywords)
+
+    keyword_set.hess = ['a']
+    assert isinstance(keyword_set.hess, HessianKeywords)

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional, Sequence
 from copy import deepcopy
 from abc import ABC, abstractmethod
 from autode.log import logger
@@ -6,16 +6,23 @@ from autode.log import logger
 
 class KeywordsSet:
 
-    def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None,
-                 hess=None, optts_block='', sp=None, ecp=None):
+    def __init__(self,
+                 low_opt:     Optional[Sequence[str]] = None,
+                 grad:        Optional[Sequence[str]] = None,
+                 opt:         Optional[Sequence[str]] = None,
+                 opt_ts:      Optional[Sequence[str]] = None,
+                 hess:        Optional[Sequence[str]] = None,
+                 sp:          Optional[Sequence[str]] = None,
+                 ecp:         Optional['autode.wrappers.keywords.ECP'] = None,
+                 optts_block: str = ''):
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
         calculation will look something like::
 
             -------------------------------------------------------------------
-            <keyword line directive> autode.Keywords.x[0] ...
-            autode.Keywords.optts_block
+            <keyword line directive> autode.KeywordsSet.keywords[0] ...
+            autode.KeywordsSet.optts_block
 
             <coordinate directive> <charge> <multiplicity>
             .
@@ -26,38 +33,39 @@ class KeywordsSet:
             <end of coordinate directive>
             -------------------------------------------------------------------
 
-        Keyword Arguments:
+        -----------------------------------------------------------------------
+        Arguments:
 
-            low_opt (list(str)): List of keywords for a low level optimisation
+            low_opt: List of keywords for a low level optimisation
 
-            grad (list(str)): List of keywords for a gradient calculation
+            grad: List of keywords for a gradient calculation
 
-            opt (list(str)): List of keywords for a low level optimisation
+            opt: List of keywords for a optimisation
 
-            opt_ts (list(str)): List of keywords for a low level optimisation
+            opt_ts: List of keywords for a transition state optimisation
 
-            hess (list(str)): List of keywords for a low level optimisation
+            hess: List of keywords for a hessian calculation
 
-            optts_block (str): String as extra input for a TS optimisation
+            sp: List of keywords for a single point calculation
 
-            sp  (list(str)): List of keywords for a single point calculation
+            ecp: Effective core potential to use for atoms heavier than
+                 ecp.min_atomic_number, if not None
 
-            ecp (autode.wrrappers.keywords.ECP | None): Effective core
-                potential for atoms heavier than
+             optts_block: String as extra input for a TS optimisation
         """
 
-        self.low_opt = OptKeywords(low_opt)
-        self.opt = OptKeywords(opt)
-        self.opt_ts = OptKeywords(opt_ts)
+        self._low_opt = OptKeywords(low_opt)   # Low-level optimisation
+        self._opt = OptKeywords(opt)           # Optimisation
+        self._opt_ts = OptKeywords(opt_ts)     # TS optimisation
 
-        self.grad = GradientKeywords(grad)
-        self.hess = HessianKeywords(hess)
+        self._grad = GradientKeywords(grad)    # Gradient
+        self._hess = HessianKeywords(hess)     # Hessian
 
-        self.low_sp = None                      # Low level single point
-        self.sp = SinglePointKeywords(sp)
+        self._low_sp = None                    # Low-level single point
+        self._sp = SinglePointKeywords(sp)     # Single point
 
-        self._list = [self.low_opt, self.opt, self.opt_ts, self.grad,
-                      self.hess, self.sp]
+        self._list = [self._low_opt, self._opt, self._opt_ts, self._grad,
+                      self._hess, self._sp]
 
         self.optts_block = optts_block
 
@@ -70,6 +78,62 @@ class KeywordsSet:
 
     def __getitem__(self, item):
         return self._list[item]
+
+    @property
+    def low_opt(self) -> 'OptKeywords':
+        return self._low_opt
+
+    @low_opt.setter
+    def low_opt(self, value: Optional[Sequence[str]]):
+        self._low_opt = OptKeywords(value)
+
+    @property
+    def opt(self) -> 'OptKeywords':
+        return self._opt
+
+    @opt.setter
+    def opt(self, value: Optional[Sequence[str]]):
+        self._opt = OptKeywords(value)
+
+    @property
+    def opt_ts(self) -> 'OptKeywords':
+        return self._opt_ts
+
+    @opt_ts.setter
+    def opt_ts(self, value: Optional[Sequence[str]]):
+        self._opt_ts = OptKeywords(value)
+
+    @property
+    def grad(self) -> 'GradientKeywords':
+        return self._grad
+
+    @grad.setter
+    def grad(self, value: Optional[Sequence[str]]):
+        self._grad = GradientKeywords(value)
+
+    @property
+    def hess(self) -> 'HessianKeywords':
+        return self._hess
+
+    @hess.setter
+    def hess(self, value: Optional[Sequence[str]]):
+        self._hess = HessianKeywords(value)
+
+    @property
+    def low_sp(self) -> Optional['SinglePointKeywords']:
+        return self._low_sp
+
+    @low_sp.setter
+    def low_sp(self, value: Optional[Sequence[str]]):
+        self._low_sp = value if value is None else SinglePointKeywords(value)
+
+    @property
+    def sp(self) -> 'SinglePointKeywords':
+        return self._sp
+
+    @sp.setter
+    def sp(self, value: Optional[Sequence[str]]):
+        self._sp = SinglePointKeywords(value)
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
@@ -105,6 +169,9 @@ class KeywordsSet:
             keywords.ecp = ecp
 
         return None
+
+    def copy(self) -> 'KeywordsSet':
+        return deepcopy(self)
 
 
 class Keywords:
@@ -283,6 +350,9 @@ class Keywords:
 
     def __getitem__(self, item):
         return self.keyword_list[item]
+
+    def __setitem__(self, key, value):
+        self.keyword_list[key] = value
 
     def __len__(self):
         return len(self.keyword_list)
@@ -467,12 +537,17 @@ class ECP(Keyword):
                 and str(self) == str(other)
                 and self.min_atomic_number == other.min_atomic_number)
 
-    def __init__(self, name, min_atomic_number=37,
-                 doi=None, doi_list=None, **kwargs):
+    def __init__(self,
+                 name:              str,
+                 min_atomic_number: int = 37,
+                 doi:               Optional[str] = None,
+                 doi_list:          Optional[Sequence[str]] = None,
+                 **kwargs):
         """
         An effective core potential that applies to all atoms with atomic
         numbers larger than min_atomic_number
 
+        -----------------------------------------------------------------------
         Arguments:
             name (str):
             min_atomic_number (int):
