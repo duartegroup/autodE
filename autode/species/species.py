@@ -760,7 +760,8 @@ class Species(AtomCollection):
     @requires_atoms
     def is_linear(self,
                   tol:       Optional[float] = None,
-                  angle_tol: val.Angle = val.Angle(1.0, units='deg')) -> bool:
+                  angle_tol: val.Angle = val.Angle(1.0, units='deg')
+                  ) -> bool:
         """
         Determine if a species is linear i.e all atoms are colinear
 
@@ -869,7 +870,8 @@ class Species(AtomCollection):
                        title_line:            Optional[str] = None,
                        filename:              Optional[str] = None,
                        additional_title_line: Optional[str] = None,
-                       with_solvent:          bool = True) -> None:
+                       with_solvent:          bool = True
+                       ) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
 
@@ -913,8 +915,9 @@ class Species(AtomCollection):
                  method:      Optional[ElectronicStructureMethod] = None,
                  reset_graph: bool = False,
                  calc:        Optional[Calculation] = None,
-                 keywords:    Optional[Sequence] = None,
-                 n_cores:     Optional[int] = None) -> None:
+                 keywords:    Union[Sequence[str], str, None] = None,
+                 n_cores:     Optional[int] = None
+                 ) -> None:
         """
         Optimise the geometry using a method
 
@@ -965,7 +968,7 @@ class Species(AtomCollection):
                     temp:       float = 298.15,
                     lfm_method: Union[LFMethod, str, None] = None,
                     ss:         Optional[str] = None,
-                    keywords:   Optional[Sequence[str]] = None,
+                    keywords:   Union[Sequence[str], str, None] = None,
                     **kwargs) -> None:
         """
         Calculate the free energy and enthalpy contributions using the
@@ -1042,8 +1045,9 @@ class Species(AtomCollection):
     @requires_atoms
     def single_point(self,
                      method:   ElectronicStructureMethod,
-                     keywords: Optional[Sequence[str]] = None,
-                     n_cores:  Optional[int] = None) -> None:
+                     keywords: Union[Sequence[str], str, None] = None,
+                     n_cores:  Optional[int] = None
+                     ) -> None:
         """
         Calculate the single point energy of the species using a method
 
@@ -1153,7 +1157,8 @@ class Species(AtomCollection):
 
     def explicitly_solvate(self,
                            num:     int = 10,
-                           solvent: Union[str, 'Species', None] = None) -> None:
+                           solvent: Union[str, 'Species', None] = None
+                           ) -> None:
         """
         Explicitly solvate this Molecule
 

@@ -176,17 +176,24 @@ class KeywordsSet:
 
 class Keywords:
 
-    def __init__(self, keyword_list=None):
+    def __init__(self,
+                 keyword_list: Union[Sequence[str], str, None] = None):
         """
-        Read only list of keywords
+        List of keywords used in an electronic structure calculation
 
-        Keyword Arguments:
-            keyword_list (list(str)): List of keywords used in a QM calculation
+        -----------------------------------------------------------------------
+        Arguments:
+            keyword_list: Keywords
         """
-        self.keyword_list = keyword_list if keyword_list is not None else []
+
+        if isinstance(keyword_list, str):
+            self._list = [keyword_list]
+
+        else:
+            self._list = list(keyword_list) if keyword_list is not None else []
 
     def __str__(self):
-        return '_'.join([str(kw) for kw in self.keyword_list])
+        return '_'.join([str(kw) for kw in self._list])
 
     def __repr__(self):
         """Representation of these keywords"""
@@ -195,14 +202,14 @@ class Keywords:
     def _string(self, prefix):
         """Return a string defining the keywords, with or without a prefix"""
         from autode.config import Config
-        base_str = ' '.join([str(kw) for kw in self.keyword_list])
+        base_str = ' '.join([str(kw) for kw in self._list])
 
         return f'{prefix}({base_str})'
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""
 
-        for keyword in self.keyword_list:
+        for keyword in self._list:
             if isinstance(keyword, keyword_type):
                 return keyword
 
@@ -215,12 +222,12 @@ class Keywords:
 
         assert type(keyword) is keyword_type or keyword is None
 
-        for i, keyword_in_list in enumerate(self.keyword_list):
+        for i, keyword_in_list in enumerate(self._list):
             if isinstance(keyword_in_list, keyword_type):
                 if keyword is None:
-                    del self.keyword_list[i]
+                    del self._list[i]
                 else:
-                    self.keyword_list[i] = keyword
+                    self._list[i] = keyword
                 return
 
             # Cannot have both wavefunction and DFT methoda
@@ -340,25 +347,25 @@ class Keywords:
         assert type(item) is str or isinstance(item, Keyword)
 
         # Don't re-add a keyword that is already there
-        if any(kw.lower() == item.lower() for kw in self.keyword_list):
+        if any(kw.lower() == item.lower() for kw in self._list):
             return
 
-        self.keyword_list.append(item)
+        self._list.append(item)
 
     def remove(self, item):
-        self.keyword_list.remove(item)
+        self._list.remove(item)
 
     def __getitem__(self, item):
-        return self.keyword_list[item]
+        return self._list[item]
 
     def __setitem__(self, key, value):
-        self.keyword_list[key] = value
+        self._list[key] = value
 
     def __len__(self):
-        return len(self.keyword_list)
+        return len(self._list)
 
     def __iter__(self):
-        return iter(self.keyword_list)
+        return iter(self._list)
 
 
 class OptKeywords(Keywords):

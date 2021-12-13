@@ -24,7 +24,7 @@ from autode.wrappers.keywords import (Keywords,
 def test_keywords():
 
     keywords = Keywords(keyword_list=None)
-    assert keywords.keyword_list == []
+    assert keywords._list == []
 
     assert isinstance(GradientKeywords(None), Keywords)
     assert isinstance(OptKeywords(None), Keywords)
@@ -36,7 +36,7 @@ def test_keywords():
 
     # Should not add a keyword that's already there
     keywords.append('test')
-    assert len(keywords.keyword_list) == 1
+    assert len(keywords._list) == 1
 
     assert hasattr(keywords, 'copy')
 
