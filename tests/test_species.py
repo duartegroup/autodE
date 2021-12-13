@@ -522,3 +522,29 @@ def test_species_rotation_is_same_as_atom():
         atom.rotate(axis=axis, theta=angle)
 
     assert np.linalg.norm((water.coordinates - water_atoms.coordinates)) < 0.01
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
+def test_keywords_opt_sp_thermo():
+
+    h2o = Molecule(smiles='O', name='water_tmp')
+    orca.path = here
+    assert orca.available
+
+    # Check that the calculations work with keywords specified as either a
+    # regular list or as a single string
+    for kwds in (['Opt', 'def2-SVP', 'PBE'], 'Opt def2-SVP PBE'):
+        h2o.energies.clear()
+        h2o.optimise(method=orca, keywords=kwds)
+        assert h2o.energy is not None
+
+    for kwds in (['SP', 'def2-SVP', 'PBE'], 'SP def2-SVP PBE'):
+        h2o.energies.clear()
+        h2o.single_point(method=orca, keywords=kwds)
+        assert h2o.energy is not None
+
+    for kwds in (['Freq', 'def2-SVP', 'PBE'], 'Freq def2-SVP PBE'):
+        h2o.energies.clear()
+        h2o.hessian = None
+        h2o.calc_thermo(method=orca, keywords=kwds)
+        assert h2o.energy is not None

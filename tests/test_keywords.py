@@ -185,6 +185,9 @@ def test_type_inference():
     keyword_set.opt = ['a']
     assert isinstance(keyword_set.opt, OptKeywords)
 
+    keyword_set.opt_ts = ['a']
+    assert isinstance(keyword_set.opt_ts, OptKeywords)
+
     keyword_set.sp = ['a']
     assert isinstance(keyword_set.sp, SinglePointKeywords)
 
