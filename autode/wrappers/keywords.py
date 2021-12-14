@@ -174,7 +174,7 @@ class KeywordsSet:
         return deepcopy(self)
 
 
-class Keywords:
+class Keywords(ABC):
 
     def __init__(self,
                  keyword_list: Union[Sequence[str], str, None] = None):
@@ -193,18 +193,11 @@ class Keywords:
             self._list = list(keyword_list) if keyword_list is not None else []
 
     def __str__(self):
-        return '_'.join([str(kw) for kw in self._list])
+        return ' '.join([str(kw) for kw in self._list])
 
+    @abstractmethod
     def __repr__(self):
         """Representation of these keywords"""
-        return self.__str__()
-
-    def _string(self, prefix):
-        """Return a string defining the keywords, with or without a prefix"""
-        from autode.config import Config
-        base_str = ' '.join([str(kw) for kw in self._list])
-
-        return f'{prefix}({base_str})'
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""
@@ -392,26 +385,26 @@ class OptKeywords(Keywords):
 
         self._set_keyword(MaxOptCycles(int(value)), MaxOptCycles)
 
-    def __str__(self):
-        return self._string(prefix='OptKeywords')
+    def __repr__(self):
+        return f'OptKeywords({self.__str__()})'
 
 
 class HessianKeywords(Keywords):
 
-    def __str__(self):
-        return self._string(prefix='HessKeywords')
+    def __repr__(self):
+        return f'HessKeywords({self.__str__()})'
 
 
 class GradientKeywords(Keywords):
 
-    def __str__(self):
-        return self._string(prefix='GradKeywords')
+    def __repr__(self):
+        return f'GradKeywords({self.__str__()})'
 
 
 class SinglePointKeywords(Keywords):
 
-    def __str__(self):
-        return self._string(prefix='SPKeywords')
+    def __repr__(self):
+        return f'SPKeywords({self.__str__()})'
 
 
 class Keyword(ABC):

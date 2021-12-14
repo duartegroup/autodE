@@ -34,12 +34,12 @@ def test_printing_ecp():
     tmp_mol = Molecule(smiles='[H][Pd][H]')
     tmp_mol.constraints = Constraints(distance={}, cartesian=[])
 
-    keywords = kwds.Keywords(keyword_list=[def2tzecp])
+    keywords = kwds.OptKeywords(keyword_list=[def2tzecp])
     assert n_ecp_elements(keywords, molecule=tmp_mol) == 1
     # Light elements should not default to ECPs
     assert n_ecp_elements(keywords, molecule=Molecule(smiles='O')) == 0
     # no ECP keywords -> no elements needing an ECP
-    assert n_ecp_elements(kwds.Keywords(keyword_list=[]), molecule=tmp_mol) == 0
+    assert n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
 
     calc_input = CalculationInput(keywords,
                                   additional_input=None,
@@ -49,7 +49,7 @@ def test_printing_ecp():
     with pytest.raises(RuntimeError):
         print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
 
-    calc_input.keywords = kwds.Keywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
+    calc_input.keywords = kwds.OptKeywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
     print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
     assert os.path.exists('basis.gbs')
 

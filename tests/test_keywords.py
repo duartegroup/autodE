@@ -23,14 +23,14 @@ from autode.wrappers.keywords import (Keywords,
 
 def test_keywords():
 
-    keywords = Keywords(keyword_list=None)
+    keywords = OptKeywords(keyword_list=None)
     assert keywords._list == []
 
     assert isinstance(GradientKeywords(None), Keywords)
     assert isinstance(OptKeywords(None), Keywords)
     assert isinstance(SinglePointKeywords(None), Keywords)
 
-    keywords = Keywords(keyword_list=['test'])
+    keywords = OptKeywords(keyword_list=['test'])
     assert 'test' in str(keywords)
     assert 'test' in repr(keywords)
 
@@ -41,14 +41,14 @@ def test_keywords():
     assert hasattr(keywords, 'copy')
 
     # Should have reasonable names
-    assert 'opt' in str(OptKeywords(None)).lower()
-    assert 'hess' in str(HessianKeywords(None)).lower()
-    assert 'grad' in str(GradientKeywords(None)).lower()
-    assert 'sp' in str(SinglePointKeywords(None)).lower()
+    assert 'opt' in repr(OptKeywords(None)).lower()
+    assert 'hess' in repr(HessianKeywords(None)).lower()
+    assert 'grad' in repr(GradientKeywords(None)).lower()
+    assert 'sp' in repr(SinglePointKeywords(None)).lower()
 
     assert 'pbe' in repr(pbe).lower()
 
-    keywords = Keywords([pbe, def2tzvp, d3bj])
+    keywords = OptKeywords([pbe, def2tzvp, d3bj])
     assert len(keywords) == 3
     assert keywords.bstring is not None
     assert 'pbe' in keywords.bstring.lower()
@@ -58,12 +58,12 @@ def test_keywords():
     # Keywords have a defined order
     assert 'pbe' in keywords[0].name.lower()
 
-    assert 'hf' in Keywords([hf, def2tzvp]).bstring.lower()
+    assert 'hf' in OptKeywords([hf, def2tzvp]).bstring.lower()
 
 
 def test_wf_keywords_string():
 
-    assert 'hf' in Keywords([hf]).method_string.lower()
+    assert 'hf' in OptKeywords([hf]).method_string.lower()
 
 
 def test_set_keywordsset():
