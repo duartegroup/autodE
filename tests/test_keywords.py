@@ -23,32 +23,32 @@ from autode.wrappers.keywords import (Keywords,
 
 def test_keywords():
 
-    keywords = Keywords(keyword_list=None)
-    assert keywords.keyword_list == []
+    keywords = OptKeywords(keyword_list=None)
+    assert keywords._list == []
 
     assert isinstance(GradientKeywords(None), Keywords)
     assert isinstance(OptKeywords(None), Keywords)
     assert isinstance(SinglePointKeywords(None), Keywords)
 
-    keywords = Keywords(keyword_list=['test'])
+    keywords = OptKeywords(keyword_list=['test'])
     assert 'test' in str(keywords)
     assert 'test' in repr(keywords)
 
     # Should not add a keyword that's already there
     keywords.append('test')
-    assert len(keywords.keyword_list) == 1
+    assert len(keywords._list) == 1
 
     assert hasattr(keywords, 'copy')
 
     # Should have reasonable names
-    assert 'opt' in str(OptKeywords(None)).lower()
-    assert 'hess' in str(HessianKeywords(None)).lower()
-    assert 'grad' in str(GradientKeywords(None)).lower()
-    assert 'sp' in str(SinglePointKeywords(None)).lower()
+    assert 'opt' in repr(OptKeywords(None)).lower()
+    assert 'hess' in repr(HessianKeywords(None)).lower()
+    assert 'grad' in repr(GradientKeywords(None)).lower()
+    assert 'sp' in repr(SinglePointKeywords(None)).lower()
 
     assert 'pbe' in repr(pbe).lower()
 
-    keywords = Keywords([pbe, def2tzvp, d3bj])
+    keywords = OptKeywords([pbe, def2tzvp, d3bj])
     assert len(keywords) == 3
     assert keywords.bstring is not None
     assert 'pbe' in keywords.bstring.lower()
@@ -58,12 +58,12 @@ def test_keywords():
     # Keywords have a defined order
     assert 'pbe' in keywords[0].name.lower()
 
-    assert 'hf' in Keywords([hf, def2tzvp]).bstring.lower()
+    assert 'hf' in OptKeywords([hf, def2tzvp]).bstring.lower()
 
 
 def test_wf_keywords_string():
 
-    assert 'hf' in Keywords([hf]).method_string.lower()
+    assert 'hf' in OptKeywords([hf]).method_string.lower()
 
 
 def test_set_keywordsset():
@@ -153,3 +153,50 @@ def test_max_opt_cycles():
 
     with pytest.raises(ValueError):
         kwds.max_opt_cycles = -1
+
+
+def test_type_init():
+
+    keyword_set = Config.ORCA.keywords.copy()
+
+    for opt_type in ('low_opt', 'opt', 'opt_ts'):
+        kwds = getattr(keyword_set, opt_type)
+        assert isinstance(kwds, OptKeywords)
+
+    for opt_type in ('low_sp', 'sp'):
+        kwds = getattr(keyword_set, opt_type)
+        assert kwds is None or isinstance(kwds, SinglePointKeywords)
+
+    assert isinstance(keyword_set.hess, HessianKeywords)
+    assert isinstance(keyword_set.grad, GradientKeywords)
+
+
+def test_type_inference():
+    """Ensure that setting keywords with lists retains their type"""
+
+    keyword_set = Config.ORCA.keywords.copy()
+
+    keyword_set.low_opt = ['a']
+    assert isinstance(keyword_set.low_opt, OptKeywords)
+
+    keyword_set.low_opt = OptKeywords(['a', 'different', 'set'])
+    assert isinstance(keyword_set.low_opt, OptKeywords)
+
+    keyword_set.opt = ['a']
+    assert isinstance(keyword_set.opt, OptKeywords)
+
+    keyword_set.opt_ts = ['a']
+    assert isinstance(keyword_set.opt_ts, OptKeywords)
+
+    keyword_set.sp = ['a']
+    assert isinstance(keyword_set.sp, SinglePointKeywords)
+
+    keyword_set.low_sp = ['a']
+    assert isinstance(keyword_set.low_sp, SinglePointKeywords)
+    keyword_set.low_sp = None
+
+    keyword_set.grad = ['a']
+    assert isinstance(keyword_set.grad, GradientKeywords)
+
+    keyword_set.hess = ['a']
+    assert isinstance(keyword_set.hess, HessianKeywords)

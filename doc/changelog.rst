@@ -26,6 +26,7 @@ Usability improvements/Changes
 - Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
 - Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
 - Removes :code:`autode.KcalMol` and :code:`KjMol` and enables a reaction to be plotted using a string representation of the units.
+- Allows for keywords to be set using just a list or a string, rather than requiring a specific type
 
 
 Functionality improvements

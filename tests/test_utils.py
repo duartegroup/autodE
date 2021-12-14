@@ -3,7 +3,7 @@ from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.conformers import Conformer
 from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.keywords import Keywords
+from autode.wrappers.keywords import OptKeywords
 from subprocess import Popen, TimeoutExpired
 import multiprocessing as mp
 from autode import exceptions as ex
@@ -82,7 +82,7 @@ def test_calc_output():
     calc = Calculation(name='test',
                        molecule=Molecule(smiles='C'),
                        method=MOPAC(),
-                       keywords=Keywords(['PM7']))
+                       keywords=OptKeywords(['PM7']))
 
     # A function that ficticously requires output
     @utils.requires_output

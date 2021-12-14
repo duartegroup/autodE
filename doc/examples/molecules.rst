@@ -163,10 +163,20 @@ keywords for an instance of the ORCA wrapper
 .. code-block:: python
 
   >>> orca = ade.methods.ORCA()
-  >>> orca.keywords.sp = ade.SinglePointKeywords(['PBE0', 'D3BJ', 'ma-def2-TZVP'])
+  >>> orca.keywords.sp = ['PBE0', 'D3BJ', 'ma-def2-TZVP']
   >>> water.single_point(method=orca)
   >>> water.energy
   Energy(-76.37938 Ha)
+
+Keywords can also be passed as arguments to :code:`single_point`, :code:`optimise`
+and :code:`calc_thermo`. For example:
+
+.. code-block:: python
+
+  >>> water.single_point(method=ade.methods.ORCA(),
+  ...                    keywords=['PBE0', 'D3BJ', 'ma-def2-TZVP'])
+
+will do an identical calculation to the above example.
 
 Alternatively, to set the keywords for every instance of :code:`ORCA` created,
 use :code:`ade.Config` e.g.
@@ -174,7 +184,7 @@ use :code:`ade.Config` e.g.
 
 .. code-block:: python
 
-  >>> ade.Config.ORCA.keywords.sp = ade.SinglePointKeywords(['PBE0', 'D3BJ', 'ma-def2-TZVP'])
+  >>> ade.Config.ORCA.keywords.sp = ['PBE0', 'D3BJ', 'ma-def2-TZVP']
   >>> instance_1 = ade.methods.ORCA()
   >>> instance_1.keywords.sp
   SPKeywords(PBE0 D3BJ ma-def2-TZVP)

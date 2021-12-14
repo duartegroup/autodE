@@ -13,7 +13,7 @@ from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
-from autode.wrappers.keywords import Keywords
+from autode.wrappers.keywords import OptKeywords, HessianKeywords, SinglePointKeywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
@@ -22,9 +22,7 @@ from autode.hessians import Hessian
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
 from autode.thermochemistry.igm import calculate_thermo_cont, LFMethod
-from autode.utils import (requires_atoms,
-                          work_in,
-                          requires_conformers)
+from autode.utils import requires_atoms, work_in, requires_conformers
 
 
 class Species(AtomCollection):
@@ -654,8 +652,23 @@ class Species(AtomCollection):
         calc = Calculation(name=f'{self.name}_hess',
                            molecule=self,
                            method=method,
-                           keywords=keywords,
+                           keywords=HessianKeywords(keywords),
                            n_cores=Config.n_cores)
+
+        return calc
+
+    def _default_opt_calculation(self, method=None, keywords=None, n_cores=None):
+        """Construct a default optimisation calculation"""
+
+        method = method if method is not None else get_hmethod()
+        keywords = keywords if keywords is not None else method.keywords.opt
+        logger.info(f'Using keywords: {keywords} to optimise with {method}')
+
+        calc = Calculation(name=f'{self.name}_opt',
+                           molecule=self,
+                           method=method,
+                           keywords=OptKeywords(keywords),
+                           n_cores=Config.n_cores if n_cores is None else n_cores)
 
         return calc
 
@@ -747,7 +760,8 @@ class Species(AtomCollection):
     @requires_atoms
     def is_linear(self,
                   tol:       Optional[float] = None,
-                  angle_tol: val.Angle = val.Angle(1.0, units='deg')) -> bool:
+                  angle_tol: val.Angle = val.Angle(1.0, units='deg')
+                  ) -> bool:
         """
         Determine if a species is linear i.e all atoms are colinear
 
@@ -786,13 +800,13 @@ class Species(AtomCollection):
         """
         Rotate the molecule by around an axis
 
+        -----------------------------------------------------------------------
         Arguments:
             axis (np.ndarray | list(float)): Axis to rotate around. len(axis)=3
 
             theta (Angle | float): Angle to rotate anticlockwise by if float
                                    then assume radian units
 
-        Keyword Arguments:
             origin (np.ndarray | list(float) | None): Origin of the rotation
         """
 
@@ -856,7 +870,8 @@ class Species(AtomCollection):
                        title_line:            Optional[str] = None,
                        filename:              Optional[str] = None,
                        additional_title_line: Optional[str] = None,
-                       with_solvent:          bool = True) -> None:
+                       with_solvent:          bool = True
+                       ) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
 
@@ -900,21 +915,24 @@ class Species(AtomCollection):
                  method:      Optional[ElectronicStructureMethod] = None,
                  reset_graph: bool = False,
                  calc:        Optional[Calculation] = None,
-                 keywords:    Optional[Keywords] = None,
-                 n_cores:     Optional[int] = None) -> None:
+                 keywords:    Union[Sequence[str], str, None] = None,
+                 n_cores:     Optional[int] = None
+                 ) -> None:
         """
         Optimise the geometry using a method
 
+        -----------------------------------------------------------------------
         Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
-        Keyword Arguments:
             reset_graph (bool): Reset the molecular graph
 
             calc (autode.calculation.Calculation): Different e.g. constrained
                                                    optimisation calculation
 
-            keywords (autode.wrappers.keywords.Keywords):
+            keywords (list(str) | None): Calculation keywords to use, if None
+                                         then use the default for the method.
+                                         Does not include solvent-specific ones
 
             n_cores (int | None): Number of cores to use for the calculation,
                                   if None then will default to
@@ -929,11 +947,7 @@ class Species(AtomCollection):
                              'a specified method or calculation.')
 
         if calc is None:
-            calc = Calculation(name=f'{self.name}_opt',
-                               molecule=self,
-                               method=method,
-                               keywords=method.keywords.opt if keywords is None else keywords,
-                               n_cores=Config.n_cores if n_cores is None else n_cores)
+            calc = self._default_opt_calculation(method, keywords, n_cores)
 
         calc.run()
         self.atoms = calc.get_final_atoms()
@@ -954,14 +968,14 @@ class Species(AtomCollection):
                     temp:       float = 298.15,
                     lfm_method: Union[LFMethod, str, None] = None,
                     ss:         Optional[str] = None,
-                    keywords:   Optional[Keywords] = None,
+                    keywords:   Union[Sequence[str], str, None] = None,
                     **kwargs) -> None:
         """
         Calculate the free energy and enthalpy contributions using the
         ideal gas approximation
 
         -----------------------------------------------------------------------
-        Keyword Arguments:
+        Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
             calc (autode.calculation.Calculation):
@@ -1011,7 +1025,7 @@ class Species(AtomCollection):
                         'calculating the Hessian')
             self._run_hess_calculation(method=method,
                                        calc=calc,
-                                       keywords=keywords)
+                                       keywords=HessianKeywords(keywords))
 
         calculate_thermo_cont(self, temp=temp, **kwargs)
         return None
@@ -1031,16 +1045,38 @@ class Species(AtomCollection):
     @requires_atoms
     def single_point(self,
                      method:   ElectronicStructureMethod,
-                     keywords: Optional[Keywords] = None,
-                     n_cores:  Optional[int] = None) -> None:
-        """Calculate the single point energy of the species with a
-        autode.wrappers.base.ElectronicStructureMethod"""
+                     keywords: Union[Sequence[str], str, None] = None,
+                     n_cores:  Optional[int] = None
+                     ) -> None:
+        """
+        Calculate the single point energy of the species using a method
+
+        -----------------------------------------------------------------------
+        Arguments:
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+            keywords (list(str) | None): Calculation keywords to use, if None
+                                         then use the default for the method
+
+            n_cores (int | None): Number of cores to use for the calculation,
+                                  if None then use autode.Config.n_cores
+
+        Raises:
+            (autode.exceptions.CalculationException):
+        """
         logger.info(f'Running single point energy evaluation of {self.name}')
+
+        if keywords is None:
+            keywords = method.keywords.sp
+            logger.info(f'Using default single point keywords: {keywords}')
+
+        else:
+            keywords = SinglePointKeywords(keywords)
 
         sp = Calculation(name=f'{self.name}_sp',
                          molecule=self,
                          method=method,
-                         keywords=method.keywords.sp if keywords is None else keywords,
+                         keywords=keywords,
                          n_cores=Config.n_cores if n_cores is None else n_cores)
         sp.run()
         energy = sp.get_energy()
@@ -1048,8 +1084,8 @@ class Species(AtomCollection):
         if energy is None:
             raise CalculationException("Failed to calculate a single point "
                                        f"energy for {self}")
-        self.energy = energy
 
+        self.energy = energy
         return None
 
     @work_in('conformers')
@@ -1121,7 +1157,8 @@ class Species(AtomCollection):
 
     def explicitly_solvate(self,
                            num:     int = 10,
-                           solvent: Union[str, 'Species', None] = None) -> None:
+                           solvent: Union[str, 'Species', None] = None
+                           ) -> None:
         """
         Explicitly solvate this Molecule
 

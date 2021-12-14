@@ -97,7 +97,7 @@ class Calculation:
 
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""
-        string = (f'{self.name}{self.method.name}{self.input.keywords}'
+        string = (f'{self.name}{self.method.name}{repr(self.input.keywords)}'
                   f'{self.molecule}{self.method.implicit_solvation_type}'
                   f'{self.molecule.constraints}')
 
@@ -536,6 +536,36 @@ class CalculationOutput:
 
 class CalculationInput:
 
+    def __init__(self,
+                 keywords:        'autode.wrappers.keywords.Keywords',
+                 additional_input: Optional[str] = None,
+                 added_internals:  Optional[list] = None,
+                 point_charges:    Optional[List[PointCharge]] = None):
+        """
+        Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
+
+            additional_input (str or None): Any additional input string to add
+                                            to the input file, or None
+
+            added_internals (list(tuple(int)) or None): Atom indexes to add to
+                                                       the internal coordinates
+
+            point_charges (list(autode.point_charges.PointCharge) or None):
+                          list of float of point charges, x, y, z coordinates
+                          for each point charge
+        """
+        self.keywords = keywords
+        self.other_block = additional_input
+
+        self.added_internals = added_internals
+        self.point_charges = point_charges
+
+        self.filename = None
+        self.additional_filenames = []
+
+        self._check()
+
     def _check(self):
         """Check that the input parameters have the expected format"""
         if self.keywords is not None:
@@ -566,34 +596,3 @@ class CalculationInput:
 
         return [self.filename] + self.additional_filenames
 
-    def __init__(self,
-                 keywords:        'autode.wrappers.keywords.Keywords',
-                 additional_input: Optional[str] = None,
-                 added_internals:  Optional[list] = None,
-                 point_charges:    Optional[List[PointCharge]] = None):
-        """
-        Arguments:
-            keywords (autode.wrappers.keywords.Keywords):
-
-            solvent (str or None): Name of the solvent for this QM method
-
-            additional_input (str or None): Any additional input string to add
-                                            to the input file, or None
-
-            added_internals (list(tuple(int)) or None): Atom indexes to add to
-                                                       the internal coordinates
-
-            point_charges (list(autode.point_charges.PointCharge) or None):
-                          list of float of point charges, x, y, z coordinates
-                          for each point charge
-        """
-        self.keywords = keywords
-        self.other_block = additional_input
-
-        self.added_internals = added_internals
-        self.point_charges = point_charges
-
-        self.filename = None
-        self.additional_filenames = []
-
-        self._check()
