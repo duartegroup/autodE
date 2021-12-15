@@ -269,7 +269,7 @@ class DoglegTROptimiser(CauchyTROptimiser):
 
         elif 1 < tau <= 2:
             raise NotImplementedError
-            self.p = tau * p_u + (tau - 1) * (p_b - p_u)
+            # self.p = tau * p_u + (tau - 1) * (p_b - p_u)
 
         else:
             raise RuntimeError(f'τ = {tau} was outside the acceptable region')
@@ -280,11 +280,14 @@ class DoglegTROptimiser(CauchyTROptimiser):
 class CGSteihaugTROptimiser(TrustRegionOptimiser):
     """Conjugate Gradient Steihaung's Method"""
 
+    coordinate_type = CartesianCoordinates
+
     def __init__(self,
                  *args,
                  epsilon: float = 0.001,
                  **kwargs):
         """
+        CG trust region optimiser
 
         -----------------------------------------------------------------------
         Arguments:
@@ -302,7 +305,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         """Initialise a TR optimiser, so it can take the first step"""
 
         if self._coords is None:
-            self._coords = CartesianCoordinates(self._species.coordinates)
+            self._coords = self.coordinate_type(self._species.coordinates)
 
         self._update_gradient_and_energy()
         self._solve_subproblem()
@@ -310,14 +313,23 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
 
     def _update_hessian(self) -> None:
         """Hessian is always the identity matrix"""
-        # TODO - a better update
-
         self._coords.h = np.eye(len(self._coords))
         return None
 
-    def _discrete_p_opt(self, z, d):
-        """"""
-        # TODO: comments
+    def _discrete_optimised_p(self, z, d) -> np.ndarray:
+        """
+        Optimise the direction of the step to take by performing an exact line
+        search over τ as to reduce the value of 'm' as much as possible, where
+        m is the predicted reduction in the energy by performing this step
+
+        -----------------------------------------------------------------------
+        Arguments:
+            z: Current estimate of the step
+            d: Direction to move the step in
+
+        Returns:
+            (np.ndarray): Step direction (p)
+        """
 
         e, g, h = self._coords.e, self._coords.g, self._coords.h
         tau_arr, m_arr = np.linspace(-1, 1, num=1000), []
@@ -349,14 +361,14 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         for j in range(100):
 
             if np.dot(d, np.matmul(h, d)) <= 0:
-                self.p = self._discrete_p_opt(z, d)
+                self.p = self._discrete_optimised_p(z, d)
                 return
 
             alpha = np.dot(r, r) / (np.dot(d, np.matmul(h, d)))
             z += alpha*d
 
             if np.linalg.norm(z) >= self.alpha:
-                self.p = self._discrete_p_opt(z, d)
+                self.p = self._discrete_optimised_p(z, d)
                 return
 
             r_old = r.copy()
