@@ -64,7 +64,7 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
                  gtol:         Union[float, GradientNorm] = GradientNorm(1E-3, units='Ha Å-1'),
                  etol:         Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
                  maxiter:      int = 5,
-                 trust_radius: float = 1.0,
+                 trust_radius: float = 0.2,
                  **kwargs
                  ) -> None:
         """
@@ -185,7 +185,9 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         Returns:
             (bool): If the last step updated the coordinates
         """
-        dx = self._history.final - self._history.penultimate
+        dx = (np.array(self._history.final, copy=True)
+              - np.array(self._history.penultimate, copy=True))
+
         return np.linalg.norm(dx) > 1E-10
 
 
@@ -332,7 +334,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         """
 
         e, g, h = self._coords.e, self._coords.g, self._coords.h
-        tau_arr, m_arr = np.linspace(-1, 1, num=1000), []
+        tau_arr, m_arr = np.linspace(0, 10, num=1000), []
 
         for tau in tau_arr:
 
@@ -344,7 +346,15 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         min_m_tau = tau_arr[np.argmin(m_arr)]
         logger.info(f'Optimised τ={min_m_tau:.6f}')
 
-        return z + min_m_tau * d
+        p = z + min_m_tau * d
+        step_length = np.linalg.norm(p)
+
+        if step_length > self.alpha:
+            logger.warning(f'Step size {step_length} was too large, '
+                           f'scaling down')
+            p *= (self.alpha / step_length)
+
+        return p
 
     def _solve_subproblem(self) -> None:
         """
@@ -355,7 +365,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         d = -r.copy()
 
         if np.linalg.norm(r) < self.epsilon:
-            self.p = 0
+            self.p = np.zeros_like(r)
             return
 
         for j in range(100):
