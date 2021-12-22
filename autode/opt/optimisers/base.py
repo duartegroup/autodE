@@ -6,6 +6,7 @@ from autode.config import Config
 from autode.calculation import Calculation
 from autode.values import GradientNorm, PotentialEnergy
 from autode.opt.coordinates.base import OptCoordinates
+from autode.opt.optimisers.hessian_update import NullUpdate
 
 
 class Optimiser(ABC):
@@ -269,6 +270,8 @@ class NDOptimiser(Optimiser, ABC):
         self.etol = etol
         self.gtol = gtol
 
+        self._hessian_update_types = [NullUpdate]
+
     @property
     def gtol(self) -> GradientNorm:
         """
@@ -410,6 +413,39 @@ class NDOptimiser(Optimiser, ABC):
                     f'{self._g_norm:.5f}')
 
         return None
+
+    def _updated_h_inv(self) -> np.ndarray:
+        r"""
+        Update the inverse of the Hessian matrix :math:`H^{-1}` for the
+        current set of coordinates. If the first iteration then use the true
+        inverse of the (estimated) Hessian, otherwise update the inverse
+        using a viable update strategy
+
+
+        .. math::
+
+            H_{l - 1} \rightarrow H_{l}
+
+        """
+
+        if self.iteration == 0:
+            logger.info('First iteration so using exact inverse, H^-1')
+            return np.linalg.inv(self._coords.h)
+
+        coords_l, coords_k = self._coords, self._history.penultimate
+
+        for update_type in self._hessian_update_types:
+            updater = update_type(h_inv=coords_k.h_inv,
+                                  s=coords_l - coords_k,
+                                  y=coords_l.g - coords_k.g)
+
+            if not updater.conditions_met:
+                continue
+
+            return updater.updated_h_inv
+
+        raise RuntimeError('Could not update the inverse Hessian - no '
+                           'suitable update strategies')
 
 
 class _OptimiserHistory(list):

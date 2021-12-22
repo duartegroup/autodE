@@ -205,6 +205,9 @@ class SR1Update(HessianUpdater):
         return np.abs(s_yhs) > r * norm_s * norm_yhs
 
 
+
+
+
 class NullUpdate(HessianUpdater):
 
     @property
