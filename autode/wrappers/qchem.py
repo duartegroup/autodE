@@ -1,8 +1,9 @@
 import numpy as np
+import autode.wrappers.keywords as kws
 from typing import List
 from autode.config import Config
 from autode.log import logger
-import autode.wrappers.keywords as kws
+from autode.exceptions import CouldNotGetProperty
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external, work_in_tmp_dir
 
@@ -58,9 +59,7 @@ class QChem(ElectronicStructureMethod):
 
             if 'Q-Chem' in line and len(line.split()) > 1:
                 # e.g.  Q-Chem 5.4.1 for Intel X86 EM64T Linux
-
                 str0, str1 = line.split()[:2]
-                print(line)
 
                 if str0 == 'Q-Chem' and '.' in str1 and ',' not in str1:
                     return str1
@@ -110,10 +109,21 @@ class QChem(ElectronicStructureMethod):
         pass
 
     def get_atomic_charges(self, calc) -> List:
-        pass
+        raise NotImplementedError
 
     def get_energy(self, calc) -> float:
-        pass
+        """Get the total electronic energy from the calculation"""
+
+        for line in reversed(calc.output.file_lines):
+
+            if 'Total energy' in line:
+                try:
+                    return float(line.split()[-1])
+
+                except (TypeError, ValueError, IndexError):
+                    break
+
+        raise CouldNotGetProperty('energy')
 
     def get_gradients(self, calc) -> np.ndarray:
         pass
@@ -157,7 +167,16 @@ class _InputFileWriter:
                                       f'ks included in keywords: {keywords}')
 
         self.write('$rem')
+        self._write_job_type(keywords)
+        self._write_keywords(keywords)
+        self.write('$end')
+
+        return None
+
+    def _write_keywords(self, keywords) -> None:
+
         for word in keywords:
+
             if isinstance(word, kws.BasisSet):
                 self.write(f'basis {word.qchem}')
 
@@ -167,8 +186,31 @@ class _InputFileWriter:
             elif isinstance(word, kws.DispersionCorrection):
                 self.write(f'dft_d {word.qchem}')
 
+            elif isinstance(word, kws.MaxOptCycles):
+                self.write(f'geom_opt_max_cycle {word}')
+
             else:
                 self.write(word)
 
-        self.write('$end')
+        return None
+
+    def _write_job_type(self, keywords) -> None:
+
+        if any('jobtype' in word.lower() for word in keywords):
+            logger.info('QChem Jobtype already defined - not appending')
+
+        elif isinstance(keywords, kws.OptKeywords):
+            self.write('jobtype opt')
+
+        elif isinstance(keywords, kws.HessianKeywords):
+            self.write('jobtype freq')
+
+        elif isinstance(keywords, kws.OptKeywords):
+            self.write('jobtype opt')
+
+        if (isinstance(keywords, kws.OptKeywords)
+                or isinstance(keywords, kws.HessianKeywords)):
+            # Print the Hessian
+            self.write('geom_opt_print 4')
+
         return None

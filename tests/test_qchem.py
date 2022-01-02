@@ -1,5 +1,6 @@
 import os
 import pytest
+import numpy as np
 from autode.wrappers.qchem import QChem
 from autode.calculation import Calculation
 from autode.atoms import Atom
@@ -8,9 +9,12 @@ from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.basis_sets import def2svp
 from autode.wrappers.functionals import pbe0
 from autode.utils import work_in_tmp_dir
+from autode.exceptions import CalculationException
 from .testutils import work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
+qchem_data_zip_path = os.path.join(here, 'data', 'qchem.zip')
+
 method = QChem()
 
 
@@ -36,6 +40,23 @@ def _completed_thf_calc():
     return calc
 
 
+def _broken_output_calc():
+
+    calc = _blank_calc()
+    with open('tmp.out', 'w') as out_file:
+        print('a', 'broken', 'output', 'file', sep='\n', file=out_file)
+
+    calc.output.filename = 'tmp.out'
+    assert calc.output.exists
+
+    return calc
+
+
+def test_base_method():
+
+    assert 'qchem' in repr(method).lower()
+
+
 def test_in_out_name():
 
     calc = _blank_calc(name='test')
@@ -43,25 +64,37 @@ def test_in_out_name():
     assert method.get_output_filename(calc) == 'test_qchem.out'
 
 
-@work_in_zipped_dir(os.path.join(here, 'data', 'qchem.zip'))
+@work_in_zipped_dir(qchem_data_zip_path)
 def test_version_extract():
+
+    # Version extraction from a blank calculation should not raise an error
+    assert isinstance(method.get_version(_blank_calc()), str)
 
     version = method.get_version(calc=_completed_thf_calc())
 
     assert version == '5.4.1'
 
 
-@work_in_zipped_dir(os.path.join(here, 'data', 'qchem.zip'))
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_version_extract_broken_output_file():
+
+    # Should not raise an exception
+    version = method.get_version(_broken_output_calc())
+    assert isinstance(version, str)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
 def test_thf_calc_terminated_normally():
 
     assert _completed_thf_calc().terminated_normally
 
 
-@work_in_zipped_dir(os.path.join(here, 'data', 'qchem.zip'))
+@work_in_zipped_dir(qchem_data_zip_path)
 def test_terminated_abnormally():
 
     # Without any output the calculation cannot have terminated normally
     calc = _blank_calc()
+    assert not method.calculation_terminated_normally(calc)
     assert not calc.terminated_normally
 
     # A broken file containing one fewer H atom for an invalid 2S+1
@@ -134,7 +167,19 @@ def test_simple_input_generation():
     # ignored
     inp_lines = [line for line in open(calc.input.filename, 'r').readlines()
                  if line != '\n']
-
     assert ''.join(inp_lines) == expected_inp
 
     os.remove('test.in')
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_energy_extraction():
+
+    calc = _completed_thf_calc()
+    energy = calc.get_energy()
+
+    assert np.isclose(energy.to('Ha'), -232.45463628, atol=1e-8)
+
+    for calc in (_blank_calc(), _broken_output_calc()):
+        with pytest.raises(CalculationException):
+            method.get_energy(calc)
