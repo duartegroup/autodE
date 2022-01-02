@@ -501,6 +501,20 @@ class Calculation:
 
         return None
 
+    def print_final_output_lines(self, n: int = 50) -> None:
+        """
+        Print the final n output lines, if the output exists
+
+        -----------------------------------------------------------------------
+        Arguments:
+            n: Number of lines
+        """
+
+        if self.output.exists:
+            print("\n".join(self.output.file_lines[-n:]))
+
+        return None
+
 
 class CalculationOutput:
 
@@ -595,4 +609,3 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
-
