@@ -92,6 +92,10 @@ class QChem(ElectronicStructureMethod):
             if 'Q-Chem begins' in line:
                 calc_started = True
 
+            if 'MAXIMUM OPTIMIZATION CYCLES REACHED' in line:
+                logger.info('Maximum number of optimisation steps reached')
+                return True
+
             if 'fatal error' in line:
                 logger.error('Fatal error in QChem calculation. Final lines:')
                 calc.print_final_output_lines(n=50)
@@ -205,8 +209,8 @@ class _InputFileWriter:
         elif isinstance(keywords, kws.HessianKeywords):
             self.write('jobtype freq')
 
-        elif isinstance(keywords, kws.OptKeywords):
-            self.write('jobtype opt')
+        elif isinstance(keywords, kws.GradientKeywords):
+            self.write('jobtype force')
 
         if (isinstance(keywords, kws.OptKeywords)
                 or isinstance(keywords, kws.HessianKeywords)):
