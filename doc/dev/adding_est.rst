@@ -15,13 +15,10 @@ To add a new wrapper for e.g. TurboMole:
 
 1. Subclass :class:`ElectronicStructureMethod` and implement all abstract methods.
 
-2. Add a :class:`TurboMole` class within :class:`ade.Config` see `here <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_, with keywords for each implemented type of calculation.
+2. Add a :class:`TurboMole` class within :class:`ade.Config` see `here <https://github.com/duartegroup/autodE/blob/master/autode/config.py>`_, with default keywords for each implemented type of calculation.
 
 3. Optional: Include keywords in keyword wrappers e.g. *wrappers/functionals.py*, so keywords may have associated citations.
 
 4. Optional: Add implemented implicit solvent names to *autode/solvent/solvents.py*.
 
 5. Write tests, following the examples in *tests/test_orca_calc.py*.
-
-
-

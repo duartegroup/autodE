@@ -318,6 +318,20 @@ class _ConfigClass:
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
 
+    class QChem:
+        # ---------------------------------------------------------------------
+        # Parameters for QChem                          https://www.q-chem.com/
+        # ---------------------------------------------------------------------
+        #
+        # path can be unset and will be assigned if it can be found in $PATH
+        path = None
+        #
+        # Default set of keywords to use for different types of calculation
+        keywords = KeywordsSet()
+        #
+        # Only SMD is implemented
+        implicit_solvation_type = solv.smd
+
     # =========================================================================
     # =============               End                        ==================
     # =========================================================================
