@@ -40,11 +40,10 @@ def _completed_thf_calc():
     return calc
 
 
-def _broken_output_calc():
-
+def _custom_output_calc(*lines):
     calc = _blank_calc()
     with open('tmp.out', 'w') as out_file:
-        print('a', 'broken', 'output', 'file', sep='\n', file=out_file)
+        print(*lines, sep='\n', file=out_file)
 
     calc.output.filename = 'tmp.out'
     assert calc.output.exists
@@ -52,14 +51,12 @@ def _broken_output_calc():
     return calc
 
 
+def _broken_output_calc():
+    return _custom_output_calc('a', 'broken', 'output', 'file')
+
+
 def _broken_output_calc2():
-
-    calc = _blank_calc()
-    with open('tmp.out', 'w') as out_file:
-        print('a', 'broken', 'Total energy', sep='\n', file=out_file)
-
-    calc.output.filename = 'tmp.out'
-    return calc
+    return _custom_output_calc('broken', 'Total energy')
 
 
 def test_base_method():
@@ -257,6 +254,7 @@ def test_ecp_writing():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_h2o_opt():
+    """Check that the energy and geometry is extracted correctly"""
 
     h2o = Molecule(smiles='O')
     h2o.optimise(method=method)
@@ -269,3 +267,23 @@ def test_h2o_opt():
     assert np.isclose(h2o.distance(0, 1).to('Å'),
                       0.962586,
                       atol=1E-5)
+
+    assert np.isclose(h2o.angle(1, 0, 2).to('deg'),
+                      103.154810,
+                      atol=1E-3)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_gradient_extraction():
+
+    calc = _blank_calc()
+    calc.molecule = Molecule(smiles='O')
+    calc.output.filename = 'H2O_opt_qchem.out'
+
+    assert calc.output.exists
+
+    grad = calc.get_gradients()
+    assert grad.shape == (3, 3)
+
+    # The minimum should have a gradient close to zero
+    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-1)

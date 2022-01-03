@@ -4,6 +4,7 @@ from typing import List
 from autode.config import Config
 from autode.log import logger
 from autode.atoms import Atom
+from autode.constants import Constants
 from autode.exceptions import CouldNotGetProperty
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external, work_in_tmp_dir
@@ -133,9 +134,8 @@ class QChem(ElectronicStructureMethod):
             start_idx = i+2
             end_idx = start_idx + calc.molecule.n_atoms
 
-            atoms = []
-            for cline in calc.output.file_lines[start_idx:end_idx]:
-                atoms.append(Atom(cline.split()[1], *cline.split()[2:5]))
+            atoms = [Atom(_l.split()[1], *_l.split()[2:5])
+                     for _l in calc.output.file_lines[start_idx:end_idx]]
 
         return atoms
 
@@ -157,7 +157,33 @@ class QChem(ElectronicStructureMethod):
         raise CouldNotGetProperty('energy')
 
     def get_gradients(self, calc) -> np.ndarray:
-        pass
+        """Gradient of the potential energy"""
+
+        grad = []
+
+        for i, line in enumerate(calc.output.file_lines):
+
+            if 'Gradient of SCF Energy' not in line:
+                continue
+
+            """e.g.
+            
+             Calculating analytic gradient of the SCF energy
+             Gradient of SCF Energy
+                        1           2           3
+                1  -0.0017473  -0.0317331   0.0334804
+                2  -0.0075556   0.0032594   0.0042961
+                3  -0.0000000   0.0000000   0.0000000
+            """
+
+            start_idx = i+2
+            end_idx = start_idx+calc.molecule.n_atoms
+
+            grad = [[float(val) for val in _l.split()[1:]]
+                    for _l in calc.output.file_lines[start_idx:end_idx]]
+
+            # Convert from Ha a0^-1 to Ha A-1
+            return np.array(grad) / Constants.a0_to_ang
 
     def get_hessian(self, calc) -> np.ndarray:
         pass
