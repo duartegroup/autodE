@@ -253,3 +253,19 @@ def test_ecp_writing():
     calc.molecule = Molecule(atoms=[Atom('Pb')])
     write_tmp_input()
     assert _tmp_input_contains('ecp def2-ecp')
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_h2o_opt():
+
+    h2o = Molecule(smiles='O')
+    h2o.optimise(method=method)
+
+    assert h2o.energy is not None
+    assert np.isclose(h2o.energy.to('Ha'),
+                      -76.2766126261376,
+                      atol=1E-8)
+
+    assert np.isclose(h2o.distance(0, 1).to('Å'),
+                      0.962586,
+                      atol=1E-5)

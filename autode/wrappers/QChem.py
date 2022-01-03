@@ -3,6 +3,7 @@ import autode.wrappers.keywords as kws
 from typing import List
 from autode.config import Config
 from autode.log import logger
+from autode.atoms import Atom
 from autode.exceptions import CouldNotGetProperty
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external, work_in_tmp_dir
@@ -104,13 +105,39 @@ class QChem(ElectronicStructureMethod):
         return True if calc_started else False
 
     def optimisation_converged(self, calc) -> bool:
-        pass
+        return any('OPTIMIZATION CONVERGED' in line
+                   for line in calc.output.file_lines)
 
     def optimisation_nearly_converged(self, calc) -> bool:
         pass
 
-    def get_final_atoms(self, calc) -> List:
-        pass
+    def get_final_atoms(self, calc) -> List[Atom]:
+
+        atoms = []
+
+        for i, line in enumerate(calc.output.file_lines):
+
+            if 'Coordinates (Angstroms)' not in line:
+                continue
+
+            """e.g.
+            
+                               Coordinates (Angstroms)
+             ATOM                X               Y               Z
+              1  O         0.0003489977   -0.1403224128    0.0000000000
+              2  H        -0.7524338562    0.4527672831    0.0000000000
+              3  H         0.7551329498    0.4500625364    0.0000000000
+            Point Group: cs    Number of degrees of freedom:     3
+            """
+
+            start_idx = i+2
+            end_idx = start_idx + calc.molecule.n_atoms
+
+            atoms = []
+            for cline in calc.output.file_lines[start_idx:end_idx]:
+                atoms.append(Atom(cline.split()[1], *cline.split()[2:5]))
+
+        return atoms
 
     def get_atomic_charges(self, calc) -> List:
         raise NotImplementedError
