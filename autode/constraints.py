@@ -1,5 +1,6 @@
 from collections.abc import MutableMapping
 from typing import Optional, Dict, List
+from autode.values import Distance
 from autode.log import logger
 
 
@@ -152,4 +153,4 @@ class DistanceConstraints(MutableMapping):
             raise ValueError('Distance constraint key must be an atom index '
                              f'pair but had: {key} which cannot be valid (<0)')
 
-        self._store[self._key_transform(key)] = value
+        self._store[self._key_transform(key)] = Distance(value)

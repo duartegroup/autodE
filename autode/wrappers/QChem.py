@@ -43,6 +43,9 @@ class QChem(ElectronicStructureMethod):
             inp_file.add_rem_block(calc)
             inp_file.add_solvent_block(calc)
 
+            if isinstance(calc.input.keywords, kws.OptKeywords):
+                inp_file.add_constraints(calc)
+
         return None
 
     def get_output_filename(self, calc) -> str:
@@ -280,6 +283,43 @@ class QChem(ElectronicStructureMethod):
         def write(self, string, end='\n') -> None:
             print(string, file=self.file, end=end)
 
+        def add_constraints(self, calc) -> None:
+            """Add cartesian and distance constraints"""
+
+            constraints = calc.molecule.constraints
+
+            if calc.input.added_internals is None and not constraints.any:
+                return None
+
+            self.write('$opt')
+
+            if constraints.distance is not None:
+                self.write('CONSTRAINT')
+
+                for (i, j), dist in constraints.distance.items():
+                    self.write(f'stre {i+1} {j+1} {dist.to("Å"):.5f}')
+
+                self.write('ENDCONSTRAINT')
+
+            if constraints.cartesian is not None:
+                self.write('FIXED')
+
+                for i in constraints.cartesian:
+                    self.write(f'{i+1} XYZ')     # where i is an atom index
+
+                self.write('ENDFIXED')
+
+            if calc.input.added_internals is not None:
+                self.write('CONNECT')
+
+                for (i, j) in calc.input.added_internals:
+                    self.write(f'{i+1} 1 {j+1}')
+
+                self.write('ENDCONNECT')
+
+            self.write('$end\n')
+            return None
+
         def add_solvent_block(self, calc) -> None:
             """Add the solvent section, appropriate for an SMx solvent model"""
             if calc.molecule.solvent is None:
@@ -293,7 +333,7 @@ class QChem(ElectronicStructureMethod):
             return None
 
         def add_molecule_block(self, molecule) -> None:
-            """Print the cartesian coordinates of a molecule to the input file"""
+            """Print molecular cartesian coordinates to the input file"""
 
             self.write('$molecule\n'
                        f'{molecule.charge} {molecule.mult}')
@@ -316,6 +356,9 @@ class QChem(ElectronicStructureMethod):
             self.write('$rem')
             self._write_job_type(keywords)
             self._write_keywords(keywords, molecule=calc.molecule)
+            if calc.molecule.constraints.any:
+                self.write('symmetry False')
+                self.write('sym_ignore True')
             self.write('$end\n')
 
             return None
