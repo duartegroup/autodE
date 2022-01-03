@@ -485,6 +485,7 @@ class Calculation:
         if not self.method.available:
             raise ex.MethodUnavailable
 
+        self.output.clear()
         self.method.execute(self)
 
         return None
@@ -519,12 +520,13 @@ class Calculation:
 class CalculationOutput:
 
     @cached_property
-    def file_lines(self):
+    def file_lines(self) -> List[str]:
         """
         Output files lines. This may be slow for large files but should
         not become a bottleneck when running standard DFT/WF calculations,
         are cached so only read once
 
+        -----------------------------------------------------------------------
         Returns:
             (list(str)): Lines from the output file
 
@@ -539,9 +541,17 @@ class CalculationOutput:
         return open(self.filename, 'r', encoding="utf-8").readlines()
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         """Does the calculation output exist?"""
         return self.filename is not None and os.path.exists(self.filename)
+
+    def clear(self) -> None:
+        """Clear the cached file lines"""
+
+        if 'file_lines' in self.__dict__:
+            del self.__dict__['file_lines']
+
+        return None
 
     def __init__(self, filename: Optional[str] = None):
 

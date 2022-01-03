@@ -98,7 +98,7 @@ class QChem(ElectronicStructureMethod):
                 logger.info('Maximum number of optimisation steps reached')
                 return True
 
-            if 'fatal error' in line:
+            if 'fatal error' in line or 'input file has failed' in line:
                 logger.error('Fatal error in QChem calculation. Final lines:')
                 calc.print_final_output_lines(n=50)
                 return False
@@ -287,8 +287,8 @@ class QChem(ElectronicStructureMethod):
                 return None
 
             self.write('$smx\n'
-                       f'{calc.molecule.solvent.qchem}\n'
-                       f'$end')
+                       f'solvent {calc.molecule.solvent.qchem}\n'
+                       f'$end\n')
 
             return None
 
@@ -302,7 +302,7 @@ class QChem(ElectronicStructureMethod):
                 x, y, z = atom.coord
                 self.write(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}')
 
-            self.write('$end')
+            self.write('$end\n')
             return None
 
         def add_rem_block(self, calc) -> None:
@@ -316,7 +316,7 @@ class QChem(ElectronicStructureMethod):
             self.write('$rem')
             self._write_job_type(keywords)
             self._write_keywords(keywords, molecule=calc.molecule)
-            self.write('$end')
+            self.write('$end\n')
 
             return None
 
