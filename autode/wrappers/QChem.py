@@ -41,7 +41,6 @@ class QChem(ElectronicStructureMethod):
         with self._InputFileWriter(filename=calc.input.filename) as inp_file:
             inp_file.add_molecule_block(molecule)
             inp_file.add_rem_block(calc)
-            # TODO: other
 
         return None
 
