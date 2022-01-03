@@ -287,3 +287,16 @@ def test_gradient_extraction_h2o():
 
     # The minimum should have a gradient close to zero
     assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-4)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_butane_gradient_extraction():
+
+    calc = _blank_calc()
+    calc.output.filename = 'partial_C4H10_opt_qchem.out'
+    calc.molecule = Molecule(smiles='CCCC')
+
+    assert calc.molecule.n_atoms == 14
+
+    grad = method.get_gradients(calc)
+    assert grad.shape == (14, 3)
