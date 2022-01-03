@@ -195,6 +195,7 @@ def test_energy_extraction():
 def _file_contains_one(filename, string):
     """A file contains one line that is an exact match to a string"""
     _list = [line.strip() for line in open(filename, 'r')]
+    print(_list)
     return sum(item.lower() == string for item in _list) == 1
 
 
@@ -210,6 +211,8 @@ def test_jobtype_inference():
     def kwd_type_has_job_type(kwd_type, job_type, remove_explicit=True):
 
         calc = _blank_calc()
+        calc.molecule = Molecule(atoms=[Atom('H'), Atom('H', x=0.77)])
+
         keywords = getattr(method.keywords, kwd_type)
 
         if remove_explicit:
