@@ -5,7 +5,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.atoms import Atom
 from autode.constants import Constants
-from autode.exceptions import CouldNotGetProperty
+from autode.exceptions import CouldNotGetProperty, UnsuppportedCalculationInput
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external, work_in_tmp_dir
 
@@ -41,6 +41,7 @@ class QChem(ElectronicStructureMethod):
         with self._InputFileWriter(filename=calc.input.filename) as inp_file:
             inp_file.add_molecule_block(molecule)
             inp_file.add_rem_block(calc)
+            inp_file.add_solvent_block(calc)
 
         return None
 
@@ -279,6 +280,18 @@ class QChem(ElectronicStructureMethod):
         def write(self, string, end='\n') -> None:
             print(string, file=self.file, end=end)
 
+        def add_solvent_block(self, calc) -> None:
+            """Add the solvent section, appropriate for an SMx solvent model"""
+            if calc.molecule.solvent is None:
+                # calculation is in the gas phase
+                return None
+
+            self.write('$smx\n'
+                       f'{calc.molecule.solvent.qchem}\n'
+                       f'$end')
+
+            return None
+
         def add_molecule_block(self, molecule) -> None:
             """Print the cartesian coordinates of a molecule to the input file"""
 
@@ -337,6 +350,14 @@ class QChem(ElectronicStructureMethod):
 
                 elif isinstance(word, kws.ECP):
                     self._write_ecp(word, molecule=molecule)
+
+                elif isinstance(word, kws.ImplicitSolventType):
+
+                    if word.lower() != 'smd':
+                        err = f'Only SMD solvent is supported. Had: {word}'
+                        raise UnsuppportedCalculationInput(err)
+
+                    self.write('solvent_method = smd')
 
                 else:
                     self.write(word)
