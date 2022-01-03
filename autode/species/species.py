@@ -447,6 +447,10 @@ class Species(AtomCollection):
         return self.solvent is not None and self.solvent.is_explicit
 
     @property
+    def is_implicitly_solvated(self) -> bool:
+        return self.solvent is not None and self.solvent.is_implicit
+
+    @property
     def energy(self) -> Optional[val.PotentialEnergy]:
         """
         Last computed potential energy. Setting with a float assumes electornic

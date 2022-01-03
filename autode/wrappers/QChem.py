@@ -38,13 +38,29 @@ class QChem(ElectronicStructureMethod):
             raise ValueError(f'Cannot generate an input for {calc}. Input '
                              'filename was undefined')
 
+        if (molecule.is_implicitly_solvated
+                and not self._keywords_contain(calc, 'solvent_method')):
+            calc.input.keywords.append(self.implicit_solvation_type)
+
         with self._InputFileWriter(filename=calc.input.filename) as inp_file:
             inp_file.add_molecule_block(molecule)
+
+            if self._is_ts_opt(calc):
+                # TS optimisations require an initial frequency calculation
+                inp_file.add_freq(calc)
+                inp_file.add_calculation_seperator()
+
             inp_file.add_rem_block(calc)
             inp_file.add_solvent_block(calc)
+            inp_file.add_constraints(calc)
 
-            if isinstance(calc.input.keywords, kws.OptKeywords):
-                inp_file.add_constraints(calc)
+            if self._is_ts_opt(calc):
+                inp_file.add_molecule_read()
+
+                # TS optimisation also require a final frequency calculation
+                inp_file.add_calculation_seperator()
+                inp_file.add_freq(calc)
+                inp_file.add_molecule_read()
 
         return None
 
@@ -269,6 +285,17 @@ class QChem(ElectronicStructureMethod):
 
         return np.array(hess)
 
+    @staticmethod
+    def _is_ts_opt(calc) -> bool:
+        """Is the calculation a QChem TS optimisation?"""
+
+        return any('jobtype' in word.lower() and 'ts' in word.lower()
+                   for word in calc.input.keywords)
+
+    @staticmethod
+    def _keywords_contain(calc, string) -> bool:
+        return any(string in w.lower() for w in calc.input.keywords)
+
     class _InputFileWriter:
 
         def __init__(self, filename):
@@ -283,8 +310,31 @@ class QChem(ElectronicStructureMethod):
         def write(self, string, end='\n') -> None:
             print(string, file=self.file, end=end)
 
+        def add_freq(self, calc) -> None:
+            """Add a frequency calculation"""
+
+            freq_calc = calc.copy()
+            kwds = kws.HessianKeywords([kwd for kwd in freq_calc.input.keywords
+                                        if 'jobtype' not in kwd.lower()])
+            freq_calc.input.keywords = kwds
+
+            self.add_rem_block(freq_calc)
+            self.add_solvent_block(freq_calc)
+
+            return None
+
+        def add_calculation_seperator(self) -> None:
+            return self.write('\n@@@\n')
+
+        def add_molecule_read(self) -> None:
+            return self.write('$molecule\n    read\n$end')
+
         def add_constraints(self, calc) -> None:
             """Add cartesian and distance constraints"""
+
+            if not isinstance(calc.input.keywords, kws.OptKeywords):
+                # Constraints are only needed for optimisations
+                return None
 
             constraints = calc.molecule.constraints
 
@@ -350,15 +400,20 @@ class QChem(ElectronicStructureMethod):
             keywords = calc.input.keywords
 
             if any('$' in word.lower() for word in keywords):
-                raise NotImplementedError('Cannot add $rem block - additional bloc'
-                                          f'ks included in keywords: {keywords}')
+                raise NotImplementedError('Cannot add $rem block - already '
+                                          'present in {keywords}')
 
             self.write('$rem')
-            self._write_job_type(keywords)
+
+            if calc.molecule.n_atoms > 1:         # Defaults to a single point
+                self._write_job_type(keywords)
+
             self._write_keywords(keywords, molecule=calc.molecule)
-            if calc.molecule.constraints.any:
+
+            if not isinstance(calc.input.keywords, kws.SinglePointKeywords):
                 self.write('symmetry False')
                 self.write('sym_ignore True')
+
             self.write('$end\n')
 
             return None
@@ -400,7 +455,20 @@ class QChem(ElectronicStructureMethod):
                         err = f'Only SMD solvent is supported. Had: {word}'
                         raise UnsuppportedCalculationInput(err)
 
-                    self.write('solvent_method = smd')
+                    self.write('solvent_method smd')
+
+                elif 'jobtype' in word.lower():
+                    if molecule.n_atoms == 1 and 'opt' in word.lower():
+                        logger.warning('Cannot optimise a single atom')
+
+                    elif ' ts' in word.lower():
+                        logger.warning('TS optimisation - expected a completed'
+                                       ' Hessian calculation')
+                        self.write(word)
+                        self.write('geom_opt_hessian read')
+
+                    else:
+                        self.write(word)
 
                 else:
                     self.write(word)

@@ -305,6 +305,10 @@ class Calculation:
             logger.error('No calculation output. Could not get atoms')
             raise ex.AtomsNotFound
 
+        if self.molecule.n_atoms == 1:
+            # Final atoms of a single atom molecule must be identical
+            return self.molecule.atoms
+
         atoms = Atoms(self.method.get_final_atoms(self))
 
         if len(atoms) != self.molecule.n_atoms:
@@ -515,6 +519,9 @@ class Calculation:
             print("".join(self.output.file_lines[-n:]))
 
         return None
+
+    def copy(self) -> 'Calculation':
+        return deepcopy(self)
 
 
 class CalculationOutput:
