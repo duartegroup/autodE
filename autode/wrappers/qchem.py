@@ -201,7 +201,7 @@ class _InputFileWriter:
     def _write_job_type(self, keywords) -> None:
 
         if any('jobtype' in word.lower() for word in keywords):
-            logger.info('QChem Jobtype already defined - not appending')
+            logger.info('QChem *jobtype* already defined - not appending')
 
         elif isinstance(keywords, kws.OptKeywords):
             self.write('jobtype opt')

@@ -1,7 +1,7 @@
 import os
 import pytest
 import numpy as np
-from autode.wrappers.qchem import QChem
+from autode.wrappers.qchem import QChem, _InputFileWriter
 from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
@@ -183,3 +183,30 @@ def test_energy_extraction():
     for calc in (_blank_calc(), _broken_output_calc()):
         with pytest.raises(CalculationException):
             method.get_energy(calc)
+
+
+def _list_contains_one(_list, _string):
+    """A list contains a single instance of a string"""
+    return sum(item.lower() == _string for item in _list) == 1
+
+
+def test_jobtype_inference():
+    """Check that the jobtype can be infered from the keyword type"""
+
+    def kwd_type_has_job_type(kwd_type, job_type):
+        keywords = getattr(method.keywords, kwd_type)
+
+        with _InputFileWriter('tmp.in') as inp_file:
+            inp_file.add_rem_block(keywords)
+
+        inp_lines = [line.strip() for line in open('tmp.in', 'r')]
+        os.remove('tmp.in')
+
+        return _list_contains_one(inp_lines, f'jobtype {job_type}')
+
+    assert kwd_type_has_job_type('opt', 'opt')
+    assert kwd_type_has_job_type('low_opt', 'opt')
+    assert kwd_type_has_job_type('opt_ts', 'ts')
+
+    assert kwd_type_has_job_type('grad', 'force')
+    assert kwd_type_has_job_type('hess', 'freq')

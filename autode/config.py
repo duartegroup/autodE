@@ -327,7 +327,7 @@ class _ConfigClass:
         path = None
         #
         # Default set of keywords to use for different types of calculation
-        keywords = KeywordsSet(low_opt=[pbe0, def2svp, MaxOptCycles(10), d3bj],
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'jobtype opt', MaxOptCycles(10), d3bj],
                                grad=[pbe0, def2svp, 'jobtype force', d3bj],
                                opt=[pbe0, def2svp, 'jobtype opt', 'Opt', d3bj],
                                opt_ts=[pbe0, def2svp, 'jobtype TS', d3bj],
