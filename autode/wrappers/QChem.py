@@ -110,7 +110,8 @@ class QChem(ElectronicStructureMethod):
                    for line in calc.output.file_lines)
 
     def optimisation_nearly_converged(self, calc) -> bool:
-        pass
+        # TODO: something better here
+        return False
 
     def get_final_atoms(self, calc) -> List[Atom]:
 
@@ -198,7 +199,7 @@ class QChem(ElectronicStructureMethod):
         if hess.shape != expected_shape:
             raise CouldNotGetProperty('hessian')
 
-        atom_masses = self._extract_atomic_masses(calc, units='au')
+        atom_masses = self._extract_atomic_masses(calc)
 
         # Un-mass weight
         mass_arr = np.repeat(atom_masses, repeats=3, axis=np.newaxis)
@@ -208,11 +209,7 @@ class QChem(ElectronicStructureMethod):
         return hess / Constants.a0_to_ang ** 2
 
     @staticmethod
-    def _extract_atomic_masses(calc, units):
-
-        if units != 'au':
-            raise NotImplementedError('Atom mass extraction from QChem output '
-                                      'is only supported in atomic units')
+    def _extract_atomic_masses(calc) -> np.ndarray:
 
         masses = []
         for line in calc.output.file_lines:
@@ -221,11 +218,11 @@ class QChem(ElectronicStructureMethod):
                 # e.g.
                 #   Atom    1 Element O  Has Mass   15.99491
 
-                mass = float(line.split()[-1]) * Constants.amu_to_me
+                mass = float(line.split()[-1])
                 masses.append(mass)
 
         # Only return the final n_atoms masses
-        return masses[-calc.molecule.n_atoms:]
+        return np.array(masses[-calc.molecule.n_atoms:])
 
     @staticmethod
     def _extract_mass_weighted_hessian(calc) -> np.ndarray:
@@ -256,11 +253,15 @@ class QChem(ElectronicStructureMethod):
                 try:
                     start_idx = end_idx + 2
                     end_idx = start_idx + three_n_atoms
+                    lines_slice = lines[start_idx:end_idx]
 
-                    for j, _l in enumerate(lines[start_idx:end_idx]):
+                    if len(lines_slice) == 0:
+                        raise AssertionError
+
+                    for j, _l in enumerate(lines_slice):
                         hess[j] += [float(val) for val in _l.split()]
 
-                except (TypeError, ValueError):
+                except (TypeError, ValueError, AssertionError):
                     raise CouldNotGetProperty('hessian')
 
         return np.array(hess)
@@ -333,7 +334,7 @@ class QChem(ElectronicStructureMethod):
                     self.write(f'dft_d {word.qchem}')
 
                 elif isinstance(word, kws.MaxOptCycles):
-                    self.write(f'geom_opt_max_cycle {word}')
+                    self.write(f'geom_opt_max_cycles {word}')
 
                 elif isinstance(word, kws.ECP):
                     self._write_ecp(word, molecule=molecule)

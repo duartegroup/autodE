@@ -286,7 +286,11 @@ def test_gradient_extraction_h2o():
     assert grad.shape == (3, 3)
 
     # The minimum should have a gradient close to zero
-    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-4)
+    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-4)\
+
+    # also for this calculation the optimisation has converged
+    assert method.optimisation_converged(calc)
+    assert not method.optimisation_nearly_converged(calc)
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
@@ -312,5 +316,38 @@ def test_h2o_hessian_extraction():
     hess = method.get_hessian(calc)
     assert hess.shape == (9, 9)
 
-    print(hess)
+    # Check the first element is close to that of an ORCA-derived equiv.
+    # in Ha / Å-2
+    assert np.isclose(hess[0, 0],
+                      2.31423829e+00,
+                      atol=0.1)
 
+
+def test_broken_hessian_extraction():
+    calc = _broken_output_calc()
+
+    with pytest.raises(CalculationException):
+        _ = method.get_hessian(calc)
+
+    calc = _custom_output_calc('some', 'output', 'then',
+                               'Mass-Weighted Hessian Matrix', 'X')
+
+    with pytest.raises(CalculationException):
+        _ = method.get_hessian(calc)
+
+    if os.path.exists('tmp.out'):
+        os.remove('tmp.out')
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_calc_terminated_normally_max_opt_cycles():
+
+    # h2o.optimise(method=ade.methods.QChem(),
+    # keywords=['method pbe', 'basis def2-SVP', 'geom_opt_max_cycle 2'])
+
+    calc = _blank_calc()
+    calc.output.filename = 'H2O_opt_max_2_cycles.out'
+    assert calc.output.exists
+
+    # Even with a 'fatal error' in the output the calculation was ok
+    assert calc.terminated_normally
