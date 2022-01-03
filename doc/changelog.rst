@@ -48,7 +48,7 @@ Bug Fixes
 *********
 
 - Updates the TS template saved in the default template library
-
+- Uss the correct output file lines from a failed then re-run calculation
 
 
 
