@@ -1019,13 +1019,10 @@ class Species(AtomCollection):
             self.energy = calc.get_energy()
             self.hessian = calc.get_hessian()
 
-        elif (calc is not None and not calc.output.exists
-              or self.hessian is None):
+        elif self.hessian is None or (calc is not None and not calc.output.exists):
             logger.info('Calculation did not exist or Hessian was None - '
                         'calculating the Hessian')
-            self._run_hess_calculation(method=method,
-                                       calc=calc,
-                                       keywords=HessianKeywords(keywords))
+            self._run_hess_calculation(method=method, calc=calc, keywords=keywords)
 
         calculate_thermo_cont(self, temp=temp, **kwargs)
         return None

@@ -114,6 +114,11 @@ class QChem(ElectronicStructureMethod):
 
     def get_final_atoms(self, calc) -> List[Atom]:
 
+        if isinstance(calc.input.keywords, kws.HessianKeywords):
+            logger.warning('Hessian calculation performed - no change to '
+                           'geometry')
+            return calc.molecule.atoms
+
         atoms = []
 
         for i, line in enumerate(calc.output.file_lines):
@@ -283,6 +288,7 @@ class _InputFileWriter:
         if (isinstance(keywords, kws.OptKeywords)
                 or isinstance(keywords, kws.HessianKeywords)):
             # Print the Hessian
-            self.write('geom_opt_print 4')
+            self.write('geom_opt_print 4\n'
+                       'vibman_print 4')
 
         return None
