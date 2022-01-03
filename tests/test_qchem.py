@@ -193,8 +193,12 @@ def _list_contains_one(_list, _string):
 def test_jobtype_inference():
     """Check that the jobtype can be infered from the keyword type"""
 
-    def kwd_type_has_job_type(kwd_type, job_type):
+    def kwd_type_has_job_type(kwd_type, job_type, remove_explicit=True):
         keywords = getattr(method.keywords, kwd_type)
+
+        if remove_explicit:
+            keywords = keywords.__class__([w for w in keywords
+                                           if 'jobtype' not in w.lower()])
 
         with _InputFileWriter('tmp.in') as inp_file:
             inp_file.add_rem_block(keywords)
@@ -206,7 +210,7 @@ def test_jobtype_inference():
 
     assert kwd_type_has_job_type('opt', 'opt')
     assert kwd_type_has_job_type('low_opt', 'opt')
-    assert kwd_type_has_job_type('opt_ts', 'ts')
+    assert kwd_type_has_job_type('opt_ts', 'ts', remove_explicit=False)
 
     assert kwd_type_has_job_type('grad', 'force')
     assert kwd_type_has_job_type('hess', 'freq')
