@@ -465,6 +465,7 @@ class Keyword(ABC):
     def doi_str(self):
         return ' '.join(self.doi_list)
 
+    @property
     def has_only_name(self):
         """Determine if only a name has been set, in which case it will
         be printed verbatim into an input file, otherwise needs keyword.method

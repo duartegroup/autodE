@@ -38,7 +38,7 @@ class QChem(ElectronicStructureMethod):
 
         with _InputFileWriter(filename=calc.input.filename) as inp_file:
             inp_file.add_molecule_block(molecule)
-            inp_file.add_rem_block(calc.input.keywords)
+            inp_file.add_rem_block(calc)
             # TODO: other
 
         return None
@@ -163,8 +163,9 @@ class _InputFileWriter:
         self.write('$end')
         return None
 
-    def add_rem_block(self, keywords) -> None:
+    def add_rem_block(self, calc) -> None:
         """Add the $rem block"""
+        keywords = calc.input.keywords
 
         if any('$' in word.lower() for word in keywords):
             raise NotImplementedError('Cannot add $rem block - additional bloc'
@@ -172,12 +173,24 @@ class _InputFileWriter:
 
         self.write('$rem')
         self._write_job_type(keywords)
-        self._write_keywords(keywords)
+        self._write_keywords(keywords, molecule=calc.molecule)
         self.write('$end')
 
         return None
 
-    def _write_keywords(self, keywords) -> None:
+    def _write_ecp(self, ecp_kwd, molecule) -> None:
+        """Write the effective core potential (ECP) block, if required"""
+
+        ecp_elems = set(atom.label for atom in molecule.atoms
+                        if atom.atomic_number >= ecp_kwd.min_atomic_number)
+
+        if len(ecp_elems) > 0:
+            logger.info(f'Writing ECP block for atoms {ecp_elems}')
+            self.write(f'ecp {ecp_kwd.qchem}')
+
+        return None
+
+    def _write_keywords(self, keywords, molecule) -> None:
 
         for word in keywords:
 
@@ -192,6 +205,9 @@ class _InputFileWriter:
 
             elif isinstance(word, kws.MaxOptCycles):
                 self.write(f'geom_opt_max_cycle {word}')
+
+            elif isinstance(word, kws.ECP):
+                self._write_ecp(word, molecule=molecule)
 
             else:
                 self.write(word)

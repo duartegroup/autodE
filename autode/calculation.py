@@ -451,7 +451,7 @@ class Calculation:
                 continue
 
             # Allow for the unambiguous setting of a keyword with only a name
-            if keyword.has_only_name():
+            if keyword.has_only_name:
                 # set e.g. keyword.orca = 'b3lyp'
                 setattr(keyword, self.method.name, keyword.name)
                 continue
@@ -460,7 +460,7 @@ class Calculation:
             # definition in this method is not obvious, so raise an exception
             if not hasattr(keyword, self.method.name):
                 err_str = (f'Keyword: {keyword} is not supported set '
-                           f'{keyword}.{self.method.name} as a string')
+                           f'{repr(keyword)}.{self.method.name} as a string')
                 raise ex.UnsuppportedCalculationInput(err_str)
 
         self.method.generate_input(self, self.molecule)
@@ -511,7 +511,7 @@ class Calculation:
         """
 
         if self.output.exists:
-            print("\n".join(self.output.file_lines[-n:]))
+            print("".join(self.output.file_lines[-n:]))
 
         return None
 

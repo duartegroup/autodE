@@ -1,7 +1,7 @@
 import os
 import pytest
 import numpy as np
-from autode.wrappers.qchem import QChem, _InputFileWriter
+from autode.wrappers.QChem import QChem, _InputFileWriter
 from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
@@ -49,6 +49,16 @@ def _broken_output_calc():
     calc.output.filename = 'tmp.out'
     assert calc.output.exists
 
+    return calc
+
+
+def _broken_output_calc2():
+
+    calc = _blank_calc()
+    with open('tmp.out', 'w') as out_file:
+        print('a', 'broken', 'Total energy', sep='\n', file=out_file)
+
+    calc.output.filename = 'tmp.out'
     return calc
 
 
@@ -180,33 +190,42 @@ def test_energy_extraction():
 
     assert np.isclose(energy.to('Ha'), -232.45463628, atol=1e-8)
 
-    for calc in (_blank_calc(), _broken_output_calc()):
+    for calc in (_blank_calc(), _broken_output_calc(), _broken_output_calc2()):
         with pytest.raises(CalculationException):
             method.get_energy(calc)
 
 
-def _list_contains_one(_list, _string):
-    """A list contains a single instance of a string"""
-    return sum(item.lower() == _string for item in _list) == 1
+def _file_contains_one(filename, string):
+    """A file contains one line that is an exact match to a string"""
+    _list = [line.strip() for line in open(filename, 'r')]
+    return sum(item.lower() == string for item in _list) == 1
+
+
+def _tmp_input_contains(string):
+    flag = _file_contains_one(filename='tmp.in', string=string)
+    os.remove('tmp.in')
+    return flag
 
 
 def test_jobtype_inference():
     """Check that the jobtype can be infered from the keyword type"""
 
     def kwd_type_has_job_type(kwd_type, job_type, remove_explicit=True):
+
+        calc = _blank_calc()
         keywords = getattr(method.keywords, kwd_type)
 
         if remove_explicit:
+            # Remove any explicit declaration of the job type in the keywords
             keywords = keywords.__class__([w for w in keywords
                                            if 'jobtype' not in w.lower()])
 
+        calc.input.keywords = keywords
+
         with _InputFileWriter('tmp.in') as inp_file:
-            inp_file.add_rem_block(keywords)
+            inp_file.add_rem_block(calc)
 
-        inp_lines = [line.strip() for line in open('tmp.in', 'r')]
-        os.remove('tmp.in')
-
-        return _list_contains_one(inp_lines, f'jobtype {job_type}')
+        return _tmp_input_contains(f'jobtype {job_type}')
 
     assert kwd_type_has_job_type('opt', 'opt')
     assert kwd_type_has_job_type('low_opt', 'opt')
@@ -214,3 +233,23 @@ def test_jobtype_inference():
 
     assert kwd_type_has_job_type('grad', 'force')
     assert kwd_type_has_job_type('hess', 'freq')
+
+
+def test_ecp_writing():
+
+    calc = _blank_calc()
+    calc.input.keywords = method.keywords.sp
+
+    def write_tmp_input():
+        with _InputFileWriter('tmp.in') as inp_file:
+            inp_file.add_rem_block(calc)
+
+    # No ECP for a H atom
+    assert calc.molecule.n_atoms == 1 and calc.molecule.atoms[0].label == 'H'
+    write_tmp_input()
+    assert not _tmp_input_contains('ecp def2-ecp')
+
+    # Should add an ECP for lead
+    calc.molecule = Molecule(atoms=[Atom('Pb')])
+    write_tmp_input()
+    assert _tmp_input_contains('ecp def2-ecp')
