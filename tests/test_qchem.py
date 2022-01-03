@@ -274,7 +274,7 @@ def test_h2o_opt():
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
-def test_gradient_extraction():
+def test_gradient_extraction_h2o():
 
     calc = _blank_calc()
     calc.molecule = Molecule(smiles='O')
@@ -286,4 +286,4 @@ def test_gradient_extraction():
     assert grad.shape == (3, 3)
 
     # The minimum should have a gradient close to zero
-    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-1)
+    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-4)

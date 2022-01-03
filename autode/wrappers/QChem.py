@@ -163,27 +163,26 @@ class QChem(ElectronicStructureMethod):
 
         for i, line in enumerate(calc.output.file_lines):
 
-            if 'Gradient of SCF Energy' not in line:
+            if 'Cartesian Gradient' not in line:
                 continue
 
             """e.g.
             
-             Calculating analytic gradient of the SCF energy
-             Gradient of SCF Energy
-                        1           2           3
-                1  -0.0017473  -0.0317331   0.0334804
-                2  -0.0075556   0.0032594   0.0042961
-                3  -0.0000000   0.0000000   0.0000000
+                        Cartesian Gradient (au)
+             ATOM              X           Y           Z
+            1  O           0.000005   -0.000002    0.000000
+            2  H           0.000017    0.000001    0.000000
+            3  H          -0.000021    0.000001    0.000000
             """
 
             start_idx = i+2
             end_idx = start_idx+calc.molecule.n_atoms
 
-            grad = [[float(val) for val in _l.split()[1:]]
+            grad = [[float(val) for val in _l.split()[2:]]
                     for _l in calc.output.file_lines[start_idx:end_idx]]
 
-            # Convert from Ha a0^-1 to Ha A-1
-            return np.array(grad) / Constants.a0_to_ang
+        # Convert from Ha a0^-1 to Ha A-1
+        return np.array(grad) / Constants.a0_to_ang
 
     def get_hessian(self, calc) -> np.ndarray:
         pass
