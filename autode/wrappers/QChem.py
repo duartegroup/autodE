@@ -38,7 +38,7 @@ class QChem(ElectronicStructureMethod):
             raise ValueError(f'Cannot generate an input for {calc}. Input '
                              'filename was undefined')
 
-        with _InputFileWriter(filename=calc.input.filename) as inp_file:
+        with self._InputFileWriter(filename=calc.input.filename) as inp_file:
             inp_file.add_molecule_block(molecule)
             inp_file.add_rem_block(calc)
             # TODO: other
@@ -190,105 +190,177 @@ class QChem(ElectronicStructureMethod):
         return np.array(grad) / Constants.a0_to_ang
 
     def get_hessian(self, calc) -> np.ndarray:
-        pass
+        """Extract the mass-weighted non projected Hessian matrix
+        NOTE: Required $rem vibman_print 4 $end in the input"""
+        expected_shape = (3 * calc.molecule.n_atoms, 3 * calc.molecule.n_atoms)
 
+        hess = self._extract_mass_weighted_hessian(calc)
+        if hess.shape != expected_shape:
+            raise CouldNotGetProperty('hessian')
 
-class _InputFileWriter:
+        atom_masses = self._extract_atomic_masses(calc, units='au')
 
-    def __init__(self, filename):
-        self.file = open(filename, 'w')
+        # Un-mass weight
+        mass_arr = np.repeat(atom_masses, repeats=3, axis=np.newaxis)
+        hess *= np.sqrt(np.outer(mass_arr, mass_arr))
 
-    def __enter__(self):
-        return self
+        # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
+        return hess / Constants.a0_to_ang ** 2
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.file.close()
+    @staticmethod
+    def _extract_atomic_masses(calc, units):
 
-    def write(self, string, end='\n') -> None:
-        print(string, file=self.file, end=end)
+        if units != 'au':
+            raise NotImplementedError('Atom mass extraction from QChem output '
+                                      'is only supported in atomic units')
 
-    def add_molecule_block(self, molecule) -> None:
-        """Print the cartesian coordinates of a molecule to the input file"""
+        masses = []
+        for line in calc.output.file_lines:
 
-        self.write('$molecule\n'
-                   f'{molecule.charge} {molecule.mult}')
+            if 'Has Mass' in line:
+                # e.g.
+                #   Atom    1 Element O  Has Mass   15.99491
 
-        for atom in molecule.atoms:
-            x, y, z = atom.coord
-            self.write(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}')
+                mass = float(line.split()[-1]) * Constants.amu_to_me
+                masses.append(mass)
 
-        self.write('$end')
-        return None
+        # Only return the final n_atoms masses
+        return masses[-calc.molecule.n_atoms:]
 
-    def add_rem_block(self, calc) -> None:
-        """Add the $rem block"""
-        keywords = calc.input.keywords
+    @staticmethod
+    def _extract_mass_weighted_hessian(calc) -> np.ndarray:
 
-        if any('$' in word.lower() for word in keywords):
-            raise NotImplementedError('Cannot add $rem block - additional bloc'
-                                      f'ks included in keywords: {keywords}')
+        three_n_atoms = 3 * calc.molecule.n_atoms
+        lines = calc.output.file_lines
 
-        self.write('$rem')
-        self._write_job_type(keywords)
-        self._write_keywords(keywords, molecule=calc.molecule)
-        self.write('$end')
+        hess = []
 
-        return None
+        def correct_shape(_hess):
+            """Is the Hessian the correct shape? 3N x 3N"""
+            return (len(_hess) == three_n_atoms
+                    and all(len(row) == three_n_atoms for row in _hess))
 
-    def _write_ecp(self, ecp_kwd, molecule) -> None:
-        """Write the effective core potential (ECP) block, if required"""
+        for i, line in enumerate(lines):
 
-        ecp_elems = set(atom.label for atom in molecule.atoms
-                        if atom.atomic_number >= ecp_kwd.min_atomic_number)
+            if 'Mass-Weighted Hessian Matrix' not in line:
+                continue
 
-        if len(ecp_elems) > 0:
-            logger.info(f'Writing ECP block for atoms {ecp_elems}')
-            self.write(f'ecp {ecp_kwd.qchem}')
+            start_idx = i + 3
+            end_idx = start_idx + three_n_atoms
 
-        return None
+            hess = [[float(val) for val in _l.split()]
+                    for _l in lines[start_idx:end_idx]]
 
-    def _write_keywords(self, keywords, molecule) -> None:
+            while not correct_shape(hess):
 
-        for word in keywords:
+                try:
+                    start_idx = end_idx + 2
+                    end_idx = start_idx + three_n_atoms
 
-            if isinstance(word, kws.BasisSet):
-                self.write(f'basis {word.qchem}')
+                    for j, _l in enumerate(lines[start_idx:end_idx]):
+                        hess[j] += [float(val) for val in _l.split()]
 
-            elif isinstance(word, kws.Functional):
-                self.write(f'method {word.qchem}')
+                except (TypeError, ValueError):
+                    raise CouldNotGetProperty('hessian')
 
-            elif isinstance(word, kws.DispersionCorrection):
-                self.write(f'dft_d {word.qchem}')
+        return np.array(hess)
 
-            elif isinstance(word, kws.MaxOptCycles):
-                self.write(f'geom_opt_max_cycle {word}')
+    class _InputFileWriter:
 
-            elif isinstance(word, kws.ECP):
-                self._write_ecp(word, molecule=molecule)
+        def __init__(self, filename):
+            self.file = open(filename, 'w')
 
-            else:
-                self.write(word)
+        def __enter__(self):
+            return self
 
-        return None
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.file.close()
 
-    def _write_job_type(self, keywords) -> None:
+        def write(self, string, end='\n') -> None:
+            print(string, file=self.file, end=end)
 
-        if any('jobtype' in word.lower() for word in keywords):
-            logger.info('QChem *jobtype* already defined - not appending')
+        def add_molecule_block(self, molecule) -> None:
+            """Print the cartesian coordinates of a molecule to the input file"""
 
-        elif isinstance(keywords, kws.OptKeywords):
-            self.write('jobtype opt')
+            self.write('$molecule\n'
+                       f'{molecule.charge} {molecule.mult}')
 
-        elif isinstance(keywords, kws.HessianKeywords):
-            self.write('jobtype freq')
+            for atom in molecule.atoms:
+                x, y, z = atom.coord
+                self.write(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}')
 
-        elif isinstance(keywords, kws.GradientKeywords):
-            self.write('jobtype force')
+            self.write('$end')
+            return None
 
-        if (isinstance(keywords, kws.OptKeywords)
-                or isinstance(keywords, kws.HessianKeywords)):
-            # Print the Hessian
-            self.write('geom_opt_print 4\n'
-                       'vibman_print 4')
+        def add_rem_block(self, calc) -> None:
+            """Add the $rem block"""
+            keywords = calc.input.keywords
 
-        return None
+            if any('$' in word.lower() for word in keywords):
+                raise NotImplementedError('Cannot add $rem block - additional bloc'
+                                          f'ks included in keywords: {keywords}')
+
+            self.write('$rem')
+            self._write_job_type(keywords)
+            self._write_keywords(keywords, molecule=calc.molecule)
+            self.write('$end')
+
+            return None
+
+        def _write_ecp(self, ecp_kwd, molecule) -> None:
+            """Write the effective core potential (ECP) block, if required"""
+
+            ecp_elems = set(atom.label for atom in molecule.atoms
+                            if atom.atomic_number >= ecp_kwd.min_atomic_number)
+
+            if len(ecp_elems) > 0:
+                logger.info(f'Writing ECP block for atoms {ecp_elems}')
+                self.write(f'ecp {ecp_kwd.qchem}')
+
+            return None
+
+        def _write_keywords(self, keywords, molecule) -> None:
+
+            for word in keywords:
+
+                if isinstance(word, kws.BasisSet):
+                    self.write(f'basis {word.qchem}')
+
+                elif isinstance(word, kws.Functional):
+                    self.write(f'method {word.qchem}')
+
+                elif isinstance(word, kws.DispersionCorrection):
+                    self.write(f'dft_d {word.qchem}')
+
+                elif isinstance(word, kws.MaxOptCycles):
+                    self.write(f'geom_opt_max_cycle {word}')
+
+                elif isinstance(word, kws.ECP):
+                    self._write_ecp(word, molecule=molecule)
+
+                else:
+                    self.write(word)
+
+            return None
+
+        def _write_job_type(self, keywords) -> None:
+
+            if any('jobtype' in word.lower() for word in keywords):
+                logger.info('QChem *jobtype* already defined - not appending')
+
+            elif isinstance(keywords, kws.OptKeywords):
+                self.write('jobtype opt')
+
+            elif isinstance(keywords, kws.HessianKeywords):
+                self.write('jobtype freq')
+
+            elif isinstance(keywords, kws.GradientKeywords):
+                self.write('jobtype force')
+
+            if (isinstance(keywords, kws.OptKeywords)
+                    or isinstance(keywords, kws.HessianKeywords)):
+                # Print the Hessian
+                self.write('geom_opt_print 4\n'
+                           'vibman_print 4')
+
+            return None

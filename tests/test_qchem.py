@@ -1,7 +1,7 @@
 import os
 import pytest
 import numpy as np
-from autode.wrappers.QChem import QChem, _InputFileWriter
+from autode.wrappers.QChem import QChem
 from autode.calculation import Calculation
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
@@ -219,7 +219,7 @@ def test_jobtype_inference():
 
         calc.input.keywords = keywords
 
-        with _InputFileWriter('tmp.in') as inp_file:
+        with QChem._InputFileWriter('tmp.in') as inp_file:
             inp_file.add_rem_block(calc)
 
         return _tmp_input_contains(f'jobtype {job_type}')
@@ -238,7 +238,7 @@ def test_ecp_writing():
     calc.input.keywords = method.keywords.sp
 
     def write_tmp_input():
-        with _InputFileWriter('tmp.in') as inp_file:
+        with QChem._InputFileWriter('tmp.in') as inp_file:
             inp_file.add_rem_block(calc)
 
     # No ECP for a H atom
@@ -300,3 +300,17 @@ def test_butane_gradient_extraction():
 
     grad = method.get_gradients(calc)
     assert grad.shape == (14, 3)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_h2o_hessian_extraction():
+
+    calc = _blank_calc()
+    calc.output.filename = 'H2O_hess_qchem.out'
+    calc.molecule = Molecule(smiles='O')
+
+    hess = method.get_hessian(calc)
+    assert hess.shape == (9, 9)
+
+    print(hess)
+
