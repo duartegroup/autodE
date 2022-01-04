@@ -26,18 +26,23 @@ if sys.version_info.minor > 7:                                    # Python >3.7
     # LGTM alert is suppressed as this is imported in Python >3.7
 
 if sys.version_info.minor <= 7:                                   # Python <3.7
-    from functools import lru_cache
+    # Define a cached_property equivalent decorator
 
-    # Define a cached_property equivalent decorator, from https://stackoverflow
-    # .com/questions/4037481/caching-class-attributes-in-python
-    def cached_property(func):
-        @property
-        @lru_cache()
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
-            return func(*args, **kwargs)
+    class cached_property(object):
+        # Based on https://github.com/pydanny/cached-property/
 
-        return wrapped_function
+        def __init__(self, func):
+            self.__doc__ = func.__doc__
+            self.func = func
+
+        def cached_property_wrapper(self, obj, _cls):
+            if obj is None:
+                return self
+
+            value = obj.__dict__[self.func.__name__] = self.func(obj)
+            return value
+
+        __get__ = cached_property_wrapper
 
 
 def run_external(params, output_filename):
