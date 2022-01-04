@@ -100,6 +100,7 @@ def test_calc_copy():
     assert calc.input.keywords is not None
 
 
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_clear_output():
 
     with open('tmp.out', 'w') as out_file:
