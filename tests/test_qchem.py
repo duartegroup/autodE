@@ -360,3 +360,39 @@ def test_calc_terminated_normally_max_opt_cycles():
 
     # Even with a 'fatal error' in the output the calculation was ok
     assert calc.terminated_normally
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_ts_opt():
+
+    ts_mol = Molecule(name='ts', charge=-1, mult=1, solvent_name='water',
+                      atoms=[Atom('F',  -4.17085, 3.55524,  1.59944),
+                             Atom('Cl', -0.75962, 3.53830, -0.72354),
+                             Atom('C',  -2.51988, 3.54681,  0.47836),
+                             Atom('H',  -3.15836, 3.99230, -0.27495),
+                             Atom('H',  -2.54985, 2.47411,  0.62732),
+                             Atom('H',  -2.10961, 4.17548,  1.25945)])
+
+    calc = Calculation(name='sn2_ts',
+                       molecule=ts_mol,
+                       method=method,
+                       keywords=method.keywords.opt_ts,
+                       n_cores=4,
+                       bond_ids_to_add=[(0, 2), (1, 2)])
+
+    # Should skip calculation for already completed and saved calculation
+    calc.run()
+
+    assert np.isclose(calc.get_energy().to('Ha'),
+                      -599.4788133790,
+                      atol=1E-8)
+
+    ts_mol.hessian = calc.get_hessian()
+    assert ts_mol.hessian is not None
+
+    assert sum(freq.is_imaginary for freq in ts_mol.vib_frequencies) == 1
+
+    # Should have a single imaginary frequency, ~511 cm-1
+    assert np.isclose(ts_mol.vib_frequencies[0].to('cm-1'),
+                      -511,
+                      atol=2)
