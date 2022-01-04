@@ -42,6 +42,10 @@ class QChem(ElectronicStructureMethod):
                 and not self._keywords_contain(calc, 'solvent_method')):
             calc.input.keywords.append(self.implicit_solvation_type)
 
+        if calc.input.point_charges is not None:
+            raise NotImplementedError('Point charges within QChem '
+                                      'calculations are not yet supported')
+
         with self._InputFileWriter(filename=calc.input.filename) as inp_file:
             inp_file.add_molecule_block(molecule)
 

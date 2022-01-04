@@ -1,6 +1,7 @@
 import os
 import pytest
 import numpy as np
+from autode.point_charges import PointCharge
 from autode.wrappers.QChem import QChem
 from autode.calculation import Calculation
 from autode.atoms import Atom
@@ -66,6 +67,13 @@ def test_base_method():
     # TODO: Implement, if it's useful
     with pytest.raises(NotImplementedError):
         _ = method.get_atomic_charges(_blank_calc())
+
+    calc = _blank_calc()
+    calc.input.point_charges = [PointCharge(0.1, x=0, y=0, z=1)]
+
+    # TODO: Implement point charges within the surroundings of a molecule
+    with pytest.raises(NotImplementedError):
+        calc.generate_input()
 
 
 def test_in_out_name():
