@@ -63,6 +63,10 @@ def test_base_method():
 
     assert 'qchem' in repr(method).lower()
 
+    # TODO: Implement, if it's useful
+    with pytest.raises(NotImplementedError):
+        _ = method.get_atomic_charges(_blank_calc())
+
 
 def test_in_out_name():
 
@@ -396,3 +400,44 @@ def test_ts_opt():
     assert np.isclose(ts_mol.vib_frequencies[0].to('cm-1'),
                       -511,
                       atol=2)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_constrained_distance_opt():
+
+    mol = Molecule(name='water_const_opt',
+                   atoms=[Atom('O', -0.0011, 0.3631, -0.0000),
+                          Atom('H', -0.8250, -0.1819, -0.0000),
+                          Atom('H', 0.8261, -0.1812, 0.0000)])
+
+    # Constrain the O-H distance to 0.9 Å
+    mol.constraints.update(distance={(0, 1): 0.9})
+
+    mol.optimise(method=method)
+
+    assert np.isclose(mol.distance(0, 1).to('Å'),
+                      0.9,
+                      atol=1E-2)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_constrained_cartesian_opt():
+    mol = Molecule(name='water_const_opt2',
+                   atoms=[Atom('O', -0.0011, 0.3631, -0.0000),
+                          Atom('H', -0.8250, -0.1819, -0.0000),
+                          Atom('H', 0.8261, -0.1812, 0.0000)])
+
+    init_dist0, init_dist1 = mol.distance(0, 1), mol.distance(0, 2)
+
+    mol.constraints.update(cartesian=[0, 1])
+    mol.optimise(method=method)
+
+    # First O-H distance should be unchanged
+    assert np.isclose(mol.distance(0, 1),
+                      init_dist0,
+                      atol=1E-3)
+
+    # while the other O-H distance will relax if atom 2 can move
+    assert not np.isclose(mol.distance(0, 2),
+                          init_dist1,
+                          atol=1E-3)
