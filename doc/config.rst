@@ -23,8 +23,8 @@ General
 *******
 
 The high-level electronic structure code defaults to the first available
-from {ORCA, Gaussian09, Gaussian16, NWChem} and the low-level from {XTB, MOPAC}.
-To select Gaussian09 as the high-level method:
+from {ORCA, Gaussian09, Gaussian16, NWChem, QChem} and the low-level from
+{XTB, MOPAC}. To select Gaussian09 as the high-level method:
 
 .. code-block:: python
 

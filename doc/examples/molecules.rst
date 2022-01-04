@@ -197,3 +197,23 @@ use :code:`ade.Config` e.g.
 
     Structure optimisation resets the positions of the atoms to their optimised
     value.
+
+Calculations can also be performed using electronic structure packages with
+implemented wrappers. For example, to calculate a single point energy for a
+hydrogen atom with all the currently implemented methods
+
+.. code-block:: python
+
+  >>> from autode.methods import MOPAC, XTB, QChem, NWChem, G09, G16, ORCA
+  >>>
+  >>> h = ade.Molecule(name='H', mult=2, atoms=[ade.Atom('H')])
+  >>>
+  >>> h.single_point(method=MOPAC())
+  >>> h.single_point(method=XTB())
+  >>> h.single_point(method=QChem())
+  >>> h.single_point(method=NWChem())
+  >>> h.single_point(method=G09())
+  >>> h.single_point(method=G16())
+  >>> h.single_point(method=ORCA())
+
+
