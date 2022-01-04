@@ -13,6 +13,7 @@ Dependencies
   + `Gaussian09 <https://gaussian.com/glossary/g09/>`_
   + `Gaussian16 <https://gaussian.com/gaussian16/>`_
   + `NWChem <http://www.nwchem-sw.org/index.php/Main_Page>`_ > v. 6.6
+  + `QChem <https://www.q-chem.com/>`_ > 5.4
 
 - One of:
 
