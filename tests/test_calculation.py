@@ -1,4 +1,4 @@
-from autode.calculation import Calculation, Constraints
+from autode.calculation import Calculation, Constraints, CalculationOutput
 from autode.solvent.solvents import get_solvent
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
@@ -84,6 +84,47 @@ def test_calc_class():
                         molecule=mol_no_atoms,
                         method=xtb,
                         keywords=xtb.keywords.sp)
+
+
+def test_calc_copy():
+
+    orca = ORCA()
+    calc = Calculation(name='tmp',
+                       molecule=test_mol,
+                       method=orca,
+                       keywords=orca.keywords.sp)
+
+    copied_calc = calc.copy()
+    copied_calc.input.keywords = None
+
+    assert calc.input.keywords is not None
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_clear_output():
+
+    with open('tmp.out', 'w') as out_file:
+        print('some', 'test', 'output', sep='\n', file=out_file)
+
+    output = CalculationOutput(filename='tmp.out')
+    assert output.exists
+
+    assert len(output.file_lines) == 3
+
+    with open('tmp.out', 'w') as out_file:
+        print('new output', sep='\n', file=out_file)
+
+    # Without clearing the output then the file lines are not updated
+    assert len(output.file_lines) == 3
+
+    # Clearing the output will clear the cached property (file_lines). Lines
+    # are reloaded when the file_lines property is accessed again
+    output.clear()
+
+    assert output.exists
+    assert len(output.file_lines) == 1
+
+    os.remove('tmp.out')
 
 
 def test_distance_const_check():

@@ -325,7 +325,7 @@ def test_external_basis_set_file():
 
     basis_path = os.path.join(os.getcwd(), 'bs1.gbs')
     custom.keywords.set_opt_basis_set(basis_path)
-    assert custom.keywords.opt.basis_set.has_only_name()
+    assert custom.keywords.opt.basis_set.has_only_name
 
     custom.keywords.sp.basis = basis_path
 

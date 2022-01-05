@@ -17,6 +17,7 @@ Python wrappers for a range of electronic structure theory codes, SMILES parsing
    * [Gaussian09](https://gaussian.com/glossary/g09/)
    * [Gaussian16](https://gaussian.com/gaussian16/)
    * [NWChem](http://www.nwchem-sw.org/index.php/Main_Page) > 6.5
+   * [QChem](https://www.q-chem.com/) > 5.4
 * One of:
    * [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/) > v. 6.1
    * [MOPAC](http://openmopac.net/)

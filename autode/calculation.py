@@ -305,6 +305,10 @@ class Calculation:
             logger.error('No calculation output. Could not get atoms')
             raise ex.AtomsNotFound
 
+        if self.molecule.n_atoms == 1:
+            # Final atoms of a single atom molecule must be identical
+            return self.molecule.atoms
+
         atoms = Atoms(self.method.get_final_atoms(self))
 
         if len(atoms) != self.molecule.n_atoms:
@@ -451,7 +455,7 @@ class Calculation:
                 continue
 
             # Allow for the unambiguous setting of a keyword with only a name
-            if keyword.has_only_name():
+            if keyword.has_only_name:
                 # set e.g. keyword.orca = 'b3lyp'
                 setattr(keyword, self.method.name, keyword.name)
                 continue
@@ -460,7 +464,7 @@ class Calculation:
             # definition in this method is not obvious, so raise an exception
             if not hasattr(keyword, self.method.name):
                 err_str = (f'Keyword: {keyword} is not supported set '
-                           f'{keyword}.{self.method.name} as a string')
+                           f'{repr(keyword)}.{self.method.name} as a string')
                 raise ex.UnsuppportedCalculationInput(err_str)
 
         self.method.generate_input(self, self.molecule)
@@ -485,6 +489,7 @@ class Calculation:
         if not self.method.available:
             raise ex.MethodUnavailable
 
+        self.output.clear()
         self.method.execute(self)
 
         return None
@@ -501,16 +506,34 @@ class Calculation:
 
         return None
 
+    def print_final_output_lines(self, n: int = 50) -> None:
+        """
+        Print the final n output lines, if the output exists
+
+        -----------------------------------------------------------------------
+        Arguments:
+            n: Number of lines
+        """
+
+        if self.output.exists:
+            print("".join(self.output.file_lines[-n:]))
+
+        return None
+
+    def copy(self) -> 'Calculation':
+        return deepcopy(self)
+
 
 class CalculationOutput:
 
     @cached_property
-    def file_lines(self):
+    def file_lines(self) -> List[str]:
         """
         Output files lines. This may be slow for large files but should
         not become a bottleneck when running standard DFT/WF calculations,
         are cached so only read once
 
+        -----------------------------------------------------------------------
         Returns:
             (list(str)): Lines from the output file
 
@@ -525,9 +548,17 @@ class CalculationOutput:
         return open(self.filename, 'r', encoding="utf-8").readlines()
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         """Does the calculation output exist?"""
         return self.filename is not None and os.path.exists(self.filename)
+
+    def clear(self) -> None:
+        """Clear the cached file lines"""
+
+        if 'file_lines' in self.__dict__:
+            del self.__dict__['file_lines']
+
+        return None
 
     def __init__(self, filename: Optional[str] = None):
 
@@ -595,4 +626,3 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
-

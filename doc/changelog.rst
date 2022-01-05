@@ -27,6 +27,7 @@ Usability improvements/Changes
 - Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
 - Removes :code:`autode.KcalMol` and :code:`KjMol` and enables a reaction to be plotted using a string representation of the units.
 - Allows for keywords to be set using just a list or a string, rather than requiring a specific type
+- Changes :code:`autode.wrappers.keywords.Keyword.has_only_name` to a property
 
 
 Functionality improvements
@@ -40,13 +41,14 @@ Functionality improvements
 - Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
 - Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
 - Rewrites :code:`autode.pes` into a consistent module while maintaining much of the functionality. Simplifies the interface
+- Adds a QChem electronic structure method wrapper
 
 
 Bug Fixes
 *********
 
 - Updates the TS template saved in the default template library
-
+- Reloads output file lines from a failed then re-run calculation
 
 
 

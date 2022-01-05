@@ -318,6 +318,26 @@ class _ConfigClass:
         # Only COSMO implemented
         implicit_solvation_type = solv.cosmo
 
+    class QChem:
+        # ---------------------------------------------------------------------
+        # Parameters for QChem                          https://www.q-chem.com/
+        # ---------------------------------------------------------------------
+        #
+        # path can be unset and will be assigned if it can be found in $PATH
+        path = None
+        #
+        # Default set of keywords to use for different types of calculation
+        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'jobtype opt', MaxOptCycles(10), d3bj],
+                               grad=[pbe0, def2svp, 'jobtype force', d3bj],
+                               opt=[pbe0, def2svp, 'jobtype opt', d3bj],
+                               opt_ts=[pbe0, def2svp, 'jobtype TS', d3bj],
+                               hess=[pbe0, def2svp, 'jobtype Freq', d3bj],
+                               sp=[pbe0, def2tzvp, d3bj],
+                               ecp=def2ecp)
+        #
+        # Only SMD is implemented
+        implicit_solvation_type = solv.smd
+
     # =========================================================================
     # =============               End                        ==================
     # =========================================================================
