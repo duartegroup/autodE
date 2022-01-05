@@ -117,8 +117,8 @@ def test_clear_output():
     # Without clearing the output then the file lines are not updated
     assert len(output.file_lines) == 3
 
-    # Clearing the output will clear the cached property (file_lines) and
-    # reload the new lines
+    # Clearing the output will clear the cached property (file_lines). Lines
+    # are reloaded when the file_lines property is accessed again
     output.clear()
 
     assert output.exists

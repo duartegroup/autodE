@@ -216,12 +216,8 @@ class QChem(ElectronicStructureMethod):
     def get_hessian(self, calc) -> np.ndarray:
         """Extract the mass-weighted non projected Hessian matrix
         NOTE: Required $rem vibman_print 4 $end in the input"""
-        expected_shape = (3 * calc.molecule.n_atoms, 3 * calc.molecule.n_atoms)
 
         hess = self._extract_mass_weighted_hessian(calc)
-        if hess.shape != expected_shape:
-            raise CouldNotGetProperty('hessian')
-
         atom_masses = self._extract_atomic_masses(calc)
 
         # Un-mass weight
@@ -249,16 +245,17 @@ class QChem(ElectronicStructureMethod):
 
     @staticmethod
     def _extract_mass_weighted_hessian(calc) -> np.ndarray:
+        """Extract the mass weighted Hessian as a 3Nx3N matrix (N = n_atoms)"""
 
-        three_n_atoms = 3 * calc.molecule.n_atoms
+        n_atoms = calc.molecule.n_atoms
         lines = calc.output.file_lines
 
         hess = []
 
         def correct_shape(_hess):
             """Is the Hessian the correct shape? 3N x 3N"""
-            return (len(_hess) == three_n_atoms
-                    and all(len(row) == three_n_atoms for row in _hess))
+            return (len(_hess) == 3*n_atoms
+                    and all(len(row) == 3*n_atoms for row in _hess))
 
         for i, line in enumerate(lines):
 
@@ -266,7 +263,7 @@ class QChem(ElectronicStructureMethod):
                 continue
 
             start_idx = i + 3
-            end_idx = start_idx + three_n_atoms
+            end_idx = start_idx + 3*n_atoms
 
             hess = [[float(val) for val in _l.split()]
                     for _l in lines[start_idx:end_idx]]
@@ -275,7 +272,7 @@ class QChem(ElectronicStructureMethod):
 
                 try:
                     start_idx = end_idx + 2
-                    end_idx = start_idx + three_n_atoms
+                    end_idx = start_idx + 3*n_atoms
                     lines_slice = lines[start_idx:end_idx]
 
                     if len(lines_slice) == 0:
@@ -285,7 +282,10 @@ class QChem(ElectronicStructureMethod):
                         hess[j] += [float(val) for val in _l.split()]
 
                 except (TypeError, ValueError, AssertionError):
-                    raise CouldNotGetProperty('hessian')
+                    raise CouldNotGetProperty('Hessian')
+
+        if not correct_shape(hess):
+            raise CouldNotGetProperty('Hessian')
 
         return np.array(hess)
 
@@ -400,7 +400,7 @@ class QChem(ElectronicStructureMethod):
             return None
 
         def add_rem_block(self, calc) -> None:
-            """Add the $rem block"""
+            """Add the calculation specification in a $rem block"""
             keywords = calc.input.keywords
 
             if any('$' in word.lower() for word in keywords):
@@ -466,9 +466,8 @@ class QChem(ElectronicStructureMethod):
                         logger.warning('Cannot optimise a single atom')
 
                     elif ' ts' in word.lower():
-                        logger.warning('TS optimisation - expected a completed'
-                                       ' Hessian calculation')
                         self.write(word)
+                        # A completed Hessian calculation must be present
                         self.write('geom_opt_hessian read')
 
                     else:
