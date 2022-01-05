@@ -32,7 +32,7 @@ class QChem(ElectronicStructureMethod):
         return f'QChem(available = {self.available})'
 
     def generate_input(self, calc, molecule):
-        """Generate a valid QChem input"""
+        """Generate a QChem input file"""
 
         if calc.input.filename is None:
             raise ValueError(f'Cannot generate an input for {calc}. Input '
@@ -138,9 +138,9 @@ class QChem(ElectronicStructureMethod):
 
     def get_final_atoms(self, calc) -> List[Atom]:
 
-        if isinstance(calc.input.keywords, kws.HessianKeywords):
-            logger.warning('Hessian calculation performed - no change to '
-                           'geometry')
+        if not isinstance(calc.input.keywords, kws.OptKeywords):
+            logger.warning('Non-optimisation calculation performed - no change'
+                           ' to geometry')
             return calc.molecule.atoms
 
         atoms = []
@@ -292,7 +292,6 @@ class QChem(ElectronicStructureMethod):
     @staticmethod
     def _is_ts_opt(calc) -> bool:
         """Is the calculation a QChem TS optimisation?"""
-
         return any('jobtype' in word.lower() and 'ts' in word.lower()
                    for word in calc.input.keywords)
 

@@ -5,6 +5,7 @@ from autode.point_charges import PointCharge
 from autode.wrappers.QChem import QChem
 from autode.calculation import Calculation
 from autode.atoms import Atom
+from autode.wrappers.implicit_solvent_types import cpcm
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.basis_sets import def2svp
@@ -201,7 +202,7 @@ def test_energy_extraction():
 
     for calc in (_blank_calc(), _broken_output_calc(), _broken_output_calc2()):
         with pytest.raises(CalculationException):
-            method.get_energy(calc)
+            _ = method.get_energy(calc)
 
 
 def _file_contains_one(filename, string):
@@ -419,8 +420,7 @@ def test_constrained_distance_opt():
                           Atom('H', 0.8261, -0.1812, 0.0000)])
 
     # Constrain the O-H distance to 0.9 Å
-    mol.constraints.update(distance={(0, 1): 0.9})
-
+    mol.constraints.distance = {(0, 1): 0.9}
     mol.optimise(method=method)
 
     assert np.isclose(mol.distance(0, 1).to('Å'),
@@ -437,7 +437,7 @@ def test_constrained_cartesian_opt():
 
     init_dist0, init_dist1 = mol.distance(0, 1), mol.distance(0, 2)
 
-    mol.constraints.update(cartesian=[0, 1])
+    mol.constraints.cartesian = [0, 1]
     mol.optimise(method=method)
 
     # First O-H distance should be unchanged
@@ -449,3 +449,34 @@ def test_constrained_cartesian_opt():
     assert not np.isclose(mol.distance(0, 2),
                           init_dist1,
                           atol=1E-3)
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_opt_single_atom():
+
+    calc = _blank_calc()
+    calc.molecule = Molecule(name='H', mult=2, atoms=[Atom('H')])
+
+    calc.input.keywords = method.keywords.opt
+
+    calc.name = 'tmp'
+    calc.input.filename = 'tmp.in'
+
+    method.generate_input(calc=calc, molecule=calc.molecule)
+
+    assert os.path.exists('tmp.in')
+
+    # A single atom cannot be optimised so there should be no opt in the input
+    assert not any('opt' in line.lower() for line in open('tmp.in'))
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_unsupported_solvent_type():
+
+    calc = _blank_calc()
+
+    # Cannot generate a calculation with an unsupported solvent type
+    calc.input.keywords.append(cpcm)
+
+    with pytest.raises(CalculationException):
+        calc.generate_input()
