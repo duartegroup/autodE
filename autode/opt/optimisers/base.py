@@ -163,7 +163,7 @@ class Optimiser(ABC):
 
         self._coords.e = self._species.energy = grad.get_energy()
         self._species.gradient = grad.get_gradients()
-        # grad.clean_up(force=True, everything=True)
+        grad.clean_up(force=True, everything=True)
 
         self._coords.update_g_from_cart_g(self._species.gradient)
         return None

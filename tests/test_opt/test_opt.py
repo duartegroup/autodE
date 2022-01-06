@@ -1,10 +1,10 @@
 import pytest
-import shutil
 import numpy as np
 from autode import Molecule, Atom
 from autode.methods import XTB
 from autode.values import GradientNorm, PotentialEnergy
 from autode.utils import work_in_tmp_dir
+from ..testutils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.steepest_decent import (CartesianSDOptimiser,
                                                    DIC_SD_Optimiser)
@@ -108,11 +108,8 @@ def test_abs_diff_e():
 
 
 @work_in_tmp_dir()
+@requires_with_working_xtb_install
 def test_xtb_h2_cart_opt():
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     mol = h2()
     CartesianSDOptimiser.optimise(mol, method=XTB(), maxiter=50)
@@ -122,10 +119,8 @@ def test_xtb_h2_cart_opt():
 
 
 @work_in_tmp_dir()
+@requires_with_working_xtb_install
 def test_xtb_h2_cart_opt():
-
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     optimiser = CartesianSDOptimiser(maxiter=2,
                                      gtol=GradientNorm(0.1),
@@ -142,10 +137,8 @@ def test_xtb_h2_cart_opt():
 
 
 @work_in_tmp_dir()
+@requires_with_working_xtb_install
 def test_xtb_h2_dic_opt():
-
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     # In DICs we can use a much larger step size
     optimiser = DIC_SD_Optimiser(step_size=2.5,

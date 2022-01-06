@@ -1,8 +1,11 @@
 import numpy as np
 from autode.species.molecule import Molecule
+from autode.wrappers.XTB import XTB
 from autode.wrappers.base import Method
+from autode.utils import work_in_tmp_dir
 from autode.opt.optimisers.rfo import RFOOptimiser
 from autode.opt.coordinates import CartesianCoordinates
+from ..testutils import requires_with_working_xtb_install
 
 
 class TestRFOOptimiser2D(RFOOptimiser):
@@ -71,3 +74,23 @@ def test_branin_opt():
                        atol=0.02)
 
     assert optimiser.iteration < 30
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@requires_with_working_xtb_install
+def test_molecular_opt():
+
+    mol = Molecule(smiles='O')
+    assert [atom.label for atom in mol.atoms] == ['O', 'H', 'H']
+
+    RFOOptimiser.optimise(mol, method=XTB())
+
+    # Check optimised distances are similar to running the optimiser in XTB
+    for oh_atom_idx_pair in [(0, 1), (0, 2)]:
+        assert np.isclose(mol.distance(*oh_atom_idx_pair).to('Å'),
+                          0.9595,
+                          atol=1E-2)
+
+    assert np.isclose(mol.distance(1, 2),
+                      1.5438,
+                      atol=1E-2)
