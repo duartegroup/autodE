@@ -25,13 +25,14 @@ class OptCoordinates(ValueArray, ABC):
         arr._h_inv = None          # Inverse of the Hessian: H^-1
         arr.B = None               # Wilson B matrix
         arr.B_T_inv = None         # Generalised inverse of B
+        arr.U = np.eye(len(arr))   # Transform matrix
 
         return arr
 
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ('units', '_e', '_g', '_h', '_h_inv', 'B', 'B_T_inv'):
+        for attr in ('units', '_e', '_g', '_h', '_h_inv', 'U', 'B', 'B_T_inv'):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None

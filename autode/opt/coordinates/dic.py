@@ -31,7 +31,7 @@ class DIC(InternalCoordinates):
         return f'DIC(n={len(self)})'
 
     @staticmethod
-    def U(primitives: PIC) -> np.ndarray:
+    def _calc_U(primitives: PIC) -> np.ndarray:
         r"""
         Transform matrix containing the non-redundant eigenvectors of the G
         matrix.
@@ -91,17 +91,19 @@ class DIC(InternalCoordinates):
         start_time = time()
 
         primitives = primitive_type(x)
-        U = cls.U(primitives)
-
+        U = cls._calc_U(primitives)
         s = cls(input_array=np.matmul(U.T, primitives.q))
-        s.e = x.e  # Energy
+
+        s.U = U                  # Transform matrix primitives -> non-redundant
+
+        s.e = x.e                                           # Energy
 
         s.B = np.matmul(U.T, primitives.B)
         s.B_T_inv = np.linalg.pinv(s.B)
         s._x = x.copy()
         s.primitive_type = primitive_type
 
-        s.update_g_from_cart_g(x.g)
+        s.update_g_from_cart_g(x.g)                        # Gradient
 
         # and Hessian
         if x.h is not None:
@@ -172,8 +174,6 @@ class DIC(InternalCoordinates):
 
         # Initialise
         s_k, x_k = self.raw, self._x.copy()
-        U = self.U(primitives=self.primitive_type(x_k))
-
         iteration = 0
 
         # Converge to an RMS difference of less than a tolerance
@@ -187,9 +187,9 @@ class DIC(InternalCoordinates):
 
             # Rebuild the primitives from the back-transformed Cartesians
             primitives = self.primitive_type(x_k)
-            s_k = np.matmul(U.T, primitives.q)
+            s_k = np.matmul(self.U.T, primitives.q)
 
-            B = np.matmul(U.T, primitives.B)
+            B = np.matmul(self.U.T, primitives.B)
             self.B_T_inv = np.linalg.pinv(B)
 
             iteration += 1
