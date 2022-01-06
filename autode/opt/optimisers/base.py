@@ -150,8 +150,6 @@ class Optimiser(ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
-        coord_type_str = type(self._coords).__name__
-
         # Calculations need to be performed in cartesian coordinates
         cart_coords = self._coords.to('cart')
         self._species.coordinates = cart_coords
@@ -165,10 +163,9 @@ class Optimiser(ABC):
 
         self._coords.e = self._species.energy = grad.get_energy()
         self._species.gradient = grad.get_gradients()
-        grad.clean_up(force=True, everything=True)
+        # grad.clean_up(force=True, everything=True)
 
-        cart_coords.g = self._species.gradient.flatten()
-        self._coords.g = cart_coords.to(coord_type_str).g
+        self._coords.update_g_from_cart_g(self._species.gradient)
         return None
 
     @property
@@ -385,7 +382,7 @@ class NDOptimiser(Optimiser, ABC):
         if e1 is None or e2 is None:
             raise RuntimeError('Cannot determine absolute energy difference')
 
-        return abs(e1 - e2)
+        return PotentialEnergy(abs(e1 - e2))
 
     @property
     def _g_norm(self) -> GradientNorm:
@@ -436,7 +433,7 @@ class NDOptimiser(Optimiser, ABC):
 
         for update_type in self._hessian_update_types:
             updater = update_type(h_inv=coords_k.h_inv,
-                                  s=coords_l - coords_k,
+                                  s=coords_l.raw - coords_k.raw,
                                   y=coords_l.g - coords_k.g)
 
             if not updater.conditions_met:

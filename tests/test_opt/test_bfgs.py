@@ -157,7 +157,6 @@ def check_gaussian_well_opt(init_x, init_y):
 def test_gaussian_well_opt():
 
     for (x, y) in [(-0.1, 0.0), (-1.0, 0.0), (2.0, 1.0), (2.0, -2.0)]:
-    # for (x, y) in [(2.0, -2.0)]:
         check_gaussian_well_opt(init_x=x, init_y=y)
 
 

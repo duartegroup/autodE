@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 from autode.log import logger
 from autode.values import ValueArray
 from autode.opt.coordinates.base import OptCoordinates
@@ -23,6 +24,19 @@ class CartesianCoordinates(OptCoordinates):
     def _str_is_valid_unit(self, string) -> bool:
         """Is a string a valid unit for these coordinates e.g. nm"""
         return any(string in unit.aliases for unit in self.implemented_units)
+
+    def update_g_from_cart_g(self,
+                             arr: Optional['autode.values.Gradient']
+                             ) -> None:
+        """
+        Updates the gradient from a calculated Cartesian gradient, which for
+        Cartesian coordinates there is nothing to be done for.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            arr: Gradient array
+        """
+        self.g = None if arr is None else np.array(arr).flatten()
 
     def iadd(self, value: np.ndarray) -> 'OptCoordinates':
         return np.ndarray.__iadd__(self, value)

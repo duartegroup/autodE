@@ -37,6 +37,11 @@ class OptCoordinates(ValueArray, ABC):
         return None
 
     @property
+    def raw(self) -> np.ndarray:
+        """Raw numpy array of these coordinates"""
+        return np.array(self, copy=True)
+
+    @property
     def e(self) -> Optional[PotentialEnergy]:
         """Energy"""
         return self._e
@@ -103,6 +108,13 @@ class OptCoordinates(ValueArray, ABC):
     def h_or_h_inv_has_correct_shape(self, arr: np.ndarray):
         """Does a Hessian or its inverse have the correct shape?"""
         return arr.ndim == 2 and arr.shape[0] == arr.shape[1] == len(self)
+
+    @abstractmethod
+    def update_g_from_cart_g(self,
+                             arr: Optional['autode.values.Gradient']
+                             ) -> None:
+        """Update the gradient (derivative with respect to position) of
+        these coordinates from a Cartesian (cart) gradient"""
 
     @abstractmethod
     def __repr__(self) -> str:

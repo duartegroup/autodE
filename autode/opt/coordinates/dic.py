@@ -17,7 +17,7 @@ summarised below:
 """
 import numpy as np
 from time import time
-from typing import Type
+from typing import Type, Optional
 from autode.log import logger
 from autode.opt.coordinates.internals import (PIC,
                                               InverseDistances,
@@ -101,9 +101,7 @@ class DIC(InternalCoordinates):
         s._x = x.copy()
         s.primitive_type = primitive_type
 
-        # Set the internal gradient
-        if x.g is not None:
-            s.g = np.matmul(s.B_T_inv.T, x.g)
+        s.update_g_from_cart_g(x.g)
 
         # and Hessian
         if x.h is not None:
@@ -113,6 +111,25 @@ class DIC(InternalCoordinates):
 
         logger.info(f'Transformed in      ...{time() - start_time:.4f} s')
         return s
+
+    def update_g_from_cart_g(self,
+                             arr: Optional['autode.values.Gradient']
+                             ) -> None:
+        """
+        Updates the gradient from a calculated Cartesian gradient
+
+        -----------------------------------------------------------------------
+        Arguments:
+            arr: Gradient array
+        """
+        if arr is None:
+            self._x.g, self.g = None, None
+
+        else:
+            self._x.g = arr.flatten()
+            self.g = np.matmul(self.B_T_inv.T, self._x.g)
+
+        return None
 
     def to(self, value: str) -> 'autode.opt.coordinates.base.OptCoordinates':
         """
@@ -151,10 +168,10 @@ class DIC(InternalCoordinates):
             (RuntimeError): If the transformation diverges
         """
         start_time = time()
-        s_new = np.array(self, copy=True) + delta
+        s_new = self.raw + delta
 
         # Initialise
-        s_k, x_k = np.array(self, copy=True), self._x.copy()
+        s_k, x_k = self.raw, self._x.copy()
         U = self.U(primitives=self.primitive_type(x_k))
 
         iteration = 0
@@ -168,15 +185,17 @@ class DIC(InternalCoordinates):
                 raise RuntimeError('Something went very wrong in the back '
                                    'transformation from internal -> carts')
 
-            # Rebuild the primitives from the back-transformer Cartesians
+            # Rebuild the primitives from the back-transformed Cartesians
             primitives = self.primitive_type(x_k)
             s_k = np.matmul(U.T, primitives.q)
-            B = np.matmul(U.T, primitives.B)
-            self.B_T_inv = np.linalg.pinv(B)
+
+            # TODO: See if this is required
+            # B = np.matmul(U.T, primitives.B)
+            # self.B_T_inv = np.linalg.pinv(B)
 
             iteration += 1
 
-        logger.info(f'Converged in {iteration} cycles and '
+        logger.info(f'DIC transformation converged in {iteration} cycles and '
                     f'{time() - start_time:.4f} s')
 
         self[:] = s_k

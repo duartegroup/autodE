@@ -26,9 +26,12 @@ class RFOOptimiser(NDOptimiser):
 
         self.alpha = init_alpha
         self._hessian_update_types = [BFGSUpdate, NullUpdate]
+        # self._hessian_update_types = [NullUpdate]
 
     def _step(self) -> None:
         """RFO step"""
+        logger.info('Taking a RFO step')
+
         self._coords.h_inv = self._updated_h_inv()
 
         h_n, _ = self._coords.h.shape
@@ -52,8 +55,8 @@ class RFOOptimiser(NDOptimiser):
 
         if max_step_component > self.alpha:
             logger.warning(f'Maximum component of the step '
-                           f'{max_step_component:.4} Å > {self.alpha:.4f} '
-                           f'Å. Scaling down')
+                           f'{max_step_component:.4} > {self.alpha:.4f} '
+                           f'. Scaling down')
             delta_s *= self.alpha / max_step_component
 
         self._coords = self._coords + delta_s
@@ -68,4 +71,3 @@ class RFOOptimiser(NDOptimiser):
         self._coords.h = np.eye(len(self._coords))
 
         self._update_gradient_and_energy()
-

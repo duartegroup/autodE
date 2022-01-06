@@ -320,7 +320,7 @@ class Species(AtomCollection):
 
         else:
             raise ValueError(f'Could not set the gradient with {value}, Must '
-                             f'be a numpy array or a Hessian.')
+                             f'be a numpy array or a Gradient.')
 
     @property
     def frequencies(self) -> Optional[List[val.Frequency]]:
