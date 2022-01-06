@@ -189,9 +189,8 @@ class DIC(InternalCoordinates):
             primitives = self.primitive_type(x_k)
             s_k = np.matmul(U.T, primitives.q)
 
-            # TODO: See if this is required
-            # B = np.matmul(U.T, primitives.B)
-            # self.B_T_inv = np.linalg.pinv(B)
+            B = np.matmul(U.T, primitives.B)
+            self.B_T_inv = np.linalg.pinv(B)
 
             iteration += 1
 

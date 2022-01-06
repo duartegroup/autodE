@@ -26,7 +26,6 @@ class RFOOptimiser(NDOptimiser):
 
         self.alpha = init_alpha
         self._hessian_update_types = [BFGSUpdate, NullUpdate]
-        # self._hessian_update_types = [NullUpdate]
 
     def _step(self) -> None:
         """RFO step"""
