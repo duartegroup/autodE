@@ -356,6 +356,9 @@ class NDOptimiser(Optimiser, ABC):
                  between two consecutive iterations of the optimiser
 
             kwargs (Any): Additional keyword arguments to pass on
+
+        Raises:
+            (ValueError | RuntimeError):
         """
 
         optimiser = cls(maxiter=maxiter, gtol=gtol, etol=etol, coords=coords)
@@ -434,8 +437,25 @@ class NDOptimiser(Optimiser, ABC):
         Update the inverse of the Hessian matrix :math:`H^{-1}` for the
         current set of coordinates. If the first iteration then use the true
         inverse of the (estimated) Hessian, otherwise update the inverse
-        using a viable update strategy
+        using a viable update strategy.
 
+
+        .. math::
+
+            H_{l - 1}^{-1} \rightarrow H_{l}^{-1}
+
+        """
+
+        if self.iteration == 0:
+            logger.info('First iteration so using exact inverse, H^-1')
+            return np.linalg.inv(self._coords.h)
+
+        return self._best_hessian_updater.updated_h_inv
+
+    def _updated_h(self) -> np.ndarray:
+        r"""
+        Update the the Hessian matrix :math:`H` for the current set of
+        coordinates. If the first iteration then use the initial Hessian
 
         .. math::
 
@@ -444,20 +464,37 @@ class NDOptimiser(Optimiser, ABC):
         """
 
         if self.iteration == 0:
-            logger.info('First iteration so using exact inverse, H^-1')
-            return np.linalg.inv(self._coords.h)
+            logger.info('First iteration so not updating the Hessian')
+            return self._coords.h
 
+        return self._best_hessian_updater.updated_h
+
+    @property
+    def _best_hessian_updater(self) -> 'HessianUpdater':
+        """
+        Find the best Hessian update strategy by enumerating all the possible
+        Hessian update types implemented for this optimiser and returning the
+        first that meets the criteria to be used.
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.opt.optimisers.hessian_update.HessianUpdater):
+
+        Raises:
+            (RuntimeError): If no suitable strategies are found
+        """
         coords_l, coords_k = self._coords, self._history.penultimate
 
         for update_type in self._hessian_update_types:
-            updater = update_type(h_inv=coords_k.h_inv,
+            updater = update_type(h=coords_k.h,
+                                  h_inv=coords_k.h_inv,
                                   s=coords_l.raw - coords_k.raw,
                                   y=coords_l.g - coords_k.g)
 
             if not updater.conditions_met:
                 continue
 
-            return updater.updated_h_inv
+            return updater
 
         raise RuntimeError('Could not update the inverse Hessian - no '
                            'suitable update strategies')
