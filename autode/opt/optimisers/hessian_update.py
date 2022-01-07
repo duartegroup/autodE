@@ -16,7 +16,7 @@ class HessianUpdater(ABC):
 
             h_inv (np.ndarray): Inverse Hessian (:math:`H^{-1}`), shape = (N, N)
 
-            s (np.ndarray): Coordinate shift. :math:`s = X_{i+1} - X_i`
+            s (np.ndarray): Coordinate shift. :math:`s = R_{i+1} - R_i`
 
             y (np.ndarray): Gradient shift.
                             :math:`y = \nabla E_{i+1} - \nabla E_i`
@@ -85,13 +85,18 @@ class BFGSUpdate(HessianUpdater):
 
     @property
     def _updated_h(self) -> np.ndarray:
-        """
+        r"""
         Update the Hessian with a BFGS like update
 
         .. math::
 
             H_{new} = H + \frac{y y^T}{y^T s} - \frac{H s s^T H}
                                                      {s^T H s}
+
+
+        -----------------------------------------------------------------------
+        See Also:
+            :py:meth:`BFGSUpdate._updated_h_inv <BFGSUpdate._updated_h_inv>`
         """
         h_s = np.matmul(self.h, self.s)
 
@@ -117,6 +122,10 @@ class BFGSUpdate(HessianUpdater):
 
         where :math:`s = x_{l} - x_{l-1},\; \boldsymbol{y} =
         \nabla E_l - \nabla E_{l-1}`.
+
+        -----------------------------------------------------------------------
+        See Also:
+            :py:meth:`BFGSUpdate._updated_h <BFGSUpdate._updated_h>`
         """
         logger.info('Calculating H^(-1) with Sherman–Morrison formula')
 
@@ -245,9 +254,9 @@ class BofillUpdate(HessianUpdater):
         .. math::
             h = \boldsymbol{G}_{i-1}
 
-            y = \Delta\boldsymbol{g}_i - \Delta\boldsymbol{g}_{i-1}
+            y = \Delta\boldsymbol{g} = \boldsymbol{g}_i - \boldsymbol{g}_{i-1}
 
-            s = \Delta\boldsymbol{x}_i - \Delta\boldsymbol{x}_{i-1}
+            s = \Delta\boldsymbol{x} = \boldsymbol{x}_i - \boldsymbol{x}_{i-1}
 
         -----------------------------------------------------------------------
         Returns:
