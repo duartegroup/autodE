@@ -1,4 +1,6 @@
 import numpy as np
+import pytest
+
 from autode.opt.optimisers.hessian_update import (BFGSUpdate,
                                                   SR1Update,
                                                   NullUpdate)
@@ -86,3 +88,15 @@ def test_null_update():
     # and just returns the hessian back
     assert np.allclose(updater.updated_h,
                        10.*np.eye(4))
+
+
+def test_updater_class():
+
+    updater = NullUpdate()
+
+    # Cannot update without either an initial H or H^(-1)
+    with pytest.raises(RuntimeError):
+        _ = updater.updated_h_inv
+
+    with pytest.raises(RuntimeError):
+        _ = updater.updated_h

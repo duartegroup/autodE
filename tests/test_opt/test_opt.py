@@ -107,6 +107,65 @@ def test_abs_diff_e():
     assert np.isclose(diff_e, 0.1, atol=1E-6)
 
 
+def test_g_norm():
+
+    optimiser = sample_cartesian_optimiser()
+
+    # With no coordinates the norm of the gradient is infinity
+    assert optimiser._coords is None
+    assert optimiser._g_norm == GradientNorm(np.inf)
+
+    # Likewise if the gradient is unset
+    optimiser._coords = CartesianCoordinates([1.0, 0.0, 0.0])
+    assert optimiser._coords.g is None
+    assert optimiser._g_norm == GradientNorm(np.inf)
+
+
+def test_optimiser_h_update():
+
+    optimiser = sample_cartesian_optimiser()
+
+    # Remove any possible updater type
+    optimiser._hessian_update_types = []
+
+    c1 = CartesianCoordinates([1.0, 0.0, 0.0])
+    c1.h = np.eye(3)
+
+    optimiser._history.append(c1)
+
+    c2 = CartesianCoordinates([1.1, 0.0, 0.0])
+    c2.h = np.eye(3)
+
+    optimiser._history.append(c2)
+
+    # and try and update the (inverse) hessian, which is impossible without
+    # an updater
+    with pytest.raises(RuntimeError):
+        _ = optimiser._updated_h_inv()
+
+
+def test_history():
+
+    optimiser = sample_cartesian_optimiser()
+    assert optimiser.iteration < 1
+    assert len(optimiser._history) < 1
+
+    # Cannot get the final set of coordinates without any history
+    with pytest.raises(IndexError):
+        _ = optimiser._history.final
+
+    # or the ones before that
+    with pytest.raises(IndexError):
+        _ = optimiser._history.penultimate
+
+    # or minimum in energy
+    with pytest.raises(IndexError):
+        _ = optimiser._history.minimum
+
+    # and cannot contain a well in the energy
+    assert not optimiser._history.contains_well
+
+
 @work_in_tmp_dir()
 @requires_with_working_xtb_install
 def test_xtb_h2_cart_opt():

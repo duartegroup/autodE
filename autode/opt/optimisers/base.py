@@ -95,9 +95,7 @@ class Optimiser(ABC):
 
             self._log_convergence()
 
-            if self.iteration >= self._maxiter:
-                logger.warning(f'Reached the maximum number of iterations '
-                               f'*{self._maxiter}*. Did not converge')
+            if self._exceeded_maximum_iteration:
                 break
 
         logger.info(f'Converged: {self.converged}, in {self.iteration} cycles')
@@ -119,25 +117,25 @@ class Optimiser(ABC):
                                        species: 'autode.species.Species',
                                        method:  'autode.wrappers.base.Method'
                                        ) -> None:
-        """Initialise the internal species and method. They must have the
-         correct attributes
+        """
+        Initialise the internal species and method. They be the correct types
 
         -----------------------------------------------------------------------
          Raises:
-             (ValueError): For incorrect type or attributes
+             (ValueError): For incorrect types
          """
-        self._method = method if method is not None else self._method
-        self._species = species if species is not None else self._species
+        from autode.species.species import Species
+        from autode.wrappers.base import Method
 
-        if self._species is None or self._method is None:
-            raise ValueError('Must have a species and a method to run an '
-                             f'optimisation. Had: {self._species} and '
-                             f'{self._method}')
+        if not isinstance(species, Species):
+            raise ValueError(f'{species} must be a autoode.Species instance '
+                             f'but had {type(species)}')
 
-        if not all(hasattr(self._species, attr) for attr in ('energy', 'name')):
-            raise ValueError('Internal species required energy and name '
-                             f'attributes but had {self._species}')
+        if not isinstance(method, Method):
+            raise ValueError(f'{method} must be a autoode.wrappers.base.Method '
+                             f'instance but had {type(method)}')
 
+        self._method, self._species = method, species
         return None
 
     def _update_gradient_and_energy(self) -> None:
@@ -235,6 +233,24 @@ class Optimiser(ABC):
     def _has_coordinates_and_gradient(self) -> bool:
         """Does this optimiser have defined coordinates and a gradient?"""
         return self._coords is not None and self._coords.g is not None
+
+    @property
+    def _exceeded_maximum_iteration(self) -> bool:
+        """
+        Has this optimiser exceeded the maximum number of iterations
+        allowed?
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        if self.iteration >= self._maxiter:
+            logger.warning(f'Reached the maximum number of iterations '
+                           f'*{self._maxiter}*. Did not converge')
+            return True
+
+        else:
+            return False
 
 
 class NDOptimiser(Optimiser, ABC):
@@ -398,10 +414,12 @@ class NDOptimiser(Optimiser, ABC):
             logger.warning('Had no coordinates - cannot determine ||∇E||')
             return GradientNorm(np.inf)
 
-        if self._coords.to('cart').g is None:
+        cartesian_gradient = self._coords.to('cart').g
+
+        if cartesian_gradient is None:
             return GradientNorm(np.inf)
 
-        return GradientNorm(np.linalg.norm(self._coords.to('cart').g))
+        return GradientNorm(np.linalg.norm(cartesian_gradient))
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy """
@@ -488,7 +506,7 @@ class _OptimiserHistory(list):
             (autode.opt.OptCoordinates):
         """
         if len(self) == 0:
-            raise RuntimeError('No minimum with no history')
+            raise IndexError('No minimum with no history')
 
         return self[np.argmin([coords.e for coords in self])]
 
