@@ -253,12 +253,11 @@ class BofillUpdate(HessianUpdater):
         Returns:
             (np.ndarray): H
         """
-
         logger.info('Updating the Hessian with the Bofill scheme')
 
         # from ref. [1] the approximate Hessian (G) is self.H
-        G_i_1 = self.h                              # G_{i-1}
-        dE_i = self.y - np.matmul(G_i_1, self.s).T  # ΔE_i = Δg_i - G_{i-1}Δx_i
+        G_i_1 = self.h                             # G_{i-1}
+        dE_i = self.y - np.dot(G_i_1, self.s)      # ΔE_i = Δg_i - G_{i-1}Δx_i
 
         if np.linalg.norm(dE_i) < self.min_update_tol:
             logger.warning(f'|Δg_i - G_i-1Δx_i| < {self.min_update_tol:.4f} '
@@ -271,7 +270,7 @@ class BofillUpdate(HessianUpdater):
         # G_i^PBS eqn. 43 from ref. [1]
         dxTdg = np.dot(self.s, self.y)
         G_i_PSB = (G_i_1
-                   + ((np.outer(self.s, self.s) + np.outer(self.s, dE_i))
+                   + ((np.outer(dE_i, self.s) + np.outer(self.s, dE_i))
                       / np.dot(self.s, self.s))
                    - (((dxTdg - np.linalg.multi_dot((self.s, G_i_1, self.s)))
                        * np.outer(self.s, self.s))
@@ -282,7 +281,7 @@ class BofillUpdate(HessianUpdater):
         phi_bofill = 1.0 - (np.dot(self.s, dE_i) ** 2
                             / (np.dot(self.s, self.s) * np.dot(dE_i, dE_i)))
 
-        logger.info(f'ϕ_Bofill = {phi_bofill:.3f}')
+        logger.info(f'ϕ_Bofill = {phi_bofill:.6f}')
 
         return (1.0 - phi_bofill) * G_i_MS + phi_bofill * G_i_PSB
 
@@ -290,3 +289,8 @@ class BofillUpdate(HessianUpdater):
     def _updated_h_inv(self) -> np.ndarray:
         """Updated inverse Hessian is available only from the updated H"""
         return np.linalg.inv(self._updated_h)
+
+    @property
+    def conditions_met(self) -> bool:
+        """No conditions are need to be satisfied to perform a Bofill update"""
+        return True

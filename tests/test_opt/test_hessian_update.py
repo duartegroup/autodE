@@ -1,9 +1,9 @@
-import numpy as np
 import pytest
-
+import numpy as np
 from autode.opt.optimisers.hessian_update import (BFGSUpdate,
                                                   SR1Update,
-                                                  NullUpdate)
+                                                  NullUpdate,
+                                                  BofillUpdate)
 
 
 def update_improves_hessian(updater, guess, true):
@@ -100,3 +100,40 @@ def test_updater_class():
 
     with pytest.raises(RuntimeError):
         _ = updater.updated_h
+
+
+def test_bofill_update():
+    """Notation follows https://aip.scitation.org/doi/pdf/10.1063/1.1515483"""
+
+    G_prev = np.array([[1.0, 0.1],
+                       [0.1, 1.0]])   # initial approximate Hessian
+
+    dx = np.array([0.01, 0.03])
+    dg = np.array([-0.02, -0.06])
+
+    updater = BofillUpdate(h=G_prev,
+                           s=dx,
+                           y=dg)
+
+    dg_Gdx = dg - np.dot(G_prev, dx)
+
+    G_MS = G_prev + (np.outer(dg_Gdx, dg_Gdx)
+                     / np.dot(dg_Gdx, dx))
+
+    G_PSB = (G_prev
+
+             + ((np.outer(dg_Gdx, dx) + np.outer(dx, dg_Gdx))
+                / np.dot(dx, dx))
+
+             - ((np.dot(dx, dg) - np.dot(dx, np.dot(G_prev, dx))) * np.outer(dx, dx)
+                / np.dot(dx, dx)**2)
+             )
+
+    phi = 1.0 - (np.dot(dx, dg_Gdx)**2
+                 / (np.dot(dx, dx) * np.dot(dg_Gdx, dg_Gdx)))
+
+    G_bofill = (1.0 - phi) * G_MS + phi * G_PSB
+
+    assert np.allclose(updater.updated_h,
+                       G_bofill,
+                       atol=1E-10)
