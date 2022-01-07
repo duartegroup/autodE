@@ -7,16 +7,33 @@ Coordinates
    :undoc-members:
    :special-members: __init__
 
+|
 ----------
+|
+
 
 .. automodule:: autode.opt.coordinates.cartesian
    :members:
    :undoc-members:
    :special-members: __init__
 
+|
 ----------
+|
+
 
 .. automodule:: autode.opt.coordinates.dic
+   :members:
+   :undoc-members:
+   :special-members: __init__
+
+
+|
+----------
+|
+
+
+.. automodule:: autode.opt.coordinates.primitives
    :members:
    :undoc-members:
    :special-members: __init__

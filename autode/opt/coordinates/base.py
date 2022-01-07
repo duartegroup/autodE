@@ -44,7 +44,13 @@ class OptCoordinates(ValueArray, ABC):
 
     @property
     def e(self) -> Optional[PotentialEnergy]:
-        """Energy"""
+        """
+        Energy
+
+        -----------------------------------------------------------------------
+        Returns:
+            (PotentialEnergy | None): E
+        """
         return self._e
 
     @e.setter
@@ -54,7 +60,20 @@ class OptCoordinates(ValueArray, ABC):
 
     @property
     def g(self) -> Optional[np.ndarray]:
-        """Gradient of the energy: {dE/dx_i}"""
+        r"""
+        Gradient of the energy
+
+        .. math::
+            G = \nabla E
+                \equiv
+                \left\{\frac{\partial E}{\partial\boldsymbol{R}_{i}}\right\}
+
+        where :math:`\boldsymbol{R}` are a general vector of coordinates.
+
+        -----------------------------------------------------------------------
+        Returns:
+            (np.ndarray | None): G
+        """
         return self._g
 
     @g.setter
@@ -64,8 +83,23 @@ class OptCoordinates(ValueArray, ABC):
 
     @property
     def h(self) -> Optional[np.ndarray]:
-        """Second derivatives of the energy: {d^2E/dx_idx_j^2}"""
+        r"""
+        Hessian (second derivative) matrix of the energy
 
+        .. math::
+            H = \begin{pmatrix}
+                \frac{\partial^2 E}
+                     {\partial\boldsymbol{R}_{0}\partial\boldsymbol{R}_{0}}
+                & \cdots \\
+                \vdots & \ddots
+                \end{pmatrix}
+
+        where :math:`\boldsymbol{R}` are a general vector of coordinates.
+
+        -----------------------------------------------------------------------
+        Returns:
+            (np.ndarray | None): H
+        """
         if self._h is None and self._h_inv is not None:
             logger.info('Have H^-1 but no H, calculating H')
             self._h = np.linalg.inv(self._h_inv)
@@ -83,11 +117,13 @@ class OptCoordinates(ValueArray, ABC):
     @property
     def h_inv(self) -> Optional[np.ndarray]:
         """
-        Inverse of the Hessian matrix: :math:`H^{-1}`
+        Inverse of the Hessian matrix
+
+        .. math:: H^{-1}
 
         -----------------------------------------------------------------------
         Returns:
-            (np.ndarray | None): :math:`H^{-1}`
+            (np.ndarray | None): H^{-1}
         """
 
         if self._h_inv is None and self._h is not None:

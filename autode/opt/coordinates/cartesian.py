@@ -14,7 +14,6 @@ class CartesianCoordinates(OptCoordinates):
 
     def __new__(cls, input_array, units='Å') -> 'CartesianCoordinates':
         """New instance of these coordinates"""
-
         return super().__new__(cls, np.array(input_array).flatten(), units=units)
 
     def __array_finalize__(self, obj) -> None:
