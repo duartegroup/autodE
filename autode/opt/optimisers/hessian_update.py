@@ -174,8 +174,8 @@ class SR1Update(HessianUpdater):
 
         s_h_inv_y = self.s - np.matmul(self.h_inv, self.y)
         h_inv_new = (self.h_inv
-                     + np.outer(s_h_inv_y, s_h_inv_y)
-                       / np.dot(s_h_inv_y, self.y))
+                     + (np.outer(s_h_inv_y, s_h_inv_y)
+                        / np.dot(s_h_inv_y, self.y)))
 
         return h_inv_new
 
@@ -221,3 +221,72 @@ class NullUpdate(HessianUpdater):
     def _updated_h_inv(self) -> np.ndarray:
         """Updated inverse H is just the input inverse Hessian"""
         return self.h_inv.copy()
+
+
+class BofillUpdate(HessianUpdater):
+    """
+    Hessian update strategy suggested by Bofill[2] with notation taken from
+    ref. [1].
+
+    [1] V. Bakken, T. Helgaker, JCP, 117, 9160, 2002
+    [2] J. M. Bofill, J. Comput. Chem., 15, 1, 1994
+    """
+
+    # Threshold on |Δg - HΔx| below which the Hessian will not be updated, to
+    # prevent dividing by zero
+    min_update_tol = 1E-6
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        r"""
+        Bofill Hessian update, interpolating between MS and PBS update
+        strategies. Follows ref. [1] where the notation is
+
+        .. math::
+            h = \boldsymbol{G}_{i-1}
+
+            y = \Delta\boldsymbol{g}_i - \Delta\boldsymbol{g}_{i-1}
+
+            s = \Delta\boldsymbol{x}_i - \Delta\boldsymbol{x}_{i-1}
+
+        -----------------------------------------------------------------------
+        Returns:
+            (np.ndarray): H
+        """
+
+        logger.info('Updating the Hessian with the Bofill scheme')
+
+        # from ref. [1] the approximate Hessian (G) is self.H
+        G_i_1 = self.h                              # G_{i-1}
+        dE_i = self.y - np.matmul(G_i_1, self.s).T  # ΔE_i = Δg_i - G_{i-1}Δx_i
+
+        if np.linalg.norm(dE_i) < self.min_update_tol:
+            logger.warning(f'|Δg_i - G_i-1Δx_i| < {self.min_update_tol:.4f} '
+                           f'not updating the Hessian')
+            return self.h.copy()
+
+        # G_i^MS eqn. 42 from ref. [1]
+        G_i_MS = G_i_1 + np.outer(dE_i, dE_i) / np.dot(dE_i, self.s)
+
+        # G_i^PBS eqn. 43 from ref. [1]
+        dxTdg = np.dot(self.s, self.y)
+        G_i_PSB = (G_i_1
+                   + ((np.outer(self.s, self.s) + np.outer(self.s, dE_i))
+                      / np.dot(self.s, self.s))
+                   - (((dxTdg - np.linalg.multi_dot((self.s, G_i_1, self.s)))
+                       * np.outer(self.s, self.s))
+                      / np.dot(self.s, self.s) ** 2)
+                   )
+
+        # ϕ from eqn. 46 from ref [1]
+        phi_bofill = 1.0 - (np.dot(self.s, dE_i) ** 2
+                            / (np.dot(self.s, self.s) * np.dot(dE_i, dE_i)))
+
+        logger.info(f'ϕ_Bofill = {phi_bofill:.3f}')
+
+        return (1.0 - phi_bofill) * G_i_MS + phi_bofill * G_i_PSB
+
+    @property
+    def _updated_h_inv(self) -> np.ndarray:
+        """Updated inverse Hessian is available only from the updated H"""
+        return np.linalg.inv(self._updated_h)

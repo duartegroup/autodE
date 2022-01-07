@@ -57,3 +57,15 @@ Optimisers
    :special-members: __init__
    :private-members: _solve_subproblem
 
+
+|
+
+----------
+
+|
+
+.. automodule:: autode.opt.optimisers.hessian_update
+   :members:
+   :undoc-members:
+   :special-members: __init__
+   :private-members: _updated_h, _updated_h_inv
