@@ -165,6 +165,10 @@ class OptCoordinates(ValueArray, ABC):
     def iadd(self, value: np.ndarray) -> 'OptCoordinates':
         """Inplace addition of some coordinates"""
 
+    def __eq__(self, other):
+        """Coordinates can never be identical..."""
+        return False
+
     def __setitem__(self, key, value):
         """
         Set an item or slice in these coordinates. Clears the current

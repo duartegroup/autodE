@@ -43,6 +43,22 @@ def test_primitives():
                       0)
 
 
+def test_primitive_equality():
+
+    assert InverseDistance(0, 1) != 'a'
+    assert InverseDistance(0, 1) == InverseDistance(0, 1)
+    assert InverseDistance(1, 0) == InverseDistance(0, 1)
+
+
+def test_primitives_equality():
+
+    x = CartesianCoordinates(h2().coordinates)
+    primitives = InverseDistances(x)
+
+    assert primitives != 'a'
+    assert primitives == InverseDistances(x)
+
+
 def test_cartesian_coordinates():
     arr = np.array([[0.0, 0.0, 0.0],
                     [2.0, 0.0, 0.0]])
@@ -50,6 +66,10 @@ def test_cartesian_coordinates():
     x = CartesianCoordinates(arr)  # defaults to Å
     assert 'cart' in repr(x).lower()
     assert x.ndim == 1
+
+    # Test equality
+    assert x != 'some string'
+    assert x != arr
 
     # Can convert to other distance units
     assert 0.19 < CartesianCoordinates(arr).to('nm')[3] < 0.21

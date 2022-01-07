@@ -7,6 +7,7 @@ B : Wilson B matrix
 q : Primitive internal coordinates
 """
 import numpy as np
+from typing import Any
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.primitives import InverseDistance
@@ -34,18 +35,29 @@ class InternalCoordinates(OptCoordinates):
 class PIC(list, ABC):
     """Primitive internal coordinates"""
 
-    def __init__(self, x: 'autode.opt.CartesianCoordinates'):
+    def __init__(self,
+                 x: 'autode.opt.CartesianCoordinates'):
         """
         Constructor for a set of primitives
 
+        -----------------------------------------------------------------------
         Arguments:
-            x (autode.opt.cartesian.CartesianCoordinates): Cartesian coordinates
+            x: Cartesian coordinates
         """
-        super(PIC, self).__init__()
+        super().__init__()
 
-        self._populate(x)
+        self._populate(x)                       # lgtm [py/init-calls-subclass]
         self.B = self._calc_B(x)
         self.q = np.array([p(x) for p in self])
+
+    def __eq__(self, other: Any):
+        """Comparison of two PIC sets"""
+
+        is_equal = (isinstance(other, PIC)
+                    and len(other) == len(self)
+                    and all(p0 == p1 for p0, p1 in zip(self, other)))
+
+        return is_equal
 
     @abstractmethod
     def _populate(self, x) -> None:

@@ -1,5 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from typing import Tuple
 
 
 class Primitive(ABC):
@@ -28,7 +29,7 @@ class Primitive(ABC):
         where :math:`q` is the primitive coordinate and :math:`\boldsymbol{X}`
         are the cartesian coordinates.
 
-        ----------------------------------------------------------------------
+        -----------------------------------------------------------------------
         Arguments:
             i: Cartesian index to take the derivative with respect to;
                 0-N for N atoms
@@ -41,6 +42,10 @@ class Primitive(ABC):
         Returns:
             (float): Derivative
         """
+
+    @abstractmethod
+    def __eq__(self, other):
+        """Comparison of two primitive coordinates"""
 
 
 class InverseDistance(Primitive):
@@ -98,3 +103,16 @@ class InverseDistance(Primitive):
         """1 / |x_i - x_j| """
         _x = x.reshape((-1, 3))
         return 1.0 / np.linalg.norm(_x[self.idx_i] - _x[self.idx_j])
+
+    def __eq__(self, other) -> bool:
+        """Equality of two inverse distances"""
+
+        return (isinstance(other, InverseDistance)
+                and other._ordered_idxs == self._ordered_idxs)
+
+    @property
+    def _ordered_idxs(self) -> Tuple[int, int]:
+        """Indexes ordered by their value"""
+        i, j = self.idx_i, self.idx_j
+
+        return (i, j) if i < j else (j, i)
