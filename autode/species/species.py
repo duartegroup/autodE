@@ -1198,5 +1198,29 @@ class Species(AtomCollection):
         self.solvent.randomise_around(self)
         return None
 
+    def calc_hessian(self,
+                     method:              ElectronicStructureMethod,
+                     keywords:            Union[Sequence[str], str, None] = None,
+                     numerical:           bool = False,
+                     central_differences: bool = False,
+                     ) -> None:
+        """
+        Calculate the Hessian
+
+        -----------------------------------------------------------------------
+        Arguments:
+            method: Method to use to calculate the Hessian
+
+            keywords: Keywords to use to calculate the Hessian, or gradient if
+                      numerical = True
+
+            numerical: Whether to do a numerical frequency calculation using
+                       analytic gradients
+
+            central_differences:
+        """
+        # TODO
+        raise NotImplementedError
+
     # --- Method aliases ---
     symmetry_number = sn
