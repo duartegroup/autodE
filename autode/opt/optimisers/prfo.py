@@ -1,8 +1,9 @@
 """Partitioned rational function optimisation"""
 import numpy as np
+from autode.log import logger
+from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.rfo import RFOOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
-from autode.log import logger
 
 
 class PRFOOptimiser(RFOOptimiser):
@@ -106,3 +107,16 @@ class PRFOOptimiser(RFOOptimiser):
 
         logger.info(f'Maximum step component = {max_step_component:.4f}')
         self._coords = self._coords + delta_s
+
+        return None
+
+    def _initialise_run(self) -> None:
+        """
+        Initialise running a partitioned rational function optimisation by
+        setting the coordinates and Hessian
+        """
+        # TODO: Correct coordinates
+
+        self._coords = CartesianCoordinates(self._species.coordinates)
+        self._update_hessian_gradient_and_energy()
+        return None

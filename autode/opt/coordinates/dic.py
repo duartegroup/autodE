@@ -133,6 +133,10 @@ class DIC(InternalCoordinates):
 
         return None
 
+    def update_h_from_cart_h(self,
+                             arr: Optional['autode.values.Hessian']):
+        raise NotImplementedError
+
     def to(self, value: str) -> 'autode.opt.coordinates.base.OptCoordinates':
         """
         Convert these DICs to another type of coordinate

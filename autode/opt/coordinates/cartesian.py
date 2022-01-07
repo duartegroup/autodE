@@ -37,6 +37,10 @@ class CartesianCoordinates(OptCoordinates):
         """
         self.g = None if arr is None else np.array(arr).flatten()
 
+    def update_h_from_cart_h(self,
+                             arr: Optional['autode.values.Hessian']):
+        raise NotImplementedError
+
     def iadd(self, value: np.ndarray) -> 'OptCoordinates':
         return np.ndarray.__iadd__(self, value)
 

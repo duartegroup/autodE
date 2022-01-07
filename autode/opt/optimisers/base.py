@@ -149,8 +149,7 @@ class Optimiser(ABC):
             (autode.exceptions.CalculationException):
         """
         # Calculations need to be performed in cartesian coordinates
-        cart_coords = self._coords.to('cart')
-        self._species.coordinates = cart_coords
+        self._species.coordinates = self._coords.to('cart')
 
         grad = Calculation(name=f'{self._species.name}_opt_{self.iteration}',
                            molecule=self._species,
@@ -164,6 +163,40 @@ class Optimiser(ABC):
         grad.clean_up(force=True, everything=True)
 
         self._coords.update_g_from_cart_g(self._species.gradient)
+        return None
+
+    def _update_hessian_gradient_and_energy(self) -> None:
+        """This becomes problematic for methods that dont implement
+        Hessian calculations...
+
+        Update the energy, gradient and Hessian using the method. Will
+        transform from the current coordinates type to Cartesian coordinates
+        to perform the calculation, then back.
+
+        -----------------------------------------------------------------------
+        Raises:
+            (autode.exceptions.CalculationException):
+        """
+        self._species.coordinates = self._coords.to('cart')
+
+        # TODO: If method implements analytical Hessian, otherwise NumHess
+
+        hess = Calculation(name=f'{self._species.name}_opt_{self.iteration}',
+                           molecule=self._species,
+                           method=self._method,
+                           keywords=self._method.keywords.hess,
+                           n_cores=self._n_cores)
+        hess.run()
+
+        self._coords.e = self._species.energy = hess.get_energy()
+        self._species.gradient = hess.get_gradients()
+        self._species.hessian = hess.get_hessian()
+
+        hess.clean_up(force=True, everything=True)
+
+        self._coords.update_g_from_cart_g(self._species.gradient)
+        self._coords.update_h_from_cart_h(self._species.hessian)
+
         return None
 
     @property

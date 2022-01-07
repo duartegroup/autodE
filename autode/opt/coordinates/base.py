@@ -154,6 +154,11 @@ class OptCoordinates(ValueArray, ABC):
         these coordinates from a Cartesian (cart) gradient"""
 
     @abstractmethod
+    def update_h_from_cart_h(self,
+                             arr: Optional['autode.values.Hessian']):
+        """Update the Hessian from a cartesian Hessian"""
+
+    @abstractmethod
     def __repr__(self) -> str:
         """String representation of these coordinates"""
 
