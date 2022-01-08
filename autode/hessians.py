@@ -3,10 +3,13 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Iterator
+from autode.wrappers.keywords import GradientKeywords
 from autode.utils import cached_property
+from autode.config import Config
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates
+from autode.utils import work_in
 from autode.units import (wavenumber,
                           ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
                           J_per_ang_sq_kg)
@@ -312,3 +315,172 @@ class Hessian(ValueArray):
         vib_freqs = self._eigenvalues_to_freqs(lambdas)
 
         return trans_rot_freqs + vib_freqs
+
+
+def calculate_numerical_hessian(species, *args, **kwargs) -> None:
+    """
+    Calculate a numerical Hessian by shifting atoms and evaluating the gradient
+    with or without central differences to evaluate the numerical derivatives.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        species: Species to calculate the numerical Hesssian for
+
+        *args: Arguments passed to the calculator
+
+        **kwargs: Keyword arguments passed to the calculator
+
+    Raises:
+        (ValueError): For unsupported input
+    """
+
+    calculator = _NumericalHessianCalculator(species, *args, **kwargs)
+    calculator.calculate()
+
+    species.hessian = calculator.hessian
+
+    return None
+
+
+class _NumericalHessianCalculator:
+
+    def __init__(self,
+                 species:   'autode.species.Species',
+                 method:    'autode.wrappers.base.Method',
+                 keywords:  'autode.wrappers.keywords.GradientKeywords',
+                 do_c_diff:  bool,
+                 num_delta: 'autode.values.Distance'
+                 ):
+
+        self._species = species
+        self._method = method
+        self._keywords = self._validated(keywords)
+
+        self._do_c_diff = do_c_diff
+        self._num_delta = num_delta
+
+        self._hessian = Hessian(np.zeros(shape=self._hessian_shape),
+                                units='Ha Å^-2')
+        self._calculated_rows = []
+
+    def calculate(self) -> None:
+        """Calculate the Hessian"""
+        return self._calc_cdiff() if self._do_c_diff else self._calc_diff()
+
+    @property
+    def hessian(self) -> Hessian:
+        return self._hessian
+
+    @property
+    def _hessian_shape(self) -> Tuple[int, int]:
+        """Shape of the Hessian matrix for the species"""
+        return 3 * self._species.n_atoms, 3 * self._species.n_atoms
+
+    def _calc_cdiff(self) -> None:
+        """Calculate the Hessian with central differences"""
+
+        for (atom_idx, k) in self._idxs_to_calculate():
+
+            s_plus = self._new_species(atom_idx, k, direction='+')
+            s_minus = self._new_species(atom_idx, k, direction='-')
+
+            row = ((self._gradient(s_plus) - self._gradient(s_minus))
+                   / (2 * self._num_delta))
+
+            self._hessian[3 * atom_idx + k, :] = row
+
+        return None
+
+    def _calc_diff(self) -> None:
+        """Calculate the Hessian with one-sided differences"""
+
+        g_init = self._gradient(species=self._species)
+
+        for (atom_idx, k) in self._idxs_to_calculate():
+
+            s_plus = self._new_species(atom_idx, k, direction='+')
+
+            self._hessian[3*atom_idx+k, :] = ((self._gradient(s_plus) - g_init)
+                                              / self._num_delta)
+
+        return None
+
+    def _new_species(self, atom_idx: int, component: int, direction: str):
+        """
+        New species with an applied shift to an atom. For example, water_0x+
+        for a water molecule where the 0th atom has been shifted in the
+        positive x direction
+        """
+        assert direction in ('+', '-')    # Positive or negative
+
+        species = self._species.new_species()
+
+        c = ['x', 'y', 'z'][component]
+        species.name = f'{self._species.name}_{atom_idx}{c}{direction}'
+
+        vec = self._shift_vector(component=component)
+        species.atoms[atom_idx].translate(vec if direction == '+' else -vec)
+
+        return species
+
+    def _idxs_to_calculate(self) -> Iterator:
+        """Generate the indexes of atoms and cartesian components that
+         need to be calculated"""
+
+        n_rows, _ = self._hessian_shape
+
+        for idx in range(n_rows):
+
+            if idx not in self._calculated_rows:
+                self._calculated_rows.append(idx)
+
+                atom_idx = idx // 3
+                component = idx % 3    # 0: x, 1: y, 2: z
+
+                yield atom_idx, component
+
+        return
+
+    def _validated(self,
+                   keywords: 'autode.keywords.Keywords'
+                   ) -> 'autode.keywords.GradientKeywords':
+        """Validate the keywords"""
+
+        if not isinstance(keywords, GradientKeywords):
+            raise ValueError('Numerical Hessian require the keywords to be '
+                             'GradientKeywords')
+
+        if self._contain_hess_decl(keywords):
+            raise ValueError('Cannot calculate numerical Hessian with keywords'
+                             ' that contain Hess or Freq. Must be only grad')
+
+        return keywords
+
+    @staticmethod
+    def _contain_hess_decl(keywords: 'autode.keywords.Keywords') -> bool:
+        """Do the keywords contain a Hessian declaration"""
+        words = ('hess', 'freq', 'hessian', 'frequency')
+        return any(any(kw.lower() == word for kw in keywords) for word in words)
+
+    def _shift_vector(self, component: int) -> np.ndarray:
+        """Vector to shift an atom by along a defined Cartesian component,
+        where, for example component=0. Only in the +h direction"""
+
+        vec = np.zeros(shape=(3,))
+        vec[component] += float(self._num_delta)
+
+        return vec
+
+    @work_in('numerical_hessian')
+    def _gradient(self, species) -> 'autode.values.Gradient':
+        """Evaluate the flat gradient, with shape = (3 n_atoms,) """
+        from autode.calculation import Calculation
+
+        calc = Calculation(name=species.name,
+                           molecule=species,
+                           method=self._method,
+                           keywords=self._keywords,
+                           n_cores=Config.n_cores)
+        calc.run()
+        grad = calc.get_gradients().flatten()
+        return grad

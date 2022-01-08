@@ -8,11 +8,13 @@ from autode.methods import ORCA
 from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
-from autode.hessians import Hessian
+from autode.hessians import Hessian, calculate_numerical_hessian
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
 from autode.transition_states.base import displaced_species_along_mode
+from autode.values import Distance
+from autode.wrappers.keywords import HessianKeywords, GradientKeywords
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -376,3 +378,42 @@ def test_extract_wrong_molecule_hessian():
     # N atoms (1 here)
     with pytest.raises(CalculationException):
         _ = calc.get_hessian()
+
+
+def test_num_hess_invalid_input():
+
+    water = Molecule(smiles='O')
+    orca = ORCA()
+
+    # Keywords must be GradientKeywords that don't include any 'Hessian'
+    # or 'frequency' keywords
+    for invalid_kwds in (None,
+                         GradientKeywords(['Freq', 'PBE', 'Def2-SVP']),
+                         HessianKeywords(['PBE', 'Def2-SVP'])):
+
+        with pytest.raises(ValueError):
+            calculate_numerical_hessian(species=water,
+                                        method=orca,
+                                        keywords=invalid_kwds,
+                                        do_c_diff=False,
+                                        num_delta=Distance(1E-3, units='Å'))
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
+def test_h2_hessian():
+
+    h2 = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=0.77)])
+
+    h2.calc_hessian(method=ORCA(), numerical=False)
+    analytic_hessian = h2.hessian.copy()
+
+    h2.hessian = None  # Clear the analytic Hessian
+
+    h2.calc_hessian(method=ORCA(), numerical=True)
+    assert h2.hessian is not None
+
+    num_hessian = h2.hessian.copy()
+
+    assert np.allclose(analytic_hessian,
+                       num_hessian,
+                       atol=1E-2)

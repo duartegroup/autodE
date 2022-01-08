@@ -423,16 +423,17 @@ class Calculation:
 
         filenames = self.input.filenames
         if everything:
-            filenames.append(self.output.filename)
+            filenames += [fn for fn in os.listdir() if fn.startswith(self.name)]
 
-        logger.info(f'Deleting {filenames}')
+        logger.info(f'Deleting: {set(filenames)}')
 
         # Delete the files that exist
-        for filename in filenames:
-            if not os.path.exists(filename):
+        for filename in set(filenames):
+
+            if os.path.exists(filename):
+                os.remove(filename)
+            else:
                 logger.warning(f'Could not delete {filename} it did not exist')
-                continue
-            os.remove(filename)
 
         return None
 
