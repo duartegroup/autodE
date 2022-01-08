@@ -4,7 +4,7 @@ import numpy as np
 import autode as ade
 from . import testutils
 from autode.atoms import Atom, Atoms
-from autode.methods import ORCA
+from autode.methods import ORCA, XTB
 from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
@@ -434,3 +434,21 @@ def test_h2_c_diff_hessian():
     assert np.allclose(analytic_hessian,
                        h2.hessian,
                        atol=1E-3)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
+@testutils.requires_with_working_xtb_install
+def test_h2_xtb_vs_orca_hessian():
+
+    h2 = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=0.77)])
+
+    h2.calc_hessian(method=ORCA(), numerical=False)
+    orca_hessian = h2.hessian.copy()
+
+    h2.calc_hessian(method=XTB(), numerical=True, use_central_differences=True)
+    xtb_hessian = h2.hessian.copy()
+
+    # ORCA and XTB Hessians should be similar, ish
+    assert np.allclose(orca_hessian,
+                       xtb_hessian,
+                       atol=0.3)
