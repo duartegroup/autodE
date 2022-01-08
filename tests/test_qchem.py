@@ -310,6 +310,16 @@ def test_gradient_extraction_h2o():
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
+def test_gradient_extraction_h2():
+
+    calc = _blank_calc()
+    calc.output.filename = 'H2_qchem.out'
+
+    grad = calc.get_gradients()
+    assert grad.shape == (2, 3)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
 def test_butane_gradient_extraction():
 
     calc = _blank_calc()
