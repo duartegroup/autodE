@@ -86,7 +86,7 @@ class Calculation:
         self.n_cores = int(n_cores)
 
         # ------------------- Calculation input/output ------------------------
-        self.input = CalculationInput(keywords=deepcopy(keywords),
+        self.input = CalculationInput(keywords=keywords.copy(),
                                       additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
                                       point_charges=point_charges)
@@ -352,7 +352,7 @@ class Calculation:
         logger.info(f'Getting gradients from {self.output.filename}')
         gradients = Gradient(self.method.get_gradients(self))
 
-        if len(gradients) != self.molecule.n_atoms:
+        if gradients.shape != (self.molecule.n_atoms, 3):
             raise ex.CouldNotGetProperty(name='gradients')
 
         return gradients
@@ -367,7 +367,8 @@ class Calculation:
                       .              .               .              . )
 
         Returns:
-            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N) for N atoms
+            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N),
+                                     for N atoms
 
         Raises:
             (autode.exceptions.CouldNotGetProperty):

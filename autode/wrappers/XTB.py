@@ -1,5 +1,6 @@
-import numpy as np
 import os
+import shutil
+import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
@@ -159,7 +160,7 @@ class XTB(ElectronicStructureMethod):
             flags += ['--input', calc.input.additional_filenames[-1]]
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
-                         kept_file_exts=('.xyz', '.out', '.pc', '.grad', 'gradient'),
+                         kept_file_exts=('.xyz', '.out', '.pc', '.grad'),
                          use_ll_tmp=True)
         def execute_xtb():
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
@@ -167,6 +168,9 @@ class XTB(ElectronicStructureMethod):
 
             run_external(params=[calc.method.path, calc.input.filename]+flags,
                          output_filename=calc.output.filename)
+
+            if os.path.exists('gradient'):
+                shutil.move('gradient', f'{calc.name}_OLD.grad')
 
         execute_xtb()
         return None
@@ -319,8 +323,8 @@ class XTB(ElectronicStructureMethod):
                     x, y, z = line.split()
                     gradients.append(np.array([float(x), float(y), float(z)]))
 
-        elif os.path.exists('gradient'):
-            with open('gradient', 'r') as grad_file:
+        elif os.path.exists(f'{calc.name}_OLD.grad'):
+            with open(f'{calc.name}_OLD.grad', 'r') as grad_file:
                 for i, line in enumerate(grad_file):
                     if i > 1 and len(line.split()) == 3:
                         x, y, z = line.split()
@@ -330,10 +334,11 @@ class XTB(ElectronicStructureMethod):
 
                         gradients.append(np.array(vec))
 
+            os.remove(f'{calc.name}_OLD.grad')
+
             with open(f'{calc.name}_xtb.grad', 'w') as new_grad_file:
                 [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line),
                        file=new_grad_file) for line in gradients]
-            os.remove('gradient')
 
         # Convert from Ha a0^-1 to Ha A-1
         gradients = [grad / Constants.a0_to_ang for grad in gradients]
