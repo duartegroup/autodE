@@ -372,6 +372,23 @@ def test_broken_hessian_extraction():
         os.remove('tmp.out')
 
 
+def test_broken_gradient_extraction():
+
+    calc = _broken_output_calc()
+
+    with pytest.raises(CalculationException):
+        _ = method.get_gradients(calc)
+
+    calc = _custom_output_calc('some', 'output', 'then',
+                               'Mass-Weighted Hessian Matrix', 'X')
+
+    with pytest.raises(CalculationException):
+        _ = method.get_gradients(calc)
+
+    if os.path.exists('tmp.out'):
+        os.remove('tmp.out')
+
+
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_calc_terminated_normally_max_opt_cycles():
 

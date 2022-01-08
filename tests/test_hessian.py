@@ -8,13 +8,16 @@ from autode.methods import ORCA, XTB
 from autode.calculation import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
-from autode.hessians import Hessian, calculate_numerical_hessian
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
 from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
+from autode.hessians import (Hessian,
+                             calculate_numerical_hessian,
+                             _NumericalHessianCalculator)
+
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -452,3 +455,33 @@ def test_h2_xtb_vs_orca_hessian():
     assert np.allclose(orca_hessian,
                        xtb_hessian,
                        atol=0.3)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
+@testutils.requires_with_working_xtb_install
+def test_ind_num_hess_row():
+    """Calculate d^2E/dx0dx0 using numerical displacements with and
+    without central differences"""
+
+    h2 = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=0.77)])
+    xtb = XTB()
+
+    for flag in (True, False):
+
+        calculator = _NumericalHessianCalculator(species=h2,
+                                                 method=xtb,
+                                                 keywords=xtb.keywords.grad,
+                                                 do_c_diff=flag,
+                                                 num_delta=0.001)
+
+        # Non central differences require an initial gradient at the curr geom
+        calculator._init_gradient = calculator._gradient(calculator._species)
+
+        if flag:
+            row = calculator._cdiff_row(atom_idx=0, component=0)
+        else:
+            row = calculator._diff_row(atom_idx=0, component=0)
+
+        assert np.isclose(row[0],
+                          1.00957,
+                          atol=1E-1)
