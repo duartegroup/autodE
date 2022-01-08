@@ -313,6 +313,7 @@ def test_gradient_extraction_h2o():
 def test_gradient_extraction_h2():
 
     calc = _blank_calc()
+    calc.molecule = Molecule(atoms=[Atom('H'), Atom('H', x=0.77)])
     calc.output.filename = 'H2_qchem.out'
 
     grad = calc.get_gradients()
@@ -490,3 +491,23 @@ def test_unsupported_solvent_type():
 
     with pytest.raises(CalculationException):
         calc.generate_input()
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_butane_grad_extract():
+
+    calc = _blank_calc()
+    calc.molecule = Molecule(smiles='CCCC')
+    calc.output.filename = 'C4H10_sp_qchem.out'
+
+    grad = calc.get_gradients()
+    flat_grad = grad.to('Ha a0^-1').flatten()
+
+    # Check the final element of the gradient is as expected
+    assert np.isclose(flat_grad[-1],
+                      0.0055454,
+                      atol=1E-5)
+
+    assert np.isclose(flat_grad[5],
+                      0.0263383,
+                      atol=1E-5)
