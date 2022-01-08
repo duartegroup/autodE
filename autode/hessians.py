@@ -429,7 +429,7 @@ class _NumericalHessianCalculator:
 
         n_rows, _ = self._hessian_shape
 
-        for idx in range(n_rows):
+        for idx in range(n_rows):   # n_rows = 3 n_atoms
 
             if idx not in self._calculated_rows:
                 self._calculated_rows.append(idx)
@@ -482,5 +482,4 @@ class _NumericalHessianCalculator:
                            keywords=self._keywords,
                            n_cores=Config.n_cores)
         calc.run()
-        grad = calc.get_gradients().flatten()
-        return grad
+        return calc.get_gradients().flatten()

@@ -417,3 +417,20 @@ def test_h2_hessian():
     assert np.allclose(analytic_hessian,
                        num_hessian,
                        atol=1E-2)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
+def test_h2_c_diff_hessian():
+
+    h2 = Molecule(name='H2', atoms=[Atom('H'), Atom('H', x=0.77)])
+
+    h2.calc_hessian(method=ORCA(), numerical=False)
+    analytic_hessian = h2.hessian.copy()
+
+    h2.hessian = None  # Clear the analytic Hessian and calculate a numerical
+    h2.calc_hessian(method=ORCA(), numerical=True, use_central_differences=True)
+
+    # Central differences should afford a very good Hessian cf. analytic
+    assert np.allclose(analytic_hessian,
+                       h2.hessian,
+                       atol=1E-3)
