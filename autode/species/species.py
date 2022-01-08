@@ -1245,7 +1245,6 @@ class Species(AtomCollection):
             self._run_hess_calculation(method=method,
                                        calc=None,
                                        keywords=keywords)
-
         return None
 
     # --- Method aliases ---

@@ -4,12 +4,14 @@ for mathematical background
 """
 import numpy as np
 from typing import List, Tuple, Iterator
+from multiprocessing import Pool
 from autode.wrappers.keywords import GradientKeywords
+from autode.log import logger
 from autode.utils import cached_property
 from autode.config import Config
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates
-from autode.utils import work_in
+from autode.utils import work_in, hashable
 from autode.units import (wavenumber,
                           ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
                           J_per_ang_sq_kg)
@@ -363,9 +365,32 @@ class _NumericalHessianCalculator:
                                 units='Ha Å^-2')
         self._calculated_rows = []
 
+        self._n_cores = max(Config.n_cores // self._n_rows, 1)
+
+    @work_in('numerical_hessian')
     def calculate(self) -> None:
         """Calculate the Hessian"""
-        return self._calc_cdiff() if self._do_c_diff else self._calc_diff()
+        logger.info(f'Calculating a numerical Hessian'
+                    f'{"with" if self._do_c_diff else "without"} central '
+                    f'differences using {self._n_cores} per process')
+
+        if not self._do_c_diff:
+            logger.info('Calculating gradient at current point')
+            self._init_gradient = self._gradient(species=self._species)
+
+        # Although n_rows may be < n_cores there will not be > n_rows processes
+        with Pool(processes=Config.n_cores) as pool:
+
+            func_name = '_cdiff_row' if self._do_c_diff else '_diff_row'
+
+            res = [pool.apply_async(hashable(func_name, self),
+                                    args=(i, k))
+                   for (i, k) in self._idxs_to_calculate()]
+
+            for row_idx, row in enumerate(res):
+                self._hessian[row_idx, :] = row.get(timeout=None)
+
+        return None
 
     @property
     def hessian(self) -> Hessian:
@@ -376,34 +401,10 @@ class _NumericalHessianCalculator:
         """Shape of the Hessian matrix for the species"""
         return 3 * self._species.n_atoms, 3 * self._species.n_atoms
 
-    def _calc_cdiff(self) -> None:
-        """Calculate the Hessian with central differences"""
-
-        for (atom_idx, k) in self._idxs_to_calculate():
-
-            s_plus = self._new_species(atom_idx, k, direction='+')
-            s_minus = self._new_species(atom_idx, k, direction='-')
-
-            row = ((self._gradient(s_plus) - self._gradient(s_minus))
-                   / (2 * self._num_delta))
-
-            self._hessian[3 * atom_idx + k, :] = row
-
-        return None
-
-    def _calc_diff(self) -> None:
-        """Calculate the Hessian with one-sided differences"""
-
-        g_init = self._gradient(species=self._species)
-
-        for (atom_idx, k) in self._idxs_to_calculate():
-
-            s_plus = self._new_species(atom_idx, k, direction='+')
-
-            self._hessian[3*atom_idx+k, :] = ((self._gradient(s_plus) - g_init)
-                                              / self._num_delta)
-
-        return None
+    @property
+    def _n_rows(self) -> int:
+        """Number of rows in the Hessian"""
+        return 3 * self._species.n_atoms
 
     def _new_species(self, atom_idx: int, component: int, direction: str):
         """
@@ -471,7 +472,6 @@ class _NumericalHessianCalculator:
 
         return vec
 
-    @work_in('numerical_hessian')
     def _gradient(self, species) -> 'autode.values.Gradient':
         """Evaluate the flat gradient, with shape = (3 n_atoms,) """
         from autode.calculation import Calculation
@@ -480,6 +480,37 @@ class _NumericalHessianCalculator:
                            molecule=species,
                            method=self._method,
                            keywords=self._keywords,
-                           n_cores=Config.n_cores)
+                           n_cores=self._n_cores)
         calc.run()
+
         return calc.get_gradients().flatten()
+
+    @property
+    def _init_gradient(self) -> 'autode.values.Gradient':
+        return np.array(self._species.gradient).flatten()
+
+    @_init_gradient.setter
+    def _init_gradient(self, value):
+        """Set the initial gradient"""
+        self._species.gradient = value.reshape(self._species.n_atoms, 3)
+
+    def _cdiff_row(self, atom_idx, component) -> np.ndarray:
+        """Calculate a Hessian row with central differences"""
+
+        s_plus = self._new_species(atom_idx, component, direction='+')
+        s_minus = self._new_species(atom_idx, component, direction='-')
+
+        row = ((self._gradient(s_plus) - self._gradient(s_minus))
+               / (2 * self._num_delta))
+
+        return row
+
+    def _diff_row(self, atom_idx, component) -> np.ndarray:
+        """Calculate a Hessian row with one-sided differences"""
+
+        s_plus = self._new_species(atom_idx, component, direction='+')
+
+        row = ((self._gradient(s_plus) - self._init_gradient)
+               / self._num_delta)
+
+        return row
