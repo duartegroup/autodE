@@ -200,3 +200,14 @@ def test_type_inference():
 
     keyword_set.hess = ['a']
     assert isinstance(keyword_set.hess, HessianKeywords)
+
+
+def test_keywords_contain():
+
+    kwds = SinglePointKeywords(['PBE', 'Opt'])
+
+    assert kwds.contain_any_of('pbe')
+    assert kwds.contain_any_of('pbe', 'opt')
+    assert kwds.contain_any_of('opt')
+
+    assert not kwds.contain_any_of('PBE0')

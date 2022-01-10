@@ -188,27 +188,12 @@ class QChem(ElectronicStructureMethod):
     def get_gradients(self, calc) -> np.ndarray:
         """Gradient of the potential energy"""
 
-        grad = []
+        try:
+            grad = self._raw_opt_gradient(calc)
 
-        for i, line in enumerate(calc.output.file_lines):
-
-            if 'Cartesian Gradient' not in line:
-                continue
-
-            """e.g.
-            
-                        Cartesian Gradient (au)
-             ATOM              X           Y           Z
-            1  O           0.000005   -0.000002    0.000000
-            2  H           0.000017    0.000001    0.000000
-            3  H          -0.000021    0.000001    0.000000
-            """
-
-            start_idx = i+2
-            end_idx = start_idx+calc.molecule.n_atoms
-
-            grad = [[float(val) for val in _l.split()[2:]]
-                    for _l in calc.output.file_lines[start_idx:end_idx]]
+        except CouldNotGetProperty:
+            # Failed to get gradient from optimisation
+            grad = self._raw_scf_grad(calc)
 
         # Convert from Ha a0^-1 to Ha A-1
         return np.array(grad) / Constants.a0_to_ang
@@ -226,6 +211,78 @@ class QChem(ElectronicStructureMethod):
 
         # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
         return hess / Constants.a0_to_ang ** 2
+
+    @staticmethod
+    def _raw_opt_gradient(calc) -> list:
+
+        grad = []
+
+        for i, line in enumerate(calc.output.file_lines):
+
+            if 'Cartesian Gradient' not in line:
+                continue
+
+            """e.g.
+
+                        Cartesian Gradient (au)
+             ATOM              X           Y           Z
+            1  O           0.000005   -0.000002    0.000000
+            2  H           0.000017    0.000001    0.000000
+            3  H          -0.000021    0.000001    0.000000
+            """
+
+            start_idx = i + 2
+            end_idx = start_idx + calc.molecule.n_atoms
+
+            grad = [[float(val) for val in _l.split()[2:]]
+                    for _l in calc.output.file_lines[start_idx:end_idx]]
+
+        if len(grad) == 0:
+            raise CouldNotGetProperty('gradient')
+
+        return grad
+
+    @staticmethod
+    def _raw_scf_grad(calc):
+        grad = []
+        n_grad_lines = (calc.molecule.n_atoms // 6 + 1) * 4
+
+        for i, line in enumerate(calc.output.file_lines):
+
+            if 'Gradient of SCF Energy' not in line:
+                continue
+
+            """e.g.
+
+            -----------------------------------------------------------------
+            Calculating analytic gradient of the SCF energy
+            Gradient of SCF Energy
+                       1           2           3           4           5
+               1  -0.0108562  -0.0095972   0.0087634   0.0032518  -0.0040093
+            """
+
+            start_idx = i + 1
+            end_idx = start_idx + n_grad_lines
+            lines_slice = calc.output.file_lines[start_idx:end_idx]
+
+            grad = []
+
+            for j in range(len(lines_slice)//4):
+
+                x_line = lines_slice[4*j+1]
+                y_line = lines_slice[4*j+2]
+                z_line = lines_slice[4*j+3]
+
+                for k in range(1, len(x_line.split())):
+
+                    grad.append([float(x_line.split()[k]),
+                                 float(y_line.split()[k]),
+                                 float(z_line.split()[k])])
+
+        if len(grad) == 0:
+            raise CouldNotGetProperty('gradient')
+
+        return grad
 
     @staticmethod
     def _extract_atomic_masses(calc) -> np.ndarray:

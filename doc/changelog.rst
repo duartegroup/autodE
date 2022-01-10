@@ -42,6 +42,7 @@ Functionality improvements
 - Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
 - Rewrites :code:`autode.pes` into a consistent module while maintaining much of the functionality. Simplifies the interface
 - Adds a QChem electronic structure method wrapper
+- Adds :code:`autode.species.Species.calc_hessian` to calculate either an analytic or numerical Hessian (in parallel)
 
 
 Bug Fixes

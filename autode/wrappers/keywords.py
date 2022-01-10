@@ -333,6 +333,22 @@ class Keywords(ABC):
 
         return string
 
+    def contain_any_of(self, *words: str) -> bool:
+        """
+        Do these keywords contain any of a set of other words? Not case
+        sensitive.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            *words: Words that may be present in these keywords
+
+        Returns:
+            (bool):
+        """
+        kwds = set(w.lower() for w in self)
+
+        return not kwds.isdisjoint(w.lower() for w in words)
+
     def copy(self):
         return deepcopy(self)
 

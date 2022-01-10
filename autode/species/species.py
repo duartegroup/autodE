@@ -13,16 +13,18 @@ from autode.log.methods import methods
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
-from autode.wrappers.keywords import OptKeywords, HessianKeywords, SinglePointKeywords
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
-from autode.hessians import Hessian
+from autode.hessians import Hessian, calculate_numerical_hessian
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
 from autode.thermochemistry.igm import calculate_thermo_cont, LFMethod
 from autode.utils import requires_atoms, work_in, requires_conformers
+from autode.wrappers.keywords import (OptKeywords,
+                                      HessianKeywords,
+                                      SinglePointKeywords)
 
 
 class Species(AtomCollection):
@@ -254,10 +256,11 @@ class Species(AtomCollection):
                 value: Union[Hessian, np.ndarray, None]):
         """Set the Hessian matrix as a Hessian value"""
 
-        req_shape = (3*self.n_atoms, 3*self.n_atoms)
-        if hasattr(value, 'shape') and value.shape != req_shape:
+        required_shape = (3*self.n_atoms, 3*self.n_atoms)
+
+        if hasattr(value, 'shape') and value.shape != required_shape:
             raise ValueError('Could not set the Hessian. Incorrect shape: '
-                             f'{value.shape} != {req_shape}')
+                             f'{value.shape} != {required_shape}')
 
         if value is None:
             self._hess = None
@@ -970,8 +973,6 @@ class Species(AtomCollection):
                     method:     Optional[ElectronicStructureMethod] = None,
                     calc:       Optional[Calculation] = None,
                     temp:       float = 298.15,
-                    lfm_method: Union[LFMethod, str, None] = None,
-                    ss:         Optional[str] = None,
                     keywords:   Union[Sequence[str], str, None] = None,
                     **kwargs) -> None:
         """
@@ -988,35 +989,28 @@ class Species(AtomCollection):
 
             temp (float): Temperature in K
 
-            lfm_method (LFMethod | str | None): Method to treat low freqency
-                                           modes. {'igm', 'truhlar', 'grimme'}.
-                                           Defaults to Config.lfm_method
+        Keyword Arguments:
 
-            ss (str | None): Standard state to use.
-                             Defaults to Config.standard_state
+            lfm_method (LFMethod | str): Method to treat low frequency
+                                         modes. {'igm', 'truhlar', 'grimme'}.
+                                         Defaults to Config.lfm_method
+
+            ss (str): Standard state to use.  Defaults to Config.standard_state
 
         Raises:
-            (autode.exceptions.CalculationException | KeyError):
+            (autode.exceptions.CalculationException | ValueError):
 
         See Also:
             :meth:`autode.thermochemistry.igm.calculate_thermo_cont` for
             additional kwargs
         """
-        if lfm_method is not None:
-            kwargs['lfm_method'] = lfm_method
 
-        if type(lfm_method) is str:
+        if 'lfm_method' in kwargs:
             try:
-                kwargs['lfm_method'] = LFMethod[lfm_method.lower()]
+                kwargs['lfm_method'] = LFMethod[kwargs['lfm_method'].lower()]
             except KeyError:
-                raise ValueError(f'{lfm_method} is not valid. Must be on of '
-                                 f'{[m for m in LFMethod]}')
-
-        if ss is not None:
-            if ss.lower() not in ('1m', '1atm'):
-                raise ValueError(f'{ss} is not a valid standard state. Must be'
-                                 ' either "1m" or "1atm"')
-            kwargs['ss'] = ss.lower()
+                raise ValueError(f'{kwargs["lfm_method"]} is not valid. Must '
+                                 f'be one of: {[m for m in LFMethod]}')
 
         if calc is not None and calc.output.exists:
             self.atoms = calc.get_final_atoms()
@@ -1196,6 +1190,61 @@ class Species(AtomCollection):
               'beyond generating a single reasonable initial structure ')
 
         self.solvent.randomise_around(self)
+        return None
+
+    def calc_hessian(self,
+                     method:                  ElectronicStructureMethod,
+                     keywords:                Union[Sequence[str], str, None] = None,
+                     numerical:               bool = False,
+                     use_central_differences: bool = False,
+                     coordinate_shift:        Union[float, val.Distance] = val.Distance(2E-3, units='Å')
+                     ) -> None:
+        """
+        Calculate the Hessian
+
+        -----------------------------------------------------------------------
+        Arguments:
+            method: Method to use to calculate the Hessian
+
+            keywords: Keywords to use to calculate the Hessian, or gradient if
+                      numerical = True
+
+            numerical: Whether to do a numerical frequency calculation using
+                       analytic gradients
+
+            use_central_differences: Use central differences to calculate the
+                                 numerical Hessian. If True then use
+                                df/dx = [f(x+h) - f(x-h)] / 2h
+                                otherwise use single sided differences (faster
+                                but less accurate)
+                                df/dx = [f(x+h) - f(x)] / h
+
+            coordinate_shift: Shift applied to each Cartesian coordinate (h)
+                              in the calculation of the numerical Hessian
+        """
+
+        if numerical:
+
+            if not isinstance(coordinate_shift, val.Distance):
+                logger.warning(f'Calculating numerical Hessian with '
+                               f'h = {coordinate_shift}. Assuming units of Å')
+                coordinate_shift = val.Distance(coordinate_shift, units='Å')
+
+            if keywords is None:
+                logger.info('Using default gradient keywords to evaluate '
+                            'numerical Hessian')
+                keywords = method.keywords.grad
+
+            calculate_numerical_hessian(self,
+                                        method=method,
+                                        keywords=keywords,
+                                        do_c_diff=use_central_differences,
+                                        shift=coordinate_shift)
+
+        if not numerical:
+            self._run_hess_calculation(method=method,
+                                       calc=None,
+                                       keywords=keywords)
         return None
 
     # --- Method aliases ---

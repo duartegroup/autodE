@@ -471,6 +471,12 @@ def test_hessian_calculation():
     assert h2o.frequencies is not None
 
 
+def test_numerical_hessian_invalid_delta():
+
+    with pytest.raises(ValueError):
+        mol.calc_hessian(method=orca, coordinate_shift='a', numerical=True)
+
+
 def test_enthalpy_doc_example():
 
     _h2 = Molecule(smiles='[H][H]')

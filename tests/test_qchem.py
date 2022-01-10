@@ -310,6 +310,17 @@ def test_gradient_extraction_h2o():
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
+def test_gradient_extraction_h2():
+
+    calc = _blank_calc()
+    calc.molecule = Molecule(atoms=[Atom('H'), Atom('H', x=0.77)])
+    calc.output.filename = 'H2_qchem.out'
+
+    grad = calc.get_gradients()
+    assert grad.shape == (2, 3)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
 def test_butane_gradient_extraction():
 
     calc = _blank_calc()
@@ -356,6 +367,23 @@ def test_broken_hessian_extraction():
 
     with pytest.raises(CalculationException):
         _ = method.get_hessian(calc)
+
+    if os.path.exists('tmp.out'):
+        os.remove('tmp.out')
+
+
+def test_broken_gradient_extraction():
+
+    calc = _broken_output_calc()
+
+    with pytest.raises(CalculationException):
+        _ = method.get_gradients(calc)
+
+    calc = _custom_output_calc('some', 'output', 'then',
+                               'Mass-Weighted Hessian Matrix', 'X')
+
+    with pytest.raises(CalculationException):
+        _ = method.get_gradients(calc)
 
     if os.path.exists('tmp.out'):
         os.remove('tmp.out')
@@ -480,3 +508,23 @@ def test_unsupported_solvent_type():
 
     with pytest.raises(CalculationException):
         calc.generate_input()
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_butane_grad_extract():
+
+    calc = _blank_calc()
+    calc.molecule = Molecule(smiles='CCCC')
+    calc.output.filename = 'C4H10_sp_qchem.out'
+
+    grad = calc.get_gradients()
+    flat_grad = grad.to('Ha a0^-1').flatten()
+
+    # Check the final element of the gradient is as expected
+    assert np.isclose(flat_grad[-1],
+                      0.0055454,
+                      atol=1E-5)
+
+    assert np.isclose(flat_grad[5],
+                      0.0263383,
+                      atol=1E-5)
