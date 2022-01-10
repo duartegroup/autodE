@@ -399,7 +399,7 @@ def test_num_hess_invalid_input():
                                         method=orca,
                                         keywords=invalid_kwds,
                                         do_c_diff=False,
-                                        num_delta=Distance(1E-3, units='Å'))
+                                        shift=Distance(1E-3, units='Å'))
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
@@ -472,7 +472,7 @@ def test_ind_num_hess_row():
                                                  method=xtb,
                                                  keywords=xtb.keywords.grad,
                                                  do_c_diff=flag,
-                                                 num_delta=0.001)
+                                                 shift=0.001)
 
         # Non central differences require an initial gradient at the curr geom
         calculator._init_gradient = calculator._gradient(calculator._species)

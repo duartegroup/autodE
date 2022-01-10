@@ -474,7 +474,7 @@ def test_hessian_calculation():
 def test_numerical_hessian_invalid_delta():
 
     with pytest.raises(ValueError):
-        mol.calc_hessian(method=orca, num_delta='a', numerical=True)
+        mol.calc_hessian(method=orca, coordinate_shift='a', numerical=True)
 
 
 def test_enthalpy_doc_example():

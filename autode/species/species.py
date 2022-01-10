@@ -1197,7 +1197,7 @@ class Species(AtomCollection):
                      keywords:                Union[Sequence[str], str, None] = None,
                      numerical:               bool = False,
                      use_central_differences: bool = False,
-                     num_delta:               Union[float, val.Distance] = val.Distance(2E-3, units='Å')
+                     coordinate_shift:        Union[float, val.Distance] = val.Distance(2E-3, units='Å')
                      ) -> None:
         """
         Calculate the Hessian
@@ -1219,16 +1219,16 @@ class Species(AtomCollection):
                                 but less accurate)
                                 df/dx = [f(x+h) - f(x)] / h
 
-            num_delta: Shift applied to each Cartesian coordinate (h) in the
-                       calculation of the numerical Hessian
+            coordinate_shift: Shift applied to each Cartesian coordinate (h)
+                              in the calculation of the numerical Hessian
         """
 
         if numerical:
 
-            if not isinstance(num_delta, val.Distance):
+            if not isinstance(coordinate_shift, val.Distance):
                 logger.warning(f'Calculating numerical Hessian with '
-                               f'h = {num_delta}. Assuming units of Å')
-                num_delta = val.Distance(num_delta, units='Å')
+                               f'h = {coordinate_shift}. Assuming units of Å')
+                coordinate_shift = val.Distance(coordinate_shift, units='Å')
 
             if keywords is None:
                 logger.info('Using default gradient keywords to evaluate '
@@ -1239,7 +1239,7 @@ class Species(AtomCollection):
                                         method=method,
                                         keywords=keywords,
                                         do_c_diff=use_central_differences,
-                                        num_delta=num_delta)
+                                        shift=coordinate_shift)
 
         if not numerical:
             self._run_hess_calculation(method=method,

@@ -351,7 +351,7 @@ class _NumericalHessianCalculator:
                  method:    'autode.wrappers.base.Method',
                  keywords:  'autode.wrappers.keywords.GradientKeywords',
                  do_c_diff:  bool,
-                 num_delta: 'autode.values.Distance'
+                 shift: 'autode.values.Distance'
                  ):
 
         self._species = species
@@ -359,7 +359,7 @@ class _NumericalHessianCalculator:
         self._keywords = self._validated(keywords)
 
         self._do_c_diff = do_c_diff
-        self._num_delta = num_delta
+        self._shift = shift
 
         self._hessian = Hessian(np.zeros(shape=self._hessian_shape),
                                 units='Ha Å^-2')
@@ -430,13 +430,13 @@ class _NumericalHessianCalculator:
 
         n_rows, _ = self._hessian_shape
 
-        for idx in range(n_rows):   # n_rows = 3 n_atoms
+        for row_idx in range(n_rows):   # n_rows = 3 n_atoms
 
-            if idx not in self._calculated_rows:
-                self._calculated_rows.append(idx)
+            if row_idx not in self._calculated_rows:
+                self._calculated_rows.append(row_idx)
 
-                atom_idx = idx // 3
-                component = idx % 3    # 0: x, 1: y, 2: z
+                atom_idx = row_idx // 3
+                component = row_idx % 3    # 0: x, 1: y, 2: z
 
                 yield atom_idx, component
 
@@ -468,7 +468,7 @@ class _NumericalHessianCalculator:
         where, for example component=0. Only in the +h direction"""
 
         vec = np.zeros(shape=(3,))
-        vec[component] += float(self._num_delta)
+        vec[component] += float(self._shift)
 
         return vec
 
@@ -501,7 +501,7 @@ class _NumericalHessianCalculator:
         s_minus = self._new_species(atom_idx, component, direction='-')
 
         row = ((self._gradient(s_plus) - self._gradient(s_minus))
-               / (2 * self._num_delta))
+               / (2 * self._shift))
 
         return row
 
@@ -511,6 +511,6 @@ class _NumericalHessianCalculator:
         s_plus = self._new_species(atom_idx, component, direction='+')
 
         row = ((self._gradient(s_plus) - self._init_gradient)
-               / self._num_delta)
+               / self._shift)
 
         return row

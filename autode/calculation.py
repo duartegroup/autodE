@@ -428,12 +428,11 @@ class Calculation:
 
         logger.info(f'Deleting: {set(filenames)}')
 
-        # Delete the files that exist
         for filename in set(filenames):
 
-            if os.path.exists(filename):
+            try:
                 os.remove(filename)
-            else:
+            except FileNotFoundError:
                 logger.warning(f'Could not delete {filename} it did not exist')
 
         return None
