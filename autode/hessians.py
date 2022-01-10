@@ -323,6 +323,7 @@ def calculate_numerical_hessian(species, *args, **kwargs) -> None:
     """
     Calculate a numerical Hessian by shifting atoms and evaluating the gradient
     with or without central differences to evaluate the numerical derivatives.
+    Sets species.hessian and requires analytic gradients to be available
 
     ---------------------------------------------------------------------------
     Arguments:
@@ -334,6 +335,8 @@ def calculate_numerical_hessian(species, *args, **kwargs) -> None:
 
     Raises:
         (ValueError): For unsupported input
+
+        (CalculationException): For a failed gradient evaluation
     """
 
     calculator = _NumericalHessianCalculator(species, *args, **kwargs)
@@ -365,6 +368,8 @@ class _NumericalHessianCalculator:
                                 units='Ha Å^-2')
         self._calculated_rows = []
 
+        # Number of cores per process to use e.g. a 6x6 Hessian with
+        # Config.n_cores = 12 -> _n_cores = 2
         self._n_cores = max(Config.n_cores // self._n_rows, 1)
 
     @work_in('numerical_hessian')
@@ -428,9 +433,7 @@ class _NumericalHessianCalculator:
         """Generate the indexes of atoms and cartesian components that
          need to be calculated"""
 
-        n_rows, _ = self._hessian_shape
-
-        for row_idx in range(n_rows):   # n_rows = 3 n_atoms
+        for row_idx in range(self._n_rows):
 
             if row_idx not in self._calculated_rows:
                 self._calculated_rows.append(row_idx)
@@ -451,21 +454,15 @@ class _NumericalHessianCalculator:
             raise ValueError('Numerical Hessian require the keywords to be '
                              'GradientKeywords')
 
-        if self._contain_hess_decl(keywords):
+        if keywords.contain_any_of('hess', 'freq', 'hessian', 'frequency'):
             raise ValueError('Cannot calculate numerical Hessian with keywords'
                              ' that contain Hess or Freq. Must be only grad')
 
         return keywords
 
-    @staticmethod
-    def _contain_hess_decl(keywords: 'autode.keywords.Keywords') -> bool:
-        """Do the keywords contain a Hessian declaration"""
-        words = ('hess', 'freq', 'hessian', 'frequency')
-        return any(any(kw.lower() == word for kw in keywords) for word in words)
-
     def _shift_vector(self, component: int) -> np.ndarray:
         """Vector to shift an atom by along a defined Cartesian component,
-        where, for example component=0. Only in the +h direction"""
+        where, for example, component=0 -> x translation in +h direction"""
 
         vec = np.zeros(shape=(3,))
         vec[component] += float(self._shift)
@@ -487,6 +484,7 @@ class _NumericalHessianCalculator:
 
     @property
     def _init_gradient(self) -> 'autode.values.Gradient':
+        """Gradient at the initial geometry of the species"""
         return np.array(self._species.gradient).flatten()
 
     @_init_gradient.setter

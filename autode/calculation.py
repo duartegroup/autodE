@@ -424,6 +424,7 @@ class Calculation:
 
         filenames = self.input.filenames
         if everything:
+            filenames.append(self.output.filename)
             filenames += [fn for fn in os.listdir() if fn.startswith(self.name)]
 
         logger.info(f'Deleting: {set(filenames)}')
