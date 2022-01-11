@@ -17,7 +17,7 @@ from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
 from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
-from autode.hessians import Hessian, calculate_numerical_hessian
+from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
 from autode.thermochemistry.igm import calculate_thermo_cont, LFMethod
@@ -1248,6 +1248,11 @@ class Species(AtomCollection):
                               in the calculation of the numerical Hessian
         """
 
+        if not method.implements_hessian:
+            logger.warning(f'{method} does not implement a Hessian - using a '
+                           f'numerical Hessian.')
+            numerical = True
+
         if numerical:
 
             if not isinstance(coordinate_shift, val.Distance):
@@ -1260,11 +1265,13 @@ class Species(AtomCollection):
                             'numerical Hessian')
                 keywords = method.keywords.grad
 
-            calculate_numerical_hessian(self,
-                                        method=method,
-                                        keywords=keywords,
-                                        do_c_diff=use_central_differences,
-                                        shift=coordinate_shift)
+            nhc = NumericalHessianCalculator(self,
+                                             method=method,
+                                             keywords=keywords,
+                                             do_c_diff=use_central_differences,
+                                             shift=coordinate_shift)
+            nhc.calculate()
+            self.hessian = nhc.hessian
 
         if not numerical:
             self._run_hess_calculation(method=method,

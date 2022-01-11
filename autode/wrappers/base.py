@@ -74,6 +74,18 @@ class ElectronicStructureMethod(Method, ABC):
     def doi_str(self):
         return " ".join(self.doi_list)
 
+    @property
+    def implements_hessian(self) -> bool:
+        """
+        Is either an analytic or numerical Hessian evaluation implemented
+        within the electronic structure package?
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        return len(self.keywords.hess) > 0
+
     @abstractmethod
     def generate_input(self, calc, molecule):
         """

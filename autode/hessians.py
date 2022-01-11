@@ -319,35 +319,7 @@ class Hessian(ValueArray):
         return trans_rot_freqs + vib_freqs
 
 
-def calculate_numerical_hessian(species, *args, **kwargs) -> None:
-    """
-    Calculate a numerical Hessian by shifting atoms and evaluating the gradient
-    with or without central differences to evaluate the numerical derivatives.
-    Sets species.hessian and requires analytic gradients to be available
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        species: Species to calculate the numerical Hesssian for
-
-        *args: Arguments passed to the calculator
-
-        **kwargs: Keyword arguments passed to the calculator
-
-    Raises:
-        (ValueError): For unsupported input
-
-        (CalculationException): For a failed gradient evaluation
-    """
-
-    calculator = _NumericalHessianCalculator(species, *args, **kwargs)
-    calculator.calculate()
-
-    species.hessian = calculator.hessian
-
-    return None
-
-
-class _NumericalHessianCalculator:
+class NumericalHessianCalculator:
 
     def __init__(self,
                  species:   'autode.species.Species',
@@ -377,7 +349,9 @@ class _NumericalHessianCalculator:
         """Calculate the Hessian"""
         logger.info(f'Calculating a numerical Hessian'
                     f'{"with" if self._do_c_diff else "without"} central '
-                    f'differences using {self._n_cores} per process')
+                    f'differences using {self._n_cores} per process.\nDoing:'
+                    f'{self._n_rows * (2 if self._do_c_diff else 1)} '
+                    f'gradient evaluations')
 
         if not self._do_c_diff:
             logger.info('Calculating gradient at current point')

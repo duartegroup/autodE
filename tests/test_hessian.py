@@ -15,8 +15,7 @@ from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
 from autode.hessians import (Hessian,
-                             calculate_numerical_hessian,
-                             _NumericalHessianCalculator)
+                             NumericalHessianCalculator)
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -395,11 +394,12 @@ def test_num_hess_invalid_input():
                          HessianKeywords(['PBE', 'Def2-SVP'])):
 
         with pytest.raises(ValueError):
-            calculate_numerical_hessian(species=water,
-                                        method=orca,
-                                        keywords=invalid_kwds,
-                                        do_c_diff=False,
-                                        shift=Distance(1E-3, units='Å'))
+            nhc = NumericalHessianCalculator(species=water,
+                                             method=orca,
+                                             keywords=invalid_kwds,
+                                             do_c_diff=False,
+                                             shift=Distance(1E-3, units='Å'))
+            nhc.calculate()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
@@ -468,11 +468,11 @@ def test_ind_num_hess_row():
 
     for flag in (True, False):
 
-        calculator = _NumericalHessianCalculator(species=h2,
-                                                 method=xtb,
-                                                 keywords=xtb.keywords.grad,
-                                                 do_c_diff=flag,
-                                                 shift=0.001)
+        calculator = NumericalHessianCalculator(species=h2,
+                                                method=xtb,
+                                                keywords=xtb.keywords.grad,
+                                                do_c_diff=flag,
+                                                shift=0.001)
 
         # Non central differences require an initial gradient at the curr geom
         calculator._init_gradient = calculator._gradient(calculator._species)
