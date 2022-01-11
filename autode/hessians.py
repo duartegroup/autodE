@@ -3,7 +3,6 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from copy import deepcopy
 from typing import List, Tuple, Iterator, Optional
 from multiprocessing import Pool
 from autode.wrappers.keywords import GradientKeywords

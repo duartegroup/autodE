@@ -6,7 +6,7 @@ from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.dic import DIC
 
 
-class CartesianCoordinates(OptCoordinates):
+class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
     """Flat Cartesian coordinates shape = (3 × n_atoms, )"""
 
     def __repr__(self):

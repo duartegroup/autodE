@@ -13,7 +13,7 @@ from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.primitives import InverseDistance
 
 
-class InternalCoordinates(OptCoordinates, ABC):
+class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
 
     def __new__(cls, input_array) -> 'InternalCoordinates':
         """New instance of these internal coordinates"""

@@ -24,7 +24,7 @@ from autode.opt.coordinates.internals import (PIC,
                                               InternalCoordinates)
 
 
-class DIC(InternalCoordinates):
+class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
     """Delocalised internal coordinates"""
 
     def __repr__(self):
