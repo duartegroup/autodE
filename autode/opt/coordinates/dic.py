@@ -104,12 +104,7 @@ class DIC(InternalCoordinates):
         s.primitive_type = primitive_type
 
         s.update_g_from_cart_g(x.g)                        # Gradient
-
-        # and Hessian
-        if x.h is not None:
-            # NOTE: This is not the full transformation as noted in
-            # 10.1063/1.471864 only an approximate Hessian is required(?)
-            s.h = np.linalg.multi_dot((s.B_T_inv.T, x.h, s.B_T_inv))
+        s.update_h_from_cart_h(x.h)                        # and Hessian
 
         logger.info(f'Transformed in      ...{time() - start_time:.4f} s')
         return s
@@ -122,7 +117,7 @@ class DIC(InternalCoordinates):
 
         -----------------------------------------------------------------------
         Arguments:
-            arr: Gradient array
+            arr: Cartesian gradient array
         """
         if arr is None:
             self._x.g, self.g = None, None
@@ -134,8 +129,24 @@ class DIC(InternalCoordinates):
         return None
 
     def update_h_from_cart_h(self,
-                             arr: Optional['autode.values.Hessian']):
-        raise NotImplementedError
+                             arr: Optional['autode.values.Hessian']
+                             ) -> None:
+        """
+        Update the DIC Hessian matrix from a Cartesian one
+
+        -----------------------------------------------------------------------
+        Arguments:
+            arr: Cartesian Hessian matrix
+        """
+        if arr is None:
+            self._x.h, self.h = None, None
+
+        else:
+            # NOTE: This is not the full transformation as noted in
+            # 10.1063/1.471864 only an approximate Hessian is required(?)
+            self.h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+
+        return None
 
     def to(self, value: str) -> 'autode.opt.coordinates.base.OptCoordinates':
         """
@@ -209,7 +220,8 @@ class DIC(InternalCoordinates):
         return None
 
     def iadd(self,
-             value: np.ndarray) -> 'autode.opt.coordidnates.base.OptCoordinates':
+             value: np.ndarray
+             ) -> 'autode.opt.coordidnates.base.OptCoordinates':
         """Inplace addition of another set of coordinates"""
         self.update(delta=value)
         return self

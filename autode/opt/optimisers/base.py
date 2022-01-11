@@ -176,20 +176,17 @@ class Optimiser(ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
+        self._update_gradient_and_energy()
+
         species = self._species.new_species(name=f'{self._species.name}'
                                                  f'_opt_{self.iteration}')
-        species.coordinates = self._coords.to('cart')
+        species.coordinates = self._coords.to('cartesian')
 
         species.calc_hessian(method=self._method,
                              keywords=self._method.keywords.hess,
                              n_cores=self._n_cores)
 
-        # Set the energy and cartesian gradient and Hessian
-        self._coords.e = self._species.energy = species.energy.copy()
-        self._species.gradient = species.gradient.copy()
         self._species.hessian = species.hessian.copy()
-
-        self._coords.update_g_from_cart_g(self._species.gradient)
         self._coords.update_h_from_cart_h(self._species.hessian)
 
         return None
@@ -288,7 +285,8 @@ class NDOptimiser(Optimiser, ABC):
                  maxiter: int,
                  gtol:    GradientNorm,
                  etol:    PotentialEnergy,
-                 coords:  Optional[OptCoordinates] = None):
+                 coords:  Optional[OptCoordinates] = None,
+                 **kwargs):
         """
         Geometry optimiser. Signature follows that in scipy.minimize so
         species and method are keyword arguments. Converged when both energy
@@ -358,11 +356,12 @@ class NDOptimiser(Optimiser, ABC):
     def optimise(cls,
                  species: 'autode.species.Species',
                  method:  'autode.wrappers.base.Method',
-                 maxiter: int = 500,
+                 maxiter: int = 100,
                  gtol:    Union[float, GradientNorm] = GradientNorm(1E-3, units='Ha Å-1'),
                  etol:    Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
                  coords:  Optional[OptCoordinates] = None,
                  n_cores: Optional[int] = None,
+                 **kwargs
                  ) -> None:
         """
         Convenience function for constructing and running an optimiser
@@ -383,13 +382,15 @@ class NDOptimiser(Optimiser, ABC):
             etol (float | autode.values.PotentialEnergy): Tolerance on |∆E|
                  between two consecutive iterations of the optimiser
 
-            kwargs (Any): Additional keyword arguments to pass on
+            kwargs (Any): Additional keyword arguments to pass to the
+                          constructor
 
         Raises:
             (ValueError | RuntimeError):
         """
 
-        optimiser = cls(maxiter=maxiter, gtol=gtol, etol=etol, coords=coords)
+        optimiser = cls(maxiter=maxiter, gtol=gtol, etol=etol, coords=coords,
+                        **kwargs)
         optimiser.run(species, method, n_cores=n_cores)
 
         return None

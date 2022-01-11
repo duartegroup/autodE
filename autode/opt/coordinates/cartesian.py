@@ -39,7 +39,16 @@ class CartesianCoordinates(OptCoordinates):
 
     def update_h_from_cart_h(self,
                              arr: Optional['autode.values.Hessian']):
-        raise NotImplementedError
+        """
+        Update the Hessian from a Cartesian Hessian matrix with shape
+        3N x 3N for a species with N atoms.
+
+
+        -----------------------------------------------------------------------
+        Arguments:
+            arr: Hessian matrix
+        """
+        self.h = None if arr is None else np.array(arr)
 
     def iadd(self, value: np.ndarray) -> 'OptCoordinates':
         return np.ndarray.__iadd__(self, value)

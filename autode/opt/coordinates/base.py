@@ -142,8 +142,11 @@ class OptCoordinates(ValueArray, ABC):
 
         self._h_inv = value
 
-    def h_or_h_inv_has_correct_shape(self, arr: np.ndarray):
+    def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
         """Does a Hessian or its inverse have the correct shape?"""
+        if arr is None:
+            return True  # None is always valid
+
         return arr.ndim == 2 and arr.shape[0] == arr.shape[1] == len(self)
 
     @abstractmethod

@@ -79,6 +79,26 @@ def test_cartesian_coordinates():
         _ = CartesianCoordinates(arr).to('X')
 
 
+def test_cartesian_coordinates_hessian_update():
+
+    # Simple coordinates with 2 atoms in 3 D
+    coords = CartesianCoordinates(np.arange(0, 6).reshape((2, 3)))
+
+    with pytest.raises(ValueError):
+        coords.update_h_from_cart_h(arr=np.array([]))
+
+    with pytest.raises(ValueError):
+        coords.update_h_from_cart_h(arr=np.array([1.0]))
+
+    # Hessian needs to be 6x6
+    coords.update_h_from_cart_h(arr=np.eye(6))
+    assert coords.h is not None
+
+    # Can set back to None
+    coords.update_h_from_cart_h(arr=None)
+    assert coords.h is None
+
+
 def test_cartesian_coordinate_shift_type():
 
     coords = CartesianCoordinates(np.array([0.0]))
@@ -95,7 +115,7 @@ def test_hessian_set():
     coords = CartesianCoordinates(np.array([1.0, 2.0]))
 
     # Hessian and inverse must be NxN matrix, i.e. 2x2 here
-    for invalid_h in (None, 3, np.array([1.0]), np.arange(3),
+    for invalid_h in (3, np.array([1.0]), np.arange(3),
                       np.arange(9).reshape(3, 3), np.arange(6).reshape(2, 3)):
 
         with pytest.raises(Exception):

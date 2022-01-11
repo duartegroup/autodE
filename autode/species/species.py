@@ -24,6 +24,7 @@ from autode.thermochemistry.igm import calculate_thermo_cont, LFMethod
 from autode.utils import requires_atoms, work_in, requires_conformers
 from autode.wrappers.keywords import (OptKeywords,
                                       HessianKeywords,
+                                      GradientKeywords,
                                       SinglePointKeywords)
 
 
@@ -668,7 +669,7 @@ class Species(AtomCollection):
         raise NotImplementedError('Could not generate conformers. '
                                   'generate_conformers() not implemented')
 
-    def _default_hessian_calculation(self, method=None, keywords=None):
+    def _default_hessian_calculation(self, method=None, keywords=None, n_cores=None):
         """Construct a default Hessian calculation"""
 
         method = method if method is not None else get_hmethod()
@@ -678,7 +679,7 @@ class Species(AtomCollection):
                            molecule=self,
                            method=method,
                            keywords=HessianKeywords(keywords),
-                           n_cores=Config.n_cores)
+                           n_cores=Config.n_cores if n_cores is None else n_cores)
 
         return calc
 
@@ -1222,7 +1223,8 @@ class Species(AtomCollection):
                      keywords:                Union[Sequence[str], str, None] = None,
                      numerical:               bool = False,
                      use_central_differences: bool = False,
-                     coordinate_shift:        Union[float, val.Distance] = val.Distance(2E-3, units='Å')
+                     coordinate_shift:        Union[float, val.Distance] = val.Distance(2E-3, units='Å'),
+                     n_cores:                 Optional[int] = None
                      ) -> None:
         """
         Calculate the Hessian
@@ -1246,12 +1248,20 @@ class Species(AtomCollection):
 
             coordinate_shift: Shift applied to each Cartesian coordinate (h)
                               in the calculation of the numerical Hessian
+
+
+            n_cores: Number of cores to use for the calculation. If None
+                     then default to Config.n_cores
         """
 
         if not method.implements_hessian:
             logger.warning(f'{method} does not implement a Hessian - using a '
-                           f'numerical Hessian.')
+                           f'numerical Hessian and overriding the keywords')
             numerical = True
+
+            if not isinstance(keywords, GradientKeywords):
+                logger.warning(f'Using default gradient keywords for {method}')
+                keywords = method.keywords.grad
 
         if numerical:
 
@@ -1269,14 +1279,16 @@ class Species(AtomCollection):
                                              method=method,
                                              keywords=keywords,
                                              do_c_diff=use_central_differences,
-                                             shift=coordinate_shift)
+                                             shift=coordinate_shift,
+                                             n_cores=n_cores)
             nhc.calculate()
             self.hessian = nhc.hessian
 
         if not numerical:
             self._run_hess_calculation(method=method,
                                        calc=None,
-                                       keywords=keywords)
+                                       keywords=keywords,
+                                       n_cores=n_cores)
         return None
 
     def has_identical_composition_as(self,

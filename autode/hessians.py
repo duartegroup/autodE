@@ -3,7 +3,8 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from typing import List, Tuple, Iterator
+from copy import deepcopy
+from typing import List, Tuple, Iterator, Optional
 from multiprocessing import Pool
 from autode.wrappers.keywords import GradientKeywords
 from autode.log import logger
@@ -318,6 +319,9 @@ class Hessian(ValueArray):
 
         return trans_rot_freqs + vib_freqs
 
+    def copy(self) -> 'Hessian':
+        return self.__class__(np.copy(self), units=self.units, atoms=self.atoms)
+
 
 class NumericalHessianCalculator:
 
@@ -326,7 +330,8 @@ class NumericalHessianCalculator:
                  method:    'autode.wrappers.base.Method',
                  keywords:  'autode.wrappers.keywords.GradientKeywords',
                  do_c_diff:  bool,
-                 shift: 'autode.values.Distance'
+                 shift:      'autode.values.Distance',
+                 n_cores:    Optional[int] = None
                  ):
 
         self._species = species
@@ -337,20 +342,21 @@ class NumericalHessianCalculator:
         self._shift = shift
 
         self._hessian = Hessian(np.zeros(shape=self._hessian_shape),
-                                units='Ha Å^-2')
+                                units='Ha Å^-2',
+                                atoms=species.atoms.copy())
+
         self._calculated_rows = []
 
-        # Number of cores per process to use e.g. a 6x6 Hessian with
-        # Config.n_cores = 12 -> _n_cores = 2
-        self._n_cores = max(Config.n_cores // self._n_rows, 1)
+        self._n_total_cores = Config.n_cores if n_cores is None else n_cores
 
     @work_in('numerical_hessian')
-    def calculate(self) -> None:
+    def calculate(self, ) -> None:
         """Calculate the Hessian"""
-        logger.info(f'Calculating a numerical Hessian'
+
+        logger.info(f'Calculating a numerical Hessian '
                     f'{"with" if self._do_c_diff else "without"} central '
-                    f'differences using {self._n_cores} per process.\nDoing:'
-                    f'{self._n_rows * (2 if self._do_c_diff else 1)} '
+                    f'differences using {self._n_total_cores} total cores.\n'
+                    f'Doing: {self._n_rows * (2 if self._do_c_diff else 1)} '
                     f'gradient evaluations')
 
         if not self._do_c_diff:
@@ -358,7 +364,7 @@ class NumericalHessianCalculator:
             self._init_gradient = self._gradient(species=self._species)
 
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with Pool(processes=Config.n_cores) as pool:
+        with Pool(processes=self._n_total_cores) as pool:
 
             func_name = '_cdiff_row' if self._do_c_diff else '_diff_row'
 
@@ -384,6 +390,12 @@ class NumericalHessianCalculator:
     def _n_rows(self) -> int:
         """Number of rows in the Hessian"""
         return 3 * self._species.n_atoms
+
+    @property
+    def _n_cores_pp(self) -> int:
+        """Number of cores per process to use e.g. a 6x6 Hessian with
+        Config.n_cores = 12 -> _n_cores = 2"""
+        return max(self._n_total_cores // self._n_rows, 1)
 
     def _new_species(self, atom_idx: int, component: int, direction: str):
         """
@@ -451,7 +463,7 @@ class NumericalHessianCalculator:
                            molecule=species,
                            method=self._method,
                            keywords=self._keywords,
-                           n_cores=self._n_cores)
+                           n_cores=self._n_cores_pp)
         calc.run()
 
         return calc.get_gradients().flatten()

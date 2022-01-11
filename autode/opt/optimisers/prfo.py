@@ -95,6 +95,7 @@ class PRFOOptimiser(RFOOptimiser):
         delta_s = np.matmul(v, s_tilde)
 
         max_step_component = np.max(np.abs(delta_s))
+        logger.info(f'Maximum step component = {max_step_component:.4f}')
 
         if max_step_component > 100 * self.alpha:
             raise RuntimeError('About to perform a huge unreasonable step!')
@@ -105,9 +106,7 @@ class PRFOOptimiser(RFOOptimiser):
                            f'will scale down')
             delta_s *= self.alpha / np.max(delta_s)
 
-        logger.info(f'Maximum step component = {max_step_component:.4f}')
         self._coords = self._coords + delta_s
-
         return None
 
     def _initialise_run(self) -> None:
@@ -115,8 +114,6 @@ class PRFOOptimiser(RFOOptimiser):
         Initialise running a partitioned rational function optimisation by
         setting the coordinates and Hessian
         """
-        # TODO: Correct coordinates
-
-        self._coords = CartesianCoordinates(self._species.coordinates)
+        self._coords = CartesianCoordinates(self._species.coordinates).to('dic')
         self._update_hessian_gradient_and_energy()
         return None

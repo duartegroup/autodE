@@ -8,7 +8,8 @@ from autode.values import (Value, Distance, Angle, Mass,
                            Energy, Energies,
                            PotentialEnergy, Enthalpy, FreeEnergy,
                            FreeEnergyCont, EnthalpyCont,
-                           Frequency)
+                           Frequency,
+                           GradientNorm)
 
 
 class TmpValue(Value):
@@ -229,3 +230,8 @@ def test_contrib_guidelines():
 
     with pytest.raises(TypeError):
         _ = r.to('eV')
+
+
+def test_gradient_norm():
+
+    assert repr(GradientNorm(0.1)) is not None
