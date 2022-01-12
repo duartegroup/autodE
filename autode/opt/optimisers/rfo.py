@@ -17,10 +17,15 @@ class RFOOptimiser(NDOptimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Initial step size
+            init_alpha: Maximum step size, which controls the maximum component
+                        of the step
+
+            args: Additional arguments for ``NDOptimiser``
+
+            kwargs: Additional keywords arguments for ``NDOptimiser``
 
         See Also:
-
+            :py:meth:`NDOptimiser <autode.opt.optimisers.base.NDOptimiser.__init__>`
         """
         super().__init__(*args, **kwargs)
 
@@ -59,6 +64,7 @@ class RFOOptimiser(NDOptimiser):
             delta_s *= self.alpha / max_step_component
 
         self._coords = self._coords + delta_s
+        return None
 
     def _initialise_run(self) -> None:
         """
@@ -70,3 +76,4 @@ class RFOOptimiser(NDOptimiser):
         self._coords.h = np.eye(len(self._coords))
 
         self._update_gradient_and_energy()
+        return None

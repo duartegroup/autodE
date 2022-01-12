@@ -224,7 +224,7 @@ class SArmijoLineSearch(ArmijoLineSearch):
 
 
 class NullLineSearch(LineSearchOptimiser):
-    r"""A line search that does not perform a line search
+    r"""A dummy line search
 
     .. math::
 

@@ -37,6 +37,7 @@ class PRFOOptimiser(RFOOptimiser):
         self._hessian_update_types = [BofillUpdate]
 
     def _step(self) -> None:
+        """Partitioned rational function step"""
 
         self._coords.h = self._updated_h()
 

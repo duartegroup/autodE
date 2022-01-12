@@ -14,6 +14,30 @@ Optimisers
 
 |
 
+.. automodule:: autode.opt.optimisers.rfo
+   :members:
+   :undoc-members:
+   :special-members: __init__
+   :private-members: _step
+
+|
+
+----------
+
+|
+
+.. automodule:: autode.opt.optimisers.prfo
+   :members:
+   :undoc-members:
+   :special-members: __init__
+   :private-members: _step
+
+|
+
+----------
+
+|
+
 .. automodule:: autode.opt.optimisers.steepest_decent
    :members:
    :undoc-members:
