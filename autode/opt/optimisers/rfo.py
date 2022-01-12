@@ -1,5 +1,7 @@
 import numpy as np
 from autode.log import logger
+from autode.utils import work_in_tmp_dir
+from autode.methods import get_lmethod
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
@@ -68,12 +70,38 @@ class RFOOptimiser(NDOptimiser):
 
     def _initialise_run(self) -> None:
         """
-        Initialise running an
+        Initialise the energy, gradient, and initial Hessian to use
         """
+
         self._coords = CartesianCoordinates(self._species.coordinates).to('dic')
-
-        # TODO - initial Hessian estimate from low-level method
-        self._coords.h = np.eye(len(self._coords))
-
+        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._update_gradient_and_energy()
+
         return None
+
+    @property
+    @work_in_tmp_dir(use_ll_tmp=True)
+    def _low_level_cart_hessian(self) -> np.ndarray:
+        """
+        Calculate a Hessian matrix using a low-level method, used as the
+        estimate from which BFGS updates are applied. To ensure steps are taken
+        in the minimising direction the Hessian MUST be positive definite
+        see e.g. (https://manual.q-chem.com/5.2/A1.S2.html). To ensure this
+        condition is satisfied
+        """
+
+        species = self._species.copy()
+        species.calc_hessian(method=get_lmethod(),
+                             n_cores=self._n_cores)
+
+        eigval, eigvec = np.linalg.eig(species.hessian)
+
+        if np.all(eigval > 0):
+            logger.info('Low-level Hessian was positive definite')
+            return species.hessian
+
+        logger.warning('Low-level Hessian was not positive definite. '
+                       'Shifting eigenvalues to 0 and reconstructing')
+        eigval[eigval < 0] = 0
+
+        return np.linalg.multi_dot((eigvec, np.diag(eigval), eigvec.T)).real

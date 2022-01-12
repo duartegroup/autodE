@@ -173,7 +173,9 @@ def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
             tmpdir_path = mkdtemp(dir=base_dir)
             logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
 
-            logger.info(f'Copying {filenames_to_copy}')
+            if len(filenames_to_copy) > 0:
+                logger.info(f'Copying {filenames_to_copy}')
+
             for filename in filenames_to_copy:
                 if filename.endswith('_mol.in'):
                     # MOPAC needs the file to be called this
