@@ -45,7 +45,7 @@ class PIC(list, ABC):
             self._populate_all(x=args[0])
 
         elif self._are_all_primitive_coordinates(args):
-            super().__init__(*args)
+            super().__init__(args)
 
         else:
             raise ValueError('Cannot construct primitive internal coordinates '

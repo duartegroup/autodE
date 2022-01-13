@@ -199,7 +199,7 @@ def test_basic_dic_properties():
         _ = x.to('unknown coordinates')
 
 
-def test_pic_construction():
+def test_invalid_pic_construction():
 
     # Cannot construct some primitives e.g. InverseDistances from non Primitive
     # internal coordinates
