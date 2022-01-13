@@ -8,7 +8,7 @@ q : Primitive internal coordinates
 G : Spectroscopic G matrix
 """
 import numpy as np
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.primitives import InverseDistance, Primitive
@@ -77,6 +77,14 @@ class PIC(list, ABC):
 
         return pic
 
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Populate Primitive-s used in the construction of set"""
+
+        q = self._calc_q(x)
+        self._calc_B(x)
+
+        return q
+
     def __eq__(self, other: Any):
         """Comparison of two PIC sets"""
 
@@ -85,14 +93,6 @@ class PIC(list, ABC):
                     and all(p0 == p1 for p0, p1 in zip(self, other)))
 
         return is_equal
-
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        """Populate Primitive-s used in the construction of set"""
-
-        q = self._calc_q(x)
-        self._calc_B(x)
-
-        return q
 
     def _calc_q(self, x: np.ndarray) -> np.ndarray:
         """Calculate the value of the internals"""

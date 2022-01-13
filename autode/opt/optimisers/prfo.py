@@ -95,19 +95,7 @@ class PRFOOptimiser(RFOOptimiser):
         # Transform back from the eigenbasis with eqn. 52 in ref [1]
         delta_s = np.matmul(v, s_tilde)
 
-        max_step_component = np.max(np.abs(delta_s))
-        logger.info(f'Maximum step component = {max_step_component:.4f}')
-
-        if max_step_component > 100 * self.alpha:
-            raise RuntimeError('About to perform a huge unreasonable step!')
-
-        if max_step_component > self.alpha:
-            logger.warning(f'Maximum step size = {max_step_component:.4f} '
-                           f'was above the maximum allowed {self.alpha:.4f} - '
-                           f'will scale down')
-            delta_s *= self.alpha / np.max(delta_s)
-
-        self._coords = self._coords + delta_s
+        self._coords = self._coords + self._sanitised_step(delta_s)
         return None
 
     def _initialise_run(self) -> None:

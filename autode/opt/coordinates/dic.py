@@ -64,7 +64,17 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Form a transform matrix from the primitive internals to a set of
         # 3N - 6 non-redundant internals, s
-        return v[:, np.where(np.abs(w) > 1E-10)[0]]
+        v = v[:, np.where(np.abs(w) > 1E-10)[0]]
+
+        # Move all the weight along constrained distances to the single DIC
+        # coordinates, so that Lagrange multipliers are easy to add
+        idxs = [i for i, coord in enumerate(primitives)
+                if isinstance(coord, ConstrainedDistance)]
+
+        if len(idxs) > 0:
+            v = rotate_columns(v, *idxs)
+
+        return v
 
     @classmethod
     def from_cartesian(cls,
@@ -230,24 +240,3 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         """Inplace addition of another set of coordinates"""
         self.update(delta=value)
         return self
-
-
-class ProjectedDistanceDIC(DIC):
-
-    @staticmethod
-    def _calc_U(primitives: PIC) -> np.ndarray:
-        """Calculate the U transform matrix"""
-
-        eigvals, U = np.linalg.eigh(np.dot(primitives.B, primitives.B.T))
-
-        v = U[:, np.where(np.abs(eigvals) > 1E-10)[0]]
-
-        # Move all the weight along constrained distances to the single DIC
-        # coordinates, so that Lagrange multipliers are easy to add
-
-        idxs = [i for i, coord in enumerate(primitives)
-                if isinstance(coord, ConstrainedDistance)]
-
-        v = rotate_columns(v, *idxs)
-
-        return v

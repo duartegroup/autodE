@@ -1,8 +1,11 @@
 import numpy as np
 from autode.geom import proj, rotate_columns
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.coordinates.primitives import Distance, InverseDistance
+from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.internals import PIC, InverseDistances
+from autode.opt.coordinates.primitives import (Distance,
+                                               InverseDistance,
+                                               ConstrainedDistance)
 
 
 def test_joint_primitives_values():
@@ -110,3 +113,33 @@ def test_rotate_with_redundancy():
 
     # Should not raise an exception for a non-symmetric matrix
     _ = rotate_columns(v, 1)
+
+
+def test_proj_dic_with_constrained_dists():
+
+    x = CartesianCoordinates([[0.0, 0.0, 0.0],
+                              [1.0, 0.0, 0.0],
+                              [0.5, 0.5, 0.0],
+                              [0.0, 0.1, 2.0]])
+
+    pic = InverseDistances.from_cartesian(x)
+
+    # Add a constrained distance that is already present as its inverse
+    pic.append(ConstrainedDistance(0, 1, value=0.95))
+
+    dic = DIC.from_cartesian(x,
+                             primitives=pic)
+
+    # Adding the constrained distance should maintain the 3N-6=6 dimensionality
+    # despite adding some redundancy
+    assert len(dic) == 6
+
+    # Should be exactly one delocalised internal coordinate with the value of
+    # 1.0 == distance(0, 1)
+    assert sum(np.isclose(coord, 1.0, atol=1E-10)
+               for coord in dic) == 1
+
+    # and the U matrix have a unit component for the distance, which is the
+    # last element in the transform matrix
+    assert sum(np.isclose(dic.U[-1, col_idx], 1.0, atol=1E-10)
+               for col_idx in range(6)) == 1

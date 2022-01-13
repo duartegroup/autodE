@@ -193,12 +193,30 @@ class ConstrainedDistance(Distance):
                  idx_j: int,
                  value: float):
         """
+        Distance constrained to a value
 
-        Args:
-            idx_i:
-            idx_j:
-            value:
+        -----------------------------------------------------------------------
+        Arguments:
+
+            idx_i: Atom index of the first atom
+
+            idx_j: Atom index of the second atom
+
+            value: Required value of the constrained distance
         """
         super().__init__(idx_i=idx_i, idx_j=idx_j)
 
         self._r0 = value
+
+    def is_satisfied(self,
+                     x:   'autode.opt.coordinates.CartesianCoordinates',
+                     tol: float = 1E-4
+                     ) -> bool:
+        """Is this constraint satisfied to within an absolute tolerance"""
+        return abs(self.delta(x)) < tol
+
+    def delta(self,
+              x: 'autode.opt.coordinates.CartesianCoordinates',
+              ) -> float:
+        """Difference between the observed and required value"""
+        return self(x) - self._r0

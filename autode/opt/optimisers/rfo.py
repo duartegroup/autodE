@@ -57,15 +57,8 @@ class RFOOptimiser(NDOptimiser):
 
         # and the step scaled by the final element of the eigenvector
         delta_s = aug_H_v[:-1, mode] / aug_H_v[-1, mode]
-        max_step_component = np.max(np.abs(delta_s))
 
-        if max_step_component > self.alpha:
-            logger.warning(f'Maximum component of the step '
-                           f'{max_step_component:.4} > {self.alpha:.4f} '
-                           f'. Scaling down')
-            delta_s *= self.alpha / max_step_component
-
-        self._coords = self._coords + delta_s
+        self._coords = self._coords + self._sanitised_step(delta_s)
         return None
 
     def _initialise_run(self) -> None:
@@ -105,3 +98,19 @@ class RFOOptimiser(NDOptimiser):
         eigval[eigval < 0] = 0
 
         return np.linalg.multi_dot((eigvec, np.diag(eigval), eigvec.T)).real
+
+    def _sanitised_step(self, delta_s: np.ndarray) -> np.ndarray:
+        """Ensure the step to be taken isn't too large"""
+
+        max_step_component = np.max(np.abs(delta_s))
+
+        if max_step_component > 100 * self.alpha:
+            raise RuntimeError('About to perform a huge unreasonable step!')
+
+        if max_step_component > self.alpha:
+            logger.warning(f'Maximum component of the step '
+                           f'{max_step_component:.4} > {self.alpha:.4f} '
+                           f'. Scaling down')
+            delta_s *= self.alpha / max_step_component
+
+        return delta_s
