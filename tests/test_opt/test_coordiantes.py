@@ -199,6 +199,14 @@ def test_basic_dic_properties():
         _ = x.to('unknown coordinates')
 
 
+def test_pic_construction():
+
+    # Cannot construct some primitives e.g. InverseDistances from non Primitive
+    # internal coordinates
+    with pytest.raises(ValueError):
+        _ = InverseDistances('a')
+
+
 def test_cart_to_dic():
 
     arr = np.array([[0.0, 0.0, 0.0],

@@ -69,8 +69,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
     @classmethod
     def from_cartesian(cls,
-                       x:             'autode.opt.cartesian.CartesianCoordinates',
-                       primitive_type: Type[PIC] = InverseDistances
+                       x:          'autode.opt.cartesian.CartesianCoordinates',
+                       primitives:  Optional[PIC] = None,
                        ) -> 'autode.opt.coordinates.dic.DIC':
         """
         Convert cartesian coordinates to primitives then to delocalised
@@ -79,10 +79,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         -----------------------------------------------------------------------
         Arguments:
-            x (autode.opt.CartesianCoordinates): Cartesian coordinates
+            x: Cartesian coordinates
 
-            primitive_type (autode.opt.internals.PIC): Primitive internal
-                           coordinates, constructable from Cartesian
+            primitives: Primitive internal
+                        coordinates, constructable from Cartesian
 
         Returns:
             (autode.opt.coordinates.DIC): Delocalised internal coordinates
@@ -90,23 +90,27 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info('Converting cartesian coordinates to DIC')
         start_time = time()
 
-        primitives = primitive_type(x)
+        if primitives is None:
+            logger.info('Building DICs from all inverse distances')
+            primitives = InverseDistances()
+
+        q = primitives(x)
         U = cls._calc_U(primitives)
-        s = cls(input_array=np.matmul(U.T, primitives.q))
+        dic = cls(input_array=np.matmul(U.T, q))
 
-        s.U = U                  # Transform matrix primitives -> non-redundant
+        dic.U = U                # Transform matrix primitives -> non-redundant
 
-        s.B = np.matmul(U.T, primitives.B)
-        s.B_T_inv = np.linalg.pinv(s.B)
-        s._x = x.copy()
-        s.primitive_type = primitive_type
+        dic.B = np.matmul(U.T, primitives.B)
+        dic.B_T_inv = np.linalg.pinv(dic.B)
+        dic._x = x.copy()
+        dic.primitives = primitives
 
-        s.e = x.e                                           # Energy
-        s.update_g_from_cart_g(x.g)                        # Gradient
-        s.update_h_from_cart_h(x.h)                        # and Hessian
+        dic.e = x.e                                          # Energy
+        dic.update_g_from_cart_g(x.g)                        # Gradient
+        dic.update_h_from_cart_h(x.h)                        # and Hessian
 
         logger.info(f'Transformed in      ...{time() - start_time:.4f} s')
-        return s
+        return dic
 
     def update_g_from_cart_g(self,
                              arr: Optional['autode.values.Gradient']
@@ -147,7 +151,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def to(self, value: str) -> 'autode.opt.coordinates.base.OptCoordinates':
+    def to(self,
+           value: str
+           ) -> 'autode.opt.coordinates.base.OptCoordinates':
         """
         Convert these DICs to another type of coordinate
 
@@ -164,7 +170,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         raise ValueError(f'Unknown conversion to {value}')
 
-    def update(self, delta) -> None:
+    def update(self,
+               delta: np.ndarray
+               ) -> None:
         """
         Set some new internal coordinates and update the Cartesian coordinates
 
@@ -200,10 +208,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                                    'transformation from internal -> carts')
 
             # Rebuild the primitives from the back-transformed Cartesians
-            primitives = self.primitive_type(x_k)
-            s_k = np.matmul(self.U.T, primitives.q)
+            s_k = np.matmul(self.U.T, self.primitives(x_k))
 
-            B = np.matmul(self.U.T, primitives.B)
+            B = np.matmul(self.U.T, self.primitives.B)
             self.B_T_inv = np.linalg.pinv(B)
 
             iteration += 1
@@ -224,3 +231,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         """Inplace addition of another set of coordinates"""
         self.update(delta=value)
         return self
+
+
+class ProjectedDIC(DIC):
+
+    @staticmethod
+    def _calc_U(primitives: PIC) -> np.ndarray:
+        raise NotImplemented

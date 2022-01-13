@@ -159,7 +159,7 @@ class Distance(_DistanceFunction):
     def derivative(self,
                    i:         int,
                    component: str,
-                   x: 'autode.opt.coordinates.CartesianCoordinates'
+                   x:        'autode.opt.coordinates.CartesianCoordinates'
                    ) -> float:
         """
         Derivative with respect to Cartesian displacement
@@ -181,6 +181,6 @@ class Distance(_DistanceFunction):
     def __call__(self,
                  x: 'autode.opt.coordinates.CartesianCoordinates'
                  ) -> float:
-        """|x_i - x_j| """
+        """|x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return np.linalg.norm(_x[self.idx_i] - _x[self.idx_j])
