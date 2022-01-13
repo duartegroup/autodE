@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from autode import Molecule, Atom
 from autode.opt.coordinates.internals import InverseDistances
-from autode.opt.coordinates.primitives import InverseDistance
+from autode.opt.coordinates.primitives import InverseDistance, Distance
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
 
@@ -19,7 +19,7 @@ def h2():
     return Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.5)])
 
 
-def test_primitives():
+def test_inv_dist_primitives():
 
     arr = np.array([[0.0, 0.0, 0.0],
                     [2.0, 0.0, 0.0]])
@@ -39,6 +39,30 @@ def test_primitives():
     assert np.isclose(inv_dist.derivative(0, 'y', x=x),
                       0)
     # or those that are not present in the system should be zero
+    assert np.isclose(inv_dist.derivative(2, 'x', x=x),
+                      0)
+
+
+def test_dist_primitives():
+
+    arr = np.array([[0.0, 0.0, 0.0],
+                    [2.0, 0.0, 0.0]])
+
+    x = CartesianCoordinates(arr)
+
+    inv_dist = Distance(0, 1)
+    assert np.isclose(inv_dist(x), 2.0)
+
+    assert np.isclose(inv_dist.derivative(0, 'x', x=x),
+                      -2/2)
+
+    assert np.isclose(inv_dist.derivative(1, 'x', x=x),
+                      +2/2)
+
+    for component in ('y', 'z'):
+        assert np.isclose(inv_dist.derivative(1, component, x=x),
+                          0)
+
     assert np.isclose(inv_dist.derivative(2, 'x', x=x),
                       0)
 

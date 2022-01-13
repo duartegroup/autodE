@@ -14,9 +14,9 @@ class Primitive(ABC):
 
     @abstractmethod
     def derivative(self,
-                   i: int,
-                   k: str,
-                   x: 'autode.opt.coordinates.CartesianCoordinates'
+                   i:         int,
+                   component: str,
+                   x:         'autode.opt.coordinates.CartesianCoordinates'
                    ) -> float:
         r"""
         Calculate the derivative with respect to a cartesian coordinate
@@ -34,8 +34,8 @@ class Primitive(ABC):
             i: Cartesian index to take the derivative with respect to;
                 0-N for N atoms
 
-            k: Cartesian component (x, y, z) to take the derivative with
-               respect to. {'x', 'y', 'z'}
+            component: Cartesian component (x, y, z) to take the derivative
+                       with respect to. {'x', 'y', 'z'}
 
             x: Cartesian coordinates
 
@@ -43,34 +43,76 @@ class Primitive(ABC):
             (float): Derivative
         """
 
+    @staticmethod
+    def _cart_component_to_idx(component: str) -> int:
+        """Convert the name of a Cartesian component (or direction) to an
+        index used for array indexing"""
+
+        if component == 'x':
+            return 0
+
+        if component == 'y':
+            return 1
+
+        if component == 'z':
+            return 2
+
+        else:
+            raise ValueError(f'Cannot convert component {component} to an '
+                             f'index. Must be one of x, y, z')
+
     @abstractmethod
     def __eq__(self, other):
         """Comparison of two primitive coordinates"""
 
 
-class InverseDistance(Primitive):
+class _DistanceFunction(Primitive, ABC):
+    """Function of a distance between two atoms"""
 
     def __init__(self,
                  idx_i: int,
                  idx_j: int):
-        r"""
-        Inverse distance between a pair of atoms
+        """
+        Function of a distance between a pair of atoms
 
         .. math::
 
-            q = \frac{1}
-                    {|\boldsymbol{X}_i - \boldsymbol{X}_j|}
-
+            q = f(|\boldsymbol{X}_i - \boldsymbol{X}_j|)
 
         for a set of cartesian coordinates :math:`\boldsymbol{X}`.
-
+        -----------------------------------------------------------------------
         Arguments:
             idx_i: Atom index
+
             idx_j: Atom index
         """
 
         self.idx_i = int(idx_i)
         self.idx_j = int(idx_j)
+
+    def __eq__(self, other) -> bool:
+        """Equality of two distance functions"""
+
+        return (isinstance(other, self.__class__)
+                and other._ordered_idxs == self._ordered_idxs)
+
+    @property
+    def _ordered_idxs(self) -> Tuple[int, int]:
+        """Indexes ordered by their value"""
+        i, j = self.idx_i, self.idx_j
+
+        return (i, j) if i < j else (j, i)
+
+
+class InverseDistance(_DistanceFunction):
+    """
+    Inverse distance between to atoms:
+
+    .. math::
+
+        q = \frac{1}
+                {|\boldsymbol{X}_i - \boldsymbol{X}_j|}
+    """
 
     def derivative(self,
                    i:         int,
@@ -78,7 +120,7 @@ class InverseDistance(Primitive):
                    x:        'autode.opt.coordinates.CartesianCoordinates'
                    ) -> float:
         """
-        Derivative
+        Derivative with respect to Cartesian displacement
 
         -----------------------------------------------------------------------
         See Also:
@@ -86,7 +128,7 @@ class InverseDistance(Primitive):
         """
 
         _x = x.reshape((-1, 3))
-        k = {'x': 0, 'y': 1, 'z': 2}[component]
+        k = self._cart_component_to_idx(component)
 
         if i != self.idx_i and i != self.idx_j:
             return 0                 # Atom does not form part of this distance
@@ -104,15 +146,41 @@ class InverseDistance(Primitive):
         _x = x.reshape((-1, 3))
         return 1.0 / np.linalg.norm(_x[self.idx_i] - _x[self.idx_j])
 
-    def __eq__(self, other) -> bool:
-        """Equality of two inverse distances"""
 
-        return (isinstance(other, InverseDistance)
-                and other._ordered_idxs == self._ordered_idxs)
+class Distance(_DistanceFunction):
+    """
+    Distance between to atoms:
 
-    @property
-    def _ordered_idxs(self) -> Tuple[int, int]:
-        """Indexes ordered by their value"""
-        i, j = self.idx_i, self.idx_j
+    .. math::
 
-        return (i, j) if i < j else (j, i)
+        q = |\boldsymbol{X}_i - \boldsymbol{X}_j|
+    """
+
+    def derivative(self,
+                   i:         int,
+                   component: str,
+                   x: 'autode.opt.coordinates.CartesianCoordinates'
+                   ) -> float:
+        """
+        Derivative with respect to Cartesian displacement
+
+        -----------------------------------------------------------------------
+        See Also:
+            :py:meth:`Primitive.derivative <Primitive.derivative>`
+        """
+        _x = x.reshape((-1, 3))
+        k = self._cart_component_to_idx(component)
+
+        if i != self.idx_i and i != self.idx_j:
+            return 0                 # Atom does not form part of this distance
+
+        val = (_x[self.idx_i, k] - _x[self.idx_j, k]) / self(x)
+
+        return val if i == self.idx_i else -val
+
+    def __call__(self,
+                 x: 'autode.opt.coordinates.CartesianCoordinates'
+                 ) -> float:
+        """|x_i - x_j| """
+        _x = x.reshape((-1, 3))
+        return np.linalg.norm(_x[self.idx_i] - _x[self.idx_j])

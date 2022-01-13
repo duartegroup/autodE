@@ -96,13 +96,12 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         s.U = U                  # Transform matrix primitives -> non-redundant
 
-        s.e = x.e                                           # Energy
-
         s.B = np.matmul(U.T, primitives.B)
         s.B_T_inv = np.linalg.pinv(s.B)
         s._x = x.copy()
         s.primitive_type = primitive_type
 
+        s.e = x.e                                           # Energy
         s.update_g_from_cart_g(x.g)                        # Gradient
         s.update_h_from_cart_h(x.h)                        # and Hessian
 
