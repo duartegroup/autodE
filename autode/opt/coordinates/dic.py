@@ -17,8 +17,10 @@ summarised below:
 """
 import numpy as np
 from time import time
-from typing import Type, Optional
+from typing import Optional
+from autode.geom import rotate_columns
 from autode.log import logger
+from autode.opt.coordinates.primitives import ConstrainedDistance
 from autode.opt.coordinates.internals import (PIC,
                                               InverseDistances,
                                               InternalCoordinates)
@@ -58,10 +60,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             (np.ndarray): U
         """
 
-        B_q = primitives.B
-        G = np.matmul(B_q, B_q.T)
-
-        w, v = np.linalg.eigh(G)  # Eigenvalues and eigenvectors respectively
+        w, v = np.linalg.eigh(primitives.G)
 
         # Form a transform matrix from the primitive internals to a set of
         # 3N - 6 non-redundant internals, s
@@ -92,7 +91,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         if primitives is None:
             logger.info('Building DICs from all inverse distances')
-            primitives = InverseDistances()
+            primitives = InverseDistances.from_cartesian(x)
 
         q = primitives(x)
         U = cls._calc_U(primitives)
@@ -233,8 +232,22 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         return self
 
 
-class ProjectedDIC(DIC):
+class ProjectedDistanceDIC(DIC):
 
     @staticmethod
     def _calc_U(primitives: PIC) -> np.ndarray:
-        raise NotImplemented
+        """Calculate the U transform matrix"""
+
+        eigvals, U = np.linalg.eigh(np.dot(primitives.B, primitives.B.T))
+
+        v = U[:, np.where(np.abs(eigvals) > 1E-10)[0]]
+
+        # Move all the weight along constrained distances to the single DIC
+        # coordinates, so that Lagrange multipliers are easy to add
+
+        idxs = [i for i, coord in enumerate(primitives)
+                if isinstance(coord, ConstrainedDistance)]
+
+        v = rotate_columns(v, *idxs)
+
+        return v

@@ -77,10 +77,13 @@ def test_primitive_equality():
 def test_primitives_equality():
 
     x = CartesianCoordinates(h2().coordinates)
-    primitives = InverseDistances(x)
+    primitives = InverseDistances.from_cartesian(x)
 
     assert primitives != 'a'
-    assert primitives == InverseDistances(x)
+    assert primitives == InverseDistances.from_cartesian(x)
+    
+    # Order does not matter for equality
+    assert primitives == InverseDistances(InverseDistance(1, 0))
 
 
 def test_cartesian_coordinates():
@@ -215,8 +218,12 @@ def test_cart_to_dic():
     x = CartesianCoordinates(arr)
 
     # Should only have 1 internal coordinate
-    pic = InverseDistances(x)
+    pic = InverseDistances.from_cartesian(x)
     assert len(pic) == 1
+
+    # and not have a B matrix
+    with pytest.raises(AttributeError):
+        _  = pic.B
 
     # Delocalised internals should preserve the single internal coordinate
     dics = x.to('dic')

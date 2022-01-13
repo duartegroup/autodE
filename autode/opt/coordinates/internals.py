@@ -1,10 +1,11 @@
 """
-Internal coordinates. Notation follows
+Internal coordinates. Notation follows:
 
 
 x : Cartesian coordinates
 B : Wilson B matrix
 q : Primitive internal coordinates
+G : Spectroscopic G matrix
 """
 import numpy as np
 from typing import Any, Optional
@@ -41,18 +42,13 @@ class PIC(list, ABC):
         If there are no arguments then all possible primitive coordinates
         will be generated
         """
-        if self._are_cartesian_coordinates(args):
-            self._populate_all(x=args[0])
-
-        elif self._are_all_primitive_coordinates(args):
-            super().__init__(args)
-
-        else:
-            raise ValueError('Cannot construct primitive internal coordinates '
-                             f'from {args} must be either Cartesian coords or '
-                             f'a list of primitive internal coordinates')
+        super().__init__(args)
 
         self._B: Optional[np.ndarray] = None
+
+        if not self._are_all_primitive_coordinates(args):
+            raise ValueError('Cannot construct primitive internal coordinates '
+                             f'from {args}. Must be primitive internals')
 
     @property
     def B(self) -> np.ndarray:
@@ -63,6 +59,23 @@ class PIC(list, ABC):
                                  f'the value of the primitives to determine B')
 
         return self._B
+
+    @property
+    def G(self) -> np.ndarray:
+        """Spectroscopic G matrix as the symmetrised Wilson B matrix"""
+        return np.dot(self.B, self.B.T)
+
+    @classmethod
+    def from_cartesian(cls,
+                       x:          'autode.opt.cartesian.CartesianCoordinates',
+                       ) -> 'PIC':
+        """Construct a complete set of primitive internal coordinates from
+        a set of Cartesian coordinates"""
+
+        pic = cls()
+        pic._populate_all(x=x)
+
+        return pic
 
     def __eq__(self, other: Any):
         """Comparison of two PIC sets"""

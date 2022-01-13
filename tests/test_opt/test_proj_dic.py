@@ -87,7 +87,7 @@ def test_double_rot():
     assert np.allclose(np.dot(arr, arr.T), np.eye(len(arr)))
 
 
-def test_tmp():
+def test_rotate_with_redundancy():
     x = CartesianCoordinates([[0.0, 0.0, 0.0],
                               [1.0, 0.0, 0.0],
                               [0.5, 0.5, 0.0],

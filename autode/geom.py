@@ -349,9 +349,10 @@ def rotate_columns(arr:   np.ndarray,
 
     ---------------------------------------------------------------------------
     Arguments:
-        arr:
+        arr: Input matrix
 
-        *idxs:
+        *idxs: Indexes of the rows which need to have unit components in each
+               column
 
     Returns:
         (np.ndarray): Matrix

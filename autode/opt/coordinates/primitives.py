@@ -184,3 +184,21 @@ class Distance(_DistanceFunction):
         """|x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return np.linalg.norm(_x[self.idx_i] - _x[self.idx_j])
+
+
+class ConstrainedDistance(Distance):
+
+    def __init__(self,
+                 idx_i: int,
+                 idx_j: int,
+                 value: float):
+        """
+
+        Args:
+            idx_i:
+            idx_j:
+            value:
+        """
+        super().__init__(idx_i=idx_i, idx_j=idx_j)
+
+        self._r0 = value
