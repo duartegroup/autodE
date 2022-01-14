@@ -18,8 +18,8 @@ Refs.
 import numpy as np
 from typing import Optional, List
 from autode.log import logger
-from autode.opt.coordinates.internals import InverseDistances
-from autode.opt.coordinates.primitives import ConstrainedDistance
+from autode.opt.coordinates.internals import Distances
+from autode.opt.coordinates.primitives import ConstrainedDistance, Distance
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.rfo import RFOOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
@@ -99,17 +99,16 @@ class CRFOOptimiser(RFOOptimiser):
         lamd_m, v_m = np.linalg.eigh(mat_m)
 
         # Largest eigenvalue eigenmode, excluding the final element
-        s_tilde[:m] = (v_m[:, -1] / v_m[-1, -1])[:-1]
+        s_tilde[:m] = (v_m[:-1, -1] / v_m[-1, -1])
 
         mat_n = np.zeros(shape=(n+1, n+1))
         mat_n[:n, :n] = np.diag(b[m:])
         mat_n[:-1, n] = mat_n[n, :-1] = F[m:]
 
         lamd_n, v_n = np.linalg.eigh(mat_n)
-        s_tilde[m:] = (v_n[:, 0] / v_n[-1, 0])[:-1]
+        s_tilde[m:] = (v_n[:-1, 0] / v_n[-1, 0])
 
         delta_s = np.dot(U, s_tilde)
-        print(np.round(delta_s, 3))
 
         self._coords = self._coords + self._sanitised_step(delta_s[:n])
         self._lambdas += delta_s[n:]
@@ -122,26 +121,38 @@ class CRFOOptimiser(RFOOptimiser):
         setting the coordinates, including the constrained distances
         """
         x = CartesianCoordinates(self._species.coordinates)
+        primitives = self._generate_primitives(x)
 
-        primitives = InverseDistances.from_cartesian(x)
-
-        for (i, j), r in self._species.constraints.distance.items():
-            pic = ConstrainedDistance(idx_i=i, idx_j=j, value=r)
-
-            # WARNING: other functions expect constraints to be at the front
-            primitives.insert(0, pic)
-
-        self._coords = DIC.from_cartesian(x, primitives=primitives)
+        self._coords = DIC.from_cartesian(x=x, primitives=primitives)
         assert self._constrained_coordinates_are_pure
 
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
 
-        # TODO: remove
-        # self._coords.h = np.eye(len(self._coords))
-
         self._update_gradient_and_energy()
         self._lambdas = np.zeros(self._n_constraints)
         return None
+
+    def _generate_primitives(self,
+                             x: np.ndarray
+                             ) -> 'autode.coordinates.internals.PIC':
+        """Primitive internal coordinates from cartesian coordinates"""
+
+        primitives = Distances.from_cartesian(x)
+
+        for (i, j), r in self._species.constraints.distance.items():
+
+            for prim in reversed(primitives):
+                if (isinstance(prim, Distance)
+                     and sorted((prim.idx_i, prim.idx_j)) == sorted((i, j))):
+                    
+                    logger.info(f'Primitive: {prim} had overlap with an '
+                                f'already present distance. Removing')
+                    primitives.remove(prim)
+
+            pic = ConstrainedDistance(idx_i=i, idx_j=j, value=r)
+            primitives.append(pic)
+
+        return primitives
 
     def _remove_satisfied_coordinates(self) -> None:
         raise NotImplementedError

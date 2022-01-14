@@ -143,3 +143,23 @@ def test_proj_dic_with_constrained_dists():
     # last element in the transform matrix
     assert sum(np.isclose(dic.U[-1, col_idx], 1.0, atol=1E-10)
                for col_idx in range(6)) == 1
+
+
+def test_b_matrix_with_constrained_dists():
+
+    x = CartesianCoordinates([[0.0, 0.0, 0.0],
+                              [2.0, 0.0, 0.0],
+                              [0.5, 0.5, 0.1]])
+
+    pic = InverseDistances.from_cartesian(x)
+    pic.append(ConstrainedDistance(0, 1, value=0.95))
+
+    dic = DIC.from_cartesian(x, primitives=pic)
+
+    assert dic.B.shape == (3, 9)  # 9 cartesian, 3 DIC
+
+    # First delocalised internal coordinate should be the projected primitive
+    # distance, for which dq/dx is simple:
+    assert np.allclose(dic.B[0, :],
+                       np.array([-1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                       atol=1E-3)

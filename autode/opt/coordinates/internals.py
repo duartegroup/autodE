@@ -8,10 +8,12 @@ q : Primitive internal coordinates
 G : Spectroscopic G matrix
 """
 import numpy as np
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates
-from autode.opt.coordinates.primitives import InverseDistance, Primitive
+from autode.opt.coordinates.primitives import (InverseDistance,
+                                               Primitive,
+                                               Distance)
 
 
 class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
@@ -139,8 +141,9 @@ class PIC(list, ABC):
         return all(isinstance(arg, Primitive) for arg in args)
 
 
-class InverseDistances(PIC):
-    """1 / r_ij for all unique pairs i,j. Will be redundant"""
+class _FunctionDistances(PIC):
+
+    _primitive_type = None
 
     def _populate_all(self, x: np.ndarray):
 
@@ -149,6 +152,18 @@ class InverseDistances(PIC):
         # Add all the unique inverse distances (i < j)
         for i in range(n_atoms):
             for j in range(i + 1, n_atoms):
-                self.append(InverseDistance(i, j))
+                self.append(self._primitive_type(i, j))
 
         return None
+
+
+class InverseDistances(_FunctionDistances):
+    """1 / r_ij for all unique pairs i,j. Will be redundant"""
+
+    _primitive_type = InverseDistance
+
+
+class Distances(_FunctionDistances):
+    """r_ij for all unique pairs i,j. Will be redundant"""
+
+    _primitive_type = Distance

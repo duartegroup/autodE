@@ -195,7 +195,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         ----------------------------------------------------------------------
         Keyword Arguments:
 
-            delta (int | float | np.ndarray): Difference between the current
+            value (int | float | np.ndarray): Difference between the current
                                               and new DICs. Must be
                                               broadcastable into self.shape.
         Raises:
