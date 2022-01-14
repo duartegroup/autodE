@@ -144,7 +144,7 @@ class CRFOOptimiser(RFOOptimiser):
             for prim in reversed(primitives):
                 if (isinstance(prim, Distance)
                      and sorted((prim.idx_i, prim.idx_j)) == sorted((i, j))):
-                    
+
                     logger.info(f'Primitive: {prim} had overlap with an '
                                 f'already present distance. Removing')
                     primitives.remove(prim)

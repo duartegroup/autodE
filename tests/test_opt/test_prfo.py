@@ -30,5 +30,5 @@ def test_sn2_opt():
     freq = mol.imaginary_frequencies[0]
 
     assert np.isclose(freq.to('cm-1'),
-                      -550,
+                      -555,
                       atol=20)

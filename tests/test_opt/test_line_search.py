@@ -7,6 +7,7 @@ from autode.wrappers.base import Method
 from autode.methods import XTB
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.optimisers.line_search import ArmijoLineSearch, NullLineSearch, LineSearchOptimiser
+from ..testutils import requires_with_working_xtb_install
 
 
 def quadratic(x, y):
@@ -135,10 +136,8 @@ def test_armijo_line_search_complex_func():
 
 
 @work_in_tmp_dir()
+@requires_with_working_xtb_install
 def test_xtb_h2_cart_opt():
-
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     optimiser = ArmijoLineSearch()
     assert not optimiser.converged

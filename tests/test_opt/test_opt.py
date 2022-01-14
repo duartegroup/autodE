@@ -182,8 +182,8 @@ def test_xtb_h2_cart_opt():
 def test_xtb_h2_cart_opt():
 
     optimiser = CartesianSDOptimiser(maxiter=2,
-                                     gtol=GradientNorm(0.1),
-                                     etol=PotentialEnergy(0.1),
+                                     gtol=GradientNorm(0.01),
+                                     etol=PotentialEnergy(1E-3),
                                      )
     assert not optimiser.converged
     optimiser._species = h2()
