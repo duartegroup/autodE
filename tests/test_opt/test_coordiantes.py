@@ -253,7 +253,7 @@ def test_simple_dic_to_cart():
     assert np.isclose(0.6, (dic + 0.1)[0], atol=1E-6)
     # Updating the DICs should afford cartesian coordinates that are
     # ~1.7 Å apart (1/r = 0.6)
-    dic.update(delta=0.1)
+    dic.iadd(value=0.1)
     assert dic.shape == (1,)
     assert np.isclose(dic[0], 0.6)
 
@@ -270,7 +270,7 @@ def test_methane_cart_to_dic():
     dic = x.to('dic')
     assert len(dic) == 9   # 3N-6 for N=5
 
-    dic.update(delta=np.array([0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
+    dic.iadd(value=np.array([0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
 
     # Cartesian coordinates should be close to the starting ones
     assert np.linalg.norm(x - dic.to('cart')) < 0.5
@@ -289,7 +289,7 @@ def test_co2_cart_to_dic():
     # Applying a shift to the internal coordinates that are close to linear
     # can break the back transformation to Cartesians
     with pytest.raises(RuntimeError):
-        dic.update(delta=np.array([0.0, 0.0, 0.1]))
+        dic.iadd(value=np.array([0.0, 0.0, 0.1]))
 
 
 def test_grad_transform_linear():

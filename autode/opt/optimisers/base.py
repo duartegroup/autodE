@@ -405,6 +405,12 @@ class NDOptimiser(Optimiser, ABC):
         Returns:
             (bool): Converged?
         """
+        if self._abs_delta_e < self.etol / 10:
+            logger.warning(f'Energy change is overachieved. '
+                           f'{self.etol.to("kcal")/10:.3f} kcal mol-1. '
+                           f'Signaling convergence')
+            return True
+
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
 
     @property
@@ -435,7 +441,7 @@ class NDOptimiser(Optimiser, ABC):
     @property
     def _g_norm(self) -> GradientNorm:
         """
-        Calculate ||∇E|| based on the current Cartesian gradient.
+        Calculate RMS(∇E) based on the current Cartesian gradient.
 
         -----------------------------------------------------------------------
         Returns:
@@ -451,7 +457,7 @@ class NDOptimiser(Optimiser, ABC):
         if cartesian_gradient is None:
             return GradientNorm(np.inf)
 
-        return GradientNorm(np.linalg.norm(cartesian_gradient))
+        return GradientNorm(np.sqrt(np.mean(np.square(cartesian_gradient))))
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy """

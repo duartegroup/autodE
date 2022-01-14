@@ -48,10 +48,17 @@ class CRFOOptimiser(RFOOptimiser):
         self._hessian_update_types = [BFGSUpdate, NullUpdate]
 
     def _step(self) -> None:
-        """Partitioned rational function step, seperated along the m
+        r"""Partitioned rational function step, seperated along the m
         constrained modes, which need to be maximised, and the remaining
         n-modes which need to be minimised. Modes are in order, such that
-        the constrained modes are the first m.
+        the constrained modes are the first m. Constrained modes must be
+        pure distances.
+
+        .. math::
+
+            \mathcal{L} = E(\boldsymbol{R}) - \sum_i^m \lambda_i C_i
+
+        for constraints :math:`C_i` e.g. :math:`R_i - R_i^{req.}`
         """
 
         self._coords.h = self._updated_h()
@@ -60,59 +67,52 @@ class CRFOOptimiser(RFOOptimiser):
         logger.info('Constructing the Lagrangian second derivative matrix. '
                     f'Have {n} coordinates and {m} Lagrange multiplier(s)')
 
-        print(np.round(self._coords.U, 2))
-        print(self._coords.primitives)
-        print()
+        # Full set of coordinates are now:  x0, x1, ..., xn, λ0, ... λm
 
         hess = np.zeros(shape=(n+m, n+m))
         hess[:n, :n] = self._coords.h
         for i in range(m):
             hess[n+i, i] = hess.T[n+i, i] = -1.0
 
-        print(np.round(hess, 2))
-
-        # Determine the eigenvalues and eigenvectors of the extended Hessian
-        b, u = np.linalg.eigh(hess)
-
-        print('EIGENVALS:')
-        print(b)
-        print()
-
-        # Form the gradient in the larger space
+        # Form the gradient in the larger space: ∇L
         g = np.zeros(n+m)
         g[:n] = self._coords.g
 
-        print(self._constraints[0].delta(self._coords._x))
         for i in range(m):
-            g[i] += self._lambdas[i]
-            g[n+i] = -self._constraints[i].delta(self._coords._x)
+            g[i] -= self._lambdas[i]
+            g[n+i] = -self._constraints[i].delta(self._coords._x)  # dL/dλ
 
-        # Gradient of the coordinates and constraints in the eigenbasis
-        g_tilde = np.dot(u.T, g)
+        b, U = np.linalg.eigh(hess)
 
-        # Set up the total step
-        s_tilde = np.zeros_like(g_tilde)
+        assert sum(b_i < 0 for b_i in b) == m  # Needs m negative eigenvalues
 
-        aug_m = np.diag(np.concatenate((b[:m], np.zeros(1))))
-        aug_m[:-1, -1] = g_tilde[:m]
-        aug_m[-1, :-1] = g_tilde[:m]
+        # Convert the gradient
+        F = [np.dot(U[:, i], g) for i in range(n+m)]
 
-        _, _v = np.linalg.eigh(aug_m)
-        s_tilde[:m] = _v[:-1, -1] / _v[-1, -1]  # Largest eigenvalue
+        # Set up the step in the diagonal representation
+        s_tilde = np.zeros(n+m)
 
-        aug_n = np.diag(np.concatenate((b[m:], np.zeros(1))))
-        aug_n[:-1, -1] = g_tilde[m:]
-        aug_n[-1, :-1] = g_tilde[m:]
+        mat_m = np.zeros(shape=(m+1, m+1))
+        mat_m[:m, :m] = np.diag(b[:m])
+        mat_m[:-1, m] = mat_m[m, :-1] = F[:m]
 
-        _, _v = np.linalg.eigh(aug_n)
-        s_tilde[m:] = _v[:-1, 0] / _v[-1, 0]
+        lamd_m, v_m = np.linalg.eigh(mat_m)
 
-        delta_s = np.dot(u, s_tilde)
+        # Largest eigenvalue eigenmode, excluding the final element
+        s_tilde[:m] = (v_m[:, -1] / v_m[-1, -1])[:-1]
 
-        print(delta_s)
+        mat_n = np.zeros(shape=(n+1, n+1))
+        mat_n[:n, :n] = np.diag(b[m:])
+        mat_n[:-1, n] = mat_n[n, :-1] = F[m:]
+
+        lamd_n, v_n = np.linalg.eigh(mat_n)
+        s_tilde[m:] = (v_n[:, 0] / v_n[-1, 0])[:-1]
+
+        delta_s = np.dot(U, s_tilde)
+        print(np.round(delta_s, 3))
 
         self._coords = self._coords + self._sanitised_step(delta_s[:n])
-        self._lambdas -= delta_s[n:]
+        self._lambdas += delta_s[n:]
 
         return None
 
@@ -135,6 +135,9 @@ class CRFOOptimiser(RFOOptimiser):
         assert self._constrained_coordinates_are_pure
 
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+
+        # TODO: remove
+        # self._coords.h = np.eye(len(self._coords))
 
         self._update_gradient_and_energy()
         self._lambdas = np.zeros(self._n_constraints)

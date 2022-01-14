@@ -53,6 +53,10 @@ class BraninCauchyTROptimiser(CauchyTROptimiser):
                   f'', end=' ')
         print()
 
+    @property
+    def converged(self) -> bool:
+        return np.linalg.norm(self._coords.g) < self._gtol
+
 
 class BraninDoglegTROptimiser(DoglegTROptimiser):
 
@@ -61,6 +65,10 @@ class BraninDoglegTROptimiser(DoglegTROptimiser):
 
     def _log_convergence(self) -> None:
         return BraninCauchyTROptimiser._log_convergence(self)
+
+    @property
+    def converged(self) -> bool:
+        return np.linalg.norm(self._coords.g) < self._gtol
 
 
 class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
@@ -71,6 +79,9 @@ class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
     def _log_convergence(self) -> None:
         return BraninCauchyTROptimiser._log_convergence(self)
 
+    @property
+    def converged(self) -> bool:
+        return np.linalg.norm(self._coords.g) < self._gtol
 
 def test_trm_base_properties():
     init_coords = CartesianCoordinates([6.0, 14.0])

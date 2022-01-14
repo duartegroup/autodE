@@ -46,6 +46,10 @@ class TestBFGSOptimiser2D(BFGSOptimiser):
         self._update_gradient_and_energy()
         self._coords.h = np.eye(len(self._coords))
 
+    @property
+    def converged(self) -> bool:
+        return np.linalg.norm(self._coords.g) < self._gtol
+
 
 class TestBFGSOptimiser(TestBFGSOptimiser2D):
 
