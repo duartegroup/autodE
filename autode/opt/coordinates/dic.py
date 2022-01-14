@@ -179,9 +179,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         raise ValueError(f'Unknown conversion to {value}')
 
-    def update(self,
-               delta: np.ndarray
-               ) -> None:
+    def iadd(self,
+             value: np.ndarray
+             ) -> 'autode.opt.coordidnates.base.OptCoordinates':
+
         """
         Set some new internal coordinates and update the Cartesian coordinates
 
@@ -201,7 +202,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             (RuntimeError): If the transformation diverges
         """
         start_time = time()
-        s_new = self.raw + delta
+        s_new = self.raw + value
 
         # Initialise
         s_k, x_k = self.raw, self._x.copy()
@@ -232,11 +233,5 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         self._x = x_k
         self._x.clear_tensors()
-        return None
 
-    def iadd(self,
-             value: np.ndarray
-             ) -> 'autode.opt.coordidnates.base.OptCoordinates':
-        """Inplace addition of another set of coordinates"""
-        self.update(delta=value)
         return self
