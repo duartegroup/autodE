@@ -5,19 +5,33 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 from typing import Optional
 from autode.log import logger
 from autode.calculation import Calculation
+from autode.wrappers.base import ElectronicStructureMethod
 from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
 from scipy.optimize import minimize
 from multiprocessing import Pool
+from scipy.spatial import distance_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
 
 
-def energy_gradient(image, method, n_cores):
+def energy_gradient(image, method, n_cores, image_idx):
     """Calculate energies and gradients for an image using a EST method"""
 
+    if isinstance(method, ElectronicStructureMethod):
+        return _est_energy_gradient(image, method, n_cores)
+
+    elif isinstance(method, str) and method.lower() == 'idpp':
+        return _idpp_energy_gradient(image, method, image_idx)
+
+    raise ValueError(f'Cannpt calculate energy and gradient with {method}.'
+                     'Must be one of: ElectronicStructureMethod, {"idpp"}')
+
+
+def _est_energy_gradient(image, method, n_cores):
+    """Electronic structure energy and gradint"""
     calc = Calculation(name=f'{image.name}_{image.iteration}',
                        molecule=image.species,
                        method=method,
@@ -35,7 +49,29 @@ def energy_gradient(image, method, n_cores):
     return image
 
 
-def total_energy(flat_coords, images, method, n_cores):
+def _idpp_energy_gradient(image, idpp_function, image_idx
+                          ) -> float:
+    """
+    Evaluate the
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        flat_coords: Coordinate array of all the images, as a (N*3n_atoms,)
+                     array
+
+        delta_dists: Difference in distances between the final and initial
+                     images. Must be a matrix of n_atoms x n_atoms.
+
+        n_images: Number of images in the NEB
+
+    Returns:
+        (float): S
+    """
+
+    return 0
+
+
+def total_energy(flat_coords, images, method, n_cores, *args):
     """Compute the total energy across all images"""
     images.set_coords(flat_coords)
 
@@ -49,7 +85,8 @@ def total_energy(flat_coords, images, method, n_cores):
     # Run an energy + gradient evaluation in parallel across all images
     with Pool(processes=n_cores) as pool:
         results = [pool.apply_async(func=energy_gradient,
-                                    args=(images[i], method, n_cores_pp))
+                                    args=(images[i], method, *args)
+                                    )
                    for i in range(1, len(images) - 1)]
 
         images[1:-1] = [result.get(timeout=None) for result in results]
@@ -418,5 +455,35 @@ class NEB:
         self.images[0].species = initial
         self.images[-1].species = final
         self.interpolate_geometries()
+
+        return None
+
+    def idpp_relax(self):
+        """
+        Relax the NEB using the image dependent pair potential
+
+        -----------------------------------------------------------------------
+        See Also:
+            :py:meth:`IDPP <idpp_function>`
+        """
+        logger.info(f'Minimising NEB with IDPP potential')
+
+        def dist_mat(image_idx):
+            coords = self.images[image_idx].species.coordinates
+            return distance_matrix(coords, coords)
+
+        # Difference in distance matrices between the final and first image
+        delta_dists = (dist_mat(image_idx=-1) - dist_mat(image_idx=0))
+        idpp = IDPP(self.images)
+
+        result = minimize(total_energy,
+                          x0=self.images.coords(),
+                          method='L-BFGS-B',
+                          jac=derivative,
+                          args=(self.images, idpp, 1),
+                          tol=0.01,
+                          options={'maxfun': 1000})
+
+        self.images.set_coords(result.x)
 
         return None
