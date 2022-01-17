@@ -58,6 +58,11 @@ class Constraints:
             self._distance = DistanceConstraints(value)
 
     @property
+    def n_distance(self) -> int:
+        """Number of distance constraints"""
+        return len(self._distance)
+
+    @property
     def cartesian(self) -> Optional[list]:
         """Cartesian constraints"""
         return None if len(self._cartesian) == 0 else list(set(self._cartesian))
@@ -75,6 +80,11 @@ class Constraints:
 
         else:
             self._cartesian = [int(i) for i in value]
+
+    @property
+    def n_cartesian(self) -> int:
+        """Number of distance constraints"""
+        return len(self._cartesian)
 
     @property
     def any(self):

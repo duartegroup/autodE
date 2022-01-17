@@ -378,6 +378,11 @@ class NumericalHessianCalculator:
 
     @property
     def hessian(self) -> Hessian:
+        """Hessian matrix of {d^2E/dX_ij^2}. Must be symmetric"""
+
+        arr = np.array(self._hessian, copy=True)
+        self._hessian[:] = (arr + arr.T) / 2.0
+
         return self._hessian
 
     @property

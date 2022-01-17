@@ -121,9 +121,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info(f'Transformed in      ...{time() - start_time:.4f} s')
         return dic
 
-    def update_g_from_cart_g(self,
-                             arr: Optional['autode.values.Gradient']
-                             ) -> None:
+    def _update_g_from_cart_g(self,
+                              arr: Optional['autode.values.Gradient']
+                              ) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient
 
@@ -140,9 +140,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def update_h_from_cart_h(self,
-                             arr: Optional['autode.values.Hessian']
-                             ) -> None:
+    def _update_h_from_cart_h(self,
+                              arr: Optional['autode.values.Hessian']
+                              ) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 
@@ -154,6 +154,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             self._x.h, self.h = None, None
 
         else:
+            self._x.h = arr
+
             # NOTE: This is not the full transformation as noted in
             # 10.1063/1.471864 only an approximate Hessian is required(?)
             self.h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))

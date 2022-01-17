@@ -111,6 +111,8 @@ class CRFOOptimiser(RFOOptimiser):
         delta_s = np.dot(U, s_tilde)
 
         self._coords = self._coords + self._sanitised_step(delta_s[:n])
+        self._apply_cartesian_constraints()
+
         self._lambdas += delta_s[n:]
 
         return None
@@ -126,7 +128,11 @@ class CRFOOptimiser(RFOOptimiser):
         self._coords = DIC.from_cartesian(x=x, primitives=primitives)
         assert self._constrained_coordinates_are_pure
 
-        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+        self._coords.update_h_from_cart_h(
+                        arr=self._low_level_cart_hessian,
+                        fixed_atom_idxs=self._species.constraints.cartesian
+                        )
+        self._coords.make_hessian_positive_definite()
 
         self._update_gradient_and_energy()
         self._lambdas = np.zeros(self._n_constraints)
@@ -139,11 +145,21 @@ class CRFOOptimiser(RFOOptimiser):
 
         primitives = Distances.from_cartesian(x)
 
+        if self._species.constraints.n_distance > 0:
+            self._add_distance_constraints(primitives)
+
+        if self._species.constraints.n_cartesian > 0:
+            self._remove_fixed_distances(primitives)
+
+        return primitives
+
+    def _add_distance_constraints(self, primitives) -> None:
+        """Add distance constraints to a set of primitives"""
+
         for (i, j), r in self._species.constraints.distance.items():
 
             for prim in reversed(primitives):
-                if (isinstance(prim, Distance)
-                     and sorted((prim.idx_i, prim.idx_j)) == sorted((i, j))):
+                if sorted((prim.idx_i, prim.idx_j)) == sorted((i, j)):
 
                     logger.info(f'Primitive: {prim} had overlap with an '
                                 f'already present distance. Removing')
@@ -152,7 +168,32 @@ class CRFOOptimiser(RFOOptimiser):
             pic = ConstrainedDistance(idx_i=i, idx_j=j, value=r)
             primitives.append(pic)
 
-        return primitives
+        return None
+
+    def _remove_fixed_distances(self, primitives) -> None:
+        """Remove any primitives both atoms of which are constrained"""
+        fixed_atom_idxs = self._species.constraints.cartesian
+
+        for prim in reversed(primitives):
+            if prim.idx_i in fixed_atom_idxs and prim.idx_j in fixed_atom_idxs:
+                logger.info(f'Primitive distance: {prim} was between two '
+                            f'fixed (Cartesian constrained) atoms. Removing')
+                primitives.remove(prim)
+
+        return None
+
+    def _apply_cartesian_constraints(self) -> None:
+        """Apply the cartesian coordinate constraints"""
+
+        if self._species.constraints.n_cartesian == 0:
+            return  # No constraints need to be applied
+
+        prev_coords = self._history.penultimate
+
+        for idx in self._species.constraints.cartesian:
+            self._coords._x[3*idx:3*idx+3] = prev_coords._x[3*idx:3*idx+3]
+
+        return None
 
     def _remove_satisfied_coordinates(self) -> None:
         raise NotImplementedError
@@ -165,7 +206,7 @@ class CRFOOptimiser(RFOOptimiser):
 
     @property
     def _n_constraints(self) -> int:
-        return len(self._species.constraints.distance)
+        return self._species.constraints.n_distance
 
     @property
     def _constrained_coordinates_are_pure(self) -> bool:

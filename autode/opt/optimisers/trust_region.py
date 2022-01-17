@@ -86,8 +86,6 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         Perform a TR step based on a solution to the 'sub-problem' to find a
         direction which to step in, the distance for which is fixed by the
         current trust region (alpha)
-
-        TODO: Math
         """
         rho = self.rho
         self._solve_subproblem()

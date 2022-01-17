@@ -158,11 +158,14 @@ class Optimiser(ABC):
                            n_cores=self._n_cores)
         grad.run()
 
+        # Set the energy, gradient and remove all the calculation files
         self._coords.e = self._species.energy = grad.get_energy()
         self._species.gradient = grad.get_gradients()
         grad.clean_up(force=True, everything=True)
 
-        self._coords.update_g_from_cart_g(self._species.gradient)
+        fixed_idxs = self._species.constraints.cartesian
+        self._coords.update_g_from_cart_g(arr=self._species.gradient,
+                                          fixed_atom_idxs=fixed_idxs)
         return None
 
     def _update_hessian_gradient_and_energy(self) -> None:
@@ -187,8 +190,10 @@ class Optimiser(ABC):
                              n_cores=self._n_cores)
 
         self._species.hessian = species.hessian.copy()
-        self._coords.update_h_from_cart_h(self._species.hessian)
 
+        fixed_idxs = self._species.constraints.cartesian
+        self._coords.update_h_from_cart_h(self._species.hessian,
+                                          fixed_atom_idxs=fixed_idxs)
         return None
 
     @property

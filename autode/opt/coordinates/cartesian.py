@@ -24,7 +24,7 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """Is a string a valid unit for these coordinates e.g. nm"""
         return any(string in unit.aliases for unit in self.implemented_units)
 
-    def update_g_from_cart_g(self,
+    def _update_g_from_cart_g(self,
                              arr: Optional['autode.values.Gradient']
                              ) -> None:
         """
@@ -37,7 +37,7 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """
         self.g = None if arr is None else np.array(arr).flatten()
 
-    def update_h_from_cart_h(self,
+    def _update_h_from_cart_h(self,
                              arr: Optional['autode.values.Hessian']):
         """
         Update the Hessian from a Cartesian Hessian matrix with shape

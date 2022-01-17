@@ -68,6 +68,7 @@ class RFOOptimiser(NDOptimiser):
 
         self._coords = CartesianCoordinates(self._species.coordinates).to('dic')
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+        self._coords.make_hessian_positive_definite()
         self._update_gradient_and_energy()
 
         return None
@@ -87,17 +88,7 @@ class RFOOptimiser(NDOptimiser):
         species.calc_hessian(method=get_lmethod(),
                              n_cores=self._n_cores)
 
-        eigval, eigvec = np.linalg.eig(species.hessian)
-
-        if np.all(eigval > 0):
-            logger.info('Low-level Hessian was positive definite')
-            return species.hessian
-
-        logger.warning('Low-level Hessian was not positive definite. '
-                       'Shifting eigenvalues to 0 and reconstructing')
-        eigval[eigval < 0] = 0
-
-        return np.linalg.multi_dot((eigvec, np.diag(eigval), eigvec.T)).real
+        return species.hessian
 
     def _sanitised_step(self, delta_s: np.ndarray) -> np.ndarray:
         """Ensure the step to be taken isn't too large"""

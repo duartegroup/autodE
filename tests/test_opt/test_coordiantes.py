@@ -307,12 +307,8 @@ def test_grad_transform_linear():
         _x = _x.reshape((-1, 3))
         diff = _x[0, 0] - _x[1, 0]
         r = np.linalg.norm(_x[0] - _x[1])
-        return np.array([k * (r - r0) * diff/r,
-                         0.0,
-                         0.0,
-                         - k * (r - r0) * diff/r,
-                         0.0,
-                         0.0])
+        return np.array([[k * (r - r0) * diff/r, 0.0, 0.0],
+                         [- k * (r - r0) * diff/r, 0.0, 0.0]])
 
     def num_grad(_x, h=1E-8):
 
@@ -325,7 +321,7 @@ def test_grad_transform_linear():
             g_i = (energy(x_ph) - energy(_x)) / h
             _g.append(g_i)
 
-        return np.array(_g)
+        return np.array(_g).reshape((2, 3))
 
     coords = np.array([[0.0, 0.0, 0.0],
                        [2.0, 0.0, 0.0]])
@@ -343,7 +339,7 @@ def test_grad_transform_linear():
 
     # Determined by hand
     assert np.isclose(dic.g[0],
-                      -1/0.5**2 * grad(coords)[3])
+                      -1/0.5**2 * grad(coords).flatten()[3])
 
 
 def test_hess_transform_linear():
