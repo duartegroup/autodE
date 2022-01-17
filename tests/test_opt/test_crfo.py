@@ -33,6 +33,8 @@ def test_xtb_opt_with_distance_constraint():
                       atol=1E-5)
 
 
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
 def test_xtb_opt_with_cartesian_constraint():
 
     water = Molecule(name='water', charge=0, mult=1,
