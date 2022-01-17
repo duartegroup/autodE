@@ -9,6 +9,7 @@ from autode.wrappers.base import ElectronicStructureMethod
 from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
+from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from multiprocessing import Pool
 from scipy.spatial import distance_matrix
@@ -23,7 +24,7 @@ def energy_gradient(image, method, n_cores, image_idx):
     if isinstance(method, ElectronicStructureMethod):
         return _est_energy_gradient(image, method, n_cores)
 
-    elif isinstance(method, str) and method.lower() == 'idpp':
+    elif isinstance(method, IDPP):
         return _idpp_energy_gradient(image, method, image_idx)
 
     raise ValueError(f'Cannpt calculate energy and gradient with {method}.'
