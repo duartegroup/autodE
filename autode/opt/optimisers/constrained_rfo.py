@@ -80,7 +80,7 @@ class CRFOOptimiser(RFOOptimiser):
 
         for i in range(m):
             g[i] -= self._lambdas[i]
-            g[n+i] = -self._constraints[i].delta(self._coords._x)  # dL/dλ
+            g[n+i] = -self._constraints[i].delta(self._coords.to('cart'))  # dL/dλ
 
         b, U = np.linalg.eigh(hess)
 
