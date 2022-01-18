@@ -6,7 +6,6 @@ from typing import Optional
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.values import Energy
 from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
@@ -27,7 +26,7 @@ def energy_gradient(image, method, n_cores):
     elif isinstance(method, IDPP):
         return _idpp_energy_gradient(image, method, n_cores)
 
-    raise ValueError(f'Cannpt calculate energy and gradient with {method}.'
+    raise ValueError(f'Cannot calculate energy and gradient with {method}.'
                      'Must be one of: ElectronicStructureMethod, {"idpp"}')
 
 
@@ -476,7 +475,7 @@ class NEB:
 
         # Cache the force constants and set something that is empirically good
         saved_min_k, saved_max_k = self.images.min_k, self.images.max_k
-        self.images.min_k = self.images.max_k = 0.01
+        self.images.min_k = self.images.max_k = 0.1
 
         # Zero the initial gradient and energies
         for image in self.images:
@@ -485,10 +484,10 @@ class NEB:
 
         result = minimize(total_energy,
                           x0=self.images.coords(),
-                          method='CG',
+                          method='L-BFGS-B',
                           jac=derivative,
-                          args=(self.images, idpp, 1),
-                          tol=0.005)
+                          args=(self.images, idpp, Config.n_cores),
+                          tol=0.001)
 
         logger.info(f'IDPP minimisation successful: {result.success}')
 

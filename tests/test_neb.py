@@ -9,6 +9,7 @@ from autode.neb.idpp import IDPP
 from autode.species.molecule import Species, Molecule
 from autode.species.molecule import Reactant
 from autode.neb.neb import get_ts_guess_neb
+from autode.neb.original import energy_gradient
 from autode.atoms import Atom
 from autode.geom import are_coords_reasonable
 from autode.input_output import xyz_file_to_atoms
@@ -169,6 +170,15 @@ def _simple_h2_images(num, shift, increment):
                                             Atom('H', x=shift + i * increment)])
 
     return images
+
+
+def test_energy_gradient_type():
+
+    # Energy and gradient must have a method (EST or IDPP)
+    with pytest.raises(ValueError):
+        _ = energy_gradient(image=Image('tmp', k=1.0),
+                            method=None,
+                            n_cores=1)
 
 
 def test_iddp_init():
