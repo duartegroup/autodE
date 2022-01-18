@@ -1,6 +1,5 @@
 import shutil
 import os
-
 import numpy as np
 import pytest
 from autode.path import Path
@@ -11,7 +10,9 @@ from autode.species.molecule import Species, Molecule
 from autode.species.molecule import Reactant
 from autode.neb.neb import get_ts_guess_neb
 from autode.atoms import Atom
+from autode.geom import are_coords_reasonable
 from autode.input_output import xyz_file_to_atoms
+from autode.utils import work_in_tmp_dir
 from autode.methods import XTB, ORCA
 from . import testutils
 
@@ -228,3 +229,27 @@ def test_iddp_gradient():
         assert np.isclose(analytic_value,
                           num_grad(i),
                           atol=1E-5)
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_neb_interpolate_and_idpp_relax():
+
+    mol = Molecule(name='methane',
+                   atoms=[Atom('C', -0.91668,  0.42765,  0.00000),
+                          Atom('H',  0.15332,  0.42765,  0.00000),
+                          Atom('H', -1.27334,  0.01569, -0.92086),
+                          Atom('H', -1.27334,  1.43112,  0.10366),
+                          Atom('H', -1.27334, -0.16385,  0.81720)])
+
+    rot_mol = mol.copy()
+    rot_mol.rotate(axis=[1.0, 0.0, 0.0],
+                   theta=1.5)
+
+    neb = NEB(initial_species=mol,
+              final_species=rot_mol,
+              num=10)
+    neb.interpolate_geometries()
+    neb.idpp_relax()
+
+    for image in neb.images:
+        assert are_coords_reasonable(image.species.coordinates)

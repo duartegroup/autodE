@@ -25,7 +25,7 @@ class IDPP:
             raise ValueError('Must have at least 2 images for IDPP')
 
         # Distance matrices containing all r_{ij}^k
-        self._dists = {id(image): None for k, image in enumerate(images)}
+        self._dists = {image.name: None for k, image in enumerate(images)}
         self._diagonal_distance_matrix_idxs = None
 
         self._set_distance_matrices(images)
@@ -91,14 +91,14 @@ class IDPP:
         n = len(images)
 
         for k, image in enumerate(images):
-            self._dists[id(image)] = dist_mat1 + k * delta / n
+            self._dists[image.name] = dist_mat1 + k * delta / n
 
         self._diagonal_distance_matrix_idxs = np.diag_indices_from(delta)
         return None
 
     def _req_distance_matrix(self, image):
         """Required distance matrix for an image, with elements r_{ij}^k"""
-        return self._dists[id(image)]
+        return self._dists[image.name]
 
     def _distance_matrix(self, image, unity_diagonal=False) -> np.ndarray:
         """Distance matrix for an image"""

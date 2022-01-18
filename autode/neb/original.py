@@ -6,6 +6,7 @@ from typing import Optional
 from autode.log import logger
 from autode.calculation import Calculation
 from autode.wrappers.base import ElectronicStructureMethod
+from autode.values import Energy
 from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
@@ -17,14 +18,14 @@ import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
 
 
-def energy_gradient(image, method, n_cores, image_idx):
+def energy_gradient(image, method, n_cores):
     """Calculate energies and gradients for an image using a EST method"""
 
     if isinstance(method, ElectronicStructureMethod):
         return _est_energy_gradient(image, method, n_cores)
 
     elif isinstance(method, IDPP):
-        return _idpp_energy_gradient(image, method, image_idx)
+        return _idpp_energy_gradient(image, method, n_cores)
 
     raise ValueError(f'Cannpt calculate energy and gradient with {method}.'
                      'Must be one of: ElectronicStructureMethod, {"idpp"}')
@@ -49,9 +50,9 @@ def _est_energy_gradient(image, est_method, n_cores):
     return image
 
 
-def _idpp_energy_gradient(image: 'autode.neb.original.Image',
-                          idpp: 'autode.neb.idpp.IDPP',
-                          *args
+def _idpp_energy_gradient(image:   'autode.neb.original.Image',
+                          idpp:    'autode.neb.idpp.IDPP',
+                          n_cores: int
                           ) -> 'autode.neb.original.Image':
     """
     Evaluate the energy and gradient of an image using an image dependent
@@ -63,18 +64,18 @@ def _idpp_energy_gradient(image: 'autode.neb.original.Image',
 
         idpp: Instance
 
-        args: *UNUSED*
+        n_cores: *UNUSED*
 
     Returns:
         (autode.neb.original.Image): Image
     """
-    image.energy = idpp.energy(image)
+    image.energy = idpp(image)
     image.grad = idpp.grad(image)
 
     return image
 
 
-def total_energy(flat_coords, images, method, n_cores, *args):
+def total_energy(flat_coords, images, method, n_cores):
     """Compute the total energy across all images"""
     images.set_coords(flat_coords)
 
@@ -88,7 +89,7 @@ def total_energy(flat_coords, images, method, n_cores, *args):
     # Run an energy + gradient evaluation in parallel across all images
     with Pool(processes=n_cores) as pool:
         results = [pool.apply_async(func=energy_gradient,
-                                    args=(images[i], method, *args)
+                                    args=(images[i], method, n_cores)
                                     )
                    for i in range(1, len(images) - 1)]
 
@@ -142,8 +143,8 @@ class Image:
         self.k = k
 
         self.species: Optional['autode.species.Species'] = None
-        self.energy: Optional['autode.values.Energy'] = None
-        self.grad: Optional[np.ndarray] = None
+        self.energy:  Optional['autode.values.Energy'] = None
+        self.grad:    Optional[np.ndarray] = None
 
     def _tau_xl_x_xr(self, im_l, im_r):
         """
@@ -458,6 +459,7 @@ class NEB:
         self.images[0].species = initial
         self.images[-1].species = final
         self.interpolate_geometries()
+        self.idpp_relax()
 
         return None
 
@@ -472,14 +474,26 @@ class NEB:
         logger.info(f'Minimising NEB with IDPP potential')
         idpp = IDPP(self.images)
 
+        # Cache the force constants and set something that is empirically good
+        saved_min_k, saved_max_k = self.images.min_k, self.images.max_k
+        self.images.min_k = self.images.max_k = 0.01
+
+        # Zero the initial gradient and energies
+        for image in self.images:
+            image.energy = idpp(image)
+            image.grad = idpp.grad(image)
+
         result = minimize(total_energy,
                           x0=self.images.coords(),
-                          method='L-BFGS-B',
+                          method='CG',
                           jac=derivative,
                           args=(self.images, idpp, 1),
-                          tol=0.01,
-                          options={'maxfun': 1000})
+                          tol=0.005)
+
+        logger.info(f'IDPP minimisation successful: {result.success}')
 
         self.images.set_coords(result.x)
+        self.images.print_geometries(name='neb')
 
+        self.images.min_k, self.images.max_k = saved_min_k, saved_max_k
         return None
