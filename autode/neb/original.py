@@ -12,7 +12,6 @@ from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from multiprocessing import Pool
-from scipy.spatial import distance_matrix
 import numpy as np
 import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
@@ -31,12 +30,12 @@ def energy_gradient(image, method, n_cores, image_idx):
                      'Must be one of: ElectronicStructureMethod, {"idpp"}')
 
 
-def _est_energy_gradient(image, method, n_cores):
+def _est_energy_gradient(image, est_method, n_cores):
     """Electronic structure energy and gradint"""
     calc = Calculation(name=f'{image.name}_{image.iteration}',
                        molecule=image.species,
-                       method=method,
-                       keywords=method.keywords.grad,
+                       method=est_method,
+                       keywords=est_method.keywords.grad,
                        n_cores=n_cores)
 
     @work_in(image.name)
@@ -50,26 +49,29 @@ def _est_energy_gradient(image, method, n_cores):
     return image
 
 
-def _idpp_energy_gradient(image, idpp_function, image_idx
-                          ) -> float:
+def _idpp_energy_gradient(image: 'autode.neb.original.Image',
+                          idpp: 'autode.neb.idpp.IDPP',
+                          *args
+                          ) -> 'autode.neb.original.Image':
     """
-    Evaluate the
+    Evaluate the energy and gradient of an image using an image dependent
+    pair potential IDDP instance and set the energy and gradient on the image
 
     ---------------------------------------------------------------------------
     Arguments:
-        flat_coords: Coordinate array of all the images, as a (N*3n_atoms,)
-                     array
+        image: Image in the NEB
 
-        delta_dists: Difference in distances between the final and initial
-                     images. Must be a matrix of n_atoms x n_atoms.
+        idpp: Instance
 
-        n_images: Number of images in the NEB
+        args: *UNUSED*
 
     Returns:
-        (float): S
+        (autode.neb.original.Image): Image
     """
+    image.energy = idpp.energy(image)
+    image.grad = idpp.grad(image)
 
-    return 0
+    return image
 
 
 def total_energy(flat_coords, images, method, n_cores, *args):
@@ -468,13 +470,6 @@ class NEB:
             :py:meth:`IDPP <idpp_function>`
         """
         logger.info(f'Minimising NEB with IDPP potential')
-
-        def dist_mat(image_idx):
-            coords = self.images[image_idx].species.coordinates
-            return distance_matrix(coords, coords)
-
-        # Difference in distance matrices between the final and first image
-        delta_dists = (dist_mat(image_idx=-1) - dist_mat(image_idx=0))
         idpp = IDPP(self.images)
 
         result = minimize(total_energy,
