@@ -481,17 +481,21 @@ class NEB:
 
         images.min_k = images.max_k = 0.1
 
-        # Zero the initial gradient and energies
-        for image in images:
+        for i, image in enumerate(images):
             image.energy = idpp(image)
             image.grad = idpp.grad(image)
+
+            # Initial and final images are fixed, with zero gradient
+            if i == 0 or i == len(images) - 1:
+                image.grad[:] = 0.0
 
         result = minimize(total_energy,
                           x0=images.coords(),
                           method='L-BFGS-B',
                           jac=derivative,
                           args=(images, idpp, Config.n_cores, False),
-                          tol=0.001)
+                          options={'gtol': 0.01}
+                          )
 
         logger.info(f'IDPP minimisation successful: {result.success}')
 

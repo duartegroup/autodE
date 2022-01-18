@@ -69,7 +69,7 @@ class IDPP:
                 if i == j:
                     continue
 
-                grad[i, :] = a[i, j] * (x[i, :] - x[j, :])
+                grad[i, :] += a[i, j] * (x[i, :] - x[j, :])
 
         return grad.flatten()
 
