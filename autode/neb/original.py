@@ -12,6 +12,7 @@ from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from multiprocessing import Pool
+from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 blues = plt.get_cmap('Blues')
@@ -74,7 +75,7 @@ def _idpp_energy_gradient(image:   'autode.neb.original.Image',
     return image
 
 
-def total_energy(flat_coords, images, method, n_cores):
+def total_energy(flat_coords, images, method, n_cores, plot_energies):
     """Compute the total energy across all images"""
     images.set_coords(flat_coords)
 
@@ -95,7 +96,9 @@ def total_energy(flat_coords, images, method, n_cores):
         images[1:-1] = [result.get(timeout=None) for result in results]
 
     images.increment()
-    images.plot_energies()
+
+    if plot_energies:
+        images.plot_energies()
 
     all_energies = [image.energy for image in images]
     rel_energies = [energy - min(all_energies) for energy in all_energies]
@@ -104,7 +107,7 @@ def total_energy(flat_coords, images, method, n_cores):
     return sum(rel_energies)
 
 
-def derivative(flat_coords, images, method, n_cores):
+def derivative(flat_coords, images, method, n_cores, plot_energies):
     """Compute the derivative of the total energy with respect to all
     components"""
 
@@ -310,6 +313,9 @@ class Images(Path):
 
         return None
 
+    def copy(self) -> 'Images':
+        return deepcopy(self)
+
 
 class NEB:
 
@@ -347,7 +353,7 @@ class NEB:
                           x0=self.images.coords(),
                           method='L-BFGS-B',
                           jac=derivative,
-                          args=(self.images, method, n_cores),
+                          args=(self.images, method, n_cores, True),
                           tol=etol,
                           options={'maxfun': max_n})
 
@@ -412,7 +418,6 @@ class NEB:
                 # then an equal spacing is the i-th point in the grid
                 atom.translate(vec=shift * (i / n))
 
-        self.print_geometries()
         return None
 
     def calculate(self, method, n_cores):
@@ -471,28 +476,24 @@ class NEB:
             :py:meth:`IDPP <idpp_function>`
         """
         logger.info(f'Minimising NEB with IDPP potential')
-        idpp = IDPP(self.images)
+        images = self.images.copy()
+        idpp = IDPP(images)
 
-        # Cache the force constants and set something that is empirically good
-        saved_min_k, saved_max_k = self.images.min_k, self.images.max_k
-        self.images.min_k = self.images.max_k = 0.1
+        images.min_k = images.max_k = 0.1
 
         # Zero the initial gradient and energies
-        for image in self.images:
+        for image in images:
             image.energy = idpp(image)
             image.grad = idpp.grad(image)
 
         result = minimize(total_energy,
-                          x0=self.images.coords(),
+                          x0=images.coords(),
                           method='L-BFGS-B',
                           jac=derivative,
-                          args=(self.images, idpp, Config.n_cores),
+                          args=(images, idpp, Config.n_cores, False),
                           tol=0.001)
 
         logger.info(f'IDPP minimisation successful: {result.success}')
 
         self.images.set_coords(result.x)
-        self.images.print_geometries(name='neb')
-
-        self.images.min_k, self.images.max_k = saved_min_k, saved_max_k
         return None
