@@ -97,3 +97,10 @@ where the xyz files used are:
 
 
 .. literalinclude:: ../common/claisen_p.xyz
+
+
+
+.. note::
+    NEBs initialised from end points use linear interpolation then an image
+    independent pair potential to relax the initial linear path, following
+    `this paper <https://arxiv.org/abs/1406.1512>`_.
