@@ -1014,8 +1014,15 @@ class Species(AtomCollection):
 
         if calc is not None and calc.output.exists:
             self.atoms = calc.get_final_atoms()
-            self.energy = calc.get_energy()
             self.hessian = calc.get_hessian()
+
+            try:
+                self.energy = calc.get_energy()
+
+            except CalculationException:
+                logger.warning(f'Failed to get the potential energy from '
+                               f'{calc.name} but not essential for thermo'
+                               f'chemical calculation')
 
         elif self.hessian is None or (calc is not None and not calc.output.exists):
             logger.info('Calculation did not exist or Hessian was None - '
@@ -1074,13 +1081,7 @@ class Species(AtomCollection):
                          keywords=keywords,
                          n_cores=Config.n_cores if n_cores is None else n_cores)
         sp.run()
-        energy = sp.get_energy()
-
-        if energy is None:
-            raise CalculationException("Failed to calculate a single point "
-                                       f"energy for {self}")
-
-        self.energy = energy
+        self.energy = sp.get_energy()
         return None
 
     @work_in('conformers')

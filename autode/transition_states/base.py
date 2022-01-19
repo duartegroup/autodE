@@ -295,7 +295,7 @@ class TSbase(Species, ABC):
                                  keywords=method.keywords.low_opt,
                                  reset_graph=True)
 
-                except ex.AtomsNotFound:
+                except ex.CalculationException:
                     logger.error(f'Failed to optimise {mol.name} with '
                                  f'{method}. Assuming no link')
                     return False

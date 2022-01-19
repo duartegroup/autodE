@@ -10,8 +10,7 @@ from autode.wrappers import keywords as kwds
 from autode.wrappers.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
-from autode.exceptions import AtomsNotFound
-from autode.exceptions import NoInputError
+from autode.exceptions import AtomsNotFound, NoInputError, CalculationException
 from autode.point_charges import PointCharge
 from autode.atoms import Atom
 from . import testutils
@@ -185,8 +184,10 @@ def test_bad_gauss_output():
     calc.output_file_lines = []
     calc.rev_output_file_lines = []
 
-    assert calc.get_energy() is None
-    with pytest.raises(AtomsNotFound):
+    with pytest.raises(CalculationException):
+        _ = calc.get_energy()
+
+    with pytest.raises(CalculationException):
         calc.get_final_atoms()
 
     with pytest.raises(NoInputError):

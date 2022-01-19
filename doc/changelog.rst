@@ -28,6 +28,8 @@ Usability improvements/Changes
 - Removes :code:`autode.KcalMol` and :code:`KjMol` and enables a reaction to be plotted using a string representation of the units.
 - Allows for keywords to be set using just a list or a string, rather than requiring a specific type
 - Changes :code:`autode.wrappers.keywords.Keyword.has_only_name` to a property
+- Modifies :code:`autode.calculation.Calculation.get_energy` to raise an exception if the energy cannot be extracted
+- Adds a runtime error if e.g. :code:`autode.calculation.Calculation.get_energy` is called on a calculation that has not been run
 
 
 Functionality improvements

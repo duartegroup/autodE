@@ -129,7 +129,10 @@ def test_bad_geometry():
     calc.output.filename = 'h2_overlap_opt_mopac.out'
 
     assert not calc.terminated_normally
-    assert calc.get_energy() is None
+
+    with pytest.raises(CouldNotGetProperty):
+        _ = calc.get_energy()
+
     assert not calc.optimisation_converged()
 
 
