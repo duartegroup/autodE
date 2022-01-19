@@ -61,7 +61,7 @@ class IDPP:
         """
 
         n_atoms = image.species.n_atoms
-        x = image.species.coordinates
+        x = np.array(image.species.coordinates).flatten()
         grad = np.zeros(shape=(n_atoms, 3))
 
         r = self._distance_matrix(image, unity_diagonal=True)
@@ -71,13 +71,11 @@ class IDPP:
         a = -2 * (2 * (r_k - r)**2 * r**(-6)
                   + w * (r_k - r) * r**(-1))
 
-        for i in range(n_atoms):
-            for j in range(n_atoms):
+        # Zero the diagonal elements i=j
+        a[self._diagonal_distance_matrix_idxs] = 0.0
 
-                if i == j:
-                    continue
-
-                grad[i, :] += a[i, j] * (x[i, :] - x[j, :])
+        for i, _ in enumerate(('x', 'y', 'z')):
+            grad[:, i] = np.sum(a * np.subtract.outer(x, x)[i::3, i::3], axis=1)
 
         return grad.flatten()
 
