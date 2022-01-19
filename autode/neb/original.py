@@ -28,7 +28,7 @@ def energy_gradient(image, method, n_cores):
         return _idpp_energy_gradient(image, method, n_cores)
 
     raise ValueError(f'Cannot calculate energy and gradient with {method}.'
-                     'Must be one of: ElectronicStructureMethod, {"idpp"}')
+                     'Must be one of: ElectronicStructureMethod, IDPP')
 
 
 def _est_energy_gradient(image, est_method, n_cores):
@@ -89,7 +89,7 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     # Run an energy + gradient evaluation in parallel across all images
     with Pool(processes=n_cores) as pool:
         results = [pool.apply_async(func=energy_gradient,
-                                    args=(images[i], method, n_cores)
+                                    args=(images[i], method, n_cores_pp)
                                     )
                    for i in range(1, len(images) - 1)]
 
@@ -473,7 +473,7 @@ class NEB:
 
         -----------------------------------------------------------------------
         See Also:
-            :py:meth:`IDPP <idpp_function>`
+            :py:meth:`IDPP <autode.neb.idpp.IDPP.__init__>`
         """
         logger.info(f'Minimising NEB with IDPP potential')
         images = self.images.copy()

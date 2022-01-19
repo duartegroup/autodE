@@ -9,8 +9,7 @@ class IDPP:
 
     .. math::
 
-        S = Σ  Σ  w(r_{ij}) (r_{ij}^k - r_{ij})^2
-           i j>i
+        S = Σ_i  Σ_{j>i} w(r_{ij}) (r_{ij}^k - r_{ij})^2
 
     where :math:`r_{ij}` is the distance between atoms i and j and
     :math:`r_{ij}^k = r_{ij}^0 + k(r_{ij}^N - r_{ij}^0)/N` for :math:`N` images.
@@ -46,10 +45,19 @@ class IDPP:
     def grad(self,
              image: 'autode.neb.original.Image'
              ) -> np.ndarray:
-        """
+        r"""
         Gradient of the potential with respect to displacement of
-        the Cartesian components: (dS/dx0, dS/dy0, dS/dz0, dS/dx1, ...)
-        where the numbers denote different atoms
+        the Cartesian components: :math:`\nabla S = (dS/dx_0, dS/dy_0, dS/dz_0,
+        dS/dx_1, ...)` where the numbers denote different atoms. For example,
+
+        .. math::
+
+            \frac{dS}{dx_0} = -2 \sum_{i \ne j}
+                               \left[2(c-r_{ij})r_{ij}^{-6}
+                                     + w(r_{ij})r_{ij}^{-1})
+                               \right](c - r_{ij})(x_0 - x_j)
+
+        where :math:`c = r_{ij}^k`.
         """
 
         n_atoms = image.species.n_atoms
@@ -81,7 +89,7 @@ class IDPP:
 
             r_{ij}^k = r_{ij}^0 + k (r_{ij}^N - r_{ij}^0) / N
 
-        and set the identity distance matrix e.g. I_n for an image with n atoms
+        and set the the diagonal indices of each distance matrix.
         """
 
         dist_mat1 = self._distance_matrix(image=images[0])
@@ -112,14 +120,15 @@ class IDPP:
         return r
 
     def _w(self, image) -> np.ndarray:
-        """
-        Weight matrix with elements:
+        r"""
+        Weight matrix with elements
 
         .. math::
 
-            w_ij = 1/r_ij^4
+            w_{ij} = 1/r_{ij}^4
 
-        for :math:`i \ne j` otherwise :math:`w_ii = 0`
+
+        for :math:`i \ne j` otherwise :math:`w_{ii} = 0`
         """
         w = self._distance_matrix(image)
 
