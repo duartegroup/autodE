@@ -167,6 +167,14 @@ def test_molecule_from_xyz():
     assert h2.n_atoms == 2
     assert h2.formula == 'H2'
 
+    # Molecules loaded from .xyz directly can still have names
+    h2_named = Molecule('h2_conf0.xyz', name='tmp')
+    assert h2_named.name == 'tmp'
+
+    # Name kwarg takes priority even if arg is defined
+    h2_named2 = Molecule('tmp', name='tmp2')
+    assert h2_named2.name == 'tmp2'
+
 
 def test_rdkit_possible_fail():
     """RDKit can't generate structures for some SMILES, make sure they can
