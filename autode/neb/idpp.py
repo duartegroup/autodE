@@ -18,13 +18,13 @@ class IDPP:
     """
 
     def __init__(self, images: 'autode.neb.original.Images'):
-        """Initialise a IDPP potential"""
+        """Initialise a IDPP potential from a set of NEB images"""
 
         if len(images) < 2:
             raise ValueError('Must have at least 2 images for IDPP')
 
         # Distance matrices containing all r_{ij}^k
-        self._dists = {image.name: None for k, image in enumerate(images)}
+        self._dists = {image_k.name: None for image_k in images}
         self._diagonal_distance_matrix_idxs = None
 
         self._set_distance_matrices(images)
@@ -32,15 +32,20 @@ class IDPP:
     def __call__(self,
                  image: 'autode.neb.original.Image'
                  ) -> float:
-        """Value of the IDPP objective function for a single image
+        r"""
+        Value of the IDPP objective function for a single image defined by,
 
+        .. math::
 
-        S = 0.5 Σ  Σ  w(r_{ij}) (r_{ij}^k - r_{ij})^2
-                i j≠i
+            S_k = 0.5 Σ_i  Σ_{j \ne i} w(r_{ij}) (r_{ij}^k - r_{ij})^2
+
+        where :math:`i` and :math:`j` enumerate over atoms for an image indexed
+        by :math:`k`.
         """
         r_k, r = self._req_distance_matrix(image), self._distance_matrix(image)
+        w = self._weight_matrix(image)
 
-        return 0.5 * np.sum(self._w(image) * (r_k - r)**2)
+        return 0.5 * np.sum(w * (r_k - r) ** 2)
 
     def grad(self,
              image: 'autode.neb.original.Image'
@@ -65,17 +70,30 @@ class IDPP:
         grad = np.zeros(shape=(n_atoms, 3))
 
         r = self._distance_matrix(image, unity_diagonal=True)
-        w = self._w(image)
+        w = self._weight_matrix(image)
         r_k = self._req_distance_matrix(image)
 
         a = -2 * (2 * (r_k - r)**2 * r**(-6)
                   + w * (r_k - r) * r**(-1))
 
-        # Zero the diagonal elements i=j
-        a[self._diagonal_distance_matrix_idxs] = 0.0
+        """
+        The following numpy operations are the same as:
+        -----------------------------------------------------------------------
+        x = x.reshape((-1, 3))
+        for i in range(n_atoms):
+            for j in range(n_atoms):
 
-        for i, _ in enumerate(('x', 'y', 'z')):
-            grad[:, i] = np.sum(a * np.subtract.outer(x, x)[i::3, i::3], axis=1)
+                if i != j:
+                    grad[i, :] += a[i, j] * (x[i, :] - x[j, :])
+        -----------------------------------------------------------------------
+        """
+
+        a[self._diagonal_distance_matrix_idxs] = 0.0
+        delta = np.subtract.outer(x, x)
+
+        grad[:, 0] = np.sum(a * delta[0::3, 0::3], axis=1)   # x
+        grad[:, 1] = np.sum(a * delta[1::3, 1::3], axis=1)   # y
+        grad[:, 2] = np.sum(a * delta[2::3, 2::3], axis=1)   # z
 
         return grad.flatten()
 
@@ -117,7 +135,7 @@ class IDPP:
 
         return r
 
-    def _w(self, image) -> np.ndarray:
+    def _weight_matrix(self, image) -> np.ndarray:
         r"""
         Weight matrix with elements
 

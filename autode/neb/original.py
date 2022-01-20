@@ -108,8 +108,12 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
 
 
 def derivative(flat_coords, images, method, n_cores, plot_energies):
-    """Compute the derivative of the total energy with respect to all
-    components"""
+    """
+    Compute the derivative of the total energy with respect to all
+    components. Several arguments are unused as SciPy requires the jacobian
+    function to have the same signature as the function that's being minimised.
+    See: https://tinyurl.com/scipyopt
+    """
 
     # Forces for the first image are fixed at zero
     forces = np.array(images[0].grad)
