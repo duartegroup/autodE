@@ -110,7 +110,8 @@ class OptCoordinates(ValueArray, ABC):
     def h(self, value: np.ndarray):
         """Set the second derivatives of the energy"""
         if not self.h_or_h_inv_has_correct_shape(value):
-            raise ValueError(f'Hessian must be an NxN matrix. Had: {value}')
+            raise ValueError(f'Hessian must be an NxN matrix. '
+                             f'Had an array with shape: {value.shape}')
 
         self._h = value
 
@@ -138,7 +139,7 @@ class OptCoordinates(ValueArray, ABC):
         """Set the inverse hessian matrix"""
         if not self.h_or_h_inv_has_correct_shape(value):
             raise ValueError('Inverse Hessian must be an NxN matrix. '
-                             f'Had: {value}')
+                             f'Had an array with shape: {value.shape}')
 
         self._h_inv = value
 

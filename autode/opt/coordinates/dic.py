@@ -60,11 +60,12 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             (np.ndarray): U
         """
 
-        w, v = np.linalg.eigh(primitives.G)
+        eigvals, eigvecs = np.linalg.eigh(primitives.G)
 
-        # Form a transform matrix from the primitive internals to a set of
-        # 3N - 6 non-redundant internals, s
-        v = v[:, np.where(np.abs(w) > 1E-10)[0]]
+        # Form a transform matrix from the primitive internals by removing the
+        # redundant subspace comprised of small eigenvalues. This forms a set
+        # of 3N - 6 non-redundant internals for a system of N atoms
+        eigvecs = eigvecs[:, np.where(np.abs(eigvals) > 1E-10)[0]]
 
         # Move all the weight along constrained distances to the single DIC
         # coordinates, so that Lagrange multipliers are easy to add
@@ -72,9 +73,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 if isinstance(coord, ConstrainedDistance)]
 
         if len(idxs) > 0:
-            v = rotate_columns(v, *idxs)
+            eigvecs = rotate_columns(eigvecs, *idxs)
 
-        return v
+        return eigvecs
 
     @classmethod
     def from_cartesian(cls,

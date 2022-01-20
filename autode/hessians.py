@@ -349,7 +349,7 @@ class NumericalHessianCalculator:
         self._n_total_cores = Config.n_cores if n_cores is None else n_cores
 
     @work_in('numerical_hessian')
-    def calculate(self, ) -> None:
+    def calculate(self) -> None:
         """Calculate the Hessian"""
 
         logger.info(f'Calculating a numerical Hessian '

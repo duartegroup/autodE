@@ -159,7 +159,7 @@ class CRFOOptimiser(RFOOptimiser):
         for (i, j), r in self._species.constraints.distance.items():
 
             for prim in reversed(primitives):
-                if sorted((prim.idx_i, prim.idx_j)) == sorted((i, j)):
+                if {prim.idx_i, prim.idx_j} == {i, j}:
 
                     logger.info(f'Primitive: {prim} had overlap with an '
                                 f'already present distance. Removing')

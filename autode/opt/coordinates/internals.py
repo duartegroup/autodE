@@ -115,17 +115,17 @@ class PIC(list, ABC):
             raise ValueError('Cannot calculate the Wilson B matrix, no '
                              'primitive internal coordinates')
 
-        _x = x.reshape((-1, 3))
+        cart_coords = x.reshape((-1, 3))
 
-        n_atoms, _ = _x.shape
+        n_atoms, _ = cart_coords.shape
         B = np.zeros(shape=(len(self), 3 * n_atoms))
 
         for i, primitive in enumerate(self):
             for j in range(n_atoms):
 
-                B[i, 3 * j + 0] = primitive.derivative(j, 'x', x=_x)
-                B[i, 3 * j + 1] = primitive.derivative(j, 'y', x=_x)
-                B[i, 3 * j + 2] = primitive.derivative(j, 'z', x=_x)
+                B[i, 3 * j + 0] = primitive.derivative(j, 'x', x=cart_coords)
+                B[i, 3 * j + 1] = primitive.derivative(j, 'y', x=cart_coords)
+                B[i, 3 * j + 2] = primitive.derivative(j, 'z', x=cart_coords)
 
         self._B = B
         return None
