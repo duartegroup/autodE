@@ -146,10 +146,8 @@ class IDPP:
 
         for :math:`i \ne j` otherwise :math:`w_{ii} = 0`
         """
-        w = self._distance_matrix(image)
-
-        w[self._diagonal_distance_matrix_idxs] = 1.0  # Don't divide by zero
-        w = w**(-4.0)
+        r = self._distance_matrix(image, unity_diagonal=True)
+        w = r**(-4.0)
         w[self._diagonal_distance_matrix_idxs] = 0.0  # Zero w_ii elements
 
         return w
