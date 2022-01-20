@@ -41,6 +41,13 @@ class IDPP:
 
         where :math:`i` and :math:`j` enumerate over atoms for an image indexed
         by :math:`k`.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            image: NEB image (k)
+
+        Returns:
+            (float): S_k
         """
         r_k, r = self._req_distance_matrix(image), self._distance_matrix(image)
         w = self._weight_matrix(image)
@@ -63,11 +70,17 @@ class IDPP:
                                \right](c - r_{ij})(x_0 - x_j)
 
         where :math:`c = r_{ij}^k`.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            image: NEB image (k)
+
+        Returns:
+            (np.ndarray): :math:`\nabla S`
         """
 
-        n_atoms = image.species.n_atoms
         x = np.array(image.species.coordinates).flatten()
-        grad = np.zeros(shape=(n_atoms, 3))
+        grad = np.zeros_like(x)
 
         r = self._distance_matrix(image, unity_diagonal=True)
         w = self._weight_matrix(image)
@@ -80,6 +93,8 @@ class IDPP:
         The following numpy operations are the same as:
         -----------------------------------------------------------------------
         x = x.reshape((-1, 3))
+        grad = np.zeros_like(x)
+        
         for i in range(n_atoms):
             for j in range(n_atoms):
 
@@ -91,11 +106,11 @@ class IDPP:
         a[self._diagonal_distance_matrix_idxs] = 0.0
         delta = np.subtract.outer(x, x)
 
-        grad[:, 0] = np.sum(a * delta[0::3, 0::3], axis=1)   # x
-        grad[:, 1] = np.sum(a * delta[1::3, 1::3], axis=1)   # y
-        grad[:, 2] = np.sum(a * delta[2::3, 2::3], axis=1)   # z
+        grad[0::3] = np.sum(a * delta[0::3, 0::3], axis=1)   # x
+        grad[1::3] = np.sum(a * delta[1::3, 1::3], axis=1)   # y
+        grad[2::3] = np.sum(a * delta[2::3, 2::3], axis=1)   # z
 
-        return grad.flatten()
+        return grad
 
     def _set_distance_matrices(self, images) -> None:
         """
@@ -103,19 +118,19 @@ class IDPP:
 
         .. math::
 
-            r_{ij}^k = r_{ij}^0 + k (r_{ij}^N - r_{ij}^0) / N
+            r_{ij}^k = r_{ij}^0 + k (r_{ij}^{(n)} - r_{ij}^{(1)}) / n
 
         and set the the diagonal indices of each distance matrix.
         """
 
-        dist_mat1 = self._distance_matrix(image=images[0])
-        dist_matN = self._distance_matrix(image=images[-1])
+        dist_mat_1 = self._distance_matrix(image=images[0])
+        dist_mat_n = self._distance_matrix(image=images[-1])
 
-        delta = (dist_matN - dist_mat1)
+        delta = (dist_mat_n - dist_mat_1)
         n = len(images)
 
         for k, image in enumerate(images):
-            self._dists[image.name] = dist_mat1 + k * delta / n
+            self._dists[image.name] = dist_mat_1 + k * delta / n
 
         self._diagonal_distance_matrix_idxs = np.diag_indices_from(delta)
         return None
