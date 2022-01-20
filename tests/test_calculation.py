@@ -28,12 +28,13 @@ def test_calc_class():
     assert calc.method.name == 'xtb'
     assert len(calc.input.filenames) == 0
 
-    assert calc.get_energy() is None
+    with pytest.raises(ex.CouldNotGetProperty):
+        _ = calc.get_energy()
 
     assert not calc.optimisation_converged()
     assert not calc.optimisation_nearly_converged()
 
-    with pytest.raises(ex.AtomsNotFound):
+    with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_final_atoms()
 
     with pytest.raises(ex.CouldNotGetProperty):

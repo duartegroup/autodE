@@ -6,7 +6,7 @@ from autode.wrappers.XTB import XTB
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
-from autode.exceptions import AtomsNotFound
+from autode.exceptions import AtomsNotFound, CalculationException
 from autode.config import Config
 from . import testutils
 
@@ -75,7 +75,9 @@ def test_energy_extract_no_energy():
     calc.output.filename = 'h2_sp_xtb_no_energy.out'
 
     assert calc.terminated_normally
-    assert calc.get_energy() is None
+
+    with pytest.raises(CalculationException):
+        _ = calc.get_energy()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))

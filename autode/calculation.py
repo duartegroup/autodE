@@ -3,6 +3,7 @@ import os
 import hashlib
 import base64
 from typing import Optional, List
+from functools import wraps
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 from autode.utils import cached_property
@@ -21,6 +22,22 @@ output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
 def execute_calc(calc):
     """ Top level function that can be hashed"""
     return calc.execute_calculation()
+
+
+def _requires_set_output_filename(func):
+    """Calculation method requiring the output filename to be set"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        calc = args[0]
+
+        if calc.output.filename is None:
+            raise ex.CouldNotGetProperty(
+                f'Could not get property from {calc.name}. '
+                f'Has .run() been called?')
+        return func(*args, **kwargs)
+
+    return wrapped_function
 
 
 class Calculation:
@@ -238,28 +255,29 @@ class Calculation:
         methods.add(f'{string}.\n')
         return None
 
-    def get_energy(self) -> Optional[PotentialEnergy]:
+    @_requires_set_output_filename
+    def get_energy(self) -> PotentialEnergy:
         """
-        Total electronic potential energy
+        Total electronic potential energy from the final structure in the
+        calculation
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.PotentialEnergy | None):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty):
         """
         logger.info(f'Getting energy from {self.output.filename}')
 
         if not self.terminated_normally:
-            logger.error('Calculation did not terminate normally. '
-                         'Energy = None')
-            return None
+            logger.error(f'Calculation of {self.molecule} did not terminate '
+                         f'normally')
+            raise ex.CouldNotGetProperty(name='energy')
 
-        try:
-            return PotentialEnergy(self.method.get_energy(self),
-                                   method=self.method,
-                                   keywords=self.input.keywords)
-
-        except ex.CouldNotGetProperty:
-            logger.warning('Could not get energy. Energy = None')
-            return None
+        return PotentialEnergy(self.method.get_energy(self),
+                               method=self.method,
+                               keywords=self.input.keywords)
 
     def optimisation_converged(self) -> bool:
         """
@@ -289,6 +307,7 @@ class Calculation:
 
         return self.method.optimisation_nearly_converged(self)
 
+    @_requires_set_output_filename
     def get_final_atoms(self) -> Atoms:
         """
         Get the atoms from the final step of a geometry optimisation
@@ -317,6 +336,7 @@ class Calculation:
 
         return atoms
 
+    @_requires_set_output_filename
     def get_atomic_charges(self) -> List[float]:
         """
         Get the partial atomic charges from a calculation. The method used to
@@ -338,6 +358,7 @@ class Calculation:
 
         return charges
 
+    @_requires_set_output_filename
     def get_gradients(self) -> Gradient:
         """
         Get the gradient (dE/dr) with respect to atomic displacement from a
@@ -357,6 +378,7 @@ class Calculation:
 
         return gradients
 
+    @_requires_set_output_filename
     def get_hessian(self) -> Hessian:
         """
         Get the Hessian matrix (d^2E/dr^2) i.e. the matrix of second
@@ -628,3 +650,7 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
+
+
+
+

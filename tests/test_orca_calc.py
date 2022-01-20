@@ -9,6 +9,7 @@ from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
+from autode.exceptions import CouldNotGetProperty
 from autode.solvent.solvents import ImplicitSolvent
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
@@ -137,9 +138,11 @@ def test_bad_orca_output():
     calc = Calculation(name='no_output', molecule=test_mol, method=method,
                        keywords=opt_keywords)
 
-    assert calc.get_energy() is None
-    with pytest.raises(ex.AtomsNotFound):
-        calc.get_final_atoms()
+    with pytest.raises(CouldNotGetProperty):
+        _ = calc.get_energy()
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        _ = calc.get_final_atoms()
 
     with pytest.raises(ex.NoInputError):
         calc.execute_calculation()
