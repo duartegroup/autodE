@@ -1,3 +1,5 @@
+from typing import Optional
+from autode.log import logger
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
@@ -18,6 +20,44 @@ which are fast non ab-initio methods
 
 high_level_method_names = ['orca', 'g09', 'g16', 'nwchem', 'qchem']
 low_level_method_names = ['xtb', 'mopac']
+
+
+def method_or_default_lmethod(method: Optional[ElectronicStructureMethod]):
+    """
+    Return a method if one is defined but default to a low-level method if
+    if it is None.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        method: Method or None
+
+    Returns:
+        (autode.wrappers.base.ElectronicStructureMethod): Method
+    """
+    if method is None:
+        method = get_lmethod()
+        logger.info(f'Using the default low-level method {method}')
+
+    return method
+
+
+def method_or_default_hmethod(method: Optional[ElectronicStructureMethod]):
+    """
+    Return a method if one is defined but default to a high-level method if
+    if it is None.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        method: Method or None
+
+    Returns:
+        (autode.wrappers.base.ElectronicStructureMethod): Method
+    """
+    if method is None:
+        method = get_hmethod()
+        logger.info(f'Using the default high-level method {method}')
+
+    return method
 
 
 def get_hmethod() -> ElectronicStructureMethod:

@@ -9,14 +9,14 @@ from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
-from autode.log.methods import methods
+from autode.log.methods import methods as method_log
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
-from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
+from autode import methods
 from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
@@ -672,7 +672,7 @@ class Species(AtomCollection):
     def _default_hessian_calculation(self, method=None, keywords=None, n_cores=None):
         """Construct a default Hessian calculation"""
 
-        method = method if method is not None else get_hmethod()
+        method = methods.method_or_default_hmethod(method)
         keywords = keywords if keywords is not None else method.keywords.hess
 
         calc = Calculation(name=f'{self.name}_hess',
@@ -686,7 +686,7 @@ class Species(AtomCollection):
     def _default_opt_calculation(self, method=None, keywords=None, n_cores=None):
         """Construct a default optimisation calculation"""
 
-        method = method if method is not None else get_hmethod()
+        method = methods.method_or_default_hmethod(method)
         keywords = keywords if keywords is not None else method.keywords.opt
         logger.info(f'Using keywords: {keywords} to optimise with {method}')
 
@@ -944,7 +944,7 @@ class Species(AtomCollection):
 
     @requires_atoms
     def optimise(self,
-                 method:      Optional[ElectronicStructureMethod] = None,
+                 method:      Optional['ElectronicStructureMethod'] = None,
                  reset_graph: bool = False,
                  calc:        Optional[Calculation] = None,
                  keywords:    Union[Sequence[str], str, None] = None,
@@ -995,7 +995,7 @@ class Species(AtomCollection):
 
     @requires_atoms
     def calc_thermo(self,
-                    method:     Optional[ElectronicStructureMethod] = None,
+                    method:     Optional['ElectronicStructureMethod'] = None,
                     calc:       Optional[Calculation] = None,
                     temp:       float = 298.15,
                     keywords:   Union[Sequence[str], str, None] = None,
@@ -1071,7 +1071,7 @@ class Species(AtomCollection):
 
     @requires_atoms
     def single_point(self,
-                     method:   ElectronicStructureMethod,
+                     method:   'ElectronicStructureMethod',
                      keywords: Union[Sequence[str], str, None] = None,
                      n_cores:  Optional[int] = None
                      ) -> None:
@@ -1111,8 +1111,8 @@ class Species(AtomCollection):
 
     @work_in('conformers')
     def find_lowest_energy_conformer(self,
-                                     lmethod:                    Optional[ElectronicStructureMethod] = None,
-                                     hmethod:                    Optional[ElectronicStructureMethod] = None,
+                                     lmethod:                    Optional['ElectronicStructureMethod'] = None,
+                                     hmethod:                    Optional['ElectronicStructureMethod'] = None,
                                      allow_connectivity_changes: bool = False
                                      ) -> None:
         """
@@ -1142,18 +1142,16 @@ class Species(AtomCollection):
                            'or fewer')
             return None
 
-        if lmethod is None:
-            logger.info('Getting the default low level method')
-            lmethod = get_lmethod()
+        lmethod = methods.method_or_default_lmethod(lmethod)
 
-        methods.add('Low energy conformers located with the')
+        method_log.add('Low energy conformers located with the')
         self._generate_conformers()
 
         # For all generated conformers optimise with the low level of theory
         method_string = f'and optimised using {lmethod.name}'
         if hmethod is not None:
             method_string += f' then with {hmethod.name}'
-        methods.add(f'{method_string}.')
+        method_log.add(f'{method_string}.')
 
         self.conformers.optimise(method=lmethod)
         self.conformers.prune(remove_no_energy=True)
@@ -1219,7 +1217,7 @@ class Species(AtomCollection):
         return None
 
     def calc_hessian(self,
-                     method:                  ElectronicStructureMethod,
+                     method:                  'ElectronicStructureMethod',
                      keywords:                Union[Sequence[str], str, None] = None,
                      numerical:               bool = False,
                      use_central_differences: bool = False,

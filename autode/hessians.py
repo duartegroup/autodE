@@ -3,13 +3,14 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from typing import List, Tuple, Iterator, Optional
+from typing import List, Tuple, Iterator, Optional, Sequence
 from multiprocessing import Pool
 from autode.wrappers.keywords import GradientKeywords
 from autode.log import logger
 from autode.utils import cached_property
 from autode.config import Config
 from autode.constants import Constants
+from autode import methods
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.utils import work_in, hashable
 from autode.units import (wavenumber,
@@ -338,7 +339,7 @@ class NumericalHessianCalculator:
         self._keywords = self._validated(keywords)
 
         self._do_c_diff = do_c_diff
-        self._shift = shift
+        self._shift = shift.to('Å')
 
         self._hessian = Hessian(np.zeros(shape=self._hessian_shape),
                                 units='Ha Å^-2',
@@ -435,8 +436,8 @@ class NumericalHessianCalculator:
 
         return
 
-    def _validated(self,
-                   keywords: 'autode.keywords.Keywords'
+    @staticmethod
+    def _validated(keywords: 'autode.keywords.Keywords'
                    ) -> 'autode.keywords.GradientKeywords':
         """Validate the keywords"""
 
@@ -502,3 +503,96 @@ class NumericalHessianCalculator:
                / self._shift)
 
         return row
+
+
+class PartialNumericalHessianCalculator(NumericalHessianCalculator):
+    """
+    Calculator for a numerical Hessian evaluated at two levels of
+    theory. One fast low level method to generate an estimate of the full
+    Hessian, then one slow method used to evaluate numerical derivatives
+    for only a few atoms. For example,
+
+    .. code-block:: Python
+
+        >>> import autode as ade
+        >>>
+        >>> water = ade.Molecule(smiles='O')
+        >>> dx = ade.values.Distance(0.001, units='Å')
+        >>> calculator = ade.hessians.PartialNumericalHessianCalculator(
+                            water,
+                            idxs=(0,),
+                            shift=dx)
+        >>> calculator.calculate()
+    """
+
+    def __init__(self,
+                 species: 'autode.species.Species',
+                 idxs:     Sequence[int],
+                 shift:   'autode.values.Distance',
+                 lmethod:  Optional['autode.wrappers.base.Method'] = None,
+                 hmethod:  Optional['autode.wrappers.base.Method'] = None,
+                 n_cores:  Optional[int] = None
+                 ):
+        """
+        Initialise a two-level numerical Hessian calculation using a low-level
+        method (lmethod) and a high-level method (hmethod) for only some atoms,
+        with indexes (idxs)
+
+        -----------------------------------------------------------------------
+        Arguments:
+            species: Species to evaluate the Hessian for
+
+            idxs: Atom indices, the displacements for which will be calculated
+                  using the high-level method
+
+            shift: Numerical shift in used in the finite differences
+
+            lmethod: Low-level method
+
+            hmethod: High-level method
+
+            n_cores: Number of cores to use, defaults to Config.n_cores
+        """
+        lmethod = methods.method_or_default_lmethod(lmethod)
+
+        super().__init__(species=species,
+                         method=lmethod,
+                         keywords=lmethod.keywords.grad,
+                         do_c_diff=False,
+                         shift=shift,
+                         n_cores=n_cores)
+
+        if not set(idxs).issubset(set(range(species.n_atoms))):
+            raise ValueError('Cannot calculate a partial numerical Hessian '
+                             'at least one atom index was not present in the '
+                             'species.')
+
+        self._hmethod_atom_idxs = set(idxs)
+        self._hmethod = methods.method_or_default_hmethod(hmethod)
+
+    def calculate(self) -> None:
+        """Calculate the partial numerical Hessian"""
+
+        super().calculate()
+
+        logger.info('Switching to high-level method and calculating '
+                    f'displacements for atoms: {self._hmethod_atom_idxs}')
+
+        self._remove_h_method_rows()
+        self._method = self._hmethod
+        self._keywords = self._hmethod.keywords.grad
+
+        super().calculate()
+        return None
+
+    def _remove_h_method_rows(self) -> None:
+        """
+        Remove rows from the Hessian that have been calculated by the
+        low-level method but need to be calculated by the high-level method
+        """
+
+        for atom_idx in self._hmethod_atom_idxs:
+            for i, _ in enumerate(('x', 'y', 'z')):
+                self._calculated_rows.remove(3*atom_idx+i)
+
+        return None

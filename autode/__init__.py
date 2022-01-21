@@ -14,6 +14,7 @@ from autode import pes
 from autode import utils
 from autode import neb
 from autode import mol_graphs
+from autode import hessians
 
 """
 So, you want to bump the version.. make sure the following steps are followed
@@ -57,5 +58,6 @@ __all__ = [
     'geom',
     'methods',
     'mol_graphs',
-    'utils'
+    'utils',
+    'hessians'
 ]
