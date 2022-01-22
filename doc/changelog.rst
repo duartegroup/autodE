@@ -46,6 +46,7 @@ Functionality improvements
 - Rewrites :code:`autode.pes` into a consistent module while maintaining much of the functionality. Simplifies the interface
 - Adds a QChem electronic structure method wrapper
 - Adds :code:`autode.species.Species.calc_hessian` to calculate either an analytic or numerical Hessian (in parallel)
+- Adds image dependent pair potential (IDPP) relaxation improved interpolated geometries
 
 
 Bug Fixes

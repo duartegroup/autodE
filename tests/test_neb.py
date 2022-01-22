@@ -1,13 +1,19 @@
 import shutil
 import os
+import numpy as np
+import pytest
 from autode.path import Path
 from autode.neb import NEB, CINEB
 from autode.neb.ci import Images, CImages, Image
-from autode.species.molecule import Species
+from autode.neb.idpp import IDPP
+from autode.species.molecule import Species, Molecule
 from autode.species.molecule import Reactant
 from autode.neb.neb import get_ts_guess_neb
+from autode.neb.original import energy_gradient
 from autode.atoms import Atom
+from autode.geom import are_coords_reasonable
 from autode.input_output import xyz_file_to_atoms
+from autode.utils import work_in_tmp_dir
 from autode.methods import XTB, ORCA
 from . import testutils
 
@@ -75,6 +81,7 @@ def test_contains_peak():
     assert not species_list.contains_peak
 
 
+@testutils.requires_with_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
 def test_full_calc_with_xtb():
 
@@ -89,10 +96,6 @@ def test_full_calc_with_xtb():
     sn2_neb.interpolate_geometries()
 
     xtb = XTB()
-
-    # Don't run the NEB without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     xtb.path = shutil.which('xtb')
     sn2_neb.calculate(method=xtb, n_cores=2)
@@ -109,6 +112,7 @@ def test_full_calc_with_xtb():
     assert 0.25 < path_energy < 0.45
 
 
+@testutils.requires_with_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
 def test_get_ts_guess_neb():
 
@@ -119,11 +123,6 @@ def test_get_ts_guess_neb():
                        atoms=xyz_file_to_atoms('sn2_final.xyz'))
 
     xtb = XTB()
-
-    # Don't run the NEB without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
-
     xtb.path = shutil.which('xtb')
 
     ts_guess = get_ts_guess_neb(reactant, product, method=xtb, n=10)
@@ -131,7 +130,7 @@ def test_get_ts_guess_neb():
     assert ts_guess is not None
     # Approximate distances at the TS guess
     assert 1.8 < ts_guess.distance(0, 2) < 2.3      # C-F
-    assert 1.9 < ts_guess.distance(2, 1) < 2.5      # C-Cl
+    assert 2.1 < ts_guess.distance(2, 1) < 2.6      # C-Cl
 
     if os.path.exists('NEB'):
         shutil.rmtree('NEB')
@@ -159,3 +158,108 @@ def test_climbing_image():
     # with no peak there should be no Image -> CIImage change
     assert images[0].iteration == 10
     assert isinstance(images[0], Image)
+
+
+def _simple_h2_images(num, shift, increment):
+    """Simple IDPP for a 3-image NEB"""
+
+    images = Images(num=num, init_k=1.0)
+
+    for i in range(num):
+        images[i].species = Molecule(atoms=[Atom('H'),
+                                            Atom('H', x=shift + i * increment)])
+
+    return images
+
+
+def test_energy_gradient_type():
+
+    # Energy and gradient must have a method (EST or IDPP)
+    with pytest.raises(ValueError):
+        _ = energy_gradient(image=Image('tmp', k=1.0),
+                            method=None,
+                            n_cores=1)
+
+
+def test_iddp_init():
+    """IDPP requires at least 2 images"""
+
+    with pytest.raises(ValueError):
+        _ = IDPP(Images(num=0, init_k=0.1))
+
+    with pytest.raises(ValueError):
+        _ = IDPP(Images(num=1, init_k=0.1))
+
+
+def test_iddp_energy():
+
+    images = _simple_h2_images(num=3, shift=0.5, increment=0.1)
+    idpp = IDPP(images)
+
+    # Should be callable to evaluate the objective function
+    value = idpp(images[1])
+
+    assert value is not None
+    assert np.isclose(value,
+                      # w           r_k             r
+                      0.6**(-4)*((0.5 + 2*0.2/3) - 0.6)**2,
+                      atol=1E-5)
+
+
+def test_iddp_gradient():
+
+    images = _simple_h2_images(num=3, shift=0.5, increment=0.1)
+    image = images[1]
+    idpp = IDPP(images)
+
+    value = idpp(image)
+
+    # and the gradient calculable
+    grad = idpp.grad(image)
+    assert grad is not None
+
+    # And the gradient be close to the numerical analogue
+    def num_grad(n, h=1E-8):
+        i, k = n // 3, n % 3
+
+        shift_vec = np.zeros(3)
+        shift_vec[k] = h
+
+        image.species.atoms[i].translate(shift_vec)
+        new_value = idpp(image)
+        image.species.atoms[i].translate(-shift_vec)
+
+        return (new_value - value)/h
+
+    # Numerical gradient should be finite
+    assert not np.isclose(num_grad(0), 0.0, atol=1E-10)
+
+    # Check all the elements in the gradient vector
+    for i, analytic_value in enumerate(grad):
+        assert np.isclose(analytic_value,
+                          num_grad(i),
+                          atol=1E-5)
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_neb_interpolate_and_idpp_relax():
+
+    mol = Molecule(name='methane',
+                   atoms=[Atom('C', -0.91668,  0.42765,  0.00000),
+                          Atom('H',  0.15332,  0.42765,  0.00000),
+                          Atom('H', -1.27334,  0.01569, -0.92086),
+                          Atom('H', -1.27334,  1.43112,  0.10366),
+                          Atom('H', -1.27334, -0.16385,  0.81720)])
+
+    rot_mol = mol.copy()
+    rot_mol.rotate(axis=[1.0, 0.0, 0.0],
+                   theta=1.5)
+
+    neb = NEB(initial_species=mol,
+              final_species=rot_mol,
+              num=10)
+    neb.interpolate_geometries()
+    neb.idpp_relax()
+
+    for image in neb.images:
+        assert are_coords_reasonable(image.species.coordinates)
