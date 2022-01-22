@@ -9,12 +9,12 @@ class IDPP:
 
     .. math::
 
-        S = Σ_i  Σ_{j>i} w(r_{ij}) (r_{ij}^k - r_{ij})^2
+        S = Σ_i  Σ_{j>i} w(r_{ij}) (r_{ij}^{(k)} - r_{ij})^2
 
     where :math:`r_{ij}` is the distance between atoms i and j and
-    :math:`r_{ij}^k = r_{ij}^0 + k(r_{ij}^N - r_{ij}^0)/N` for :math:`N` images.
-    Note: here the superscripts denote the image number, not a power. The
-    weight function is :math:`w(r_ij) = r_{ij}^{-4}`, as suggested in the paper
+    :math:`r_{ij}^{(k)} = r_{ij}^{(1)} + k(r_{ij}^{(N)} - r_{ij}^{(1)})/N` for
+    :math:`N` images. The weight function is :math:`w(r_{ij}) = r_{ij}^{-4}`,
+    as suggested in the paper.
     """
 
     def __init__(self, images: 'autode.neb.original.Images'):
@@ -37,7 +37,7 @@ class IDPP:
 
         .. math::
 
-            S_k = 0.5 Σ_i  Σ_{j \ne i} w(r_{ij}) (r_{ij}^k - r_{ij})^2
+            S_k = 0.5 Σ_i  Σ_{j \ne i} w(r_{ij}) (r_{ij}^{(k)} - r_{ij})^2
 
         where :math:`i` and :math:`j` enumerate over atoms for an image indexed
         by :math:`k`.
@@ -47,7 +47,7 @@ class IDPP:
             image: NEB image (k)
 
         Returns:
-            (float): S_k
+            (float): :math:`S_k`
         """
         r_k, r = self._req_distance_matrix(image), self._distance_matrix(image)
         w = self._weight_matrix(image)
@@ -69,7 +69,7 @@ class IDPP:
                                      + w(r_{ij})r_{ij}^{-1})
                                \right](c - r_{ij})(x_0 - x_j)
 
-        where :math:`c = r_{ij}^k`.
+        where :math:`c = r_{ij}^{(k)}`.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -118,7 +118,7 @@ class IDPP:
 
         .. math::
 
-            r_{ij}^k = r_{ij}^0 + k (r_{ij}^{(n)} - r_{ij}^{(1)}) / n
+            r_{ij}^{(k)} = r_{ij}^{(1)} + k (r_{ij}^{(N)} - r_{ij}^{(1)}) / N
 
         and set the the diagonal indices of each distance matrix.
         """
