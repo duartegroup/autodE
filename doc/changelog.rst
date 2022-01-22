@@ -48,6 +48,7 @@ Functionality improvements
 - Adds a QChem electronic structure method wrapper
 - Adds :code:`autode.species.Species.calc_hessian` to calculate either an analytic or numerical Hessian (in parallel)
 - Adds image dependent pair potential (IDPP) relaxation improved interpolated geometries
+- Adds :code:`autode.hessians.HybridHessianCalculator` to calculate numerical Hessians at two levels of theory
 
 
 Bug Fixes

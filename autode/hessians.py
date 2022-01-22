@@ -505,7 +505,7 @@ class NumericalHessianCalculator:
         return row
 
 
-class PartialNumericalHessianCalculator(NumericalHessianCalculator):
+class HybridHessianCalculator(NumericalHessianCalculator):
     """
     Calculator for a numerical Hessian evaluated at two levels of
     theory. One fast low level method to generate an estimate of the full
@@ -518,10 +518,9 @@ class PartialNumericalHessianCalculator(NumericalHessianCalculator):
         >>>
         >>> water = ade.Molecule(smiles='O')
         >>> dx = ade.values.Distance(0.001, units='Å')
-        >>> calculator = ade.hessians.PartialNumericalHessianCalculator(
-                            water,
-                            idxs=(0,),
-                            shift=dx)
+        >>> calculator = ade.hessians.HybridHessianCalculator(water,
+                                                              idxs=(0,),
+                                                              shift=dx)
         >>> calculator.calculate()
     """
 

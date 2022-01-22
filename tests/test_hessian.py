@@ -16,7 +16,7 @@ from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
 from autode.hessians import (Hessian,
                              NumericalHessianCalculator,
-                             PartialNumericalHessianCalculator)
+                             HybridHessianCalculator)
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -500,11 +500,11 @@ def test_partial_num_hess_init():
 
     for invalid_idx in (-1, 3, 'a'):
         with pytest.raises(ValueError):
-            _ = PartialNumericalHessianCalculator(mol,
-                                                  idxs=(invalid_idx,),
-                                                  shift=Distance(0.01),
-                                                  lmethod=orca,
-                                                  hmethod=orca)
+            _ = HybridHessianCalculator(mol,
+                                        idxs=(invalid_idx,),
+                                        shift=Distance(0.01),
+                                        lmethod=orca,
+                                        hmethod=orca)
 
 
 @testutils.requires_with_working_xtb_install
@@ -542,7 +542,7 @@ def test_partial_water_num_hess():
                             Atom('H', -0.82500, -0.18190, -0.00000),
                             Atom('H',  0.82610, -0.18120,  0.00000)])
 
-    calculator = PartialNumericalHessianCalculator(
+    calculator = HybridHessianCalculator(
                                             water,
                                             idxs=(0,),
                                             shift=Distance(0.001, units='Å'),
