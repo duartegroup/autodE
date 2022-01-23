@@ -29,7 +29,7 @@ orca = ade.methods.ORCA()
 
 if orca.available:
     methane.single_point(method=ade.methods.ORCA())
-    print('ORCA energy of CH4 is:   ', methane.energy)
+    print('ORCA energy is:          ', methane.energy)
 
 # with all energies available
 print('All calculated energies: ', methane.energies)
