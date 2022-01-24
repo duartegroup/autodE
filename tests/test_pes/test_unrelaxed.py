@@ -4,6 +4,7 @@ from .. import testutils
 from autode.utils import work_in_tmp_dir
 from autode.species.molecule import Molecule
 from autode.wrappers.XTB import XTB
+from autode.wrappers.keywords import SinglePointKeywords
 from autode.atoms import Atom
 from autode.pes.unrelaxed import UnRelaxedPES1D
 
@@ -44,3 +45,11 @@ def test_non_bond_unrelaxed():
     # Cannot pass the checks if the scanned distance is not a bond
     with pytest.raises(ValueError):
         pes._check()
+
+
+def test_unrelaxed_kwd_type():
+
+    pes = UnRelaxedPES1D(Molecule(atoms=[Atom('H'), Atom('H', x=0.8)]),
+                         rs={(0, 1): (1.5, 10)})
+
+    assert isinstance(pes._default_keyword_type('a str'), SinglePointKeywords)
