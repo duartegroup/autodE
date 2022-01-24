@@ -1,7 +1,7 @@
 import autode as ade
 
 # Molecules can be initialised directly from 3D structures
-serine = ade.Molecule('serine.xyz')
+serine = ade.Molecule('_serine.xyz')
 
 # molecules initialised from .xyz files default to neural singlets
 print('Name:                    ', serine.name)

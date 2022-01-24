@@ -8,7 +8,7 @@ if not xtb.available:
 # attribute, for example to calculate the relaxed PES for H-transfer from
 # the neutral form of serine to the zwitterion
 
-serine = ade.Molecule('serine.xyz', solvent_name='water')
+serine = ade.Molecule('_serine.xyz', solvent_name='water')
 
 print('Current N-H distance (Å):', serine.distance(0, 13))
 
