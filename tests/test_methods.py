@@ -79,3 +79,19 @@ def test_nwchem_ecps():
     assert nwchem.keywords.opt.ecp is not None
     assert nwchem.keywords.sp.ecp is not None
     assert nwchem.keywords.sp.ecp.nwchem is not None
+
+
+def test_method_equality():
+
+    orca = methods.ORCA()
+    g09 = methods.G09()
+
+    assert orca == methods.ORCA()
+    assert orca != g09
+
+    orca.keywords.sp = 'Some different keywords'
+    default_orca = methods.ORCA()
+
+    # Single point keywords are different, so the methods are different
+    assert orca.keywords.sp != default_orca.keywords.sp
+    assert orca != methods.ORCA()

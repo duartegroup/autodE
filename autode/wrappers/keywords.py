@@ -1,4 +1,4 @@
-from typing import Union, Optional, Sequence
+from typing import Union, Optional, Sequence, List
 from copy import deepcopy
 from abc import ABC, abstractmethod
 from autode.log import logger
@@ -64,9 +64,6 @@ class KeywordsSet:
         self._low_sp = None                    # Low-level single point
         self._sp = SinglePointKeywords(sp)     # Single point
 
-        self._list = [self._low_opt, self._opt, self._opt_ts, self._grad,
-                      self._hess, self._sp]
-
         self.optts_block = optts_block
 
         if ecp is not None:
@@ -78,6 +75,10 @@ class KeywordsSet:
 
     def __getitem__(self, item):
         return self._list[item]
+
+    def __eq__(self, other) -> bool:
+        """Equality of two keyword sets"""
+        return isinstance(other, KeywordsSet) and self._list == other._list
 
     @property
     def low_opt(self) -> 'OptKeywords':
@@ -134,6 +135,11 @@ class KeywordsSet:
     @sp.setter
     def sp(self, value: Optional[Sequence[str]]):
         self._sp = SinglePointKeywords(value)
+
+    @property
+    def _list(self) -> List['autode.wrappers.keywords.Keywords']:
+        """List of all the keywords in this set"""
+        return [self._low_opt, self._opt, self._opt_ts, self._grad, self._hess, self._sp]
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
@@ -194,6 +200,11 @@ class Keywords(ABC):
 
     def __str__(self):
         return ' '.join([str(kw) for kw in self._list])
+
+    def __eq__(self, other) -> bool:
+        """Equality of these keywords to another kind"""
+        return (isinstance(other, self.__class__)
+                and set(self._list) == set(other._list))
 
     @abstractmethod
     def __repr__(self):
@@ -471,6 +482,10 @@ class Keyword(ABC):
     def __str__(self):
         return self.name
 
+    def __hash__(self):
+        """Unique hash of this object"""
+        return hash(repr(self))
+
     def lower(self):
         return self.name.lower()
 
@@ -553,6 +568,10 @@ class ECP(Keyword):
         return (isinstance(other, ECP)
                 and str(self) == str(other)
                 and self.min_atomic_number == other.min_atomic_number)
+
+    def __hash__(self):
+        """Unique hash of this effective core potential"""
+        return hash(str(self) + str(self.min_atomic_number))
 
     def __init__(self,
                  name:              str,
