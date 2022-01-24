@@ -13,6 +13,10 @@ class TestPES(ReactivePESnD):
     def _default_keywords(self, method):
         raise NotImplementedError
 
+    @property
+    def _default_keyword_type(self):
+        raise NotImplementedError
+
     def _calculate(self) -> None:
         """Skip the calculation in the test class"""
 

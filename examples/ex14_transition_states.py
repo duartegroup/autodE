@@ -9,8 +9,8 @@ if not ade.methods.ORCA().available:
 # Locating transition states (TSs) in autodE requires defining a reaction.
 # For example, the TS for a key step in a Beckmann rearrangement can be
 # calculated with
-r1 = ade.Reactant('Beckmann/reactant.xyz')
-p1 = ade.Product('Beckmann/product.xyz')
+r1 = ade.Reactant('Beckmann/reactant.xyz', charge=1)
+p1 = ade.Product('Beckmann/product.xyz', charge=1)
 p2 = ade.Product('Beckmann/water.xyz')
 
 # Form the reaction and locate the transition state
