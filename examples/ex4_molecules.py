@@ -19,6 +19,7 @@ print('Rotated carbon position is:', methane.coordinates[0, :])
 
 # and calculations performed. To optimise the structure with XTB
 xtb = ade.methods.XTB()
+print(f'Using {ade.Config.n_cores} cores for an XTB calculation')
 
 if xtb.available:
     methane.optimise(method=xtb)
@@ -26,6 +27,7 @@ if xtb.available:
 
 # along with single points, for example using ORCA
 orca = ade.methods.ORCA()
+print(f'Using {ade.Config.n_cores} cores for an ORCA calculation')
 
 if orca.available:
     methane.single_point(method=ade.methods.ORCA())

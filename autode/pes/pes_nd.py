@@ -7,7 +7,7 @@ import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union, Optional, Sequence, Iterable
+from typing import Dict, Tuple, Union, Optional, Sequence, Iterable, Type
 from scipy.interpolate import RectBivariateSpline
 from autode.config import Config
 from autode.log import logger
@@ -103,7 +103,7 @@ class PESnD(ABC):
 
     def calculate(self,
                   method:   'autode.wrappers.ElectronicStructureMethod',
-                  keywords:  Optional['autode.wrappers.Keywords'] = None,
+                  keywords:  Union[Sequence[str], str, None] = None,
                   n_cores:   Optional[int] = None
                   ) -> None:
         """
@@ -128,6 +128,8 @@ class PESnD(ABC):
             keywords = self._default_keywords(method)
             logger.info('PES calculation keywords not specified, using:\n'
                         f'{keywords}')
+        else:
+            keywords = self._default_keyword_type(keywords)
 
         self._keywords = keywords
         self._init_tensors()
@@ -281,6 +283,11 @@ class PESnD(ABC):
         Returns:
             (autode.wrappers.keywords.Keywords):
         """
+
+    @property
+    @abstractmethod
+    def _default_keyword_type(self) -> Type['autode.wrappers.Keywords']:
+        """Default keyword type e.g. OptKeywords for a relaxed PES"""
 
     @abstractmethod
     def _calculate(self) -> None:

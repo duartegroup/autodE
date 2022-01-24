@@ -16,4 +16,4 @@ _ = ade.Molecule(smiles='N')
 # then run this script again.
 
 # To write the log to a file set pipe the output to a file e.g.
-# python ex17_logging.py 2> ade.log
+# python ex18_logging.py 2> ade.log

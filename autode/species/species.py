@@ -890,23 +890,25 @@ class Species(AtomCollection):
                        title_line:            Optional[str] = None,
                        filename:              Optional[str] = None,
                        additional_title_line: Optional[str] = None,
-                       with_solvent:          bool = True
+                       with_solvent:          bool = True,
+                       append:                bool = False
                        ) -> None:
         """
         Print a standard xyz file from this Molecule's atoms
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
-            title_line (str | None): String to add as the second line of the
-                                     .xyz file
+            title_line: String to add as the second line of the .xyz file
 
-            filename (str | None): Filename ending with .xyz. If None then will
-                                   use the name of this molecule
+            filename: Filename ending with .xyz. If None then will use the
+                      name of this molecule
 
-            additional_title_line (str | None): Additional elements to add to
-                                                then title line
+            additional_title_line: Additional elements to add to then title line
 
-            with_solvent (bool): If the solvent is explicit then include the
-                                 solvent atoms in the .xyz file
+            with_solvent: If the solvent is explicit then include the solvent
+                          atoms in the .xyz file
+
+            append: Should the structure be appended to the existing file
         """
 
         if filename is None:
@@ -928,7 +930,11 @@ class Species(AtomCollection):
             and with_solvent):
             atoms += self.solvent.atoms
 
-        return atoms_to_xyz_file(atoms, filename, title_line=title_line)
+        atoms_to_xyz_file(atoms=atoms,
+                          filename=filename,
+                          title_line=title_line,
+                          append=append)
+        return None
 
     @requires_atoms
     def optimise(self,

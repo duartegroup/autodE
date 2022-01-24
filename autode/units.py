@@ -157,7 +157,7 @@ rad = BaseUnit(name='rad',
 
 deg = Unit(name='°',
            conversion=Constants.rad_to_deg,
-           aliases=['deg', 'degrees'])
+           aliases=['deg', 'degrees', 'º'])
 
 # ----------------------------------------------------------------------
 # ---------------------------- Distances -------------------------------

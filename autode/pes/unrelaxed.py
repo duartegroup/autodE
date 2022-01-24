@@ -1,6 +1,6 @@
 """Unrelaxed potential energy surfaces"""
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Type
 from multiprocessing import Pool
 from autode.pes.reactive import ReactivePESnD
 from autode.utils import hashable
@@ -35,6 +35,11 @@ class UnRelaxedPES1D(ReactivePESnD):
                 self._energies[p] = results[i].get(timeout=None)
 
         return None
+
+    @property
+    def _default_keyword_type(self) -> Type['autode.wrappers.Keywords']:
+        from autode.wrappers.keywords import SinglePointKeywords
+        return SinglePointKeywords
 
     def _species_at(self, point: Tuple) -> 'autode.species.Species':
         """

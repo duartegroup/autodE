@@ -26,10 +26,11 @@ if not (xtb.available and g09.available):
     exit('Cannot run conformer optimisation without both an XTB '
          'and Gaussian09 install')
 
-print(f'Generating {ade.Config.num_conformers} conformers'
+print(f'Generating {ade.Config.num_conformers} conformers '
       f'then pruning based on energy')
 pentane.find_lowest_energy_conformer(lmethod=xtb,
-                                     hmethod=g09)
+                                     hmethod=g09
+                                     )
 
 # find_lowest_energy_conformer will set the molecule's geometry and energy
 print('Optimised C-C distance (Å): ', pentane.distance(0, 1))
