@@ -523,7 +523,6 @@ class ORCA(ElectronicStructureMethod):
         if self.implicit_solvation_type.lower() not in ['smd', 'cpcm']:
             raise UnsuppportedCalculationInput
 
-        # Use CPCM solvation
         if (self.use_vdw_gaussian_solvent(keywords)
                 and molecule.solvent.orca not in vdw_gaussian_solvent_dict):
             err = (f'CPCM solvent with gaussian charge not available for '
