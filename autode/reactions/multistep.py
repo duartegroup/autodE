@@ -1,5 +1,5 @@
+from typing import Union
 from autode.plotting import plot_reaction_profile
-from autode.units import KcalMol
 from autode.methods import get_hmethod
 from autode.config import Config
 from autode.reactions.reaction import Reaction
@@ -9,24 +9,42 @@ from autode.utils import work_in
 
 class MultiStepReaction:
 
-    def __init__(self, *args, name='reaction'):
+    def __init__(self,
+                 *args: 'autode.reactions.Reaction',
+                 name:  str = 'reaction'
+                 ):
         """
-        Reaction with multiple steps
+        Reaction with multiple steps.
 
+        -----------------------------------------------------------------------
         Arguments:
-            *args (autode.reaction.Reaction): Set of reactions to calculate the
-                                              reaction profile for
+            *args: Set of reactions to calculate the reaction profile for
         """
         self.name = str(name)
+
+        if not all(isinstance(rxn, Reaction) for rxn in args):
+            raise ValueError('Cannot initialise a multistep reaction from: '
+                             f'{args}. Must all be autode Reaction instances')
+
         self.reactions = args
 
-        assert all(type(reaction) is Reaction for reaction in self.reactions)
+    def calculate_reaction_profile(self,
+                                   units: Union['autode.units.Unit', str] = 'kcal mol-1',
+                                   ) -> None:
+        """
+        Calculate a multistep reaction profile using the products of step 1
+        as the reactants of step 2 etc. Example
 
-    def calculate_reaction_profile(self, units=KcalMol):
-        """Calculate a multistep reaction profile using the products of step 1
-        as the reactants of step 2 etc."""
+        .. code-block::
+
+            >>> import autode as ade
+            >>> step1 = ade.Reaction('')
+            >>> step2 = ade.Reaction('')
+            >>> rxn = ade.MultiStepReaction(step1, step2)
+            >>> rxn.calculate_reaction_profile()
+        """
         logger.info('Calculating reaction profile')
-        h_method = get_hmethod()
+        h_method = get_hmethod() if Config.hmethod_conformers else None
 
         @work_in(self.name)
         def calculate(reaction, prev_products):
@@ -44,7 +62,7 @@ class MultiStepReaction:
                         skip_conformers = True
 
                 if not skip_conformers:
-                    mol.find_lowest_energy_conformer(hmethod=h_method if Config.hmethod_conformers else None)
+                    mol.find_lowest_energy_conformer(hmethod=h_method)
 
             reaction.optimise_reacs_prods()
             reaction.locate_transition_state()
