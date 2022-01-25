@@ -186,11 +186,7 @@ class Molecule(Species):
         """
         return self._generate_conformers(n_confs=n_confs)
 
-
-class Reactant(Molecule):
-    """Reactant molecule"""
-
-    def to_product(self):
+    def to_product(self) -> 'Product':
         """
         Generate a copy of this reactant as a product
 
@@ -202,18 +198,22 @@ class Reactant(Molecule):
 
         return product
 
-
-class Product(Molecule):
-    """Product molecule"""
-
-    def to_reactant(self):
+    def to_reactant(self) -> 'Reactant':
         """
         Generate a copy of this product as a reactant
 
         Returns:
-            (autode.species.molecule.Product): Product
+            (autode.species.molecule.Reactant): Reactant
         """
         reactant = self.copy()
         reactant.__class__ = Reactant
 
         return reactant
+
+
+class Reactant(Molecule):
+    """Reactant molecule"""
+
+
+class Product(Molecule):
+    """Product molecule"""

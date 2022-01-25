@@ -18,7 +18,6 @@ from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
 from autode.methods import get_hmethod
 from autode.config import Config
 from .testutils import work_in_zipped_dir, requires_with_working_xtb_install
-import shutil
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -53,6 +52,8 @@ def test_reaction_class():
     h1.energy = 2
     h2.energy = 3
     hh_product.energy = 1
+
+    assert hh_reac.atomic_symbols == ['H', 'H']
 
     # Only swap to dissociation in invoking locate_ts()
     assert hh_reac.type == reaction_types.Addition
@@ -453,3 +454,18 @@ def test_barrierless_h_g():
 
     assert np.isclose(rxn.delta('G‡'),
                       0.7)                  # -2+0.6 -> -1+0.3   --> ∆ = 0.7
+
+
+def test_same_composition():
+
+    r1 = reaction.Reaction(Reactant(atoms=[Atom('C'), Atom('H', x=1)]),
+                           Product(atoms=[Atom('C'), Atom('H', x=10)]))
+
+    r2 = reaction.Reaction(Reactant(atoms=[Atom('C'), Atom('H', x=1)]),
+                           Product(atoms=[Atom('C'), Atom('H', x=5)]))
+
+    assert r1.has_identical_composition_as(r2)
+
+    r3 = reaction.Reaction(Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)]),
+                           Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)]))
+    assert not r1.has_identical_composition_as(r3)

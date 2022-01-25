@@ -311,3 +311,27 @@ def test_not_isomorphic_metal_complexes():
     mol_graphs.make_graph(alkyl)
 
     assert not mol_graphs.is_isomorphic(ene.graph, alkyl.graph)
+
+
+def test_remove_invalid():
+
+    pd_ph3_mei = Molecule(name='PdPH3MeI', charge=0, mult=1,
+                          atoms=[Atom('H',  1.80869,  1.12629, -1.71394),
+                                 Atom('P',  0.93049,  0.14302, -1.18126),
+                                 Atom('H',  0.08882,  0.04813, -2.32424),
+                                 Atom('H',  0.10295,  1.04171, -0.45224),
+                                 Atom('Pd', 1.84406, -1.75308, -0.34018),
+                                 Atom('I',  4.42392, -3.02167, -1.27125),
+                                 Atom('C',  2.58481, -3.56837,  0.47849),
+                                 Atom('C',  1.98665, -4.84613, -0.04152),
+                                 Atom('H',  1.81235, -2.93290,  1.06885),
+                                 Atom('H',  3.42334, -3.70664,  1.16736),
+                                 Atom('H',  1.26274, -4.66434, -0.84864),
+                                 Atom('H',  1.44201, -5.34965,  0.77827),
+                                 Atom('H',  2.76011, -5.52942, -0.41773)])
+    adj_matrix = pd_ph3_mei.bond_matrix
+
+    assert adj_matrix[6, 9]
+    assert not adj_matrix[5, 9]
+    assert not adj_matrix[9, 5]
+
