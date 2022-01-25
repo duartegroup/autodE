@@ -31,6 +31,7 @@ Usability improvements/Changes
 - Modifies the constructor of :code:`autode.species.molecule.Molecule` to allow for a name to be specified when initialising from a .xyz file
 - Modifies :code:`autode.calculation.Calculation.get_energy` to raise an exception if the energy cannot be extracted
 - Adds a runtime error if e.g. :code:`autode.calculation.Calculation.get_energy` is called on a calculation that has not been run
+- Skips low-level adaptive path searching if the high and low-level methods are identical (when XTB or MOPAC are not installed)
 
 
 Functionality improvements
