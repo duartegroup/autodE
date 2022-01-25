@@ -451,13 +451,12 @@ class ORCA(ElectronicStructureMethod):
         Get the version of ORCA without an existing output file
         """
 
-        run_external(params=[self.path, '-h'], output_filename='tmp')
-
         try:
+            run_external(params=[self.path, '-h'], output_filename='tmp')
             line = next(l for l in open('tmp', 'r') if 'Program Version' in l)
             return line.split()[2]
 
-        except StopIteration:
+        except (OSError, IOError, StopIteration):
             return '???'
 
     def get_keywords(self, calc_input, molecule):
