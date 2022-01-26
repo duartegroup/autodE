@@ -57,7 +57,12 @@ def run_external(params, output_filename):
 
     with open(output_filename, 'w') as output_file:
         # /path/to/method input_filename > output_filename
-        process = Popen(params, stdout=output_file, stderr=sys.stderr)
+        process = Popen(params, stdout=output_file, stderr=PIPE)
+
+        with process.stderr:
+            for line in iter(process.stderr.readline, b''):
+                logger.warning('STDERR: %r', line.decode())
+
         process.wait()
 
     return None
