@@ -78,14 +78,14 @@ class MultiStepReaction:
 
     @property
     def n_steps(self) -> int:
-        """Number of steps in the multistep reaction"""
+        """Number of steps in this multistep reaction"""
         return len(self.reactions)
 
     def _balance(self) -> None:
         """
         Balance reactants and products in each reaction such that the total
         number of atoms is conserved throughout the reaction. Allows for
-        e.g. catalytic cycles to be evaluated and plotted
+        multistep reactions where molecules are added e.g. catalytic cycles
         """
 
         for i in range(self.n_steps - 1):
@@ -98,9 +98,15 @@ class MultiStepReaction:
                 self._add_mol_to_reacs_prods(mol=self._added_molecule(i, j),
                                              to_idx=j)
 
-            if self._adds_molecule(j, i):
+            elif self._adds_molecule(j, i):
                 self._add_mol_to_reacs_prods(mol=self._added_molecule(j, i),
                                              from_idx=j)
+
+            else:
+                raise RuntimeError('Failed to balance the multistep reaction. '
+                                   'No reactants present as products of a '
+                                   'previous step.')
+
         return None
 
     def _adds_molecule(self,
@@ -120,9 +126,9 @@ class MultiStepReaction:
         if to_idx is None:
             to_idx = self.n_steps
 
-        for _i, _reaction in enumerate(self.reactions[from_idx:to_idx]):
-            _reaction.reacs.append(mol.to_reactant())
-            _reaction.prods.append(mol.to_product())
+        for reaction in self.reactions[from_idx:to_idx]:
+            reaction.reacs.append(mol.to_reactant())
+            reaction.prods.append(mol.to_product())
 
         return None
 
@@ -130,13 +136,14 @@ class MultiStepReaction:
                         step_idx:      int,
                         next_step_idx: int
                         ) -> 'autode.species.molecule.Molecule':
-        """
-        Extract the added molecule going from a step to the next. For example,
+        r"""
+        Extract the added molecule going from a step to the next. For example::
 
-        A + B -> C
-        C + D -> E
+            A + B -> C
+            C + D -> E
 
-        the added molecule would be C.
+        the added molecule would be D. The balanced sequence is then:
+        A + B + D -> C + D -> E
         -----------------------------------------------------------------------
         Arguments:
             step_idx:

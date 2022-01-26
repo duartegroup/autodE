@@ -1,3 +1,5 @@
+import pytest
+
 from autode.config import Config
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
@@ -73,3 +75,54 @@ def test_balancing():
     assert rxn.reactions[0].atomic_symbols == rxn.reactions[1].atomic_symbols
     assert sum(m.atomic_symbols == ['He'] for m in rxn.reactions[0].reacs) == 1
     assert sum(m.atomic_symbols == ['He'] for m in rxn.reactions[0].prods) == 1
+
+    # New reaction where a He atom is removed i.e.
+    # H2 + He -> H2.He
+    # H2 -> H + H
+
+    rev_rxn = MultiStepReaction(r2, r1)
+    rev_rxn._balance()
+    first_rxn, second_rxn = rev_rxn.reactions
+
+    # Now the 2nd reaction should have additional He atoms
+    assert first_rxn.has_identical_composition_as(second_rxn)
+    assert sum(m.atomic_symbols == ['He'] for m in second_rxn.reacs) == 1
+    assert sum(m.atomic_symbols == ['He'] for m in second_rxn.prods) == 1
+
+
+def test_impossible_balance():
+
+    with pytest.raises(ValueError):
+        # No previous reaction to the first
+        MultiStepReaction()._set_reactants_from_previous_products(0)
+
+    r1 = Reaction(Reactant(atoms=[Atom('I')]),
+                  Reactant(atoms=[Atom('I')]),
+                  Product(atoms=[Atom('I'), Atom('I', x=2.0)]))
+
+    r2 = Reaction(Reactant(atoms=[Atom('Cl')]),
+                  Reactant(atoms=[Atom('Cl')]),
+                  Product(atoms=[Atom('Cl'), Atom('Cl', x=1.8)]))
+
+    rxn = MultiStepReaction(r1, r2)
+    with pytest.raises(RuntimeError):
+        rxn._balance()
+
+    with pytest.raises(RuntimeError):
+        rxn._set_reactants_from_previous_products(step_idx=1)
+
+    r3 = Reaction(Reactant(atoms=[Atom('Cl'), Atom('Cl', x=1.8)]),
+                  Product(atoms=[Atom('Cl')]),
+                  Product(atoms=[Atom('Cl')]))
+    identity_rxn = MultiStepReaction(r2, r3)
+
+    # No added molecule for an a multistep reaction with two identical rxns
+    with pytest.raises(RuntimeError):
+            _ = identity_rxn._added_molecule(step_idx=0, next_step_idx=1)
+
+
+def test_multistep_reaction_invalid_init():
+
+    # Must form a multistep reaction out of Reaction instances
+    with pytest.raises(ValueError):
+        _ = MultiStepReaction('a')
