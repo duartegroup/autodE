@@ -1,5 +1,6 @@
 from copy import deepcopy
 import networkx as nx
+from autode.config import Config
 from autode.atoms import Atom
 from autode.transition_states.ts_guess import has_matching_ts_templates
 from autode.bonds import get_avg_bond_length
@@ -287,9 +288,11 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
     truncated_complex = get_truncated_species(reactant_complex,
                                               bond_rearrangement)
 
-    if reactant_complex.n_atoms - truncated_complex.n_atoms < 10:
-        logger.info('Truncated complex had 10 atoms or fewer than the full '
-                    'complex. Not truncating')
+    n_removed_atoms = reactant_complex.n_atoms - truncated_complex.n_atoms
+
+    if n_removed_atoms < Config.min_num_atom_removed_in_truncation:
+        logger.info(f'Truncated complex only had {n_removed_atoms} atoms '
+                    f'fewer than the full complex. Not truncating')
         return False
 
     logger.info('Complex is worth truncating')
