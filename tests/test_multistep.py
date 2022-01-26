@@ -19,11 +19,10 @@ def test_multistep_reaction():
 
     # Spoof installs
     Config.lcode = 'xtb'
-    Config.XTB.path = here
+    Config.XTB.path = shutil.which('xtb')
 
     Config.hcode = 'orca'
     Config.ORCA.path = here
-    Config.XTB.path = shutil.which('xtb')
 
     Config.ORCA.implicit_solvation_type = cpcm
     Config.make_ts_template = False

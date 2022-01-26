@@ -1261,5 +1261,11 @@ class Species(AtomCollection):
                                        keywords=keywords)
         return None
 
+    def has_identical_composition_as(self,
+                                     species: 'Species'
+                                     ) -> bool:
+        """Does this species have the same chemical identity as another?"""
+        return self.atomic_symbols == species.atomic_symbols
+
     # --- Method aliases ---
     symmetry_number = sn

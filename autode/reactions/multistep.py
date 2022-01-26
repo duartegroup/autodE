@@ -44,25 +44,33 @@ class MultiStepReaction:
             >>> rxn = ade.MultiStepReaction(step1, step2)
             >>> rxn.calculate_reaction_profile()
         """
-        logger.info(f'Calculating reaction profile for {self.n_steps} steps')
+        logger.info(f'Calculating an {self.n_steps} step reaction profile')
+        hmethod = get_hmethod() if Config.hmethod_conformers else None
 
         @work_in(self.name)
-        def calculate(rxn):
+        def calculate(idx):
+            rxn = self.reactions[idx]
 
-            rxn.find_lowest_energy_conformers()
-            rxn.optimise_reacs_prods()
+            if idx == 0:                            # First reaction
+                rxn.find_lowest_energy_conformers()
+                rxn.optimise_reacs_prods()
+
+            else:     # Subsequent reactions have already calculated components
+                self._set_reactants_from_previous_products(idx)
+
+                for prod in rxn.prods:
+                    prod.find_lowest_energy_conformer(hmethod=hmethod)
+                    prod.optimise(method=hmethod)
+
             rxn.locate_transition_state()
             rxn.find_lowest_energy_ts_conformer()
             rxn.calculate_single_points()
 
             return None
 
-        # For all the reactions calculate the reactants, products and TS
-        for i, r in enumerate(self.reactions):
-            r.name = f'{self.name}_step{i}'
-            prev_products = [] if i == 0 else self.reactions[i-1].prods
-
-            calculate(rxn=r, _prev_products=prev_products)
+        for i, reaction in enumerate(self.reactions):
+            reaction.name = f'{self.name}_step{i}'
+            calculate(idx=i)
 
         self._balance()
         plot_reaction_profile(self.reactions, units=units, name=self.name)
@@ -149,6 +157,45 @@ class MultiStepReaction:
             return mol
 
         raise RuntimeError(f'Failed to find the added molecule')
+
+    def _set_reactants_from_previous_products(self,
+                                              step_idx: int
+                                              ) -> None:
+        """
+        Given a reaction step use the previous reactants
+
+        -----------------------------------------------------------------------
+        Arguments:
+            step_idx: Index of the step (indexed from 0)
+
+        Raises:
+            (ValueError): For invalid arguments
+
+            (RuntimeError): If setting is impossible because the multistep
+                            reaction is not sequential
+        """
+        logger.info('Setting reactants from previous steps products')
+
+        if step_idx == 0:
+            raise ValueError('Cannot set the products of step -1 as the '
+                             'reactants of step 0. No step -1!')
+
+        prev_reaction = self.reactions[step_idx - 1]
+
+        for reactant in self.reactions[step_idx].reacs:
+
+            try:
+                matching_prod = next(p for p in prev_reaction.prods if
+                                     reactant.has_identical_composition_as(p))
+            except StopIteration:
+                raise RuntimeError('Failed to find a matching product for '
+                                   f'{reactant} in {prev_reaction}')
+
+            reactant.atoms = matching_prod.atoms.copy()
+            reactant.conformers = matching_prod.conformers.copy()
+            reactant.energies = matching_prod.energies.copy()
+
+        return None
 
     @staticmethod
     def _checked_are_reactions(args):

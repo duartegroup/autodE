@@ -390,6 +390,9 @@ class Energies(list):
         """
         return self.last(energy_type=PotentialEnergy)
 
+    def copy(self):
+        return deepcopy(self)
+
     def __init__(self, *args: Energy):
         """
 
