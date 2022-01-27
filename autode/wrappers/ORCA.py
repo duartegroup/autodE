@@ -462,10 +462,11 @@ class ORCA(ElectronicStructureMethod):
     def get_keywords(self, calc_input, molecule):
         """Modify the keywords for this calculation with the solvent + fix for
         single atom optimisation calls"""
+        kwds_cls = calc_input.keywords.__class__
 
-        new_keywords = []
+        new_keywords = kwds_cls()
 
-        for keyword in calc_input.keywords.copy():
+        for keyword in calc_input.keywords:
             if 'opt' in keyword.lower() and molecule.n_atoms == 1:
                 logger.warning('Can\'t optimise a single atom')
                 continue
@@ -488,7 +489,7 @@ class ORCA(ElectronicStructureMethod):
 
         # Sort the keywords with all the items with newlines at the end, so
         # the first keyword line is a single contiguous line
-        return sorted(new_keywords, key=lambda kw: 1 if '\n' in kw else 0)
+        return kwds_cls(sorted(new_keywords, key=lambda kw: 1 if '\n' in kw else 0))
 
     def use_vdw_gaussian_solvent(self, keywords) -> bool:
         """
@@ -501,16 +502,11 @@ class ORCA(ElectronicStructureMethod):
         Returns:
             (bool):
         """
+
         if self.implicit_solvation_type.lower() != 'cpcm':
             return False
 
-        def calculates_hessians():
-            return any('freq' in w.lower() or 'optts' in w.lower() for w in keywords)
-
-        def is_orca_v5():
-            return self._get_version_no_output()[0] == '5'
-
-        if calculates_hessians() and not is_orca_v5():
+        if keywords.contain_any_of('freq', 'optts') and not self.is_v5:
             logger.warning('Cannot do analytical frequencies with gaussian '
                            'charge scheme - switching off')
             return False
@@ -521,7 +517,8 @@ class ORCA(ElectronicStructureMethod):
         """Add a keyword to the input file based on the solvent"""
 
         if self.implicit_solvation_type.lower() not in ['smd', 'cpcm']:
-            raise UnsuppportedCalculationInput
+            raise UnsuppportedCalculationInput('Implicit solvent type must be '
+                                               'either SMD or CPCM')
 
         if (self.use_vdw_gaussian_solvent(keywords)
                 and molecule.solvent.orca not in vdw_gaussian_solvent_dict):
@@ -537,6 +534,7 @@ class ORCA(ElectronicStructureMethod):
 
     def print_solvent(self, inp_file, molecule, keywords):
         """Add the solvent block to the input file"""
+
         if molecule.solvent is None:
             return
 
@@ -551,6 +549,11 @@ class ORCA(ElectronicStructureMethod):
                   'surfacetype vdw_gaussian\n'
                   'end', file=inp_file)
         return
+
+    @property
+    def is_v5(self):
+        """Is this ORCA version at least 5.0.0?"""
+        return self._get_version_no_output()[0] == '5'
 
 
 orca = ORCA()
