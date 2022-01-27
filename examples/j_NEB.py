@@ -18,7 +18,6 @@ neb = ade.neb.NEB(initial_species=ade.Molecule('_DielsAlder/reactant.xyz'),
                   num=5)
 
 neb.calculate(method=orca, n_cores=10)
-10
 # will have generated a plot of the relaxation, along with a .xyz
 # trajectory of the initial and final NEB path
 
