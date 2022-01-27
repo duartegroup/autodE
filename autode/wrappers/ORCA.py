@@ -21,100 +21,6 @@ vdw_gaussian_solvent_dict = {'water': 'Water', 'acetone': 'Acetone', 'acetonitri
                              'methanol': 'Methanol', '1-octanol': 'Octanol', 'pyridine': 'Pyridine', 'tetrahydrofuran': 'THF', 'toluene': 'Toluene'}
 
 
-def use_vdw_gaussian_solvent(keywords, implicit_solv_type):
-    """
-    Determine if the calculation should use the gaussian charge scheme which
-    generally affords better convergence for optimiations in implicit solvent
-
-    Arguments:
-        keywords (autode.wrappers.keywords.Keywords):
-        implicit_solv_type (str):
-
-    Returns:
-        (bool):
-    """
-    if implicit_solv_type.lower() != 'cpcm':
-        return False
-
-    if any('freq' in kw.lower() or 'optts' in kw.lower() for kw in keywords):
-        logger.warning('Cannot do analytical frequencies with gaussian charge '
-                       'scheme - switching off')
-        return False
-
-    return True
-
-
-def add_solvent_keyword(molecule, keywords, implicit_solv_type):
-    """Add a keyword to the input file based on the solvent"""
-
-    if implicit_solv_type.lower() not in ['smd', 'cpcm']:
-        raise UnsuppportedCalculationInput
-
-    # Use CPCM solvation
-    if (use_vdw_gaussian_solvent(keywords, implicit_solv_type)
-        and molecule.solvent.orca not in vdw_gaussian_solvent_dict):
-
-        err = (f'CPCM solvent with gaussian charge not available for '
-               f'{molecule.solvent.name}. Available solvents are '
-               f'{vdw_gaussian_solvent_dict.keys()}')
-
-        raise UnsuppportedCalculationInput(message=err)
-
-    solv_name = vdw_gaussian_solvent_dict[molecule.solvent.orca]
-    keywords.append(f'CPCM({solv_name})')
-    return
-
-
-def get_keywords(calc_input, molecule, implicit_solv_type):
-    """Modify the keywords for this calculation with the solvent + fix for
-    single atom optimisation calls"""
-
-    new_keywords = []
-
-    for keyword in calc_input.keywords.copy():
-        if 'opt' in keyword.lower() and molecule.n_atoms == 1:
-            logger.warning('Can\'t optimise a single atom')
-            continue
-
-        if isinstance(keyword, kws.ECP) and keyword.orca is None:
-            # Use the default specification for applying ECPs
-            continue
-
-        if isinstance(keyword, kws.MaxOptCycles):
-            continue  # Set in print_num_optimisation_steps
-
-        if isinstance(keyword, kws.Keyword):
-            new_keywords.append(keyword.orca)
-
-        else:
-            new_keywords.append(str(keyword))
-
-    if molecule.solvent is not None:
-        add_solvent_keyword(molecule, new_keywords, implicit_solv_type)
-
-    # Sort the keywords with all the items with newlines at the end, so
-    # the first keyword line is a single contiguous line
-    return sorted(new_keywords, key=lambda kw: 1 if '\n' in kw else 0)
-
-
-def print_solvent(inp_file, molecule, keywords, implicit_solv_type):
-    """Add the solvent block to the input file"""
-    if molecule.solvent is None:
-        return
-
-    if implicit_solv_type.lower() == 'smd':
-        print(f'%cpcm\n'
-              f'smd true\n'
-              f'SMDsolvent \"{molecule.solvent.orca}\"\n'
-              f'end', file=inp_file)
-
-    if use_vdw_gaussian_solvent(keywords, implicit_solv_type):
-        print('%cpcm\n'
-              'surfacetype vdw_gaussian\n'
-              'end', file=inp_file)
-    return
-
-
 def print_added_internals(inp_file, calc_input):
     """Print the added internal coordinates"""
 
@@ -235,13 +141,12 @@ class ORCA(ElectronicStructureMethod):
 
     def generate_input(self, calc, molecule):
 
-        keywords = get_keywords(calc.input, molecule,
-                                self.implicit_solvation_type)
+        keywords = self.get_keywords(calc.input, molecule)
 
         with open(calc.input.filename, 'w') as inp_file:
             print('!', *keywords, file=inp_file)
 
-            print_solvent(inp_file, molecule, keywords, self.implicit_solvation_type)
+            self.print_solvent(inp_file, molecule, keywords)
             print_added_internals(inp_file, calc.input)
             print_distance_constraints(inp_file, molecule)
             print_cartesian_constraints(inp_file, molecule)
@@ -269,6 +174,9 @@ class ORCA(ElectronicStructureMethod):
 
     def get_version(self, calc):
         """Get the version of ORCA used to execute this calculation"""
+
+        if not calc.output.exists:
+            return self._get_version_no_output()
 
         for line in calc.output.file_lines:
             if 'Program Version' in line and len(line.split()) >= 3:
@@ -536,6 +444,116 @@ class ORCA(ElectronicStructureMethod):
 
         # Hessians printed in Ha/a0^2, so convert to base Ha/Å^2
         return np.array(hessian, dtype='f8') / Constants.a0_to_ang**2
+
+    @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+    def _get_version_no_output(self) -> str:
+        """
+        Get the version of ORCA without an existing output file
+        """
+
+        try:
+            run_external(params=[self.path, '-h'], output_filename='tmp')
+            line = next(l for l in open('tmp', 'r') if 'Program Version' in l)
+            return line.split()[2]
+
+        except (OSError, IOError, StopIteration):
+            return '???'
+
+    def get_keywords(self, calc_input, molecule):
+        """Modify the keywords for this calculation with the solvent + fix for
+        single atom optimisation calls"""
+        kwds_cls = calc_input.keywords.__class__
+
+        new_keywords = kwds_cls()
+
+        for keyword in calc_input.keywords:
+            if 'opt' in keyword.lower() and molecule.n_atoms == 1:
+                logger.warning('Can\'t optimise a single atom')
+                continue
+
+            if isinstance(keyword, kws.ECP) and keyword.orca is None:
+                # Use the default specification for applying ECPs
+                continue
+
+            if isinstance(keyword, kws.MaxOptCycles):
+                continue  # Set in print_num_optimisation_steps
+
+            if isinstance(keyword, kws.Keyword):
+                new_keywords.append(keyword.orca)
+
+            else:
+                new_keywords.append(str(keyword))
+
+        if molecule.solvent is not None:
+            self.add_solvent_keyword(molecule, new_keywords)
+
+        # Sort the keywords with all the items with newlines at the end, so
+        # the first keyword line is a single contiguous line
+        return kwds_cls(sorted(new_keywords, key=lambda kw: 1 if '\n' in kw else 0))
+
+    def use_vdw_gaussian_solvent(self, keywords) -> bool:
+        """
+        Determine if the calculation should use the gaussian charge scheme which
+        generally affords better convergence for optimiations in implicit solvent
+
+        Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
+
+        Returns:
+            (bool):
+        """
+
+        if self.implicit_solvation_type.lower() != 'cpcm':
+            return False
+
+        if keywords.contain_any_of('freq', 'optts') and not self.is_v5:
+            logger.warning('Cannot do analytical frequencies with gaussian '
+                           'charge scheme - switching off')
+            return False
+
+        return True
+
+    def add_solvent_keyword(self, molecule, keywords):
+        """Add a keyword to the input file based on the solvent"""
+
+        if self.implicit_solvation_type.lower() not in ['smd', 'cpcm']:
+            raise UnsuppportedCalculationInput('Implicit solvent type must be '
+                                               'either SMD or CPCM')
+
+        if (self.use_vdw_gaussian_solvent(keywords)
+                and molecule.solvent.orca not in vdw_gaussian_solvent_dict):
+            err = (f'CPCM solvent with gaussian charge not available for '
+                   f'{molecule.solvent.name}. Available solvents are '
+                   f'{vdw_gaussian_solvent_dict.keys()}')
+
+            raise UnsuppportedCalculationInput(message=err)
+
+        solv_name = vdw_gaussian_solvent_dict[molecule.solvent.orca]
+        keywords.append(f'CPCM({solv_name})')
+        return
+
+    def print_solvent(self, inp_file, molecule, keywords):
+        """Add the solvent block to the input file"""
+
+        if molecule.solvent is None:
+            return
+
+        if self.implicit_solvation_type.lower() == 'smd':
+            print(f'%cpcm\n'
+                  f'smd true\n'
+                  f'SMDsolvent \"{molecule.solvent.orca}\"\n'
+                  f'end', file=inp_file)
+
+        if self.use_vdw_gaussian_solvent(keywords):
+            print('%cpcm\n'
+                  'surfacetype vdw_gaussian\n'
+                  'end', file=inp_file)
+        return
+
+    @property
+    def is_v5(self):
+        """Is this ORCA version at least 5.0.0?"""
+        return self._get_version_no_output()[0] == '5'
 
 
 orca = ORCA()

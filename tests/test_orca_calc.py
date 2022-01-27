@@ -9,6 +9,7 @@ from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
+from autode.wrappers.implicit_solvent_types import cpcm
 from autode.exceptions import CouldNotGetProperty
 from autode.solvent.solvents import ImplicitSolvent
 from autode.transition_states.transition_state import TransitionState
@@ -179,6 +180,22 @@ def test_solvation():
 
     assert any('smd' in line.lower() for line in open('methane_smd_orca.inp', 'r'))
     os.remove('methane_smd_orca.inp')
+
+
+def test_vdw_solvent_not_present():
+    mol = Molecule(name='mol', smiles='C', solvent_name='2-butanol')
+
+    orca = ORCA()
+    orca.implicit_solvation_type = cpcm
+
+    calc = Calculation(name='tmp',
+                       molecule=mol,
+                       method=orca,
+                       keywords=sp_keywords)
+
+    # Cannot use gaussian charges for 2-butanol
+    with pytest.raises(ex.CalculationException):
+        calc.generate_input()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
