@@ -4,7 +4,7 @@ import shutil
 from time import time
 from typing import Any
 from functools import wraps
-from subprocess import Popen, DEVNULL, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing as mp
 import multiprocessing.pool
@@ -57,7 +57,12 @@ def run_external(params, output_filename):
 
     with open(output_filename, 'w') as output_file:
         # /path/to/method input_filename > output_filename
-        process = Popen(params, stdout=output_file, stderr=DEVNULL)
+        process = Popen(params, stdout=output_file, stderr=PIPE)
+
+        with process.stderr:
+            for line in iter(process.stderr.readline, b''):
+                logger.warning('STDERR: %r', line.decode())
+
         process.wait()
 
     return None

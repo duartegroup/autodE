@@ -158,6 +158,11 @@ class _ConfigClass:
     # value before the entropy is calculated
     vib_freq_shift = Frequency(100, units='cm-1')
     # -------------------------------------------------------------------------
+    # Minimum number of atoms that are removed for truncation to be used in
+    # locating TSs. Below this number any truncation is skipped
+    #
+    min_num_atom_removed_in_truncation = 10
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------

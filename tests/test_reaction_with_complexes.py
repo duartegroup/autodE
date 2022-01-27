@@ -10,7 +10,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 @testutils.requires_with_working_xtb_install
 def test_reaction_w_complexes():
 
-    ade.Config.n_cores = 8
+    ade.Config.n_cores = 1   # Ensure only a single core is used
 
     ade.Config.hcode = 'orca'
     ade.Config.ORCA.path = here    # Spoof ORCA install
@@ -18,7 +18,7 @@ def test_reaction_w_complexes():
     # Ensure no DFT needs to be done other than that saved
     ade.Config.num_conformers = 1
     ade.Config.max_num_complex_conformers = 1
-    ade.Config.ts_template_folder_path = here
+    ade.Config.ts_template_folder_path = os.getcwd()
 
     f = ade.Reactant(name='f', smiles='[F-]')
     mecl = ade.Reactant(name='mecl', smiles='ClC')

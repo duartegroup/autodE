@@ -196,6 +196,7 @@ def test_find_tss():
 
     Config.ORCA.implicit_solvation_type = cpcm
     Config.make_ts_template = False
+    Config.ts_template_folder_path = os.getcwd()
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1
 

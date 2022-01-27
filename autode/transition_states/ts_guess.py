@@ -70,9 +70,8 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
     # This will add edges so don't modify in place
     mol_graph = get_truncated_active_mol_graph(graph=reactant.graph,
                                                active_bonds=bond_rearr.all)
-    ts_guess_templates = get_ts_templates()
 
-    for ts_template in ts_guess_templates:
+    for ts_template in get_ts_templates():
 
         if not template_matches(reactant=reactant,
                                 ts_template=ts_template,
@@ -97,7 +96,8 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
         if len(active_bonds_and_dists_ts) != len(bond_rearr.all):
             continue
 
-        logger.info('Found a TS guess from a template')
+        logger.info(f'Found a matching template in: {ts_template.filename}. '
+                    f'Creating a TS guess')
         ts_guess = TSguess(name=f'ts_guess_{name}',
                            atoms=reactant.atoms,
                            reactant=reactant,
