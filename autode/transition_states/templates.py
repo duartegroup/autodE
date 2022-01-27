@@ -288,7 +288,7 @@ class TStemplate:
             filename (str): Saved template to load
         """
 
-        self.filename = filename
+        self._filename = filename
         self.graph = graph
         self.solvent = solvent
         self.charge = charge
@@ -299,7 +299,7 @@ class TStemplate:
             self.charge = species.charge
             self.mult = species.mult
 
-        if self.filename is not None:
+        if self._filename is not None:
             self.load(filename)
 
     def _save_to_file(self, file):
@@ -455,5 +455,5 @@ class TStemplate:
         return None
 
     @property
-    def filename_str(self) -> str:
-        return 'unknown' if self.filename is None else self.filename
+    def filename(self) -> str:
+        return 'unknown' if self._filename is None else self._filename

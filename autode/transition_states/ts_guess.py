@@ -96,8 +96,8 @@ def get_template_ts_guess(reactant:   'autode.species.ReactantComplex',
         if len(active_bonds_and_dists_ts) != len(bond_rearr.all):
             continue
 
-        logger.info(f'Found a matching template in: {ts_template.filename_str}'
-                    f' creating a TS guess.')
+        logger.info(f'Found a matching template in: {ts_template.filename}. '
+                    f'Creating a TS guess')
         ts_guess = TSguess(name=f'ts_guess_{name}',
                            atoms=reactant.atoms,
                            reactant=reactant,
