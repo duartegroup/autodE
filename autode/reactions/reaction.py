@@ -697,8 +697,29 @@ class Reaction:
 
     @property
     def atomic_symbols(self) -> List[str]:
-        """Atomic symbols of all atoms in this reaction"""
-        return list(sorted(sum((m.atomic_symbols for m in self.reacs), [])))
+        """
+        Atomic symbols of all atoms in this reaction sorted alphabetically.
+        For example:
+
+        .. code-block::
+
+            >>> from autode import Atom, Reactant, Product, Reaction
+            >>>rxn = Reaction(Reactant(smiles='O'),
+                              Product(atoms=[Atom('O'), Atom('H', x=0.9)]),
+                              Product(atoms=[Atom('H')]))
+            >>> rxn.atomic_symbols
+            ['H', 'H', 'O']
+
+        -----------------------------------------------------------------------
+        Returns:
+            (list(str)): List of all atoms in this reaction, with duplicates
+        """
+
+        all_atomic_symbols = []
+        for reactant in self.reacs:
+            all_atomic_symbols += reactant.atomic_symbols
+
+        return list(sorted(all_atomic_symbols))
 
     def has_identical_composition_as(self,
                                      reaction: 'Reaction'
