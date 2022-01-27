@@ -10,8 +10,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 @testutils.requires_with_working_xtb_install
 def test_reaction_w_complexes():
 
-    ade.Config.n_cores = 8
-
     ade.Config.hcode = 'orca'
     ade.Config.ORCA.path = here    # Spoof ORCA install
 
