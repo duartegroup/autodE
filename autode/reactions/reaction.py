@@ -1,6 +1,6 @@
 import base64
 import hashlib
-from typing import Union, Optional
+from typing import Union, Optional, List
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
@@ -95,7 +95,8 @@ class Reaction:
                                    units:         Union['autode.units.Unit', str] = 'kcal mol-1',
                                    with_complexes: bool = False,
                                    free_energy:    bool = False,
-                                   enthalpy:       bool = False):
+                                   enthalpy:       bool = False
+                                   ) -> None:
         """
         Calculate and plot a reaction profile for this elemtary reaction. Will
         search conformers, find the lowest energy TS and plot a profile.
@@ -634,7 +635,8 @@ class Reaction:
     @work_in('thermal')
     def calculate_thermochemical_cont(self,
                                       free_energy: bool = True,
-                                      enthalpy:    bool = True) -> None:
+                                      enthalpy:    bool = True
+                                      ) -> None:
         """
         Calculate thermochemical contributions to the energies
 
@@ -657,7 +659,8 @@ class Reaction:
     def _plot_reaction_profile_with_complexes(self,
                                               units:       'autode.units.Unit',
                                               free_energy: bool,
-                                              enthalpy:    bool):
+                                              enthalpy:    bool
+                                              ) -> None:
         """Plot a reaction profile with the association complexes of R, P"""
         rxns = []
 
@@ -691,3 +694,35 @@ class Reaction:
                               free_energy=free_energy,
                               enthalpy=enthalpy)
         return None
+
+    @property
+    def atomic_symbols(self) -> List[str]:
+        """
+        Atomic symbols of all atoms in this reaction sorted alphabetically.
+        For example:
+
+        .. code-block::
+
+            >>> from autode import Atom, Reactant, Product, Reaction
+            >>>rxn = Reaction(Reactant(smiles='O'),
+                              Product(atoms=[Atom('O'), Atom('H', x=0.9)]),
+                              Product(atoms=[Atom('H')]))
+            >>> rxn.atomic_symbols
+            ['H', 'H', 'O']
+
+        -----------------------------------------------------------------------
+        Returns:
+            (list(str)): List of all atoms in this reaction, with duplicates
+        """
+
+        all_atomic_symbols = []
+        for reactant in self.reacs:
+            all_atomic_symbols += reactant.atomic_symbols
+
+        return list(sorted(all_atomic_symbols))
+
+    def has_identical_composition_as(self,
+                                     reaction: 'Reaction'
+                                     ) -> bool:
+        """Does this reaction have the same chemical identity as another?"""
+        return self.atomic_symbols == reaction.atomic_symbols

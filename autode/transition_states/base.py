@@ -57,6 +57,11 @@ class TSbase(Species, ABC):
         self.solvent = None if reactant is None else reactant.solvent
         self._init_graph()
 
+    def __eq__(self, other):
+        """Equality of this TS base to another"""
+        logger.warning('TSs types are not equal to any others')
+        return False
+
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
         if self.reactant is not None:

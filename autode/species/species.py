@@ -106,6 +106,14 @@ class Species(AtomCollection):
         """Brief representation of this species"""
         return self._repr(prefix='Species')
 
+    def __eq__(self, other) -> bool:
+        """
+        Equality of this species to another. Only checks based on
+        the equality of the strings, which should be semi unique, without
+        checks for positional equality
+        """
+        return str(self) == str(other)
+
     def copy(self) -> 'Species':
         """Copy this whole species"""
         return deepcopy(self)
@@ -452,6 +460,11 @@ class Species(AtomCollection):
     @property
     def is_implicitly_solvated(self) -> bool:
         return self.solvent is not None and self.solvent.is_implicit
+
+    @property
+    def atomic_symbols(self) -> List[str]:
+        """Atomic symbols of all atoms in this species"""
+        return list(sorted((atom.label for atom in self.atoms)))
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
@@ -1247,6 +1260,12 @@ class Species(AtomCollection):
                                        calc=None,
                                        keywords=keywords)
         return None
+
+    def has_identical_composition_as(self,
+                                     species: 'Species'
+                                     ) -> bool:
+        """Does this species have the same chemical identity as another?"""
+        return self.atomic_symbols == species.atomic_symbols
 
     # --- Method aliases ---
     symmetry_number = sn

@@ -247,6 +247,8 @@ def test_optts_no_reactants_products():
     assert len(da_ts.imaginary_frequencies) == 1
     imag_freq = da_ts.imaginary_frequencies[0]
 
+    assert da_ts != 'a'
+
     assert -500 < imag_freq < -300      # cm-1
 
     assert da_ts.could_have_correct_imag_mode

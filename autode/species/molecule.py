@@ -75,6 +75,10 @@ class Molecule(Species):
     def __repr__(self):
         return self._repr(prefix='Molecule')
 
+    def __eq__(self, other):
+        """Equality of two molecules is only dependent on the identity"""
+        return super().__eq__(other)
+
     def _init_smiles(self, smiles: str):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic.
@@ -186,11 +190,7 @@ class Molecule(Species):
         """
         return self._generate_conformers(n_confs=n_confs)
 
-
-class Reactant(Molecule):
-    """Reactant molecule"""
-
-    def to_product(self):
+    def to_product(self) -> 'Product':
         """
         Generate a copy of this reactant as a product
 
@@ -202,18 +202,22 @@ class Reactant(Molecule):
 
         return product
 
-
-class Product(Molecule):
-    """Product molecule"""
-
-    def to_reactant(self):
+    def to_reactant(self) -> 'Reactant':
         """
         Generate a copy of this product as a reactant
 
         Returns:
-            (autode.species.molecule.Product): Product
+            (autode.species.molecule.Reactant): Reactant
         """
         reactant = self.copy()
         reactant.__class__ = Reactant
 
         return reactant
+
+
+class Reactant(Molecule):
+    """Reactant molecule"""
+
+
+class Product(Molecule):
+    """Product molecule"""

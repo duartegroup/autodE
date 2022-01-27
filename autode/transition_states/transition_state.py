@@ -50,6 +50,10 @@ class TransitionState(TSbase):
     def __repr__(self):
         return self._repr(prefix='TransitionState')
 
+    def __eq__(self, other):
+        """Equality of this TS to another"""
+        return super().__eq__(other)
+
     @requires_graph
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being

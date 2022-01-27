@@ -258,6 +258,9 @@ class Conformers(list):
         """
         return self._parallel_calc('single_point', method, keywords)
 
+    def copy(self) -> 'Conformers':
+        return Conformers([conformer.copy() for conformer in self])
+
 
 def atoms_from_rdkit_mol(rdkit_mol_obj: Chem.Mol,
                          conf_id:       int = 0):

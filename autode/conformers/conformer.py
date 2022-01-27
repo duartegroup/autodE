@@ -37,6 +37,9 @@ class Conformer(Species):
     def __repr__(self):
         return self._repr(prefix='Conformer')
 
+    def __eq__(self, other):
+        return super().__eq__(other)
+
     def single_point(self,
                      method:  'autode.wrappers.base.ElectronicStructureMethod',
                      keywords: Optional['autode.wrappers.keywords.Keywords'] = None,
