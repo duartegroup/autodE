@@ -126,7 +126,7 @@ class Complex(Species):
         return self._repr(prefix='Complex')
 
     def __eq__(self, other):
-        """Equality of two molecules is only dependent on the identity"""
+        """Equality of two complexes"""
         return (isinstance(other, self.__class__)
                 and all(a == b for (a, b) in zip(self._molecules, other._molecules)))
 

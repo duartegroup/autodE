@@ -52,8 +52,7 @@ class TransitionState(TSbase):
 
     def __eq__(self, other):
         """Equality of this TS to another"""
-        logger.warning('Equality of TSs is not defined - returning False')
-        return False
+        return super().__eq__(other)
 
     @requires_graph
     def _update_graph(self):

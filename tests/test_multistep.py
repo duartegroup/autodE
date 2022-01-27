@@ -1,5 +1,4 @@
 import pytest
-
 from autode.config import Config
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction

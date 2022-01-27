@@ -463,7 +463,7 @@ class Species(AtomCollection):
 
     @property
     def atomic_symbols(self) -> List[str]:
-        """Atomic symbols of all atoms in this reaction"""
+        """Atomic symbols of all atoms in this species"""
         return list(sorted((atom.label for atom in self.atoms)))
 
     @property
