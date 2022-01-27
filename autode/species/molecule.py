@@ -1,5 +1,6 @@
 import re
 import rdkit
+from pathlib import Path
 from typing import Optional, Sequence
 from multiprocessing import Pool
 from rdkit.Chem import AllChem
@@ -121,7 +122,7 @@ class Molecule(Species):
 
         # Override the default name with something more descriptive
         if self.name == 'molecule' or self.name.endswith('.xyz'):
-            self.name = xyz_filename.rstrip('.xyz')
+            self.name = Path(self.name).stem
 
         make_graph(self)
         return None

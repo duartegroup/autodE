@@ -6,7 +6,7 @@ if not orca.available:
 
 # 2+ dimensional PESs can also be calculated. For example, considering the
 # identity reaction CH3 + CH4 -> CH4 + CH3
-reactive_complex = ade.Molecule('_CH3_CH4.xyz', mult=2)
+reactive_complex = ade.Molecule('_data/CH3_CH4.xyz', mult=2)
 
 # Create then calculate the PES
 pes = ade.pes.RelaxedPESnD(reactive_complex,
