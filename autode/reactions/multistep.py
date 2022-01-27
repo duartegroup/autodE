@@ -158,12 +158,12 @@ class MultiStepReaction:
         prods = self.reactions[step_idx].prods
 
         for mol in self.reactions[next_step_idx].reacs:
-            if any(mol.atomic_symbols == p.atomic_symbols for p in prods):
+            if any(p.has_identical_composition_as(mol) for p in prods):
                 continue
 
             return mol
 
-        raise RuntimeError(f'Failed to find the added molecule')
+        raise RuntimeError('Failed to find the added molecule')
 
     def _set_reactants_from_previous_products(self,
                                               step_idx: int
