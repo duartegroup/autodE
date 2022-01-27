@@ -31,6 +31,7 @@ def test_conf_class():
 
     assert 'conformer' in repr(h2_conf).lower()
     assert hasattr(h2_conf, 'optimise')
+    assert h2_conf != 'a'
 
     assert h2_conf.n_atoms == 2
     assert h2_conf.energy is None

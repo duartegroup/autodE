@@ -33,6 +33,7 @@ def test_complex_class():
     assert blank_complex.n_molecules == 0
     assert blank_complex.solvent is None
     assert blank_complex.atoms is None
+    assert blank_complex != 'a'
 
     assert monomer.charge == 0
     assert monomer.mult == 1

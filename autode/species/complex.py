@@ -125,6 +125,11 @@ class Complex(Species):
     def __repr__(self):
         return self._repr(prefix='Complex')
 
+    def __eq__(self, other):
+        """Equality of two molecules is only dependent on the identity"""
+        return (isinstance(other, self.__class__)
+                and all(a == b for (a, b) in zip(self._molecules, other._molecules)))
+
     @Species.atoms.setter
     def atoms(self,
               value: Union[List[Atom], Atoms, None]):

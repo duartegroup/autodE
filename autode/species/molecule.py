@@ -75,6 +75,10 @@ class Molecule(Species):
     def __repr__(self):
         return self._repr(prefix='Molecule')
 
+    def __eq__(self, other):
+        """Equality of two molecules is only dependent on the identity"""
+        return super().__eq__(other)
+
     def _init_smiles(self, smiles: str):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic.
