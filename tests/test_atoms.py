@@ -44,6 +44,7 @@ def test_atoms():
     h_atoms = Atoms([Atom('H'), Atom('H', x=1.0)])
     assert isinstance(h_atoms.com, Coordinate)
     assert np.allclose(h_atoms.com, np.array([0.5, 0.0, 0.0]))
+    assert not h_atoms.contain_metals
 
     assert h_atoms.vector(0, 1) == np.array([1.0, 0.0, 0.0])
 

@@ -249,3 +249,12 @@ class ElectronicStructureMethod(Method, ABC):
             IndexError)
         """
         raise NotImplementedError
+
+    def __eq__(self, other) -> bool:
+        """Equality of this EST method to another one"""
+
+        if not isinstance(other, self.__class__):
+            return False
+
+        attrs = ('name', 'keywords', 'path', 'implicit_solvation_type')
+        return all(getattr(other, a) == getattr(self, a) for a in attrs)

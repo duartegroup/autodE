@@ -90,17 +90,13 @@ def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
 
     # Ideally use a transition state template, then only a single constrained
     # optimisation needs to be run
-
     yield get_template_ts_guess, (r, p, bond_rearr,
                                   f'{name}_template_{bond_rearr}', hmethod)
 
-    # otherwise try a nudged elastic band calculation, don't use the low level
-    # method if there are any metals
-    if not any(atom.label in metals for atom in r.atoms):
+    if (not r.atoms.contain_metals) and hmethod != lmethod:
         yield get_ts_adaptive_path, (r, p, lmethod, bond_rearr,
                                      f'{name}_ll_ad_{bond_rearr}')
 
-    # Always attempt a high-level NEB
     yield get_ts_adaptive_path, (r, p, hmethod, bond_rearr,
                                  f'{name}_hl_ad_{bond_rearr}')
 

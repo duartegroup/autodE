@@ -587,6 +587,17 @@ class Atoms(list):
 
         return moi
 
+    @property
+    def contain_metals(self) -> bool:
+        """
+        Do these atoms contain at least a single metal atom?
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        return any(atom.label in metals for atom in self)
+
     def vector(self,
                i: int,
                j: int) -> np.ndarray:
