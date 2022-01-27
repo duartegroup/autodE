@@ -58,8 +58,8 @@ class TSbase(Species, ABC):
         self._init_graph()
 
     def __eq__(self, other):
-        """Equality of this TS to another"""
-        logger.warning('Equality of TSs is not defined - returning False')
+        """Equality of this TS base to another"""
+        logger.warning('TSs types are not equal to any others')
         return False
 
     def _init_graph(self) -> None:
