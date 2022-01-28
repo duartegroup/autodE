@@ -21,12 +21,8 @@ from autode.opt.coordinates.dimer import DimerCoordinates
 class Dimer(Optimiser):
     """Dimer spanning two points on the PES with a TS at the midpoint"""
 
-
-
     def __init__(self,
                  maxiter: int,
-                 gtol:    Union[float, GradientNorm] = GradientNorm(1E-3, units='Ha Å-1'),
-                 etol:    Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
                  coords:  Optional['autode.opt.coordinates.DimerCoordinates'] = None,
                  ):
         """
@@ -40,116 +36,57 @@ class Dimer(Optimiser):
             gtol: Tolerance on
 
         """
-        super().__init__(maxiter=maxiter, coords=None)
-
-        # Note the notation follows [1] and is not necessarily the most clear..
-        self.x1 = species_1.coordinates.flatten()
-        self.x2 = species_2.coordinates.flatten()
-        self.x0 = (self.x1 + self.x2) / 2.0
+        super().__init__(maxiter=maxiter, coords=coords)
 
         # TODO: check the linear interpolation isn't too large. i.e delta < tol
 
-        # Run two initial gradient evaluations
-        self.g0 = self._get_gradient(coordinates=self.x0)
-        self.g1 = self._get_gradient(coordinates=self.x1)
-
-        logger.info(f'Initialised a dimer with Δ = {self.delta:.4f} Å')
-
-        self.iterations = DimerIterations()
-        self.iterations.append(DimerIteration(phi=0, d=0, dimer=self))
+        logger.info(f'Initialised a dimer with Δ = {self._coords.delta:.4f} Å')
 
     @classmethod
     def optimise(cls,
                  species: 'autode.species.Species',
                  method:  'autode.wrappers.base.Method',
-                 n_cores:  int = 1,
+                 n_cores:  Optional[int] = None,
                  coords:   DimerCoordinates = None,
                  **kwargs) -> None:
         """
+        Optimise a dimer pair of coordinates such that the species coordinates
+        are close to a transition state
 
+        -----------------------------------------------------------------------
         Arguments:
-            species:
-            method:
-            n_cores:
-            coords:
+            species: Species to optimise to a TS using dimer iterations
 
-        Returns:
+            method: Electronic structure method to use to optimise
 
+            n_cores: Number of cores to use for the optimisation
+
+            coords: Dimer coordines
         """
 
         if not isinstance(coords, DimerCoordinates):
             raise ValueError('A dimer optimisation must be initialised from '
                              'a set of dimer coordinates')
 
-
-        pass
+        optimiser = cls(maxiter=100, coords=coords)
+        optimiser.run(species=species, method=method, n_cores=n_cores)
+        return None
 
     def _step(self) -> None:
         pass
 
     def _initialise_run(self) -> None:
+
+        # Run two initial gradient evaluations
+        self.g0 = self._get_gradient(coordinates=self.x0)
+        self.g1 = self._get_gradient(coordinates=self.x1)
+
         pass
 
     @property
     def converged(self) -> bool:
         # Has this dimer optimisation converged?
 
-        raise NotImplementedError
-
-    @property
-    def tau(self):
-        """τ = (x1 - x2)/2"""
-        return (self.x1 - self.x2) / 2.0
-
-    @property
-    def tau_hat(self):
-        """^τ = τ / |τ|"""
-        tau = self.tau
-        return tau / np.linalg.norm(tau)
-
-    @property
-    def delta(self):
-        """Distance between the dimer point, Δ"""
-        _delta = np.linalg.norm(self.x1 - self.x2) / 2.0
-
-        if np.isclose(_delta, 0.0):
-            raise RuntimeError('Zero distance between the dimer points')
-
-        return _delta
-
-    @property
-    def f_r(self):
-        """Rotational force F_R. eqn. 3 in ref. [1]"""
-        tau_hat = self.tau_hat
-        return (-2.0 * (self.g1 - self.g0)
-                + 2.0 * (np.dot((self.g1 - self.g0), tau_hat)) * tau_hat)
-
-    @property
-    def f_t(self):
-        """Translational force F_T, eqn. 2 in ref. [1]"""
-        return - self.g0 + 2.0*np.dot(self.g0, self.tau_hat) * self.tau_hat
-
-    @property
-    def theta(self):
-        """Rotation direction Θ, calculated using steepest descent"""
-        f_r = self.f_r
-
-        # F_R / |F_R| with a small jitter to prevent division by zero
-        return f_r / (np.linalg.norm(f_r) + 1E-8)
-
-    @property
-    def c(self):
-        """Curvature of the PES, C_τ.  eqn. 4 in ref [1]"""
-        return np.dot((self.g1 - self.g0), self.tau_hat) / self.delta
-
-    @property
-    def dc_dphi(self):
-        """dC_τ/dϕ eqn. 6 in ref [1] """
-        return 2.0 * np.dot((self.g1 - self.g0), self.theta) / self.delta
-
-    def run(self, max_iterations=100):
-        """Optimise to convergence"""
-        # TODO update self.species once optimised
         raise NotImplementedError
 
     def rotate_coords(self, phi, update_g1=True):
@@ -284,41 +221,12 @@ class Dimer(Optimiser):
         self.iterations.append(DimerIteration(phi=0, d=length, dimer=self))
         return None
 
-
-
-
-
-
-
-class DimerIteration(BaseDimer):
-    """Single iteration of a TS dimer"""
-
+    @property
     def did_rotation(self):
         """Rotated this iteration?"""
         return True if self.phi != 0 else False
 
+    @property
     def did_translation(self):
         """Translated this iteration?"""
         return True if self.d != 0 else False
-
-    def __init__(self, phi, d, dimer):
-
-        """
-        Initialise from a rotation angle, a distance and the whole dimer
-
-        Arguments:
-            phi (float): Rotation with respect to the previous iteration
-            d (float): Translation distance with respect to the previous
-                       iteration
-            dimer (autode.opt.dimer.Dimer):
-        """
-        super().__init__()
-        self.phi = phi
-        self.d = d
-
-        self.x0 = dimer.x0.copy()
-        self.x1 = dimer.x1.copy()
-        self.x2 = dimer.x2.copy()
-
-        self.g0 = dimer.g0.copy()
-        self.g1 = dimer.g1.copy()
