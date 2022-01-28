@@ -25,8 +25,8 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         return any(string in unit.aliases for unit in self.implemented_units)
 
     def _update_g_from_cart_g(self,
-                             arr: Optional['autode.values.Gradient']
-                             ) -> None:
+                              arr: Optional['autode.values.Gradient']
+                              ) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient, which for
         Cartesian coordinates there is nothing to be done for.
@@ -38,7 +38,8 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         self.g = None if arr is None else np.array(arr).flatten()
 
     def _update_h_from_cart_h(self,
-                             arr: Optional['autode.values.Hessian']):
+                              arr: Optional['autode.values.Hessian']
+                              ) -> None:
         """
         Update the Hessian from a Cartesian Hessian matrix with shape
         3N x 3N for a species with N atoms.
@@ -50,7 +51,7 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """
         self.h = None if arr is None else np.array(arr)
 
-    def iadd(self, value: np.ndarray) -> 'OptCoordinates':
+    def iadd(self, value: np.ndarray) -> OptCoordinates:
         return np.ndarray.__iadd__(self, value)
 
     def to(self, value: str) -> OptCoordinates:

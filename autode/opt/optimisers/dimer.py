@@ -14,19 +14,20 @@ import numpy as np
 from typing import Union, Optional
 from autode.values import GradientNorm, PotentialEnergy
 from autode.log import logger
-from autode.opt.optimisers import NDOptimiser
-from autode.input_output import atoms_to_xyz_file
+from autode.opt.optimisers.base import Optimiser
+from autode.opt.coordinates.dimer import DimerCoordinates
 
 
-class Dimer(NDOptimiser):
+class Dimer(Optimiser):
     """Dimer spanning two points on the PES with a TS at the midpoint"""
+
+
 
     def __init__(self,
                  maxiter: int,
                  gtol:    Union[float, GradientNorm] = GradientNorm(1E-3, units='Ha Å-1'),
                  etol:    Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
                  coords:  Optional['autode.opt.coordinates.DimerCoordinates'] = None,
-
                  ):
         """
         Dimer optimiser
@@ -56,6 +57,44 @@ class Dimer(NDOptimiser):
 
         self.iterations = DimerIterations()
         self.iterations.append(DimerIteration(phi=0, d=0, dimer=self))
+
+    @classmethod
+    def optimise(cls,
+                 species: 'autode.species.Species',
+                 method:  'autode.wrappers.base.Method',
+                 n_cores:  int = 1,
+                 coords:   DimerCoordinates = None,
+                 **kwargs) -> None:
+        """
+
+        Arguments:
+            species:
+            method:
+            n_cores:
+            coords:
+
+        Returns:
+
+        """
+
+        if not isinstance(coords, DimerCoordinates):
+            raise ValueError('A dimer optimisation must be initialised from '
+                             'a set of dimer coordinates')
+
+
+        pass
+
+    def _step(self) -> None:
+        pass
+
+    def _initialise_run(self) -> None:
+        pass
+
+    @property
+    def converged(self) -> bool:
+        # Has this dimer optimisation converged?
+
+        raise NotImplementedError
 
     @property
     def tau(self):
@@ -248,32 +287,6 @@ class Dimer(NDOptimiser):
 
 
 
-class DimerIterations(list):
-
-    def print_xyz_file(self, species, point='1'):
-        """Print the xyz file for one of the points in the dimer
-
-        Arguments:
-            species (autode.species.Species):
-
-        Keyword Arguments:
-            point (str | int): Point of the dimer to print. One of [1, 0, 2]
-                               where 1 and 2 are the end points and 0 the
-                               mid point of the dimer
-        """
-        _species = species.copy()
-
-        open(f'dimer_{point}.xyz', 'w').close()   # empty the file
-
-        for i, iteration in enumerate(self):
-            coords = getattr(iteration, f'x{point}')
-            _species.coordinates = coords
-
-            atoms_to_xyz_file(_species.atoms,
-                              filename=f'dimer_{point}.xyz',
-                              title_line=f'Dimer iteration = {i}',
-                              append=True)
-        return None
 
 
 
