@@ -525,25 +525,20 @@ class G09(ElectronicStructureMethod):
 
     def get_final_atoms(self, calc):
 
-        atoms = None
+        init_atoms = calc.molecule.atoms
+        atoms = []
 
         for i, line in enumerate(calc.output.file_lines):
 
-            if 'Input orientation' in line:
+            if 'Input orientation' in line or 'Standard orientation' in line:
 
                 atoms = []
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
 
                 for xyz_line in xyz_lines:
-                    atom_index, _, _, x, y, z = xyz_line.split()
-                    atom_index = int(atom_index) - 1
-                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=x, y=y, z=z))
-
-                if len(atoms) != calc.molecule.n_atoms:
-                    raise AtomsNotFound
-
-        if atoms is None:
-            raise AtomsNotFound
+                    idx, _, _, x, y, z = xyz_line.split()
+                    idx = int(idx) - 1
+                    atoms.append(Atom(init_atoms[idx].label, x=x, y=y, z=z))
 
         return atoms
 
