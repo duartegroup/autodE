@@ -38,10 +38,10 @@ bh3 = ade.Molecule(atoms=[ade.Atom('B', y=0.1),
                           ade.Atom('H', x=1.0),
                           ade.Atom('H', y=1.1)])
 
-print('Current H-B-H angle (º):  ', serine.angle(1, 0, 2).to('º'))
+print('Current H-B-H angle (º):  ', bh3.angle(1, 0, 2).to('º'))
 
 # Set the constraints and do the optimisation
 bh3.constraints.cartesian = [1, 2]
 bh3.optimise(method=gaussian)
 
-print('Optimised H-B-H angle (º):', serine.angle(1, 0, 2).to('º'))
+print('Optimised H-B-H angle (º):', bh3.angle(1, 0, 2).to('º'))
