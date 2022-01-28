@@ -12,7 +12,7 @@ g : gradient in cartesian coordinates
 """
 import numpy as np
 from typing import Union, Optional
-from autode.values import GradientNorm, PotentialEnergy
+from autode.calculation import Calculation
 from autode.log import logger
 from autode.opt.optimisers.base import Optimiser
 from autode.opt.coordinates.dimer import DimerCoordinates
@@ -22,8 +22,9 @@ class Dimer(Optimiser):
     """Dimer spanning two points on the PES with a TS at the midpoint"""
 
     def __init__(self,
-                 maxiter: int,
-                 coords:  Optional['autode.opt.coordinates.DimerCoordinates'] = None,
+                 maxiter:         int,
+                 coords:          DimerCoordinates,
+                 ratio_rot_iters: int = 10
                  ):
         """
         Dimer optimiser
@@ -33,8 +34,11 @@ class Dimer(Optimiser):
             maxiter: Maximum number of combined translation and rotation
                      iterations to perform
 
-            gtol: Tolerance on
+            coords: Coordinates of the dimer, consisting of the end points and
+                    the interpolated midpoint
 
+            ratio_rot_iters: Number of rotations per translation in each
+                             dimer step
         """
         super().__init__(maxiter=maxiter, coords=coords)
 
@@ -61,7 +65,7 @@ class Dimer(Optimiser):
 
             n_cores: Number of cores to use for the optimisation
 
-            coords: Dimer coordines
+            coords: Dimer coordinates
         """
 
         if not isinstance(coords, DimerCoordinates):
@@ -73,6 +77,7 @@ class Dimer(Optimiser):
         return None
 
     def _step(self) -> None:
+        """Do a step """
         pass
 
     def _initialise_run(self) -> None:
@@ -88,6 +93,32 @@ class Dimer(Optimiser):
         # Has this dimer optimisation converged?
 
         raise NotImplementedError
+
+    def _update_gradient_and_energy(self) -> None:
+        return self._update_gradient_at(idx=0)
+
+    def _update_gradient_at(self, idx: int) -> None:
+        """Update the gradient at one of the points in the dimer"""
+
+        if idx not in (0, 1, 2):
+            raise RuntimeError('Dimer gradient must be updated at either the '
+                               'midpoint: 0, left: 1 or right: 2 side')
+
+        self._species.coordinates = self._coords[idx, :]
+
+        grad = Calculation(name=f'{self._species.name}_{idx}_{self.iteration}',
+                           molecule=self._species,
+                           method=self._method,
+                           keywords=self._method.keywords.grad,
+                           n_cores=self._n_cores)
+        grad.run()
+
+        self._coords.e = self._species.energy = grad.get_energy()
+        self._species.gradient = grad.get_gradients()
+        self._coords.g[idx, :] = grad.get_gradients().flatten()
+
+        grad.clean_up(force=True, everything=True)
+        return None
 
     def rotate_coords(self, phi, update_g1=True):
         """
@@ -191,7 +222,7 @@ class Dimer(Optimiser):
     def translate(self, init_step_size=0.1, update_g0=True):
         """Translate the dimer, with the goal of the midpoint being the TS """
         trns_iters = [iteration for iteration in self.iterations
-                      if iteration.did_translation()]
+                      if iteration.last_step_did_translation()]
 
         if len(trns_iters) < 2:
             logger.info(f'Did not have two previous translation step, guessing'
@@ -222,11 +253,11 @@ class Dimer(Optimiser):
         return None
 
     @property
-    def did_rotation(self):
+    def last_step_did_rotation(self):
         """Rotated this iteration?"""
-        return True if self.phi != 0 else False
+        return not np.isclose(self._coords.phi, 0.0)
 
     @property
-    def did_translation(self):
+    def last_step_did_translation(self):
         """Translated this iteration?"""
-        return True if self.d != 0 else False
+        return not np.isclose(self._coords.d, 0.0)
