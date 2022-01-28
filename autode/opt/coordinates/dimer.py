@@ -91,10 +91,18 @@ class DimerCoordinates(OptCoordinates):
         """Coordinates on the 'left' side of the dimer"""
         return np.array(self)[1, :]
 
+    @x1.setter
+    def x1(self, arr: np.ndarray):
+        self[1, :] = arr[:]
+
     @property
     def x2(self) -> np.ndarray:
         """Coordinates on the 'right' side of the dimer"""
         return np.array(self)[2, :]
+
+    @x2.setter
+    def x2(self, arr: np.ndarray):
+        self[2, :] = arr[:]
 
     def _g_vec(self, idx: int) -> np.ndarray:
         if self._g is None:
@@ -102,20 +110,38 @@ class DimerCoordinates(OptCoordinates):
 
         return self._g[idx, :]
 
+    def _set_g_vec(self, arr: np.ndarray, idx: int):
+        if self._g is None:
+            raise RuntimeError('Cannot get the gradient')
+
+        self._g[idx, :] = arr
+
     @property
     def g0(self) -> np.ndarray:
         """Gradient at the midpoint of the dimer"""
         return self._g_vec(0)
+
+    @g0.setter
+    def g0(self, arr: np.ndarray):
+        self._set_g_vec(arr, 0)
 
     @property
     def g1(self) -> np.ndarray:
         """Gradient on the 'left' side of the dimer"""
         return self._g_vec(1)
 
+    @g0.setter
+    def g0(self, arr: np.ndarray):
+        self._set_g_vec(arr, 1)
+
     @property
     def g2(self) -> np.ndarray:
         """Gradient on the 'right' side of the dimer"""
-        return self._g_vec(1)
+        return self._g_vec(2)
+
+    @g0.setter
+    def g0(self, arr: np.ndarray):
+        self._set_g_vec(arr, 2)
 
     @property
     def tau(self) -> np.ndarray:

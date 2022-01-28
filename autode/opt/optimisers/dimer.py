@@ -11,9 +11,10 @@ x : Cartesian coordinates
 g : gradient in cartesian coordinates
 """
 import numpy as np
-from typing import Union, Optional
+from typing import Optional
 from autode.calculation import Calculation
 from autode.log import logger
+from autode.values import GradientNorm
 from autode.opt.optimisers.base import Optimiser
 from autode.opt.coordinates.dimer import DimerCoordinates
 
@@ -24,7 +25,8 @@ class Dimer(Optimiser):
     def __init__(self,
                  maxiter:         int,
                  coords:          DimerCoordinates,
-                 ratio_rot_iters: int = 10
+                 ratio_rot_iters: int = 10,
+                 gtol:            GradientNorm = GradientNorm(1E-3, units='Å')
                  ):
         """
         Dimer optimiser
@@ -43,6 +45,8 @@ class Dimer(Optimiser):
         super().__init__(maxiter=maxiter, coords=coords)
 
         # TODO: check the linear interpolation isn't too large. i.e delta < tol
+        self._ratio_rot_iters = ratio_rot_iters
+        self.gtol = gtol
 
         logger.info(f'Initialised a dimer with Δ = {self._coords.delta:.4f} Å')
 
@@ -81,18 +85,23 @@ class Dimer(Optimiser):
         pass
 
     def _initialise_run(self) -> None:
+        """Initialise running the dimer optimisation"""
 
-        # Run two initial gradient evaluations
-        self.g0 = self._get_gradient(coordinates=self.x0)
-        self.g1 = self._get_gradient(coordinates=self.x1)
+        self._coords._g = np.zeros(shape=(3, 3*self._species.n_atoms))
 
-        pass
+        # TODO: Hessian
+
+        for idx in (0, 1):
+            self._update_gradient_at(idx)
+
+        return None
 
     @property
     def converged(self) -> bool:
-        # Has this dimer optimisation converged?
+        """Has the dimer converged?"""
 
-        raise NotImplementedError
+        rms_g0 = np.sqrt(np.mean(np.square(self.g0)))
+        return self.iteration > 0 and rms_g0 < self.gtol
 
     def _update_gradient_and_energy(self) -> None:
         return self._update_gradient_at(idx=0)
@@ -131,13 +140,15 @@ class Dimer(Optimiser):
         Keyword Arguments:
             update_g1 (bool): Update the gradient on point 1 after the rotation
         """
-        delta, tau_hat, theta = self.delta, self.tau_hat, self.theta
+        d, t = self._coords.delta, self._coords.tau_hat
+        theta = self._coords.theta
+        x0 = self._coords.x0
 
-        self.x1 = self.x0 + delta * (tau_hat * np.cos(phi) + theta * np.sin(phi))
-        self.x2 = self.x0 - delta * (tau_hat * np.cos(phi) + theta * np.sin(phi))
+        self._coords.x1 = x0 + d * (t * np.cos(phi) + theta * np.sin(phi))
+        self._coords.x2 = x0 - d * (t * np.cos(phi) + theta * np.sin(phi))
 
         if update_g1:
-            self.g1 = self._get_gradient(coordinates=self.x1)
+            self._update_gradient_at(idx=1)
 
         logger.info(f'Rotated coordinates, now have '
                     f'|g1 - g0| = {np.linalg.norm(self.g1 - self.g0):.4f}')
