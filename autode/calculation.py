@@ -321,8 +321,7 @@ class Calculation:
         logger.info(f'Getting final atoms from {self.output.filename}')
 
         if not self.output.exists:
-            logger.error('No calculation output. Could not get atoms')
-            raise ex.AtomsNotFound
+            raise ex.AtomsNotFound(f'{self.output.filename} did not exist')
 
         if self.molecule.n_atoms == 1:
             # Final atoms of a single atom molecule must be identical
@@ -331,8 +330,8 @@ class Calculation:
         atoms = Atoms(self.method.get_final_atoms(self))
 
         if len(atoms) != self.molecule.n_atoms:
-            logger.error(f'Failed to get atoms from {self.output.filename}')
-            raise ex.AtomsNotFound
+            raise ex.AtomsNotFound(f'Failed to get atoms from '
+                                   f'{self.output.filename}')
 
         return atoms
 
