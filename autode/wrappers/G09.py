@@ -524,15 +524,22 @@ class G09(ElectronicStructureMethod):
         return False
 
     def get_final_atoms(self, calc):
+        """Get the final set of atoms (with coordinates) from a G09 ouput"""
 
         init_atoms = calc.molecule.atoms
+
+        if isinstance(calc.input.keywords, kws.HessianKeywords):
+            logger.info('Hessian calculation performed. Expecting atoms to '
+                        'have identical positions')
+            return init_atoms
+
         atoms = []
 
         for i, line in enumerate(calc.output.file_lines):
 
-            if 'Input orientation' in line or 'Standard orientation' in line:
+            if 'Input orientation' in line:
 
-                atoms = []
+                atoms.clear()
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
 
                 for xyz_line in xyz_lines:
