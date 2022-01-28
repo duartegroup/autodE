@@ -1,6 +1,6 @@
 import autode as ade
 import numpy as np
-from autode.opt.optimisers.dimer import Dimer, DimerIteration, DimerIterations
+from autode.opt.optimisers.dimer import Dimer
 
 
 class Dimer2D(Dimer):

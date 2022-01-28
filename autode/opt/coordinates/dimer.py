@@ -6,6 +6,7 @@ import numpy as np
 from typing import Union, Sequence, Optional
 from autode.opt.coordinates.base import OptCoordinates
 from autode.log import logger
+from autode.values import Angle, Distance
 
 
 class DimerCoordinates(OptCoordinates):
@@ -21,9 +22,9 @@ class DimerCoordinates(OptCoordinates):
         if arr.ndim != 2 or arr.shape[0] != 3:
             raise ValueError('Dimer coordinates must ')
 
-        arr._e = None    # Energy
-        arr._d = 0.0     # Translation distance
-        arr._phi = 0.0   # Rotation amount
+        arr._e = None           # Energy
+        arr._d = Distance(0.0)  # Translation distance
+        arr._phi = Angle(0.0)   # Rotation amount
 
         """
         Compared to standard Cartesian coordinates these arrays have and
@@ -180,19 +181,23 @@ class DimerCoordinates(OptCoordinates):
         return delta
 
     @property
-    def theta(self) -> np.ndarray:
-        """Rotation direction Θ, calculated using steepest descent"""
-        f_r = self.f_r
+    def phi(self) -> Angle:
+        """Angle that the dimer was rotated by from it's last position"""
+        return self._phi
 
-        # F_R / |F_R| with a small jitter to prevent division by zero
-        return f_r / (np.linalg.norm(f_r) + 1E-8)
+    @phi.setter
+    def phi(self, value: Angle):
+        if not isinstance(value, Angle):
+            raise ValueError('phi must be an autode.values.Value instance')
+
+        self._phi = value
 
     @property
-    def c(self) -> float:
-        """Curvature of the PES, C_τ.  eqn. 4 in ref [1]"""
-        return np.dot((self.g1 - self.g0), self.tau_hat) / self.delta
+    def last_step_did_rotation(self):
+        """Rotated this iteration?"""
+        return not np.isclose(self._phi, 0.0)
 
     @property
-    def dc_dphi(self) -> float:
-        """dC_τ/dϕ eqn. 6 in ref [1] """
-        return 2.0 * np.dot((self.g1 - self.g0), self.theta) / self.delta
+    def last_step_did_translation(self):
+        """Translated this iteration?"""
+        return not np.isclose(self._d, 0.0)
