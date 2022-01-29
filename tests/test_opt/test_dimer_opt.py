@@ -38,7 +38,7 @@ class Dimer2D(Dimer):
         self.iterations.append(DimerIteration(phi=0, d=0, dimer=self))
 
 
-def test_dimer_2d(plot=False):
+def _test_dimer_2d(plot=False):
 
     dimer = Dimer2D(x1=np.array([-0.5, -0.5]),
                     x_mid=np.array([-0.25, 0.0]),
@@ -92,7 +92,7 @@ def test_dimer_2d(plot=False):
         plt.savefig('dimer_iters', dpi=300)
 
 
-def test_dimer_ts_sn2():
+def _test_dimer_ts_sn2():
     """Test a 'dimer' transition state search for an SN2 reaction"""
 
     dimer = Dimer(species_1=ade.Molecule('sn2_p1.xyz',

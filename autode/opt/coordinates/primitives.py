@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple
+from autode.opt.coordinates.base import CartesianComponent
 
 
 class Primitive(ABC):
@@ -15,7 +16,7 @@ class Primitive(ABC):
     @abstractmethod
     def derivative(self,
                    i:         int,
-                   component: str,
+                   component: 'autode.opt.coordinates.CartesianComponent',
                    x:         'autode.opt.coordinates.CartesianCoordinates'
                    ) -> float:
         r"""
@@ -35,31 +36,13 @@ class Primitive(ABC):
                 0-N for N atoms
 
             component: Cartesian component (x, y, z) to take the derivative
-                       with respect to. {'x', 'y', 'z'}
+                       with respect to
 
             x: Cartesian coordinates
 
         Returns:
             (float): Derivative
         """
-
-    @staticmethod
-    def _cart_component_to_idx(component: str) -> int:
-        """Convert the name of a Cartesian component (or direction) to an
-        index used for array indexing"""
-
-        if component == 'x':
-            return 0
-
-        if component == 'y':
-            return 1
-
-        if component == 'z':
-            return 2
-
-        else:
-            raise ValueError(f'Cannot convert component {component} to an '
-                             f'index. Must be one of x, y, z')
 
     @abstractmethod
     def __eq__(self, other):
@@ -115,9 +98,9 @@ class InverseDistance(_DistanceFunction):
     """
 
     def derivative(self,
-                   i:         int,
-                   component: str,
-                   x:        'autode.opt.coordinates.CartesianCoordinates'
+                   i:          int,
+                   component: 'autode.opt.coordinates.CartesianComponent',
+                   x:         'autode.opt.coordinates.CartesianCoordinates'
                    ) -> float:
         """
         Derivative with respect to Cartesian displacement
@@ -128,7 +111,7 @@ class InverseDistance(_DistanceFunction):
         """
 
         _x = x.reshape((-1, 3))
-        k = self._cart_component_to_idx(component)
+        k = int(component)
 
         if i != self.idx_i and i != self.idx_j:
             return 0                 # Atom does not form part of this distance
@@ -157,9 +140,9 @@ class Distance(_DistanceFunction):
     """
 
     def derivative(self,
-                   i:         int,
-                   component: str,
-                   x:        'autode.opt.coordinates.CartesianCoordinates'
+                   i:          int,
+                   component: 'autode.opt.coordinates.CartesianComponent',
+                   x:         'autode.opt.coordinates.CartesianCoordinates'
                    ) -> float:
         """
         Derivative with respect to Cartesian displacement
@@ -169,7 +152,7 @@ class Distance(_DistanceFunction):
             :py:meth:`Primitive.derivative <Primitive.derivative>`
         """
         _x = x.reshape((-1, 3))
-        k = self._cart_component_to_idx(component)
+        k = int(component)
 
         if i != self.idx_i and i != self.idx_j:
             return 0                 # Atom does not form part of this distance

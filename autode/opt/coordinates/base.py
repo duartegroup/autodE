@@ -1,9 +1,19 @@
 import numpy as np
+from enum import IntEnum, unique
 from typing import Optional, Union, Sequence, List
 from abc import ABC, abstractmethod
 from autode.log import logger
 from autode.units import (ang, nm, pm, m)
 from autode.values import ValueArray, PotentialEnergy
+
+
+@unique
+class CartesianComponent(IntEnum):
+    """Cartesian component in 3D space"""
+
+    x = 0
+    y = 1
+    z = 2
 
 
 class OptCoordinates(ValueArray, ABC):

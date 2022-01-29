@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from autode import Molecule, Atom
+from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import InverseDistances
 from autode.opt.coordinates.primitives import InverseDistance, Distance
 from autode.opt.coordinates.cartesian import CartesianCoordinates
@@ -30,16 +31,16 @@ def test_inv_dist_primitives():
     assert np.isclose(inv_dist(x), 0.5)     # 1/2.0 = 0.5 Å-1
 
     # Check a couple of derivatives by hand
-    assert np.isclose(inv_dist.derivative(0, 'x', x=x),
+    assert np.isclose(inv_dist.derivative(0, CartesianComponent.x, x=x),
                       2*inv_dist(x)**3)
-    assert np.isclose(inv_dist.derivative(1, 'x', x=x),
+    assert np.isclose(inv_dist.derivative(1, CartesianComponent.x, x=x),
                       -2*inv_dist(x)**3)
 
     # Derivatives with respect to zero components
-    assert np.isclose(inv_dist.derivative(0, 'y', x=x),
+    assert np.isclose(inv_dist.derivative(0, CartesianComponent.y, x=x),
                       0)
     # or those that are not present in the system should be zero
-    assert np.isclose(inv_dist.derivative(2, 'x', x=x),
+    assert np.isclose(inv_dist.derivative(2, CartesianComponent.x, x=x),
                       0)
 
 
@@ -53,17 +54,17 @@ def test_dist_primitives():
     inv_dist = Distance(0, 1)
     assert np.isclose(inv_dist(x), 2.0)
 
-    assert np.isclose(inv_dist.derivative(0, 'x', x=x),
+    assert np.isclose(inv_dist.derivative(0, CartesianComponent.x, x=x),
                       -2/2)
 
-    assert np.isclose(inv_dist.derivative(1, 'x', x=x),
+    assert np.isclose(inv_dist.derivative(1, CartesianComponent.x, x=x),
                       +2/2)
 
-    for component in ('y', 'z'):
+    for component in (CartesianComponent.y, CartesianComponent.z):
         assert np.isclose(inv_dist.derivative(1, component, x=x),
                           0)
 
-    assert np.isclose(inv_dist.derivative(2, 'x', x=x),
+    assert np.isclose(inv_dist.derivative(2, CartesianComponent.x, x=x),
                       0)
 
 

@@ -10,7 +10,7 @@ G : Spectroscopic G matrix
 import numpy as np
 from typing import Any, Optional
 from abc import ABC, abstractmethod
-from autode.opt.coordinates.base import OptCoordinates
+from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (InverseDistance,
                                                Primitive,
                                                Distance)
@@ -123,9 +123,9 @@ class PIC(list, ABC):
         for i, primitive in enumerate(self):
             for j in range(n_atoms):
 
-                B[i, 3 * j + 0] = primitive.derivative(j, 'x', x=cart_coords)
-                B[i, 3 * j + 1] = primitive.derivative(j, 'y', x=cart_coords)
-                B[i, 3 * j + 2] = primitive.derivative(j, 'z', x=cart_coords)
+                B[i, 3 * j + 0] = primitive.derivative(j, CartesianComponent.x, x=cart_coords)
+                B[i, 3 * j + 1] = primitive.derivative(j, CartesianComponent.y, x=cart_coords)
+                B[i, 3 * j + 2] = primitive.derivative(j, CartesianComponent.z, x=cart_coords)
 
         self._B = B
         return None

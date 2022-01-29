@@ -43,6 +43,3 @@ def test_dimer_coord_init_polyatomic():
     # Gradient has not been evaluated
     with pytest.raises(Exception):
         _ = coords.g0
-
-
-
