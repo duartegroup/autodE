@@ -116,7 +116,7 @@ def test_dimer_2d(plot=False):
                           atol=1E-1)
 
     # final iteration should have a change in rotation angle below the
-    assert dimer._history.final.phi < 1E-2
+    assert abs(dimer._dc_dphi) < 1E-1
 
     # Do  single translation step
     dimer._translate()
@@ -126,7 +126,6 @@ def test_dimer_2d(plot=False):
         dimer._translate()
 
     # TS is located at (0, 0) in the (x, y) plane
-    print(dimer._coords.x0)
     assert np.allclose(np.linalg.norm(dimer._coords.x0),
                        np.zeros(2),
                        atol=1E-3)
@@ -155,4 +154,3 @@ def test_dimer_2d(plot=False):
 
 if __name__ == '__main__':
     test_dimer_2d()
-

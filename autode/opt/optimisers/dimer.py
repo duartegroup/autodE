@@ -114,6 +114,10 @@ class Dimer(Optimiser):
         logger.info(f'Rotating by ϕ = {phi_1.to("degrees"):.4f}º and '
                     f'evaluating the curvature')
 
+        if abs(phi_1) < self.phi_tol:
+            logger.info('Rotation angle was below the threshold, not rotating')
+            return None
+
         self._rotate_coords(phi_1, update_g1=True)
 
         b1 = 0.5 * dc_dphi0                              # eqn. 8 from ref. [1]
@@ -277,9 +281,9 @@ class Dimer(Optimiser):
                  * (self._coords.tau_hat * np.cos(phi.to('rad'))
                     + self._theta * np.sin(phi.to('rad'))))
 
-        self._coords = DimerCoordinates(
-                          np.stack((x0, x0 + delta, x0 - delta)))
-
+        self._coords = DimerCoordinates(np.stack((x0,
+                                                  x0 + delta,
+                                                  x0 - delta)))
         self._coords.phi = phi
 
         # Midpoint has not moved so it's gradient its retained
@@ -291,12 +295,9 @@ class Dimer(Optimiser):
         if update_g1:
             self._update_gradient_at(DimerPoint.left)
 
-        if self._coords.delta < 0.5:
-            exit()
-
         logger.info(f'Rotated coordinates, now have |g1 - g0| = '
                     f'{np.linalg.norm(self._coords.g1 - self._coords.g0):.4f}.'
-                    f' ∆ = {self._coords.delta}')
+                    f' ∆ = {self._coords.delta.to("Å"):.3f} Å')
         return None
 
     def _optimise_rotation(self):

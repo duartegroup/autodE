@@ -188,7 +188,7 @@ class DimerCoordinates(OptCoordinates):
         if np.isclose(delta, 0.0):
             raise RuntimeError('Zero distance between the dimer points')
 
-        return delta
+        return Distance(delta, units=self.units)
 
     @property
     def phi(self) -> Angle:
