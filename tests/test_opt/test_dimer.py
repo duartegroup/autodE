@@ -106,7 +106,6 @@ def test_dimer_2d(plot=False):
     # optimise the rotation, should be able to be very accurate
     dimer._initialise_run()
     dimer._optimise_rotation()
-    return
 
     # and check that the rotation does not change the distance between the end
     # points of the dimer
@@ -123,10 +122,11 @@ def test_dimer_2d(plot=False):
     dimer._translate()
 
     # then optimise the translation
-    while dimer._history.final.d > 1E-2:
+    while dimer._history.final.dist > 1E-2:
         dimer._translate()
 
     # TS is located at (0, 0) in the (x, y) plane
+    print(dimer._coords.x0)
     assert np.allclose(np.linalg.norm(dimer._coords.x0),
                        np.zeros(2),
                        atol=1E-3)

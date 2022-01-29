@@ -271,17 +271,9 @@ class OptCoordinates(ValueArray, ABC):
 
         return new_coords
 
-    def __sub__(self, other: Union[np.ndarray, float]) -> 'OptKeywords':
+    def __sub__(self, other: Union[np.ndarray, float]) -> 'OptCoordinates':
         """Subtraction"""
         return self.__add__(-other)
-
-    def __rsub__(self, other):
-        """Subtraction"""
-        return self.__sub__(other)
-
-    def __radd__(self, other):
-        """Addition"""
-        return self.__add__(other)
 
     def __iadd__(self, other):
         """Inplace addition"""

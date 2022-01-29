@@ -108,11 +108,11 @@ class Dimer(Optimiser):
                     f'Current: C = {c_phi0:.4f} '
                     f'and dC/dϕ = {dc_dphi0:.4f}')
 
-        # Save a copy of the end point coordinates
-        x1_phi0, x2_phi0 = self._coords.x1.copy(), self._coords.x2.copy()
+        cached_coordinates = self._coords.copy()
 
-        phi_1 = self._phi1.to('degrees')
-        logger.info(f'Rotating by ϕ = {phi_1:.4f}º and eval. the curvature')
+        phi_1 = self._phi1.to('radians')
+        logger.info(f'Rotating by ϕ = {phi_1.to("degrees"):.4f}º and '
+                    f'evaluating the curvature')
 
         self._rotate_coords(phi_1, update_g1=True)
 
@@ -137,8 +137,7 @@ class Dimer(Optimiser):
             phi_min += np.pi / 2.0
 
         # Rotate back from the test point, then to the minimum
-        self._coords.x1[:] = x1_phi0
-        self._coords.x2[:] = x2_phi0
+        self._coords = cached_coordinates
 
         self._rotate_coords(phi=phi_min, update_g1=True)
         return None
@@ -170,11 +169,8 @@ class Dimer(Optimiser):
         logger.info(f'Translating by {length:.4f} Å per coordinate')
 
         coords = self._coords.copy()
-        coords.d = length
-
-        coords.x1 += delta_x
-        coords.x2 += delta_x
-        coords.x3 += delta_x
+        coords.dist = length
+        coords += delta_x
 
         self._coords = coords
 
@@ -274,31 +270,29 @@ class Dimer(Optimiser):
 
             update_g1 (bool): Update the gradient on point 1 after the rotation
         """
-        coords = self._coords.copy()
-        midpoint_gradient = self._coords.g0.copy()
+        x0 = np.array(self._coords.x0, copy=True)    # Midpoint coordinates
+        g0 = self._coords.g0.copy()                  # Midpoint gradient
 
-        coords.phi = phi
+        delta = (self._coords.delta
+                 * (self._coords.tau_hat * np.cos(phi.to('rad'))
+                    + self._theta * np.sin(phi.to('rad'))))
 
-        d, t = self._coords.delta, self._coords.tau_hat
-        theta = self._theta
+        self._coords = DimerCoordinates(
+                          np.stack((x0, x0 + delta, x0 - delta)))
 
-        cos_phi = np.cos(phi.to('rad'))
-        sin_phi = np.sin(phi.to('rad'))
+        self._coords.phi = phi
 
-        coords.x1 = self._coords.x0 + d * (t * cos_phi + theta * sin_phi)
-        coords.x2 = self._coords.x0 - d * (t * cos_phi + theta * sin_phi)
+        # Midpoint has not moved so it's gradient its retained
+        self._coords.g0 = g0
 
-        self._coords = coords
-
-        # Midpoint has not moved so it's gradient is retained
-        self._coords.g0 = midpoint_gradient
+        # But both the end points have, so clear their gradients
+        self._coords.g1[:] = self._coords.g2[:] = np.nan
 
         if update_g1:
             self._update_gradient_at(DimerPoint.left)
-            self._coords.g2[:] = np.nan
 
-        else:
-            self._coords.g1[:] = self._coords.g2[:] = np.nan
+        if self._coords.delta < 0.5:
+            exit()
 
         logger.info(f'Rotated coordinates, now have |g1 - g0| = '
                     f'{np.linalg.norm(self._coords.g1 - self._coords.g0):.4f}.'
@@ -316,7 +310,7 @@ class Dimer(Optimiser):
             if abs(self._coords.phi) < self.phi_tol:
                 break
 
-            logger.info(f'Iteration: {i}.'
+            logger.info(f'Micro iteration: {i}.'
                         f' ϕ={self._coords.phi.to("degrees"):.2f}º')
 
         return None

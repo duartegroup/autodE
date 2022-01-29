@@ -32,9 +32,9 @@ class DimerCoordinates(OptCoordinates):
         if arr.ndim != 2 or arr.shape[0] != 3:
             raise ValueError('Dimer coordinates must ')
 
-        arr._e = None           # Energy
-        arr._d = Distance(0.0)  # Translation distance
-        arr._phi = Angle(0.0)   # Rotation amount
+        arr._e = None             # Energy
+        arr.dist = Distance(0.0)  # Translation distance
+        arr._phi = Angle(0.0)     # Rotation amount
 
         """
         Compared to standard Cartesian coordinates these arrays have and
@@ -48,7 +48,7 @@ class DimerCoordinates(OptCoordinates):
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ('units', '_e', '_g', '_h', '_d', '_phi'):
+        for attr in ('units', '_e', '_g', '_h', 'dist', '_phi'):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None
@@ -210,4 +210,4 @@ class DimerCoordinates(OptCoordinates):
     @property
     def last_step_did_translation(self):
         """Translated this iteration?"""
-        return not np.isclose(self._d, 0.0)
+        return not np.isclose(self.dist, 0.0)
