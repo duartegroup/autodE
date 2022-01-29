@@ -3,10 +3,20 @@ Coordinates for dimer optimisations. Notation follows:
 [1] https://aip.scitation.org/doi/pdf/10.1063/1.2815812
 """
 import numpy as np
+from enum import IntEnum, unique
 from typing import Union, Sequence, Optional
 from autode.opt.coordinates.base import OptCoordinates
 from autode.log import logger
 from autode.values import Angle, Distance
+
+
+@unique
+class DimerPoint(IntEnum):
+    """Points in the coordinate space forming the dimer"""
+
+    midpoint = 0
+    left = 1
+    right = 2
 
 
 class DimerCoordinates(OptCoordinates):
@@ -30,15 +40,15 @@ class DimerCoordinates(OptCoordinates):
         Compared to standard Cartesian coordinates these arrays have and
         additional dimension for the two end points of the dimer.
         """
-        arr._g = None    # Gradient: {dE/dX_0, dE/dX_1, dE/dx_2}
-        arr._h = None    # Hessian: {d2E/dXdY_0, d2E/dXdY_1, d2E/dXdY_2}
+        arr._g = None           # Gradient: {dE/dX_0, dE/dX_1, dE/dx_2}
+        arr._h = None           # Hessian: {d2E/dXdY_0, d2E/dXdY_1, d2E/dXdY_2}
 
         return arr
 
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ('units', '_e', '_g', '_h'):
+        for attr in ('units', '_e', '_g', '_h', '_d', '_phi'):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None
@@ -56,7 +66,7 @@ class DimerCoordinates(OptCoordinates):
             raise ValueError('Cannot form a set of dimer coordinates from two '
                              'species with a different number of atoms')
 
-        coords = cls(np.stack((np.zeros(3*species1.n_atoms),
+        coords = cls(np.stack((np.empty(3*species1.n_atoms),
                                np.array(species1.coordinates).flatten(),
                                np.array(species2.coordinates).flatten()),
                               axis=0))
@@ -90,59 +100,59 @@ class DimerCoordinates(OptCoordinates):
     @property
     def x1(self) -> np.ndarray:
         """Coordinates on the 'left' side of the dimer"""
-        return np.array(self)[1, :]
+        return np.array(self)[int(DimerPoint.left), :]
 
     @x1.setter
     def x1(self, arr: np.ndarray):
-        self[1, :] = arr[:]
+        self[int(DimerPoint.left), :] = arr[:]
 
     @property
     def x2(self) -> np.ndarray:
         """Coordinates on the 'right' side of the dimer"""
-        return np.array(self)[2, :]
+        return np.array(self)[int(DimerPoint.right), :]
 
     @x2.setter
     def x2(self, arr: np.ndarray):
-        self[2, :] = arr[:]
+        self[int(DimerPoint.right), :] = arr[:]
 
-    def _g_vec(self, idx: int) -> np.ndarray:
+    def _g_vec(self, point: DimerPoint) -> np.ndarray:
         if self._g is None:
-            raise RuntimeError('Cannot get the gradient')
+            raise RuntimeError(f'Cannot get the gradient at {point}')
 
-        return self._g[idx, :]
+        return self._g[int(point), :]
 
-    def _set_g_vec(self, arr: np.ndarray, idx: int):
+    def _set_g_vec(self, arr: np.ndarray, point: DimerPoint):
         if self._g is None:
-            raise RuntimeError('Cannot get the gradient')
+            self._g = np.zeros_like(self)
 
-        self._g[idx, :] = arr
+        self._g[int(point), :] = arr
 
     @property
     def g0(self) -> np.ndarray:
         """Gradient at the midpoint of the dimer"""
-        return self._g_vec(0)
+        return self._g_vec(DimerPoint.midpoint)
 
     @g0.setter
     def g0(self, arr: np.ndarray):
-        self._set_g_vec(arr, 0)
+        self._set_g_vec(arr, DimerPoint.midpoint)
 
     @property
     def g1(self) -> np.ndarray:
         """Gradient on the 'left' side of the dimer"""
-        return self._g_vec(1)
+        return self._g_vec(DimerPoint.left)
 
-    @g0.setter
-    def g0(self, arr: np.ndarray):
-        self._set_g_vec(arr, 1)
+    @g1.setter
+    def g1(self, arr: np.ndarray):
+        self._set_g_vec(arr, DimerPoint.left)
 
     @property
     def g2(self) -> np.ndarray:
         """Gradient on the 'right' side of the dimer"""
-        return self._g_vec(2)
+        return self._g_vec(DimerPoint.right)
 
-    @g0.setter
-    def g0(self, arr: np.ndarray):
-        self._set_g_vec(arr, 2)
+    @g2.setter
+    def g2(self, arr: np.ndarray):
+        self._set_g_vec(arr, DimerPoint.right)
 
     @property
     def tau(self) -> np.ndarray:

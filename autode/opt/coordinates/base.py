@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from enum import IntEnum, unique
 from typing import Optional, Union, Sequence, List
 from abc import ABC, abstractmethod
@@ -300,3 +301,6 @@ class OptCoordinates(ValueArray, ABC):
         """
         self._e, self._g, self._h = None, None, None
         return None
+
+    def copy(self, *args, **kwargs) -> 'OptCoordinates':
+        return deepcopy(self)

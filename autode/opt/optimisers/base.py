@@ -20,12 +20,11 @@ class Optimiser(ABC):
 
         ----------------------------------------------------------------------
         Arguments:
-            maxiter (int): Maximum number of iterations to perform
+            maxiter: Maximum number of iterations to perform
 
-        Keyword Arguments:
-            coords (autode.opt.coordinates.OptCoordinates | None): Coordinates
-                  to use in the optimisation e.g. CartesianCoordinates. If None
-                  then will initialise the coordinates from _species
+            coords: Coordinates to use in the optimisation
+                    e.g. CartesianCoordinates. If None then will initialise the
+                    coordinates from _species
         """
         if int(maxiter) <= 0:
             raise ValueError('An optimiser must be able to run at least one '

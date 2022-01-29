@@ -16,7 +16,7 @@ from autode.calculation import Calculation
 from autode.log import logger
 from autode.values import GradientNorm, Angle, Distance
 from autode.opt.optimisers.base import Optimiser
-from autode.opt.coordinates.dimer import DimerCoordinates
+from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 
 
 # TODO: check the linear interpolation isn't too large. i.e delta < tol
@@ -91,10 +91,10 @@ class Dimer(Optimiser):
         Do a single dimer optimisation step, consisting of several rotation and
         translation steps.
         """
-        self._update_gradient_at(idx=1)
+        self._update_gradient_at(DimerPoint.left)
 
         if abs(self._phi1) > self.phi_tol:
-            self._rotate()
+            self._optimise_rotation()
 
         self._translate()
 
@@ -104,7 +104,7 @@ class Dimer(Optimiser):
         """Apply a rotation"""
 
         c_phi0, dc_dphi0 = self._c, self._dc_dphi
-        logger.info('Doing a single dimer rotation to minimise the curvature'
+        logger.info('Doing a single dimer rotation to minimise the curvature. '
                     f'Current: C = {c_phi0:.4f} '
                     f'and dC/dϕ = {dc_dphi0:.4f}')
 
@@ -126,7 +126,6 @@ class Dimer(Optimiser):
         logger.info(f'ϕ_min = {phi_min.to("degrees"):.4f}º')
 
         if abs(phi_min) < self.phi_tol:
-            self._coords.phi = Angle(0.0)
             logger.info('Min rotation was below the threshold, not rotating')
             return None
 
@@ -138,7 +137,9 @@ class Dimer(Optimiser):
             phi_min += np.pi / 2.0
 
         # Rotate back from the test point, then to the minimum
-        self._coords.x1, self._coords.x2 = x1_phi0, x2_phi0
+        self._coords.x1[:] = x1_phi0
+        self._coords.x2[:] = x2_phi0
+
         self._rotate_coords(phi=phi_min, update_g1=True)
         return None
 
@@ -177,9 +178,8 @@ class Dimer(Optimiser):
 
         self._coords = coords
 
-        # Update the gradient of the midpoint, required for the translation
         if update_g0:
-            self._update_gradient_at(idx=0)
+            self._update_gradient_at(DimerPoint.midpoint)
 
         return None
 
@@ -190,8 +190,8 @@ class Dimer(Optimiser):
 
         # TODO: Hessian
 
-        for idx in (0, 1):
-            self._update_gradient_at(idx)
+        self._update_gradient_at(DimerPoint.midpoint)
+        self._update_gradient_at(DimerPoint.left)
 
         return None
 
@@ -204,18 +204,18 @@ class Dimer(Optimiser):
 
     def _update_gradient_and_energy(self) -> None:
         """Update the gradient at the midpoint"""
-        return self._update_gradient_at(idx=0)
+        return self._update_gradient_at(DimerPoint.midpoint)
 
-    def _update_gradient_at(self, idx: int) -> None:
+    def _update_gradient_at(self, point: DimerPoint) -> None:
         """Update the gradient at one of the points in the dimer"""
+        i = int(point)
 
-        if idx not in (0, 1, 2):
-            raise RuntimeError('Dimer gradient must be updated at either the '
-                               'midpoint: 0, left: 1 or right: 2 side')
+        if point == DimerPoint.midpoint:
+            self._species.coordinates = self._coords.x0
+        else:
+            self._species.coordinates = self._coords[i, :]
 
-        self._species.coordinates = self._coords[idx, :]
-
-        grad = Calculation(name=f'{self._species.name}_{idx}_{self.iteration}',
+        grad = Calculation(name=f'{self._species.name}_{i}_{self.iteration}',
                            molecule=self._species,
                            method=self._method,
                            keywords=self._method.keywords.grad,
@@ -224,7 +224,7 @@ class Dimer(Optimiser):
 
         self._coords.e = self._species.energy = grad.get_energy()
         self._species.gradient = grad.get_gradients()
-        self._coords.g[idx, :] = grad.get_gradients().flatten()
+        self._coords.g[i, :] = grad.get_gradients().flatten()
 
         grad.clean_up(force=True, everything=True)
         return None
@@ -275,10 +275,12 @@ class Dimer(Optimiser):
             update_g1 (bool): Update the gradient on point 1 after the rotation
         """
         coords = self._coords.copy()
+        midpoint_gradient = self._coords.g0.copy()
+
         coords.phi = phi
 
         d, t = self._coords.delta, self._coords.tau_hat
-        theta = self.theta
+        theta = self._theta
 
         cos_phi = np.cos(phi.to('rad'))
         sin_phi = np.sin(phi.to('rad'))
@@ -288,30 +290,33 @@ class Dimer(Optimiser):
 
         self._coords = coords
 
+        # Midpoint has not moved so it's gradient is retained
+        self._coords.g0 = midpoint_gradient
+
         if update_g1:
-            self._update_gradient_at(idx=1)
+            self._update_gradient_at(DimerPoint.left)
+            self._coords.g2[:] = np.nan
+
+        else:
+            self._coords.g1[:] = self._coords.g2[:] = np.nan
 
         logger.info(f'Rotated coordinates, now have |g1 - g0| = '
-                    f'{np.linalg.norm(self._coords.g1 - self._coords.g0):.4f}')
+                    f'{np.linalg.norm(self._coords.g1 - self._coords.g0):.4f}.'
+                    f' ∆ = {self._coords.delta}')
         return None
 
-    def optimise_rotation(self, phi_tol=8E-2, max_iterations=10):
-        """Rotate the dimer optimally
+    def _optimise_rotation(self):
+        """Rotate the dimer optimally"""
+        logger.info(f'Minimising dimer rotation up to '
+                    f'δϕ = {self.phi_tol.to("degrees"):.4f}º')
 
-        Keyword Arguments:
-            phi_tol (float): Tolerance below which rotation is not performed
-            max_iterations (int): Maximum number of rotation steps to perform
-        """
-        logger.info(f'Minimising dimer rotation up to δϕ = {phi_tol:.4f} rad')
-        iteration, phi = 0, np.inf
+        for i in range(self._ratio_rot_iters):
+            self._rotate()
 
-        while iteration < max_iterations and phi > phi_tol:
-            self.rotate(phi_tol=phi_tol)
-            phi = np.abs(self.iterations[-1].phi)
+            if abs(self._coords.phi) < self.phi_tol:
+                break
 
-            logger.info(f'Iteration={iteration}  '
-                        f'ϕ={phi:.4f} ϕtol={phi_tol:.4f}')
-
-            iteration += 1
+            logger.info(f'Iteration: {i}.'
+                        f' ϕ={self._coords.phi.to("degrees"):.2f}º')
 
         return None
