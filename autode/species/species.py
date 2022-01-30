@@ -473,6 +473,12 @@ class Species(AtomCollection):
         return list(sorted(self.atomic_symbols))
 
     @property
+    def atomic_masses(self) -> List[float]:
+        """Atom masses of all the atoms in this species"""
+        atoms = [] if self.atoms is None else self.atoms
+        return [atom.mass for atom in atoms]
+
+    @property
     def energy(self) -> Optional[val.PotentialEnergy]:
         """
         Last computed potential energy. Setting with a float assumes electornic

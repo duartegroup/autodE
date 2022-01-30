@@ -191,6 +191,14 @@ class Dimer(Optimiser):
     def converged(self) -> bool:
         """Has the dimer converged?"""
 
+        trns_iters = [c for c in self._history if c.last_step_did_translation]
+
+        if len(trns_iters) > 0:
+            if abs(trns_iters[-1].dist) < Distance(0.0001, units='Å'):
+                logger.info('Did no translation on the previous step - '
+                            'signalling convergence now')
+                return True
+
         rms_g0 = np.sqrt(np.mean(np.square(self._coords.g0)))
         return self.iteration > 0 and rms_g0 < self.gtol
 
@@ -202,10 +210,7 @@ class Dimer(Optimiser):
         """Update the gradient at one of the points in the dimer"""
         i = int(point)
 
-        if point == DimerPoint.midpoint:
-            self._species.coordinates = self._coords.x0
-        else:
-            self._species.coordinates = self._coords[i, :]
+        self._species.coordinates = self._coords.x_at(point, mass_weighted=False)
 
         calc = Calculation(name=f'{self._species.name}_{i}_{self.iteration}',
                            molecule=self._species,
@@ -216,7 +221,10 @@ class Dimer(Optimiser):
 
         self._coords.e = self._species.energy = calc.get_energy()
         self._species.gradient = calc.get_gradients()
-        self._coords.set_g_at(point, calc.get_gradients().flatten())
+
+        self._coords.set_g_at(point,
+                              calc.get_gradients().flatten(),
+                              mass_weighted=False)
 
         calc.clean_up(force=True, everything=True)
         return None
@@ -273,9 +281,16 @@ class Dimer(Optimiser):
                  * (self._coords.tau_hat * np.cos(phi.to('rad'))
                     + self._theta * np.sin(phi.to('rad'))))
 
-        self._coords = DimerCoordinates(np.stack((x0,
-                                                  x0 + delta,
-                                                  x0 - delta)))
+        step_length = np.linalg.norm(self._coords.x1.copy() - (x0 + delta))
+        if step_length > 2 * self.init_alpha:
+            logger.warning(f'Step size ({step_length}) was above the tolerance'
+                           f' {self.init_alpha.to("Å")} Å. Scaling down')
+            return self._rotate_coords(phi=phi*0.5, update_g1=update_g1)
+
+        self._coords = self._coords.copy()
+        self._coords.x1 = x0 + delta
+        self._coords.x2 = x0 - delta
+
         self._coords.phi = phi
 
         # Midpoint has not moved so it's gradient its retained

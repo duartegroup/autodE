@@ -3,6 +3,7 @@ import numpy as np
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.methods import XTB
+from autode.values import Distance
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 from autode.opt.optimisers.dimer import Dimer
 from ..testutils import requires_with_working_xtb_install
@@ -34,14 +35,18 @@ def test_dimer_coord_init_polyatomic():
     coords = DimerCoordinates.from_species(mol1, mol2)
     assert coords.shape == (3, 6)
 
+    # Coordinates are mass weighted, so not precisely the below values
     assert np.allclose(coords.x0,
-                       np.array([0.05, 0., 0., 1.05, 0., 0.]))
+                       np.array([0.05, 0., 0., 1.05, 0., 0.]),
+                       atol=0.1)
 
     assert np.allclose(coords.x1,
-                       np.array([0., 0., 0., 1., 0., 0.]))
+                       np.array([0., 0., 0., 1., 0., 0.]),
+                       atol=0.1)
 
     assert np.allclose(coords.x2,
-                       np.array([0.1, 0., 0., 1.1, 0., 0.]))
+                       np.array([0.1, 0., 0., 1.1, 0., 0.]),
+                       atol=0.1)
 
     # Gradient has not been evaluated
     with pytest.raises(Exception):
@@ -92,7 +97,8 @@ def test_dimer_2d():
                     [0.0, 0.5]])        # x2  (right)
 
     dimer = Dimer2D(maxiter=100,
-                    coords=DimerCoordinates(arr))
+                    coords=DimerCoordinates(arr),
+                    init_alpha=Distance(0.5))
 
     # Check the midpoint of the dimer is positioned correctly
     assert np.allclose(dimer._coords.x0,
@@ -152,13 +158,15 @@ def test_dimer_sn2():
                                   Atom('H',  -3.29590, 5.51839, -0.04586)])
 
     coords = DimerCoordinates.from_species(left_point, right_point)
-    dimer = Dimer(maxiter=10, coords=coords, ratio_rot_iters=5)
+    dimer = Dimer(maxiter=50, coords=coords, ratio_rot_iters=10)
 
     ts = left_point.new_species('ts')
     dimer.run(species=ts, method=XTB(), n_cores=1)
 
-    ts.coordinates = dimer._history.final.x0
+    ts.coordinates = dimer._history.final.x_at(DimerPoint.midpoint,
+                                               mass_weighted=False)
     ts.print_xyz_file(filename='tmp.xyz')
 
     assert dimer.iteration > 1
-    assert dimer._history.final.phi.to('degrees') < 10
+    # assert dimer._history.final.phi.to('degrees') < 10
+    assert dimer.converged

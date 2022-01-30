@@ -20,6 +20,8 @@ class DimerPoint(IntEnum):
 
 
 class DimerCoordinates(OptCoordinates):
+    """Mass weighted Cartesian coordinates for two points in space forming
+    a dimer, such that the midpoint is close to a first order saddle point"""
 
     def __new__(cls,
                 input_array: Union[Sequence, np.ndarray],
@@ -43,12 +45,14 @@ class DimerCoordinates(OptCoordinates):
         arr._g = None           # Gradient: {dE/dX_0, dE/dX_1, dE/dx_2}
         arr._h = None           # Hessian: {d2E/dXdY_0, d2E/dXdY_1, d2E/dXdY_2}
 
+        arr.masses = None       # Atomic masses
+
         return arr
 
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ('units', '_e', '_g', '_h', 'dist', '_phi'):
+        for attr in ('units', '_e', '_g', '_h', 'dist', '_phi', 'masses'):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None
@@ -70,6 +74,12 @@ class DimerCoordinates(OptCoordinates):
                                np.array(species1.coordinates).flatten(),
                                np.array(species2.coordinates).flatten()),
                               axis=0))
+
+        coords.masses = np.repeat(np.array(species1.atomic_masses, dtype=float),
+                                  repeats=3,
+                                  axis=np.newaxis)
+        coords *= np.sqrt(coords.masses)
+
         return coords
 
     def _update_g_from_cart_g(self,
@@ -91,6 +101,24 @@ class DimerCoordinates(OptCoordinates):
 
     def iadd(self, value: np.ndarray) -> 'OptCoordinates':
         return np.ndarray.__iadd__(self, value)
+
+    def x_at(self,
+             point:         DimerPoint,
+             mass_weighted: bool = True
+             ) -> np.ndarray:
+        """Coordinates at a point in the dimer"""
+
+        if mass_weighted is False and self.masses is None:
+            raise RuntimeError('Cannot un-mass weight the coordinates, '
+                               'coordinates had no masses set')
+
+        if point == DimerPoint.midpoint:
+            x = self.x0
+
+        else:
+            x = np.array(self)[int(point), :]
+
+        return x if mass_weighted else x / np.sqrt(self.masses)
 
     @property
     def x0(self) -> np.ndarray:
@@ -121,9 +149,20 @@ class DimerCoordinates(OptCoordinates):
 
         return self._g[int(point), :]
 
-    def set_g_at(self, point: DimerPoint, arr: np.ndarray):
+    def set_g_at(self,
+                 point:         DimerPoint,
+                 arr:           np.ndarray,
+                 mass_weighted: bool = True):
+        """Set the gradient vector at a particular point"""
+
         if self._g is None:
             self._g = np.zeros_like(self)
+
+        if not mass_weighted:
+            if self.masses is None:
+                raise RuntimeError('Cannot set the gradient without masses')
+
+            arr *= np.sqrt(self.masses)
 
         self._g[int(point), :] = arr
 
@@ -210,4 +249,4 @@ class DimerCoordinates(OptCoordinates):
     @property
     def last_step_did_translation(self):
         """Translated this iteration?"""
-        return not np.isclose(self.dist, 0.0)
+        return not np.isclose(self.dist, 0.0, atol=1E-10)
