@@ -2,8 +2,10 @@ import pytest
 import numpy as np
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
+from autode.methods import XTB
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 from autode.opt.optimisers.dimer import Dimer
+from ..testutils import requires_with_working_xtb_install
 
 
 def test_dimer_coord_init():
@@ -72,11 +74,10 @@ class Dimer2D(Dimer):
         else:
             x, y = self._coords[int(point), :]
 
-        self._coords._set_g_vec(np.array([2.0 * x, -2.0 * y]), point)
+        self._coords.set_g_at(point, np.array([2.0 * x, -2.0 * y]))
         return None
 
     def _initialise_run(self) -> None:
-        """"""
         self._coords.g = np.zeros(shape=(3, 2))
 
         for point in DimerPoint:
@@ -85,7 +86,7 @@ class Dimer2D(Dimer):
         return None
 
 
-def test_dimer_2d(plot=False):
+def test_dimer_2d():
     arr = np.array([[np.nan, np.nan],   # x0  (midpoint)
                     [-0.5, -0.5],       # x1  (left)
                     [0.0, 0.5]])        # x2  (right)
@@ -125,32 +126,41 @@ def test_dimer_2d(plot=False):
     while dimer._history.final.dist > 1E-2:
         dimer._translate()
 
+    print(dimer._coords)
+
     # TS is located at (0, 0) in the (x, y) plane
     assert np.allclose(np.linalg.norm(dimer._coords.x0),
                        np.zeros(2),
                        atol=1E-3)
 
-    if plot:
-        import matplotlib.pyplot as plt
 
-        x = y = np.arange(-2.0, 2.0, 0.01)
-        X, Y = np.meshgrid(x, y)
-        Z = X ** 2 - Y ** 2
+@requires_with_working_xtb_install
+def test_dimer_sn2():
 
-        plt.imshow(Z, extent=[-2, 2, -2, 2])  # show the surface
-        plt.scatter([0], [0], marker='o', c='w', s=50)  # mark the TS
-        cmap = plt.get_cmap('plasma')
+    left_point = Molecule(name='sn2_left', charge=-1, mult=1, solvent_name='water',
+                          atoms=[Atom('F',  -5.09333, 4.39680,  0.09816),
+                                 Atom('Cl', -0.96781, 4.55705, -0.06369),
+                                 Atom('C',  -3.36921, 4.46281,  0.03034),
+                                 Atom('H',  -3.24797, 3.87380, -0.85688),
+                                 Atom('H',  -3.17970, 4.00237,  0.97991),
+                                 Atom('H',  -3.27773, 5.52866, -0.04735)])
 
-        for i, iteration in enumerate(dimer.iterations):
-            x_mid, y_mid = iteration.x0
-            x1, y1 = iteration.x1
-            x2, y2 = iteration.x2
-            plt.plot([x1, x_mid, x2], [y1, y_mid, y2], marker='o',
-                     c=cmap(i / 10.0))
+    right_point = Molecule(name='sn2_right', charge=-1, mult=1, solvent_name='water',
+                           atoms=[Atom('F',  -5.38530, 4.38519,  0.10942),
+                                  Atom('Cl', -0.93502, 4.55732, -0.06547),
+                                  Atom('C',  -3.05723, 4.47536,  0.01839),
+                                  Atom('H',  -3.26452, 3.87898, -0.84787),
+                                  Atom('H',  -3.19779, 4.00624,  0.97190),
+                                  Atom('H',  -3.29590, 5.51839, -0.04586)])
 
-        plt.tight_layout()
-        plt.savefig('dimer_iters', dpi=300)
+    coords = DimerCoordinates.from_species(left_point, right_point)
+    dimer = Dimer(maxiter=10, coords=coords, ratio_rot_iters=5)
 
+    ts = left_point.new_species('ts')
+    dimer.run(species=ts, method=XTB(), n_cores=1)
 
-if __name__ == '__main__':
-    test_dimer_2d()
+    ts.coordinates = dimer._history.final.x0
+    ts.print_xyz_file(filename='tmp.xyz')
+
+    assert dimer.iteration > 1
+    assert dimer._history.final.phi.to('degrees') < 10

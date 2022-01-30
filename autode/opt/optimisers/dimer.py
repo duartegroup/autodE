@@ -12,6 +12,7 @@ g : gradient in cartesian coordinates
 """
 import numpy as np
 from typing import Optional
+from enum import Enum
 from autode.calculation import Calculation
 from autode.log import logger
 from autode.values import GradientNorm, Angle, Distance
@@ -93,9 +94,7 @@ class Dimer(Optimiser):
         """
         self._update_gradient_at(DimerPoint.left)
 
-        if abs(self._phi1) > self.phi_tol:
-            self._optimise_rotation()
-
+        self._optimise_rotation()
         self._translate()
 
         return None
@@ -116,7 +115,7 @@ class Dimer(Optimiser):
 
         if abs(phi_1) < self.phi_tol:
             logger.info('Rotation angle was below the threshold, not rotating')
-            return None
+            return None  # TODO
 
         self._rotate_coords(phi_1, update_g1=True)
 
@@ -199,7 +198,7 @@ class Dimer(Optimiser):
     def converged(self) -> bool:
         """Has the dimer converged?"""
 
-        rms_g0 = np.sqrt(np.mean(np.square(self.g0)))
+        rms_g0 = np.sqrt(np.mean(np.square(self._coords.g0)))
         return self.iteration > 0 and rms_g0 < self.gtol
 
     def _update_gradient_and_energy(self) -> None:
@@ -215,18 +214,18 @@ class Dimer(Optimiser):
         else:
             self._species.coordinates = self._coords[i, :]
 
-        grad = Calculation(name=f'{self._species.name}_{i}_{self.iteration}',
+        calc = Calculation(name=f'{self._species.name}_{i}_{self.iteration}',
                            molecule=self._species,
                            method=self._method,
                            keywords=self._method.keywords.grad,
                            n_cores=self._n_cores)
-        grad.run()
+        calc.run()
 
-        self._coords.e = self._species.energy = grad.get_energy()
-        self._species.gradient = grad.get_gradients()
-        self._coords.g[i, :] = grad.get_gradients().flatten()
+        self._coords.e = self._species.energy = calc.get_energy()
+        self._species.gradient = calc.get_gradients()
+        self._coords.set_g_at(point, calc.get_gradients().flatten())
 
-        grad.clean_up(force=True, everything=True)
+        calc.clean_up(force=True, everything=True)
         return None
 
     @property
@@ -315,3 +314,12 @@ class Dimer(Optimiser):
                         f' ϕ={self._coords.phi.to("degrees"):.2f}º')
 
         return None
+
+
+class _StepResult(Enum):
+
+    did_rotation = 0
+    skipped_rotation = 1
+
+    did_translation = 2
+    skipped_translation = 3
