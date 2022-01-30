@@ -126,8 +126,6 @@ def test_dimer_2d():
     while dimer._history.final.dist > 1E-2:
         dimer._translate()
 
-    print(dimer._coords)
-
     # TS is located at (0, 0) in the (x, y) plane
     assert np.allclose(np.linalg.norm(dimer._coords.x0),
                        np.zeros(2),

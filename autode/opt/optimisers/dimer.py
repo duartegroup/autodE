@@ -20,9 +20,6 @@ from autode.opt.optimisers.base import Optimiser
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 
 
-# TODO: check the linear interpolation isn't too large. i.e delta < tol
-
-
 class Dimer(Optimiser):
     """Dimer spanning two points on the PES with a TS at the midpoint"""
 
@@ -99,7 +96,7 @@ class Dimer(Optimiser):
 
         return None
 
-    def _rotate(self) -> None:
+    def _rotate(self) -> '_StepResult':
         """Apply a rotation"""
 
         c_phi0, dc_dphi0 = self._c, self._dc_dphi
@@ -115,7 +112,7 @@ class Dimer(Optimiser):
 
         if abs(phi_1) < self.phi_tol:
             logger.info('Rotation angle was below the threshold, not rotating')
-            return None  # TODO
+            return _StepResult.skipped_rotation
 
         self._rotate_coords(phi_1, update_g1=True)
 
@@ -128,10 +125,6 @@ class Dimer(Optimiser):
         phi_min = Angle(0.5 * np.arctan(b1 / a1), units='radians')
         logger.info(f'ϕ_min = {phi_min.to("degrees"):.4f}º')
 
-        if abs(phi_min) < self.phi_tol:
-            logger.info('Min rotation was below the threshold, not rotating')
-            return None
-
         c_min = 0.5 * a0 + a1 * np.cos(2.0*phi_min) + b1 * np.sin(2.0*phi_min)
 
         if c_min > c_phi0:
@@ -141,9 +134,9 @@ class Dimer(Optimiser):
 
         # Rotate back from the test point, then to the minimum
         self._coords = cached_coordinates
-
         self._rotate_coords(phi=phi_min, update_g1=True)
-        return None
+
+        return _StepResult.did_rotation
 
     def _translate(self, update_g0=True) -> None:
         """Translate the dimer under the translational force"""
@@ -273,8 +266,8 @@ class Dimer(Optimiser):
 
             update_g1 (bool): Update the gradient on point 1 after the rotation
         """
-        x0 = np.array(self._coords.x0, copy=True)    # Midpoint coordinates
-        g0 = self._coords.g0.copy()                  # Midpoint gradient
+        x0 = self._coords.x0.copy()    # Midpoint coordinates
+        g0 = self._coords.g0.copy()   # Midpoint gradient
 
         delta = (self._coords.delta
                  * (self._coords.tau_hat * np.cos(phi.to('rad'))
@@ -305,9 +298,11 @@ class Dimer(Optimiser):
                     f'δϕ = {self.phi_tol.to("degrees"):.4f}º')
 
         for i in range(self._ratio_rot_iters):
-            self._rotate()
 
-            if abs(self._coords.phi) < self.phi_tol:
+            result = self._rotate()
+
+            if (result == _StepResult.skipped_rotation
+                    or abs(self._coords.phi) < self.phi_tol):
                 break
 
             logger.info(f'Micro iteration: {i}.'
