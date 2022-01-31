@@ -129,9 +129,9 @@ class Value(ABC, float):
             return False
 
         if isinstance(other, Value):
-            return all(np.isclose(other.to(self.units), float(self)))
+            return np.allclose(other.to(self.units), float(self))
 
-        return all(np.isclose(other, float(self)))
+        return np.allclose(other, float(self))
 
     def __ne__(self, other) -> bool:
         return not self.__eq__(other)
