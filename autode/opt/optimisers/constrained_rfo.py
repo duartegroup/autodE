@@ -19,7 +19,7 @@ import numpy as np
 from typing import Optional, List
 from autode.log import logger
 from autode.opt.coordinates.internals import Distances
-from autode.opt.coordinates.primitives import ConstrainedDistance, Distance
+from autode.opt.coordinates.primitives import ConstrainedDistance
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.rfo import RFOOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate

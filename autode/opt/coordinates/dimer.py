@@ -95,6 +95,10 @@ class DimerCoordinates(OptCoordinates):
     def __repr__(self) -> str:
         return f'Dimer Coordinates({np.ndarray.__str__(self)} {self.units.name})'
 
+    def __eq__(self, other):
+        """Coordinates can never be identical..."""
+        return False
+
     def to(self, *args, **kwargs) -> 'OptCoordinates':
         raise NotImplementedError('Cannot convert dimer coordinates to other '
                                   'types')

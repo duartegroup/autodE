@@ -43,9 +43,6 @@ def test_maxcore_setter():
 
     # and should be able to convert MB -> GB
     _config.max_core = Allocation(1, units='GB')
-    print(_config.max_core)
-    print(repr(_config.max_core))
-    print(int(_config.max_core.to('MB')))
     assert int(_config.max_core.to('MB')) == 1000
 
 

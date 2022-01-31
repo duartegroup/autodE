@@ -26,6 +26,8 @@ def test_dimer_coord_init():
     assert not coords.did_rotation
     assert not coords.did_translation
 
+    assert coords != 'a'
+
 
 def test_dimer_coord_mol_init():
 
