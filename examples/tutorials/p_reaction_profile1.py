@@ -12,6 +12,8 @@ if not (ade.methods.G09().available and ade.methods.XTB().available):
 # reaction as a single string, with reactants and products seperated
 # by '>>'
 rxn = ade.Reaction('CCl.[F-]>>CF.[Cl-]', solvent_name='water')
+
+print(f'Calculating the reaction profile for {rxn.reacs}->{rxn.prods}')
 rxn.calculate_reaction_profile()
 
 print('∆E‡ =', rxn.delta('E‡').to('kcal mol-1'))

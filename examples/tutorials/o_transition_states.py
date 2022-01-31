@@ -16,6 +16,8 @@ p2 = ade.Product('_data/Beckmann/water.xyz')
 
 # Form the reaction and locate the transition state
 rxn = ade.Reaction(r1, p1, p2)
+
+print('Locating the TS for a Beckmann rearrangement...')
 rxn.locate_transition_state()
 
 if rxn.ts is not None:

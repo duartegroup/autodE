@@ -5,17 +5,17 @@ import autode as ade
 # in autodE are generated using RDKit. For example,
 pentane = ade.Molecule(smiles='CCCCC')
 
-print('Num. initial conformers:   ', pentane.n_conformers)
-print('Initial C-C distance (Å):  ', pentane.distance(0, 1))
+print('Num. initial conformers:    ', pentane.n_conformers)
+print('Initial C-C distance (Å):   ', pentane.distance(0, 1))
 
 # To generate a set of conformers
 pentane.populate_conformers(n_confs=10)
 
-print('Num. generated conformers: ', pentane.n_conformers)
+print('Num. generated conformers:  ', pentane.n_conformers)
 # NOTE: the number of generated conformers is usually smaller than
 # the number requested, as they are pruned based on similarity
 value = ade.Config.rmsd_threshold
-print('Default pruning tolerance: ', value, value.units)
+print('Default pruning tolerance:  ', value, value.units)
 
 # To find the lowest energy conformer by optimising at XTB then
 # re-optimising the unique ones at a higher level
