@@ -631,11 +631,11 @@ class G09(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
 
-            if r'\\@' in line:
+            if r'\\@' in line or line.startswith(' @'):
                 append_line = True
 
             if append_line:
-                #                 Strip of new-lines and spaces
+                #                 Strip off new-lines and spaces
                 hess_lines.append(line.strip('\n').strip(' '))
 
             if 'NImag' in line:
