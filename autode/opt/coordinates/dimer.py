@@ -180,18 +180,10 @@ class DimerCoordinates(OptCoordinates):
         """Gradient on the 'left' side of the dimer"""
         return self.g_at(DimerPoint.left)
 
-    @g1.setter
-    def g1(self, arr: np.ndarray):
-        self.set_g_at(DimerPoint.left, arr)
-
     @property
     def g2(self) -> np.ndarray:
         """Gradient on the 'right' side of the dimer"""
         return self.g_at(DimerPoint.right)
-
-    @g2.setter
-    def g2(self, arr: np.ndarray):
-        self.set_g_at(DimerPoint.right, arr)
 
     @property
     def tau(self) -> np.ndarray:
@@ -222,12 +214,8 @@ class DimerCoordinates(OptCoordinates):
     @property
     def delta(self) -> float:
         """Distance between the dimer point, Δ"""
-        delta = np.linalg.norm(self.x1 - self.x2) / 2.0
-
-        if np.isclose(delta, 0.0):
-            raise RuntimeError('Zero distance between the dimer points')
-
-        return Distance(delta, units=self.units)
+        x = np.linalg.norm(self.x1 - self.x2) / 2.0
+        return Distance(x, units=self.units)
 
     @property
     def phi(self) -> Angle:
@@ -242,11 +230,11 @@ class DimerCoordinates(OptCoordinates):
         self._phi = value
 
     @property
-    def last_step_did_rotation(self):
+    def did_rotation(self):
         """Rotated this iteration?"""
-        return not np.isclose(self._phi, 0.0)
+        return abs(self._phi) > 1E-10
 
     @property
-    def last_step_did_translation(self):
+    def did_translation(self):
         """Translated this iteration?"""
-        return not np.isclose(self.dist, 0.0, atol=1E-10)
+        return abs(self.dist) > 1E-10

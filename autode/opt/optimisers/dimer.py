@@ -52,6 +52,8 @@ class Dimer(Optimiser):
         self.phi_tol = phi_tol
         self.init_alpha = init_alpha
 
+        self._converged_translation = False  # Convergence flag
+
         logger.info(f'Initialised a dimer with Δ = {self._coords.delta:.4f} Å')
 
     @classmethod
@@ -92,7 +94,10 @@ class Dimer(Optimiser):
         self._update_gradient_at(DimerPoint.left)
 
         self._optimise_rotation()
-        self._translate()
+        trns_result = self._translate()
+
+        if trns_result == _StepResult.skipped_translation:
+            self._converged_translation = True
 
         return None
 
@@ -138,11 +143,11 @@ class Dimer(Optimiser):
 
         return _StepResult.did_rotation
 
-    def _translate(self, update_g0=True) -> None:
+    def _translate(self, update_g0=True) -> '_StepResult':
         """Translate the dimer under the translational force"""
         x0 = self._coords.x0
 
-        trns_iters = [c for c in self._history if c.last_step_did_translation]
+        trns_iters = [c for c in self._history if c.did_translation]
 
         if len(trns_iters) < 2:
             step_size = float(self.init_alpha.to("Å"))
@@ -162,21 +167,30 @@ class Dimer(Optimiser):
 
         delta_x = step_size * self._coords.f_t
         length = np.linalg.norm(delta_x) / len(x0)
+
+        if length < Distance(1E-4, units='Å'):
+            logger.info('Step length small than tolerance')
+            return _StepResult.skipped_translation
+
         logger.info(f'Translating by {length:.4f} Å per coordinate')
 
         coords = self._coords.copy()
-        coords.dist = length
         coords += delta_x
 
         self._coords = coords
+        self._coords.phi = Angle(0.0)    # Did not rotation
+        self._coords.dist = length       # but did translate
 
         if update_g0:
             self._update_gradient_at(DimerPoint.midpoint)
 
-        return None
+        return _StepResult.did_translation
 
     def _initialise_run(self) -> None:
         """Initialise running the dimer optimisation"""
+
+        if np.isclose(self._coords.delta, 0.0):
+            raise RuntimeError('Zero distance between the dimer points')
 
         self._coords._g = np.zeros(shape=(3, 3*self._species.n_atoms))
 
@@ -191,13 +205,10 @@ class Dimer(Optimiser):
     def converged(self) -> bool:
         """Has the dimer converged?"""
 
-        trns_iters = [c for c in self._history if c.last_step_did_translation]
-
-        if len(trns_iters) > 0:
-            if abs(trns_iters[-1].dist) < Distance(0.0001, units='Å'):
-                logger.info('Did no translation on the previous step - '
-                            'signalling convergence now')
-                return True
+        if self._converged_translation:
+            logger.info('Converged purely based on translation of the '
+                        'dimer midpoint')
+            return True
 
         rms_g0 = np.sqrt(np.mean(np.square(self._coords.g0)))
         return self.iteration > 0 and rms_g0 < self.gtol
@@ -281,16 +292,18 @@ class Dimer(Optimiser):
                  * (self._coords.tau_hat * np.cos(phi.to('rad'))
                     + self._theta * np.sin(phi.to('rad'))))
 
-        step_length = np.linalg.norm(self._coords.x1.copy() - (x0 + delta))
-        if step_length > 2 * self.init_alpha:
-            logger.warning(f'Step size ({step_length}) was above the tolerance'
+        max_step_c = np.max(np.abs(self._coords.x1.copy() - (x0 + delta)))
+
+        if max_step_c > self.init_alpha:
+            logger.warning(f'Step size ({max_step_c}) was above the tolerance'
                            f' {self.init_alpha.to("Å")} Å. Scaling down')
-            return self._rotate_coords(phi=phi*0.5, update_g1=update_g1)
+            return self._rotate_coords(phi=phi/2, update_g1=update_g1)
 
         self._coords = self._coords.copy()
         self._coords.x1 = x0 + delta
         self._coords.x2 = x0 - delta
 
+        self._coords.dist = Distance(0.0)
         self._coords.phi = phi
 
         # Midpoint has not moved so it's gradient its retained

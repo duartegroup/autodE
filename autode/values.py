@@ -15,13 +15,15 @@ from autode.units import (Unit,
                           MB, GB, TB)
 
 
-def _to(value,
+def _to(value: Union['Value', 'ValueArray'],
         units: Union[Unit, str]):
-    """Convert a value or value array to a new unit and return a copy
+    """
+    Convert a value or value array to a new unit and return a copy
 
+    ---------------------------------------------------------------------------
     Arguments:
-        value (autode.values.Value | autode.values.ValueArray):
-        units (autode.units.Unit | str):
+        value:
+        units: New units that the
 
     Returns:
         (autode.values.Value):
@@ -38,7 +40,16 @@ def _to(value,
                         f'-> {units}')
 
     #                      Convert to the base unit, then to the new units
-    return value.__class__(value * units.conversion / value.units.conversion,
+    if isinstance(value, Value):
+        raw_value = float(value)
+    elif isinstance(value, ValueArray):
+        raw_value = np.array(value)
+    else:
+        raise ValueError(f'Cannot convert {value} to new units. Must be one of'
+                         f' Value of ValueArray')
+
+    return value.__class__(raw_value * float(units.conversion
+                                             / value.units.conversion),
                            units=units)
 
 
@@ -122,16 +133,15 @@ class Value(ABC, float):
         return other.to(self.units)
 
     def __eq__(self, other) -> bool:
-        """Equality of two values, which may be in different units
-        use default numpy close-ness to compare"""
+        """Equality of two values, which may be in different units"""
 
         if other is None:
             return False
 
         if isinstance(other, Value):
-            return np.allclose(other.to(self.units), float(self))
+            other = other.to(self.units)
 
-        return np.allclose(other, float(self))
+        return abs(float(self) - float(other)) < 1E-8
 
     def __ne__(self, other) -> bool:
         return not self.__eq__(other)

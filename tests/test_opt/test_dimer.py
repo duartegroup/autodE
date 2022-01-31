@@ -9,7 +9,25 @@ from autode.opt.optimisers.dimer import Dimer
 from ..testutils import requires_with_working_xtb_install
 
 
+def _single_atom_dimer_coords():
+    return DimerCoordinates(np.arange(9, dtype=float).reshape(3, 3))
+
+
 def test_dimer_coord_init():
+
+    # Dimer coordinates must be a 3xn matrix of the mid and two end points
+    with pytest.raises(ValueError):
+        _ = DimerCoordinates(np.array([0.0, 0.1]))
+
+    with pytest.raises(ValueError):
+        _ = DimerCoordinates(np.arange(2).reshape(2, 2))
+
+    coords = _single_atom_dimer_coords()
+    assert not coords.did_rotation
+    assert not coords.did_translation
+
+
+def test_dimer_coord_mol_init():
 
     mol1 = Molecule()
     mol2 = Molecule(atoms=[Atom('H')])
@@ -51,6 +69,66 @@ def test_dimer_coord_init_polyatomic():
     # Gradient has not been evaluated
     with pytest.raises(Exception):
         _ = coords.g0
+
+
+def test_dimer_invalid_update():
+
+    coords = _single_atom_dimer_coords()
+
+    # Cannot update the gradient from an individual cartesian gradient, as the
+    # point on the dimer must be specified
+    with pytest.raises(Exception):
+        coords.update_g_from_cart_g(np.zeros(3))
+
+    # Currently there is no Hessian to be updated with, so anything goes
+    coords.update_h_from_cart_h(None)
+    assert coords.h is None
+
+    # Not a valid conversion dimer to individual cartesian
+    with pytest.raises(Exception):
+        _ = coords.to('cartesian')
+
+
+def test_repr():
+
+    assert 'dimer' in repr(_single_atom_dimer_coords()).lower()
+
+
+def test_mass_weighting_no_masses():
+
+    coords = _single_atom_dimer_coords()
+
+    with pytest.raises(Exception):
+        _ = coords.x_at(DimerPoint.midpoint, mass_weighted=False)
+
+    with pytest.raises(Exception):
+        _ = coords.set_g_at(DimerPoint.midpoint,
+                            np.zeros(3),
+                            mass_weighted=False)
+
+
+def test_dimer_init_zero_distance():
+
+    a = Molecule(atoms=[Atom('H')])
+
+    dimer = Dimer(maxiter=10,
+                  coords=DimerCoordinates.from_species(a, a))
+
+    # Should raise an exception if there is no distance between the end points
+    with pytest.raises(RuntimeError):
+        dimer._initialise_run()
+
+
+def test_dimer_coords_phi_set():
+
+    coords = _single_atom_dimer_coords()
+
+    # Phi must be an angle with defined units
+    with pytest.raises(ValueError):
+        coords.phi = 'a'
+
+    with pytest.raises(ValueError):
+        coords.phi = 0.0
 
 
 class Dimer2D(Dimer):
@@ -123,7 +201,7 @@ def test_dimer_2d():
                           atol=1E-1)
 
     # final iteration should have a change in rotation angle below the
-    assert abs(dimer._dc_dphi) < 1E-1
+    assert abs(dimer._dc_dphi) < 0.2
 
     # Do  single translation step
     dimer._translate()

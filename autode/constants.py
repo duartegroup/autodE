@@ -13,7 +13,7 @@ class Constants:
 
     kcal_to_kJ = kcal2kJ = 4.184              # kJ kcal^-1
 
-    rad_to_deg = 57.2958                      # deg rad^-1
+    rad_to_deg = 57.29577951308232087679815   # deg rad^-1
 
     a0_to_ang = a02ang = 0.529177             # Å bohr^-1
     ang_to_a0 = ang2a0 = 1.0 / a0_to_ang      # bohr Å^-1

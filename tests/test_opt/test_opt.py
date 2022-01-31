@@ -113,12 +113,12 @@ def test_g_norm():
 
     # With no coordinates the norm of the gradient is infinity
     assert optimiser._coords is None
-    assert optimiser._g_norm == GradientNorm(np.inf)
+    assert not np.isfinite(optimiser._g_norm)
 
     # Likewise if the gradient is unset
     optimiser._coords = CartesianCoordinates([1.0, 0.0, 0.0])
     assert optimiser._coords.g is None
-    assert optimiser._g_norm == GradientNorm(np.inf)
+    assert not np.isfinite(optimiser._g_norm)
 
 
 def test_optimiser_h_update():
