@@ -1,7 +1,8 @@
 import autode as ade
 
-# Species in autodE are atom collections with a defined charge and
-# spin multiplicity (mult)
+# Species in autodE are atom collections with a name,
+# defined charge and spin multiplicity (mult). For example, to
+# generate water from its three constituent atoms
 h2o = ade.Species(name='water', charge=0, mult=1,
                   atoms=[ade.Atom('O'),
                          ade.Atom('H', x=-1.),
@@ -14,7 +15,7 @@ print('Mass(H2O):       ', h2o.mass, h2o.mass.units)
 print('Formula:         ', h2o.formula)
 
 # as well as radii
-print('Approximate radius:', h2o.radius)
+print('Approximate radius:', round(h2o.radius, 1), h2o.radius.units)
 
 # with functions to calculate distances and angles
 print('O-H distance (Å):', h2o.distance(0, 1))

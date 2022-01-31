@@ -10,7 +10,7 @@ print('Spin multiplicity:       ', serine.mult)
 print('Is solvated?:            ', serine.solvent is not None)
 
 # dihedrals can also be evaluated evaluated
-symbols = "-".join(serine.atoms[i].atomic_symbol for i in (0, 1, 2, 3))
+symbols = "-".join(serine.atomic_symbols[:4])
 print(f'{symbols} dihedral:        ', serine.dihedral(0, 1, 2, 3), 'radians')
 
 # an estimated molecular graph is initialised.
