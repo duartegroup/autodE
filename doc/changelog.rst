@@ -55,7 +55,7 @@ Bug Fixes
 
 - Updates the TS template saved in the default template library
 - Reloads output file lines from a failed then re-run calculation
-
+- Fixes Hessian extractions from some Gaussian output files
 
 
 1.1.3
