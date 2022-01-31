@@ -121,7 +121,7 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Equality of two values, which may be in different units
         use default numpy close-ness to compare"""
 
@@ -129,14 +129,14 @@ class Value(ABC, float):
             return False
 
         if isinstance(other, Value):
-            return np.isclose(other.to(self.units), float(self))
+            return all(np.isclose(other.to(self.units), float(self)))
 
-        return np.isclose(other, float(self))
+        return all(np.isclose(other, float(self)))
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """Less than comparison operator"""
 
         if isinstance(other, Value):
@@ -144,19 +144,19 @@ class Value(ABC, float):
 
         return float(self) < other
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         """Greater than comparison operator"""
         return not self.__lt__(other)
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         """Greater than or equal to comparison operator"""
         return self.__lt__(other) or self.__eq__(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         """Less than or equal to comparison operator"""
         return self.__gt__(other) or self.__eq__(other)
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Value':
         """Add another value onto this one"""
         if isinstance(other, np.ndarray):
             return other + float(self)
@@ -164,7 +164,7 @@ class Value(ABC, float):
         return self.__class__(float(self) + self._other_same_units(other),
                               units=self.units)
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'Value':
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -172,16 +172,24 @@ class Value(ABC, float):
         return self.__class__(float(self) * self._other_same_units(other),
                               units=self.units)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> 'Value':
         return self.__mul__(other)
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> 'Value':
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Value':
         return self.__add__(-other)
 
-    def __abs__(self):
+    def __floordiv__(self, other):
+        raise NotImplementedError('Integer division is not supported by '
+                                  'autode.values.Value')
+
+    def __truediv__(self, other) -> 'Value':
+        return self.__class__(float(self) / float(self._other_same_units(other)),
+                              units=self.units)
+
+    def __abs__(self) -> 'Value':
         """Absolute value"""
         return self if self > 0 else self * -1
 
