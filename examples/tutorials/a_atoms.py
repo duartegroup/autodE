@@ -10,13 +10,13 @@ print('Position:  ', atom.coord)
 # here: https://duartegroup.github.io/autodE/reference/atoms.html
 print('Z:         ', atom.atomic_number)
 
-# and can be translated by a 3D vector
+# and can be translated by a vector, for example 1 Å along the x axis
 atom.translate([1.0, 0.0, 0.0])
 print('Position:  ', atom.coord)
 
 # or rotated
 atom.rotate(axis=[0., 0., 1.],  # z axis
-            theta=3.1415)
+            theta=3.1415)       # π radians
 print('Position:  ', atom.coord)
 
 # by default distances are in angstroms

@@ -14,8 +14,8 @@ print('Translated carbon position is:', methane.coordinates[0, :])
 # where the coordinates property is an Nx3 numpy array
 
 # and rotated
-methane.rotate(axis=[0.0, 0.0, 1.0],
-               theta=1.5)
+methane.rotate(axis=[0.0, 0.0, 1.0],   # z axis
+               theta=1.5)              # radians
 print('Rotated carbon position is:   ', methane.coordinates[0, :])
 
 # and calculations performed. To optimise the structure with XTB

@@ -10,8 +10,8 @@ reactive_complex = ade.Molecule('_data/CH3_CH4.xyz', mult=2)
 
 # Create then calculate the PES
 pes = ade.pes.RelaxedPESnD(reactive_complex,
-                           rs={(0, 1): (3.0, 8),    # Current -> 3.0 Å in 10
-                               (5, 1): (1.1, 8)})   # Current -> 1.1 Å in 10
+                           rs={(0, 1): (3.0, 8),   # Current->3.0 Å in 8 steps
+                               (5, 1): (1.1, 8)})  # Current->1.1 Å in 8 steps
 pes.calculate(method=orca,
               keywords=['LooseOpt', 'PBE', 'def2-SV(P)'],  # Fast DFT
               n_cores=10)                        # Using 10 processing cores

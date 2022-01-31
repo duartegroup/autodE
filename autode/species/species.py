@@ -894,7 +894,7 @@ class Species(AtomCollection):
                        append:                bool = False
                        ) -> None:
         """
-        Print a standard xyz file from this Molecule's atoms
+        Print a standard xyz file from this molecule's atoms
 
         -----------------------------------------------------------------------
         Keyword Arguments:
@@ -903,7 +903,7 @@ class Species(AtomCollection):
             filename: Filename ending with .xyz. If None then will use the
                       name of this molecule
 
-            additional_title_line: Additional elements to add to then title line
+            additional_title_line: Additional elements to add to the title line
 
             with_solvent: If the solvent is explicit then include the solvent
                           atoms in the .xyz file

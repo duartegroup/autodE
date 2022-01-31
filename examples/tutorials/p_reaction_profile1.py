@@ -9,8 +9,7 @@ if not (ade.methods.G09().available and ade.methods.XTB().available):
 # Full reaction profiles can be calculated by again forming a reaction
 # and calling calculate_reaction_profile. Conformers will be searched,
 # a TS found and single point energies evaluated. The reaction is defined a
-# reaction as a single string, with reactants and products seperated
-# by '>>'
+# as a single string, with reactants and products separated by '>>'
 rxn = ade.Reaction('CCl.[F-]>>CF.[Cl-]', solvent_name='water')
 
 print(f'Calculating the reaction profile for {rxn.reacs}->{rxn.prods}')
