@@ -29,7 +29,7 @@ class Dimer(Optimiser):
                  ratio_rot_iters: int = 10,
                  gtol:            GradientNorm = GradientNorm(1E-3, units='Ha Å-1'),
                  phi_tol:         Angle = Angle(5.0, units='°'),
-                 init_alpha:      Distance = Distance(0.1, units='Å')
+                 init_alpha:      Distance = Distance(0.3, units='Å')
                  ):
         """
         Dimer optimiser
@@ -44,6 +44,14 @@ class Dimer(Optimiser):
 
             ratio_rot_iters: Number of rotations per translation in each
                              dimer step
+
+            gtol: Tolerance on the gradient at the midpoint for convergence
+
+            phi_tol: Tolerance on the rotation angle below which rotation is
+                     not performed
+
+            init_alpha: Initial step size to use in mass-weighted cartesian
+                        coordinates
         """
         super().__init__(maxiter=maxiter, coords=coords)
 
@@ -163,7 +171,10 @@ class Dimer(Optimiser):
             # Barzilai–Borwein method for the step size
             step_size = (np.abs(np.dot((x0 - prev_trns_iter.x0),
                                        (self._coords.f_t - prev_trns_iter.f_t)))
-                         / np.linalg.norm(self._coords.f_t - prev_trns_iter.f_t) ** 2)
+                         / np.linalg.norm(self._coords.f_t - prev_trns_iter.f_t)**2)
+
+        # TODO: Read where this comes from
+        # step_size = float(self.init_alpha.to("Å"))
 
         delta_x = step_size * self._coords.f_t
         length = np.linalg.norm(delta_x) / len(x0)
