@@ -650,7 +650,3 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
-
-
-
-

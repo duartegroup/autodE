@@ -199,7 +199,7 @@ class Keywords(ABC):
             self._list = list(keyword_list) if keyword_list is not None else []
 
     def __str__(self):
-        return ' '.join([str(kw) for kw in self._list])
+        return ' '.join([repr(kw) for kw in self._list])
 
     def __eq__(self, other) -> bool:
         """Equality of these keywords to another kind"""
