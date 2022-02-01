@@ -12,8 +12,17 @@ ade.Config.ORCA.keywords.sp.basis_set = 'ma-def2-TZVP'
 
 # create a reaction for the addition of CN- to acetone and calculate
 rxn = ade.Reaction('CC(C)=O.[C-]#N>>CC([O-])(C#N)C', solvent_name='water')
-rxn.calculate_reaction_profile()
 
-print('∆E_r =', rxn.delta('E').to('kcal mol-1'))
-print('∆E‡ =', rxn.delta('E‡').to('kcal mol-1'))
-print('TS imag freq:', rxn.ts.imaginary_frequencies[0])
+# Calculating a reaction profile is also possible including the energies
+# of the pre-reaction association complexes (with_complexes=True), including
+# the free energy (∆G, ∆G‡) using qRRHO entropies (free_energy=True) or
+# reaction and activation enthalpies (∆H, ∆H‡) using enthalpy=True
+rxn.calculate_reaction_profile(
+                               # with_complexes=False,
+                               # free_energy=False,
+                               # enthalpy=False
+                               )
+
+print('∆E_r (kcal mol-1) = ', rxn.delta('E').to('kcal mol-1'))
+print('∆E‡ (kcal mol-1)  = ', rxn.delta('E‡').to('kcal mol-1'))
+print('TS imaginary freq = ', rxn.ts.imaginary_frequencies[0])

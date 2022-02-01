@@ -322,19 +322,14 @@ def test_free_energy_profile():
     # Should be able to plot an enthalpy profile
     plot_reaction_profile([rxn], units=KcalMol, name='enthalpy',
                           enthalpy=True)
-    assert os.path.exists('enthalpy_reaction_profile.png')
-    os.remove('enthalpy_reaction_profile.png')
+    assert os.path.exists('enthalpy_reaction_profile.pdf')
+    os.remove('enthalpy_reaction_profile.pdf')
 
     # Reset the configuration to the default values
     Config.hcode = None
     Config.G09.path = None
     Config.lcode = None
     Config.XTB.path = None
-
-
-def test_unavail_properties():
-
-    pass
 
 
 def test_barrierless_rearrangment():

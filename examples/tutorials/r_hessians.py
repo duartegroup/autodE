@@ -16,4 +16,4 @@ for method in (xtb, orca):
                     numerical=True,
                     use_central_differences=True)
 
-    print('Numerical frequency:', n2.vib_frequencies)
+    print(f'Numerical frequency at {method.name}:', n2.vib_frequencies)

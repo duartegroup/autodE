@@ -91,7 +91,7 @@ def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
              wrap=True)
 
     prefix = '' if name == 'reaction' else f'{name}_'
-    return save_plot(plt, filename=f'{prefix}reaction_profile.png')
+    return save_plot(plt, filename=f'{prefix}reaction_profile.pdf')
 
 
 def plot_smooth_profile(zi_s, energies, ax):

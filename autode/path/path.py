@@ -153,7 +153,7 @@ class Path(list):
         plt.tight_layout()
 
         if save:
-            plt.savefig(f'{name}.png', dpi=300)
+            plt.savefig(f'{name}.pdf')
             plt.close()
 
         return None

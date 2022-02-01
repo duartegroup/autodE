@@ -37,7 +37,7 @@ def test_path_properties_empty():
 
     # Should not plot plot a path without any structures
     path.plot_energies(save=True, name='tmp', color='black', xlabel='none')
-    assert not os.path.exists('tmp.png')
+    assert not os.path.exists('tmp.pdf')
 
 
 def test_path_properties():
@@ -65,8 +65,8 @@ def test_path_properties():
     assert path.is_saddle(idx=1)
 
     path.plot_energies(save=True, name='tmp', color='black', xlabel='none')
-    assert os.path.exists('tmp.png')
-    os.remove('tmp.png')
+    assert os.path.exists('tmp.pdf')
+    os.remove('tmp.pdf')
 
     # Should ba able to print an xyz file containing the structures along the
     # path

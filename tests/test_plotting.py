@@ -38,8 +38,8 @@ def test_plot_reaction_profile():
     plotting.plot_reaction_profile(reactions=[reaction], units=KjMol,
                                    name='test')
 
-    assert os.path.exists('test_reaction_profile.png')
-    os.remove('test_reaction_profile.png')
+    assert os.path.exists('test_reaction_profile.pdf')
+    os.remove('test_reaction_profile.pdf')
 
     with pytest.raises(AssertionError):
         plotting.plot_reaction_profile(reactions=[reaction], units=KjMol,
