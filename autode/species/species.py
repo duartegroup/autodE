@@ -464,7 +464,12 @@ class Species(AtomCollection):
     @property
     def atomic_symbols(self) -> List[str]:
         """Atomic symbols of all atoms in this species"""
-        return list(sorted((atom.label for atom in self.atoms)))
+        return [] if self.atoms is None else [a.label for a in self.atoms]
+
+    @property
+    def sorted_atomic_symbols(self) -> List[str]:
+        """Atomic symbols of all atoms sorted alphabetically"""
+        return list(sorted(self.atomic_symbols))
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
@@ -1271,7 +1276,7 @@ class Species(AtomCollection):
                                      species: 'Species'
                                      ) -> bool:
         """Does this species have the same chemical identity as another?"""
-        return self.atomic_symbols == species.atomic_symbols
+        return self.sorted_atomic_symbols == species.sorted_atomic_symbols
 
     # --- Method aliases ---
     symmetry_number = sn
