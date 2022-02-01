@@ -9,11 +9,12 @@ print('Center of mass:', atoms.com)
 # and moment of inertia properties
 print('MOI matrix:', atoms.moi, sep='\n', end='\n\n')
 
-# vectors between atoms can be calculated
+# vectors between atoms can be calculated. For example the vector between
+# atoms 0 and 1
 print('H-H vector:    ', atoms.vector(0, 1))
 # NOTE: vectors are numpy arrays
 
-# linearity defined
+# to test for linearity of a set of atoms
 print('H2 is linear:  ', atoms.are_linear())
 
 # also copied and added together

@@ -14,10 +14,11 @@ print('Mass(H2O):       ', h2o.mass, h2o.mass.units)
 # and the chemical formula
 print('Formula:         ', h2o.formula)
 
-# as well as radii
+# as well as radii *not including any van der Walls volume*
 print('Approximate radius:', round(h2o.radius, 1), h2o.radius.units)
 
-# with functions to calculate distances and angles
+# with functions to calculate distances and angles between atoms
+# For example, the distance between atoms 0 and 1:
 print('O-H distance (Å):', h2o.distance(0, 1))
 print('H-O-H angle (º): ', h2o.angle(1, 0, 2).to('degrees'))
 

@@ -6,7 +6,7 @@ atom = ade.Atom('C')
 # autodE atoms have a position
 print('Position:  ', atom.coord)
 
-# and useful properties, like the atomic number. See all of them
+# and useful properties, like the atomic number. See all of these properties
 # here: https://duartegroup.github.io/autodE/reference/atoms.html
 print('Z:         ', atom.atomic_number)
 
@@ -29,4 +29,6 @@ print('Coordinate:', coord_in_a0, coord_in_a0.units)
 
 # atoms can also be initialised at different positions
 atom = ade.Atom('H', x=1., y=2., z=3.)
+
+# and their representation (repr) printed
 print('H atom:    ', repr(atom))

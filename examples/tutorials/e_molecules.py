@@ -6,7 +6,7 @@ methane = ade.Molecule(smiles='C')
 
 print(f'Methane has {methane.n_atoms} atoms, so \n'
       f'has a molecular graph with {methane.graph.number_of_nodes()}\n'
-      f'and {methane.graph.number_of_edges()} edges (bonds).')
+      f'nodes and {methane.graph.number_of_edges()} edges (bonds).')
 
 # The whole molecule can be translated
 methane.translate([1.0, 0.0, 0.0])
