@@ -7,7 +7,7 @@ orca = ade.methods.ORCA()
 orca.keywords.grad = ['PBE', 'def2-SV(P)', 'EnGrad']
 
 if multiprocessing.cpu_count() < 10 or not orca.available:
-    exit('This example requires an ORCA install and 8 cores')
+    exit('This example requires an ORCA install and 10 processing cores')
 
 # Nudged elastic band (NEB) calculations are available using all methods
 # that support gradient evaluations (all of them!). For example, to
