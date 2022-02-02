@@ -213,13 +213,13 @@ class OptCoordinates(ValueArray, ABC):
 
         lmd, v = np.linalg.eig(hessian)  # Eigenvalues and eigenvectors
 
-        if np.all(lmd > 0):
+        if np.all(lmd > 1E-8):
             logger.info('Hessian was positive definite')
             return
 
         logger.warning('Hessian was not positive definite. '
-                       'Shifting eigenvalues to 0 and reconstructing')
-        lmd[lmd < 0] = 1E-5
+                       'Shifting eigenvalues to X and reconstructing')
+        lmd[lmd < 1E-8] = 1
         self._h = np.linalg.multi_dot((v, np.diag(lmd), v.T)).real
 
         return None

@@ -400,3 +400,73 @@ def test_hess_transform_linear():
     assert dic.h.shape == (1, 1)         # 1x1 internal Hessian
     assert np.isclose(dic.h[0, 0], k)    # should be ~k
 
+
+def test_hess_positive_definite_no_hessian():
+    """Cannot make a None Hessian positive definite"""
+
+    coords = CartesianCoordinates(np.array([1.0, 2.0]))
+    assert coords.h is None
+
+    with pytest.raises(RuntimeError):
+        coords.make_hessian_positive_definite()
+
+
+def test_hess_positive_definite_sample():
+
+    coords = CartesianCoordinates(np.array([1.0, 2.0]))
+    coords.h = np.array([[1., 0.1],
+                         [0.1, -1.]])
+
+    # Have at least one negative eigenvalue
+    assert sum(lmd < 0 for lmd in np.linalg.eigvalsh(coords.h)) > 0
+
+    # Should have no negative eigenvalues
+    coords.make_hessian_positive_definite()
+    assert sum(lmd < 0 for lmd in np.linalg.eigvalsh(coords.h)) == 0
+
+
+def test_hess_positive_definite_h2o():
+
+    # h2o = Molecule('water',
+    #                atoms=[Atom('O'),
+    #                       Atom('H', -0.8, 0.1),
+    #                       Atom('H', 0.8, 0.1)])
+
+    coords_arr = np.array([[ 0.0, -0.01118983, 0.0],
+                           [-0.8,  0.08881017, 0.0],
+                           [ 0.8,  0.08881017, 0.0]]).flatten()
+
+    coords = CartesianCoordinates(coords_arr)
+
+    coords.g = np.array(
+    [[ 7.55890751e-09,  1.78450460e-01, -5.66918063e-09],
+    [ 4.77548276e-01, -8.92130384e-02,  0.00000000e+00],
+    [-4.77548270e-01, -8.92130384e-02,  0.00000000e+00]]
+    ).flatten()
+
+    coords.h = np.array(
+    [[11.2889, -0.    , -0.    , -5.6443,  0.8169, -0.    , -5.6443, -0.8169,  0.    ],
+    [-0.    , -1.528 , -0.    ,  0.7692,  0.764 ,  0.    , -0.7692, 0.764 ,  0.    ],
+    [-0.    , -0.    , -1.783 , -0.    ,  0.    ,  0.8915,  0.    , 0.    ,  0.8915],
+    [-5.6435,  0.7689, -0.    ,  5.5606, -0.7928,  0.    ,  0.0828, 0.0238, -0.    ],
+    [ 0.8167,  0.7641,  0.    , -0.7928, -0.6295, -0.    , -0.0238, -0.1346, -0.    ],
+    [-0.    ,  0.    ,  0.8915,  0.    , -0.    , -0.7441,  0.    , -0.    , -0.1474],
+    [-5.6435, -0.7689,  0.    ,  0.0828, -0.0238,  0.    ,  5.5606, 0.7928, -0.    ],
+    [-0.8167,  0.7641,  0.    ,  0.0238, -0.1346, -0.    ,  0.7928, -0.6295, -0.    ],
+    [ 0.    ,  0.    ,  0.8915, -0.    , -0.    , -0.1474, -0.    , -0.    , -0.7441]]
+    )
+
+    # Cannot calculate H^(-1) with a singular Hessian
+    with pytest.raises(Exception):
+        _ = coords.h_inv
+
+    coords.make_hessian_positive_definite()
+
+    newton_step = -np.dot(coords.h_inv, coords.g)
+
+    # All the steps should be negative in the gradient
+    for i in range(9):
+        assert np.sign(coords.g[i]) != np.sign(newton_step[i])
+
+    # Step size should be small-ish in all coordinates
+    assert np.max(np.abs(newton_step)) < 0.2  # Å
