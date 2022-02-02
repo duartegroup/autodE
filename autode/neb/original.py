@@ -449,7 +449,7 @@ class NEB:
         self.print_geometries(name='neb_optimised')
 
         # and save the plot
-        plt.savefig('neb_optimised.png', dpi=300)
+        plt.savefig('neb_optimised.pdf')
         plt.close()
         return None
 

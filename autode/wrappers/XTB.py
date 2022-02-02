@@ -166,6 +166,7 @@ class XTB(ElectronicStructureMethod):
             logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
+            logger.info(f'Running XTB with: {" ".join(flags)}')
             run_external(params=[calc.method.path, calc.input.filename]+flags,
                          output_filename=calc.output.filename)
 

@@ -1,6 +1,6 @@
 import numpy as np
 import itertools as it
-from typing import Tuple, List
+from typing import Tuple, List, Type
 from autode.log import logger
 from autode.utils import hashable
 from multiprocessing.pool import Pool
@@ -40,6 +40,11 @@ class RelaxedPESnD(ReactivePESnD):
                      self._coordinates[point]) = results[i].get(timeout=None)
 
         return None
+
+    @property
+    def _default_keyword_type(self) -> Type['autode.wrappers.Keywords']:
+        from autode.wrappers.keywords import OptKeywords
+        return OptKeywords
 
     def _species_at(self, point: Tuple) -> 'autode.species.Species':
         """

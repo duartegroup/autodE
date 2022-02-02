@@ -18,6 +18,10 @@ class PESnD(pes_nd.PESnD):
     def _default_keywords(self, method):
         raise NotImplementedError
 
+    @property
+    def _default_keyword_type(self):
+        raise NotImplementedError
+
 
 def test_distances1d():
 

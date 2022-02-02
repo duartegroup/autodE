@@ -461,7 +461,7 @@ class QChem(ElectronicStructureMethod):
 
             if any('$' in word.lower() for word in keywords):
                 raise NotImplementedError('Cannot add $rem block - already '
-                                          'present in {keywords}')
+                                          f'present in {keywords}')
 
             self.write('$rem')
 
