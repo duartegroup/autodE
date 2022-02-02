@@ -524,26 +524,28 @@ class G09(ElectronicStructureMethod):
         return False
 
     def get_final_atoms(self, calc):
+        """Get the final set of atoms (with coordinates) from a G09 ouput"""
 
-        atoms = None
+        init_atoms = calc.molecule.atoms
+
+        if isinstance(calc.input.keywords, kws.HessianKeywords):
+            logger.info('Hessian calculation performed. Expecting atoms to '
+                        'have identical positions')
+            return init_atoms
+
+        atoms = []
 
         for i, line in enumerate(calc.output.file_lines):
 
             if 'Input orientation' in line:
 
-                atoms = []
+                atoms.clear()
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
 
                 for xyz_line in xyz_lines:
-                    atom_index, _, _, x, y, z = xyz_line.split()
-                    atom_index = int(atom_index) - 1
-                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=x, y=y, z=z))
-
-                if len(atoms) != calc.molecule.n_atoms:
-                    raise AtomsNotFound
-
-        if atoms is None:
-            raise AtomsNotFound
+                    idx, _, _, x, y, z = xyz_line.split()
+                    idx = int(idx) - 1
+                    atoms.append(Atom(init_atoms[idx].label, x=x, y=y, z=z))
 
         return atoms
 
@@ -629,11 +631,11 @@ class G09(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
 
-            if r'\\@' in line:
+            if r'\\@' in line or line.startswith(' @'):
                 append_line = True
 
             if append_line:
-                #                 Strip of new-lines and spaces
+                #                 Strip off new-lines and spaces
                 hess_lines.append(line.strip('\n').strip(' '))
 
             if 'NImag' in line:
