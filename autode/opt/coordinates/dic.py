@@ -235,6 +235,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                                    f'{_max_back_transform_iterations} cycles')
 
         self[:] = s_k
-        self._x[:] = x_k
+        self._x = x_k
 
         return self
