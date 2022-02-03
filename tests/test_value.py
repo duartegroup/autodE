@@ -9,7 +9,7 @@ from autode.values import (Value, Distance, Angle, Mass,
                            PotentialEnergy, Enthalpy, FreeEnergy,
                            FreeEnergyCont, EnthalpyCont,
                            Frequency,
-                           GradientNorm)
+                           GradientRMS)
 
 
 class TmpValue(Value):
@@ -234,4 +234,4 @@ def test_contrib_guidelines():
 
 def test_gradient_norm():
 
-    assert repr(GradientNorm(0.1)) is not None
+    assert repr(GradientRMS(0.1)) is not None

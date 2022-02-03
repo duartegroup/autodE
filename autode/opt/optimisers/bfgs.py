@@ -12,7 +12,7 @@ class BFGSOptimiser(NDOptimiser, ABC):
 
     def __init__(self,
                  maxiter:          int,
-                 gtol:             'autode.values.GradientNorm',
+                 gtol: 'autode.values.GradientRMS',
                  etol:             'autode.values.PotentialEnergy',
                  init_alpha:       float = 1.0,
                  line_search_type: Type[LineSearchOptimiser] = ArmijoLineSearch,

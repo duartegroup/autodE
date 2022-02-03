@@ -35,7 +35,8 @@ class DimerCoordinates(OptCoordinates):
         arr = super().__new__(cls, np.array(input_array), units)
 
         if arr.ndim != 2 or arr.shape[0] != 3:
-            raise ValueError('Dimer coordinates must ')
+            raise ValueError('Dimer coordinates must be initialised from a '
+                             '3x3N array for a system with N atoms')
 
         arr._e = None                             # Energy
         arr._dist = MWDistance(0.0, 'Å amu^1/2')  # Translation distance
@@ -78,9 +79,11 @@ class DimerCoordinates(OptCoordinates):
                                np.array(species2.coordinates).flatten()),
                               axis=0))
 
+        # Mass weight the coordinates by m^1/2 for each atom
         coords.masses = np.repeat(np.array(species1.atomic_masses, dtype=float),
                                   repeats=3,
                                   axis=np.newaxis)
+
         coords *= np.sqrt(coords.masses)
 
         return coords
@@ -167,7 +170,8 @@ class DimerCoordinates(OptCoordinates):
 
         if not mass_weighted:
             if self.masses is None:
-                raise RuntimeError('Cannot set the gradient without masses')
+                raise RuntimeError('Cannot set the mass-weighted gradient '
+                                   'without masses')
 
             arr *= np.sqrt(self.masses)
 

@@ -32,8 +32,8 @@ class Primitive(ABC):
 
         -----------------------------------------------------------------------
         Arguments:
-            i: Cartesian index to take the derivative with respect to;
-                0-N for N atoms
+            i: Cartesian index to take the derivative with respect to. [0-N),
+               for N atoms
 
             component: Cartesian component (x, y, z) to take the derivative
                        with respect to

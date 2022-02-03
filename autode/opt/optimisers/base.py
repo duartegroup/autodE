@@ -4,7 +4,7 @@ from typing import Union, Optional
 from autode.log import logger
 from autode.config import Config
 from autode.calculation import Calculation
-from autode.values import GradientNorm, PotentialEnergy
+from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 
@@ -67,15 +67,14 @@ class Optimiser(ABC):
 
         ----------------------------------------------------------------------
         Arguments:
-            species (autode.species.Species): Species to optimise, if None
-                    then use the species this optimiser was initalised with
+            species: Species to optimise
 
-            method (autode.methods.Method): Method to use. Calculations will
-                   use method.keywords.grad for gradient calculations
+            method: Method to use to calculate energies/gradients/hessians.
+                    Calculations will use method.keywords.grad for gradient
+                    calculations
 
-        Keyword Arguments:
-            n_cores (int | None): Number of cores to use for the gradient
-                        evaluations. If None then use autode.Config.n_cores
+            n_cores: Number of cores to use for calculations. If None then use
+                     autode.Config.n_cores
         """
         self._n_cores = n_cores if n_cores is not None else Config.n_cores
 
@@ -287,7 +286,7 @@ class NDOptimiser(Optimiser, ABC):
 
     def __init__(self,
                  maxiter: int,
-                 gtol:    GradientNorm,
+                 gtol:    GradientRMS,
                  etol:    PotentialEnergy,
                  coords:  Optional[OptCoordinates] = None,
                  **kwargs):
@@ -300,7 +299,7 @@ class NDOptimiser(Optimiser, ABC):
         Arguments:
             maxiter (int): Maximum number of iterations to perform
 
-            gtol (autode.values.GradientNorm): Tolerance on RMS(|∇E|)
+            gtol (autode.values.GradientRMS): Tolerance on RMS(|∇E|)
 
             etol (autode.values.PotentialEnergy): Tolerance on |E_i+1 - E_i|
 
@@ -316,25 +315,25 @@ class NDOptimiser(Optimiser, ABC):
         self._hessian_update_types = [NullUpdate]
 
     @property
-    def gtol(self) -> GradientNorm:
+    def gtol(self) -> GradientRMS:
         """
         Gradient tolerance on |∇E| i.e. the root mean square of each component
 
         -----------------------------------------------------------------------
         Returns:
-            (autode.values.GradientNorm):
+            (autode.values.GradientRMS):
         """
         return self._gtol
 
     @gtol.setter
-    def gtol(self, value: Union[int, float, GradientNorm]):
+    def gtol(self, value: Union[int, float, GradientRMS]):
         """Set the gradient tolerance"""
 
         if float(value) <= 0:
             raise ValueError('Tolerance on the gradient (||∇E||) must be '
                              f'positive. Had: gtol={value}')
 
-        self._gtol = GradientNorm(value)
+        self._gtol = GradientRMS(value)
 
     @property
     def etol(self) -> PotentialEnergy:
@@ -361,7 +360,7 @@ class NDOptimiser(Optimiser, ABC):
                  species: 'autode.species.Species',
                  method:  'autode.wrappers.base.Method',
                  maxiter: int = 100,
-                 gtol:    Union[float, GradientNorm] = GradientNorm(1E-3, units='Ha Å-1'),
+                 gtol:    Union[float, GradientRMS] = GradientRMS(1E-3, units='Ha Å-1'),
                  etol:    Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
                  coords:  Optional[OptCoordinates] = None,
                  n_cores: Optional[int] = None,
@@ -443,25 +442,25 @@ class NDOptimiser(Optimiser, ABC):
         return PotentialEnergy(abs(e1 - e2))
 
     @property
-    def _g_norm(self) -> GradientNorm:
+    def _g_norm(self) -> GradientRMS:
         """
         Calculate RMS(∇E) based on the current Cartesian gradient.
 
         -----------------------------------------------------------------------
         Returns:
-            (autode.values.GradientNorm): Gradient norm. Infinity if the
+            (autode.values.GradientRMS): Gradient norm. Infinity if the
                                           gradient is not defined
         """
         if self._coords is None:
             logger.warning('Had no coordinates - cannot determine ||∇E||')
-            return GradientNorm(np.inf)
+            return GradientRMS(np.inf)
 
         cartesian_gradient = self._coords.to('cart').g
 
         if cartesian_gradient is None:
-            return GradientNorm(np.inf)
+            return GradientRMS(np.inf)
 
-        return GradientNorm(np.sqrt(np.mean(np.square(cartesian_gradient))))
+        return GradientRMS(np.sqrt(np.mean(np.square(cartesian_gradient))))
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy """
@@ -522,7 +521,7 @@ class NDOptimiser(Optimiser, ABC):
         Raises:
             (RuntimeError): If no suitable strategies are found
         """
-        coords_l, coords_k = self._coords, self._history.penultimate
+        coords_l, coords_k = self._history.final, self._history.penultimate
 
         for update_type in self._hessian_update_types:
             updater = update_type(h=coords_k.h,
@@ -587,11 +586,12 @@ class _OptimiserHistory(list):
         return self[np.argmin([coords.e for coords in self])]
 
     @property
-    def contains_well(self) -> bool:
-        r"""Does this history contain a well in the energy?::
+    def contains_energy_rise(self) -> bool:
+        r"""
+        Does this history contain a 'well' in the energy?::
 
           |
-        E |    -----   /          <-- Does contain a well
+        E |    -----   /          <-- Does contain a rise in the energy
           |         \/
           |_________________
                Iteration
@@ -601,7 +601,7 @@ class _OptimiserHistory(list):
             (bool): Presence of an explicit minima
         """
 
-        for idx in range(len(self)-1):
+        for idx in range(1, len(self)-1):
             if self[idx].e < self[idx+1].e:
                 return True
 

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from autode.methods import XTB
-from autode.values import GradientNorm, PotentialEnergy
+from autode.values import GradientRMS, PotentialEnergy
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
 from .molecules import h2, methane_mol
@@ -12,7 +12,7 @@ from autode.opt.optimisers.steepest_decent import (CartesianSDOptimiser,
 
 def sample_cartesian_optimiser():
     return CartesianSDOptimiser(maxiter=1,
-                                gtol=GradientNorm(0.1),
+                                gtol=GradientRMS(0.1),
                                 etol=PotentialEnergy(0.1))
 
 
@@ -29,22 +29,22 @@ def test_optimiser_construct():
     # Optimiser needs valid arguments
     with pytest.raises(ValueError):
         _ = CartesianSDOptimiser(maxiter=0,
-                                 gtol=GradientNorm(0.1),
+                                 gtol=GradientRMS(0.1),
                                  etol=PotentialEnergy(0.1))
 
     with pytest.raises(ValueError):
         _ = CartesianSDOptimiser(maxiter=1,
-                                 gtol=GradientNorm(-0.1),
+                                 gtol=GradientRMS(-0.1),
                                  etol=PotentialEnergy(0.1))
 
     with pytest.raises(ValueError):
         _ = CartesianSDOptimiser(maxiter=1,
-                                 gtol=GradientNorm(-0.1),
+                                 gtol=GradientRMS(-0.1),
                                  etol=PotentialEnergy(0.1))
 
     with pytest.raises(ValueError):
         _ = CartesianSDOptimiser(maxiter=1,
-                                 gtol=GradientNorm(0.1),
+                                 gtol=GradientRMS(0.1),
                                  etol=PotentialEnergy(-0.1))
 
 
@@ -151,7 +151,7 @@ def test_history():
         _ = optimiser._history.minimum
 
     # and cannot contain a well in the energy
-    assert not optimiser._history.contains_well
+    assert not optimiser._history.contains_energy_rise
 
 
 @work_in_tmp_dir()
@@ -170,7 +170,7 @@ def test_xtb_h2_cart_opt():
 def test_xtb_h2_cart_opt():
 
     optimiser = CartesianSDOptimiser(maxiter=2,
-                                     gtol=GradientNorm(0.01),
+                                     gtol=GradientRMS(0.01),
                                      etol=PotentialEnergy(1E-3),
                                      )
     assert not optimiser.converged
@@ -190,7 +190,7 @@ def test_xtb_h2_dic_opt():
     # In DICs we can use a much larger step size
     optimiser = DIC_SD_Optimiser(step_size=2.5,
                                  maxiter=10,
-                                 gtol=GradientNorm(0.01),
+                                 gtol=GradientRMS(0.01),
                                  etol=PotentialEnergy(0.0001))
 
     mol = h2()

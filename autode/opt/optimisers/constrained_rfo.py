@@ -196,7 +196,7 @@ class CRFOOptimiser(RFOOptimiser):
         return None
 
     def _remove_satisfied_coordinates(self) -> None:
-        raise NotImplementedError
+        raise NotImplementedError  # TODO
 
     @property
     def _constraints(self) -> List[ConstrainedDistance]:

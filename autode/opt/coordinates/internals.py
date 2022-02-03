@@ -8,7 +8,7 @@ q : Primitive internal coordinates
 G : Spectroscopic G matrix
 """
 import numpy as np
-from typing import Any, Optional
+from typing import Any, Optional, Type
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (InverseDistance,
@@ -131,19 +131,16 @@ class PIC(list, ABC):
         return None
 
     @staticmethod
-    def _are_cartesian_coordinates(args: tuple) -> bool:
-        """Are a tuple of arguments Cartesian coordinates?"""
-        from autode.opt.coordinates.cartesian import CartesianCoordinates
-        return len(args) == 1 and isinstance(args[0], CartesianCoordinates)
-
-    @staticmethod
     def _are_all_primitive_coordinates(args: tuple) -> bool:
         return all(isinstance(arg, Primitive) for arg in args)
 
 
-class _FunctionDistances(PIC):
+class _FunctionOfDistances(PIC):
 
-    _primitive_type = None
+    @property
+    @abstractmethod
+    def _primitive_type(self) -> Type['_DistanceFunction']:
+        """Type of primitive coordinate defining f(r_ij)"""
 
     def _populate_all(self, x: np.ndarray):
 
@@ -157,13 +154,17 @@ class _FunctionDistances(PIC):
         return None
 
 
-class InverseDistances(_FunctionDistances):
+class InverseDistances(_FunctionOfDistances):
     """1 / r_ij for all unique pairs i,j. Will be redundant"""
 
-    _primitive_type = InverseDistance
+    @property
+    def _primitive_type(self):
+        return InverseDistance
 
 
-class Distances(_FunctionDistances):
+class Distances(_FunctionOfDistances):
     """r_ij for all unique pairs i,j. Will be redundant"""
 
-    _primitive_type = Distance
+    @property
+    def _primitive_type(self):
+        return Distance

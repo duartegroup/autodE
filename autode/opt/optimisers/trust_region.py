@@ -18,7 +18,7 @@ import numpy as np
 from typing import Optional, Union
 from abc import ABC, abstractmethod
 from autode.log import logger
-from autode.values import GradientNorm, PotentialEnergy
+from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt import CartesianCoordinates
 
@@ -27,7 +27,7 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
 
     def __init__(self,
                  maxiter:          int,
-                 gtol:            'autode.values.GradientNorm',
+                 gtol: 'autode.values.GradientRMS',
                  etol:            'autode.values.PotentialEnergy',
                  trust_radius:     float,
                  coords:           Optional['autode.opt.OptCoordinates'] = None,
@@ -61,7 +61,7 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
                  method:      'autode.wrappers.base.Method',
                  n_cores:      Optional[int] = None,
                  coords:       Optional['autode.opt.OptCoordinates'] = None,
-                 gtol:         Union[float, GradientNorm] = GradientNorm(1E-3, units='Ha Å-1'),
+                 gtol:         Union[float, GradientRMS] = GradientRMS(1E-3, units='Ha Å-1'),
                  etol:         Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
                  maxiter:      int = 5,
                  trust_radius: float = 0.2,

@@ -15,7 +15,7 @@ from typing import Optional
 from enum import Enum
 from autode.calculation import Calculation
 from autode.log import logger
-from autode.values import GradientNorm, Angle, MWDistance
+from autode.values import GradientRMS, Angle, MWDistance
 from autode.opt.optimisers.base import Optimiser
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 
@@ -27,7 +27,7 @@ class Dimer(Optimiser):
                  maxiter:         int,
                  coords:          DimerCoordinates,
                  ratio_rot_iters: int = 10,
-                 gtol:            GradientNorm = GradientNorm(1E-3, 'Ha Å-1'),
+                 gtol:            GradientRMS = GradientRMS(1E-3, 'Ha Å-1'),
                  trns_tol:        MWDistance = MWDistance(1E-3, 'Å amu^1/2'),
                  phi_tol:         Angle = Angle(5.0, '°'),
                  init_alpha:      MWDistance = MWDistance(0.3, 'Å amu^1/2')
@@ -37,8 +37,7 @@ class Dimer(Optimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            maxiter: Maximum number of combined translation and rotation
-                     iterations to perform
+            maxiter: Maximum number of gradient evaluations to do
 
             coords: Coordinates of the dimer, consisting of the end points and
                     the interpolated midpoint

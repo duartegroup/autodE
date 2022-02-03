@@ -2,10 +2,12 @@ import pytest
 import numpy as np
 from .molecules import h2, methane_mol
 from autode.opt.coordinates.base import CartesianComponent
-from autode.opt.coordinates.internals import InverseDistances
-from autode.opt.coordinates.primitives import InverseDistance, Distance
+from autode.opt.coordinates.internals import InverseDistances, PIC
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
+from autode.opt.coordinates.primitives import (InverseDistance,
+                                               Distance,
+                                               ConstrainedDistance)
 
 
 def test_inv_dist_primitives():
@@ -482,3 +484,25 @@ def test_coords_back_transform_tensor_clear():
     # Updating the positions should clear the gradient array
     dic += np.array([0.001])
     assert dic.g is None and dic._x.g is None
+
+
+def test_pic_B_no_primitives():
+
+    c = PIC()
+
+    # Cannot calculate a B matrix with no constituent primitive internals
+    with pytest.raises(Exception):
+        c._calc_B(np.arange(6, dtype=float).reshape(2, 3))
+
+
+def test_constrained_distance_satisfied():
+
+    d = ConstrainedDistance(0, 1, value=1.0)
+
+    x = np.array([[0.0, 0.0, 0.0],
+                  [0.0, 0.0, 0.5]])
+
+    assert not d.is_satisfied(x)
+
+    x[1, 2] = 1.0
+    assert d.is_satisfied(x)

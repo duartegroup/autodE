@@ -6,6 +6,7 @@ from autode.methods import XTB
 from autode.values import MWDistance
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 from autode.opt.optimisers.dimer import Dimer
+from .molecules import methane_mol
 from ..testutils import requires_with_working_xtb_install
 
 
@@ -250,3 +251,12 @@ def test_dimer_sn2():
     assert dimer.iteration > 1
     # assert dimer._history.final.phi.to('degrees') < 10
     assert dimer.converged
+
+
+def test_dimer_optimise_no_coordinates():
+
+    # Cannot use a dimer optimiser on a single species, unlike other optimisers
+    with pytest.raises(Exception):
+
+        Dimer.optimise(species=methane_mol(),
+                       method=XTB())

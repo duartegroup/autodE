@@ -196,8 +196,8 @@ class Value(ABC, float):
         return self.__add__(-other)
 
     def __floordiv__(self, other):
-        raise NotImplemented('Integer division is not supported by '
-                             'autode.values.Value')
+        raise NotImplementedError('Integer division is not supported by '
+                                  'autode.values.Value')
 
     def __truediv__(self, other) -> 'Value':
         return self.__class__(float(self) / float(self._other_same_units(other)),
@@ -633,12 +633,12 @@ class Gradient(ValueArray):
         return super().__new__(cls, input_array, units)
 
 
-class GradientNorm(Value):
+class GradientRMS(Value):
 
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
     def __repr__(self):
-        return f'|∇E|({round(self, 1)} {self.units.name})'
+        return f'RMS(∇E)({round(self, 4)} {self.units.name})'
 
     def __init__(self, x,
                  units: Union[Unit, str] = ha_per_ang):

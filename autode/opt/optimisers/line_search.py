@@ -195,7 +195,7 @@ class SArmijoLineSearch(ArmijoLineSearch):
         if self.iteration == 0:
             return False
 
-        if not self._history.contains_well:
+        if not self._history.contains_energy_rise:
             logger.warning(f'Line search has not reached a well yet, '
                            f'{self.alpha:.4f}')
             return False
@@ -214,7 +214,7 @@ class SArmijoLineSearch(ArmijoLineSearch):
         where :math:`\tau > 1`. But as soon as the energy rises then switch to
         :math:`\tau_{k+1} = 1/\tau_{k}`
         """
-        func = min if self._history.contains_well else max
+        func = min if self._history.contains_energy_rise else max
 
         self.tau = func(self.tau, 1 / self.tau)
         self.alpha *= self.tau
