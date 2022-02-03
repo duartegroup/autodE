@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Type, Optional, Sequence
+from typing import Any, Union, Type, Optional, Sequence
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -85,7 +85,8 @@ class Value(ABC, float):
     """
     implemented_units = []
 
-    def __init__(self, x,
+    def __init__(self,
+                 x:     Any,
                  units: Union[Unit, str, None] = None):
         """
         Value constructor
@@ -103,6 +104,9 @@ class Value(ABC, float):
             self.units = x.units
         else:
             self.units = _units_init(self, units)
+
+    def __new__(cls, *args, **kwargs):
+        return float.__new__(cls, args[0])
 
     @abstractmethod
     def __repr__(self):
