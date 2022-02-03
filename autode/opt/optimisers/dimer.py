@@ -15,7 +15,7 @@ from typing import Optional
 from enum import Enum
 from autode.calculation import Calculation
 from autode.log import logger
-from autode.values import GradientNorm, Angle, Distance
+from autode.values import GradientNorm, Angle, MWDistance
 from autode.opt.optimisers.base import Optimiser
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 
@@ -27,9 +27,10 @@ class Dimer(Optimiser):
                  maxiter:         int,
                  coords:          DimerCoordinates,
                  ratio_rot_iters: int = 10,
-                 gtol:            GradientNorm = GradientNorm(1E-3, units='Ha Å-1'),
-                 phi_tol:         Angle = Angle(5.0, units='°'),
-                 init_alpha:      Distance = Distance(0.3, units='Å')
+                 gtol:            GradientNorm = GradientNorm(1E-3, 'Ha Å-1'),
+                 trns_tol:        MWDistance = MWDistance(1E-3, 'Å amu^1/2'),
+                 phi_tol:         Angle = Angle(5.0, '°'),
+                 init_alpha:      MWDistance = MWDistance(0.3, 'Å amu^1/2')
                  ):
         """
         Dimer optimiser
@@ -47,6 +48,9 @@ class Dimer(Optimiser):
 
             gtol: Tolerance on the gradient at the midpoint for convergence
 
+            trns_tol: Tolerance on the minimum root mean square translation
+                      distance, below which convergence is signaled
+
             phi_tol: Tolerance on the rotation angle below which rotation is
                      not performed
 
@@ -57,6 +61,7 @@ class Dimer(Optimiser):
 
         self._ratio_rot_iters = ratio_rot_iters
         self.gtol = gtol
+        self.trns_tol = trns_tol
         self.phi_tol = phi_tol
         self.init_alpha = init_alpha
 
@@ -158,39 +163,34 @@ class Dimer(Optimiser):
         trns_iters = [c for c in self._history if c.did_translation]
 
         if len(trns_iters) < 2:
-            step_size = float(self.init_alpha.to("Å"))
-
+            step_size = float(self.init_alpha)
             logger.info(f'Did not have two previous translation step, guessing'
-                        f' γ = {step_size} Å')
+                        f' α = {step_size} Å')
 
         else:
             prev_trns_iter = trns_iters[-2]
             logger.info(f'Did {len(trns_iters)} previous translations, can '
-                        f'calculate γ')
+                        f'calculate α using the Barzilai–Borwein method')
 
-            # Barzilai–Borwein method for the step size
             step_size = (np.abs(np.dot((x0 - prev_trns_iter.x0),
                                        (self._coords.f_t - prev_trns_iter.f_t)))
                          / np.linalg.norm(self._coords.f_t - prev_trns_iter.f_t)**2)
 
-        # TODO: Read where this comes from
-        # step_size = float(self.init_alpha.to("Å"))
-
         delta_x = step_size * self._coords.f_t
-        length = np.linalg.norm(delta_x) / len(x0)
+        trns_rms = MWDistance(np.sqrt(np.mean(np.square(delta_x))))
 
-        if length < Distance(1E-4, units='Å'):
-            logger.info('Step length small than tolerance')
+        if trns_rms < self.trns_tol:
+            logger.info(f'Step length small than tolerance {self.trns_tol}')
             return _StepResult.skipped_translation
 
-        logger.info(f'Translating by {length:.4f} Å per coordinate')
+        logger.info(f'Translating by ~{trns_rms:.4f} per coordinate')
 
         coords = self._coords.copy()
         coords += delta_x
 
         self._coords = coords
         self._coords.phi = Angle(0.0)    # Did not rotation
-        self._coords.dist = length       # but did translate
+        self._coords.dist = trns_rms     # but did translate
 
         if update_g0:
             self._update_gradient_at(DimerPoint.midpoint)
@@ -307,14 +307,14 @@ class Dimer(Optimiser):
 
         if max_step_c > self.init_alpha:
             logger.warning(f'Step size ({max_step_c}) was above the tolerance'
-                           f' {self.init_alpha.to("Å")} Å. Scaling down')
+                           f' {self.init_alpha} Å amu^1/2. Scaling down')
             return self._rotate_coords(phi=phi/2, update_g1=update_g1)
 
         self._coords = self._coords.copy()
         self._coords.x1 = x0 + delta
         self._coords.x2 = x0 - delta
 
-        self._coords.dist = Distance(0.0)
+        self._coords.dist = MWDistance(0.0)
         self._coords.phi = phi
 
         # Midpoint has not moved so it's gradient its retained
@@ -328,7 +328,7 @@ class Dimer(Optimiser):
 
         logger.info(f'Rotated coordinates, now have |g1 - g0| = '
                     f'{np.linalg.norm(self._coords.g1 - self._coords.g0):.4f}.'
-                    f' ∆ = {self._coords.delta.to("Å"):.3f} Å')
+                    f' ∆ = {self._coords.delta:.3f}')
         return None
 
     def _optimise_rotation(self):

@@ -7,7 +7,8 @@ from enum import IntEnum, unique
 from typing import Union, Sequence, Optional
 from autode.opt.coordinates.base import OptCoordinates
 from autode.log import logger
-from autode.values import Angle, Distance
+from autode.values import Angle, MWDistance
+from autode.units import ang_amu_half
 
 
 @unique
@@ -23,9 +24,11 @@ class DimerCoordinates(OptCoordinates):
     """Mass weighted Cartesian coordinates for two points in space forming
     a dimer, such that the midpoint is close to a first order saddle point"""
 
+    implemented_units = [ang_amu_half]
+
     def __new__(cls,
                 input_array: Union[Sequence, np.ndarray],
-                units:       Union[str, 'autode.units.Unit'] = 'Å'
+                units:       Union[str, 'autode.units.Unit'] = 'Å amu^1/2'
                 ) -> 'OptCoordinates':
         """New instance of these coordinates"""
 
@@ -34,9 +37,9 @@ class DimerCoordinates(OptCoordinates):
         if arr.ndim != 2 or arr.shape[0] != 3:
             raise ValueError('Dimer coordinates must ')
 
-        arr._e = None             # Energy
-        arr.dist = Distance(0.0)  # Translation distance
-        arr._phi = Angle(0.0)     # Rotation amount
+        arr._e = None                             # Energy
+        arr._dist = MWDistance(0.0, 'Å amu^1/2')  # Translation distance
+        arr._phi = Angle(0.0, 'radians')          # Rotation amount
 
         """
         Compared to standard Cartesian coordinates these arrays have and
@@ -52,7 +55,7 @@ class DimerCoordinates(OptCoordinates):
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ('units', '_e', '_g', '_h', 'dist', '_phi', 'masses'):
+        for attr in ('units', '_e', '_g', '_h', '_dist', '_phi', 'masses'):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None
@@ -218,20 +221,32 @@ class DimerCoordinates(OptCoordinates):
     @property
     def delta(self) -> float:
         """Distance between the dimer point, Δ"""
-        x = np.linalg.norm(self.x1 - self.x2) / 2.0
-        return Distance(x, units=self.units)
+        return MWDistance(np.linalg.norm(self.x1 - self.x2) / 2.0,
+                          units=self.units)
 
     @property
     def phi(self) -> Angle:
-        """Angle that the dimer was rotated by from it's last position"""
+        """Angle that the dimer was rotated by from its last position"""
         return self._phi
 
     @phi.setter
     def phi(self, value: Angle):
         if not isinstance(value, Angle):
-            raise ValueError('phi must be an autode.values.Value instance')
+            raise ValueError('phi must be an autode.values.Angle instance')
 
         self._phi = value
+
+    @property
+    def dist(self) -> MWDistance:
+        """Distance that the dimer was translated by from its last position"""
+        return self._dist
+
+    @dist.setter
+    def dist(self, value: MWDistance):
+        if not isinstance(value, MWDistance):
+            raise ValueError('dist must be an autode.values.Distance instance')
+
+        self._dist = value
 
     @property
     def did_rotation(self):

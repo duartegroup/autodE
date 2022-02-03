@@ -152,7 +152,7 @@ def energy_unit_from_name(name: str) -> 'autode.units.Unit':
 # ------------------------------ Angles --------------------------------
 
 rad = BaseUnit(name='rad',
-               aliases=['radians'])
+               aliases=['radians', 'rads', 'radian'])
 
 
 deg = Unit(name='°',
@@ -181,6 +181,10 @@ pm = Unit(name='pm',
 m = Unit(name='m',
          conversion=Constants.ang_to_m,
          aliases=['meter'])
+
+
+ang_amu_half = BaseUnit(name='Å amu^1/2',
+                        aliases=['ang amu^1/2', 'Å amu^0.5', 'ang amu^0.5'])
 
 # ----------------------------------------------------------------------
 # ------------------------------ Masses --------------------------------

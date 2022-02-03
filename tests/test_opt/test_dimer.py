@@ -3,7 +3,7 @@ import numpy as np
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.methods import XTB
-from autode.values import Distance
+from autode.values import MWDistance
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 from autode.opt.optimisers.dimer import Dimer
 from ..testutils import requires_with_working_xtb_install
@@ -178,7 +178,7 @@ def test_dimer_2d():
 
     dimer = Dimer2D(maxiter=100,
                     coords=DimerCoordinates(arr),
-                    init_alpha=Distance(0.5))
+                    init_alpha=MWDistance(0.5))
 
     # Check the midpoint of the dimer is positioned correctly
     assert np.allclose(dimer._coords.x0,

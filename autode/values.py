@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from autode.log import logger
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev, J,
-                          ang, a0, nm, pm, m,
+                          ang, a0, nm, pm, m, ang_amu_half,
                           rad, deg,
                           wavenumber, hz,
                           amu, kg, m_e,
@@ -196,8 +196,8 @@ class Value(ABC, float):
         return self.__add__(-other)
 
     def __floordiv__(self, other):
-        raise NotImplementedError('Integer division is not supported by '
-                                  'autode.values.Value')
+        raise NotImplemented('Integer division is not supported by '
+                             'autode.values.Value')
 
     def __truediv__(self, other) -> 'Value':
         return self.__class__(float(self) / float(self._other_same_units(other)),
@@ -437,6 +437,18 @@ class Distance(Value):
         return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
+        super().__init__(value, units=units)
+
+
+class MWDistance(Value):
+    """Mass-weighted distance in some units, defaults to angstroms amu^(1/2)"""
+
+    implemented_units = [ang_amu_half]
+
+    def __repr__(self):
+        return f'Mass-weighted Distance({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=ang_amu_half):
         super().__init__(value, units=units)
 
 
