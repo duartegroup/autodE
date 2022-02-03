@@ -93,3 +93,15 @@ Optimisers
    :undoc-members:
    :special-members: __init__
    :private-members: _updated_h, _updated_h_inv
+
+|
+
+----------
+
+|
+
+.. automodule:: autode.opt.optimisers.dimer
+   :members:
+   :undoc-members:
+   :special-members: __init__
+   :private-members: _step

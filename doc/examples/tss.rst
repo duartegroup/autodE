@@ -27,7 +27,7 @@ the TS can be located with
 Out (visualised)
 
 .. image:: ../common/curtius_ts.png
-   :width: 400
+   :width: 370
    :align: center
 
 
@@ -82,6 +82,8 @@ allyl phenyl ether)
 Out:
 
 .. image:: ../common/claisen_neb_optimised.png
+   :width: 580
+   :align: center
 
 
 Out (visualised):

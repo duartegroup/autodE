@@ -37,6 +37,7 @@ Usability improvements/Changes
 Functionality improvements
 **************************
 
+- Adds a selection of molecule optimisers to locate minima and transition states
 - Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
 - Adds a :code:`autode.solvent.Solvent.dielectric` property for a solvent's dielectric constant
 - Adds a :code:`autode.solvent.Solvent.is_implicit` property

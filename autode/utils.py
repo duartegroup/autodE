@@ -144,11 +144,11 @@ def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
                     use_ll_tmp:        bool = False):
     """Execute a function in a temporary directory.
 
+    -----------------------------------------------------------------------
     Arguments:
-        filenames_to_copy (list(str)): Filenames to copy to the temp dir
+        filenames_to_copy: Filenames to copy to the temp dir
 
-        kept_file_exts (list(str): Filename extensions to copy back from
-                       the temp dir
+        kept_file_exts: Filename extensions to copy back from the temp dir
 
         use_ll_tmp (bool): If true then use autode.config.Config.ll_tmp_dir
     """

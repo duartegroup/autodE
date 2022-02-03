@@ -11,8 +11,8 @@ class RFOOptimiser(NDOptimiser):
     """Rational function optimisation in delocalised internal coordinates"""
 
     def __init__(self,
-                 init_alpha: float = 0.1,
                  *args,
+                 init_alpha: float = 0.1,
                  **kwargs):
         """
         Rational function optimiser (RFO) using a maximum step size of alpha

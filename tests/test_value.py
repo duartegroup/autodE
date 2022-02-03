@@ -4,7 +4,7 @@ from autode.constants import Constants
 from autode.units import (ha, kjmol, kcalmol, ev,
                           ang, a0, nm, pm, m,
                           rad, deg)
-from autode.values import (Value, Distance, Angle, Mass,
+from autode.values import (Value, Distance, MWDistance, Angle, Mass,
                            Energy, Energies,
                            PotentialEnergy, Enthalpy, FreeEnergy,
                            FreeEnergyCont, EnthalpyCont,
@@ -151,6 +151,7 @@ def test_free_energy():
 def test_distance():
 
     assert 'dist' in repr(Distance(1.0)).lower()
+    assert all(w in repr(MWDistance(1.0)).lower() for w in ('dist', 'mass'))
 
     # Bohrs are ~2 angstroms
     assert np.isclose(Distance(1.0, units=ang),
@@ -235,3 +236,18 @@ def test_contrib_guidelines():
 def test_gradient_norm():
 
     assert repr(GradientRMS(0.1)) is not None
+
+
+def test_to_wrong_type():
+
+    from autode.values import _to
+
+    # To function must have either a Value or a ValueArray
+    with pytest.raises(Exception):
+        _to('a', units='Å')
+
+    class Tmp:
+        units = 'X'
+
+    with pytest.raises(Exception):
+        _to(Tmp(), units='Å')

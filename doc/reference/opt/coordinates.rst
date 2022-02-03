@@ -37,3 +37,14 @@ Coordinates
    :members:
    :undoc-members:
    :special-members: __init__
+
+
+|
+----------
+|
+
+
+.. automodule:: autode.opt.coordinates.dimer
+   :members:
+   :undoc-members:
+   :special-members: __init__
