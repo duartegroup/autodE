@@ -1,25 +1,13 @@
 import pytest
 import numpy as np
-from autode import Molecule, Atom
 from autode.methods import XTB
 from autode.values import GradientNorm, PotentialEnergy
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
+from .molecules import h2, methane_mol
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.steepest_decent import (CartesianSDOptimiser,
                                                    DIC_SD_Optimiser)
-
-
-def methane_mol():
-    return Molecule(atoms=[Atom('C',  0.11105, -0.21307,  0.00000),
-                           Atom('H',  1.18105, -0.21307,  0.00000),
-                           Atom('H', -0.24562, -0.89375,  0.74456),
-                           Atom('H', -0.24562, -0.51754, -0.96176),
-                           Atom('H', -0.24562,  0.77207,  0.21720)])
-
-
-def h2():
-    return Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.5)])
 
 
 def sample_cartesian_optimiser():

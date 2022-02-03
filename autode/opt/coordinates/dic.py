@@ -13,7 +13,6 @@ summarised below:
 | q : Redundant internal coordinates
 | s : Non-redundant internal coordinates
 | U : Transformation matrix q -> s
-|
 """
 import numpy as np
 from time import time
@@ -24,6 +23,8 @@ from autode.opt.coordinates.primitives import ConstrainedDistance
 from autode.opt.coordinates.internals import (PIC,
                                               InverseDistances,
                                               InternalCoordinates)
+
+_max_back_transform_iterations = 100
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
@@ -69,18 +70,18 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Move all the weight along constrained distances to the single DIC
         # coordinates, so that Lagrange multipliers are easy to add
-        idxs = [i for i, coord in enumerate(primitives)
-                if isinstance(coord, ConstrainedDistance)]
+        primitive_idxs = [i for i, coord in enumerate(primitives)
+                          if isinstance(coord, ConstrainedDistance)]
 
-        if len(idxs) > 0:
-            eigvecs = rotate_columns(eigvecs, *idxs)
+        if len(primitive_idxs) > 0:
+            eigvecs = rotate_columns(eigvecs, *primitive_idxs)
 
         return eigvecs
 
     @classmethod
     def from_cartesian(cls,
-                       x:          'autode.opt.cartesian.CartesianCoordinates',
-                       primitives:  Optional[PIC] = None,
+                       x:         'autode.opt.coordinates.CartesianCoordinates',
+                       primitives: Optional[PIC] = None,
                        ) -> 'autode.opt.coordinates.dic.DIC':
         """
         Convert cartesian coordinates to primitives then to delocalised
@@ -91,8 +92,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         Arguments:
             x: Cartesian coordinates
 
-            primitives: Primitive internal
-                        coordinates, constructable from Cartesian
+            primitives: Primitive internal coordinates. If undefined then use
+                        all pairwise inverse distances
 
         Returns:
             (autode.opt.coordinates.DIC): Delocalised internal coordinates
@@ -209,10 +210,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Initialise
         s_k, x_k = self.raw, self._x.copy()
-        iteration = 0
 
-        # Converge to an RMS difference of less than a tolerance
-        while np.average(s_k - s_new) ** 2 > 1E-16 and iteration < 100:
+        for i in range(1, _max_back_transform_iterations+1):
 
             x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
 
@@ -220,21 +219,22 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 raise RuntimeError('Something went very wrong in the back '
                                    'transformation from internal -> carts')
 
-            # Rebuild the primitives from the back-transformed Cartesians
+            # Rebuild the primitives & DIC from the back-transformed Cartesians
             s_k = np.matmul(self.U.T, self.primitives(x_k))
 
             B = np.matmul(self.U.T, self.primitives.B)
             self.B_T_inv = np.linalg.pinv(B)
 
-            iteration += 1
+            if np.average(s_k - s_new)**2 < 1E-16:
+                logger.info( f'DIC transformation converged in {i} cycle(s) '
+                             f'in {time() - start_time:.4f} s')
+                break
 
-        logger.info(f'DIC transformation converged in {iteration} cycles and '
-                    f'{time() - start_time:.4f} s')
+            if i == _max_back_transform_iterations:
+                raise RuntimeError(f'Failed to transform in '
+                                   f'{_max_back_transform_iterations} cycles')
 
         self[:] = s_k
-        self.clear_tensors()
-
-        self._x = x_k
-        self._x.clear_tensors()
+        self._x[:] = x_k
 
         return self

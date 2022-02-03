@@ -1,23 +1,11 @@
 import pytest
 import numpy as np
-from autode import Molecule, Atom
+from .molecules import h2, methane_mol
 from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import InverseDistances
 from autode.opt.coordinates.primitives import InverseDistance, Distance
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
-
-
-def methane_mol():
-    return Molecule(atoms=[Atom('C',  0.11105, -0.21307,  0.00000),
-                           Atom('H',  1.18105, -0.21307,  0.00000),
-                           Atom('H', -0.24562, -0.89375,  0.74456),
-                           Atom('H', -0.24562, -0.51754, -0.96176),
-                           Atom('H', -0.24562,  0.77207,  0.21720)])
-
-
-def h2():
-    return Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.5)])
 
 
 def test_inv_dist_primitives():
@@ -470,3 +458,27 @@ def test_hess_positive_definite_h2o():
 
     # Step size should be small-ish in all coordinates
     assert np.max(np.abs(newton_step)) < 0.2  # Å
+
+
+def test_inplace_subtraction():
+
+    coords = CartesianCoordinates(np.array([1.0]))
+
+    coords -= np.array([0.1])
+    assert np.isclose(coords[0], 0.9, atol=1E-8)
+
+
+def test_coords_back_transform_tensor_clear():
+
+    raw_arr = np.arange(6, dtype=float).reshape(2, 3)  # 2 atoms
+    cart = CartesianCoordinates(raw_arr)
+
+    dic = DIC.from_cartesian(cart)
+    dic.update_g_from_cart_g(np.zeros_like(raw_arr))
+
+    assert dic.g is not None
+    assert dic._x.g is not None
+
+    # Updating the positions should clear the gradient array
+    dic += np.array([0.001])
+    assert dic.g is None and dic._x.g is None

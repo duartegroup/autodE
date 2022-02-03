@@ -271,19 +271,24 @@ class OptCoordinates(ValueArray, ABC):
 
         return new_coords
 
-    def __sub__(self, other: Union[np.ndarray, float]) -> 'OptCoordinates':
+    def __sub__(self,
+                other: Union[np.ndarray, float]
+                ) -> 'OptCoordinates':
         """Subtraction"""
         return self.__add__(-other)
 
-    def __iadd__(self, other):
+    def __iadd__(self,
+                 other: Union[np.ndarray, float]
+                 ) -> 'OptCoordinates':
         """Inplace addition"""
         self.clear_tensors()
         return self.__add__(other)
 
-    def __isub__(self, other):
+    def __isub__(self,
+                 other: Union[np.ndarray, float]
+                 ) -> 'OptCoordinates':
         """Inplace subtraction"""
-        self.clear_tensors()
-        return self.__sub__(other)
+        return self.__iadd__(-other)
 
     def clear_tensors(self) -> None:
         """
