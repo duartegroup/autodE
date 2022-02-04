@@ -181,7 +181,7 @@ class Molecule(Species):
         self.conformers.prune_on_rmsd()
         return None
 
-    def populate_conformers(self, n_confs: int) -> None:
+    def populate_conformers(self, n_confs: Optional[int] = None) -> None:
         """
         Populate self.conformers with a conformers generated using a default
         method

@@ -16,6 +16,6 @@ pes.save('pes.npz')
 # For example, reload the PES and print the distances and energies
 pes = ade.pes.RelaxedPESnD.from_file('pes.npz')
 
-print('r_1 (Å)   E (Ha)')
+print('r (Å)   E (Ha)')
 for i in range(15):
     print(f'{pes.r1[i]:.4f}', f'{pes[i]:.5f}')

@@ -6,7 +6,8 @@ Changelog
 --------
 ----------
 
-Optimisation algorithms for faster and more robust minima and TS location. Improves potential energy surface module
+Adds optimisation algorithms experimental explicit solvation, improves potential energy surface
+module as well as an array of usability improvements.
 
 
 Usability improvements/Changes

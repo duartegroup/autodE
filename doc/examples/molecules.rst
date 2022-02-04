@@ -91,7 +91,7 @@ then rotate around the x axis
 .. code-block:: python
 
   >>> import numpy as np
-  >>> water.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
+  >>> water.rotate(axis=[1.0, 0.0, 0.0], theta=np.pi)
   >>> water.coordinates
   Coordinates([[ 0.    ,  0.   ,  0.    ],
                [-0.8250, 0.1819,  0.    ],
@@ -120,7 +120,7 @@ Calculations
 .. image:: ../common/water_opt_energy.png
 
 **autodE** provides wrappers around common electronic structure theory packages
-(ORCA, XTB, NWChem, MOPAC, Gaussian09, Gaussian16) so geometries may be
+(ORCA, XTB, NWChem, MOPAC, Gaussian09, Gaussian16, QChem) so geometries may be
 optimised and energies calculated.
 
 For example, to optimise the geometry of a water molecule at the XTB level and
