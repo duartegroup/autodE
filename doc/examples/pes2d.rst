@@ -30,7 +30,7 @@ Out:
 .. image:: ../common/DA_surface_interpolated.png
 
 
-where the .xyz file used is:
+where the .xyz file (cyclohexene.xyz) used is:
 
 .. literalinclude:: ../common/cyclohexene.xyz
 

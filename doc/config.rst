@@ -3,18 +3,8 @@ Configuration
 
 Configuration is handled with :code:`ade.Config` and can be modified for full
 customization of the calculations. By default, high-level optimisations are
-performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP. To
-edit the default configuration permanently edit the config file, the location
-of which can be accessed with:
+performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP.
 
-.. code-block:: python
-
-    >>> import autode as ade
-    >>> ade.config.location
-    '/a/path/.../lib/python3.X/site-packages/autode.../autode/config.py'
-
-
-------------
 
 Calculations
 ------------

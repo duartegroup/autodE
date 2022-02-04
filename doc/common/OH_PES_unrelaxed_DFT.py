@@ -9,7 +9,7 @@ pes = ade.pes.UnRelaxedPES1D(species=ade.Molecule(name='H2O', smiles='O'),
 for functional in ('PBE', 'PBE0', 'B3LYP'):
 
     pes.calculate(method=ade.methods.ORCA(),
-                  keywords=ade.SinglePointKeywords([functional, 'def2-SVP']))
+                  keywords=[functional, 'def2-SVP'])
 
     plt.plot(pes.r1,
              pes.relative_energies.to('kcal mol-1'),
