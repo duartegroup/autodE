@@ -1,9 +1,14 @@
-from autode import Reactant, Product, Reaction
+import autode as ade
 from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.locate_tss import get_ts
 
-r = Reactant('cope_r.xyz')
-p = Product('cope_p.xyz')
+ade.Config.n_cores = 8
+
+# Use ORCA as both the high and low-level code
+ade.Config.lcode = ade.Config.hcode = 'orca'
+
+r = ade.Reactant('cope_r.xyz')
+p = ade.Product('cope_p.xyz')
 
 # Define the bond rearrangement as tuples for each forming and breaking bond
 bond_rearr = BondRearrangement(forming_bonds=[(5, 9)],
