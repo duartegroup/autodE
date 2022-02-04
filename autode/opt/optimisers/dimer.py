@@ -204,7 +204,8 @@ class Dimer(Optimiser):
 
         self._coords._g = np.zeros(shape=(3, 3*self._species.n_atoms))
 
-        # TODO: Hessian
+        # TODO: Hessian. Ref [1] shows that a BFGS step to the translation
+        # and rotation -> faster convergence than SD steps
 
         self._update_gradient_at(DimerPoint.midpoint)
         self._update_gradient_at(DimerPoint.left)

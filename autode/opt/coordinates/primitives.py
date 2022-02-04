@@ -132,7 +132,7 @@ class InverseDistance(_DistanceFunction):
 
 class Distance(_DistanceFunction):
     """
-    Distance between to atoms:
+    Distance between two atoms:
 
     .. math::
 

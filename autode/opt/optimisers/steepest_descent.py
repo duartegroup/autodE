@@ -3,7 +3,7 @@ from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.optimisers.base import NDOptimiser
 
 
-class SteepestDecent(NDOptimiser, ABC):
+class SteepestDescent(NDOptimiser, ABC):
 
     def __init__(self, maxiter, gtol, etol, step_size=0.2, **kwargs):
         """
@@ -34,7 +34,7 @@ class SteepestDecent(NDOptimiser, ABC):
         self._coords = self._coords - self.alpha * self._coords.g
 
 
-class CartesianSDOptimiser(SteepestDecent):
+class CartesianSDOptimiser(SteepestDescent):
     """Steepest decent optimisation in Cartesian coordinates"""
 
     def _initialise_run(self) -> None:
@@ -46,7 +46,7 @@ class CartesianSDOptimiser(SteepestDecent):
         self._update_gradient_and_energy()
 
 
-class DIC_SD_Optimiser(SteepestDecent):
+class DIC_SD_Optimiser(SteepestDescent):
     """Steepest decent optimisation in delocalised internal coordinates"""
 
     def _initialise_run(self) -> None:

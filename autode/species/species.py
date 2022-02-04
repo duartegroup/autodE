@@ -465,7 +465,7 @@ class Species(AtomCollection):
     @property
     def atomic_symbols(self) -> List[str]:
         """Atomic symbols of all atoms in this species"""
-        return [] if self.atoms is None else [a.label for a in self.atoms]
+        return [atom.label for atom in self.atoms] if self.atoms else []
 
     @property
     def sorted_atomic_symbols(self) -> List[str]:
@@ -475,8 +475,7 @@ class Species(AtomCollection):
     @property
     def atomic_masses(self) -> List[float]:
         """Atom masses of all the atoms in this species"""
-        atoms = [] if self.atoms is None else self.atoms
-        return [atom.mass for atom in atoms]
+        return [atom.mass for atom in self.atoms] if self.atoms else []
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:

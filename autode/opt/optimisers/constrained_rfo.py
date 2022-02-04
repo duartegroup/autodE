@@ -84,7 +84,8 @@ class CRFOOptimiser(RFOOptimiser):
 
         b, U = np.linalg.eigh(hess)
 
-        assert sum(b_i < 0 for b_i in b) == m  # Needs m negative eigenvalues
+        if sum(b_i < 0 for b_i in b) != m:
+            raise RuntimeError('Needs N negative eigenvalues = N constraints')
 
         # Convert the gradient
         F = [np.dot(U[:, i], g) for i in range(n+m)]
@@ -190,6 +191,7 @@ class CRFOOptimiser(RFOOptimiser):
 
         prev_coords = self._history.penultimate
 
+        # TODO: Should not have impose the constraints like this(?)
         for idx in self._species.constraints.cartesian:
             self._coords._x[3*idx:3*idx+3] = prev_coords._x[3*idx:3*idx+3]
 

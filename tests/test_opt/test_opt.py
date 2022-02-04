@@ -6,8 +6,8 @@ from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
 from .molecules import h2, methane_mol
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.steepest_decent import (CartesianSDOptimiser,
-                                                   DIC_SD_Optimiser)
+from autode.opt.optimisers.steepest_descent import (CartesianSDOptimiser,
+                                                    DIC_SD_Optimiser)
 
 
 def sample_cartesian_optimiser():
