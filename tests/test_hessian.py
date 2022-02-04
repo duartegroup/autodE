@@ -7,7 +7,7 @@ from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
 from autode.calculation import Calculation
 from autode.species import Molecule
-from autode.values import Frequency
+from autode.values import Frequency, Distance
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
@@ -15,8 +15,8 @@ from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
 from autode.hessians import (Hessian,
-                             calculate_numerical_hessian,
-                             _NumericalHessianCalculator)
+                             NumericalHessianCalculator,
+                             HybridHessianCalculator)
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -395,11 +395,12 @@ def test_num_hess_invalid_input():
                          HessianKeywords(['PBE', 'Def2-SVP'])):
 
         with pytest.raises(ValueError):
-            calculate_numerical_hessian(species=water,
-                                        method=orca,
-                                        keywords=invalid_kwds,
-                                        do_c_diff=False,
-                                        shift=Distance(1E-3, units='Å'))
+            nhc = NumericalHessianCalculator(species=water,
+                                             method=orca,
+                                             keywords=invalid_kwds,
+                                             do_c_diff=False,
+                                             shift=Distance(1E-3, units='Å'))
+            nhc.calculate()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
@@ -468,11 +469,11 @@ def test_ind_num_hess_row():
 
     for flag in (True, False):
 
-        calculator = _NumericalHessianCalculator(species=h2,
-                                                 method=xtb,
-                                                 keywords=xtb.keywords.grad,
-                                                 do_c_diff=flag,
-                                                 shift=0.001)
+        calculator = NumericalHessianCalculator(species=h2,
+                                                method=xtb,
+                                                keywords=xtb.keywords.grad,
+                                                do_c_diff=flag,
+                                                shift=Distance(0.001, units='Å'))
 
         # Non central differences require an initial gradient at the curr geom
         calculator._init_gradient = calculator._gradient(calculator._species)
@@ -485,3 +486,90 @@ def test_ind_num_hess_row():
         assert np.isclose(row[0],
                           1.00957,
                           atol=1E-1)
+
+
+def test_partial_num_hess_init():
+
+    # Cannot generate a PartialNumericalHessianCalculator with atom indexes
+    # that are not present in the system
+    mol = ade.Molecule(smiles='O')
+
+    orca = ORCA()
+    orca.path = here   # spoof ORCA install
+    assert orca.available
+
+    for invalid_idx in (-1, 3, 'a'):
+        with pytest.raises(ValueError):
+            _ = HybridHessianCalculator(mol,
+                                        idxs=(invalid_idx,),
+                                        shift=Distance(0.01),
+                                        lmethod=orca,
+                                        hmethod=orca)
+
+
+@testutils.requires_with_working_xtb_install
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'num_hess.zip'))
+def test_partial_water_num_hess():
+
+    orca_num_hess = np.array(
+             [[ 2.31,  0.01,  0.  , -1.16, -0.76,  0.  , -1.15,  0.75, -0.  ],
+              [ 0.01,  1.28,  0.  , -0.57, -0.64,  0.  ,  0.55, -0.63,  0.  ],
+              [ 0.  ,  0.  ,  0.03, -0.  , -0.  , -0.01,  0.  , -0.  , -0.02],
+              [-1.16, -0.57, -0.  ,  1.22,  0.67, -0.  , -0.05, -0.1 ,  0.  ],
+              [-0.76, -0.64, -0.  ,  0.67,  0.61, -0.  ,  0.1 ,  0.03,  0.  ],
+              [ 0.  ,  0.  , -0.01, -0.  , -0.  ,  0.04, -0.  ,  0.  , -0.03],
+              [-1.15,  0.55,  0.  , -0.05,  0.1 , -0.  ,  1.2 , -0.65,  0.  ],
+              [ 0.75, -0.63, -0.  , -0.1 ,  0.03,  0.  , -0.65,  0.6 , -0.  ],
+              [-0.  ,  0.  , -0.02,  0.  ,  0.  , -0.03,  0.  , -0.  ,  0.05]])
+
+    xtb_num_hess = np.array(
+             [[ 1.85,  0.01,  0.  , -0.93, -0.6 ,  0.  , -0.92,  0.59, -0.  ],
+              [ 0.01,  1.13,  0.  , -0.46, -0.57,  0.  ,  0.45, -0.56,  0.  ],
+              [ 0.  ,  0.  ,  0.05, -0.  , -0.  , -0.06,  0.  , -0.  , -0.06],
+              [-0.93, -0.46, -0.  ,  1.02,  0.53, -0.  , -0.09, -0.07,  0.  ],
+              [-0.6 , -0.57, -0.  ,  0.53,  0.51, -0.  ,  0.07,  0.06, -0.  ],
+              [ 0.  ,  0.  , -0.06, -0.  , -0.  ,  0.04, -0.  , -0.  ,  0.05],
+              [-0.92,  0.45,  0.  , -0.09,  0.07, -0.  ,  1.  , -0.52,  0.  ],
+              [ 0.59, -0.56, -0.  , -0.07,  0.06, -0.  , -0.52,  0.5 , -0.  ],
+              [-0.  ,  0.  , -0.06,  0.  , -0.  ,  0.05,  0.  , -0.  ,  0.05]])
+
+    orca = ORCA()
+    orca.path = here   # spoof ORCA install
+    assert orca.available
+
+    water = Molecule(name='water_partial_num_hess', charge=0, mult=1,
+                     atoms=[Atom('O', -0.00110,  0.36310, -0.00000),
+                            Atom('H', -0.82500, -0.18190, -0.00000),
+                            Atom('H',  0.82610, -0.18120,  0.00000)])
+
+    calculator = HybridHessianCalculator(
+                                            water,
+                                            idxs=(0,),
+                                            shift=Distance(0.001, units='Å'),
+                                            hmethod=orca,
+                                            lmethod=XTB())
+    calculator.calculate()
+    partial_hess = calculator.hessian
+    """
+    Partial Hessian should have structure
+    
+         (   A    B  )
+    H =  (           )
+         (   B    C  )
+    """
+
+    # Block A for the displacement for atom 0 should be identical to the
+    # total ORCA hessian
+    assert np.allclose(partial_hess[:3, :3],
+                       orca_num_hess[:3, :3],
+                       atol=1E-2)
+
+    # while block C should be just the XTB numerical Hessian
+    assert np.allclose(partial_hess[3:, 3:],
+                       xtb_num_hess[3:, 3:],
+                       atol=1E-2)
+
+    # who knows what the off diagonals should be...
+    assert np.allclose(partial_hess[3:, :3],
+                       (xtb_num_hess[3:, :3] + orca_num_hess[3:, :3]) / 2.0,
+                       atol=1E-1)

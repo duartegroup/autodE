@@ -1,12 +1,12 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Type, Optional, Sequence
+from typing import Any, Union, Type, Optional, Sequence
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev, J,
-                          ang, a0, nm, pm, m,
+                          ang, a0, nm, pm, m, ang_amu_half,
                           rad, deg,
                           wavenumber, hz,
                           amu, kg, m_e,
@@ -15,13 +15,15 @@ from autode.units import (Unit,
                           MB, GB, TB)
 
 
-def _to(value,
+def _to(value: Union['Value', 'ValueArray'],
         units: Union[Unit, str]):
-    """Convert a value or value array to a new unit and return a copy
+    """
+    Convert a value or value array to a new unit and return a copy
 
+    ---------------------------------------------------------------------------
     Arguments:
-        value (autode.values.Value | autode.values.ValueArray):
-        units (autode.units.Unit | str):
+        value:
+        units: New units that the
 
     Returns:
         (autode.values.Value):
@@ -38,7 +40,16 @@ def _to(value,
                         f'-> {units}')
 
     #                      Convert to the base unit, then to the new units
-    return value.__class__(value * units.conversion / value.units.conversion,
+    if isinstance(value, Value):
+        raw_value = float(value)
+    elif isinstance(value, ValueArray):
+        raw_value = np.array(value)
+    else:
+        raise ValueError(f'Cannot convert {value} to new units. Must be one of'
+                         f' Value of ValueArray')
+
+    return value.__class__(raw_value * float(units.conversion
+                                             / value.units.conversion),
                            units=units)
 
 
@@ -74,7 +85,8 @@ class Value(ABC, float):
     """
     implemented_units = []
 
-    def __init__(self, x,
+    def __init__(self,
+                 x:     Any,
                  units: Union[Unit, str, None] = None):
         """
         Value constructor
@@ -92,6 +104,9 @@ class Value(ABC, float):
             self.units = x.units
         else:
             self.units = _units_init(self, units)
+
+    def __new__(cls, *args, **kwargs):
+        return float.__new__(cls, args[0])
 
     @abstractmethod
     def __repr__(self):
@@ -121,22 +136,21 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
-    def __eq__(self, other):
-        """Equality of two values, which may be in different units
-        use default numpy close-ness to compare"""
+    def __eq__(self, other) -> bool:
+        """Equality of two values, which may be in different units"""
 
         if other is None:
             return False
 
         if isinstance(other, Value):
-            return np.isclose(other.to(self.units), float(self))
+            other = other.to(self.units)
 
-        return np.isclose(other, float(self))
+        return abs(float(self) - float(other)) < 1E-8
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """Less than comparison operator"""
 
         if isinstance(other, Value):
@@ -144,19 +158,19 @@ class Value(ABC, float):
 
         return float(self) < other
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         """Greater than comparison operator"""
         return not self.__lt__(other)
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         """Greater than or equal to comparison operator"""
         return self.__lt__(other) or self.__eq__(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         """Less than or equal to comparison operator"""
         return self.__gt__(other) or self.__eq__(other)
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Value':
         """Add another value onto this one"""
         if isinstance(other, np.ndarray):
             return other + float(self)
@@ -164,7 +178,7 @@ class Value(ABC, float):
         return self.__class__(float(self) + self._other_same_units(other),
                               units=self.units)
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'Value':
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -172,14 +186,26 @@ class Value(ABC, float):
         return self.__class__(float(self) * self._other_same_units(other),
                               units=self.units)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> 'Value':
         return self.__mul__(other)
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> 'Value':
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Value':
         return self.__add__(-other)
+
+    def __floordiv__(self, other):
+        raise NotImplementedError('Integer division is not supported by '
+                                  'autode.values.Value')
+
+    def __truediv__(self, other) -> 'Value':
+        return self.__class__(float(self) / float(self._other_same_units(other)),
+                              units=self.units)
+
+    def __abs__(self) -> 'Value':
+        """Absolute value"""
+        return self if self > 0 else self * -1
 
     def to(self, units):
         """Convert this value to a new unit, returning a copy
@@ -297,7 +323,7 @@ class Allocation(Value):
         return f'Allocation({round(self, 1)} {self.units.name})'
 
     def __init__(self, x,
-                 units: Union[Unit, str, None] = MB):
+                 units: Union[Unit, str] = MB):
         """
         Allocation of memory or disk, must be non-negative
 
@@ -411,6 +437,18 @@ class Distance(Value):
         return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
+        super().__init__(value, units=units)
+
+
+class MWDistance(Value):
+    """Mass-weighted distance in some units, defaults to angstroms amu^(1/2)"""
+
+    implemented_units = [ang_amu_half]
+
+    def __repr__(self):
+        return f'Mass-weighted Distance({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=ang_amu_half):
         super().__init__(value, units=units)
 
 
@@ -593,6 +631,19 @@ class Gradient(ValueArray):
 
     def __new__(cls,  input_array, units=ha_per_ang):
         return super().__new__(cls, input_array, units)
+
+
+class GradientRMS(Value):
+
+    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
+
+    def __repr__(self):
+        return f'RMS(∇E)({round(self, 4)} {self.units.name})'
+
+    def __init__(self, x,
+                 units: Union[Unit, str] = ha_per_ang):
+
+        super().__init__(x=x, units=units)
 
 
 class MomentOfInertia(ValueArray):

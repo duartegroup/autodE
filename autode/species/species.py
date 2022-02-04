@@ -9,21 +9,22 @@ from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
-from autode.log.methods import methods
+from autode.log.methods import methods as method_log
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
-from autode.methods import get_lmethod, get_hmethod, ElectronicStructureMethod
-from autode.hessians import Hessian, calculate_numerical_hessian
+from autode import methods
+from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
 from autode.thermochemistry.igm import calculate_thermo_cont, LFMethod
 from autode.utils import requires_atoms, work_in, requires_conformers
 from autode.wrappers.keywords import (OptKeywords,
                                       HessianKeywords,
+                                      GradientKeywords,
                                       SinglePointKeywords)
 
 
@@ -320,7 +321,7 @@ class Species(AtomCollection):
 
         else:
             raise ValueError(f'Could not set the gradient with {value}, Must '
-                             f'be a numpy array or a Hessian.')
+                             f'be a numpy array or a Gradient.')
 
     @property
     def frequencies(self) -> Optional[List[val.Frequency]]:
@@ -464,12 +465,17 @@ class Species(AtomCollection):
     @property
     def atomic_symbols(self) -> List[str]:
         """Atomic symbols of all atoms in this species"""
-        return [] if self.atoms is None else [a.label for a in self.atoms]
+        return [atom.label for atom in self.atoms] if self.atoms else []
 
     @property
     def sorted_atomic_symbols(self) -> List[str]:
         """Atomic symbols of all atoms sorted alphabetically"""
         return list(sorted(self.atomic_symbols))
+
+    @property
+    def atomic_masses(self) -> List[float]:
+        """Atom masses of all the atoms in this species"""
+        return [atom.mass for atom in self.atoms] if self.atoms else []
 
     @property
     def energy(self) -> Optional[val.PotentialEnergy]:
@@ -668,24 +674,24 @@ class Species(AtomCollection):
         raise NotImplementedError('Could not generate conformers. '
                                   'generate_conformers() not implemented')
 
-    def _default_hessian_calculation(self, method=None, keywords=None):
+    def _default_hessian_calculation(self, method=None, keywords=None, n_cores=None):
         """Construct a default Hessian calculation"""
 
-        method = method if method is not None else get_hmethod()
+        method = methods.method_or_default_hmethod(method)
         keywords = keywords if keywords is not None else method.keywords.hess
 
         calc = Calculation(name=f'{self.name}_hess',
                            molecule=self,
                            method=method,
                            keywords=HessianKeywords(keywords),
-                           n_cores=Config.n_cores)
+                           n_cores=Config.n_cores if n_cores is None else n_cores)
 
         return calc
 
     def _default_opt_calculation(self, method=None, keywords=None, n_cores=None):
         """Construct a default optimisation calculation"""
 
-        method = method if method is not None else get_hmethod()
+        method = methods.method_or_default_hmethod(method)
         keywords = keywords if keywords is not None else method.keywords.opt
         logger.info(f'Using keywords: {keywords} to optimise with {method}')
 
@@ -943,7 +949,7 @@ class Species(AtomCollection):
 
     @requires_atoms
     def optimise(self,
-                 method:      Optional[ElectronicStructureMethod] = None,
+                 method:      Optional['ElectronicStructureMethod'] = None,
                  reset_graph: bool = False,
                  calc:        Optional[Calculation] = None,
                  keywords:    Union[Sequence[str], str, None] = None,
@@ -994,7 +1000,7 @@ class Species(AtomCollection):
 
     @requires_atoms
     def calc_thermo(self,
-                    method:     Optional[ElectronicStructureMethod] = None,
+                    method:     Optional['ElectronicStructureMethod'] = None,
                     calc:       Optional[Calculation] = None,
                     temp:       float = 298.15,
                     keywords:   Union[Sequence[str], str, None] = None,
@@ -1070,7 +1076,7 @@ class Species(AtomCollection):
 
     @requires_atoms
     def single_point(self,
-                     method:   ElectronicStructureMethod,
+                     method:   'ElectronicStructureMethod',
                      keywords: Union[Sequence[str], str, None] = None,
                      n_cores:  Optional[int] = None
                      ) -> None:
@@ -1110,8 +1116,8 @@ class Species(AtomCollection):
 
     @work_in('conformers')
     def find_lowest_energy_conformer(self,
-                                     lmethod:                    Optional[ElectronicStructureMethod] = None,
-                                     hmethod:                    Optional[ElectronicStructureMethod] = None,
+                                     lmethod:                    Optional['ElectronicStructureMethod'] = None,
+                                     hmethod:                    Optional['ElectronicStructureMethod'] = None,
                                      allow_connectivity_changes: bool = False
                                      ) -> None:
         """
@@ -1141,18 +1147,16 @@ class Species(AtomCollection):
                            'or fewer')
             return None
 
-        if lmethod is None:
-            logger.info('Getting the default low level method')
-            lmethod = get_lmethod()
+        lmethod = methods.method_or_default_lmethod(lmethod)
 
-        methods.add('Low energy conformers located with the')
+        method_log.add('Low energy conformers located with the')
         self._generate_conformers()
 
         # For all generated conformers optimise with the low level of theory
         method_string = f'and optimised using {lmethod.name}'
         if hmethod is not None:
             method_string += f' then with {hmethod.name}'
-        methods.add(f'{method_string}.')
+        method_log.add(f'{method_string}.')
 
         self.conformers.optimise(method=lmethod)
         self.conformers.prune(remove_no_energy=True)
@@ -1218,11 +1222,12 @@ class Species(AtomCollection):
         return None
 
     def calc_hessian(self,
-                     method:                  ElectronicStructureMethod,
+                     method:                  'ElectronicStructureMethod',
                      keywords:                Union[Sequence[str], str, None] = None,
                      numerical:               bool = False,
                      use_central_differences: bool = False,
-                     coordinate_shift:        Union[float, val.Distance] = val.Distance(2E-3, units='Å')
+                     coordinate_shift:        Union[float, val.Distance] = val.Distance(2E-3, units='Å'),
+                     n_cores:                 Optional[int] = None
                      ) -> None:
         """
         Calculate the Hessian
@@ -1246,7 +1251,20 @@ class Species(AtomCollection):
 
             coordinate_shift: Shift applied to each Cartesian coordinate (h)
                               in the calculation of the numerical Hessian
+
+
+            n_cores: Number of cores to use for the calculation. If None
+                     then default to Config.n_cores
         """
+
+        if not method.implements_hessian:
+            logger.warning(f'{method} does not implement a Hessian - using a '
+                           f'numerical Hessian and overriding the keywords')
+            numerical = True
+
+            if not isinstance(keywords, GradientKeywords):
+                logger.warning(f'Using default gradient keywords for {method}')
+                keywords = method.keywords.grad
 
         if numerical:
 
@@ -1260,16 +1278,20 @@ class Species(AtomCollection):
                             'numerical Hessian')
                 keywords = method.keywords.grad
 
-            calculate_numerical_hessian(self,
-                                        method=method,
-                                        keywords=keywords,
-                                        do_c_diff=use_central_differences,
-                                        shift=coordinate_shift)
+            nhc = NumericalHessianCalculator(self,
+                                             method=method,
+                                             keywords=keywords,
+                                             do_c_diff=use_central_differences,
+                                             shift=coordinate_shift,
+                                             n_cores=n_cores)
+            nhc.calculate()
+            self.hessian = nhc.hessian
 
         if not numerical:
             self._run_hess_calculation(method=method,
                                        calc=None,
-                                       keywords=keywords)
+                                       keywords=keywords,
+                                       n_cores=n_cores)
         return None
 
     def has_identical_composition_as(self,

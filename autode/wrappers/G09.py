@@ -9,8 +9,7 @@ from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
-from autode.calculation import CalculationOutput
-from autode.calculation import Constraints
+from autode.constraints import Constraints
 from autode.utils import work_in_tmp_dir
 
 
@@ -260,6 +259,8 @@ def rerun_angle_failure(calc):
     Returns:
         (autode.calculation.Calculation):
     """
+    from autode.calculation import CalculationOutput
+
     cart_calc = deepcopy(calc)
 
     # Iterate through a copied set of keywords
@@ -323,7 +324,9 @@ def _run_hessian(calc):
 
     Returns:
         (autode.calculation.Calculation):
-    """    
+    """
+    from autode.calculation import CalculationOutput
+
     hess_calc = deepcopy(calc)  # Uses a copy so the current calc. is unchanged
 
     # Remove any optimisation keywords

@@ -37,6 +37,7 @@ Usability improvements/Changes
 Functionality improvements
 **************************
 
+- Adds a selection of molecule optimisers to locate minima and transition states
 - Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
 - Adds a :code:`autode.solvent.Solvent.dielectric` property for a solvent's dielectric constant
 - Adds a :code:`autode.solvent.Solvent.is_implicit` property
@@ -48,6 +49,7 @@ Functionality improvements
 - Adds a QChem electronic structure method wrapper
 - Adds :code:`autode.species.Species.calc_hessian` to calculate either an analytic or numerical Hessian (in parallel)
 - Adds image dependent pair potential (IDPP) relaxation improved interpolated geometries
+- Adds :code:`autode.hessians.HybridHessianCalculator` to calculate numerical Hessians at two levels of theory
 
 
 Bug Fixes

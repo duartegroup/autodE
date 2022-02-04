@@ -6,7 +6,6 @@ from typing import List
 from shutil import which
 from autode.log import logger
 from autode.utils import requires_output
-from autode.solvent.solvents import solvents
 from copy import deepcopy
 
 
@@ -66,6 +65,7 @@ class ElectronicStructureMethod(Method, ABC):
     @property
     def available_implicit_solvents(self) -> List[str]:
         """Available implicit solvent models for this EST method"""
+        from autode.solvent.solvents import solvents
 
         return [s.name for s in solvents
                 if s.is_implicit and hasattr(s, self.name)]
@@ -73,6 +73,18 @@ class ElectronicStructureMethod(Method, ABC):
     @property
     def doi_str(self):
         return " ".join(self.doi_list)
+
+    @property
+    def implements_hessian(self) -> bool:
+        """
+        Is either an analytic or numerical Hessian evaluation implemented
+        within the electronic structure package?
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        return len(self.keywords.hess) > 0
 
     @abstractmethod
     def generate_input(self, calc, molecule):

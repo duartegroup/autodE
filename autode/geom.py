@@ -337,3 +337,56 @@ def symm_matrix_from_ltril(array):
     matrix.T[lower_idxs] = matrix[lower_idxs]
 
     return matrix
+
+
+def rotate_columns(arr:   np.ndarray,
+                   *idxs: int
+                   ) -> np.ndarray:
+    """
+    Rotate an orthogonal matrix such that some of the columns are unit vectors
+    with unit components in the index. Uses a Schmidt orthrogonalisation
+    (https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process)
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        arr: Input matrix
+
+        *idxs: Indexes of the rows which need to have unit components in each
+               column
+
+    Returns:
+        (np.ndarray): Matrix
+    """
+    if not (isinstance(arr, np.ndarray) and arr.ndim == 2):
+        raise ValueError('Column rotation is only supported for matrices')
+
+    n, m = arr.shape
+
+    if len(idxs) > m or len(idxs) == 0:
+        raise ValueError(f'Cannot rotate {len(idxs)} indexes - only had a '
+                         f'{m}x{m} matrix')
+
+    if not np.allclose(np.dot(arr.T, arr), np.eye(m), atol=1E-6):
+        raise ValueError('Column rotation is only for orthogonal matrices')
+
+    r_arr = arr.copy()  # Rotated array
+
+    for i, idx in enumerate(idxs):
+
+        # Fill the column with e.g. (0, 0, 0, 1) for idx == 3 (and n = 4)
+        r_arr[:, i] = np.array([0 if j != idx else 1 for j in range(n)])
+
+        us = [r_arr[:, i]]
+        for j in range(m):
+            if j == i:
+                continue
+
+            v = r_arr[:, j].copy()
+            u = v - sum(proj(u, v) for u in us)
+            u /= np.linalg.norm(u)
+
+            us.append(u)
+
+        r_arr = np.stack(us, axis=-1)
+
+    return r_arr

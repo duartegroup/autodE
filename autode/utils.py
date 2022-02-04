@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 from time import time
-from typing import Any
+from typing import Any, Optional, List
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
@@ -139,16 +139,25 @@ def work_in(dir_ext):
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
+def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
+                    kept_file_exts:    Optional[List[str]] = None,
+                    use_ll_tmp:        bool = False):
     """Execute a function in a temporary directory.
 
+    -----------------------------------------------------------------------
     Arguments:
-        filenames_to_copy (list(str)): Filenames to copy to the temp dir
+        filenames_to_copy: Filenames to copy to the temp dir
 
-        kept_file_exts (list(str): Filename extensions to copy back from
-                       the temp dir
+        kept_file_exts: Filename extensions to copy back from the temp dir
+
+        use_ll_tmp (bool): If true then use autode.config.Config.ll_tmp_dir
     """
     from autode.config import Config
+    if filenames_to_copy is None:
+        filenames_to_copy = []
+
+    if kept_file_exts is None:
+        kept_file_exts = []
 
     def func_decorator(func):
 
@@ -164,7 +173,9 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
             tmpdir_path = mkdtemp(dir=base_dir)
             logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
 
-            logger.info(f'Copying {filenames_to_copy}')
+            if len(filenames_to_copy) > 0:
+                logger.info(f'Copying {filenames_to_copy}')
+
             for filename in filenames_to_copy:
                 if filename.endswith('_mol.in'):
                     # MOPAC needs the file to be called this

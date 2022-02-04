@@ -315,7 +315,7 @@ def test_atom_doc_examples():
     assert Atom('C').weight == Mass(12.0107, units='amu')
     assert Atom('C').weight == Atom('C').mass
 
-    assert Atom('H').mass.to('me') == Mass(1837.36222, units='m_e')
+    assert Atom('H').mass.to('me') == Mass(1837.3622207894994, units='m_e')
 
     atom = Atom('H')
     atom.translate(1.0, 0.0, 0.0)
