@@ -2,8 +2,9 @@ import os
 import sys
 import shutil
 from time import time
+from typing import Any, Optional, List
 from functools import wraps
-from subprocess import Popen, DEVNULL, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing as mp
 import multiprocessing.pool
@@ -11,7 +12,8 @@ from autode.log import logger
 from autode.exceptions import (NoAtomsInMolecule,
                                NoCalculationOutput,
                                NoConformers,
-                               NoMolecularGraph)
+                               NoMolecularGraph,
+                               MethodUnavailable)
 
 try:
     mp.set_start_method("fork")
@@ -24,18 +26,23 @@ if sys.version_info.minor > 7:                                    # Python >3.7
     # LGTM alert is suppressed as this is imported in Python >3.7
 
 if sys.version_info.minor <= 7:                                   # Python <3.7
-    from functools import lru_cache
+    # Define a cached_property equivalent decorator
 
-    # Define a cached_property equivalent decorator, from https://stackoverflow
-    # .com/questions/4037481/caching-class-attributes-in-python
-    def cached_property(func):
-        @property
-        @lru_cache()
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
-            return func(*args, **kwargs)
+    class cached_property(object):
+        # Based on https://github.com/pydanny/cached-property/
 
-        return wrapped_function
+        def __init__(self, func):
+            self.__doc__ = func.__doc__
+            self.func = func
+
+        def cached_property_wrapper(self, obj, _cls):
+            if obj is None:
+                return self
+
+            value = obj.__dict__[self.func.__name__] = self.func(obj)
+            return value
+
+        __get__ = cached_property_wrapper
 
 
 def run_external(params, output_filename):
@@ -50,7 +57,12 @@ def run_external(params, output_filename):
 
     with open(output_filename, 'w') as output_file:
         # /path/to/method input_filename > output_filename
-        process = Popen(params, stdout=output_file, stderr=DEVNULL)
+        process = Popen(params, stdout=output_file, stderr=PIPE)
+
+        with process.stderr:
+            for line in iter(process.stderr.readline, b''):
+                logger.warning('STDERR: %r', line.decode())
+
         process.wait()
 
     return None
@@ -127,16 +139,25 @@ def work_in(dir_ext):
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
+def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
+                    kept_file_exts:    Optional[List[str]] = None,
+                    use_ll_tmp:        bool = False):
     """Execute a function in a temporary directory.
 
+    -----------------------------------------------------------------------
     Arguments:
-        filenames_to_copy (list(str)): Filenames to copy to the temp dir
+        filenames_to_copy: Filenames to copy to the temp dir
 
-        kept_file_exts (list(str): Filename extensions to copy back from
-                       the temp dir
+        kept_file_exts: Filename extensions to copy back from the temp dir
+
+        use_ll_tmp (bool): If true then use autode.config.Config.ll_tmp_dir
     """
     from autode.config import Config
+    if filenames_to_copy is None:
+        filenames_to_copy = []
+
+    if kept_file_exts is None:
+        kept_file_exts = []
 
     def func_decorator(func):
 
@@ -152,7 +173,9 @@ def work_in_tmp_dir(filenames_to_copy, kept_file_exts, use_ll_tmp=False):
             tmpdir_path = mkdtemp(dir=base_dir)
             logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
 
-            logger.info(f'Copying {filenames_to_copy}')
+            if len(filenames_to_copy) > 0:
+                logger.info(f'Copying {filenames_to_copy}')
+
             for filename in filenames_to_copy:
                 if filename.endswith('_mol.in'):
                     # MOPAC needs the file to be called this
@@ -263,6 +286,32 @@ def requires_conformers(func):
     return wrapped_function
 
 
+def requires_hl_level_methods(func):
+    """A function requiring both high and low-level methods to be available"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        from autode.methods import get_lmethod, get_hmethod
+
+        suffix = 'neither was available.'
+
+        try:
+            _ = get_lmethod()
+
+            # Have a low-level method, so the high-level must not be available
+            suffix = 'the high-level was not available.'
+            _ = get_hmethod()
+
+        except MethodUnavailable:
+            raise MethodUnavailable(f'Function *{func.__name__}* requires both'
+                                    f' a high and low-level method but '
+                                    f'{suffix}')
+
+        return func(*args, **kwargs)
+
+    return wrapped_function
+
+
 def requires_output(func):
     """A function requiring an output file and output file lines"""
 
@@ -321,6 +370,12 @@ def timeout(seconds, return_value=None):
         return wraps
 
     return decorator
+
+
+def hashable(_method_name: str, _object: Any):
+    """Multiprocessing requires hashable top-level functions to be executed,
+    so convert a method into a top-level function"""
+    return getattr(_object, _method_name)
 
 
 class NoDaemonProcess(multiprocessing.Process):

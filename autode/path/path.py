@@ -8,6 +8,28 @@ from autode.units import KcalMol
 
 class Path(list):
 
+    def __init__(self, *args, units=KcalMol):
+        """
+        Base path class that may be populated with species or nudged elastic
+        band images, *must* have .energy attributes
+
+        Arguments:
+            args (list(autode.path.PathPoint | autode.neb.Image)):
+
+        Keyword Arguments:
+            units (autode.units.Unit):
+        """
+        super().__init__()
+
+        for arg in args:
+            if not (hasattr(arg, 'energy') or hasattr(arg, 'species')):
+                raise ValueError('A Path must be initialised from a class '
+                                 'with both energy and species attributes')
+
+            self.append(arg)
+
+        self.units = units
+
     def __eq__(self, other):
         """Are two paths equal?"""
         if not isinstance(other, Path):
@@ -131,7 +153,7 @@ class Path(list):
         plt.tight_layout()
 
         if save:
-            plt.savefig(f'{name}.png', dpi=300)
+            plt.savefig(f'{name}.pdf')
             plt.close()
 
         return None
@@ -151,22 +173,3 @@ class Path(list):
                               title_line=f'autodE path point {i}. E = {energy}',
                               append=True)
         return None
-
-    def __init__(self, *args, units=KcalMol):
-        """
-        Base path class that may be populated with species or nudged elastic
-        band images, *must* have .energy attributes
-
-        Arguments:
-            args (list(autode.species.Species | autode.neb.Image)):
-
-        Keyword Arguments:
-            units (autode.units.Unit):
-        """
-        super().__init__()
-
-        for arg in args:
-            assert hasattr(arg, 'energy') and hasattr(arg, 'species')
-            self.append(arg)
-
-        self.units = units

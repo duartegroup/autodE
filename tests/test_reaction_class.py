@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from autode.reactions import reaction
 from autode.reactions import reaction_types
 from autode.transition_states.transition_state import TransitionState
@@ -12,13 +13,18 @@ from autode.exceptions import SolventsDontMatch
 from autode.mol_graphs import make_graph
 from autode.plotting import plot_reaction_profile
 from autode.units import KcalMol
+from autode.values import (PotentialEnergy, FreeEnergy, Enthalpy,
+                           EnthalpyCont, FreeEnergyCont)
 from autode.methods import get_hmethod
 from autode.config import Config
-from .testutils import work_in_zipped_dir
-import shutil
+from .testutils import work_in_zipped_dir, requires_with_working_xtb_install
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+# Spoof ORCA install
+Config.hcode = 'ORCA'
+Config.ORCA.path = here
 
 h1 = Reactant(name='h1', atoms=[Atom('H', 0.0, 0.0, 0.0)])
 
@@ -47,14 +53,16 @@ def test_reaction_class():
     h2.energy = 3
     hh_product.energy = 1
 
+    assert hh_reac.atomic_symbols == ['H', 'H']
+
     # Only swap to dissociation in invoking locate_ts()
     assert hh_reac.type == reaction_types.Addition
     assert len(hh_reac.prods) == 1
     assert len(hh_reac.reacs) == 2
     assert hh_reac.ts is None
-    assert hh_reac.tss is None
+    assert len(hh_reac.tss) == 0
     assert hh_reac.name == 'h2_assoc'
-    assert hh_reac.calc_delta_e() == -4
+    assert hh_reac.delta('E') == PotentialEnergy(-4.0)
 
     h1 = reaction.Reactant(name='h1', atoms=[Atom('H')])
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
@@ -72,6 +80,10 @@ def test_reaction_class():
     assert h_sub.solvent.smiles == 'O'
     for mol in h_sub.reacs + h_sub.prods:
         assert mol.solvent.name == 'water'
+
+    # Must set the transition state with a TransitionState
+    with pytest.raises(ValueError):
+        h_sub.ts = h1
 
 
 def test_reactant_product_complexes():
@@ -103,6 +115,9 @@ def test_reactant_product_complexes():
 
 
 def test_invalid_with_complexes():
+
+    Config.hcode = 'ORCA'
+    Config.ORCA.path = here
 
     h3_reaction = reaction.Reaction(lin_h3, trig_h3)
 
@@ -145,6 +160,9 @@ def test_check_solvent():
 
 
 def test_reaction_identical_reac_prods():
+
+    Config.hcode = 'ORCA'
+    Config.ORCA.path = here
 
     hh_reactant = reaction.Reactant(name='hh', atoms=[Atom('H'),
                                                       Atom('H', x=1.0)])
@@ -208,8 +226,9 @@ def test_calc_delta_e():
     r2 = reaction.Reactant(name='h', atoms=[Atom('H')])
     r2.energy = -0.5
 
-    tsguess = TSguess(atoms=None, reactant=ReactantComplex(r1),
-                      product=ProductComplex(r2))
+    tsguess = TSguess(atoms=None,
+                      reactant=ReactantComplex(r1),
+                      product=ProductComplex(r2.to_product()))
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.8
@@ -220,8 +239,10 @@ def test_calc_delta_e():
     reac = reaction.Reaction(r1, r2, p)
     reac.ts = ts
 
-    assert -1E-6 < reac.calc_delta_e() < 1E-6
-    assert 0.2 - 1E-6 < reac.calc_delta_e_ddagger() < 0.2 + 1E-6
+    assert -1E-6 < reac.delta('E') < 1E-6
+    assert 0.2 - 1E-6 < reac.delta('E‡') < 0.2 + 1E-6
+
+    # Without calculated
 
 
 def test_from_smiles():
@@ -264,6 +285,7 @@ def test_single_points():
 
 
 @work_in_zipped_dir(os.path.join(here, 'data', 'free_energy_profile.zip'))
+@requires_with_working_xtb_install
 def test_free_energy_profile():
 
     # Use a spoofed Gaussian09 and XTB install
@@ -287,31 +309,21 @@ def test_free_energy_profile():
                             Product(name='CH3F', smiles='CF'),
                             name='sn2', solvent_name='water')
 
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
-
     rxn.calculate_reaction_profile(free_energy=True)
 
     # Allow ~0.5 kcal mol-1 either side of the 'true' value
 
-    dg_ts = rxn.calc_delta_g_ddagger()
-    assert 16 < dg_ts.to('kcal mol-1') < 18
+    assert 16 < rxn.delta('G‡').to('kcal mol-1') < 18
+    assert -14 < rxn.delta('G').to('kcal mol-1') < -12
 
-    dg_r = rxn.calc_delta_g()
-    assert -14 < dg_r.to('kcal mol-1') < -12
-
-    dh_ts = rxn.calc_delta_h_ddagger()
-    assert 9 < dh_ts.to('kcal mol-1') < 11
-
-    dh_r = rxn.calc_delta_h()
-    assert -14 < dh_r.to('kcal mol-1') < -12
+    assert 9 < rxn.delta('H‡').to('kcal mol-1') < 11
+    assert -14 < rxn.delta('H').to('kcal mol-1') < -12
 
     # Should be able to plot an enthalpy profile
     plot_reaction_profile([rxn], units=KcalMol, name='enthalpy',
                           enthalpy=True)
-    assert os.path.exists('enthalpy_reaction_profile.png')
-    os.remove('enthalpy_reaction_profile.png')
+    assert os.path.exists('enthalpy_reaction_profile.pdf')
+    os.remove('enthalpy_reaction_profile.pdf')
 
     # Reset the configuration to the default values
     Config.hcode = None
@@ -320,15 +332,135 @@ def test_free_energy_profile():
     Config.XTB.path = None
 
 
-def test_unavail_properties():
-    ha = reaction.Reactant(name='ha', atoms=[Atom('H')])
+def test_barrierless_rearrangment():
 
-    hb = reaction.Product(name='hb', atoms=[Atom('H')])
+    rxn = reaction.Reaction(Reactant(), Product())
+    assert rxn.is_barrierless
+    assert rxn.delta('E') is rxn.delta('E‡') is None
 
-    rxn = reaction.Reaction(ha, hb)
-    delta = reaction.calc_delta_with_cont(left=[ha], right=[hb], cont='h_cont')
-    assert delta is None
+    a = Reactant(atoms=[Atom('H'), Atom('H', x=-1.0), Atom('H', x=1.0)])
+    a.energy = -2.0
 
-    # Should not raise an exception(?)
-    rxn.find_lowest_energy_ts_conformer()
-    rxn.calculate_thermochemical_cont(free_energy=False, enthalpy=False)
+    b = Product(atoms=[Atom('H'), Atom('H', x=0.7, y=0.7), Atom('H', x=1.0)])
+    b.energy = -2.5
+
+    rxn = reaction.Reaction(a, b)
+    # Barrier should be ~0 for an exothermic reaction
+    assert rxn.delta('E‡') == 0.0
+
+    # but the reaction energy for an endothermic reaction
+    b.energy = -1.5
+    assert rxn.delta('E‡') == 0.5
+
+
+def test_doc_example():
+    """If this test changes PLEASE update the documentation at the same time"""
+
+    ethene = Reactant(smiles='C=C')
+    butadiene = Reactant(smiles='C=CC=C')
+    cyclohexene = Product(smiles='C1=CCCCC1')
+
+    rxn = reaction.Reaction(ethene, butadiene, cyclohexene)
+    assert rxn.solvent is None
+
+    assert np.isclose(rxn.temp, 298.15)
+
+    assert rxn.delta('E') is None
+    assert rxn.delta('E‡') is None
+
+    # Only allow some indication of energy/enthalpy/free energy
+    with pytest.raises(ValueError):
+        _ = rxn.delta('X')
+
+    ethene.energy = -6.27126052543
+    butadiene.energy = -11.552702027244
+    cyclohexene.energy = -17.93143795711
+
+    assert np.isclose(float(rxn.delta('E').to('kcal mol-1')),
+                      -67.441,
+                      atol=0.01)
+
+    # Should allow for aliases of the kind of ∆ difference
+    assert rxn.delta('E') == rxn.delta('energy')
+    assert rxn.delta('G') == rxn.delta('free energy') == rxn.delta('free_energy')
+    assert rxn.delta('H') == rxn.delta('enthalpy') != rxn.delta('energy')
+
+    assert np.isclose(float(rxn.delta('E‡').to('kcal mol-1')),
+                      4.35491,
+                      atol=1)
+
+    # Post-optimisation
+    cyclohexene.energy = -234.206929484613
+    butadiene.energy = -155.686225567141
+    ethene.energy = -78.427547239225
+
+    atoms = [
+        Atom('C',  1.54832502175757,   0.47507857149246, -0.17608869645477),
+        Atom('C',  0.63680758724295,   1.48873574610658,  0.18687763919775),
+        Atom('C', -0.48045277463960,   1.22774144243181,  0.94515144035260),
+        Atom('C', -1.56617230970127,  -0.32194220965435, -0.36403038119916),
+        Atom('C', -0.67418142609443,  -1.30824343582455, -0.72092960944319),
+        Atom('C',  1.37354885332651,  -0.83414272445258,  0.20733555387781),
+        Atom('H',  2.28799156107427,   0.70407896562267, -0.95011846456488),
+        Atom('H',  0.71504911441008,   2.45432905429025, -0.32320231835197),
+        Atom('H', -1.22975529929055,   2.00649252772661,  1.11086944491345),
+        Atom('H', -0.48335986214289,   0.41671089728999,  1.67449683583301),
+        Atom('H', -2.28180803085362,  -0.49278222876383,  0.44394762543300),
+        Atom('H', -1.83362998587976,   0.46266072581502, -1.07348798508224),
+        Atom('H', -0.67829969484189,  -2.26880762586176, -0.19982465470916),
+        Atom('H', -0.22671274865021,  -1.31325250991020, -1.71602826881263),
+        Atom('H',  0.86381884115892,  -1.08003298402692,  1.13995512315906),
+        Atom('H',  2.02879115312393,  -1.61656419228120, -0.18499328414869)
+    ]
+
+    rxn.ts = TransitionState(TSguess(atoms=atoms))
+    rxn.ts.energy = -234.090983203239
+
+    assert 'TransitionState' in repr(rxn.ts)
+
+    assert np.isclose(float(rxn.delta('E‡').to('kcal mol-1')),
+                      14.3,
+                      atol=0.1)
+
+
+def test_barrierless_h_g():
+
+    a = Reactant(atoms=[Atom('H'), Atom('H', x=-1.0), Atom('H', x=1.0)])
+    a.energies.extend([PotentialEnergy(-1),
+                       EnthalpyCont(0.1),
+                       FreeEnergyCont(0.3)])
+
+    b = Product(atoms=[Atom('H'), Atom('H', x=0.7, y=0.7), Atom('H', x=1.0)])
+    b.energies.extend([PotentialEnergy(-2),
+                       EnthalpyCont(0.2),
+                       FreeEnergyCont(0.6)])
+
+    rxn = reaction.Reaction(a, b)
+    assert rxn.delta('E‡') == 0.0
+    assert rxn.delta('H‡') == 0.0
+    assert rxn.delta('G‡') == 0.0
+
+    rxn.switch_reactants_products()
+    assert np.isclose(rxn.delta('E‡'),
+                      1.0)
+
+    assert np.isclose(rxn.delta('H‡'),
+                      0.9)                  # -2+0.2 -> -1+0.1   --> ∆ = 0.9
+
+    assert np.isclose(rxn.delta('G‡'),
+                      0.7)                  # -2+0.6 -> -1+0.3   --> ∆ = 0.7
+
+
+def test_same_composition():
+
+    r1 = reaction.Reaction(Reactant(atoms=[Atom('C'), Atom('H', x=1)]),
+                           Product(atoms=[Atom('C'), Atom('H', x=10)]))
+
+    r2 = reaction.Reaction(Reactant(atoms=[Atom('C'), Atom('H', x=1)]),
+                           Product(atoms=[Atom('C'), Atom('H', x=5)]))
+
+    assert r1.has_identical_composition_as(r2)
+
+    r3 = reaction.Reaction(Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)]),
+                           Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)]))
+    assert not r1.has_identical_composition_as(r3)

@@ -76,5 +76,3 @@ def test_gradients():
 
     # Energy per bohr is smaller than per angstrom..
     assert all(g1 - g2 <= 0 for g1, g2 in zip(gradients_ha_a0, gradients))
-
-

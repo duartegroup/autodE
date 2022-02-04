@@ -6,6 +6,24 @@ from autode.geom import get_rot_mat_kabsch, get_rot_mat_euler_from_terms
 
 class AtomType:
 
+    def __init__(self, site_coords, is_chiral=False):
+        """Base atom type class
+
+        Arguments:
+            site_coords (list(np.ndarray)): Shape = (n, 3) should contain a
+                        list of unit vectors pointing in directions where other
+                        atoms can be added
+
+        Keyword Arguments:
+            is_chiral (bool): Is this atom type chiral e.g. a tetrahedral atom
+                              with four different substituents
+        """
+        self.template_site_coords = np.copy(site_coords)
+        self._site_coords = site_coords
+
+        self.is_chiral = is_chiral
+        self.rotate_randomly()
+
     @property
     def n_empty_sites(self):
         """Number of empty sites on this template"""
@@ -132,24 +150,6 @@ class AtomType:
         self._site_coords = [np.matmul(rot_matrix, site)
                              for site in self._site_coords]
         return None
-
-    def __init__(self, site_coords, is_chiral=False):
-        """Base atom type class
-
-        Arguments:
-            site_coords (list(np.ndarray)): Shape = (n, 3) should contain a
-                        list of unit vectors pointing in directions where other
-                        atoms can be added
-
-        Keyword Arguments:
-            is_chiral (bool): Is this atom type chiral e.g. a tetrahedral atom
-                              with four different substituents
-        """
-        self.template_site_coords = np.copy(site_coords)
-        self._site_coords = site_coords
-
-        self.is_chiral = is_chiral
-        self.rotate_randomly()
 
 
 class TerminalAtom(AtomType):

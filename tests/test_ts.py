@@ -87,14 +87,10 @@ def test_ts_guess_class():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts.zip'))
+@testutils.requires_with_working_xtb_install
 def test_links_reacs_prods():
 
-    # Spoof an xtb install as reactant/product complex optimisation
     Config.lcode = 'xtb'
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     Config.num_complex_sphere_points = 4
     Config.num_complex_random_rotations = 1
@@ -185,16 +181,13 @@ def test_isomorphic_reactant_product():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'locate_ts.zip'))
+@testutils.requires_with_working_xtb_install
 def test_find_tss():
 
     Config.num_conformers = 1
 
     # Spoof ORCA install
     Config.ORCA.path = here
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     if os.path.exists('/dev/shm'):
         Config.ll_tmp_dir = '/dev/shm'
@@ -203,6 +196,7 @@ def test_find_tss():
 
     Config.ORCA.implicit_solvation_type = cpcm
     Config.make_ts_template = False
+    Config.ts_template_folder_path = os.getcwd()
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 1
 
@@ -253,6 +247,8 @@ def test_optts_no_reactants_products():
     assert len(da_ts.imaginary_frequencies) == 1
     imag_freq = da_ts.imaginary_frequencies[0]
 
+    assert da_ts != 'a'
+
     assert -500 < imag_freq < -300      # cm-1
 
     assert da_ts.could_have_correct_imag_mode
@@ -294,16 +290,13 @@ def test_fb_rp_isomorphic():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'ts_truncation.zip'))
+@testutils.requires_with_working_xtb_install
 def test_truncated_ts():
 
     # Spoof ORCA install
     Config.ORCA.path = here
     Config.make_ts_template = True
     Config.ts_template_folder_path = os.getcwd()
-
-    # Don't run the calculation without a working XTB install
-    if shutil.which('xtb') is None or not shutil.which('xtb').endswith('xtb'):
-        return
 
     if os.path.exists('/dev/shm'):
         Config.ll_tmp_dir = '/dev/shm'

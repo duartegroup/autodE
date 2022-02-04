@@ -56,7 +56,7 @@ For a non-default set method and keywords:
 
     water = ade.Molecule(smiles='O')
     water.calc_thermo(method=ade.methods.G09(),
-                      keywords=ade.HessianKeywords(['PBEPBE', 'def2SVP', 'Freq']))
+                      keywords=['PBEPBE', 'def2SVP', 'Freq'])
 
 
 ORCA

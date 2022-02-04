@@ -9,7 +9,9 @@ from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
-from autode.solvent.solvents import Solvent
+from autode.wrappers.implicit_solvent_types import cpcm
+from autode.exceptions import CouldNotGetProperty
+from autode.solvent.solvents import ImplicitSolvent
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
 from autode import utils
@@ -74,7 +76,7 @@ def test_calc_bad_mol():
 
     mol = Mol()
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(Exception):
         Calculation(name='bad_mol_object', molecule=mol, method=method,
                     keywords=opt_keywords)
 
@@ -89,10 +91,10 @@ def test_calc_bad_mol():
                     keywords=opt_keywords)
 
     mol = Molecule(name='methane', smiles='C')
-    mol.solvent = Solvent(name='xx', smiles='X', aliases=['X'])
+    mol.solvent = ImplicitSolvent(name='xx', smiles='X', aliases=['X'])
 
     with pytest.raises(ex.SolventUnavailable):
-        Calculation(name='no_atoms_mol', molecule=mol, method=method,
+        Calculation(name='tmp', molecule=mol, method=method,
                     keywords=opt_keywords)
 
 
@@ -137,9 +139,11 @@ def test_bad_orca_output():
     calc = Calculation(name='no_output', molecule=test_mol, method=method,
                        keywords=opt_keywords)
 
-    assert calc.get_energy() is None
-    with pytest.raises(ex.AtomsNotFound):
-        calc.get_final_atoms()
+    with pytest.raises(CouldNotGetProperty):
+        _ = calc.get_energy()
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        _ = calc.get_final_atoms()
 
     with pytest.raises(ex.NoInputError):
         calc.execute_calculation()
@@ -176,6 +180,22 @@ def test_solvation():
 
     assert any('smd' in line.lower() for line in open('methane_smd_orca.inp', 'r'))
     os.remove('methane_smd_orca.inp')
+
+
+def test_vdw_solvent_not_present():
+    mol = Molecule(name='mol', smiles='C', solvent_name='2-butanol')
+
+    orca = ORCA()
+    orca.implicit_solvation_type = cpcm
+
+    calc = Calculation(name='tmp',
+                       molecule=mol,
+                       method=orca,
+                       keywords=sp_keywords)
+
+    # Cannot use gaussian charges for 2-butanol
+    with pytest.raises(ex.CalculationException):
+        calc.generate_input()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))

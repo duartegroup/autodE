@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/duartegroup/autodE/actions/workflows/pytest.yml/badge.svg)](https://travis-ci.org/duartegroup/autodE) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/master) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:python) [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:cpp) [![Conda Recipe](https://img.shields.io/badge/recipe-autode-green.svg)](https://anaconda.org/conda-forge/autode) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/autode.svg)](https://anaconda.org/conda-forge/autode)
+[![Build Status](https://github.com/duartegroup/autodE/actions/workflows/pytest.yml/badge.svg)](https://github.com/duartegroup/autodE/actions) [![codecov](https://codecov.io/gh/duartegroup/autodE/branch/master/graph/badge.svg)](https://codecov.io/gh/duartegroup/autodE/branch/master) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:python) [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/duartegroup/autodE.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/duartegroup/autodE/context:cpp) [![Conda Recipe](https://img.shields.io/badge/recipe-autode-green.svg)](https://anaconda.org/conda-forge/autode) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/autode.svg)](https://anaconda.org/conda-forge/autode)
 
 ![alt text](autode/common/llogo.png)
 ***
@@ -17,6 +17,7 @@ Python wrappers for a range of electronic structure theory codes, SMILES parsing
    * [Gaussian09](https://gaussian.com/glossary/g09/)
    * [Gaussian16](https://gaussian.com/gaussian16/)
    * [NWChem](http://www.nwchem-sw.org/index.php/Main_Page) > 6.5
+   * [QChem](https://www.q-chem.com/) > 5.4
 * One of:
    * [XTB](https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/xtb/xtb/) > v. 6.1
    * [MOPAC](http://openmopac.net/)
@@ -56,7 +57,7 @@ additional documentation.
 ## Development
 
 There is a [slack workspace](https://autodeworkspace.slack.com) for development and discussion - please 
-[email me](mailto:tom.young@chem.ox.ac.uk?subject=autodE%20slack) to be added. Pull requests are 
+[email](mailto:tom.young@chem.ox.ac.uk?subject=autodE%20slack) to be added. Pull requests are 
 very welcome but must pass all the unit tests prior to being merged. Please write code and tests!
 See the [todo list](https://github.com/duartegroup/autodE/projects/1) for features on the horizon. 
 Bugs and feature requests should be raised on the [issue page](https://github.com/duartegroup/autodE/issues). 
@@ -82,3 +83,12 @@ If **autodE** is used in a publication please consider citing the [paper](https:
   journal = {Angewandte Chemie International Edition}
 }
 ```
+
+
+## Contributors
+
+- Tom Young ([@t-young31](https://github.com/t-young31))
+- Joseph Silcock ([@josephsilcock](https://github.com/josephsilcock))
+- Kjell Jorner ([@kjelljorner](https://github.com/kjelljorner))
+- Thibault Lestang ([@tlestang](https://github.com/tlestang))
+- Domen Pregeljc ([@dpregeljc](https://github.com/dpregeljc))

@@ -6,8 +6,39 @@ from autode.species.species import Species
 
 class Conformer(Species):
 
+    def __init__(self,
+                 name:         str = 'conf',
+                 atoms:        Optional['autode.atoms.Atoms'] = None,
+                 solvent_name: Optional[str] = None,
+                 charge:       int = 0,
+                 mult:         int = 1,
+                 dist_consts:  Optional[dict] = None,
+                 species:      Optional[Species] = None):
+        """
+        Construct a conformer either using the standard species constructor,
+        or from a species directly.
+
+        See Also:
+            (autode.species.Species)
+        """
+
+        super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
+
+        if species is not None:
+            self.charge = species.charge  # Require identical charge/mult/solv
+            self.mult = species.mult
+            self.solvent = species.solvent
+
+            if atoms is None:
+                self.atoms = species.atoms.copy()
+
+        self.constraints.update(distance=dist_consts)
+
     def __repr__(self):
         return self._repr(prefix='Conformer')
+
+    def __eq__(self, other):
+        return super().__eq__(other)
 
     def single_point(self,
                      method:  'autode.wrappers.base.ElectronicStructureMethod',
@@ -61,31 +92,3 @@ class Conformer(Species):
             self.atoms = None
 
         return None
-
-    def __init__(self,
-                 name:         str = 'conf',
-                 atoms:        Optional['autode.atoms.Atoms'] = None,
-                 solvent_name: Optional[str] = None,
-                 charge:       int = 0,
-                 mult:         int = 1,
-                 dist_consts:  Optional[dict] = None,
-                 species:      Optional[Species] = None):
-        """
-        Construct a conformer either using the standard species constructor,
-        or from a species directly.
-
-        See Also:
-            (autode.species.Species)
-        """
-
-        super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
-
-        if species is not None:
-            self.charge = species.charge  # Require identical charge/mult/solv
-            self.mult = species.mult
-            self.solvent = species.solvent
-
-            if atoms is None:
-                self.atoms = species.atoms.copy()
-
-        self.constraints.update(distance=dist_consts)

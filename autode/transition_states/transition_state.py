@@ -17,6 +17,43 @@ from autode.utils import requires_atoms, requires_graph
 
 class TransitionState(TSbase):
 
+    def __init__(self,
+                 ts_guess:   TSbase,
+                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
+        """
+        Transition State
+
+        Arguments:
+            ts_guess (autode.transition_states.ts_guess.TSguess):
+
+        Keyword Arguments:
+            bond_rearr (autode.bond_rearrangement.BondRearrangement):
+        """
+        super().__init__(atoms=ts_guess.atoms,
+                         reactant=ts_guess.reactant,
+                         product=ts_guess.product,
+                         name=f'TS_{ts_guess.name}',
+                         charge=ts_guess.charge,
+                         bond_rearr=ts_guess.bond_rearrangement,
+                         mult=ts_guess.mult)
+
+        self.conformers = None
+
+        if bond_rearr is not None:
+            self.bond_rearrangement = bond_rearr
+
+        self._update_graph()
+
+        #: str for any warnings that may arise
+        self.warnings = ''
+
+    def __repr__(self):
+        return self._repr(prefix='TransitionState')
+
+    def __eq__(self, other):
+        """Equality of this TS to another"""
+        return super().__eq__(other)
+
     @requires_graph
     def _update_graph(self):
         """Update the molecular graph to include all the bonds that are being
@@ -284,33 +321,3 @@ class TransitionState(TSbase):
 
         logger.info('Saved TS template')
         return None
-
-    def __init__(self,
-                 ts_guess:   TSbase,
-                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
-        """
-        Transition State
-
-        Arguments:
-            ts_guess (autode.transition_states.ts_guess.TSguess):
-
-        Keyword Arguments:
-            bond_rearr (autode.bond_rearrangement.BondRearrangement):
-        """
-        super().__init__(atoms=ts_guess.atoms,
-                         reactant=ts_guess.reactant,
-                         product=ts_guess.product,
-                         name=f'TS_{ts_guess.name}',
-                         charge=ts_guess.charge,
-                         bond_rearr=ts_guess.bond_rearrangement,
-                         mult=ts_guess.mult)
-
-        self.conformers = None
-
-        if bond_rearr is not None:
-            self.bond_rearrangement = bond_rearr
-
-        self._update_graph()
-
-        #: str for any warnings that may arise
-        self.warnings = ''

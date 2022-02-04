@@ -10,8 +10,7 @@ from autode.wrappers import keywords as kwds
 from autode.wrappers.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
-from autode.exceptions import AtomsNotFound
-from autode.exceptions import NoInputError
+from autode.exceptions import AtomsNotFound, NoInputError, CalculationException
 from autode.point_charges import PointCharge
 from autode.atoms import Atom
 from . import testutils
@@ -34,15 +33,14 @@ def test_printing_ecp():
     tmp_mol = Molecule(smiles='[H][Pd][H]')
     tmp_mol.constraints = Constraints(distance={}, cartesian=[])
 
-    keywords = kwds.Keywords(keyword_list=[def2tzecp])
+    keywords = kwds.OptKeywords(keyword_list=[def2tzecp])
     assert n_ecp_elements(keywords, molecule=tmp_mol) == 1
     # Light elements should not default to ECPs
     assert n_ecp_elements(keywords, molecule=Molecule(smiles='O')) == 0
     # no ECP keywords -> no elements needing an ECP
-    assert n_ecp_elements(kwds.Keywords(keyword_list=[]), molecule=tmp_mol) == 0
+    assert n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
 
     calc_input = CalculationInput(keywords,
-                                  solvent=None,
                                   additional_input=None,
                                   added_internals=None,
                                   point_charges=None)
@@ -50,7 +48,7 @@ def test_printing_ecp():
     with pytest.raises(RuntimeError):
         print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
 
-    calc_input.keywords = kwds.Keywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
+    calc_input.keywords = kwds.OptKeywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
     print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
     assert os.path.exists('basis.gbs')
 
@@ -186,8 +184,10 @@ def test_bad_gauss_output():
     calc.output_file_lines = []
     calc.rev_output_file_lines = []
 
-    assert calc.get_energy() is None
-    with pytest.raises(AtomsNotFound):
+    with pytest.raises(CalculationException):
+        _ = calc.get_energy()
+
+    with pytest.raises(CalculationException):
         calc.get_final_atoms()
 
     with pytest.raises(NoInputError):
@@ -326,7 +326,7 @@ def test_external_basis_set_file():
 
     basis_path = os.path.join(os.getcwd(), 'bs1.gbs')
     custom.keywords.set_opt_basis_set(basis_path)
-    assert custom.keywords.opt.basis_set.has_only_name()
+    assert custom.keywords.opt.basis_set.has_only_name
 
     custom.keywords.sp.basis = basis_path
 

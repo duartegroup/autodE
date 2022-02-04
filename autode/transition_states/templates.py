@@ -267,6 +267,41 @@ def get_values_dict_from_file(key, file_lines):
 
 class TStemplate:
 
+    def __init__(self, graph=None, charge=None, mult=None, solvent=None,
+                 species=None, filename=None):
+        """
+        TS template
+
+        Keyword Arguments:
+            graph (nx.Graph): Active bonds in the TS are represented by the
+                  edges with attribute active=True, going out to nearest bonded
+                  neighbours
+
+            solvent (autode.solvent.solvents.Solvent):
+
+            charge (int):
+
+            mult (int):
+
+            species (autode.species.Species):
+
+            filename (str): Saved template to load
+        """
+
+        self._filename = filename
+        self.graph = graph
+        self.solvent = solvent
+        self.charge = charge
+        self.mult = mult
+
+        if species is not None:
+            self.solvent = species.solvent
+            self.charge = species.charge
+            self.mult = species.mult
+
+        if self._filename is not None:
+            self.load(filename)
+
     def _save_to_file(self, file):
         """Save this template to a plain text .txt file with a ~yaml syntax"""
 
@@ -396,7 +431,7 @@ class TStemplate:
         if name.lower() == 'none':
             self.solvent = None
         else:
-            self.solvent = get_solvent(solvent_name=name)
+            self.solvent = get_solvent(solvent_name=name, kind='implicit')
 
         self.charge = int(get_value_from_file('charge', template_lines))
         self.mult = int(get_value_from_file('multiplicity', template_lines))
@@ -419,36 +454,6 @@ class TStemplate:
 
         return None
 
-    def __init__(self, graph=None, charge=None, mult=None, solvent=None,
-                 species=None, filename=None):
-        """
-        TS template
-
-        Keyword Arguments:
-            graph (nx.Graph): Active bonds in the TS are represented by the
-                  edges with attribute active=True, going out to nearest bonded
-                  neighbours
-
-            solvent (autode.solvent.solvents.Solvent):
-
-            charge (int):
-
-            mult (int):
-
-            species (autode.species.Species):
-
-            filename (str): Saved template to load
-        """
-
-        self.graph = graph
-        self.solvent = solvent
-        self.charge = charge
-        self.mult = mult
-
-        if species is not None:
-            self.solvent = species.solvent
-            self.charge = species.charge
-            self.mult = species.mult
-
-        if filename is not None:
-            self.load(filename)
+    @property
+    def filename(self) -> str:
+        return 'unknown' if self._filename is None else self._filename

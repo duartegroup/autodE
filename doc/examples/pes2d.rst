@@ -5,8 +5,8 @@
 
 2D scans in **autodE** are available over distances and are optimally parallelised
 over the available number of cores. For example, to calculate and plot the 2D
-relaxed surface over the C-C distances in a Diels-Alder reaction between ethene
-and butadiene
+relaxed surface over the forming C-C distances in a Diels-Alder reaction between
+ethene and butadiene:
 
 
 .. literalinclude:: ../common/DA_2d.py
@@ -14,16 +14,23 @@ and butadiene
 
 Out:
 
-.. image:: ../common/DA_PES2d.png
+.. image:: ../common/DA_surface.png
 
 
-where the xyz files used are:
+Surfaces can also be interpolated using a
+`spline <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RectBivariateSpline.html>`_.
+To reload the PES and plot using a 4-fold interpolation (i.e. 10 -> 40 points in each dimension):
 
 
-.. literalinclude:: ../common/DA_r.xyz
+.. literalinclude:: ../common/DA_2d_interp.py
 
 
-.. literalinclude:: ../common/DA_p.xyz
+Out:
+
+.. image:: ../common/DA_surface_interpolated.png
 
 
-and the plot has been generated using a 2-dimensional polynomial fit up to order 3.
+where the .xyz file (cyclohexene.xyz) used is:
+
+.. literalinclude:: ../common/cyclohexene.xyz
+

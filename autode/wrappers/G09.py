@@ -9,8 +9,7 @@ from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
-from autode.calculation import CalculationOutput
-from autode.calculation import Constraints
+from autode.constraints import Constraints
 from autode.utils import work_in_tmp_dir
 
 
@@ -260,6 +259,8 @@ def rerun_angle_failure(calc):
     Returns:
         (autode.calculation.Calculation):
     """
+    from autode.calculation import CalculationOutput
+
     cart_calc = deepcopy(calc)
 
     # Iterate through a copied set of keywords
@@ -323,7 +324,9 @@ def _run_hessian(calc):
 
     Returns:
         (autode.calculation.Calculation):
-    """    
+    """
+    from autode.calculation import CalculationOutput
+
     hess_calc = deepcopy(calc)  # Uses a copy so the current calc. is unchanged
 
     # Remove any optimisation keywords
@@ -356,6 +359,22 @@ def calc_uses_external_method(calc):
 
 class G09(ElectronicStructureMethod):
 
+    def __init__(self, name='g09', path=None, keywords_set=None,
+                 implicit_solvation_type=None):
+        """Gaussian 09"""
+
+        if keywords_set is None:
+            keywords_set = Config.G09.keywords
+
+        if implicit_solvation_type is None:
+            implicit_solvation_type = Config.G09.implicit_solvation_type
+
+        super().__init__(name=name,
+                         path=Config.G09.path if path is None else path,
+                         keywords_set=keywords_set,
+                         implicit_solvation_type=implicit_solvation_type,
+                         doi='http://gaussian.com/citation/')
+
     def __repr__(self):
         return f'Gaussian09(available = {self.available})'
 
@@ -375,8 +394,9 @@ class G09(ElectronicStructureMethod):
             keywords = get_keywords(calc.input, molecule)
             print('#', *keywords, file=inp_file, end=' ')
 
-            if calc.input.solvent is not None:
-                print(f'scrf=(smd,solvent={calc.input.solvent})', file=inp_file)
+            if molecule.solvent is not None:
+                print(f'scrf=(smd,solvent={molecule.solvent.g09})',
+                      file=inp_file)
             else:
                 print('', file=inp_file)
 
@@ -507,26 +527,28 @@ class G09(ElectronicStructureMethod):
         return False
 
     def get_final_atoms(self, calc):
+        """Get the final set of atoms (with coordinates) from a G09 ouput"""
 
-        atoms = None
+        init_atoms = calc.molecule.atoms
+
+        if isinstance(calc.input.keywords, kws.HessianKeywords):
+            logger.info('Hessian calculation performed. Expecting atoms to '
+                        'have identical positions')
+            return init_atoms
+
+        atoms = []
 
         for i, line in enumerate(calc.output.file_lines):
 
             if 'Input orientation' in line:
 
-                atoms = []
+                atoms.clear()
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
 
                 for xyz_line in xyz_lines:
-                    atom_index, _, _, x, y, z = xyz_line.split()
-                    atom_index = int(atom_index) - 1
-                    atoms.append(Atom(calc.molecule.atoms[atom_index].label, x=x, y=y, z=z))
-
-                if len(atoms) != calc.molecule.n_atoms:
-                    raise AtomsNotFound
-
-        if atoms is None:
-            raise AtomsNotFound
+                    idx, _, _, x, y, z = xyz_line.split()
+                    idx = int(idx) - 1
+                    atoms.append(Atom(init_atoms[idx].label, x=x, y=y, z=z))
 
         return atoms
 
@@ -612,11 +634,11 @@ class G09(ElectronicStructureMethod):
 
         for line in reversed(calc.output.file_lines):
 
-            if r'\\@' in line:
+            if r'\\@' in line or line.startswith(' @'):
                 append_line = True
 
             if append_line:
-                #                 Strip of new-lines and spaces
+                #                 Strip off new-lines and spaces
                 hess_lines.append(line.strip('\n').strip(' '))
 
             if 'NImag' in line:
@@ -643,22 +665,6 @@ class G09(ElectronicStructureMethod):
 
         # Gaussian Hessians are quoted in Ha a0^-2
         return symm_matrix_from_ltril(hess_values) / Constants.a0_to_ang**2
-
-    def __init__(self, name='g09', path=None, keywords_set=None,
-                 implicit_solvation_type=None):
-        """Gaussian 09"""
-
-        if keywords_set is None:
-            keywords_set = Config.G09.keywords
-
-        if implicit_solvation_type is None:
-            implicit_solvation_type = Config.G09.implicit_solvation_type
-
-        super().__init__(name=name,
-                         path=Config.G09.path if path is None else path,
-                         keywords_set=keywords_set,
-                         implicit_solvation_type=implicit_solvation_type,
-                         doi='http://gaussian.com/citation/')
 
 
 g09 = G09()

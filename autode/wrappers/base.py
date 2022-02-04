@@ -1,19 +1,3 @@
-"""
-Base classes for electronic structure and other methods that map nuclear
-coordinates to energies, forces and hessians.
-
-To implement a new EST method:
-
-(1) Subclass ElectronicStructureMethod and implement all abstract methods
-
-(2) Add a default configuration to the Config class in config.py implementing
-    keywords for each implemented type of calculation
-
-(3) Optional: Include keywords in keyword wrappers e.g. wrappers/functionals.py
-    so keywords may have associated citations
-
-(4) Write tests!
-"""
 import os
 import numpy as np
 from abc import ABC
@@ -33,6 +17,34 @@ class Method:
 
 class ElectronicStructureMethod(Method, ABC):
 
+    def __init__(self, name, path, keywords_set, implicit_solvation_type,
+                 doi=None, doi_list=None):
+        """
+        Arguments:
+            name (str): wrapper name. ALSO the name of the executable
+            path (str): absolute path to the executable
+            keywords_set (autode.wrappers.keywords.KeywordsSet):
+            implicit_solvation_type (autode.wrappers.
+                                     keywords.ImplicitSolventType):
+
+        """
+        self.name = name
+        self.__name__ = self.__class__.__name__
+
+        # Digital object identifier(s) of the method/or paper describing the
+        # method
+        self.doi_list = []
+        if doi_list is not None:
+            self.doi_list += doi_list
+
+        if doi is not None:
+            self.doi_list.append(doi)
+
+        # If the path is not set in config.py or input script search in $PATH
+        self.path = path if path is not None else which(name)
+        self.keywords = deepcopy(keywords_set)
+        self.implicit_solvation_type = implicit_solvation_type
+
     @abstractmethod
     def __repr__(self):
         """Representation of this method"""
@@ -51,8 +63,28 @@ class ElectronicStructureMethod(Method, ABC):
         return False
 
     @property
+    def available_implicit_solvents(self) -> List[str]:
+        """Available implicit solvent models for this EST method"""
+        from autode.solvent.solvents import solvents
+
+        return [s.name for s in solvents
+                if s.is_implicit and hasattr(s, self.name)]
+
+    @property
     def doi_str(self):
         return " ".join(self.doi_list)
+
+    @property
+    def implements_hessian(self) -> bool:
+        """
+        Is either an analytic or numerical Hessian evaluation implemented
+        within the electronic structure package?
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        return len(self.keywords.hess) > 0
 
     @abstractmethod
     def generate_input(self, calc, molecule):
@@ -230,30 +262,11 @@ class ElectronicStructureMethod(Method, ABC):
         """
         raise NotImplementedError
 
-    def __init__(self, name, path, keywords_set, implicit_solvation_type,
-                 doi=None, doi_list=None):
-        """
-        Arguments:
-            name (str): wrapper name. ALSO the name of the executable
-            path (str): absolute path to the executable
-            keywords_set (autode.wrappers.keywords.KeywordsSet):
-            implicit_solvation_type (autode.wrappers.
-                                     keywords.ImplicitSolventType):
+    def __eq__(self, other) -> bool:
+        """Equality of this EST method to another one"""
 
-        """
-        self.name = name
-        self.__name__ = self.__class__.__name__
+        if not isinstance(other, self.__class__):
+            return False
 
-        # Digital object identifier(s) of the method/or paper describing the
-        # method
-        self.doi_list = []
-        if doi_list is not None:
-            self.doi_list += doi_list
-
-        if doi is not None:
-            self.doi_list.append(doi)
-
-        # If the path is not set in config.py or input script search in $PATH
-        self.path = path if path is not None else which(name)
-        self.keywords = deepcopy(keywords_set)
-        self.implicit_solvation_type = implicit_solvation_type
+        attrs = ('name', 'keywords', 'path', 'implicit_solvation_type')
+        return all(getattr(other, a) == getattr(self, a) for a in attrs)

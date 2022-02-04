@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import pytest
+
 from autode.atoms import Atom
 from autode.methods import XTB
 from autode.path import Path, AdaptivePath, PathPoint
@@ -22,6 +24,9 @@ def test_path_properties_empty():
     assert path == Path()  # should be able to compare paths
     assert path != 0
 
+    with pytest.raises(ValueError):
+        _ = Path('does not have correct attributes')
+
     # With no species there should be no peak/saddle/energies
     assert len(path.rel_energies) == 0
     assert len(path.energies) == 0
@@ -32,7 +37,7 @@ def test_path_properties_empty():
 
     # Should not plot plot a path without any structures
     path.plot_energies(save=True, name='tmp', color='black', xlabel='none')
-    assert not os.path.exists('tmp.png')
+    assert not os.path.exists('tmp.pdf')
 
 
 def test_path_properties():
@@ -60,8 +65,8 @@ def test_path_properties():
     assert path.is_saddle(idx=1)
 
     path.plot_energies(save=True, name='tmp', color='black', xlabel='none')
-    assert os.path.exists('tmp.png')
-    os.remove('tmp.png')
+    assert os.path.exists('tmp.pdf')
+    os.remove('tmp.pdf')
 
     # Should ba able to print an xyz file containing the structures along the
     # path

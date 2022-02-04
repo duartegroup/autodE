@@ -4,6 +4,7 @@ from autode.log import logger
 
 
 class ReactionType:
+    """Type of a reaction e.g. Addition"""
 
     def __init__(self, name: str):
         """

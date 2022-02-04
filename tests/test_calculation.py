@@ -1,4 +1,4 @@
-from autode.calculation import Calculation, get_solvent_name, Constraints
+from autode.calculation import Calculation, Constraints, CalculationOutput
 from autode.solvent.solvents import get_solvent
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
@@ -28,12 +28,13 @@ def test_calc_class():
     assert calc.method.name == 'xtb'
     assert len(calc.input.filenames) == 0
 
-    assert calc.get_energy() is None
+    with pytest.raises(ex.CouldNotGetProperty):
+        _ = calc.get_energy()
 
     assert not calc.optimisation_converged()
     assert not calc.optimisation_nearly_converged()
 
-    with pytest.raises(ex.AtomsNotFound):
+    with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_final_atoms()
 
     with pytest.raises(ex.CouldNotGetProperty):
@@ -84,6 +85,47 @@ def test_calc_class():
                         molecule=mol_no_atoms,
                         method=xtb,
                         keywords=xtb.keywords.sp)
+
+
+def test_calc_copy():
+
+    orca = ORCA()
+    calc = Calculation(name='tmp',
+                       molecule=test_mol,
+                       method=orca,
+                       keywords=orca.keywords.sp)
+
+    copied_calc = calc.copy()
+    copied_calc.input.keywords = None
+
+    assert calc.input.keywords is not None
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_clear_output():
+
+    with open('tmp.out', 'w') as out_file:
+        print('some', 'test', 'output', sep='\n', file=out_file)
+
+    output = CalculationOutput(filename='tmp.out')
+    assert output.exists
+
+    assert len(output.file_lines) == 3
+
+    with open('tmp.out', 'w') as out_file:
+        print('new output', sep='\n', file=out_file)
+
+    # Without clearing the output then the file lines are not updated
+    assert len(output.file_lines) == 3
+
+    # Clearing the output will clear the cached property (file_lines). Lines
+    # are reloaded when the file_lines property is accessed again
+    output.clear()
+
+    assert output.exists
+    assert len(output.file_lines) == 1
+
+    os.remove('tmp.out')
 
 
 def test_distance_const_check():
@@ -167,35 +209,28 @@ def test_fix_unique():
 
 def test_solvent_get():
     xtb = XTB()
+    _test_mol = Molecule(smiles='O', name='test_mol')
 
     # Can't get the name of a solvent if molecule.solvent is not a string
-    test_mol.solvent = 5
     with pytest.raises(ex.SolventUnavailable):
-        _ = get_solvent_name(molecule=test_mol,  method=xtb)
+        _test_mol.solvent = 5
 
-    test_mol.solvent = None
-    assert get_solvent_name(test_mol, method=xtb) is None
-
-    test_mol.solvent = 'a_solvent_that_doesnt_exist'
     with pytest.raises(ex.SolventNotFound):
-        _ = get_solvent_name(molecule=test_mol,  method=xtb)
+        _test_mol.solvent = 'a_solvent_that_doesnt_exist'
 
     # Should work fine with a normal solvent
-    test_mol.solvent = get_solvent(solvent_name='water')
-    solv_name_xtb = get_solvent_name(test_mol, method=xtb)
-    assert solv_name_xtb.lower() in ['water', 'h2o']
+    _test_mol.solvent = get_solvent('water', kind='implicit')
+    assert _test_mol.solvent.xtb.lower() in ['water', 'h2o']
 
     # Currently iodoethane is not in XTB - might be in the future
-    test_mol.solvent = get_solvent(solvent_name='iodoethane')
-    with pytest.raises(ex.SolventUnavailable):
-        _ = get_solvent_name(test_mol, method=xtb)
+    _test_mol.solvent = 'iodoethane'
+    assert not hasattr(test_mol.solvent, 'xtb')
+    assert _test_mol.solvent.is_implicit
 
-    test_mol.solvent = 0
     with pytest.raises(ex.SolventUnavailable):
-        _ = get_solvent_name(test_mol, method=xtb)
-
-    # return to the gas phase
-    test_mol.solvent = None
+        _ = Calculation('test',
+                        molecule=_test_mol,
+                        method=xtb, keywords=xtb.keywords.sp)
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])

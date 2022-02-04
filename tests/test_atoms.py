@@ -44,6 +44,7 @@ def test_atoms():
     h_atoms = Atoms([Atom('H'), Atom('H', x=1.0)])
     assert isinstance(h_atoms.com, Coordinate)
     assert np.allclose(h_atoms.com, np.array([0.5, 0.0, 0.0]))
+    assert not h_atoms.contain_metals
 
     assert h_atoms.vector(0, 1) == np.array([1.0, 0.0, 0.0])
 
@@ -314,7 +315,7 @@ def test_atom_doc_examples():
     assert Atom('C').weight == Mass(12.0107, units='amu')
     assert Atom('C').weight == Atom('C').mass
 
-    assert Atom('H').mass.to('me') == Mass(1837.36222, units='m_e')
+    assert Atom('H').mass.to('me') == Mass(1837.3622207894994, units='m_e')
 
     atom = Atom('H')
     atom.translate(1.0, 0.0, 0.0)

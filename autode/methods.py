@@ -1,3 +1,5 @@
+from typing import Optional
+from autode.log import logger
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
@@ -5,18 +7,57 @@ from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.NWChem import NWChem
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
+from autode.wrappers.QChem import QChem
 from autode.config import Config
 from autode.exceptions import MethodUnavailable
 
 """
 Functions to get the high and low level electronic structure methods to use 
 for example high-level methods would be orca and Gaussian09 which can perform 
-DFT/WF theory calculations, low level methods are for example xtb and mopac 
-which are non ab-initio methods and are therefore considerably faster
+DFT/WF theory calculations, low level methods are, for example, xtb and mopac 
+which are fast non ab-initio methods
 """
 
-high_level_method_names = ['orca', 'g09', 'g16', 'nwchem']
+high_level_method_names = ['orca', 'g09', 'g16', 'nwchem', 'qchem']
 low_level_method_names = ['xtb', 'mopac']
+
+
+def method_or_default_lmethod(method: Optional[ElectronicStructureMethod]):
+    """
+    Return a method if one is defined but default to a low-level method if
+    if it is None.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        method: Method or None
+
+    Returns:
+        (autode.wrappers.base.ElectronicStructureMethod): Method
+    """
+    if method is None:
+        method = get_lmethod()
+        logger.info(f'Using the default low-level method {method}')
+
+    return method
+
+
+def method_or_default_hmethod(method: Optional[ElectronicStructureMethod]):
+    """
+    Return a method if one is defined but default to a high-level method if
+    if it is None.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        method: Method or None
+
+    Returns:
+        (autode.wrappers.base.ElectronicStructureMethod): Method
+    """
+    if method is None:
+        method = get_hmethod()
+        logger.info(f'Using the default high-level method {method}')
+
+    return method
 
 
 def get_hmethod() -> ElectronicStructureMethod:
@@ -25,7 +66,7 @@ def get_hmethod() -> ElectronicStructureMethod:
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): High-level method
     """
-    h_methods = [ORCA(), G09(), NWChem(), G16()]
+    h_methods = [ORCA(), G09(), NWChem(), G16(), QChem()]
 
     if Config.hcode is not None:
         return get_defined_method(name=Config.hcode, possibilities=h_methods)
@@ -39,7 +80,7 @@ def get_lmethod() -> ElectronicStructureMethod:
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): Low-level method
     """
-    all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem()]
+    all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem(), QChem()]
 
     if Config.lcode is not None:
         return get_defined_method(name=Config.lcode, possibilities=all_methods)

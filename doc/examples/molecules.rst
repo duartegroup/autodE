@@ -91,7 +91,7 @@ then rotate around the x axis
 .. code-block:: python
 
   >>> import numpy as np
-  >>> water.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
+  >>> water.rotate(axis=[1.0, 0.0, 0.0], theta=np.pi)
   >>> water.coordinates
   Coordinates([[ 0.    ,  0.   ,  0.    ],
                [-0.8250, 0.1819,  0.    ],
@@ -120,7 +120,7 @@ Calculations
 .. image:: ../common/water_opt_energy.png
 
 **autodE** provides wrappers around common electronic structure theory packages
-(ORCA, XTB, NWChem, MOPAC, Gaussian09, Gaussian16) so geometries may be
+(ORCA, XTB, NWChem, MOPAC, Gaussian09, Gaussian16, QChem) so geometries may be
 optimised and energies calculated.
 
 For example, to optimise the geometry of a water molecule at the XTB level and
@@ -163,10 +163,20 @@ keywords for an instance of the ORCA wrapper
 .. code-block:: python
 
   >>> orca = ade.methods.ORCA()
-  >>> orca.keywords.sp = ade.SinglePointKeywords(['PBE0', 'D3BJ', 'ma-def2-TZVP'])
+  >>> orca.keywords.sp = ['PBE0', 'D3BJ', 'ma-def2-TZVP']
   >>> water.single_point(method=orca)
   >>> water.energy
   Energy(-76.37938 Ha)
+
+Keywords can also be passed as arguments to :code:`single_point`, :code:`optimise`
+and :code:`calc_thermo`. For example:
+
+.. code-block:: python
+
+  >>> water.single_point(method=ade.methods.ORCA(),
+  ...                    keywords=['PBE0', 'D3BJ', 'ma-def2-TZVP'])
+
+will do an identical calculation to the above example.
 
 Alternatively, to set the keywords for every instance of :code:`ORCA` created,
 use :code:`ade.Config` e.g.
@@ -174,7 +184,7 @@ use :code:`ade.Config` e.g.
 
 .. code-block:: python
 
-  >>> ade.Config.ORCA.keywords.sp = ade.SinglePointKeywords(['PBE0', 'D3BJ', 'ma-def2-TZVP'])
+  >>> ade.Config.ORCA.keywords.sp = ['PBE0', 'D3BJ', 'ma-def2-TZVP']
   >>> instance_1 = ade.methods.ORCA()
   >>> instance_1.keywords.sp
   SPKeywords(PBE0 D3BJ ma-def2-TZVP)
@@ -187,3 +197,23 @@ use :code:`ade.Config` e.g.
 
     Structure optimisation resets the positions of the atoms to their optimised
     value.
+
+Calculations can also be performed using electronic structure packages with
+implemented wrappers. For example, to calculate a single point energy for a
+hydrogen atom with all the currently implemented methods
+
+.. code-block:: python
+
+  >>> from autode.methods import MOPAC, XTB, QChem, NWChem, G09, G16, ORCA
+  >>>
+  >>> h = ade.Molecule(name='H', mult=2, atoms=[ade.Atom('H')])
+  >>>
+  >>> h.single_point(method=MOPAC())
+  >>> h.single_point(method=XTB())
+  >>> h.single_point(method=QChem())
+  >>> h.single_point(method=NWChem())
+  >>> h.single_point(method=G09())
+  >>> h.single_point(method=G16())
+  >>> h.single_point(method=ORCA())
+
+

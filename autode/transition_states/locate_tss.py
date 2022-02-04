@@ -1,9 +1,8 @@
 import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
-from autode.atoms import metals
 from autode.species import Complex
-from autode.transition_states.transition_state import TransitionState
+from autode.transition_states import TransitionState, TransitionStates
 from autode.transition_states.truncation import get_truncated_species
 from autode.transition_states.truncation import is_worth_truncating
 from autode.transition_states.ts_guess import get_template_ts_guess
@@ -32,7 +31,7 @@ def find_tss(reaction):
         (list(autode.reaction.Reaction)): Reaction
 
     Returns:
-        (list(autode.transition_states.transition_state.TransitionState)):
+        (autode.transition_states.transition_states.TransitionStates):
     """
     logger.info('Finding possible transition states')
     reactant, product = reaction.reactant, reaction.product
@@ -47,7 +46,7 @@ def find_tss(reaction):
         logger.error('Could not find a set of forming/breaking bonds')
         return None
 
-    tss = []
+    tss = TransitionStates()
     for bond_rearrangement in bond_rearrs:
         logger.info(f'Locating transition state using active bonds '
                     f'{bond_rearrangement.all}')
@@ -56,10 +55,6 @@ def find_tss(reaction):
 
         if ts is not None:
             tss.append(ts)
-
-    if len(tss) == 0:
-        logger.error('Did not find any transition state(s)')
-        return None
 
     logger.info(f'Found *{len(tss)}* transition state(s) that lead to products')
     return tss
@@ -94,17 +89,13 @@ def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
 
     # Ideally use a transition state template, then only a single constrained
     # optimisation needs to be run
-
     yield get_template_ts_guess, (r, p, bond_rearr,
                                   f'{name}_template_{bond_rearr}', hmethod)
 
-    # otherwise try a nudged elastic band calculation, don't use the low level
-    # method if there are any metals
-    if not any(atom.label in metals for atom in r.atoms):
+    if (not r.atoms.contain_metals) and hmethod != lmethod:
         yield get_ts_adaptive_path, (r, p, lmethod, bond_rearr,
                                      f'{name}_ll_ad_{bond_rearr}')
 
-    # Always attempt a high-level NEB
     yield get_ts_adaptive_path, (r, p, hmethod, bond_rearr,
                                  f'{name}_hl_ad_{bond_rearr}')
 

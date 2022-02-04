@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional, Sequence, List
 from copy import deepcopy
 from abc import ABC, abstractmethod
 from autode.log import logger
@@ -6,12 +6,140 @@ from autode.log import logger
 
 class KeywordsSet:
 
+    def __init__(self,
+                 low_opt:     Optional[Sequence[str]] = None,
+                 grad:        Optional[Sequence[str]] = None,
+                 opt:         Optional[Sequence[str]] = None,
+                 opt_ts:      Optional[Sequence[str]] = None,
+                 hess:        Optional[Sequence[str]] = None,
+                 sp:          Optional[Sequence[str]] = None,
+                 ecp:         Optional['autode.wrappers.keywords.ECP'] = None,
+                 optts_block: str = ''):
+        """
+        Keywords used to specify the type and method used in electronic
+        structure theory calculations. The input file for a single point
+        calculation will look something like::
+
+            -------------------------------------------------------------------
+            <keyword line directive> autode.KeywordsSet.keywords[0] ...
+            autode.KeywordsSet.optts_block
+
+            <coordinate directive> <charge> <multiplicity>
+            .
+            .
+            coordinates
+            .
+            .
+            <end of coordinate directive>
+            -------------------------------------------------------------------
+
+        -----------------------------------------------------------------------
+        Arguments:
+
+            low_opt: List of keywords for a low level optimisation
+
+            grad: List of keywords for a gradient calculation
+
+            opt: List of keywords for a optimisation
+
+            opt_ts: List of keywords for a transition state optimisation
+
+            hess: List of keywords for a hessian calculation
+
+            sp: List of keywords for a single point calculation
+
+            ecp: Effective core potential to use for atoms heavier than
+                 ecp.min_atomic_number, if not None
+
+             optts_block: String as extra input for a TS optimisation
+        """
+
+        self._low_opt = OptKeywords(low_opt)   # Low-level optimisation
+        self._opt = OptKeywords(opt)           # Optimisation
+        self._opt_ts = OptKeywords(opt_ts)     # TS optimisation
+
+        self._grad = GradientKeywords(grad)    # Gradient
+        self._hess = HessianKeywords(hess)     # Hessian
+
+        self._low_sp = None                    # Low-level single point
+        self._sp = SinglePointKeywords(sp)     # Single point
+
+        self.optts_block = optts_block
+
+        if ecp is not None:
+            self.set_ecp(ecp)
+
     def __repr__(self):
         str_methods = ',\n'.join(str(c) for c in self._list if c is not None)
         return f'KeywordsSet({str_methods})'
 
     def __getitem__(self, item):
         return self._list[item]
+
+    def __eq__(self, other) -> bool:
+        """Equality of two keyword sets"""
+        return isinstance(other, KeywordsSet) and self._list == other._list
+
+    @property
+    def low_opt(self) -> 'OptKeywords':
+        return self._low_opt
+
+    @low_opt.setter
+    def low_opt(self, value: Optional[Sequence[str]]):
+        self._low_opt = OptKeywords(value)
+
+    @property
+    def opt(self) -> 'OptKeywords':
+        return self._opt
+
+    @opt.setter
+    def opt(self, value: Optional[Sequence[str]]):
+        self._opt = OptKeywords(value)
+
+    @property
+    def opt_ts(self) -> 'OptKeywords':
+        return self._opt_ts
+
+    @opt_ts.setter
+    def opt_ts(self, value: Optional[Sequence[str]]):
+        self._opt_ts = OptKeywords(value)
+
+    @property
+    def grad(self) -> 'GradientKeywords':
+        return self._grad
+
+    @grad.setter
+    def grad(self, value: Optional[Sequence[str]]):
+        self._grad = GradientKeywords(value)
+
+    @property
+    def hess(self) -> 'HessianKeywords':
+        return self._hess
+
+    @hess.setter
+    def hess(self, value: Optional[Sequence[str]]):
+        self._hess = HessianKeywords(value)
+
+    @property
+    def low_sp(self) -> Optional['SinglePointKeywords']:
+        return self._low_sp
+
+    @low_sp.setter
+    def low_sp(self, value: Optional[Sequence[str]]):
+        self._low_sp = value if value is None else SinglePointKeywords(value)
+
+    @property
+    def sp(self) -> 'SinglePointKeywords':
+        return self._sp
+
+    @sp.setter
+    def sp(self, value: Optional[Sequence[str]]):
+        self._sp = SinglePointKeywords(value)
+
+    @property
+    def _list(self) -> List['autode.wrappers.keywords.Keywords']:
+        """List of all the keywords in this set"""
+        return [self._low_opt, self._opt, self._opt_ts, self._grad, self._hess, self._sp]
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
@@ -48,85 +176,44 @@ class KeywordsSet:
 
         return None
 
-    def __init__(self, low_opt=None, grad=None, opt=None, opt_ts=None,
-                 hess=None, optts_block='', sp=None, ecp=None):
+    def copy(self) -> 'KeywordsSet':
+        return deepcopy(self)
+
+
+class Keywords(ABC):
+
+    def __init__(self,
+                 keyword_list: Union[Sequence[str], str, None] = None):
         """
-        Keywords used to specify the type and method used in electronic
-        structure theory calculations. The input file for a single point
-        calculation will look something like::
+        List of keywords used in an electronic structure calculation
 
-            -------------------------------------------------------------------
-            <keyword line directive> autode.Keywords.x[0] ...
-            autode.Keywords.optts_block
-
-            <coordinate directive> <charge> <multiplicity>
-            .
-            .
-            coordinates
-            .
-            .
-            <end of coordinate directive>
-            -------------------------------------------------------------------
-
-        Keyword Arguments:
-
-            low_opt (list(str)): List of keywords for a low level optimisation
-
-            grad (list(str)): List of keywords for a gradient calculation
-
-            opt (list(str)): List of keywords for a low level optimisation
-
-            opt_ts (list(str)): List of keywords for a low level optimisation
-
-            hess (list(str)): List of keywords for a low level optimisation
-
-            optts_block (str): String as extra input for a TS optimisation
-
-            sp  (list(str)): List of keywords for a single point calculation
-
-            ecp (autode.wrrappers.keywords.ECP | None): Effective core
-                potential for atoms heavier than
+        -----------------------------------------------------------------------
+        Arguments:
+            keyword_list: Keywords
         """
 
-        self.low_opt = OptKeywords(low_opt)
-        self.opt = OptKeywords(opt)
-        self.opt_ts = OptKeywords(opt_ts)
+        if isinstance(keyword_list, str):
+            self._list = [keyword_list]
 
-        self.grad = GradientKeywords(grad)
-        self.hess = HessianKeywords(hess)
-
-        self.low_sp = None                      # Low level single point
-        self.sp = SinglePointKeywords(sp)
-
-        self._list = [self.low_opt, self.opt, self.opt_ts, self.grad,
-                      self.hess, self.sp]
-
-        self.optts_block = optts_block
-
-        if ecp is not None:
-            self.set_ecp(ecp)
-
-
-class Keywords:
+        else:
+            self._list = list(keyword_list) if keyword_list is not None else []
 
     def __str__(self):
-        return '_'.join([str(kw) for kw in self.keyword_list])
+        return ' '.join([repr(kw) for kw in self._list])
 
+    def __eq__(self, other) -> bool:
+        """Equality of these keywords to another kind"""
+        return (isinstance(other, self.__class__)
+                and set(self._list) == set(other._list))
+
+    @abstractmethod
     def __repr__(self):
         """Representation of these keywords"""
-        return self.__str__()
-
-    def _string(self, prefix):
-        """Return a string defining the keywords, with or without a prefix"""
-        from autode.config import Config
-        base_str = ' '.join([str(kw) for kw in self.keyword_list])
-
-        return f'{prefix}({base_str})'
 
     def _get_keyword(self, keyword_type):
         """Get a keyword given a type"""
 
-        for keyword in self.keyword_list:
+        for keyword in self._list:
             if isinstance(keyword, keyword_type):
                 return keyword
 
@@ -139,12 +226,12 @@ class Keywords:
 
         assert type(keyword) is keyword_type or keyword is None
 
-        for i, keyword_in_list in enumerate(self.keyword_list):
+        for i, keyword_in_list in enumerate(self._list):
             if isinstance(keyword_in_list, keyword_type):
                 if keyword is None:
-                    del self.keyword_list[i]
+                    del self._list[i]
                 else:
-                    self.keyword_list[i] = keyword
+                    self._list[i] = keyword
                 return
 
             # Cannot have both wavefunction and DFT methoda
@@ -257,6 +344,22 @@ class Keywords:
 
         return string
 
+    def contain_any_of(self, *words: str) -> bool:
+        """
+        Do these keywords contain any of a set of other words? Not case
+        sensitive.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            *words: Words that may be present in these keywords
+
+        Returns:
+            (bool):
+        """
+        kwds = set(w.lower() for w in self)
+
+        return not kwds.isdisjoint(w.lower() for w in words)
+
     def copy(self):
         return deepcopy(self)
 
@@ -264,31 +367,25 @@ class Keywords:
         assert type(item) is str or isinstance(item, Keyword)
 
         # Don't re-add a keyword that is already there
-        if any(kw.lower() == item.lower() for kw in self.keyword_list):
+        if any(kw.lower() == item.lower() for kw in self._list):
             return
 
-        self.keyword_list.append(item)
+        self._list.append(item)
 
     def remove(self, item):
-        self.keyword_list.remove(item)
+        self._list.remove(item)
 
     def __getitem__(self, item):
-        return self.keyword_list[item]
+        return self._list[item]
+
+    def __setitem__(self, key, value):
+        self._list[key] = value
 
     def __len__(self):
-        return len(self.keyword_list)
+        return len(self._list)
 
     def __iter__(self):
-        return iter(self.keyword_list)
-
-    def __init__(self, keyword_list=None):
-        """
-        Read only list of keywords
-
-        Keyword Arguments:
-            keyword_list (list(str)): List of keywords used in a QM calculation
-        """
-        self.keyword_list = keyword_list if keyword_list is not None else []
+        return iter(self._list)
 
 
 class OptKeywords(Keywords):
@@ -315,62 +412,29 @@ class OptKeywords(Keywords):
 
         self._set_keyword(MaxOptCycles(int(value)), MaxOptCycles)
 
-    def __str__(self):
-        return self._string(prefix='OptKeywords')
+    def __repr__(self):
+        return f'OptKeywords({self.__str__()})'
 
 
 class HessianKeywords(Keywords):
 
-    def __str__(self):
-        return self._string(prefix='HessKeywords')
+    def __repr__(self):
+        return f'HessKeywords({self.__str__()})'
 
 
 class GradientKeywords(Keywords):
 
-    def __str__(self):
-        return self._string(prefix='GradKeywords')
+    def __repr__(self):
+        return f'GradKeywords({self.__str__()})'
 
 
 class SinglePointKeywords(Keywords):
 
-    def __str__(self):
-        return self._string(prefix='SPKeywords')
+    def __repr__(self):
+        return f'SPKeywords({self.__str__()})'
 
 
 class Keyword(ABC):
-
-    @abstractmethod
-    def __repr__(self):
-        """Representation of this keyword"""
-
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __str__(self):
-        return self.name
-
-    def lower(self):
-        return self.name.lower()
-
-    def upper(self):
-        return self.name.upper()
-
-    @property
-    def doi_str(self):
-        return ' '.join(self.doi_list)
-
-    def has_only_name(self):
-        """Determine if only a name has been set, in which case it will
-        be printed verbatim into an input file, otherwise needs keyword.method
-        to be set, where method is e.g. orca"""
-
-        excl_attrs = ('name', 'doi_list')
-        for attr in self.__dict__:
-            if attr in excl_attrs:
-                continue
-            return False
-
-        return True
 
     def __init__(self, name, doi=None, doi_list=None, **kwargs):
         """
@@ -407,6 +471,44 @@ class Keyword(ABC):
         # Gaussian 09 and Gaussian 16 keywords are the same(?)
         if 'g09' in kwargs.keys():
             self.g16 = kwargs['g09']
+
+    @abstractmethod
+    def __repr__(self):
+        """Representation of this keyword"""
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __str__(self):
+        return self.name
+
+    def __hash__(self):
+        """Unique hash of this object"""
+        return hash(repr(self))
+
+    def lower(self):
+        return self.name.lower()
+
+    def upper(self):
+        return self.name.upper()
+
+    @property
+    def doi_str(self):
+        return ' '.join(self.doi_list)
+
+    @property
+    def has_only_name(self):
+        """Determine if only a name has been set, in which case it will
+        be printed verbatim into an input file, otherwise needs keyword.method
+        to be set, where method is e.g. orca"""
+
+        excl_attrs = ('name', 'doi_list')
+        for attr in self.__dict__:
+            if attr in excl_attrs:
+                continue
+            return False
+
+        return True
 
 
 class BasisSet(Keyword):
@@ -467,12 +569,21 @@ class ECP(Keyword):
                 and str(self) == str(other)
                 and self.min_atomic_number == other.min_atomic_number)
 
-    def __init__(self, name, min_atomic_number=37,
-                 doi=None, doi_list=None, **kwargs):
+    def __hash__(self):
+        """Unique hash of this effective core potential"""
+        return hash(str(self) + str(self.min_atomic_number))
+
+    def __init__(self,
+                 name:              str,
+                 min_atomic_number: int = 37,
+                 doi:               Optional[str] = None,
+                 doi_list:          Optional[Sequence[str]] = None,
+                 **kwargs):
         """
         An effective core potential that applies to all atoms with atomic
         numbers larger than min_atomic_number
 
+        -----------------------------------------------------------------------
         Arguments:
             name (str):
             min_atomic_number (int):

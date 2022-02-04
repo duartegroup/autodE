@@ -5,9 +5,8 @@ from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.atoms import Atom
 from autode.species.molecule import (Reactant,  Product, Molecule, Species)
+from autode.species.complex import NCIComplex
 from autode.config import Config
-from autode.units import KcalMol
-from autode.units import KjMol
 from autode.calculation import Calculation
 from autode import methods
 from autode import geom
@@ -15,6 +14,7 @@ from autode import pes
 from autode import utils
 from autode import neb
 from autode import mol_graphs
+from autode import hessians
 
 """
 So, you want to bump the version.. make sure the following steps are followed
@@ -33,7 +33,7 @@ So, you want to bump the version.. make sure the following steps are followed
   - Merge when tests pass
 """
 
-__version__ = '1.1.3'
+__version__ = '1.2.0'
 
 
 __all__ = [
@@ -50,14 +50,14 @@ __all__ = [
     'Reactant',
     'Product',
     'Molecule',
+    'NCIComplex',
     'Config',
-    'KcalMol',
     'Calculation',
-    'KjMol',
     'pes',
     'neb',
     'geom',
     'methods',
     'mol_graphs',
-    'utils'
+    'utils',
+    'hessians'
 ]

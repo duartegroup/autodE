@@ -14,9 +14,11 @@ Reference
    smiles/index
    solvent/index
    species/index
+   neb/index
    transition_states/index
    thermochemistry/index
    wrappers/index
+   opt/index
    bond_rearrangement
    config
    constants

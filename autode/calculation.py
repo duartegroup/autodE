@@ -3,15 +3,14 @@ import os
 import hashlib
 import base64
 from typing import Optional, List
+from functools import wraps
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 from autode.utils import cached_property
 from autode.atoms import Atoms
 from autode.point_charges import PointCharge
 from autode.constraints import Constraints
-from autode.solvent.solvents import get_available_solvent_names, get_solvent
 from autode.config import Config
-from autode.solvent.solvents import Solvent
 from autode.log import logger
 from autode.hessians import Hessian
 from autode.values import PotentialEnergy, Gradient
@@ -25,61 +24,134 @@ def execute_calc(calc):
     return calc.execute_calculation()
 
 
-def get_solvent_name(molecule, method):
-    """
-    Set the solvent keyword to use in the calculation given an QM method
+def _requires_set_output_filename(func):
+    """Calculation method requiring the output filename to be set"""
 
-    Arguments:
-        molecule (autode.species.Species):
-        method (autode.wrappers.base.ElectronicStructureMethod):
-    """
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        calc = args[0]
 
-    if molecule.solvent is None:
-        logger.info('Calculation is in the gas phase')
-        return None
+        if calc.output.filename is None:
+            raise ex.CouldNotGetProperty(
+                f'Could not get property from {calc.name}. '
+                f'Has .run() been called?')
+        return func(*args, **kwargs)
 
-    if type(molecule.solvent) is str:
-        # Solvent could be a string from e.g. cgbind
-        solvent = get_solvent(solvent_name=molecule.solvent)
-
-    elif isinstance(molecule.solvent, Solvent):
-        # Otherwise expecting a autode.solvents.solvent.Solvent
-        solvent = molecule.solvent
-
-    else:
-        raise ex.SolventUnavailable('Expecting either a str or Solvent')
-
-    try:
-        # Get the name of the solvent for this method
-        return getattr(solvent, method.name)
-
-    except AttributeError:
-        raise ex.SolventUnavailable(f'Available solvents for {method.name} are'
-                                    f' {get_available_solvent_names(method)}')
+    return wrapped_function
 
 
 class Calculation:
 
+    def __init__(self,
+                 name:                  str,
+                 molecule:              'autode.species.Species',
+                 method:                'autode.wrappers.base.Method',
+                 keywords:              'autode.wrappers.keywords.Keywords',
+                 n_cores:               int = 1,
+                 bond_ids_to_add:       Optional[List[tuple]] = None,
+                 other_input_block:     Optional[str] = None,
+                 distance_constraints:  Optional[dict] = None,
+                 cartesian_constraints: Optional[List[int]] = None,
+                 point_charges:         Optional[List[PointCharge]] = None):
+        """
+        Arguments:
+            name (str):
+
+            molecule (autode.species.Species): Molecule to be calculated
+
+            method (autode.wrappers.base.ElectronicStructureMethod):
+
+            keywords (autode.wrappers.keywords.Keywords):
+
+        Keyword Arguments:
+
+            n_cores (int): Number of cores available (default: {1})
+
+            bond_ids_to_add (list(tuples)): List of bonds to add to internal
+                                            coordinates (default: {None})
+
+            other_input_block (str): Other input block to add (default: {None})
+
+            distance_constraints (dict): keys = tuple of atom ids for a bond to
+                                         be kept at fixed length, value = dist
+                                         to be fixed at (default: {None})
+
+            cartesian_constraints (list(int)): List of atom ids to fix at their
+                                               cartesian coordinates
+                                               (default: {None})
+
+            point_charges (list(autode.point_charges.PointCharge)): List of
+                                             float of point charges, x, y, z
+                                             coordinates for each point charge
+        """
+        # Calculation names that start with "-" can break EST methods
+        self.name = (f'{name}_{method.name}' if not name.startswith('-')
+                     else f'_{name}_{method.name}')
+
+        # ------------------- System specific parameters ----------------------
+        self.molecule = deepcopy(molecule)
+
+        if hasattr(self.molecule, 'constraints'):
+            self.molecule.constraints.update(distance=distance_constraints,
+                                             cartesian=cartesian_constraints)
+        else:
+            self.molecule.constraints = Constraints(distance=distance_constraints,
+                                                    cartesian=cartesian_constraints)
+
+        # --------------------- Calculation parameters ------------------------
+        self.method = method
+        self.n_cores = int(n_cores)
+
+        # ------------------- Calculation input/output ------------------------
+        self.input = CalculationInput(keywords=keywords.copy(),
+                                      additional_input=other_input_block,
+                                      added_internals=bond_ids_to_add,
+                                      point_charges=point_charges)
+
+        self.output = CalculationOutput()
+
+        self._check_molecule()
+
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""
-        string = (f'{self.name}{self.method.name}{str(self.input.keywords)}'
-                  f'{str(self.molecule)}{self.method.implicit_solvation_type}'
-                  f'{str(self.molecule.constraints)}')
+        string = (f'{self.name}{self.method.name}{repr(self.input.keywords)}'
+                  f'{self.molecule}{self.method.implicit_solvation_type}'
+                  f'{self.molecule.constraints}')
 
         hasher = hashlib.sha1(string.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()
 
     def _check_molecule(self) -> None:
-        """Ensure the molecule has the required attributes"""
-        assert hasattr(self.molecule, 'n_atoms')
-        assert hasattr(self.molecule, 'atoms')
-        assert hasattr(self.molecule, 'mult')
-        assert hasattr(self.molecule, 'charge')
-        assert hasattr(self.molecule, 'solvent')
+        """
+        Ensure the molecule has the required properties and raise exceptions
+        if they are not present.
+
+        Raises:
+            (ValueError | SolventUnavailable | NoInputError):
+        """
+
+        for attr in ('n_atoms', 'atoms', 'mult', 'charge', 'solvent'):
+            if not hasattr(self.molecule, attr):
+                raise ValueError(f'Molecule {self.molecule} must have '
+                                 f'{attr} but was not present')
 
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
-            logger.error('Have no atoms. Can\'t form a calculation')
-            raise ex.NoInputError
+            raise ex.NoInputError('Have no atoms. Can\'t form a calculation')
+
+        # Assume all calculations can be performed in the gas phase but
+        # not all implicit solvents are available in all EST codes
+        if (self.molecule.solvent is not None
+            and self.molecule.solvent.is_implicit
+            and not hasattr(self.molecule.solvent, self.method.name)):
+
+            m_name = self.method.name
+            err_str = (f'Could not find {self.molecule.solvent} for '
+                       f'{m_name}. Available solvents for {m_name} '
+                       f'are: {self.method.available_implicit_solvents}')
+
+            raise ex.SolventUnavailable(err_str)
+
+        return None
 
     def _fix_unique(self, register_name='.autode_calculations') -> None:
         """
@@ -172,39 +244,40 @@ class Calculation:
             string += (f' in combination with the {str(basis)} '
                        f'({basis.doi_str}) basis set')
 
-        if self.input.solvent is not None:
+        if self.molecule.solvent is not None:
             solv_type = self.method.implicit_solvation_type
             doi = solv_type.doi_str if hasattr(solv_type, 'doi_str') else '?'
 
             string += (f' and {solv_type.upper()} ({doi}) '
                        f'solvation, with parameters appropriate for '
-                       f'{self.input.solvent}')
+                       f'{self.molecule.solvent}')
 
         methods.add(f'{string}.\n')
         return None
 
-    def get_energy(self) -> Optional[PotentialEnergy]:
+    @_requires_set_output_filename
+    def get_energy(self) -> PotentialEnergy:
         """
-        Total electronic potential energy
+        Total electronic potential energy from the final structure in the
+        calculation
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.PotentialEnergy | None):
+
+        Raises:
+            (autode.exceptions.CouldNotGetProperty):
         """
         logger.info(f'Getting energy from {self.output.filename}')
 
         if not self.terminated_normally:
-            logger.error('Calculation did not terminate normally. '
-                         'Energy = None')
-            return None
+            logger.error(f'Calculation of {self.molecule} did not terminate '
+                         f'normally')
+            raise ex.CouldNotGetProperty(name='energy')
 
-        try:
-            return PotentialEnergy(self.method.get_energy(self),
-                                   method=self.method,
-                                   keywords=self.input.keywords)
-
-        except ex.CouldNotGetProperty:
-            logger.warning('Could not get energy. Energy = None')
-            return None
+        return PotentialEnergy(self.method.get_energy(self),
+                               method=self.method,
+                               keywords=self.input.keywords)
 
     def optimisation_converged(self) -> bool:
         """
@@ -234,6 +307,7 @@ class Calculation:
 
         return self.method.optimisation_nearly_converged(self)
 
+    @_requires_set_output_filename
     def get_final_atoms(self) -> Atoms:
         """
         Get the atoms from the final step of a geometry optimisation
@@ -247,17 +321,21 @@ class Calculation:
         logger.info(f'Getting final atoms from {self.output.filename}')
 
         if not self.output.exists:
-            logger.error('No calculation output. Could not get atoms')
-            raise ex.AtomsNotFound
+            raise ex.AtomsNotFound(f'{self.output.filename} did not exist')
+
+        if self.molecule.n_atoms == 1:
+            # Final atoms of a single atom molecule must be identical
+            return self.molecule.atoms
 
         atoms = Atoms(self.method.get_final_atoms(self))
 
         if len(atoms) != self.molecule.n_atoms:
-            logger.error(f'Failed to get atoms from {self.output.filename}')
-            raise ex.AtomsNotFound
+            raise ex.AtomsNotFound(f'Failed to get atoms from '
+                                   f'{self.output.filename}')
 
         return atoms
 
+    @_requires_set_output_filename
     def get_atomic_charges(self) -> List[float]:
         """
         Get the partial atomic charges from a calculation. The method used to
@@ -279,6 +357,7 @@ class Calculation:
 
         return charges
 
+    @_requires_set_output_filename
     def get_gradients(self) -> Gradient:
         """
         Get the gradient (dE/dr) with respect to atomic displacement from a
@@ -293,11 +372,12 @@ class Calculation:
         logger.info(f'Getting gradients from {self.output.filename}')
         gradients = Gradient(self.method.get_gradients(self))
 
-        if len(gradients) != self.molecule.n_atoms:
+        if gradients.shape != (self.molecule.n_atoms, 3):
             raise ex.CouldNotGetProperty(name='gradients')
 
         return gradients
 
+    @_requires_set_output_filename
     def get_hessian(self) -> Hessian:
         """
         Get the Hessian matrix (d^2E/dr^2) i.e. the matrix of second
@@ -308,7 +388,8 @@ class Calculation:
                       .              .               .              . )
 
         Returns:
-            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N) for N atoms
+            (autode.values.Hessian): Hessian matrix. shape = (3N, 3N),
+                                     for N atoms
 
         Raises:
             (autode.exceptions.CouldNotGetProperty):
@@ -365,15 +446,16 @@ class Calculation:
         filenames = self.input.filenames
         if everything:
             filenames.append(self.output.filename)
+            filenames += [fn for fn in os.listdir() if fn.startswith(self.name)]
 
-        logger.info(f'Deleting {filenames}')
+        logger.info(f'Deleting: {set(filenames)}')
 
-        # Delete the files that exist
-        for filename in filenames:
-            if not os.path.exists(filename):
+        for filename in set(filenames):
+
+            try:
+                os.remove(filename)
+            except FileNotFoundError:
                 logger.warning(f'Could not delete {filename} it did not exist')
-                continue
-            os.remove(filename)
 
         return None
 
@@ -396,7 +478,7 @@ class Calculation:
                 continue
 
             # Allow for the unambiguous setting of a keyword with only a name
-            if keyword.has_only_name():
+            if keyword.has_only_name:
                 # set e.g. keyword.orca = 'b3lyp'
                 setattr(keyword, self.method.name, keyword.name)
                 continue
@@ -405,7 +487,7 @@ class Calculation:
             # definition in this method is not obvious, so raise an exception
             if not hasattr(keyword, self.method.name):
                 err_str = (f'Keyword: {keyword} is not supported set '
-                           f'{keyword}.{self.method.name} as a string')
+                           f'{repr(keyword)}.{self.method.name} as a string')
                 raise ex.UnsuppportedCalculationInput(err_str)
 
         self.method.generate_input(self, self.molecule)
@@ -430,6 +512,7 @@ class Calculation:
         if not self.method.available:
             raise ex.MethodUnavailable
 
+        self.output.clear()
         self.method.execute(self)
 
         return None
@@ -446,86 +529,34 @@ class Calculation:
 
         return None
 
-    def __init__(self,
-                 name:                  str,
-                 molecule:              'autode.species.Species',
-                 method:                'autode.wrappers.base.Method',
-                 keywords:              'autode.wrappers.keywords.Keywords',
-                 n_cores:               int = 1,
-                 bond_ids_to_add:       Optional[List[tuple]] = None,
-                 other_input_block:     Optional[str] = None,
-                 distance_constraints:  Optional[dict] = None,
-                 cartesian_constraints: Optional[List[int]] = None,
-                 point_charges:         Optional[List[PointCharge]] = None):
+    def print_final_output_lines(self, n: int = 50) -> None:
         """
+        Print the final n output lines, if the output exists
+
+        -----------------------------------------------------------------------
         Arguments:
-            name (str):
-
-            molecule (autode.species.Species): Molecule to be calculated
-
-            method (autode.wrappers.base.ElectronicStructureMethod):
-
-            keywords (autode.wrappers.keywords.Keywords):
-
-        Keyword Arguments:
-
-            n_cores (int): Number of cores available (default: {1})
-
-            bond_ids_to_add (list(tuples)): List of bonds to add to internal
-                                            coordinates (default: {None})
-
-            other_input_block (str): Other input block to add (default: {None})
-
-            distance_constraints (dict): keys = tuple of atom ids for a bond to
-                                         be kept at fixed length, value = dist
-                                         to be fixed at (default: {None})
-
-            cartesian_constraints (list(int)): List of atom ids to fix at their
-                                               cartesian coordinates
-                                               (default: {None})
-
-            point_charges (list(autode.point_charges.PointCharge)): List of
-                                             float of point charges, x, y, z
-                                             coordinates for each point charge
+            n: Number of lines
         """
-        # Calculation names that start with "-" can break EST methods
-        self.name = (f'{name}_{method.name}' if not name.startswith('-')
-                     else f'_{name}_{method.name}')
 
-        # ------------------- System specific parameters ----------------------
-        self.molecule = deepcopy(molecule)
+        if self.output.exists:
+            print("".join(self.output.file_lines[-n:]))
 
-        if hasattr(self.molecule, 'constraints'):
-            self.molecule.constraints.update(distance=distance_constraints,
-                                             cartesian=cartesian_constraints)
-        else:
-            self.molecule.constraints = Constraints(distance=distance_constraints,
-                                                    cartesian=cartesian_constraints)
-        self._check_molecule()
+        return None
 
-        # --------------------- Calculation parameters ------------------------
-        self.method = method
-        self.n_cores = int(n_cores)
-
-        # ------------------- Calculation input/output ------------------------
-        self.input = CalculationInput(keywords=deepcopy(keywords),
-                                      solvent=get_solvent_name(molecule, method),
-                                      additional_input=other_input_block,
-                                      added_internals=bond_ids_to_add,
-                                      point_charges=point_charges)
-
-        self.output = CalculationOutput()
+    def copy(self) -> 'Calculation':
+        return deepcopy(self)
 
 
 class CalculationOutput:
 
     @cached_property
-    def file_lines(self):
+    def file_lines(self) -> List[str]:
         """
         Output files lines. This may be slow for large files but should
         not become a bottleneck when running standard DFT/WF calculations,
         are cached so only read once
 
+        -----------------------------------------------------------------------
         Returns:
             (list(str)): Lines from the output file
 
@@ -540,9 +571,17 @@ class CalculationOutput:
         return open(self.filename, 'r', encoding="utf-8").readlines()
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         """Does the calculation output exist?"""
         return self.filename is not None and os.path.exists(self.filename)
+
+    def clear(self) -> None:
+        """Clear the cached file lines"""
+
+        if 'file_lines' in self.__dict__:
+            del self.__dict__['file_lines']
+
+        return None
 
     def __init__(self, filename: Optional[str] = None):
 
@@ -551,12 +590,41 @@ class CalculationOutput:
 
 class CalculationInput:
 
+    def __init__(self,
+                 keywords:        'autode.wrappers.keywords.Keywords',
+                 additional_input: Optional[str] = None,
+                 added_internals:  Optional[list] = None,
+                 point_charges:    Optional[List[PointCharge]] = None):
+        """
+        Arguments:
+            keywords (autode.wrappers.keywords.Keywords):
+
+            additional_input (str or None): Any additional input string to add
+                                            to the input file, or None
+
+            added_internals (list(tuple(int)) or None): Atom indexes to add to
+                                                       the internal coordinates
+
+            point_charges (list(autode.point_charges.PointCharge) or None):
+                          list of float of point charges, x, y, z coordinates
+                          for each point charge
+        """
+        self.keywords = keywords
+        self.other_block = additional_input
+
+        self.added_internals = added_internals
+        self.point_charges = point_charges
+
+        self.filename = None
+        self.additional_filenames = []
+
+        self._check()
+
     def _check(self):
         """Check that the input parameters have the expected format"""
         if self.keywords is not None:
             assert isinstance(self.keywords, kws.Keywords)
 
-        assert self.solvent is None or type(self.solvent) is str
         assert self.other_block is None or type(self.other_block) is str
 
         # Ensure the point charges are given as a list of PointCharge objects
@@ -581,37 +649,3 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
-
-    def __init__(self,
-                 keywords:        'autode.wrappers.keywords.Keywords',
-                 solvent:          Optional[str] = None,
-                 additional_input: Optional[str] = None,
-                 added_internals:  Optional[list] = None,
-                 point_charges:    Optional[List[PointCharge]] = None):
-        """
-        Arguments:
-            keywords (autode.wrappers.keywords.Keywords):
-
-            solvent (str or None): Name of the solvent for this QM method
-
-            additional_input (str or None): Any additional input string to add
-                                            to the input file, or None
-
-            added_internals (list(tuple(int)) or None): Atom indexes to add to
-                                                       the internal coordinates
-
-            point_charges (list(autode.point_charges.PointCharge) or None):
-                          list of float of point charges, x, y, z coordinates
-                          for each point charge
-        """
-        self.keywords = keywords
-        self.solvent = solvent
-        self.other_block = additional_input
-
-        self.added_internals = added_internals
-        self.point_charges = point_charges
-
-        self.filename = None
-        self.additional_filenames = []
-
-        self._check()

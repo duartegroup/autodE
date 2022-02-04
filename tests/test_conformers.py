@@ -1,10 +1,12 @@
 from autode.atoms import Atom
 from autode.species import Molecule, NCIComplex
 from autode.conformers import Conformer, Conformers
+from autode.conformers.conformers import _calc_conformer
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 from autode.config import Config
 from autode.values import Energy
+from autode.utils import work_in_tmp_dir
 from autode.wrappers.keywords import SinglePointKeywords
 from scipy.spatial import distance_matrix
 from rdkit import Chem
@@ -29,6 +31,7 @@ def test_conf_class():
 
     assert 'conformer' in repr(h2_conf).lower()
     assert hasattr(h2_conf, 'optimise')
+    assert h2_conf != 'a'
 
     assert h2_conf.n_atoms == 2
     assert h2_conf.energy is None
@@ -285,3 +288,24 @@ def test_complex_conformers_diff_names():
 
     if os.path.exists('conformers'):
         shutil.rmtree('conformers')
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_calc_conformer():
+
+    h2_conf = Conformer(name='h2_conf', charge=0, mult=1,
+                        atoms=[Atom('H', 0.0, 0.0, 0.0),
+                               Atom('H', 0.0, 0.0, 0.7)])
+
+    _xtb = XTB()
+    _xtb.path = shutil.which('xtb')
+    assert _xtb.available
+
+    h2_conf = _calc_conformer(conformer=h2_conf,
+                              calc_type='single_point',
+                              method=_xtb,
+                              keywords=_xtb.keywords.sp,
+                              n_cores=1)
+
+    assert h2_conf.energy is not None

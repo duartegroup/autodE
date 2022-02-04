@@ -1,12 +1,12 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Type, Optional
+from typing import Any, Union, Type, Optional, Sequence
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
 from autode.units import (Unit,
                           ha, kjmol, kcalmol, ev, J,
-                          ang, a0, nm, pm, m,
+                          ang, a0, nm, pm, m, ang_amu_half,
                           rad, deg,
                           wavenumber, hz,
                           amu, kg, m_e,
@@ -15,13 +15,15 @@ from autode.units import (Unit,
                           MB, GB, TB)
 
 
-def _to(value,
+def _to(value: Union['Value', 'ValueArray'],
         units: Union[Unit, str]):
-    """Convert a value or value array to a new unit and return a copy
+    """
+    Convert a value or value array to a new unit and return a copy
 
+    ---------------------------------------------------------------------------
     Arguments:
-        value (autode.values.Value | autode.values.ValueArray):
-        units (autode.units.Unit | str):
+        value:
+        units: New units that the
 
     Returns:
         (autode.values.Value):
@@ -38,7 +40,16 @@ def _to(value,
                         f'-> {units}')
 
     #                      Convert to the base unit, then to the new units
-    return value.__class__(value * units.conversion / value.units.conversion,
+    if isinstance(value, Value):
+        raw_value = float(value)
+    elif isinstance(value, ValueArray):
+        raw_value = np.array(value)
+    else:
+        raise ValueError(f'Cannot convert {value} to new units. Must be one of'
+                         f' Value of ValueArray')
+
+    return value.__class__(raw_value * float(units.conversion
+                                             / value.units.conversion),
                            units=units)
 
 
@@ -74,6 +85,29 @@ class Value(ABC, float):
     """
     implemented_units = []
 
+    def __init__(self,
+                 x:     Any,
+                 units: Union[Unit, str, None] = None):
+        """
+        Value constructor
+
+        Arguments:
+            x (float | int):
+
+        Keyword Arguments:
+            units (autode.units.Unit | str | None):
+        """
+
+        float.__init__(float(x))
+
+        if isinstance(x, Value):
+            self.units = x.units
+        else:
+            self.units = _units_init(self, units)
+
+    def __new__(cls, *args, **kwargs):
+        return float.__new__(cls, args[0])
+
     @abstractmethod
     def __repr__(self):
         """Internal representation of this value"""
@@ -102,22 +136,21 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
-    def __eq__(self, other):
-        """Equality of two values, which may be in different units
-        use default numpy close-ness to compare"""
+    def __eq__(self, other) -> bool:
+        """Equality of two values, which may be in different units"""
 
         if other is None:
             return False
 
         if isinstance(other, Value):
-            return np.isclose(other.to(self.units), float(self))
+            other = other.to(self.units)
 
-        return np.isclose(other, float(self))
+        return abs(float(self) - float(other)) < 1E-8
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """Less than comparison operator"""
 
         if isinstance(other, Value):
@@ -125,19 +158,19 @@ class Value(ABC, float):
 
         return float(self) < other
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         """Greater than comparison operator"""
         return not self.__lt__(other)
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         """Greater than or equal to comparison operator"""
         return self.__lt__(other) or self.__eq__(other)
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         """Less than or equal to comparison operator"""
         return self.__gt__(other) or self.__eq__(other)
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'Value':
         """Add another value onto this one"""
         if isinstance(other, np.ndarray):
             return other + float(self)
@@ -145,7 +178,7 @@ class Value(ABC, float):
         return self.__class__(float(self) + self._other_same_units(other),
                               units=self.units)
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'Value':
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -153,14 +186,26 @@ class Value(ABC, float):
         return self.__class__(float(self) * self._other_same_units(other),
                               units=self.units)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> 'Value':
         return self.__mul__(other)
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> 'Value':
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> 'Value':
         return self.__add__(-other)
+
+    def __floordiv__(self, other):
+        raise NotImplementedError('Integer division is not supported by '
+                                  'autode.values.Value')
+
+    def __truediv__(self, other) -> 'Value':
+        return self.__class__(float(self) / float(self._other_same_units(other)),
+                              units=self.units)
+
+    def __abs__(self) -> 'Value':
+        """Absolute value"""
+        return self if self > 0 else self * -1
 
     def to(self, units):
         """Convert this value to a new unit, returning a copy
@@ -175,25 +220,6 @@ class Value(ABC, float):
             (TypeError):
         """
         return _to(self, units)
-
-    def __init__(self, x,
-                 units: Union[Unit, str, None] = None):
-        """
-        Value constructor
-
-        Arguments:
-            x (float | int):
-
-        Keyword Arguments:
-            units (autode.units.Unit | str | None):
-        """
-
-        float.__init__(float(x))
-
-        if isinstance(x, Value):
-            self.units = x.units
-        else:
-            self.units = _units_init(self, units)
 
 
 class Energy(Value):
@@ -211,19 +237,25 @@ class Energy(Value):
         tol_ha = 0.0000159    # 0.01 kcal mol-1
 
         # A PotentialEnergy is not equal to a FreeEnergy, for example
-        if isinstance(other, Energy) and not isinstance(other, self.__class__):
+        if isinstance(other, Value) and not isinstance(other, self.__class__):
             return False
 
         if isinstance(other, Value):
             other = other.to('Ha')
 
+        try:
+            other = float(other)   # Must be float-able
+        except TypeError:
+            return False
+
         return abs(other - float(self.to('Ha'))) < tol_ha
 
     def __init__(self,
                  value,
-                 units:    Union[Unit, str] = ha,
-                 method:   Optional['autode.wrappers.base.Method'] = None,
-                 keywords: Optional['autode.wrappers.keywords.Keywords'] = None):
+                 units:     Union[Unit, str] = ha,
+                 method:    Optional['autode.wrappers.base.Method'] = None,
+                 keywords:  Optional['autode.wrappers.keywords.Keywords'] = None,
+                 estimated: bool = False):
         """
         Energy as a value. Has a method_str attribute which is set using a
         method used to calculate the energy along with any keywords e.g.
@@ -240,9 +272,13 @@ class Energy(Value):
 
             keywords (autode.wrappers.keywords.Keywords | None): Set of
                      keywords which this energy has been calculated at
+
+            estimated (bool): Has this energy been estimated rather than
+                              calculated
         """
         super().__init__(value, units=units)
 
+        self.is_estimated = estimated
         self.method_str = f'{method.name} ' if method is not None else 'unknown'
         self.method_str += keywords.bstring if keywords is not None else ''
 
@@ -252,24 +288,28 @@ class PotentialEnergy(Energy):
 
 
 class FreeEnergy(Energy):
+    """(Gibbs) Free Energy (G)"""
 
     def __repr__(self):
         return f'FreeEnergy({round(self, 5)} {self.units.name})'
 
 
 class Enthalpy(Energy):
+    """Enthalpy (H)"""
 
     def __repr__(self):
         return f'Enthalpy({round(self, 5)} {self.units.name})'
 
 
 class EnthalpyCont(Energy):
+    """Enthalpy contribution: H = E + H_cont"""
 
     def __repr__(self):
         return f'H_cont({round(self, 5)} {self.units.name})'
 
 
 class FreeEnergyCont(Energy):
+    """Free energy contribution: G = E + G_cont"""
 
     def __repr__(self):
         return f'G_cont({round(self, 5)} {self.units.name})'
@@ -283,10 +323,15 @@ class Allocation(Value):
         return f'Allocation({round(self, 1)} {self.units.name})'
 
     def __init__(self, x,
-                 units: Union[Unit, str, None] = MB):
+                 units: Union[Unit, str] = MB):
         """
         Allocation of memory or disk, must be non-negative
 
+        Arguments:
+            x (float):
+
+        Keyword Arguments:
+            units (autode.units.Unit | str | None):
         """
         if float(x) <= 0:
             raise ValueError('Memory allocations must be non-negative. '
@@ -371,6 +416,9 @@ class Energies(list):
         """
         return self.last(energy_type=PotentialEnergy)
 
+    def copy(self):
+        return deepcopy(self)
+
     def __init__(self, *args: Energy):
         """
 
@@ -378,28 +426,6 @@ class Energies(list):
             *args (autode.values.Energy):
         """
         super().__init__(args)
-
-
-class PlottedEnergy(Energy):
-
-    def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value, not
-        whether they are estimated"""
-        return super().__eq__(other)
-
-    def __init__(self, value, units=kcalmol, estimated=False):
-        """
-        An energy to be plotted on a reaction profile
-
-        Arguments:
-            value (float):
-
-            estimated (bool): Has this energy been estimated rather than
-                              calculated
-        """
-        super().__init__(value, units=units)
-
-        self.estimated = estimated
 
 
 class Distance(Value):
@@ -411,6 +437,18 @@ class Distance(Value):
         return f'Distance({round(self, 5)} {self.units.name})'
 
     def __init__(self, value, units=ang):
+        super().__init__(value, units=units)
+
+
+class MWDistance(Value):
+    """Mass-weighted distance in some units, defaults to angstroms amu^(1/2)"""
+
+    implemented_units = [ang_amu_half]
+
+    def __repr__(self):
+        return f'Mass-weighted Distance({round(self, 5)} {self.units.name})'
+
+    def __init__(self, value, units=ang_amu_half):
         super().__init__(value, units=units)
 
 
@@ -490,8 +528,8 @@ class ValueArray(ABC, np.ndarray):
         return not self.__eq__(other)
 
     def __new__(cls,
-                input_array: np.ndarray,
-                units: Union[Unit, str, None] = None):
+                input_array: Union[np.ndarray, Sequence],
+                units:       Union[Unit, str, None] = None):
         """
         Initialise a ValueArray from a numpy array, or another ValueArray
 
@@ -595,6 +633,19 @@ class Gradient(ValueArray):
         return super().__new__(cls, input_array, units)
 
 
+class GradientRMS(Value):
+
+    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
+
+    def __repr__(self):
+        return f'RMS(∇E)({round(self, 4)} {self.units.name})'
+
+    def __init__(self, x,
+                 units: Union[Unit, str] = ha_per_ang):
+
+        super().__init__(x=x, units=units)
+
+
 class MomentOfInertia(ValueArray):
 
     implemented_units = [amu_ang_sq, kg_m_sq]
@@ -604,3 +655,12 @@ class MomentOfInertia(ValueArray):
 
     def __new__(cls,  input_array, units=amu_ang_sq):
         return super().__new__(cls, input_array, units)
+
+
+class EnergyArray(ValueArray):
+
+    implemented_units = [ha, ev, kcalmol, kjmol, J]
+
+    def __repr__(self):
+        """Representation of the energies in a PES"""
+        return f'PES{self.ndim}d'

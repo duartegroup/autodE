@@ -1,4 +1,4 @@
-from typing import Union, Collection
+from typing import Union, Collection, Optional
 from autode.constants import Constants
 
 
@@ -21,8 +21,8 @@ class Unit:
     def __init__(self,
                  name:       str,
                  conversion: float,
-                 aliases:    Union[Collection, None] = None,
-                 plot_name:  Union[str, None] = None):
+                 aliases:    Optional[Collection] = None,
+                 plot_name:  Optional[str] = None):
         """
         Unit
 
@@ -127,16 +127,37 @@ J = Unit(name='J',
          conversion=Constants.ha_to_J,
          aliases=['joule'])
 
+
+def energy_unit_from_name(name: str) -> 'autode.units.Unit':
+    """
+    Generate an energy unit given a name
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        name: Name of the unit
+
+    Raises:
+        (StopIteration): If a suitable energy unit is not found
+    """
+
+    for unit in (ha, ev, kcalmol, kjmol, J):
+        if name.lower() in unit.aliases:
+            return unit
+
+    raise StopIteration(f'Failed to convert {name} to a valid energy unit '
+                        f'must be one of: {ha, ev, kcalmol, kjmol, J}')
+
+
 # ----------------------------------------------------------------------
 # ------------------------------ Angles --------------------------------
 
 rad = BaseUnit(name='rad',
-               aliases=['radians'])
+               aliases=['radians', 'rads', 'radian'])
 
 
 deg = Unit(name='°',
            conversion=Constants.rad_to_deg,
-           aliases=['deg', 'degrees'])
+           aliases=['deg', 'degrees', 'º'])
 
 # ----------------------------------------------------------------------
 # ---------------------------- Distances -------------------------------
@@ -160,6 +181,10 @@ pm = Unit(name='pm',
 m = Unit(name='m',
          conversion=Constants.ang_to_m,
          aliases=['meter'])
+
+
+ang_amu_half = BaseUnit(name='Å amu^1/2',
+                        aliases=['ang amu^1/2', 'Å amu^0.5', 'ang amu^0.5'])
 
 # ----------------------------------------------------------------------
 # ------------------------------ Masses --------------------------------
@@ -188,14 +213,14 @@ kg_m_sq = CompositeUnit(kg, m, m,
 
 
 ha_per_ang = CompositeUnit(ha, per=[ang],
-                           aliases=['ha Å^-1', 'ha/ang'])
+                           aliases=['ha Å-1', 'ha Å^-1', 'ha/ang'])
 
 ha_per_a0 = CompositeUnit(ha, per=[a0],
-                          aliases=['ha a0^-1', 'ha/bohr'])
+                          aliases=['ha a0-1', 'ha a0^-1', 'ha/bohr'])
 
 
 ev_per_ang = CompositeUnit(ev, per=[ang],
-                           aliases=['ev Å^-1', 'ev/ang'])
+                           aliases=['ha a0-1', 'ev Å^-1', 'ev/ang'])
 
 # ----------------------------------------------------------------------
 # ------------------------- 2nd derivatives ----------------------------

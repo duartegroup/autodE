@@ -50,8 +50,9 @@ def get_keywords(calc_input, molecule):
     for keyword in calc_input.keywords:
 
         if 'scf' in keyword.lower(): 
-            if calc_input.solvent:
-                raise UnsuppportedCalculationInput('NWChem only supports solvent for DFT calcs')
+            if molecule.solvent is not None:
+                raise UnsuppportedCalculationInput('NWChem only supports '
+                                                   'solvent for DFT calcs')
 
         if isinstance(keyword, kws.Functional):
             keyword = f'dft\n  maxiter 100\n  xc {keyword.nwchem}\nend'
@@ -192,6 +193,12 @@ def print_constraints(inp_file, molecule, force_constant=20):
 
 class NWChem(ElectronicStructureMethod):
 
+    def __init__(self):
+        super().__init__('nwchem', path=Config.NWChem.path,
+                         keywords_set=Config.NWChem.keywords,
+                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
+                         doi='10.1063/5.0004997')
+
     def __repr__(self):
         return f'NWChem(available = {self.available})'
 
@@ -202,10 +209,10 @@ class NWChem(ElectronicStructureMethod):
 
             print(f'start {calc.name}\necho', file=inp_file)
 
-            if calc.input.solvent is not None:
+            if molecule.solvent is not None:
                 print(f'cosmo\n '
                       f'do_cosmo_smd true\n '
-                      f'solvent {calc.input.solvent}\n'
+                      f'solvent {calc.molecule.solvent.nwchem}\n'
                       f'end', file=inp_file)
 
             print('geometry', end=' ', file=inp_file)
@@ -481,12 +488,6 @@ class NWChem(ElectronicStructureMethod):
 
         # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
         return hess / Constants.a0_to_ang**2
-
-    def __init__(self):
-        super().__init__('nwchem', path=Config.NWChem.path,
-                         keywords_set=Config.NWChem.keywords,
-                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
-                         doi='10.1063/5.0004997')
 
 
 nwchem = NWChem()

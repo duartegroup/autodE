@@ -45,3 +45,16 @@ def work_in_zipped_dir(zip_path, chdir=True):
 
         return wrapped_function
     return func_decorator
+
+
+def requires_with_working_xtb_install(func):
+    """A function requiring an output file and output file lines"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        if not shutil.which('xtb') or not shutil.which('xtb').endswith('xtb'):
+            return
+
+        return func(*args, **kwargs)
+
+    return wrapped_function

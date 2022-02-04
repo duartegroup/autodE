@@ -84,8 +84,51 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
 class Complex(Species):
 
+    def __init__(self,
+                 *args:                Species,
+                 name:                 str = 'complex',
+                 do_init_translation:  bool = False,
+                 copy:                 bool = True,
+                 solvent_name: Optional[str] = None):
+        """
+        Molecular complex e.g. VdW complex of one or more Molecules
+
+        Arguments:
+            *args (autode.species.Species):
+
+        Keyword Arguments:
+            name (str):
+
+            do_init_translation (bool): Translate molecules initially such
+                                        that they donot overlap
+
+            copy (bool): Should the molecules be copied into this complex?
+
+            solvent_name (str | None): Name of the solvent, if None then select
+                                       the first solvent from the constituent
+                                       molecules
+        """
+        super().__init__(name=name,
+                         atoms=sum((deepcopy(mol.atoms) if copy else mol.atoms
+                                    for mol in args), None),
+                         charge=sum(mol.charge for mol in args),
+                         mult=sum(m.mult for m in args) - (len(args) - 1))
+
+        self._molecules = args
+
+        if do_init_translation:
+            self._init_translation()
+
+        self.solvent = self._init_solvent(solvent_name)
+        self.graph = union(graphs=[mol.graph for mol in self._molecules])
+
     def __repr__(self):
         return self._repr(prefix='Complex')
+
+    def __eq__(self, other):
+        """Equality of two complexes"""
+        return (isinstance(other, self.__class__)
+                and all(a == b for (a, b) in zip(self._molecules, other._molecules)))
 
     @Species.atoms.setter
     def atoms(self,
@@ -304,7 +347,7 @@ class Complex(Species):
         """Initial solvent"""
 
         if solvent_name is not None:
-            return get_solvent(solvent_name)
+            return get_solvent(solvent_name, kind='implicit')
 
         if self.n_molecules > 0:
             solvent = self._molecules[0].solvent
@@ -315,44 +358,6 @@ class Complex(Species):
             return solvent
 
         return None
-
-    def __init__(self,
-                 *args:                Species,
-                 name:                 str = 'complex',
-                 do_init_translation:  bool = False,
-                 copy:                 bool = True,
-                 solvent_name: Optional[str] = None):
-        """
-        Molecular complex e.g. VdW complex of one or more Molecules
-
-        Arguments:
-            *args (autode.species.Species):
-
-        Keyword Arguments:
-            name (str):
-
-            do_init_translation (bool): Translate molecules initially such
-                                        that they donot overlap
-
-            copy (bool): Should the molecules be copied into this complex?
-
-            solvent_name (str | None): Name of the solvent, if None then select
-                                       the first solvent from the constituent
-                                       molecules
-        """
-        super().__init__(name=name,
-                         atoms=sum((deepcopy(mol.atoms) if copy else mol.atoms
-                                    for mol in args), None),
-                         charge=sum(mol.charge for mol in args),
-                         mult=sum(m.mult for m in args) - (len(args) - 1))
-
-        self._molecules = args
-
-        if do_init_translation:
-            self._init_translation()
-
-        self.solvent = self._init_solvent(solvent_name)
-        self.graph = union(graphs=[mol.graph for mol in self._molecules])
 
 
 class ReactantComplex(Complex):
@@ -403,19 +408,5 @@ class ProductComplex(Complex):
         super().__init__(*args, name=name, **kwargs)
 
 
-class SolvatedReactantComplex(Complex):
-
-    def run_const_opt(self, const_opt):
-        """Run a constrained optimisation of the ReactantComplex"""
-        raise NotImplementedError
-
-    def __init__(self, solvent_mol, *args, name='complex'):
-        super().__init__(*args, name=name)
-        self.solvent_mol = solvent_mol
-        self.qm_solvent_atoms = None
-        self.mm_solvent_atoms = None
-
-
 class NCIComplex(Complex):
-    pass
-
+    """Non covalent interaction complex"""

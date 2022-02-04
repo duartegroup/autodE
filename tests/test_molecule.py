@@ -3,12 +3,9 @@ from autode.conformers import Conformer
 from autode.exceptions import NoAtomsInMolecule
 from autode.geom import are_coords_reasonable
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import make_graph
 from autode.smiles.smiles import calc_multiplicity, init_organic_smiles
 from autode.wrappers.ORCA import orca
-from autode.species.molecule import Reactant
-from autode.species.molecule import Product
-from autode.species.molecule import reactant_to_product
+from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
 from rdkit.Chem import Mol
 from . import testutils
@@ -153,12 +150,13 @@ def calc_mult():
     assert calc_multiplicity(h, n_radical_electrons=2) == 1
 
 
-def test_reactant_to_product():
+def test_reactant_to_product_and_visa_versa():
 
-    methane = Reactant(smiles='C', charge=0, mult=1)
-    prod = reactant_to_product(reactant=methane)
-
+    prod = Reactant().to_product()
     assert type(prod) is Product
+
+    reac = Product().to_reactant()
+    assert type(reac) is Reactant
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'molecule.zip'))
@@ -168,6 +166,14 @@ def test_molecule_from_xyz():
     assert h2.name == 'h2_conf0'
     assert h2.n_atoms == 2
     assert h2.formula == 'H2'
+
+    # Molecules loaded from .xyz directly can still have names
+    h2_named = Molecule('h2_conf0.xyz', name='tmp')
+    assert h2_named.name == 'tmp'
+
+    # Name kwarg takes priority even if arg is defined
+    h2_named2 = Molecule('tmp', name='tmp2')
+    assert h2_named2.name == 'tmp2'
 
 
 def test_rdkit_possible_fail():
@@ -197,7 +203,7 @@ def test_multi_ring_smiles_init():
     assert are_coords_reasonable(cr_complex.coordinates)
 
 
-def test_lowest_energy_conformer_set():
+def test_prune_diff_graphs():
 
     h2 = Molecule(smiles='[H][H]')
     h2.energy = -1.0
@@ -210,9 +216,47 @@ def test_lowest_energy_conformer_set():
 
     h2.conformers = [h2_not_bonded]
 
-    # Throw an exception if no conformers are found
-    with pytest.raises(RuntimeError):
-        h2._set_lowest_energy_conformer()
+    h2.conformers.prune_diff_graph(graph=h2.graph)
+
+    # Should prune all conformers
+    assert h2.n_conformers == 0
+
+
+def test_lowest_energy_conformer_set_ok():
+
+    h2 = Molecule(smiles='[H][H]')
+    h2.energy = -1.0
+
+    h2_long = Molecule(atoms=[Atom('H'), Atom('H', x=0.5)])
+    h2_long.energy = -1.1
+
+    h2.conformers = [h2_long]
+
+    # Setting the lowest energy conformer should override the atoms
+    # and energy of the molecule
+    h2._set_lowest_energy_conformer()
+
+    assert h2.energy == -1.1
+    assert np.isclose(h2.distance(0, 1).to('ang'), 0.5)
+
+
+def test_lowest_energy_conformer_set_no_energy():
+
+    h2 = Molecule(smiles='[H][H]')
+    h2.energy = -1.0
+
+    # No lowest energy conformer without any conformers..
+    assert h2.conformers.lowest_energy is None
+
+    h2_conf = Molecule(atoms=[Atom('H'), Atom('H', x=1)])
+    assert h2_conf.energy is None
+
+    h2.conformers = [h2_conf]
+    assert h2.conformers.lowest_energy is None
+
+    # Cannot set the lowest energy with no conformers having defined energies
+    with pytest.raises(Exception):
+        h2_conf._set_lowest_energy_conformer()
 
 
 def test_defined_metal_spin_state():

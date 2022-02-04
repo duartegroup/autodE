@@ -115,6 +115,31 @@ def test_species_energies_reset():
     assert tmp_species.energy is None
 
 
+def test_connectivity():
+
+    _h2 = Species(name='H2', atoms=[h1, h2], charge=0, mult=1)
+    _h2.reset_graph()
+
+    # Must have the same connectivity as itself
+    assert _h2.has_same_connectivity_as(_h2)
+
+    # Undetermined if one doesn't have a graph
+    _h2_no_graph = _h2.copy()
+    _h2_no_graph.graph = None
+    with pytest.raises(ValueError):
+        _h2.has_same_connectivity_as(_h2_no_graph)
+
+    # Or something without a graph attribute is passed
+    with pytest.raises(ValueError):
+        _h2.has_same_connectivity_as('a')
+
+    # Different number of atoms have different connectivity
+    assert not _h2.has_same_connectivity_as(Molecule(atoms=None))
+
+    # No atom molecule have the same connectivity
+    assert Molecule(atoms=None).has_same_connectivity_as(Molecule(atoms=None))
+
+
 def test_species_xyz_file():
 
     mol.print_xyz_file()
@@ -211,8 +236,15 @@ def test_species_solvent():
 
     assert mol.solvent is None
 
-    solvated_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1, solvent_name='water')
-    assert type(solvated_mol.solvent) == Solvent
+    solvated_mol = Species(name='H2', atoms=[h1, h2], charge=0, mult=1,
+                           solvent_name='water')
+    assert isinstance(solvated_mol.solvent, Solvent)
+
+    solvated_mol.solvent = None
+    assert solvated_mol.solvent is None
+
+    solvated_mol.solvent = 'water'
+    assert isinstance(solvated_mol.solvent, Solvent)
 
 
 def test_reorder():
@@ -439,6 +471,12 @@ def test_hessian_calculation():
     assert h2o.frequencies is not None
 
 
+def test_numerical_hessian_invalid_delta():
+
+    with pytest.raises(ValueError):
+        mol.calc_hessian(method=orca, coordinate_shift='a', numerical=True)
+
+
 def test_enthalpy_doc_example():
 
     _h2 = Molecule(smiles='[H][H]')
@@ -490,3 +528,29 @@ def test_species_rotation_is_same_as_atom():
         atom.rotate(axis=axis, theta=angle)
 
     assert np.linalg.norm((water.coordinates - water_atoms.coordinates)) < 0.01
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'species.zip'))
+def test_keywords_opt_sp_thermo():
+
+    h2o = Molecule(smiles='O', name='water_tmp')
+    orca.path = here
+    assert orca.available
+
+    # Check that the calculations work with keywords specified as either a
+    # regular list or as a single string
+    for kwds in (['Opt', 'def2-SVP', 'PBE'], 'Opt def2-SVP PBE'):
+        h2o.energies.clear()
+        h2o.optimise(method=orca, keywords=kwds)
+        assert h2o.energy is not None
+
+    for kwds in (['SP', 'def2-SVP', 'PBE'], 'SP def2-SVP PBE'):
+        h2o.energies.clear()
+        h2o.single_point(method=orca, keywords=kwds)
+        assert h2o.energy is not None
+
+    for kwds in (['Freq', 'def2-SVP', 'PBE'], 'Freq def2-SVP PBE'):
+        h2o.energies.clear()
+        h2o.hessian = None
+        h2o.calc_thermo(method=orca, keywords=kwds)
+        assert h2o.energy is not None

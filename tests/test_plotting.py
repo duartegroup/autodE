@@ -38,8 +38,8 @@ def test_plot_reaction_profile():
     plotting.plot_reaction_profile(reactions=[reaction], units=KjMol,
                                    name='test')
 
-    assert os.path.exists('test_reaction_profile.png')
-    os.remove('test_reaction_profile.png')
+    assert os.path.exists('test_reaction_profile.pdf')
+    os.remove('test_reaction_profile.pdf')
 
     with pytest.raises(AssertionError):
         plotting.plot_reaction_profile(reactions=[reaction], units=KjMol,
@@ -125,7 +125,9 @@ def test_reaction_warnings():
     reaction.ts = None
 
     # Should be some warning with no TS
-    assert len(plotting.get_reaction_profile_warnings(reactions=[reaction])) > 10
+    warning_str = plotting.get_reaction_profile_warnings(reactions=[reaction])
+    assert len(warning_str) > 10
+    assert 'barrierless' in warning_str
 
     # Should be no warnings  with a TS that exists and has an energy and one
     # imaginary freq
@@ -184,33 +186,15 @@ def test_stat_point_minimisation():
         assert len(stationary_points) == 5
 
 
-def test_saving():
-
-    plotting.plot_1dpes(rs=[1, 2, 3],
-                        rel_energies=[0.0, 0.2, 0.0],
-                        method_name='test',
-                        name='tmp_pes')
-    assert os.path.exists('tmp_pes.png')
-
-    # Plotting again wit the same name shouldn't plot on top, rather override
-    plotting.plot_1dpes(rs=[1, 2, 3],
-                        rel_energies=[0.0, 0.3, 0.0],
-                        method_name='test',
-                        name='tmp_pes')
-    assert os.path.exists('tmp_pes.png')
-    # checked manually...
-    os.remove('tmp_pes.png')
-
-
 def test_energy():
 
     energy = plotting.Energy(5, units='Ha', estimated=False)
-    assert not energy.estimated
+    assert not energy.is_estimated
     assert energy == 5
 
     new_energy = energy * 5
     assert new_energy == 25
-    assert not new_energy.estimated
+    assert not new_energy.is_estimated
 
     new_energy = energy - 5
     assert new_energy == 0

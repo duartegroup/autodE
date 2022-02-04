@@ -14,6 +14,8 @@ coverage.xml
 
 tests/__pycache__/
 
+tests/*.xyz
+
 autode/conformers/__pycache__/
 
 autode/transition_states/__pycache__/
@@ -31,13 +33,11 @@ tests/htmlcov/
 
 *.pyc
 
-*.xyz
-
 htmlcov/
 
 tests/.autode_calculations
 
-tests/data/__MACOSX/
+tests/*/__MACOSX/
 
 tests/data/conformers/.autode_calculations
 

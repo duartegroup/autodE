@@ -27,7 +27,7 @@ the TS can be located with
 Out (visualised)
 
 .. image:: ../common/curtius_ts.png
-   :width: 450
+   :width: 370
    :align: center
 
 
@@ -36,34 +36,6 @@ Out (visualised)
     each possible bond rearrangment and does not attempt to search the conformational
     space.
 
-
-------------
-
-
-Default: Reactants and products
-*******************************
-
-.. image:: ../common/cope.png
-
-
-Given a specific bond rearrangement generating a TS from known structures of
-reactants and products can be achieved for a simple Cope rearrangement with
-
-
-.. literalinclude:: ../common/cope.py
-
-Out:
-
-.. code-block:: python
-
-  [-544.36]
-
-where the xyz files used are:
-
-.. literalinclude:: ../common/cope_r.xyz
-
-
-.. literalinclude:: ../common/cope_p.xyz
 
 ------------
 
@@ -82,6 +54,8 @@ allyl phenyl ether)
 Out:
 
 .. image:: ../common/claisen_neb_optimised.png
+   :width: 580
+   :align: center
 
 
 Out (visualised):
@@ -97,3 +71,10 @@ where the xyz files used are:
 
 
 .. literalinclude:: ../common/claisen_p.xyz
+
+
+
+.. note::
+    NEBs initialised from end points use linear interpolation then an image
+    independent pair potential to relax the initial linear path, following
+    `this paper <https://arxiv.org/abs/1406.1512>`_.

@@ -1,25 +1,21 @@
 import autode as ade
-from autode.pes.pes_1d import PES1d
-import numpy as np
-
-# Initialise the electronic structure method (XTB) and water molecule
-xtb = ade.methods.XTB()
 
 water = ade.Molecule(name='H2O', smiles='O')
 
-# Initialise a potential energy surface where the reactant and product is
-# the same. A product is required to call pes.products_made() to check products
-# are generated somewhere on the surface via graph isomorphism
-pes = PES1d(reactant=water, product=water,
-            rs=np.linspace(0.65, 2.0, num=20),
-            r_idxs=(0, 1))
+# Initialise a relaxed potential energy surface for the water O-H stretch
+# from 0.65 -> 2.0 Å in 15 steps
+pes = ade.pes.RelaxedPESnD(species=water,
+                           rs={(0, 1): (0.65, 2.0, 15)})
 
-# Calculate the potential energy surface at the XTB level optimising
-# all degrees of freedom other than the O-H distance
-pes.calculate(name='OH_PES',
-              method=xtb,
-              keywords=xtb.keywords.low_opt)
+pes.calculate(method=ade.methods.XTB())
+pes.plot('OH_PES_relaxed.png')
 
-# Print the r values and energies
-for i in range(pes.n_points):
-    print(f'{pes.rs[i, 0]:.3f} {pes.species[i].energy:.4f}')
+# PESs can also be saved as compressed numpy objects and reloaded
+pes.save('pes.npz')
+
+# For example, reload the PES and print the distances and energies
+pes = ade.pes.RelaxedPESnD.from_file('pes.npz')
+
+print('r (Å)   E (Ha)')
+for i in range(15):
+    print(f'{pes.r1[i]:.4f}', f'{pes[i]:.5f}')
